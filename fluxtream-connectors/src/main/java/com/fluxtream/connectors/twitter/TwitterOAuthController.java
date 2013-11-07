@@ -1,14 +1,16 @@
 package com.fluxtream.connectors.twitter;
 
 import java.io.IOException;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.controllers.ControllerSupport;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.Guest;
+import com.fluxtream.services.GuestService;
+import com.google.gdata.client.authn.oauth.OAuthException;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.OAuthProvider;
 import oauth.signpost.basic.DefaultOAuthConsumer;
@@ -17,17 +19,10 @@ import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
 import oauth.signpost.exception.OAuthNotAuthorizedException;
-
 import org.apache.http.client.HttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import com.fluxtream.Configuration;
-import com.fluxtream.connectors.Connector;
-import com.fluxtream.domain.Guest;
-import com.fluxtream.services.GuestService;
-import com.google.gdata.client.authn.oauth.OAuthException;
 
 @Controller
 @RequestMapping(value="/twitter")
@@ -66,15 +61,16 @@ public class TwitterOAuthController {
 		request.getSession().setAttribute(TWITTER_OAUTH_CONSUMER, consumer);
 		request.getSession().setAttribute(TWITTER_OAUTH_PROVIDER, provider);
 		System.out.println("the token secret is: " + consumer.getTokenSecret());
-		
+        if (request.getParameter("apiKeyId") != null)
+            oauthCallback += "?apiKeyId=" + request.getParameter("apiKeyId");
+
 		String approvalPageUrl = provider.retrieveRequestToken(consumer, oauthCallback);
 		
 		return "redirect:" + approvalPageUrl;
 	}
 
 	@RequestMapping(value = "/upgradeToken")
-	public String upgradeToken(HttpServletRequest request,
-			HttpServletResponse response) throws OAuthException, OAuthMessageSignerException, OAuthNotAuthorizedException, OAuthExpectationFailedException, OAuthCommunicationException {
+	public String upgradeToken(HttpServletRequest request) throws OAuthException, OAuthMessageSignerException, OAuthNotAuthorizedException, OAuthExpectationFailedException, OAuthCommunicationException {
 		OAuthConsumer consumer = (OAuthConsumer) request.getSession().getAttribute(TWITTER_OAUTH_CONSUMER);
 		OAuthProvider provider = (OAuthProvider) request.getSession().getAttribute(TWITTER_OAUTH_PROVIDER);
 		String verifier = request.getParameter("oauth_verifier");
@@ -82,12 +78,20 @@ public class TwitterOAuthController {
 		Guest guest = AuthHelper.getGuest();
 
         final Connector connector = Connector.getConnector("twitter");
-        final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector);
+        ApiKey apiKey;
+        if (request.getParameter("apiKeyId")!=null) {
+            long apiKeyId = Long.valueOf(request.getParameter("apiKeyId"));
+            apiKey = guestService.getApiKey(apiKeyId);
+        } else
+            apiKey = guestService.createApiKey(guest.getId(), connector);
 
 		guestService.setApiKeyAttribute(apiKey,  "accessToken", consumer.getToken());
 		guestService.setApiKeyAttribute(apiKey,  "tokenSecret", consumer.getTokenSecret());
 
-		return "redirect:/app/from/"+connector.getName();
+        if (request.getParameter("apiKeyId")!=null)
+            return "redirect:/app/tokenRenewed/" + connector.getName();
+        else
+    		return "redirect:/app/from/"+connector.getName();
 	}
 
 	String getConsumerKey() {

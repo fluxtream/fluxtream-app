@@ -211,11 +211,14 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
                                      false, true, lastFmKeys));
         final String twitter = "Twitter";
         String[] twitterKeys = checkKeysExist(twitter, Arrays.asList("twitterConsumerKey", "twitterConsumerSecret"));
-        em.persist(new ConnectorInfo(twitter,
+        ConnectorInfo twitterConnectorInfo = new ConnectorInfo(twitter,
                                      "/" + release + "/images/connectors/connector-twitter.jpg",
                                      res.getString("twitter"), "/twitter/token",
                                      Connector.getConnector("twitter"), order++, twitterKeys!=null,
-                                     false, true, twitterKeys));
+                                     false, true, twitterKeys);
+        twitterConnectorInfo.supportsRenewTokens = true;
+        twitterConnectorInfo.renewTokensUrlTemplate = "twitter/token?apiKeyId=%s";
+        em.persist(twitterConnectorInfo);
         final String fluxtreamCapture = "Fluxtream Capture";
         String[] fluxtreamCaptureKeys = checkKeysExist(fluxtreamCapture, new ArrayList<String>());
         em.persist(new ConnectorInfo(fluxtreamCapture,
