@@ -88,6 +88,13 @@ public class AppController {
         return mav;
     }
 
+    private boolean hasIntercom(HttpServletRequest request) {
+        String intercomScriptPath = request.getSession().getServletContext().getRealPath("/WEB-INF/jsp/intercom.jsp");
+        File intercomScriptFile = new File(intercomScriptPath);
+        final boolean fileExists = intercomScriptFile.exists();
+        return fileExists;
+    }
+
     private boolean hasTracker(HttpServletRequest request) {
         String trackerPath = request.getSession().getServletContext().getRealPath("/WEB-INF/jsp/tracker.jsp");
         File trackerFile = new File(trackerPath);
@@ -143,6 +150,7 @@ public class AppController {
 
 		ModelAndView mav = new ModelAndView("redirect:main");
         mav.addObject("tracker", hasTracker(request));
+        mav.addObject("intercom", hasIntercom(request));
 		if (request.getSession(false) == null)
 			return mav;
 

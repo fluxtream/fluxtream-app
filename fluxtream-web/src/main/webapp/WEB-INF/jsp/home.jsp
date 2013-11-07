@@ -5,6 +5,7 @@
 %><%@ page import="com.fluxtream.domain.Guest"
 %><%
     Boolean tracker = (Boolean)request.getAttribute("tracker");
+    Boolean intercom = (Boolean)request.getAttribute("intercom");
     Boolean useMinifiedJs = (Boolean)request.getAttribute("useMinifiedJs");
     List<Guest> coachees = (List<Guest>)request.getAttribute("coachees");
     String vieweeFullname = (String)request.getAttribute("fullname");
@@ -135,6 +136,10 @@
     <% if (tracker) { try{%>
         <jsp:include page="tracker.jsp" />
     <%} catch(Throwable t){} } %>
+    <% if (intercom) { try{%>
+        <jsp:include page="intercom.jsp" />
+    <%} catch(Throwable t){} } %>
+
     <script src="/static/js/bootstrap-2.3.2.min.js"></script>
     <script src="/static/js/jquery-ui-1.10.3.custom.min.js"></script>
     <script src="/static/js/jquery.ui.sortable-1.8.2-bt-1.0.1.js"></script>

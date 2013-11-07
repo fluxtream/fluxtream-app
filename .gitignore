@@ -50,4 +50,6 @@ fluxtream-web/src/main/webapp/optimized
 fluxtream-web/src/main/webapp/css/connectors.css
 fluxtream-web/src/main/webapp/css/flx.css
 fluxtream-web/src/main/webapp/css/bootstrapCustomizations.css
+fluxtream-web/src/main/webapp/WEB-INF/jsp/intercom.jsp
+
 build
