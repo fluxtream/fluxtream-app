@@ -117,6 +117,9 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
                                                                    "/moves/oauth2/token",
                                                                    Connector.getConnector("moves"), order++, movesKeys!=null,
                                                                    false, true, movesKeys);
+
+        movesConnectorInfo.supportsRenewTokens = true;
+        movesConnectorInfo.renewTokensUrlTemplate = "moves/oauth2/token?apiKeyId=%s";
         em.persist(movesConnectorInfo);
         final String latitude = "Google Latitude";
         String[] latitudeKeys = checkKeysExist(latitude, Arrays.asList("google.client.id", "google.client.secret"));

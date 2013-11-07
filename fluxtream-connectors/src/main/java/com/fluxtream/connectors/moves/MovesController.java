@@ -67,6 +67,8 @@ public class MovesController {
                                                "response_type=code&client_id=%s&" +
                                                "scope=activity location",
                                                redirectUri, env.get("moves.client.id"));
+        if (request.getParameter("apiKeyId")!=null)
+            approvalPageUrl += "&state=" + request.getParameter("apiKeyId");
 
         return "redirect:" + approvalPageUrl;
     }
@@ -131,7 +133,13 @@ public class MovesController {
         // Create the entry for this new apiKey in the apiKey table and populate
         // ApiKeyAttributes with all of the keys fro oauth.properties needed for
         // subsequent update of this connector instance.
-        ApiKey apiKey = guestService.createApiKey(guest.getId(), Connector.getConnector("moves"));
+        ApiKey apiKey;
+        if (request.getParameter("state")!=null) {
+            long apiKeyId = Long.valueOf(request.getParameter("state"));
+            apiKey = guestService.getApiKey(apiKeyId);
+        } else {
+            apiKey = guestService.createApiKey(guest.getId(), Connector.getConnector("moves"));
+        }
 
         guestService.setApiKeyAttribute(apiKey,
                                         "accessToken", token.getString("access_token"));
@@ -143,7 +151,10 @@ public class MovesController {
         // Record that this connector is now up
         guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null);
 
-        return "redirect:/app/from/moves";
+        if (request.getParameter("state")!=null)
+            return "redirect:/app/tokenRenewed/moves";
+        else
+            return "redirect:/app/from/moves";
     }
 
     String getAccessToken(final ApiKey apiKey) throws Exception {
