@@ -78,7 +78,7 @@
                 <td><a href="images/s2.png"><img src="images/s2.png" class="screenshot_img_general screenshot_img_2"/></a></td>
                 <td><h1 class="screenshot_txt_1">The whole is more than the sum of its parts</h1>
                     <div class="screenshot_txt_2">
-                        As you keep adding more different datatypes, you will picture your life unfold.
+                        As you keep adding more different data types, you will picture your life unfold.
                     </div></td>
             </tr>
             <tr class="sc_highlight">
@@ -92,7 +92,7 @@
                 <td><a href="images/s4.png"><img src="images/s4.png" class="screenshot_img_general screenshot_img_4"/></a></td>
                 <td><h1 class="screenshot_txt_1">Explore your daily life, be curious</h1>
                     <div class="screenshot_txt_2">
-                        Awareness is a muscle. Fluxtream gives you all the tools you need to exercise it.
+                        Awareness is a muscle. Fluxtream gives you the tools you need to exercise it.
                     </div></td>
             </tr>
         </table>
@@ -106,13 +106,13 @@
         <div class="nav">
             <ul>
                 <li>
-                    <a href="#" class="guideLink">Quick start guide</a>
+                    <a href="${release}/html/QuickStartGuide.pdf" class="guideLink">Quick start guide [PDF]</a>
                 </li>
                 <li>
-                    <a href="#" class="policyLink">Privacy policy and terms of use</a>
+                    <a href="${release}/html/privacyPolicy.html" class="policyLink">Privacy policy and terms of use</a>
                 </li>
                 <li>
-                    <a href="#" class="developerLink">Developers: join our open-source team!</a>
+                    <a href="https://github.com/fluxtream/fluxtream-app/wiki" class="developerLink">Developers: join our open-source team!</a>
                 </li>
                 <li>
                     <a href="#" class="learnMoreLink">Learn more</a>
