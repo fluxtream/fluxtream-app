@@ -1,19 +1,5 @@
 @charset "UTF-8";
 
-@font-face {
-  font-family: 'aleo';
-  src: url("../fonts/aleo/Aleo-Regular.otf") format("opentype");
-  font-weight: 100;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'klavika';
-  src: url("../fonts/klavika/Klavika-Light.otf") format("opentype");
-  font-weight: 1000 !important;
-  font-style: normal;
-}
-
 body, html {
   font-family: 'Open Sans', Arial, Helvetica, sans-serif;
   text-align: center;
@@ -26,6 +12,14 @@ body, html {
   overflow-x: hidden;
   border: 1px black;
   font-size: 14px;
+}
+
+#wrapper {
+    line-height: normal;
+}
+
+#wrapper h1 {
+    line-height: normal;
 }
 
 #header {
@@ -77,6 +71,7 @@ body, html {
   margin-left: -1px;
   margin-right: 15px;
   width: 150px;
+  height: 15px !important;
 }
 
 .password_input {
@@ -84,6 +79,7 @@ body, html {
   margin-left: -1px;
   margin-right: 15px;
   width: 150px;
+  height: 15px !important;;
 }
 
 .forgotPassword {
@@ -217,10 +213,10 @@ body, html {
 }
 
 .screenshot_txt_1 {
-	text-align: left;
+  text-align: left;
   font-size: 22px;
   float: left;
-  margin-top: 25px;
+  margin-top: 0px;
   margin-bottom: 0px;
   margin-left: 20px;
   width: 300px;
@@ -230,7 +226,7 @@ body, html {
   text-align: left;
   font-size: 18px;
   float: left;
-  margin-top: 20px;
+  margin-top: 15px;
   margin-left: 20px;
   margin-bottom: 0px;
   width: 300px;
@@ -243,47 +239,40 @@ body, html {
   width: 188px;
   height: 878px;
   margin-left: 8px;
-  margin-top: -20px;
-/*  border: 1px solid #a3a3a3; */
+  margin-top: 30px;
+  border: 1px solid #a3a3a3;
+}
+
+.screenshot_img_general {
+    max-width: 400px;
+    float: left;
+    width: 300px;
+    height: 200px;
+    border: 1px solid #a3a3a3;
 }
 
 .screenshot_img_1 {
-  float: left;
-  width: 300px;
-  height: 200px;
+  background: url("../images/s1.png");
   margin-top: 30px;
-  /*border: 1px solid #a3a3a3;*/
 }
 
 .screenshot_img_2 {
   background: url("../images/s2.png");
-  float: left;
-  width: 300px;
-  height: 200px;
-  margin-top: 20px;
-  /*border: 1px solid #a3a3a3;*/
+  margin-top: 9px;
 }
 
 .screenshot_img_3 {
   background: url("../images/s3.png");
-  float: left;
-  width: 300px;
-  height: 200px;
-  margin-top: 20px;
-  /*border: 1px solid #a3a3a3;*/
+  margin-top: 9px;
 }
 
 .screenshot_img_4 {
   background: url("../images/s4.png");
-  float: left;
-  width: 300px;
-  height: 200px;
-  margin-top: 20px;
-  /*border: 1px solid #a3a3a3;*/
+  margin-top: 9px;
 }
 
 .line1 {
-	margin-top: 30px;
+  margin-top: 17px;
   width: 850px;
   border: 0;
   border-top: 1px solid #dfdfdf;
@@ -294,7 +283,7 @@ body, html {
   font-size: 14px;
   float: left;
   margin-top: 6px;
-  margin-bottom: -12px;
+  margin-bottom: -15px;
 }
 
 .nav {
