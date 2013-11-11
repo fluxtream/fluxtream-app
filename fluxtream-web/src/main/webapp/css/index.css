@@ -27,7 +27,7 @@ body, html {
   margin-top: 20px;
   color: #5E5E5E;
   width: 850px;
-  height: 82px;
+  height: 77px;
 }
 
 .logo {
@@ -58,12 +58,14 @@ body, html {
 
 .username_txt {
   float: left;
-  margin-bottom: -4px;
+  margin-bottom: -1px;
+  font-size: 13px !important;
 }
 
 .password_txt {
   float: left;
-  margin-bottom: -4px;
+  margin-bottom: -1px;
+  font-size: 13px !important;
 }
 
 .username_input {
@@ -71,7 +73,8 @@ body, html {
   margin-left: -1px;
   margin-right: 15px;
   width: 150px;
-  height: 15px !important;
+  height: 10px !important;
+  border-radius: 1px !important;
 }
 
 .password_input {
@@ -79,13 +82,14 @@ body, html {
   margin-left: -1px;
   margin-right: 15px;
   width: 150px;
-  height: 15px !important;;
+  height: 10px !important;
+  border-radius: 1px !important;
 }
 
 .forgotPassword {
   font-size: 12px;
   float: left;
-  margin-top: -4px;
+  margin-top: -10px;
 }
 
 .login_btn {
@@ -112,14 +116,14 @@ body, html {
   font-weight: bold;
   font-style: normal;
   width: 100px;
-  height: 40px;
+  height: 35px;
   text-decoration: none;
   text-align: center;
   cursor: pointer;
   background-color: #5995de;
   border-radius: 2px;
   margin-right: 5px;
-  margin-top: 2px;
+  margin-top: -2px;
 }
 
 .login_btn:active {
@@ -186,14 +190,14 @@ body, html {
   font-size: 26px;
   font-weight: bold;
   font-style: normal;
-  width: 190px;
+  width: 180px;
   height: 50px;
   text-decoration: none;
   text-align: center;
   cursor: pointer;
   background-color: white;
-  border-radius: 10px;
-  margin-left: 25px;
+  border-radius: 3px;
+  margin-left: 35px;
   margin-top: -2px;
   outline: none;
 }

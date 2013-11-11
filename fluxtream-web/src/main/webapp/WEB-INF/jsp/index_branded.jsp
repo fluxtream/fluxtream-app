@@ -78,7 +78,7 @@
                 <td><a href="images/s2.png"><img src="images/s2.png" class="screenshot_img_general screenshot_img_2"/></a></td>
                 <td><h1 class="screenshot_txt_1">The whole is more than the sum of its parts</h1>
                     <div class="screenshot_txt_2">
-                        As you keep adding more different data types, you will picture your life unfold.
+                        As you keep adding more different data types, the picture of your life will unfold.
                     </div></td>
             </tr>
             <tr class="sc_highlight">
