@@ -204,12 +204,10 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         em.persist(googleCalendarConnectorInfo);
         final String lastFm = "Last fm";
         String[] lastFmKeys = checkKeysExist(lastFm, Arrays.asList("lastfmConsumerKey", "lastfmConsumerSecret"));
-        em.persist(new ConnectorInfo(lastFm,
-                                     "/" + release + "/images/connectors/connector-lastfm.jpg",
-                                     res.getString("lastfm"),
-                                     "/lastfm/token",
-                                     Connector.getConnector("lastfm"), order++, lastFmKeys!=null,
-                                     false, true, lastFmKeys));
+        final ConnectorInfo lastfmConnectorInfo = new ConnectorInfo(lastFm, "/" + release + "/images/connectors/connector-lastfm.jpg", res.getString("lastfm"), "/lastfm/token", Connector.getConnector("lastfm"), order++, lastFmKeys != null, false, true, lastFmKeys);
+        lastfmConnectorInfo.supportsRenewTokens = true;
+        lastfmConnectorInfo.renewTokensUrlTemplate = "lastfm/token?apiKeyId=%s";
+        em.persist(lastfmConnectorInfo);
         final String twitter = "Twitter";
         String[] twitterKeys = checkKeysExist(twitter, Arrays.asList("twitterConsumerKey", "twitterConsumerSecret"));
         ConnectorInfo twitterConnectorInfo = new ConnectorInfo(twitter,

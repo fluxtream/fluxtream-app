@@ -29,7 +29,8 @@ import static com.fluxtream.utils.Utils.hash;
 @RequestMapping(value = "/lastfm")
 public class LastFmController {
 
-	@Autowired
+    private static final String LASTFM_RENEWTOKEN_APIKEYID = "lastfm.renewtoken.apiKeyId";
+    @Autowired
 	GuestService guestService;
 
 	@Autowired
@@ -48,6 +49,10 @@ public class LastFmController {
 
 		String approvalPageUrl = "http://www.last.fm/api/auth/?api_key="
 				+ env.get("lastfmConsumerKey") + "&cb=" + oauthCallback;
+
+        if (request.getParameter("apiKeyId")!=null)
+            request.getSession().setAttribute(LASTFM_RENEWTOKEN_APIKEYID,
+                                              request.getParameter("apiKeyId"));
 
 		return "redirect:" + approvalPageUrl;
 	}
@@ -83,11 +88,21 @@ public class LastFmController {
 		Guest guest = AuthHelper.getGuest();
 
         final Connector connector = Connector.getConnector("lastfm");
-        final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector);
+        ApiKey apiKey;
+        if (request.getSession().getAttribute(LASTFM_RENEWTOKEN_APIKEYID)!=null) {
+            final String apiKeyIdString = (String) request.getSession().getAttribute(LASTFM_RENEWTOKEN_APIKEYID);
+            long apiKeyId = Long.valueOf(apiKeyIdString);
+            apiKey = guestService.getApiKey(apiKeyId);
+        } else
+            apiKey = guestService.createApiKey(guest.getId(), connector);
 
 		guestService.setApiKeyAttribute(apiKey, "sessionKey", sessionKey);
 		guestService.setApiKeyAttribute(apiKey,  "username", username);
-		
+
+        if (request.getSession().getAttribute(LASTFM_RENEWTOKEN_APIKEYID)!=null) {
+            request.getSession().removeAttribute(LASTFM_RENEWTOKEN_APIKEYID);
+            return "redirect:/app/tokenRenewed/"+connector.getName();
+        }
 		return "redirect:/app/from/"+connector.getName();
 	}
 
