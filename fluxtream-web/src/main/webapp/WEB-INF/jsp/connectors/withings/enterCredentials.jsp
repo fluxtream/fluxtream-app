@@ -11,28 +11,33 @@
 	
 	String errorMessage = null;
 	if (request.getAttribute("errorMessage")!=null) errorMessage = (String) request.getAttribute("errorMessage");
-%><p>Please enter your withings credentials</p>
-<table>
-	<% if (errorMessage!=null) { %>
-		<tr><td colspan="2"><span class="formError"><%=errorMessage%></span></td></tr>
-	<% } %>
-	<tr>
-	<td>Username:</td><td><input autocorrect="off" autocapitalize="off" class="focushere" id="withings-username" value="<%=username%>"></input></td>
-	<% if (required.contains("username")) { %>
-	<td>
-		<span class="formError">* username is required</span>
-	</td>
-	<% } %>
-	</tr>
-	<tr>
-	<td>Password:</td><td><input autocorrect="off" autocapitalize="off" onkeypress="if(event.which==13) Connectors.submitWithingsUsernameAndPassword()" id="withings-password" type="password"></input></td>
-	<% if (required.contains("password")) { %>
-	<td>
-		<span class="formError">* password is required</span>
-	</td>
-	<% } %>
-	</tr>
-	<tr>
-	<td colspan="2"><button onclick="Connectors.submitWithingsUsernameAndPassword()">Send</button></td>
-	</tr>
-</table>
+%><h4>Please enter your withings credentials</h4><br>
+
+<form class="form-horizontal" action="javascript:void(0);">
+    <div class="control-group<%if (required.contains("username")){out.print(" error");}%>">
+        <label class="control-label" for="withings-username">Username</label>
+        <div class="controls">
+            <input type="text" id="withings-username" placeholder="Username" value="<%=username%>">
+            <% if (required.contains("username")) { %>
+            <span class="help-inline">username is required</span>
+            <% } %>
+        </div>
+    </div>
+    <div class="control-group<%if (required.contains("password")){out.print(" error");}%>">
+        <label class="control-label" for="withings-password">Password</label>
+        <div class="controls">
+            <input type="password" id="withings-password" placeholder="Password">
+            <% if (required.contains("password")) { %>
+            <span class="help-inline">password is required</span>
+            <% } %>
+        </div>
+    </div>
+    <div class="control-group<% if (errorMessage!=null) {out.print(" error");}%>">
+        <div class="controls">
+            <% if (errorMessage!=null) { %>
+            <span class="help-inline"><%=errorMessage%></span>
+            <% } %>
+            <button onclick="Connectors.submitWithingsUsernameAndPassword()" class="btn">Sign in</button>
+        </div>
+    </div>
+</form>
