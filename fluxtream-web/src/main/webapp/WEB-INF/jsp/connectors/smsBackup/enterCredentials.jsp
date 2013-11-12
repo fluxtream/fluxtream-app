@@ -10,28 +10,38 @@
 	
 	String errorMessage = null;
 	if (request.getAttribute("errorMessage")!=null) errorMessage = (String) request.getAttribute("errorMessage");
-%><p>Please enter your smsBackup mail credentials</p>
-<table>
-	<% if (errorMessage!=null) { %>
-		<tr><td colspan="2"><span class="formError"><%=errorMessage%></span></td></tr>
-	<% } %>
-	<tr>
-	<td>Username:</td><td><input autocorrect="off" autocapitalize="off" class="focushere" id="smsBackup-username" value="<%=username%>"></input></td>
-	<% if (required.contains("username")) { %>
-	<td>
-		<span class="formError">* username is required</span>
-	</td>
-	<% } %>
-	</tr>
-	<tr>
-	<td>Password:</td><td><input autocorrect="off" autocapitalize="off" id="smsBackup-password" type="password" onkeypress="if(event.which==13) Connectors.submitSmsBackupUsernameAndPassword()"></input></td>
-	<% if (required.contains("password")) { %>
-	<td>
-		<span class="formError">* password is required</span>
-	</td>
-	<% } %>
-	</tr>
-	<tr>
-	<td colspan="2"><button onclick="Connectors.submitSmsBackupUsernameAndPassword()">Send</button></td>
-	</tr>
-</table>
+%>
+
+<h4>Please enter your smsBackup mail credentials</h4><br>
+
+
+<form class="form-horizontal" action="javascript:void(0);">
+    <div class="control-group<%if (required.contains("username")){out.print(" error");}%>">
+        <label class="control-label" for="smsBackup-username">Username</label>
+        <div class="controls">
+            <input type="text" id="smsBackup-username" placeholder="Username" value="<%=username%>"
+                   onkeypress="if(event.which==13) Connectors.submitSmsBackupUsernameAndPassword()">
+            <% if (required.contains("username")) { %>
+            <span class="help-inline">username is required</span>
+            <% } %>
+        </div>
+    </div>
+    <div class="control-group<%if (required.contains("password")){out.print(" error");}%>">
+        <label class="control-label" for="smsBackup-password">Password</label>
+        <div class="controls">
+            <input type="password" id="smsBackup-password" placeholder="Password"
+                   onkeypress="if(event.which==13) Connectors.submitSmsBackupUsernameAndPassword()">
+            <% if (required.contains("password")) { %>
+            <span class="help-inline">password is required</span>
+            <% } %>
+        </div>
+    </div>
+    <div class="control-group<% if (errorMessage!=null) {out.print(" error");}%>">
+        <div class="controls">
+            <% if (errorMessage!=null) { %>
+            <span class="help-inline"><%=errorMessage%></span><br><br>
+            <% } %>
+            <button onclick="Connectors.submitSmsBackupUsernameAndPassword()" class="btn">Continue</button>
+        </div>
+    </div>
+</form>

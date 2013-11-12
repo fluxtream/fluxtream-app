@@ -17,7 +17,8 @@
     <div class="control-group<%if (required.contains("username")){out.print(" error");}%>">
         <label class="control-label" for="withings-username">Username</label>
         <div class="controls">
-            <input type="text" id="withings-username" placeholder="Username" value="<%=username%>">
+            <input type="text" id="withings-username" placeholder="Username" value="<%=username%>"
+                   onkeypress="if(event.which==13) Connectors.submitWithingsUsernameAndPassword()">
             <% if (required.contains("username")) { %>
             <span class="help-inline">username is required</span>
             <% } %>
@@ -26,7 +27,8 @@
     <div class="control-group<%if (required.contains("password")){out.print(" error");}%>">
         <label class="control-label" for="withings-password">Password</label>
         <div class="controls">
-            <input type="password" id="withings-password" placeholder="Password">
+            <input type="password" id="withings-password" placeholder="Password"
+                   onkeypress="if(event.which==13) Connectors.submitWithingsUsernameAndPassword()">
             <% if (required.contains("password")) { %>
             <span class="help-inline">password is required</span>
             <% } %>
@@ -37,7 +39,7 @@
             <% if (errorMessage!=null) { %>
             <span class="help-inline"><%=errorMessage%></span><br><br>
             <% } %>
-            <button onclick="Connectors.submitWithingsUsernameAndPassword()" class="btn">Sign in</button>
+            <button onclick="Connectors.submitWithingsUsernameAndPassword()" class="btn">Continue</button>
         </div>
     </div>
 </form>

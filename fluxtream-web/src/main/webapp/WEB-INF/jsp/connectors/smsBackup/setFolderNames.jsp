@@ -4,7 +4,7 @@
 %><%@ page import="java.util.*" %><%
 	List<String> required = new ArrayList<String>();
 	if (request.getAttribute("required")!=null) required = (ArrayList<String>) request.getAttribute("required");
-	
+
 	String smsFolderName = "";
 	if (request.getAttribute("smsFolderName")!=null) smsFolderName = (String) request.getAttribute("smsFolderName");
 	else smsFolderName="SMS";
@@ -15,30 +15,40 @@
 	
 	String errorMessage = null;
 	if (request.getAttribute("errorMessage")!=null) errorMessage = (String) request.getAttribute("errorMessage");
-%><p>Please enter your smsBackup mail credentials</p>
-<table>
-	<% if (errorMessage!=null) { %>
-		<tr><td colspan="2"><span class="formError"><%=errorMessage%></span></td></tr>
-	<% } %>
-	<tr>
-	<td>Sms label (in gmail):</td><td><input autocorrect="off" autocapitalize="off" class="focushere" id="smsBackup-smsFolderName" value="<%=smsFolderName%>"
-		onkeypress="if(event.which==13) Connectors.submitSmsBackupFolderNames()"></input></td>
-	<% if (required.contains("smsFolderName")) { %>
-	<td>
-		<span class="formError">* SMS label is required</span>
-	</td>
-	<% } %>
-	</tr>
-	<tr>
-	<td>Call log label (in gmail):</td><td><input autocorrect="off" autocapitalize="off" id="smsBackup-callLogFolderName" value="<%=callLogFolderName%>"
-		onkeypress="if(event.which==13) Connectors.submitSmsBackupFolderNames()"></input></td>
-	<% if (required.contains("callLogFolderName")) { %>
-	<td>
-		<span class="formError">* Call Log label is required</span>
-	</td>
-	<% } %>
-	</tr>
-	<tr>
-	<td colspan="2"><button onclick="Connectors.submitSmsBackupFolderNames()">Send</button></td>
-	</tr>
-</table>
+%>
+
+<h4>Please enter your smsBackup mail credentials</h4><br>
+
+
+<form class="form-horizontal" action="javascript:void(0);">
+    <div class="control-group<%if (required.contains("smsFolderName")){out.print(" error");}%>">
+        <label class="control-label" for="smsBackup-smsFolderName">Sms label (in gmail)</label>
+        <div class="controls">
+            <input type="text" id="smsBackup-smsFolderName" placeholder="SMS Folder Label"
+                   value="<%=smsFolderName%>"
+                   onkeypress="if(event.which==13) Connectors.submitSmsBackupFolderNames()">
+            <% if (required.contains("smsFolderName")) { %>
+            <span class="help-inline">SMS label is required</span>
+            <% } %>
+        </div>
+    </div>
+    <div class="control-group<%if (required.contains("callLogFolderName")){out.print(" error");}%>">
+        <label class="control-label" for="smsBackup-callLogFolderName">Call log label (in gmail)</label>
+        <div class="controls">
+            <input type="text" id="smsBackup-callLogFolderName" placeholder="Call Log Label"
+                   value="<%=callLogFolderName%>"
+                   onkeypress="if(event.which==13) Connectors.submitSmsBackupFolderNames()">
+            <% if (required.contains("callLogFolderName")) { %>
+            <span class="help-inline">Call Log label is required</span>
+            <% } %>
+        </div>
+    </div>
+    <div class="control-group<% if (errorMessage!=null) {out.print(" error");}%>">
+        <div class="controls">
+            <% if (errorMessage!=null) { %>
+            <span class="help-inline"><%=errorMessage%></span><br><br>
+            <% } %>
+            <button onclick="Connectors.submitSmsBackupFolderNames()" class="btn">Continue</button>
+        </div>
+    </div>
+</form>

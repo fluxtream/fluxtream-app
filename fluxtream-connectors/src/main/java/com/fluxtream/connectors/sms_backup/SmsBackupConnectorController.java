@@ -2,28 +2,26 @@ package com.fluxtream.connectors.sms_backup;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
-
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.services.ConnectorUpdateService;
+import com.fluxtream.services.GuestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.fluxtream.connectors.Connector;
-import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
-import com.fluxtream.services.ConnectorUpdateService;
-import com.fluxtream.services.GuestService;
-
 @Controller()
 @RequestMapping("/smsBackup")
 public class SmsBackupConnectorController {
 
-	@Autowired
+    private static final String SMS_BACKUP_USERNAME = "smsBackup.username";
+    private static final String SMS_BACKUP_PASSWORD = "smsBackup.password";
+    @Autowired
 	GuestService guestService;
 
 	@Autowired
@@ -53,7 +51,6 @@ public class SmsBackupConnectorController {
 			return new ModelAndView("connectors/smsBackup/enterCredentials");
 		}
 		ModelAndView mav = new ModelAndView("connectors/smsBackup/setFolderNames");
-		long guestId = AuthHelper.getGuestId();
 		boolean worked = false;
 		try {
 			worked = (new SmsBackupHelper(email, password)).testConnection();
@@ -61,12 +58,9 @@ public class SmsBackupConnectorController {
 			e.printStackTrace();
 		}
 		if (worked) {
+            request.getSession().setAttribute(SMS_BACKUP_USERNAME, email);
+            request.getSession().setAttribute(SMS_BACKUP_PASSWORD, password);
 
-            final Connector connector = Connector.getConnector("sms_backup");
-            final ApiKey apiKey = guestService.createApiKey(guestId, connector);
-
-			guestService.setApiKeyAttribute(apiKey, "username", email);
-			guestService.setApiKeyAttribute(apiKey, "password", password);
 			return mav;
 		} else {
 			request.setAttribute("errorMessage",
@@ -92,15 +86,19 @@ public class SmsBackupConnectorController {
 			required.add("callLogFolderName");
 		if (required.size() != 0) {
 			request.setAttribute("required", required);
-			return new ModelAndView("connectors/smsBackup/enterCredentials");
+			return new ModelAndView("connectors/smsBackup/setFolderName");
 		}
 		
 		ModelAndView mav = new ModelAndView("connectors/smsBackup/success");
 		long guestId = AuthHelper.getGuestId();
 
         final Connector connector = Connector.getConnector("sms_backup");
-        ApiKey apiKey = guestService.getApiKey(guestId,  connector);
+        final ApiKey apiKey = guestService.createApiKey(guestId, connector);
 
+        guestService.setApiKeyAttribute(apiKey, "username", (String)request.getSession().getAttribute(SMS_BACKUP_USERNAME));
+        guestService.setApiKeyAttribute(apiKey, "password", (String)request.getSession().getAttribute(SMS_BACKUP_PASSWORD));
+        request.getSession().removeAttribute(SMS_BACKUP_USERNAME);
+        request.getSession().removeAttribute(SMS_BACKUP_PASSWORD);
 		guestService.setApiKeyAttribute(apiKey, "smsFolderName",
 				smsFolderName);
 		guestService.setApiKeyAttribute(apiKey, "callLogFolderName",
