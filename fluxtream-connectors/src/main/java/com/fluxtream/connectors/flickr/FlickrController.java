@@ -36,7 +36,8 @@ import static com.fluxtream.utils.Utils.hash;
 @RequestMapping(value="/flickr")
 public class FlickrController {
 
-	@Autowired
+    private static final String FLICKR_RENEWTOKEN_APIKEYID = "flickr.renewtoken.apiKeyId";
+    @Autowired
 	GuestService guestService;
 	
 	@Autowired
@@ -61,6 +62,9 @@ public class FlickrController {
             ".  You are logged in through " + ControllerSupport.getLocationBase(request, env) + ".<br>Please re-login via the supported URL or inform your Fluxtream administrator that the flickr.validRedirectURL setting does not match your needs.");
             return "redirect:/app";
         }
+        if (request.getParameter("apiKeyId") != null)
+            request.getSession().setAttribute(FLICKR_RENEWTOKEN_APIKEYID,
+                                              request.getParameter("apiKeyId"));
         String loginUrl = "http://flickr.com/services/auth/" +
 			"?api_key=" + api_key + "&perms=read&api_sig=" + api_sig;
 		return "redirect:" + loginUrl;
@@ -131,13 +135,23 @@ public class FlickrController {
 		
 		Connector flickrConnector = Connector.getConnector("flickr");
 
-        final ApiKey apiKey = guestService.createApiKey(guest.getId(), flickrConnector);
+        ApiKey apiKey;
+        if (request.getSession().getAttribute(FLICKR_RENEWTOKEN_APIKEYID)!=null) {
+            final String apiKeyIdString = (String)request.getSession().getAttribute(FLICKR_RENEWTOKEN_APIKEYID);
+            long apiKeyId = Long.valueOf(apiKeyIdString);
+            apiKey = guestService.getApiKey(apiKeyId);
+        } else
+            apiKey = guestService.createApiKey(guest.getId(), flickrConnector);
 
 		guestService.setApiKeyAttribute(apiKey,  "username", username);
 		guestService.setApiKeyAttribute(apiKey,  "token", token);
 		guestService.setApiKeyAttribute(apiKey,  "nsid", nsid);
 		guestService.setApiKeyAttribute(apiKey,  "fullname", fullname);
-		
+
+        if (request.getSession().getAttribute(FLICKR_RENEWTOKEN_APIKEYID)!=null) {
+            request.getSession().removeAttribute(FLICKR_RENEWTOKEN_APIKEYID);
+            return "redirect:/app/tokenRenewed/flickr";
+        }
 		return "redirect:/app/from/"+flickrConnector.getName();
 	}
 	

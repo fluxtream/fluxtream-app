@@ -186,12 +186,10 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
                                      false, true, quantifiedMindKeys));
         final String flickr = "Flickr";
         String[] flickrKeys = checkKeysExist(flickr, Arrays.asList("flickrConsumerKey", "flickrConsumerSecret", "flickr.validRedirectURL"));
-        em.persist(new ConnectorInfo(flickr,
-                                     "/" + release + "/images/connectors/connector-flickr.jpg",
-                                     res.getString("flickr"),
-                                     "/flickr/token",
-                                     Connector.getConnector("flickr"), order++, flickrKeys!=null,
-                                     false, true, flickrKeys));
+        final ConnectorInfo flickrConnectorInfo = new ConnectorInfo(flickr, "/" + release + "/images/connectors/connector-flickr.jpg", res.getString("flickr"), "/flickr/token", Connector.getConnector("flickr"), order++, flickrKeys != null, false, true, flickrKeys);
+        flickrConnectorInfo.supportsRenewTokens = true;
+        flickrConnectorInfo.renewTokensUrlTemplate = "flickr/token?apiKeyId=%s";
+        em.persist(flickrConnectorInfo);
         final String googleCalendar = "Google Calendar";
         String[] googleCalendarKeys = checkKeysExist(googleCalendar, Arrays.asList("google.client.id", "google.client.secret"));
         final ConnectorInfo googleCalendarConnectorInfo =
