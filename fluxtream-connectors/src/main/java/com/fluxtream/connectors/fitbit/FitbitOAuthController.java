@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping(value = "/fitbit")
 public class FitbitOAuthController {
 
-	FlxLogger logger = FlxLogger.getLogger(FitbitOAuthController.class);
+    FlxLogger logger = FlxLogger.getLogger(FitbitOAuthController.class);
 
 	@Autowired
 	GuestService guestService;
@@ -45,6 +45,7 @@ public class FitbitOAuthController {
 	Configuration env;
 	private static final String FITBIT_OAUTH_CONSUMER = "fitbitOAuthConsumer";
 	private static final String FITBIT_OAUTH_PROVIDER = "fitbitOAuthProvider";
+    private static final String FITBIT_RENEWTOKEN_APIKEYID = "fitbit.renewtoken.apiKeyId";
 	public static final String GET_USER_PROFILE_CALL = "FITBIT_GET_USER_PROFILE_CALL";
 
 	static {
@@ -73,6 +74,10 @@ public class FitbitOAuthController {
 
 		request.getSession().setAttribute(FITBIT_OAUTH_CONSUMER, consumer);
 		request.getSession().setAttribute(FITBIT_OAUTH_PROVIDER, provider);
+        
+        if (request.getParameter("apiKeyId")!=null)
+            request.getSession().setAttribute(FITBIT_RENEWTOKEN_APIKEYID,
+                                              request.getParameter("apiKeyId"));
 
 		String approvalPageUrl = provider.retrieveRequestToken(consumer,
 				oauthCallback);
@@ -90,13 +95,23 @@ public class FitbitOAuthController {
 		provider.retrieveAccessToken(consumer, verifier);
 		Guest guest = AuthHelper.getGuest();
 
-        final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector());
+        ApiKey apiKey;
+        if (request.getSession().getAttribute(FITBIT_RENEWTOKEN_APIKEYID)!=null) {
+            final String apiKeyIdString = (String) request.getSession().getAttribute(FITBIT_RENEWTOKEN_APIKEYID);
+            long apiKeyId = Long.valueOf(apiKeyIdString);
+            apiKey = guestService.getApiKey(apiKeyId);
+        } else
+            apiKey = guestService.createApiKey(guest.getId(), connector());
 
 		guestService.setApiKeyAttribute(apiKey,
 				"accessToken", consumer.getToken());
 		guestService.setApiKeyAttribute(apiKey,
 				"tokenSecret", consumer.getTokenSecret());
 
+        if (request.getSession().getAttribute(FITBIT_RENEWTOKEN_APIKEYID)!=null) {
+            request.getSession().removeAttribute(FITBIT_RENEWTOKEN_APIKEYID);
+            return "redirect:/app/tokenRenewed/" + connector().getName();
+        }
 		return "redirect:/app/from/" + connector().getName();
 	}
 

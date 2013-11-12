@@ -134,11 +134,10 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         em.persist(latitudeConnectorInfo);
         final String fitbit = "Fitbit";
         String[] fitbitKeys = checkKeysExist(fitbit, Arrays.asList("fitbitConsumerKey", "fitbitConsumerSecret"));
-        em.persist(new ConnectorInfo(fitbit,
-                                     "/images/connectors/connector-fitbit.jpg",
-                                     res.getString("fitbit"), "/fitbit/token",
-                                     Connector.getConnector("fitbit"), order++, fitbitKeys!=null,
-                                     false, true, fitbitKeys));
+        final ConnectorInfo fitbitConnectorInfo = new ConnectorInfo(fitbit, "/images/connectors/connector-fitbit.jpg", res.getString("fitbit"), "/fitbit/token", Connector.getConnector("fitbit"), order++, fitbitKeys != null, false, true, fitbitKeys);
+        fitbitConnectorInfo.supportsRenewTokens = true;
+        fitbitConnectorInfo.renewTokensUrlTemplate = "fitbit/token?apiKeyId=%s";
+        em.persist(fitbitConnectorInfo);
         final String bodyMedia = "BodyMedia";
         String[] bodymediaKeys = checkKeysExist(bodyMedia, Arrays.asList("bodymediaConsumerKey", "bodymediaConsumerSecret"));
         final ConnectorInfo bodymediaConnectorInfo = new ConnectorInfo(bodyMedia,
