@@ -35,7 +35,7 @@
     <div class="control-group<% if (errorMessage!=null) {out.print(" error");}%>">
         <div class="controls">
             <% if (errorMessage!=null) { %>
-            <span class="help-inline"><%=errorMessage%></span>
+            <span class="help-inline"><%=errorMessage%></span><br><br>
             <% } %>
             <button onclick="Connectors.submitWithingsUsernameAndPassword()" class="btn">Sign in</button>
         </div>

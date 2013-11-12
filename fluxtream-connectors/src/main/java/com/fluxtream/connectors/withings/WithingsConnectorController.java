@@ -141,7 +141,7 @@ public class WithingsConnectorController {
         System.out.println(json);
         UsersListResponse response = new Gson().fromJson(json,
                                                          UsersListResponse.class);
-        if (response.status!=0) throw new RuntimeException(String.valueOf(response.status));
+        if (response.status!=0) throw new UnexpectedHttpResponseCodeException(response.status, "null");
         return response.getBody().getUsers();
     }
 
