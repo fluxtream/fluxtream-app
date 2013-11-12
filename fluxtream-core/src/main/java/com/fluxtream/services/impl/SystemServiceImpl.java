@@ -230,12 +230,10 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
                                      false, true, fluxtreamCaptureKeys));
         String[] runkeeperKeys = checkKeysExist("Runkeeper", Arrays.asList("runkeeperConsumerKey", "runkeeperConsumerSecret"));
         final String runKeeper = "RunKeeper";
-        em.persist(new ConnectorInfo(runKeeper,
-                                     "/" + release + "/images/connectors/connector-runkeeper.jpg",
-                                     res.getString("runkeeper"),
-                                     "/runkeeper/token",
-                                     Connector.getConnector("runkeeper"), order++, runkeeperKeys!=null,
-                                     false, true, runkeeperKeys));
+        final ConnectorInfo runkeeperConnectorInfo = new ConnectorInfo(runKeeper, "/" + release + "/images/connectors/connector-runkeeper.jpg", res.getString("runkeeper"), "/runkeeper/token", Connector.getConnector("runkeeper"), order++, runkeeperKeys != null, false, true, runkeeperKeys);
+        runkeeperConnectorInfo.supportsRenewTokens = true;
+        runkeeperConnectorInfo.renewTokensUrlTemplate = "runkeeper/token?apiKeyId=%s";
+        em.persist(runkeeperConnectorInfo);
         em.persist(new ConnectorInfo("SMS Backup",
                                      "/" + release + "/images/connectors/connector-sms_backup.jpg",
                                      res.getString("sms_backup"),

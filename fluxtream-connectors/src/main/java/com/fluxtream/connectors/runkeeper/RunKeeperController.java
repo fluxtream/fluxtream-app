@@ -45,6 +45,10 @@ public class RunKeeperController {
 
         // Obtain the Authorization URL
         String authorizationUrl = service.getAuthorizationUrl(EMPTY_TOKEN);
+        if (request.getParameter("apiKeyId") != null)
+            authorizationUrl += authorizationUrl.indexOf("?")!=-1
+                             ? "&state=" + request.getParameter("apiKeyId")
+                             : "?state=" + request.getParameter("apiKeyId");
 
         return "redirect:" + authorizationUrl;
     }
@@ -78,11 +82,17 @@ public class RunKeeperController {
 
         Guest guest = AuthHelper.getGuest();
         final Connector connector = Connector.getConnector("runkeeper");
-        final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector);
+        ApiKey apiKey;
+        if (request.getParameter("state")!=null) {
+            long apiKeyId = Long.valueOf(request.getParameter("state"));
+            apiKey = guestService.getApiKey(apiKeyId);
+        } else
+            apiKey = guestService.createApiKey(guest.getId(), connector);
 
         guestService.setApiKeyAttribute(apiKey, "accessToken", token);
-
         request.getSession().removeAttribute(RUNKEEPER_SERVICE);
+        if (request.getParameter("state")!=null)
+            return "redirect:/app/tokenRenewed/runkeeper";
         return "redirect:/app/from/runkeeper";
     }
 
