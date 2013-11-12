@@ -10,6 +10,7 @@
     <link href="${release}/css/index.css" rel="stylesheet" type="text/css"/>
     <link href='//fonts.googleapis.com/css?family=Open+Sans:400,700,600' rel='stylesheet' type='text/css'>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script src="/static/js/bootstrap-2.3.2.min.js"></script>
     <script type="text/javascript" src="/${release}/assets-home/js/welcome.js"></script>
     <!-- fav icons -->
     <link rel="shortcut icon" href="/favicon.ico">
@@ -20,22 +21,37 @@
         <a href="#"><div class="logo"></div></a>
         <div class="login_container">
             <form method="post" action="signIn" id="loginForm">
-            <table>
-                <tr>
-                    <td><label class="username_txt" for="f_username">Username:</label></td>
-                    <td><label class="password_txt" for="f_password">Password:</label></td>
-                    <td rowspan="2"><button class="login_btn">Login</button></td>
-                </tr>
-                <tr>
-                    <td><input type="text" onkeypress="if(event.which==13) document.forms[0].submit();" class="username_input" id="f_username" name="f_username"></td>
-                    <td><input type="password" onkeypress="if(event.which==13) document.forms[0].submit();" class="password_input" id="f_password" name="f_password"></td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td><a href="#" class="forgotPassword" id="lostPasswdLink">Forgot password?</a></td>
-                </tr>
-            </table>
-            <p id="recoverPasswordFeedback" style="display:none;" class="sysInfo">A confirmation link has been emailed to you_XXX</p>
+                <table>
+                    <tr>
+                        <td><label class="username_txt" for="f_username">Username:</label></td>
+                        <td><label class="password_txt" for="f_password">Password:</label></td>
+                        <td rowspan="2"><button class="login_btn">Login</button></td>
+                    </tr>
+                    <tr>
+                        <td><input type="text" onkeypress="if(event.which==13) document.forms[0].submit();" class="username_input" id="f_username" name="f_username"></td>
+                        <td><input type="password" onkeypress="if(event.which==13) document.forms[0].submit();" class="password_input" id="f_password" name="f_password"></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td><a href="#" class="forgotPassword" id="lostPasswdLink">Forgot password?</a></td>
+                    </tr>
+                </table>
+            </form>
+            <form method="post" action="support/sendResetRequest" style="display:none" id="recoverForm">
+                <table>
+                    <tr>
+                        <td><label class="recover_email_txt" for="recover_email">Your email address:</label></td>
+                        <td rowspan="2"><button class="login_btn">Send</button></td>
+                    </tr>
+                    <tr>
+                        <td><input class="recover_email_input" title="Enter your email" type="text" name="recover[email]" id="recover_email"></td>
+                    </tr>
+                    <tr>
+                        <td><a href="#" class="forgotPassword" id="cancelRecoverPassword">cancel</a></td>
+                        <td></td>
+                    </tr>
+                </table>
+                <%--<p id="recoverPasswordFeedback" style="display:none;" class="sysInfo">A confirmation link has been emailed to you_XXX</p>--%>
             </form>
         </div>
     </div>
@@ -58,7 +74,7 @@
                     <td>
                         <div class="register_txt">
                             It's free!
-                        </div><button class="register_btn">Register</button>
+                        </div><button style="cursor:pointer" id="registerShow" class="register_btn">Register</button>
                     </td>
                 </tr>
             </table>
@@ -132,6 +148,67 @@
         </div>
     </div>
 </div>
+<div class="modal fade hide" id="accessDeniedModal">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h3>Login Failed</h3>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-error">
+            <strong>Not so fast, Hot Shot!</strong> Login is required before you access this resource.
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a href="#" class="btn" data-dismiss="modal">Ok</a>
+    </div>
+</div>
+
+<div class="modal fade hide" id="loginFailedModal">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h3>Login Failed</h3>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-error">
+            <strong>Bad login credentials!</strong> We could not authenticate you properly. Either your username or password were incorrect.
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a href="#" class="btn" data-dismiss="modal">Ok</a>
+    </div>
+</div>
+
+<div class="modal fade hide" id="subscribedModal">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h3>Thank You!</h3>
+    </div>
+    <div class="modal-body">
+        <strong>Thanks for subscribing!</strong> We'll send you an email when we (re-)open the doors to the website and you'll be among the first to know.
+    </div>
+    <div class="modal-footer">
+        <a href="#" class="btn" data-dismiss="modal">Ok</a>
+    </div>
+</div>
+
+<div class="modal fade hide" id="incompatibleBrowser">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h3>Incompatibility Warning</h3>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-error">
+            <strong>Your browser isn't fully compatible!</strong> We've determined that your web browser doesn't support all of the features
+            required for the best experience. You can still try to use the website but some features may be broken. We recommend updating to
+            a newer version of your web browser.
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a href="#" class="btn" data-dismiss="modal">Ok</a>
+    </div>
+</div>
+
+
 <div id="registerModalWrapper">
 </div>
 

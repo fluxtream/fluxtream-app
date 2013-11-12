@@ -74,6 +74,13 @@ $(document).ready(function() {
         return false;
     });
 
+    $('#cancelRecoverPassword').click(function() {
+        $('#recoverForm').hide();
+        $('#loginForm').show();
+        $('#f_username').focus();
+        return false;
+    });
+
     var timezone = jstz.determine_timezone(),
         d = new Date(),
         currentDate = d.getDate(),
