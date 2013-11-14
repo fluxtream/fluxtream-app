@@ -769,7 +769,13 @@ define(
 
         App.expandCollapse = function(o) {
             var finedetails = $(o).closest(".facetDetails").find(".flx-finedetails");
+            var details = finedetails.html();
             finedetails.toggleClass("flx-collapsed");
+            if (!finedetails.hasClass("flx-collapsed")){
+                finedetails.empty();
+                finedetails.append(details);
+            }
+            finedetails.parent().parent().trigger("contentchange");
         }
 
         App.setupBeginnersFriendlyUI = function (messageDisplayCounters, nApis) {
