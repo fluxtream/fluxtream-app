@@ -779,7 +779,6 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             if (channel == null)
                 return;
             var channel = grapher.sourcesMap[channel.id];
-            console.log(channel);
         }
 
         App.loadMustacheTemplate("core/grapher/timelineTemplates.html","channelTemplate",function(template){
@@ -1870,7 +1869,8 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         return true;
     }
 
-    function createPhotoDialogCache(channel, channelFilterTags, matchingStrategy) {
+    function createPhotoDialogCache(deviceName, channelName, channelFilterTags, matchingStrategy, channel) {
+        console.log("createPhotoDialogCache: " + deviceName + ", " + channelName + ", [" + channelFilterTags + "], " + matchingStrategy);
         var cache = {
             photos                             : [],
             photosByCompoundId                 : {}, // maps CONNECTOR_NAME.OBJECT_TYPE_NAME.PHOTO_ID to an index in the photos array
@@ -1899,7 +1899,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
 
                     shouldLoadPreviousNeighbor = !!shouldLoadPreviousNeighbor;
 
-                    var url = "/api/bodytrack/photos/" + App.getUID() + "/" + channel['device_name'] + "." + channel['channel_name'] + "/" + currentPhotoTimestamp + "/" + cache.NUM_PHOTOS_TO_FETCH;
+                    var url = "/api/bodytrack/photos/" + App.getUID() + "/" + deviceName + "." + channelName + "/" + currentPhotoTimestamp + "/" + cache.NUM_PHOTOS_TO_FETCH;
                     var urlParams = {
                         "isBefore" : shouldLoadPreviousNeighbor
                     };
@@ -1985,6 +1985,10 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                 }
             },
             initialize                         : function(compoundPhotoId, timestamp, callback) {
+                console.log("PhotoDialogCache.initialize");
+                console.log(compoundPhotoId);
+                console.log(timestamp);
+                console.log(callback);
                 //console.log("PhotoDialogCache.initialize()------------------------------------------");
 
                 // To build up the initial cache, fetch the photos BEFORE this photo, then the photos AFTER it.
@@ -2231,9 +2235,11 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                 var channelFilterTags = getTagFilterForChannel();
 
                 // create the photo cache
-                var photoCache = createPhotoDialogCache(channel, channelFilterTags, matchingStrategy);
+                var photoCache = createPhotoDialogCache(channel['device_name'], channel['channel_name'], channelFilterTags, matchingStrategy, channel);
 
                 var createPhotoDialog = function(compoundPhotoId, timestamp, completionCallback) {
+
+                    console.log("createPhotoDialog is called: " + compoundPhotoId + ", " + timestamp + ", " + completionCallback);
 
                     var photoMetadata = photoCache.getPhotoMetadata(compoundPhotoId);
                     var thumbnails = photoMetadata['thumbnails'];
@@ -3018,6 +3024,8 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         updateSaveViewDropdown(this);
         updateLoadViewDropdown(this);
     }
+
+    Grapher.createPhotoDialogCache = createPhotoDialogCache;
 
     return Grapher;
 });

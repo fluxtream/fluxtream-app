@@ -30,6 +30,8 @@ public class FluxtreamCapturePhotoFacetVO extends AbstractPhotoFacetVO<Fluxtream
     @Override
     protected void fromFacet(final FluxtreamCapturePhotoFacet facet, final TimeInterval timeInterval, final GuestSettings settings)
             throws OutsideTimeBoundariesException {
+        bodytrackQualifier = "FluxtreamCapture.photo";
+        bodytrackId = facet.getId();
         start = facet.start;
         startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getTimeZone(facet.start));
 

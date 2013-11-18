@@ -140,8 +140,9 @@ define(["core/Tab",
             $("#photoTab").append(thumbnailGroupTemplate.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:currentCity.shortTimezone,state:"photos/date/"+currentDate.split(" ")[0],photos:currentGroup}));
         }
         for (var i = 0; i < data.length; i++){
-            $("#photo-" + data[i].id).click({i:data[i].id},function(event){
-                PhotoUtils.showCarouselHTML(carouselHTML,event.data.i);
+            $("#photo-" + data[i].id).click({i:data[i].id,facet:data[i]},function(event){
+                //PhotoUtils.showCarouselHTML(carouselHTML,event.data.i);
+                PhotoUtils.showPhotoDialog(event.data.facet);
             });
         }
         var groups = $(".thumbnailGroup");
