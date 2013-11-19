@@ -207,7 +207,7 @@ public class AppController {
             return new ModelAndView(redirectUrl);
         }
         return home(request);
-	}
+    }
 
     @RequestMapping(value = "/app/tokenRenewed/{connectorName}")
     public String tokenRenewed(@PathVariable("connectorName") String connectorName) {
