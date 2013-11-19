@@ -77,6 +77,7 @@ define(["core/Tab",
                 url: "/api/calendar/location/" + Calendar.tabState,
                 success: function(locationDigest) {
                     for (name in locationDigest.cachedData) {
+                        Calendar.processFacets(locationDigest.cachedData[name]);
                         digest.cachedData[name] = locationDigest.cachedData[name];
                     }
                     digest.locationFetched = true;
