@@ -1,5 +1,6 @@
 package com.fluxtream.domain;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.Entity;
@@ -21,7 +22,7 @@ import org.hibernate.annotations.Index;
 	@NamedQuery( name="guests.all",
 			query="SELECT guest FROM Guest guest")
 })
-public class Guest extends AbstractEntity {
+public class Guest extends AbstractEntity implements Serializable {
 
 	public static final String ROLE_USER = "ROLE_USER";
 	public static final String ROLE_ADMIN = "ROLE_ADMIN";

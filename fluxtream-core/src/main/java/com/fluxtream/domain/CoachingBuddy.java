@@ -1,5 +1,6 @@
 package com.fluxtream.domain;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.CascadeType;
@@ -26,7 +27,7 @@ import org.hibernate.annotations.Index;
       @NamedQuery(name = "coachingBuddies.delete.all",
                   query = "DELETE FROM CoachingBuddies buddy WHERE buddy.guestId=?")
 })
-public class CoachingBuddy extends AbstractEntity {
+public class CoachingBuddy extends AbstractEntity implements Serializable {
 
     @Index(name = "guestId")
     public long guestId;
