@@ -4,6 +4,7 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
     var TOOLS 		= BTCore.TOOLS;
     var TAG_MANAGER = BTCore.TAG_MANAGER;
     var carouselTemplate;
+    var photoCache;
 
     App.loadMustacheTemplate("applications/calendar/tabs/photos/photosTemplate.html","carousel",function(template){
         carouselTemplate = template;
@@ -248,7 +249,6 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
     });
 
     function showPhotoDialog(imageFacet) {
-        var photoCache;
         photoCache = Grapher.createPhotoDialogCache(imageFacet.bodytrackQualifier.split(".")[0], "photo", [], "any");
 
         App.loadMustacheTemplate("core/grapher/timelineTemplates.html",
@@ -277,8 +277,7 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
                     imageFacet.start/1000,
                     function() {
                         centerPhotoDialog();
-                    },
-                    photoCache);
+                    });
             });
 
         $("#photoDialog")['dialog']("option", "position", 'center');
@@ -291,7 +290,10 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
         $("#photoDialog")['dialog']("option", "position", 'center');
     }
 
-    var createPhotoDialog = function(compoundPhotoId, timestamp, completionCallback, photoCache) {
+    var createPhotoDialog = function(compoundPhotoId, timestamp, completionCallback) {
+
+        console.log("photoCache");
+        console.log(photoCache);
 
         var photoMetadata = photoCache.getPhotoMetadata(compoundPhotoId);
         var thumbnails = photoMetadata['thumbnails'];
