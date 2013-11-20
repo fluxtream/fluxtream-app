@@ -60,7 +60,10 @@ define(["core/Tab",
             map = MapUtils.newMap(new google.maps.LatLng(digest.metadata.mainCity.latitude,digest.metadata.mainCity.longitude),14,"the_map",false,maxTimeBounds);
             map.infoWindowShown = function(){
                 $("#the_map").find(".flx-photo").click(function(event){
-                    PhotoUtils.showCarouselHTML(photoCarouselHTML,$(event.delegateTarget).attr("photoId"));
+                    var dTarget = $(event.delegateTarget);
+                    //PhotoUtils.showCarouselHTML(photoCarouselHTML,dTarget.attr("photoId"));
+                    PhotoUtils.showPhotoDialog(dTarget.attr("data-deviceName"), dTarget.attr("data-channelName"),
+                        dTarget.attr("data-id"), dTarget.attr("data-timestamp"));
                 });
             }
         }

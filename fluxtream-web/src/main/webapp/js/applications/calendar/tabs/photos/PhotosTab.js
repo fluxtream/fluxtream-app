@@ -142,7 +142,8 @@ define(["core/Tab",
         for (var i = 0; i < data.length; i++){
             $("#photo-" + data[i].id).click({i:data[i].id,facet:data[i]},function(event){
                 //PhotoUtils.showCarouselHTML(carouselHTML,event.data.i);
-                PhotoUtils.showPhotoDialog(event.data.facet);
+                var photoFacet = event.data.facet;
+                PhotoUtils.showPhotoDialog(photoFacet.deviceName, photoFacet.channelName, photoFacet.UID, photoFacet.start);
             });
         }
         var groups = $(".thumbnailGroup");

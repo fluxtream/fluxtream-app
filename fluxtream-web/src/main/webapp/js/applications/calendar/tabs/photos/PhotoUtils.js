@@ -10,12 +10,30 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
         carouselTemplate = template;
     });
 
+    App.loadMustacheTemplate("core/grapher/timelineTemplates.html",
+        "_timeline_photo_dialog_template",
+        function(template) {
+            var html = template.render({"photoUrl" : ""});
+            $("body").remove("#photoDialog");
+            $("body").prepend("<div id='photoDialog'>" + html + "</div>");
+            $("#photoDialog")['dialog'](
+                {
+                    autoOpen  : false,
+                    modal     : true,
+                    width     : 'auto',
+                    height    : 'auto',
+                    minWidth  : 340,
+                    resizable : false
+                }
+            );
+        }
+    );
+
     var handleResize = function(){
 
     };
 
     var handleKeyEvent = handleResize;
-
 
     var orientationStyles = ["none",//1
                              "scale(-1,1)",//2
@@ -248,33 +266,15 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
         handleKeyEvent(event);
     });
 
-    function showPhotoDialog(imageFacet) {
-        photoCache = Grapher.createPhotoDialogCache(imageFacet.bodytrackQualifier.split(".")[0], "photo", [], "any");
+    function showPhotoDialog(deviceName, channelName, id, timestamp) {
+        console.log(deviceName + "/" + channelName + "/" + id + "/" + timestamp);
+        photoCache = Grapher.createPhotoDialogCache(deviceName, channelName, [], "any");
 
-        App.loadMustacheTemplate("core/grapher/timelineTemplates.html",
-            "_timeline_photo_dialog_template",
-            function(template) {
-                var html = template.render({"photoUrl" : ""});
-                $("body").remove("#photoDialog");
-                $("body").prepend("<div id='photoDialog'>" + html + "</div>");
-                $("#photoDialog")['dialog'](
-                    {
-                        autoOpen  : false,
-                        modal     : true,
-                        width     : 'auto',
-                        height    : 'auto',
-                        minWidth  : 340,
-                        resizable : false
-                    }
-                );
-            }
-        );
-
-        photoCache.initialize(imageFacet.bodytrackQualifier + "." + imageFacet.bodytrackId,
-            imageFacet.start/1000,
+        photoCache.initialize(deviceName + "." + channelName + "." + id,
+            timestamp/1000,
             function() {
-                createPhotoDialog(imageFacet.bodytrackQualifier + "." + imageFacet.bodytrackId,
-                    imageFacet.start/1000,
+                createPhotoDialog(deviceName + "." + channelName + "." + id,
+                    timestamp/1000,
                     function() {
                         centerPhotoDialog();
                     });

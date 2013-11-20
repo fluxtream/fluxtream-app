@@ -9,8 +9,10 @@ public abstract class AbstractPhotoFacetVO<T extends AbstractFacet> extends
 		AbstractInstantFacetVO<T> {
 
 	public String photoUrl;
-    public String bodytrackQualifier;
-    public long bodytrackId;
+    public String deviceName;
+    public String channelName;
+    public long UID;
+
     // timeType is either "gmt" for facets that know their absolute time, or
     // "local" for facets that only know local time.  This defaults to "gmt"
     // and should be changed by subclasses such as Flickr which use local time.
