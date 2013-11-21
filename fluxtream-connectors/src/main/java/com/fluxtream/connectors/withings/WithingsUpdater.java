@@ -11,6 +11,9 @@ import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,14 +21,19 @@ import static com.fluxtream.utils.HttpUtils.fetch;
 
 @Component
 @Updater(prettyName = "Withings", value = 4, objectTypes = {
-        WithingsBPMMeasureFacet.class, WithingsBodyScaleMeasureFacet.class, WithingsHeartPulseMeasureFacet.class },
+        WithingsBPMMeasureFacet.class, WithingsBodyScaleMeasureFacet.class, WithingsHeartPulseMeasureFacet.class,
+            WithingsActivityFacet.class},
          extractor = WithingsFacetExtractor.class,
          defaultChannels = {"Withings.weight","Withings.systolic", "Withings.diastolic"})
 @JsonFacetCollection(WithingsFacetVOCollection.class)
 public class WithingsUpdater extends AbstractUpdater {
 
+    private static final String LAST_ACTIVITY_SYNC_DATE = "lastActivitySyncDate";
+
     @Autowired
     JPADaoService jpaDaoService;
+
+    protected transient DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     public WithingsUpdater() {
         super();
@@ -37,67 +45,69 @@ public class WithingsUpdater extends AbstractUpdater {
         long then = System.currentTimeMillis();
         String json = "";
 
-        String url = "http://wbsapi.withings.net/measure?action=getmeas";
-        url += "&userid="
-               + guestService.getApiKeyAttribute(updateInfo.apiKey,"userid");
-        url += "&publickey="
-               + guestService.getApiKeyAttribute(updateInfo.apiKey,"publickey");
-        url += "&startdate=0";
-        url += "&enddate=" + System.currentTimeMillis() / 1000;
+        final String userid = guestService.getApiKeyAttribute(updateInfo.apiKey, "userid");
+        final String publickey = guestService.getApiKeyAttribute(updateInfo.apiKey, "publickey");
 
-        try {
-            json = fetch(url);
-            JSONObject jsonObject = JSONObject.fromObject(json);
-            if (jsonObject.getInt("status")!=0)
-                throw new Exception("Unexpected status code " + jsonObject.getInt("status"));
-            countSuccessfulApiCall(updateInfo.apiKey,
-                                   updateInfo.objectTypes, then, url);
-        } catch (UnexpectedHttpResponseCodeException e) {
-            countFailedApiCall(updateInfo.apiKey,
-                               updateInfo.objectTypes, then, url, Utils.stackTrace(e),
-                               e.getHttpResponseCode(), e.getHttpResponseMessage());
-        } catch (Exception e) {
-            countFailedApiCall(updateInfo.apiKey,
-                               updateInfo.objectTypes, then, url, Utils.stackTrace(e),
-                               null, null);
-            throw e;
-        }
-        if (!json.equals(""))
-            apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);
+        // do v1 API call
+        String url = String.format("http://wbsapi.withings.net/measure?action=getmeas&userid=%s&publickey=%s&startdate=0&enddate=%s",
+                                   userid, publickey,
+                                   String.valueOf(System.currentTimeMillis() / 1000));
+        fetchAndProcessJSON(updateInfo, url);
+
+        // do v2 (activity) API call
+        final String todaysDate = dateFormatter.withZoneUTC().print(System.currentTimeMillis());
+        String urlv2 = String.format("http://wbsapi.withings.net/v2/measure?action=getactivity&userid=%s&startdateymd=2013-06-01&enddateymd=%s",
+                                   userid, publickey, todaysDate);
+        guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_ACTIVITY_SYNC_DATE, todaysDate);
+        fetchAndProcessJSON(updateInfo, urlv2);
     }
 
-    public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
+    private void fetchAndProcessJSON(final UpdateInfo updateInfo, final String url) throws Exception {
         long then = System.currentTimeMillis();
-        String json;
-
-        long lastBodyscaleMeasurement = getLastBodyScaleMeasurement(updateInfo);
-        long lastBloodPresseureMeasurement = getLastBloodPressureMeasurement(updateInfo);
-
-        long lastMeasurement = Math.max(lastBodyscaleMeasurement, lastBloodPresseureMeasurement);
-
-        String url = "http://wbsapi.withings.net/measure?action=getmeas";
-        url += "&userid=" + guestService.getApiKeyAttribute(updateInfo.apiKey,"userid");
-        url += "&publickey="
-               + guestService.getApiKeyAttribute(updateInfo.apiKey,"publickey");
-        url += "&startdate=" + lastMeasurement / 1000;
-        url += "&enddate=" + System.currentTimeMillis() / 1000;
-
         try {
-            json = fetch(url);
+            String json = fetch(url);
             JSONObject jsonObject = JSONObject.fromObject(json);
             if (jsonObject.getInt("status")!=0)
                 throw new UnexpectedHttpResponseCodeException(jsonObject.getInt("status"), "Unexpected status code: " + jsonObject.getInt("status"));
             countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url);
-            apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);
+            if (StringUtils.isEmpty(json))
+                apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);
         } catch (UnexpectedHttpResponseCodeException e) {
             countFailedApiCall(updateInfo.apiKey,
                                updateInfo.objectTypes, then, url, Utils.stackTrace(e),
                                e.getHttpResponseCode(), e.getHttpResponseMessage());
         } catch (IOException e) {
             reportFailedApiCall(updateInfo.apiKey,
-                               updateInfo.objectTypes, then, url, Utils.stackTrace(e), "I/O");
+                                updateInfo.objectTypes, then, url, Utils.stackTrace(e), "I/O");
             throw e;
         }
+    }
+
+    public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
+        long lastBodyscaleMeasurement = getLastBodyScaleMeasurement(updateInfo);
+        long lastBloodPressureMeasurement = getLastBloodPressureMeasurement(updateInfo);
+
+        long lastMeasurement = Math.max(lastBodyscaleMeasurement, lastBloodPressureMeasurement);
+
+        final String userid = guestService.getApiKeyAttribute(updateInfo.apiKey, "userid");
+        final String publickey = guestService.getApiKeyAttribute(updateInfo.apiKey, "publickey");
+        final long startdate = lastMeasurement / 1000;
+        final long enddate = System.currentTimeMillis() / 1000;
+
+        // do v1 API call
+        String url = String.format("http://wbsapi.withings.net/measure?action=getmeas&userid=%s&publickey=%s&startdate=%s&enddate=%s",
+                                   userid, publickey, String.valueOf(startdate), String.valueOf(enddate));
+        fetchAndProcessJSON(updateInfo, url);
+
+        // do v2 API call
+        final String todaysDate = dateFormatter.withZoneUTC().print(System.currentTimeMillis());
+        final String lastActivitySyncDate = guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_ACTIVITY_SYNC_DATE);
+        String urlv2 = String.format("http://wbsapi.withings.net/v2/measure?action=getactivity&userid=%s&startdateymd=%s&enddateymd=%s",
+                                     userid, publickey,
+                                     lastActivitySyncDate,
+                                     todaysDate);
+        guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_ACTIVITY_SYNC_DATE, todaysDate);
+        fetchAndProcessJSON(updateInfo, urlv2);
     }
 
     private long getLastBloodPressureMeasurement(final UpdateInfo updateInfo) {
