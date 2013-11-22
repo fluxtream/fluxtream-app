@@ -42,8 +42,6 @@ public class WithingsUpdater extends AbstractUpdater {
     @Override
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
         // get user info and find out first seen date
-        long then = System.currentTimeMillis();
-        String json = "";
 
         final String userid = guestService.getApiKeyAttribute(updateInfo.apiKey, "userid");
         final String publickey = guestService.getApiKeyAttribute(updateInfo.apiKey, "publickey");
@@ -52,17 +50,13 @@ public class WithingsUpdater extends AbstractUpdater {
         String url = String.format("http://wbsapi.withings.net/measure?action=getmeas&userid=%s&publickey=%s&startdate=0&enddate=%s",
                                    userid, publickey,
                                    String.valueOf(System.currentTimeMillis() / 1000));
-        fetchAndProcessJSON(updateInfo, url);
+        fetchAndV1APIJSON(updateInfo, url);
 
         // do v2 (activity) API call
-        final String todaysDate = dateFormatter.withZoneUTC().print(System.currentTimeMillis());
-        String urlv2 = String.format("http://wbsapi.withings.net/v2/measure?action=getactivity&userid=%s&startdateymd=2013-06-01&enddateymd=%s",
-                                   userid, publickey, todaysDate);
-        guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_ACTIVITY_SYNC_DATE, todaysDate);
-        fetchAndProcessJSON(updateInfo, urlv2);
+        getActivityDataHistory(updateInfo, userid, publickey);
     }
 
-    private void fetchAndProcessJSON(final UpdateInfo updateInfo, final String url) throws Exception {
+    private void fetchAndV1APIJSON(final UpdateInfo updateInfo, final String url) throws Exception {
         long then = System.currentTimeMillis();
         try {
             String json = fetch(url);
@@ -97,17 +91,33 @@ public class WithingsUpdater extends AbstractUpdater {
         // do v1 API call
         String url = String.format("http://wbsapi.withings.net/measure?action=getmeas&userid=%s&publickey=%s&startdate=%s&enddate=%s",
                                    userid, publickey, String.valueOf(startdate), String.valueOf(enddate));
-        fetchAndProcessJSON(updateInfo, url);
+        fetchAndV1APIJSON(updateInfo, url);
 
-        // do v2 API call
+        // do v2 (activity) API call
+        final String lastActivitySyncDate = guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_ACTIVITY_SYNC_DATE);
+        if (lastActivitySyncDate ==null)
+            getActivityDataHistory(updateInfo, userid, publickey);
+        else
+            getRecentActivityData(updateInfo, userid, publickey);
+    }
+
+    private void getActivityDataHistory(final UpdateInfo updateInfo, final String userid, final String publickey) throws Exception {
+        final String todaysDate = dateFormatter.withZoneUTC().print(System.currentTimeMillis());
+        String urlv2 = String.format("http://wbsapi.withings.net/v2/measure?action=getactivity&userid=%s&publickey=%S&startdateymd=2013-06-01&enddateymd=%s",
+                                     userid, publickey, todaysDate);
+        guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_ACTIVITY_SYNC_DATE, todaysDate);
+        fetchAndV1APIJSON(updateInfo, urlv2);
+    }
+
+    private void getRecentActivityData(final UpdateInfo updateInfo, final String userid, final String publickey) throws Exception {
         final String todaysDate = dateFormatter.withZoneUTC().print(System.currentTimeMillis());
         final String lastActivitySyncDate = guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_ACTIVITY_SYNC_DATE);
-        String urlv2 = String.format("http://wbsapi.withings.net/v2/measure?action=getactivity&userid=%s&startdateymd=%s&enddateymd=%s",
+        String urlv2 = String.format("http://wbsapi.withings.net/v2/measure?action=getactivity&userid=%s&publickey=%S&startdateymd=%s&enddateymd=%s",
                                      userid, publickey,
                                      lastActivitySyncDate,
                                      todaysDate);
         guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_ACTIVITY_SYNC_DATE, todaysDate);
-        fetchAndProcessJSON(updateInfo, urlv2);
+        fetchAndV1APIJSON(updateInfo, urlv2);
     }
 
     private long getLastBloodPressureMeasurement(final UpdateInfo updateInfo) {
