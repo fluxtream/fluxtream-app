@@ -151,13 +151,11 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         em.persist(bodymediaConnectorInfo);
 
         final String withings = "Withings";
-        String[] withingsKeys = checkKeysExist(withings, Arrays.<String>asList());
-        em.persist(new ConnectorInfo(withings,
-                                     "/" + release + "/images/connectors/connector-withings.jpg",
-                                     res.getString("withings"),
-                                     "ajax:/withings/enterCredentials",
-                                     Connector.getConnector("withings"), order++, withingsKeys!=null,
-                                     false, true, withingsKeys));
+        String[] withingsKeys = checkKeysExist(withings, Arrays.<String>asList("withingsConsumerKey", "withingsConsumerSecret"));
+        final ConnectorInfo withingsConnectorInfo = new ConnectorInfo(withings, "/" + release + "/images/connectors/connector-withings.jpg", res.getString("withings"), "ajax:/withings/enterCredentials", Connector.getConnector("withings"), order++, withingsKeys != null, false, true, withingsKeys);
+        withingsConnectorInfo.supportsRenewTokens = true;
+        withingsConnectorInfo.renewTokensUrlTemplate = "withings/token?apiKeyId=%s";
+        em.persist(withingsConnectorInfo);
 
         final String zeo = "Zeo";
         String[] zeoKeys = checkKeysExist(zeo, new ArrayList<String>());
