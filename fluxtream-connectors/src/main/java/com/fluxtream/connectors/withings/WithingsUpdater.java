@@ -1,18 +1,24 @@
 package com.fluxtream.connectors.withings;
 
-import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.Notification;
+import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import com.fluxtream.utils.Utils;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.format.DateTimeFormat;
@@ -32,12 +38,23 @@ import org.springframework.stereotype.Component;
 @Updater(prettyName = "Withings", value = 4, objectTypes = {
         WithingsBPMMeasureFacet.class, WithingsBodyScaleMeasureFacet.class, WithingsHeartPulseMeasureFacet.class,
             WithingsActivityFacet.class},
-         extractor = WithingsFacetExtractor.class,
          defaultChannels = {"Withings.weight","Withings.systolic", "Withings.diastolic"})
 @JsonFacetCollection(WithingsFacetVOCollection.class)
 public class WithingsUpdater extends AbstractUpdater {
 
     private static final String LAST_ACTIVITY_SYNC_DATE = "lastActivitySyncDate";
+    private static final int WEIGHT = 1;
+    private static final int HEIGHT = 4;
+    private static final int FAT_FREE_MASS = 5;
+    private static final int FAT_RATIO = 6;
+    private static final int FAT_MASS_WEIGHT = 8;
+    private static final int DIASTOLIC_BLOOD_PRESSURE = 9;
+    private static final int SYSTOLIC_BLOOD_PRESSURE = 10;
+    private static final int HEART_PULSE = 11;
+
+    private enum ApiVersion {
+        V1, V2
+    }
 
     @Autowired
     JPADaoService jpaDaoService;
@@ -61,7 +78,7 @@ public class WithingsUpdater extends AbstractUpdater {
         parameters.put("userid", userid);
         parameters.put("startdate", "0");
         parameters.put("enddate", String.valueOf(System.currentTimeMillis() / 1000));
-        fetchAndProcessJSON(updateInfo, url, parameters);
+        fetchAndProcessJSON(updateInfo, url, parameters, ApiVersion.V1);
 
         // do v2 (activity) API call
         getActivityDataHistory(updateInfo, userid);
@@ -92,7 +109,7 @@ public class WithingsUpdater extends AbstractUpdater {
         parameters.put("userid", userid);
         parameters.put("startdate", String.valueOf(startdate));
         parameters.put("enddate", String.valueOf(enddate));
-        fetchAndProcessJSON(updateInfo, url, parameters);
+        fetchAndProcessJSON(updateInfo, url, parameters, ApiVersion.V1);
 
         // do v2 (activity) API call
         final String lastActivitySyncDate = guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_ACTIVITY_SYNC_DATE);
@@ -110,7 +127,7 @@ public class WithingsUpdater extends AbstractUpdater {
         parameters.put("userid", userid);
         parameters.put("startdateymd", "2013-06-01");
         parameters.put("enddateymd", String.valueOf(todaysDate));
-        fetchAndProcessJSON(updateInfo, urlv2, parameters);
+        fetchAndProcessJSON(updateInfo, urlv2, parameters, ApiVersion.V2);
         guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_ACTIVITY_SYNC_DATE, todaysDate);
     }
 
@@ -123,7 +140,7 @@ public class WithingsUpdater extends AbstractUpdater {
         parameters.put("userid", userid);
         parameters.put("startdateymd", lastActivitySyncDate);
         parameters.put("enddateymd", String.valueOf(todaysDate));
-        fetchAndProcessJSON(updateInfo, urlv2, parameters);
+        fetchAndProcessJSON(updateInfo, urlv2, parameters, ApiVersion.V2);
         guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_ACTIVITY_SYNC_DATE, todaysDate);
     }
 
@@ -159,7 +176,7 @@ public class WithingsUpdater extends AbstractUpdater {
     }
 
     private void fetchAndProcessJSON(final UpdateInfo updateInfo, final String url,
-                                     final Map<String,String> parameters) throws Exception {
+                                     final Map<String,String> parameters, ApiVersion apiVersion) throws Exception {
         long then = System.currentTimeMillis();
         try {
             OAuthRequest request = new OAuthRequest(Verb.GET, url);
@@ -179,16 +196,139 @@ public class WithingsUpdater extends AbstractUpdater {
             if (jsonObject.getInt("status")!=0)
                 throw new UnexpectedHttpResponseCodeException(jsonObject.getInt("status"), "Unexpected status code: " + jsonObject.getInt("status"));
             countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url);
-            if (StringUtils.isEmpty(json))
-                apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);
+            if (!StringUtils.isEmpty(json))
+                storeMeasurements(updateInfo, json, apiVersion);
         } catch (UnexpectedHttpResponseCodeException e) {
-            countFailedApiCall(updateInfo.apiKey,
-                               updateInfo.objectTypes, then, url, Utils.stackTrace(e),
-                               e.getHttpResponseCode(), e.getHttpResponseMessage());
-        } catch (IOException e) {
-            reportFailedApiCall(updateInfo.apiKey,
-                                updateInfo.objectTypes, then, url, Utils.stackTrace(e), "I/O");
-            throw e;
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url, Utils.stackTrace(e), e.getHttpResponseCode(), e.getHttpResponseMessage());
         }
+    }
+
+    private void storeMeasurements(final UpdateInfo updateInfo, final String json, final ApiVersion apiVersion) {
+        JSONObject jsonObject = JSONObject.fromObject(json);
+        Object bodyObject = jsonObject.get("body");
+        if (bodyObject==null) return;
+        JSONObject body = (JSONObject) bodyObject;
+        switch (apiVersion) {
+            case V1:
+                JSONArray measuregrps = body.getJSONArray("measuregrps");
+                for (int i=0; i<measuregrps.size(); i++)
+                    storeV1MeasureGroup(updateInfo, measuregrps.getJSONObject(i));
+                break;
+            case V2:
+                Object activitiesObject = body.get("activities");
+                if (activitiesObject instanceof JSONObject)
+                    storeActivityMeasurement(updateInfo, (JSONObject)activitiesObject);
+                else if (activitiesObject instanceof JSONArray) {
+                    JSONArray measurements = (JSONArray) activitiesObject;
+                    for (int i=0; i<measurements.size(); i++)
+                        storeActivityMeasurement(updateInfo, measurements.getJSONObject(i));
+                }
+                break;
+        }
+    }
+
+    private void storeV1MeasureGroup(final UpdateInfo updateInfo, final JSONObject measuregrp) {
+        final long date = measuregrp.getLong("date")*1000;
+        JSONArray measures = measuregrp.getJSONArray ("measures");
+
+        final Connector connector = Connector.getConnector("withings");
+
+        Iterator measuresIterator = measures.iterator();
+        final Map<Integer, Float> measuresMap = new HashMap<Integer, Float>();
+        while(measuresIterator.hasNext()) {
+            JSONObject measure = (net.sf.json.JSONObject) measuresIterator.next();
+            double pow = Math.abs (measure.getInt("unit"));
+            double measureValue = measure.getDouble("value");
+            double divisor = Math.pow (10, pow);
+            float fValue = (float)(measureValue / divisor);
+            measuresMap.put(measure.getInt("type"), fValue);
+        }
+
+        final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.start=?",
+                                                                                   updateInfo.apiKey.getId(), date);
+
+        if (measuresMap.containsKey(WEIGHT)) {
+            final ApiDataService.FacetModifier<WithingsBodyScaleMeasureFacet> facetModifier = new ApiDataService.FacetModifier<WithingsBodyScaleMeasureFacet>() {
+                @Override
+                public WithingsBodyScaleMeasureFacet createOrModify(WithingsBodyScaleMeasureFacet facet, final Long apiKeyId) {
+                    if (facet==null)
+                        facet = new WithingsBodyScaleMeasureFacet(updateInfo.apiKey.getId());
+                    facet.objectType = ObjectType.getObjectType(connector, "weight").value();
+                    facet.measureTime = date;
+                    facet.start = date;
+                    facet.end = date;
+                    facet.weight = measuresMap.get(WEIGHT);
+                    facet.height = measuresMap.get(HEIGHT);
+                    facet.fatFreeMass = measuresMap.get(FAT_FREE_MASS);
+                    facet.fatMassWeight = measuresMap.get(FAT_MASS_WEIGHT);
+                    facet.fatRatio = measuresMap.get(FAT_RATIO);
+                    return facet;
+                }
+            };
+            final AbstractFacet createdOrModifiedFacet = apiDataService.createOrReadModifyWrite(WithingsBodyScaleMeasureFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), Arrays.asList(createdOrModifiedFacet));
+        }
+        if (measuresMap.containsKey(DIASTOLIC_BLOOD_PRESSURE) &&
+            measuresMap.containsKey(SYSTOLIC_BLOOD_PRESSURE) &&
+            measuresMap.get(DIASTOLIC_BLOOD_PRESSURE)>0f &&
+            measuresMap.get(SYSTOLIC_BLOOD_PRESSURE)>0f) {
+            final ApiDataService.FacetModifier<WithingsBPMMeasureFacet> facetModifier = new ApiDataService.FacetModifier<WithingsBPMMeasureFacet>() {
+                @Override
+                public WithingsBPMMeasureFacet createOrModify(WithingsBPMMeasureFacet facet, final Long apiKeyId) {
+                    if (facet==null)
+                        facet = new WithingsBPMMeasureFacet(updateInfo.apiKey.getId());
+                    facet.objectType = ObjectType.getObjectType(connector, "blood_pressure").value();
+                    facet.measureTime = date;
+                    facet.start = date;
+                    facet.end = date;
+                    facet.systolic = measuresMap.get(SYSTOLIC_BLOOD_PRESSURE);
+                    facet.diastolic = measuresMap.get(DIASTOLIC_BLOOD_PRESSURE);
+                    facet.heartPulse = measuresMap.get(HEART_PULSE);
+                    return facet;
+                }
+            };
+            final AbstractFacet createdOrModifiedFacet = apiDataService.createOrReadModifyWrite(WithingsBPMMeasureFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), Arrays.asList(createdOrModifiedFacet));
+        }
+        if (measuresMap.containsKey(HEART_PULSE)) {
+            final ApiDataService.FacetModifier<WithingsHeartPulseMeasureFacet> facetModifier = new ApiDataService.FacetModifier<WithingsHeartPulseMeasureFacet>() {
+                @Override
+                public WithingsHeartPulseMeasureFacet createOrModify(WithingsHeartPulseMeasureFacet facet, final Long apiKeyId) {
+                    if (facet==null)
+                        facet = new WithingsHeartPulseMeasureFacet(updateInfo.apiKey.getId());
+                    facet.objectType = ObjectType.getObjectType(connector, "heart_pulse").value();
+                    facet.start = date;
+                    facet.end = date;
+                    facet.heartPulse = measuresMap.get(HEART_PULSE);
+                    return facet;
+                }
+            };
+            final AbstractFacet createdOrModifiedFacet = apiDataService.createOrReadModifyWrite(WithingsHeartPulseMeasureFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), Arrays.asList(createdOrModifiedFacet));
+        }
+    }
+
+    private void storeActivityMeasurement(final UpdateInfo updateInfo, final JSONObject activityData) {
+        final String date = activityData.getString("date");
+        final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.date=?",
+                                                                                   updateInfo.apiKey.getId(), date);
+        final ApiDataService.FacetModifier<WithingsActivityFacet> facetModifier = new ApiDataService.FacetModifier<WithingsActivityFacet>() {
+
+            @Override
+            public WithingsActivityFacet createOrModify(WithingsActivityFacet facet, final Long apiKeyId) {
+                if (facet==null)
+                    facet = new WithingsActivityFacet(updateInfo.apiKey.getId());
+                extractCommonFacetData(facet, updateInfo);
+                facet.date = date;
+                facet.timezone = activityData.getString("timezone");
+                facet.steps = activityData.getInt("steps");
+                facet.calories = (float) activityData.getDouble("calories");
+                facet.elevation = (float) activityData.getDouble("elevation");
+                return facet;
+            };
+        };
+
+        final AbstractFacet createdOrModifiedFacet = apiDataService.createOrReadModifyWrite(WithingsActivityFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
+        bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), Arrays.asList(createdOrModifiedFacet));
     }
 }

@@ -21,8 +21,15 @@ public class WithingsActivityFacet extends AbstractLocalTimeFacet {
     public float calories;
     public float elevation;
 
-    @Override
-    protected void makeFullTextIndexable() {
-        //To change body of implemented methods use File | Settings | File Templates.
+
+    public WithingsActivityFacet() {
+        super();
     }
+
+    public WithingsActivityFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
+    @Override
+    protected void makeFullTextIndexable() {}
 }
