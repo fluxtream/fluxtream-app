@@ -14,7 +14,55 @@
     Map<String,Object> connectorInstanceModel = entry.getValue();
 %>
 
+<script>
 
+    function editApiKeyAttributeValue(apiKeyId, attributeKey, attributeValue){
+        var newValue = prompt("Edit Attribute Value", attributeValue);
+        if (newValue!=null) {
+            $.ajax({
+                url: "/api/admin/apiKeys/" + apiKeyId + "/attribute",
+                data: {attributeKey: attributeKey, attributeValue : newValue},
+                type: "POST",
+                success: function(){
+                    location.reload();
+                }
+            });
+        }
+    }
+
+    function deleteApiKeyAttributeValue(apiKeyId, attributeKey){
+        var confirmed = confirm("Are you sure?");
+        if (confirmed) {
+            $.ajax({
+                url: "/api/admin/apiKeys/" + apiKeyId + "/" + attributeKey,
+                type: "DELETE",
+                success: function(){
+                    location.reload();
+                }
+            });
+        }
+    }
+
+    function addApiKeyAttribute(apiKeyId){
+        var newKey = prompt("Please, enter Attribute Key (/Name)");
+        if (newKey==null) return;
+        var newValue = prompt("Please, enter Attribute Value");
+        if (newValue!=null) {
+            $.ajax({
+                url: "/api/admin/apiKeys/" + apiKeyId + "/attribute/add",
+                data: {attributeKey: newKey, attributeValue : newValue},
+                type: "POST",
+                success: function(status){
+                    if (status.result==="OK")
+                        location.reload();
+                    else
+                        alert(status.message);
+                }
+            });
+        }
+    }
+
+</script>
 <h3 id="apiKey-<%=entry.getKey()%>" style="margin-bottom:10px">
     <%=connectorInstanceModel.get("connectorName")%>
     <% if (connectorInstanceModel.get("status") == "STATUS_PERMANENT_FAILURE") { %>
@@ -28,12 +76,16 @@
     <% } %>
     <a class="btn btn-link" href="/admin/${guestId}/<%=entry.getKey()%>">more...</a>
 </h3>
-<div class="well">
+<div class="well" id="apiKeyAttributes-<%=entry.getKey()%>">
     <% Map<String,String> attributes = (Map<String,String>) connectorInstanceModel.get("attributes");
         Set<Map.Entry<String,String>> attributeEntries = attributes.entrySet();
         for (Map.Entry<String,String> attributeEntry : attributeEntries) {%>
     <%=attributeEntry.getKey()%> : <%=attributeEntry.getValue()%>
+        <a onclick="editApiKeyAttributeValue(<%=entry.getKey()%>, '<%=attributeEntry.getKey()%>', '<%=attributeEntry.getValue()%>')"><i class="icon icon-pencil"></i></a>
+        <a onclick="deleteApiKeyAttributeValue(<%=entry.getKey()%>, '<%=attributeEntry.getKey()%>')"><i class="icon icon-trash"></i></a>
+        <br>
     <% } %>
+    <a onclick="addApiKeyAttribute(<%=entry.getKey()%>)"><i class="icon icon-plus"></i>&nbsp;add attribute</a>
 </div>
 <div>Rate Limit Specifications: <%=connectorInstanceModel.get("rateLimitSpecs")%></div>
 <div <%if ((Boolean)connectorInstanceModel.get("isOverQuota")) {out.print("style=\"color:red\"");} %>>Over Quota: <%=connectorInstanceModel.get("isOverQuota")%></div>
