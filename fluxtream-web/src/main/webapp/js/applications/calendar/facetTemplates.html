@@ -155,7 +155,7 @@
             </div>
             {{/facets}}
         </div>
-</div>
+    </div>
 </template>
 <template id="runkeeper-fitnessActivity">
     <div class="flx-box" style="border-left-color:{{color}}">
@@ -486,6 +486,41 @@
                 <div class="flx-data">
                     <span class="flx-dataLabel">Pulse:</span>
                     <span class="flx-text">{{pulse}} bpm</span>
+                </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
+<template id="withings-activity">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon withings"></span>
+        <div class="facetDetails">
+            <span class="flx-text">{{#facets}}</span>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div class="flx-data">
+                    <span class="flx-steps">
+                        <span class="flx-dataLabel">You walked</span>
+                        <span class="flx-text">{{_steps}}</span>
+                        <span class="flx-dataLabel">steps</span>
+                    </span>
+                </div>
+                <div class="flx-data">
+                    <span class="flx-calories">
+                        <span class="flx-dataLabel">You burned</span>
+                        <span class="flx-text">{{_caloriesOut}}</span>
+                        <span class="flx-dataLabel">kcal</span>
+                    </span>
+                </div>
+                <div class="flx-data">
+                    <span class="flx-calories">
+                        <span class="flx-dataLabel">You climbed</span>
+                        <span class="flx-text">{{elevation}}</span>
+                        <span class="flx-dataLabel">m</span>
+                    </span>
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>

@@ -253,6 +253,7 @@ public class WithingsUpdater extends AbstractUpdater {
                     facet.start = date;
                     facet.end = date;
                     facet.weight = measuresMap.get(WEIGHT);
+                    extractCommonFacetData(facet, updateInfo);
                     if (measuresMap.get(HEIGHT)!=null)
                         facet.height = measuresMap.get(HEIGHT);
                     if (measuresMap.get(FAT_FREE_MASS)!=null)
@@ -276,6 +277,7 @@ public class WithingsUpdater extends AbstractUpdater {
                 public WithingsBPMMeasureFacet createOrModify(WithingsBPMMeasureFacet facet, final Long apiKeyId) {
                     if (facet==null)
                         facet = new WithingsBPMMeasureFacet(updateInfo.apiKey.getId());
+                    extractCommonFacetData(facet, updateInfo);
                     facet.objectType = ObjectType.getObjectType(connector, "blood_pressure").value();
                     facet.measureTime = date;
                     facet.start = date;
@@ -296,6 +298,7 @@ public class WithingsUpdater extends AbstractUpdater {
                 public WithingsHeartPulseMeasureFacet createOrModify(WithingsHeartPulseMeasureFacet facet, final Long apiKeyId) {
                     if (facet==null)
                         facet = new WithingsHeartPulseMeasureFacet(updateInfo.apiKey.getId());
+                    extractCommonFacetData(facet, updateInfo);
                     facet.objectType = ObjectType.getObjectType(connector, "heart_pulse").value();
                     facet.start = date;
                     facet.end = date;
