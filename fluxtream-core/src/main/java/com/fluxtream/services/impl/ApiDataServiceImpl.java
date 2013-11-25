@@ -466,7 +466,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 
     @Override
     @Transactional(readOnly = false)
-    public <T extends AbstractFacet> T createOrReadModifyWrite(
+    public <T extends AbstractFacet> T createOrReadModifyWrite (
             Class<? extends AbstractFacet> facetClass, FacetQuery query, FacetModifier<T> modifier, Long apiKeyId) {
         //System.out.println("========================================");
         // TODO(rsargent): do we need @Transactional again on class?
@@ -494,23 +494,28 @@ public class ApiDataServiceImpl implements ApiDataService {
             logger.info("WARNING: non unique exception here, query: " + qlString);
         }
 
-        T modified = modifier.createOrModify(orig, apiKeyId);
-        // createOrModify must return passed argument if it is not null
-        assert(orig == null || orig == modified);
-        assert (modified != null);
-        //System.out.println("====== after modify, contained?: " + em.contains(modified));
-        if (orig == null) {
-            // Persist the newly-created facet (and its tags, if any)
-            persistExistingFacet(modified);
-            //System.out.println("====== after persist, contained?: " + em.contains(modified));
-        } else {
-            if (modified.hasTags()) {
-                persistTags(modified);
+        try {
+            T modified = modifier.createOrModify(orig, apiKeyId);
+            // createOrModify must return passed argument if it is not null
+            assert(orig == null || orig == modified);
+            assert (modified != null);
+            //System.out.println("====== after modify, contained?: " + em.contains(modified));
+            if (orig == null) {
+                // Persist the newly-created facet (and its tags, if any)
+                persistExistingFacet(modified);
+                //System.out.println("====== after persist, contained?: " + em.contains(modified));
+            } else {
+                if (modified.hasTags()) {
+                    persistTags(modified);
+                }
             }
+            assert(em.contains(modified));
+            //System.out.println("========================================");
+            return modified;
+        } catch (Throwable t) {
+            t.printStackTrace();
+            throw new RuntimeException("Couldn't createOrModify facet, orig=" + orig + ", facetClass=" + facetClass);
         }
-        assert(em.contains(modified));
-        //System.out.println("========================================");
-        return modified;
     }
 
     // Each user has a set of all tags.  persistTags makes sure this set of all tags includes the tags

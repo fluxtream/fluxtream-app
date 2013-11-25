@@ -258,10 +258,14 @@ public class WithingsUpdater extends AbstractUpdater {
                     facet.start = date;
                     facet.end = date;
                     facet.weight = measuresMap.get(WEIGHT);
-                    facet.height = measuresMap.get(HEIGHT);
-                    facet.fatFreeMass = measuresMap.get(FAT_FREE_MASS);
+                    if (measuresMap.get(HEIGHT)!=null)
+                        facet.height = measuresMap.get(HEIGHT);
+                    if (measuresMap.get(FAT_FREE_MASS)!=null)
+                        facet.fatFreeMass = measuresMap.get(FAT_FREE_MASS);
+                    if (measuresMap.get(FAT_MASS_WEIGHT)!=null)
                     facet.fatMassWeight = measuresMap.get(FAT_MASS_WEIGHT);
-                    facet.fatRatio = measuresMap.get(FAT_RATIO);
+                    if (measuresMap.get(FAT_RATIO)!=null)
+                        facet.fatRatio = measuresMap.get(FAT_RATIO);
                     return facet;
                 }
             };
@@ -283,7 +287,8 @@ public class WithingsUpdater extends AbstractUpdater {
                     facet.end = date;
                     facet.systolic = measuresMap.get(SYSTOLIC_BLOOD_PRESSURE);
                     facet.diastolic = measuresMap.get(DIASTOLIC_BLOOD_PRESSURE);
-                    facet.heartPulse = measuresMap.get(HEART_PULSE);
+                    if (measuresMap.get(HEART_PULSE)!=null)
+                       facet.heartPulse = measuresMap.get(HEART_PULSE);
                     return facet;
                 }
             };
@@ -321,13 +326,15 @@ public class WithingsUpdater extends AbstractUpdater {
                 extractCommonFacetData(facet, updateInfo);
                 facet.date = date;
                 facet.timezone = activityData.getString("timezone");
-                facet.steps = activityData.getInt("steps");
-                facet.calories = (float) activityData.getDouble("calories");
-                facet.elevation = (float) activityData.getDouble("elevation");
+                if (activityData.has("steps"))
+                    facet.steps = activityData.getInt("steps");
+                if (activityData.has("calories"))
+                   facet.calories = (float) activityData.getDouble("calories");
+                if (activityData.has("elevation"))
+                    facet.elevation = (float) activityData.getDouble("elevation");
                 return facet;
             };
         };
-
         final AbstractFacet createdOrModifiedFacet = apiDataService.createOrReadModifyWrite(WithingsActivityFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
         bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), Arrays.asList(createdOrModifiedFacet));
     }
