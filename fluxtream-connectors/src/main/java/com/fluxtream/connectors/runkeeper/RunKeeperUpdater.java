@@ -15,6 +15,7 @@ import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.JPAUtils;
+import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.codehaus.plexus.util.ExceptionUtils;
@@ -288,11 +289,10 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         request.addQuerystringParameter("oauth_token", token.getToken());
         request.addHeader("Accept", "application/vnd.com.runkeeper.FitnessActivityFeed+json");
         final DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'").withZone(DateTimeZone.forID("GMT"));
-        final DateTimeFormatter simpleDateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd").withZone(DateTimeZone.forID("GMT"));
         if (since>0) {
             final String sinceFormatted = dateFormatter.print(since);
             // add one day of padding to account for unknown timezone
-            final String noEarlierFormatted = simpleDateFormatter.print(since-DateTimeConstants.MILLIS_PER_DAY);
+            final String noEarlierFormatted = TimeUtils.dateFormatterUTC.print(since-DateTimeConstants.MILLIS_PER_DAY);
             request.addHeader("If-Modified-Since", sinceFormatted);
             request.addQuerystringParameter("noEarlierThan", noEarlierFormatted);
         }

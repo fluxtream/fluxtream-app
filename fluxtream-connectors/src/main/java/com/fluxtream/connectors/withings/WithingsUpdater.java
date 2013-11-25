@@ -15,13 +15,12 @@ import com.fluxtream.domain.Notification;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.utils.JPAUtils;
+import com.fluxtream.utils.TimeUtils;
 import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.scribe.builder.ServiceBuilder;
 import org.scribe.builder.api.WithingsApi;
 import org.scribe.model.OAuthRequest;
@@ -56,8 +55,6 @@ public class WithingsUpdater extends AbstractUpdater {
 
     @Autowired
     JPADaoService jpaDaoService;
-
-    protected transient DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     public WithingsUpdater() {
         super();
@@ -118,7 +115,7 @@ public class WithingsUpdater extends AbstractUpdater {
     }
 
     private void getActivityDataHistory(final UpdateInfo updateInfo, final String userid) throws Exception {
-        final String todaysDate = dateFormatter.withZoneUTC().print(System.currentTimeMillis());
+        final String todaysDate = TimeUtils.dateFormatterUTC.print(System.currentTimeMillis());
         String urlv2 = "http://wbsapi.withings.net/v2/measure";
         Map<String,String> parameters = new HashMap<String,String>();
         parameters.put("action", "getactivity");
@@ -130,7 +127,7 @@ public class WithingsUpdater extends AbstractUpdater {
     }
 
     private void getRecentActivityData(final UpdateInfo updateInfo, final String userid) throws Exception {
-        final String todaysDate = dateFormatter.withZoneUTC().print(System.currentTimeMillis());
+        final String todaysDate = TimeUtils.dateFormatterUTC.print(System.currentTimeMillis());
         final String lastActivitySyncDate = guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_ACTIVITY_SYNC_DATE);
         String urlv2 = String.format("http://wbsapi.withings.net/v2/measure", userid, lastActivitySyncDate, todaysDate);
         Map<String,String> parameters = new HashMap<String,String>();

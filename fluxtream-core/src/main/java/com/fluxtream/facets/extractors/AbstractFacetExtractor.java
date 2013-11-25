@@ -1,19 +1,13 @@
 package com.fluxtream.facets.extractors;
 
 import java.util.List;
-
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 public abstract class AbstractFacetExtractor {
-
-    protected final static DateTimeFormatter dateFormatter = DateTimeFormat
-            .forPattern("yyyy-MM-dd");
 
 	protected Connector connector(UpdateInfo updateInfo) {
 		return updateInfo.apiKey.getConnector();

@@ -1,15 +1,9 @@
 package com.fluxtream.api;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.ArrayList;
 import java.util.TimeZone;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
@@ -17,34 +11,14 @@ import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.SignpostOAuthHelper;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.UnexpectedResponseCodeException;
-import com.fluxtream.connectors.updaters.UpdateFailedException;
-import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
+import com.fluxtream.utils.TimeUtils;
 import com.google.gson.Gson;
-import net.sf.json.JSONObject;
-import oauth.signpost.OAuthConsumer;
-import oauth.signpost.OAuthProvider;
-import oauth.signpost.basic.DefaultOAuthConsumer;
-import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
-import oauth.signpost.commonshttp.CommonsHttpOAuthProvider;
-import oauth.signpost.exception.OAuthCommunicationException;
-import oauth.signpost.exception.OAuthException;
-import oauth.signpost.exception.OAuthExpectationFailedException;
-import oauth.signpost.exception.OAuthMessageSignerException;
-import oauth.signpost.http.HttpParameters;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.BasicResponseHandler;
 import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -73,14 +47,11 @@ public class ApiCallController {
 	@Autowired
 	Configuration env;
 
-    private static final DateTimeFormatter dateFormat = DateTimeFormat
-            .forPattern("yyyy-MM-dd");
-
     @GET
     @Path("/fitbit/body/weight")
     @Produces({ MediaType.APPLICATION_JSON })
     public String getFitbitBodyWeightHistory() {
-        String formattedDate = dateFormat.withZone(
+        String formattedDate = TimeUtils.dateFormatter.withZone(
                 DateTimeZone.forTimeZone(TimeZone.getDefault())).print(System.currentTimeMillis());
 
         final Connector fitbitConnector = Connector.getConnector("fitbit");
@@ -104,7 +75,7 @@ public class ApiCallController {
     @Path("/fitbit/weight")
     @Produces({ MediaType.APPLICATION_JSON })
     public String getFitbitAriaWeightHistory() {
-        String formattedDate = dateFormat.withZone(
+        String formattedDate = TimeUtils.dateFormatter.withZone(
                 DateTimeZone.forTimeZone(TimeZone.getDefault())).print(System.currentTimeMillis());
 
         final Connector fitbitConnector = Connector.getConnector("fitbit");

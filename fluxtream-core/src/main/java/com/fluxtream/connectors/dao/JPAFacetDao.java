@@ -24,10 +24,9 @@ import com.fluxtream.domain.metadata.VisitedCity;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.JPAUtils;
+import com.fluxtream.utils.TimeUtils;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
@@ -78,11 +77,9 @@ public class JPAFacetDao implements FacetDao {
         String queryString = "SELECT facet FROM " + facetName + " facet WHERE facet.apiKeyId=:apiKeyId AND NOT(facet.endDate<:startDate) AND NOT(facet.startDate>:endDate)";
         final TypedQuery<? extends AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
         query.setParameter("apiKeyId", apiKey.getId());
-        final DateTimeFormatter formatter = DateTimeFormat
-                .forPattern("yyyy-MM-dd");
-        final DateTime time = formatter.withZoneUTC().parseDateTime(startDateString);
+        final DateTime time = TimeUtils.dateFormatterUTC.parseDateTime(startDateString);
         Date startDate = new Date(time.getMillis());
-        final DateTime time2 = formatter.withZoneUTC().parseDateTime(endDateString);
+        final DateTime time2 = TimeUtils.dateFormatterUTC.parseDateTime(endDateString);
         Date endDate = new Date(time2.getMillis());
         query.setParameter("startDate", startDate, TemporalType.DATE);
         query.setParameter("endDate", endDate, TemporalType.DATE);

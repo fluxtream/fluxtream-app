@@ -14,8 +14,6 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.utils.TimeUtils;
 import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -84,17 +82,14 @@ public class CalendarController {
         return calendarModel.toJSONString(env);
     }
 
-    private static final DateTimeFormatter jsDateFormatter = DateTimeFormat
-            .forPattern("yyyy-MM-dd");
-
     @GET
     @Path(value="/getDateRangeForWeek")
     @Produces({ MediaType.APPLICATION_JSON })
     public String getDateRangeForWeek(@QueryParam("week") int week,
                                       @QueryParam("year") int year) {
         final LocalDate firstOfWeek = TimeUtils.getBeginningOfWeek(year, week);
-        final String startDate = jsDateFormatter.print(firstOfWeek);
-        final String endDate = jsDateFormatter.print(firstOfWeek.plusWeeks(1).minusDays(1));
+        final String startDate = TimeUtils.dateFormatter.print(firstOfWeek);
+        final String endDate = TimeUtils.dateFormatter.print(firstOfWeek.plusWeeks(1).minusDays(1));
 
         return String.format("[\"%s\", \"%s\"]", startDate, endDate);
     }

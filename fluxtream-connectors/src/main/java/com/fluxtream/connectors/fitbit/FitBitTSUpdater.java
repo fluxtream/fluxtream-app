@@ -69,9 +69,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
     @Autowired
     BodyTrackHelper bodyTrackHelper;
 
-	private static final DateTimeFormatter dateFormat = DateTimeFormat
-			.forPattern("yyyy-MM-dd");
-
 	public static final String GET_STEPS_CALL = "FITBIT_GET_STEPS_TIMESERIES_CALL";
 	public static final String GET_USER_PROFILE_CALL = "FITBIT_GET_USER_PROFILE_CALL";
     public static final String GET_USER_DEVICES_CALL = "FITBIT_GET_USER_DEVICES_CALL";
@@ -266,7 +263,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
 	private boolean isToday(String date, long guestId) {
 		TimeZone tz = metadataService.getCurrentTimeZone(guestId);
-		String today = dateFormat.withZone(DateTimeZone.forTimeZone(tz)).print(
+		String today = TimeUtils.dateFormatter.withZone(DateTimeZone.forTimeZone(tz)).print(
 				System.currentTimeMillis());
 		return date.equals(today);
 	}
@@ -334,7 +331,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                     facet = new FitbitTrackerActivityFacet(apiKey.getId());
                     facet.date = date;
                     facet.api = connector().value();
-                    final DateTime dateTime = dateFormat.withZoneUTC().parseDateTime(date);
+                    final DateTime dateTime = TimeUtils.dateFormatterUTC.parseDateTime(date);
 
                     facet.start = dateTime.getMillis();
                     facet.end = dateTime.getMillis()+ DateTimeConstants.MILLIS_PER_DAY-1;
@@ -513,7 +510,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         int days = Days.daysBetween(startDate, new LocalDate(dayAfterEnd, utc)).getDays();
         for (int i = 0; i < days; i++) {
             LocalDate d = startDate.withFieldAdded(DurationFieldType.days(), i);
-            String dateString = dateFormat.print(d.toDateTimeAtStartOfDay().getMillis());
+            String dateString = TimeUtils.dateFormatter.print(d.toDateTimeAtStartOfDay().getMillis());
             dates.add(dateString);
         }
         return dates;
@@ -581,7 +578,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                                          final List<String> trackerDaysToSync, final long trackerLastServerSyncMillis) throws Exception {
         for (String dateString : trackerDaysToSync) {
             final TimeZone timeZone = TimeZone.getTimeZone("UTC");
-            Date date = new Date(dateFormat.withZone(
+            Date date = new Date(TimeUtils.dateFormatter.withZone(
                     DateTimeZone.forTimeZone(timeZone)).parseMillis(dateString));
             updateOneDayOfTrackerData(updateInfo, timeZone, date,
                                       dateString, trackerLastServerSyncMillis);
@@ -592,7 +589,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                                              final List<String> scaleDaysToSync, final long scaleLastServerSyncMillis) throws Exception {
             for (String dateString : scaleDaysToSync) {
                 final TimeZone timeZone = TimeZone.getTimeZone("UTC");
-                Date date = new Date(dateFormat.withZone(
+                Date date = new Date(TimeUtils.dateFormatter.withZone(
                         DateTimeZone.forTimeZone(timeZone)).parseMillis(dateString));
                 updateOneDayOfScaleData(updateInfo, timeZone, date,
                                           dateString, scaleLastServerSyncMillis);

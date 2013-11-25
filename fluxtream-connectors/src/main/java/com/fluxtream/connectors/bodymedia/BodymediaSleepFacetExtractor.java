@@ -130,12 +130,12 @@ public class BodymediaSleepFacetExtractor extends AbstractFacetExtractor
                             // of burn.date according to BodyMedia's idea of what timezone you were in then.
                             // End should, I think, be start + the number of minutes in the minutes array *
                             // the number of milliseconds in a minute.
-                            sleep.date = dateFormatter.print(realDateStart.getMillis());
+                            sleep.date = TimeUtils.dateFormatter.print(realDateStart.getMillis());
                             sleep.start = realDateStart.getMillis() - DateTimeConstants.MILLIS_PER_DAY/2;
                             sleep.end = realDateStart.getMillis() + DateTimeConstants.MILLIS_PER_DAY/2;
                         }
                         else {
-                            sleep.date = dateFormatter.print(date.getMillis());
+                            sleep.date = TimeUtils.dateFormatter.print(date.getMillis());
                             TimeZone timeZone = metadataService.getTimeZone(updateInfo.getGuestId(), date.getMillis());
                             long fromNoon = TimeUtils.fromMidnight(date.getMillis(), timeZone) - MILLIS_IN_DAY / 2;
                             long toNoon = TimeUtils.toMidnight(date.getMillis(), timeZone) - MILLIS_IN_DAY / 2;

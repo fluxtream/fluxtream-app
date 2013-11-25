@@ -4,25 +4,23 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import com.fluxtream.ApiData;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
+import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import com.fluxtream.aspects.FlxLogger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Component;
 
 @Component
 public class FitbitActivityFacetExtractor extends AbstractFacetExtractor {
 
 	FlxLogger logger = FlxLogger.getLogger(FitbitActivityFacetExtractor.class);
-    public static DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd");
 
 	public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, final ApiData apiData,
 			final ObjectType objectType) {
@@ -59,7 +57,7 @@ public class FitbitActivityFacetExtractor extends AbstractFacetExtractor {
                     " connector=fitbit action=extractSummaryActivityInfo");
 		facet.date = (String) apiData.updateInfo.getContext("date");
 
-        final DateTime dateTime = dateFormat.withZoneUTC().parseDateTime(facet.date);
+        final DateTime dateTime = TimeUtils.dateFormatterUTC.parseDateTime(facet.date);
 
         // returns the starting midnight for the date
         facet.start = dateTime.getMillis();

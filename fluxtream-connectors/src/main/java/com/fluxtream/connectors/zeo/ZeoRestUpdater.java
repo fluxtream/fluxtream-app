@@ -7,8 +7,6 @@ import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.MetadataService;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -30,8 +28,6 @@ public class ZeoRestUpdater extends AbstractUpdater {
     @Autowired
     JPADaoService jpaDaoService;
 
-
-	private static final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
 	public ZeoRestUpdater() {
 		super();

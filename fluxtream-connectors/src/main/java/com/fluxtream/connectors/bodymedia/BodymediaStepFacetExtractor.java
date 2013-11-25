@@ -98,7 +98,7 @@ public class BodymediaStepFacetExtractor extends AbstractFacetExtractor
                     steps.lastSync = d.getMillis();
 
                     DateTime date = formatter.parseDateTime(day.getString("date"));
-                    steps.date = dateFormatter.print(date.getMillis());
+                    steps.date = TimeUtils.dateFormatter.print(date.getMillis());
                     if(tzMap!=null)
                     {
                         // Create a LocalDate object which just captures the date without any

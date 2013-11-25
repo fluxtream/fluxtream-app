@@ -40,11 +40,10 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.SettingsService;
 import com.fluxtream.utils.JPAUtils;
+import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONObject;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,8 +97,6 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
     @Autowired
     SettingsService settingsService;
 
-    DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
-
     @Override
     public AbstractFacetVO<AbstractFacet> getFacet(final int api, final int objectType, final long facetId) {
         Connector connector = Connector.fromValue(api);
@@ -107,7 +104,7 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
         final AbstractFacet facet = em.find(ot.facetClass(), facetId);
         final GuestSettings guestSettings = settingsService.getSettings(facet.guestId);
         final TimeZone timeZone = metadataService.getTimeZone(facet.guestId, facet.start);
-        final String date = dateFormatter.withZone(DateTimeZone.forTimeZone(timeZone)).print(facet.start);
+        final String date = TimeUtils.dateFormatter.withZone(DateTimeZone.forTimeZone(timeZone)).print(facet.start);
         final DayMetadata dayMetadata = metadataService.getDayMetadata(facet.guestId, date);
         try {
             final AbstractFacetVO<AbstractFacet> vo = AbstractFacetVO.getFacetVOClass((AbstractFacet)facet).newInstance();

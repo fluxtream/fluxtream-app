@@ -5,13 +5,12 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import com.fluxtream.utils.TimeUtils;
 import com.fluxtream.utils.TimespanSegment;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 /**
  * <p>
@@ -21,8 +20,6 @@ import org.joda.time.format.DateTimeFormatter;
  * @author Anne Wright (arwright@cmu.edu)
  */
 public class TimezoneMap {
-    protected static final DateTimeFormatter formatter = DateTimeFormat
-            .forPattern("yyyy-MM-dd");
 
     public TreeSet<TimespanSegment<DateTimeZone>> spans = new TreeSet<TimespanSegment<DateTimeZone>>();
 
@@ -44,7 +41,7 @@ public class TimezoneMap {
         for (String date : consensusTimezoneMap.keySet()) {
             final TimeZone timeZone = consensusTimezoneMap.get(date);
             final DateTimeZone dateTimeZone = DateTimeZone.forTimeZone(timeZone);
-            final DateTime thisStartDateTime = formatter.withZone(dateTimeZone).parseDateTime(date);
+            final DateTime thisStartDateTime = TimeUtils.dateFormatter.withZone(dateTimeZone).parseDateTime(date);
             final long thisStartMillis = thisStartDateTime.getMillis();
 
             // Check if we need to flush a prior segment

@@ -106,7 +106,7 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
                     burn.lastSync = d.getMillis();
 
                     DateTime date = formatter.parseDateTime(day.getString("date"));
-                    burn.date = dateFormatter.print(date.getMillis());
+                    burn.date = TimeUtils.dateFormatter.print(date.getMillis());
 
                     if(tzMap!=null)
                     {

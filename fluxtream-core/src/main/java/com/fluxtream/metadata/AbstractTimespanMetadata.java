@@ -9,10 +9,9 @@ import com.fluxtream.TimeUnit;
 import com.fluxtream.TimezoneAwareTimeInterval;
 import com.fluxtream.TimezoneMap;
 import com.fluxtream.domain.metadata.VisitedCity;
+import com.fluxtream.utils.TimeUtils;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 /**
  * User: candide
@@ -35,9 +34,6 @@ public abstract class AbstractTimespanMetadata {
 
     private List<VisitedCity> cities;
     private List<VisitedCity> consensusCities;
-
-    protected static final DateTimeFormatter formatter = DateTimeFormat
-            .forPattern("yyyy-MM-dd");
 
     public AbstractTimespanMetadata() {}
 
@@ -80,7 +76,7 @@ public abstract class AbstractTimespanMetadata {
          dateTimeZone = DateTimeZone.UTC;
        }
 
-        long forDateTime = formatter.withZone(dateTimeZone).parseDateTime(forDate).getMillis();
+        long forDateTime = TimeUtils.dateFormatter.withZone(dateTimeZone).parseDateTime(forDate).getMillis();
         return forDateTime;
     }
 
@@ -106,7 +102,7 @@ public abstract class AbstractTimespanMetadata {
         final LocalDate endLocalDate = LocalDate.parse(endDate);
         List<String> dates = new ArrayList<String>();
         while(!currLocalDate.isAfter(endLocalDate)) {
-            final String date = formatter.withZoneUTC().print(currLocalDate);
+            final String date = TimeUtils.dateFormatterUTC.print(currLocalDate);
             dates.add(date);
             currLocalDate = currLocalDate.plusDays(1);
         }
