@@ -19,6 +19,7 @@ public class WithingsActivityFacetVO extends AbstractLocalTimeInstantFacetVO<Wit
 
     @Override
     protected void fromFacet(final WithingsActivityFacet facet, final TimeInterval timeInterval, final GuestSettings settings) throws OutsideTimeBoundariesException {
+        this.date = facet.date;
         this.calories = facet.calories;
         this.steps = facet.steps;
         this.elevation = facet.elevation;
