@@ -449,9 +449,14 @@ a img { text-decoration: none; }
         
         .flx-active { border-bottom-width: 4px; padding-bottom: 7px; color: @black}
         a.flx-disconnected { border-bottom-color: lighten(@grey, 20%);color: lighten(@grey, 20%); cursor:default; border-bottom-width: 1px; padding-bottom:10px;}
-        a:hover { text-decoration:none; 
-        //border-bottom-width: 4px; padding-bottom: 7px; 
-        background-color: lighten(@grey, 45%); }
+        a:hover {
+          text-decoration:none;
+          //border-bottom-width: 4px; padding-bottom: 7px;
+          background-color: lighten(@grey, 45%);
+        }
+        a.flx-disconnected:hover  {
+          background-color: white;
+        }
      }
    
    li:last-child a:after, li:last-child a:after { border-right: 0; }  
