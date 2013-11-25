@@ -1,17 +1,16 @@
 	package com.fluxtream.connectors.twitter;
 
     import java.util.HashMap;
-    import java.util.List;
+import java.util.List;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.ObjectType;
-import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
-    import com.fluxtream.domain.ChannelMapping;
-    import com.fluxtream.services.impl.BodyTrackHelper;
-    import net.sf.json.JSONArray;
+import com.fluxtream.domain.ChannelMapping;
+import com.fluxtream.services.impl.BodyTrackHelper;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
@@ -20,8 +19,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
-    import org.springframework.beans.factory.annotation.Autowired;
-    import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 
 @Component
@@ -31,7 +30,6 @@ bodytrackResponder = TwitterBodytrackResponder.class,
 objectTypes={TweetFacet.class,
 	TwitterDirectMessageFacet.class, TwitterMentionFacet.class},
     defaultChannels = {"twitter.activity"})
-@JsonFacetCollection(TwitterFacetVOCollection.class)
 public class TwitterFeedUpdater extends AbstractUpdater {
 
 	FlxLogger logger = FlxLogger.getLogger(TwitterFeedUpdater.class);

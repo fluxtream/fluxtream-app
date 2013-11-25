@@ -1,6 +1,5 @@
 package glacier.picasa;
 
-import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
@@ -9,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Updater(prettyName = "Picasa", value = 13, objectTypes = { PicasaPhotoFacet.class })
-@JsonFacetCollection(PicasaFacetVOCollection.class)
 public class PicasaUpdater extends AbstractUpdater {
 
 	public GuestService guestService;

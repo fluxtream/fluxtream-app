@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
-import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
@@ -39,7 +38,6 @@ import org.springframework.stereotype.Component;
         WithingsBPMMeasureFacet.class, WithingsBodyScaleMeasureFacet.class, WithingsHeartPulseMeasureFacet.class,
             WithingsActivityFacet.class},
          defaultChannels = {"Withings.weight","Withings.systolic", "Withings.diastolic"})
-@JsonFacetCollection(WithingsFacetVOCollection.class)
 public class WithingsUpdater extends AbstractUpdater {
 
     private static final String LAST_ACTIVITY_SYNC_DATE = "lastActivitySyncDate";
@@ -325,7 +323,8 @@ public class WithingsUpdater extends AbstractUpdater {
                     facet = new WithingsActivityFacet(updateInfo.apiKey.getId());
                 extractCommonFacetData(facet, updateInfo);
                 facet.date = date;
-                facet.timezone = activityData.getString("timezone");
+                if (activityData.has("timezone"))
+                    facet.timezone = activityData.getString("timezone");
                 if (activityData.has("steps"))
                     facet.steps = activityData.getInt("steps");
                 if (activityData.has("calories"))

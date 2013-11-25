@@ -4,17 +4,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import com.fluxtream.connectors.Connector.UpdateStrategyType;
 import com.fluxtream.connectors.FileUploadSupport;
-import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.location.LocationFacet;
-import com.fluxtream.connectors.location.LocationFacetVOCollection;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
@@ -28,7 +25,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Updater(prettyName = "Latitude", value = 2, objectTypes = { LocationFacet.class }, updateStrategyType = UpdateStrategyType.INCREMENTAL)
-@JsonFacetCollection(LocationFacetVOCollection.class)
 public class GoogleLatitudeUpdater extends AbstractUpdater implements FileUploadSupport {
 
     @Autowired

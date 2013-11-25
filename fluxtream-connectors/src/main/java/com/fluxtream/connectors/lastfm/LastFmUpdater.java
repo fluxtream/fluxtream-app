@@ -4,9 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import com.fluxtream.connectors.ObjectType;
-import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
-import com.fluxtream.connectors.lastfm.LastFmBodytrackResponder;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ChannelMapping;
@@ -29,7 +27,6 @@ import static com.fluxtream.utils.HttpUtils.fetch;
 @Component
 @Updater(prettyName = "Last FM", value = 10, objectTypes = {LastFmRecentTrackFacet.class}, extractor = LastFmFacetExtractor.class,
          bodytrackResponder = LastFmBodytrackResponder.class, defaultChannels = {"lastfm.tracks"})
-@JsonFacetCollection(LastFmFacetVOCollection.class)
 public class LastFmUpdater extends AbstractUpdater {
 
     private static final int ITEMS_PER_PAGE = 200;

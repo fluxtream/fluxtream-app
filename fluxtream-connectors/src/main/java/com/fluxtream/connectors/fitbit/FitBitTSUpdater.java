@@ -11,7 +11,6 @@ import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Autonomous;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.SignpostOAuthHelper;
-import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
@@ -51,7 +50,6 @@ import org.springframework.transaction.annotation.Transactional;
 		FitbitSleepFacet.class, FitbitWeightFacet.class },
         bodytrackResponder = FitbitBodytrackResponder.class,
         defaultChannels = {"Fitbit.steps","Fitbit.caloriesOut"})
-@JsonFacetCollection(FitbitFacetVOCollection.class)
 public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
 	FlxLogger logger = FlxLogger.getLogger(FitBitTSUpdater.class);

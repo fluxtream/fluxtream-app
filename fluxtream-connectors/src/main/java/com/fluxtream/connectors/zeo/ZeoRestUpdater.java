@@ -2,7 +2,6 @@ package com.fluxtream.connectors.zeo;
 
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector.UpdateStrategyType;
-import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
@@ -20,7 +19,6 @@ import org.springframework.stereotype.Controller;
 @Updater(prettyName = "Zeo", value = 3, updateStrategyType = UpdateStrategyType.INCREMENTAL,
 	objectTypes = { ZeoSleepStatsFacet.class }, extractor = ZeoSleepStatsFacetExtractor.class,
     defaultChannels = {"Zeo.Sleep_Graph"})
-@JsonFacetCollection(ZeoFacetVOCollection.class)
 public class ZeoRestUpdater extends AbstractUpdater {
 
 	FlxLogger logger = FlxLogger.getLogger(ZeoRestUpdater.class);
