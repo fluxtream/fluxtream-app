@@ -11,7 +11,7 @@ import org.hibernate.search.annotations.Indexed;
  * Time: 12:39
  */
 @Entity(name="Facet_WithingsHeartPulseMeasure")
-@ObjectTypeSpec(name = "heart_pulse", value = 4, extractor=WithingsFacetExtractor.class, prettyname = "Smart Body Analyzer Heart Rate Measure")
+@ObjectTypeSpec(name = "heart_pulse", value = 4, prettyname = "Smart Body Analyzer Heart Rate Measure")
 @Indexed
 public class WithingsHeartPulseMeasureFacet extends AbstractFacet {
 
