@@ -46,6 +46,7 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -58,7 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Component
-public class ApiDataServiceImpl implements ApiDataService {
+public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 
 	static FlxLogger logger = FlxLogger.getLogger(ApiDataServiceImpl.class);
     private static final FlxLogger LOG_DEBUG = FlxLogger.getLogger("Fluxtream");
@@ -751,4 +752,8 @@ public class ApiDataServiceImpl implements ApiDataService {
         logger.info(sb.toString());
     }
 
+    @Override
+    public void destroy() throws Exception {
+        executor.shutdown();
+    }
 }

@@ -11,7 +11,7 @@ import org.hibernate.search.annotations.Indexed;
  * Time: 15:05
  */
 @Entity(name="Facet_WithingsActivity")
-@ObjectTypeSpec(name = "activity", value = 8, prettyname = "Activity")
+@ObjectTypeSpec(name = "activity", value = 8, prettyname = "Activity", isDateBased = true)
 @Indexed
 public class WithingsActivityFacet extends AbstractLocalTimeFacet {
 

@@ -29,6 +29,7 @@ import com.fluxtream.services.SystemService;
 import com.fluxtream.utils.JPAUtils;
 import org.joda.time.DateTimeConstants;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -40,7 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Component
 @Transactional(readOnly=true)
-public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, InitializingBean {
+public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, InitializingBean, DisposableBean {
 
     static FlxLogger logger = FlxLogger.getLogger(ConnectorUpdateServiceImpl.class);
 
@@ -717,5 +718,10 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
             task.addAuditTrailEntry(auditTrailEntry);
             em.persist(task);
         }
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        executor.shutdown();
     }
 }
