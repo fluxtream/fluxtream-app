@@ -48,6 +48,7 @@ public class WithingsUpdater extends AbstractUpdater {
     private static final int DIASTOLIC_BLOOD_PRESSURE = 9;
     private static final int SYSTOLIC_BLOOD_PRESSURE = 10;
     private static final int HEART_PULSE = 11;
+    private final String WITHINGS_PULSE_LAUNCH_DATE = "2013-06-01";
 
     private enum ApiVersion {
         V1, V2
@@ -120,10 +121,11 @@ public class WithingsUpdater extends AbstractUpdater {
         Map<String,String> parameters = new HashMap<String,String>();
         parameters.put("action", "getactivity");
         parameters.put("userid", userid);
-        parameters.put("startdateymd", "2013-06-01");
+        parameters.put("startdateymd", WITHINGS_PULSE_LAUNCH_DATE);
         parameters.put("enddateymd", String.valueOf(todaysDate));
         fetchAndProcessJSON(updateInfo, urlv2, parameters, ApiVersion.V2);
-        guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_ACTIVITY_SYNC_DATE, todaysDate);
+        final String lastActivityDate = getLastActivityDate(updateInfo);
+        guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_ACTIVITY_SYNC_DATE, lastActivityDate);
     }
 
     private void getRecentActivityData(final UpdateInfo updateInfo, final String userid) throws Exception {
@@ -136,7 +138,16 @@ public class WithingsUpdater extends AbstractUpdater {
         parameters.put("startdateymd", lastActivitySyncDate);
         parameters.put("enddateymd", String.valueOf(todaysDate));
         fetchAndProcessJSON(updateInfo, urlv2, parameters, ApiVersion.V2);
-        guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_ACTIVITY_SYNC_DATE, todaysDate);
+        final String lastActivityDate = getLastActivityDate(updateInfo);
+        guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_ACTIVITY_SYNC_DATE, lastActivityDate);
+    }
+
+    private String getLastActivityDate(final UpdateInfo updateInfo) {
+        final String entityName = JPAUtils.getEntityName(WithingsActivityFacet.class);
+        final List<WithingsActivityFacet> facets =
+                jpaDaoService.executeQueryWithLimit("SELECT facet from " + entityName + " facet WHERE facet.apiKeyId=? ORDER BY facet.date DESC", 1, WithingsActivityFacet.class, updateInfo.apiKey.getId());
+        if (facets.size()==0) return WITHINGS_PULSE_LAUNCH_DATE;
+        return facets.get(0).date;
     }
 
     private long getLastBloodPressureMeasurement(final UpdateInfo updateInfo) {
