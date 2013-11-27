@@ -17,6 +17,7 @@ import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.SettingsService;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.Utils;
+import com.google.api.client.auth.oauth2.TokenResponseException;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -494,13 +495,14 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                     Long newExpireTime = credential.getExpirationTimeMilliseconds();
                     logger.info("google calendar token has been refreshed, new expire time = " + newExpireTime);
                     // Update stored expire time
+                    guestService.setApiKeyAttribute(apiKey, "accessToken", credential.getAccessToken());
                     guestService.setApiKeyAttribute(apiKey, "tokenExpires", newExpireTime.toString());
                 }
             }
         }
-        catch (IOException e) {
+        catch (TokenResponseException e) {
             logger.warn("module=GoogleCalendarUpdater component=background_updates action=refreshToken" +
-                        " connector=" + apiKey.getConnector().getName() + " guestId=" + apiKey.getGuestId() + " status=failed");
+                        " connector=" + apiKey.getConnector().getName() + " guestId=" + apiKey.getGuestId() + " status=permanently failed");
             // Notify the user that the tokens need to be manually renewed
             notificationsService.addNotification(apiKey.getGuestId(), Notification.Type.WARNING,
                                                  "Heads Up. We failed in our attempt to automatically refresh your Google Calendar authentication tokens.<br>" +
@@ -510,6 +512,12 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
             // Record permanent update failure since this connector is never
             // going to succeed
             guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, Utils.stackTrace(e));
+            throw new UpdateFailedException("refresh token attempt permanently failed due to a bad token refresh response", e, true);
+        }
+        catch (IOException e) {
+            logger.warn("module=GoogleCalendarUpdater component=background_updates action=refreshToken" +
+                        " connector=" + apiKey.getConnector().getName() + " guestId=" + apiKey.getGuestId() + " status=temporarily failed");
+            // Notify the user that the tokens need to be manually renewed
             throw new UpdateFailedException("refresh token attempt failed", e, true);
         }
         final Calendar.Builder calendarBuilder = new Calendar.Builder(httpTransport, jsonFactory, credential);
