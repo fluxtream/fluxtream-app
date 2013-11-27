@@ -15,7 +15,6 @@ import javax.mail.internet.MimeMultipart;
 import javax.mail.search.SentDateTerm;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
-import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
@@ -41,7 +40,6 @@ import org.springframework.stereotype.Component;
 @Updater(prettyName = "SMS Backup", value = 6, objectTypes = {
 		CallLogEntryFacet.class, SmsEntryFacet.class },
          defaultChannels = {"sms_backup.call_log"})
-@JsonFacetCollection(SmsBackupFacetVOCollection.class)
 public class SmsBackupUpdater extends AbstractUpdater {
 
     @Autowired

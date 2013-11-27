@@ -44,6 +44,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -56,7 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly=true)
-public class GuestServiceImpl implements GuestService {
+public class GuestServiceImpl implements GuestService, DisposableBean {
 
     static FlxLogger logger = FlxLogger.getLogger(GuestServiceImpl.class);
 
@@ -659,4 +660,8 @@ public class GuestServiceImpl implements GuestService {
 		}
 	}
 
+    @Override
+    public void destroy() throws Exception {
+        executor.shutdown();
+    }
 }

@@ -6,6 +6,7 @@ import javax.xml.bind.DatatypeConverter;
 import com.fluxtream.Configuration;
 import com.fluxtream.domain.metadata.City;
 import com.fluxtream.domain.metadata.VisitedCity;
+import com.fluxtream.utils.TimeUtils;
 import org.apache.commons.lang.WordUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.joda.time.DateTime;
@@ -40,8 +41,6 @@ public class VisitedCityModel {
     double longitude, latitude;
 
     static final DateTimeFormatter fmt = DateTimeFormat.forPattern("MMM dd, HH:mm' 'a");
-    private static final DateTimeFormatter formatter = DateTimeFormat
-            .forPattern("yyyy-MM-dd");
 
     public DurationModel duration;
 
@@ -87,7 +86,7 @@ public class VisitedCityModel {
         calendar = DatatypeConverter.parseDateTime(vcity.endTimeStorage);
         this.endTime = StringUtils.capitalise(fmt.print(calendar.getTimeInMillis()).toLowerCase());
 
-        this.dayStart = formatter.withZone(tz).parseDateTime(this.date).getMillis();
+        this.dayStart = TimeUtils.dateFormatter.withZone(tz).parseDateTime(this.date).getMillis();
         this.dayEnd = dayStart + DateTimeConstants.MILLIS_PER_DAY;
         tzOffset = tz.getOffset(dayStart);
         this.latitude = city.geo_latitude;

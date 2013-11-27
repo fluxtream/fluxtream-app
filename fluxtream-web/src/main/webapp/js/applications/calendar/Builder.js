@@ -99,9 +99,9 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
     function connectorClicked(Calendar, connector) {
         var connectorName = connector.connectorName,
             button = Builder.getConnectorButton(connectorName);
-        if (button.is(".flx-disconnected")) {
-            return;
-        }
+        //if (button.is(".flx-disconnected")) {
+        //    return;
+        //}
         var enabled = !Calendar.connectorEnabled[Calendar.currentTabName][connectorName];
         Calendar.connectorEnabled[Calendar.currentTabName][connectorName] = enabled;
         button.toggleClass("flx-active", enabled);
@@ -118,6 +118,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
             id: "flx-connector-btn-" + connector.connectorName,
             class: "flx-active"
         }).click(function(event){
+            console.log("filter button clicked");
             event.preventDefault();
             $(document).click(); //needed for click away to work on tooltips in clock tab
             connectorClicked(Calendar, connector);

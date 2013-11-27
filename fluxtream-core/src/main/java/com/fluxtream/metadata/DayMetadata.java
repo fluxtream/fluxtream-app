@@ -7,6 +7,7 @@ import java.util.TreeMap;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.TimezoneMap;
 import com.fluxtream.domain.metadata.VisitedCity;
+import com.fluxtream.utils.TimeUtils;
 import org.joda.time.DateMidnight;
 import org.joda.time.DateTimeConstants;
 
@@ -22,7 +23,7 @@ public class DayMetadata extends AbstractTimespanMetadata {
     }
 
     public DayMetadata(String forDate) {
-        long timeForDate = formatter.withZoneUTC().parseDateTime(forDate).getMillis();
+        long timeForDate = TimeUtils.dateFormatterUTC.parseDateTime(forDate).getMillis();
         DateMidnight dateMidnight = new DateMidnight(timeForDate);
         start = dateMidnight.getMillis();
         end = start + DateTimeConstants.MILLIS_PER_DAY;

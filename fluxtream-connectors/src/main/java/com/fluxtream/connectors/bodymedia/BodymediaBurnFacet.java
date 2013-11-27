@@ -57,7 +57,6 @@ public class BodymediaBurnFacet extends BodymediaAbstractFacet {
         */
         DateTimeFormatter syncTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
         DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
-        DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
         BodymediaBurnFacet facet=null;
 
         if (existing == null) {
@@ -87,7 +86,7 @@ public class BodymediaBurnFacet extends BodymediaAbstractFacet {
             facet.lastSync = d.getMillis();
 
             DateTime date = formatter.parseDateTime(day.getString("date"));
-            facet.date = dateFormatter.print(date.getMillis());
+            facet.date = TimeUtils.dateFormatter.print(date.getMillis());
 
             long fromMidnight = TimeUtils.fromMidnight(date.getMillis(), timeZone.toTimeZone());
             long toMidnight = TimeUtils.toMidnight(date.getMillis(), timeZone.toTimeZone());

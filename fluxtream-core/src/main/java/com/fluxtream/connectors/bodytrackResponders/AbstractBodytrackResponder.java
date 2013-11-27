@@ -13,8 +13,6 @@ import com.fluxtream.mvc.models.TimespanModel;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,8 +34,6 @@ public abstract class AbstractBodytrackResponder {
         public double min_time;
         public double max_time;
     }
-
-    protected static DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     protected List<AbstractFacet> getFacetsInTimespan(TimeInterval timeInterval, ApiKey apiKey, ObjectType objectType){
         //TODO: determine whether or not date based queries are necessary

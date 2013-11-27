@@ -13,6 +13,8 @@ public class TimeUtils {
 
 	private static final long MILLIS_IN_DAY = 86400000l;
 	public static final int FIRST_DAY_OF_WEEK = DateTimeConstants.SUNDAY;
+    public static final DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+    public static final DateTimeFormatter dateFormatterUTC = DateTimeFormat.forPattern("yyyy-MM-dd").withZoneUTC();
 
 	public static String getStart(String date, TimeZone tz) {
 		return date + " 00:00:00 " + tz.getDisplayName(true, TimeZone.SHORT);

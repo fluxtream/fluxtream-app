@@ -24,6 +24,7 @@ import com.fluxtream.services.impl.BodyTrackHelper.ChannelStyle;
 import com.fluxtream.services.impl.BodyTrackHelper.MainTimespanStyle;
 import com.fluxtream.services.impl.BodyTrackHelper.TimespanStyle;
 import com.fluxtream.utils.HttpUtils;
+import com.fluxtream.utils.TimeUtils;
 import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
@@ -53,7 +54,6 @@ public class MovesUpdater extends AbstractUpdater {
     final static String updateDateKeyName = "lastDate";
 
     public static DateTimeFormatter compactDateFormat = DateTimeFormat.forPattern("yyyyMMdd");
-    public static DateTimeFormatter dateStorageFormat = DateTimeFormat.forPattern("yyyy-MM-dd");
     public static DateTimeFormatter timeStorageFormat = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmss'Z'");
 
     @Autowired
@@ -298,15 +298,15 @@ public class MovesUpdater extends AbstractUpdater {
     // getDatesSince takes argument and returns a list of dates in storage format (yyyy-mm-dd)
     private static List<String> getDatesSince(String fromDate) {
         List<String> dates = new ArrayList<String>();
-        DateTime then = dateStorageFormat.withZoneUTC().parseDateTime(fromDate);
-        String today = dateStorageFormat.withZoneUTC().print(System.currentTimeMillis());
-        DateTime todaysTime = dateStorageFormat.withZoneUTC().parseDateTime(today);
+        DateTime then = TimeUtils.dateFormatterUTC.parseDateTime(fromDate);
+        String today = TimeUtils.dateFormatterUTC.print(System.currentTimeMillis());
+        DateTime todaysTime = TimeUtils.dateFormatterUTC.parseDateTime(today);
         if (then.isAfter(todaysTime))
             throw new IllegalArgumentException("fromDate is after today");
         while (!today.equals(fromDate)) {
             dates.add(fromDate);
-            then = dateStorageFormat.withZoneUTC().parseDateTime(fromDate);
-            String date = dateStorageFormat.withZoneUTC().print(then.plusDays(1));
+            then = TimeUtils.dateFormatterUTC.parseDateTime(fromDate);
+            String date = TimeUtils.dateFormatterUTC.print(then.plusDays(1));
             fromDate = date;
         }
         dates.add(today);
@@ -315,12 +315,12 @@ public class MovesUpdater extends AbstractUpdater {
 
     private static String toStorageFormat(String date) {
         DateTime then = compactDateFormat.withZoneUTC().parseDateTime(date);
-        String storageDate = dateStorageFormat.withZoneUTC().print(then);
+        String storageDate = TimeUtils.dateFormatterUTC.print(then);
         return storageDate;
     }
 
     private String toCompactDateFormat(final String date) {
-        DateTime then = dateStorageFormat.withZoneUTC().parseDateTime(date);
+        DateTime then = TimeUtils.dateFormatterUTC.parseDateTime(date);
         String compactDate = compactDateFormat.withZoneUTC().print(then);
         return compactDate;
     }
@@ -328,11 +328,11 @@ public class MovesUpdater extends AbstractUpdater {
 
     // getDatesBefore assumes its argument is in storage format and returns a list of dates in storage format
     private List<String> getDatesBefore(String date, int nDays) {
-        DateTime initialDate = dateStorageFormat.withZoneUTC().parseDateTime(date);
+        DateTime initialDate = TimeUtils.dateFormatterUTC.parseDateTime(date);
         List<String> dates = new ArrayList<String>();
         for (int i=0; i<nDays; i++) {
             initialDate = initialDate.minusDays(1);
-            String nextDate = dateStorageFormat.withZoneUTC().print(initialDate);
+            String nextDate = TimeUtils.dateFormatterUTC.print(initialDate);
             dates.add(nextDate);
         }
         return dates;

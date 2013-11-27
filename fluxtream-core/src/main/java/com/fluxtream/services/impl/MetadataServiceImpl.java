@@ -49,8 +49,6 @@ import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Days;
 import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -81,9 +79,6 @@ public class MetadataServiceImpl implements MetadataService {
 
     @Autowired
     WWOHelper wwoHelper;
-
-    private static final DateTimeFormatter formatter = DateTimeFormat
-            .forPattern("yyyy-MM-dd");
 
     @Override
 	public TimeZone getTimeZone(double latitude, double longitude) {
@@ -134,7 +129,7 @@ public class MetadataServiceImpl implements MetadataService {
 
     private void setDayMainCity(final long guestId, final String date, final City closestCity) {
         clearMainCities(guestId, Arrays.asList(date));
-        final DateTime dateTime = formatter.withZone(DateTimeZone.forID(closestCity.geo_timezone)).parseDateTime(date);
+        final DateTime dateTime = TimeUtils.dateFormatter.withZone(DateTimeZone.forID(closestCity.geo_timezone)).parseDateTime(date);
         setMainCity(guestId, closestCity, dateTime.getMillis(), dateTime.getMillis() + DateTimeConstants.MILLIS_PER_DAY - 1, date);
     }
 
@@ -218,11 +213,11 @@ public class MetadataServiceImpl implements MetadataService {
 
     TreeSet<String> getDatesBetween(long start, final long end) {
         TreeSet<String> dates = new TreeSet<String>();
-        String startDate = formatter.print(start-DateTimeConstants.MILLIS_PER_DAY/2);
-        String endDate = formatter.print(end + DateTimeConstants.MILLIS_PER_DAY/2);
+        String startDate = TimeUtils.dateFormatter.print(start-DateTimeConstants.MILLIS_PER_DAY/2);
+        String endDate = TimeUtils.dateFormatter.print(end + DateTimeConstants.MILLIS_PER_DAY/2);
         dates.add(startDate);
         for(;!startDate.equals(endDate);start+=DateTimeConstants.MILLIS_PER_DAY) {
-            startDate = formatter.print(start);
+            startDate = TimeUtils.dateFormatter.print(start);
             dates.add(startDate);
         }
         return dates;
@@ -252,8 +247,8 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     private int daysBetween(String date, VisitedCity vcity) {
-        final DateTime wantedDate = formatter.withZone(DateTimeZone.forID(vcity.city.geo_timezone)).parseDateTime(date);
-        final DateTime availableDate = formatter.withZone(DateTimeZone.forID(vcity.city.geo_timezone)).parseDateTime(vcity.date);
+        final DateTime wantedDate = TimeUtils.dateFormatter.withZone(DateTimeZone.forID(vcity.city.geo_timezone)).parseDateTime(date);
+        final DateTime availableDate = TimeUtils.dateFormatter.withZone(DateTimeZone.forID(vcity.city.geo_timezone)).parseDateTime(vcity.date);
         final int days = Days.daysBetween(wantedDate, availableDate).getDays();
         return days;
     }
@@ -329,7 +324,7 @@ public class MetadataServiceImpl implements MetadataService {
         final LocalDate nextWeekStart = weekDay.plusWeeks(1);
         TreeSet<String> dates = new TreeSet<String>();
         while(weekDay.isBefore(nextWeekStart)) {
-            final String date = formatter.withZoneUTC().print(weekDay);
+            final String date = TimeUtils.dateFormatterUTC.print(weekDay);
             dates.add(date);
             weekDay = weekDay.plusDays(1);
         }
@@ -341,7 +336,7 @@ public class MetadataServiceImpl implements MetadataService {
         final LocalDate nextMonthStart = dayOfMonth.plusMonths(1);
         TreeSet<String> dates = new TreeSet<String>();
         while(dayOfMonth.isBefore(nextMonthStart)) {
-            final String date = formatter.withZoneUTC().print(dayOfMonth);
+            final String date = TimeUtils.dateFormatterUTC.print(dayOfMonth);
             dates.add(date);
             dayOfMonth = dayOfMonth.plusDays(1);
         }
@@ -409,7 +404,7 @@ public class MetadataServiceImpl implements MetadataService {
         if (existingCity!=null) {
             return existingCity.date;
         }
-        return formatter.withZoneUTC().print(time);
+        return TimeUtils.dateFormatterUTC.print(time);
     }
 
     private VisitedCity searchCityBefore(final long guestId, final long instant) {
@@ -706,7 +701,7 @@ public class MetadataServiceImpl implements MetadataService {
                 newCity = getClosestCity(locationResource.latitude, locationResource.longitude);
             }
 
-            String newDate = formatter.withZone(DateTimeZone.forID(newCity.geo_timezone)).print(locationResource.timestampMs);
+            String newDate = TimeUtils.dateFormatter.withZone(DateTimeZone.forID(newCity.geo_timezone)).print(locationResource.timestampMs);
             final boolean dateChanged = !newDate.equals(currentDate);
             final boolean cityChanged = newCity.geo_id!=anchorCity.geo_id;
             if (dateChanged||cityChanged) {

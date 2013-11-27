@@ -10,7 +10,6 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractRepeatableFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.TagFilter;
-import com.fluxtream.metadata.AbstractTimespanMetadata;
 import net.sf.json.JSONObject;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.transaction.annotation.Transactional;

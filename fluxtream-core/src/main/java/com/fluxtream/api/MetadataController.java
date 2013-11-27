@@ -22,10 +22,9 @@ import com.fluxtream.domain.metadata.VisitedCity;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.mvc.models.VisitedCityModel;
 import com.fluxtream.services.MetadataService;
+import com.fluxtream.utils.TimeUtils;
 import com.google.gson.Gson;
 import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -39,8 +38,6 @@ import org.springframework.stereotype.Component;
 @Component("RESTMetadataController")
 @Scope("request")
 public class MetadataController {
-
-    protected static DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     FlxLogger logger = FlxLogger.getLogger(MetadataController.class);
 
@@ -115,10 +112,10 @@ public class MetadataController {
         DateTime startDate = new DateTime(start);
         DateTime endDate = new DateTime(end);
         while (startDate.isBefore(endDate)){
-            dates.add(dateFormatter.print(startDate));
+            dates.add(TimeUtils.dateFormatter.print(startDate));
             startDate = startDate.plusDays(1);
         }
-        String finalDate = dateFormatter.print(endDate);
+        String finalDate = TimeUtils.dateFormatter.print(endDate);
         if (!dates.contains(finalDate)) dates.add(finalDate);
         List<VisitedCityModel> cities = new ArrayList<VisitedCityModel>();
         for (VisitedCity city : metadataService.getConsensusCities(AuthHelper.getGuestId(), dates)){

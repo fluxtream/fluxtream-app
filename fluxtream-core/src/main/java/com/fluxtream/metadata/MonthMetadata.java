@@ -20,11 +20,11 @@ public class MonthMetadata extends AbstractTimespanMetadata {
 
     public MonthMetadata(final int year, final int month) {
         final LocalDate firstDayOfMonth = TimeUtils.getBeginningOfMonth(year, month);
-        this.startDate = formatter.print(firstDayOfMonth);
+        this.startDate = TimeUtils.dateFormatter.print(firstDayOfMonth);
         this.start = firstDayOfMonth.toDateTimeAtStartOfDay().getMillis();
 
         final LocalDate lastDayOfMonth = TimeUtils.getEndOfMonth(year, month);
-        this.endDate = formatter.print(lastDayOfMonth);
+        this.endDate = TimeUtils.dateFormatter.print(lastDayOfMonth);
         this.end = lastDayOfMonth.toDateTimeAtStartOfDay().getMillis() + DateTimeConstants.MILLIS_PER_DAY;
     }
 
@@ -39,8 +39,8 @@ public class MonthMetadata extends AbstractTimespanMetadata {
         final LocalDate beginningOfMonth = TimeUtils.getBeginningOfMonth(year, month);
         final LocalDate endOfMonth = TimeUtils.getEndOfMonth(year, month);
 
-        this.startDate = formatter.print(beginningOfMonth);
-        this.endDate = formatter.print(endOfMonth);
+        this.startDate = TimeUtils.dateFormatter.print(beginningOfMonth);
+        this.endDate = TimeUtils.dateFormatter.print(endOfMonth);
 
         final TimeZone startTz = consensusTimezones.get(this.startDate);
         final TimeZone endTz = consensusTimezones.get(this.endDate);

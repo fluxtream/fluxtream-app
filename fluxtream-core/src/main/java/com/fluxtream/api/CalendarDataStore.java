@@ -61,6 +61,7 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.services.SettingsService;
+import com.fluxtream.utils.TimeUtils;
 import com.fluxtream.utils.Utils;
 import com.google.gson.Gson;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
@@ -72,8 +73,6 @@ import org.codehaus.plexus.util.ExceptionUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -105,9 +104,6 @@ public class CalendarDataStore {
 
     @Autowired
     Configuration env;
-
-    protected static final DateTimeFormatter formatter = DateTimeFormat
-            .forPattern("yyyy-MM-dd");
 
 	Gson gson = new Gson();
 
@@ -664,7 +660,7 @@ public class CalendarDataStore {
                             .getFacetVOClass((AbstractFacet)abstractFacet).newInstance();
                     try {
                         facetVO.extractValues(abstractFacet, timeInterval, settings);
-                        final DateTime startTime = formatter.withZone(DateTimeZone.forTimeZone(timeZone)).parseDateTime(repeatedDate);
+                        final DateTime startTime = TimeUtils.dateFormatter.withZone(DateTimeZone.forTimeZone(timeZone)).parseDateTime(repeatedDate);
                         facetVO.start = startTime.getMillis();
                         facetVO.end = startTime.getMillis() + DateTimeConstants.MILLIS_PER_DAY;
                         facetCollection.add(facetVO);

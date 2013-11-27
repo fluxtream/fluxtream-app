@@ -17,7 +17,6 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.MetadataService;
-import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.TimeUtils;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
@@ -70,7 +69,6 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
 
     private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
     DateTimeFormatter form = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
-    private final DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     protected static DateTimeFormatter tzmapFormatter = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
 
@@ -300,7 +298,7 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
 
     private BodymediaSleepFacet createOrUpdateSleepFacet(final JSONObject day, final UpdateInfo updateInfo, final DateTime d, final TimezoneMap tzMap) {
         final DateTime date = formatter.parseDateTime(day.getString("date"));
-        final String dateString = dateFormatter.print(date.getMillis());
+        final String dateString = TimeUtils.dateFormatter.print(date.getMillis());
         final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.date=?",
                                                                                    updateInfo.apiKey.getId(), dateString);
         final ApiDataService.FacetModifier<BodymediaSleepFacet> facetModifier = new ApiDataService.FacetModifier<BodymediaSleepFacet>() {
@@ -336,12 +334,12 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
                     // of burn.date according to BodyMedia's idea of what timezone you were in then.
                     // End should, I think, be start + the number of minutes in the minutes array *
                     // the number of milliseconds in a minute.
-                    facet.date = dateFormatter.print(realDateStart.getMillis());
+                    facet.date = TimeUtils.dateFormatter.print(realDateStart.getMillis());
                     facet.start = realDateStart.getMillis() - DateTimeConstants.MILLIS_PER_DAY/2;
                     facet.end = realDateStart.getMillis() + DateTimeConstants.MILLIS_PER_DAY/2;
                 }
                 else {
-                    facet.date = dateFormatter.print(date.getMillis());
+                    facet.date = TimeUtils.dateFormatter.print(date.getMillis());
                     TimeZone timeZone = metadataService.getTimeZone(updateInfo.getGuestId(), date.getMillis());
                     long fromNoon = TimeUtils.fromMidnight(date.getMillis(), timeZone) - MILLIS_IN_DAY / 2;
                     long toNoon = TimeUtils.toMidnight(date.getMillis(), timeZone) - MILLIS_IN_DAY / 2;
@@ -356,7 +354,7 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
 
     private BodymediaBurnFacet createOrUpdateBurnFacet(final JSONObject day, final UpdateInfo updateInfo, final DateTime d, final TimezoneMap tzMap) {
         final DateTime date = formatter.parseDateTime(day.getString("date"));
-        final String dateString = dateFormatter.print(date.getMillis());
+        final String dateString = TimeUtils.dateFormatter.print(date.getMillis());
         final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.date=?",
                                                                                    updateInfo.apiKey.getId(), dateString);
         final ApiDataService.FacetModifier<BodymediaBurnFacet> facetModifier = new ApiDataService.FacetModifier<BodymediaBurnFacet>() {
@@ -408,7 +406,7 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
 
     private BodymediaStepsFacet createOrUpdateStepsFacet(final JSONObject day, final UpdateInfo updateInfo, final DateTime d, final TimezoneMap tzMap) {
         final DateTime date = formatter.parseDateTime(day.getString("date"));
-        final String dateString = dateFormatter.print(date.getMillis());
+        final String dateString = TimeUtils.dateFormatter.print(date.getMillis());
         final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.date=?",
                                                                                    updateInfo.apiKey.getId(), dateString);
         final ApiDataService.FacetModifier<BodymediaStepsFacet> facetModifier = new ApiDataService.FacetModifier<BodymediaStepsFacet>() {
@@ -535,7 +533,7 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
         try{
             return formatter.parseDateTime(updateStartDate);
         } catch (IllegalArgumentException e){
-            return dateFormatter.parseDateTime(updateStartDate);
+            return TimeUtils.dateFormatter.parseDateTime(updateStartDate);
         }
     }
 

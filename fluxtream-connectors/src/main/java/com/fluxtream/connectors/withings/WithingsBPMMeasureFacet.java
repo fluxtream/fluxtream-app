@@ -6,7 +6,7 @@ import com.fluxtream.domain.AbstractFacet;
 import org.hibernate.search.annotations.Indexed;
 
 @Entity(name="Facet_WithingsBPMMeasure")
-@ObjectTypeSpec(name = "blood_pressure", value = 2, extractor=WithingsFacetExtractor.class, prettyname = "Blood Pressure Measures")
+@ObjectTypeSpec(name = "blood_pressure", value = 2, prettyname = "Blood Pressure Measures")
 @Indexed
 public class WithingsBPMMeasureFacet extends AbstractFacet {
 	

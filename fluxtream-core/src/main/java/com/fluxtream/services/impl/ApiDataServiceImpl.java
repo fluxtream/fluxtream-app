@@ -40,12 +40,12 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.SettingsService;
 import com.fluxtream.utils.JPAUtils;
+import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONObject;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -58,7 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Component
-public class ApiDataServiceImpl implements ApiDataService {
+public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 
 	static FlxLogger logger = FlxLogger.getLogger(ApiDataServiceImpl.class);
     private static final FlxLogger LOG_DEBUG = FlxLogger.getLogger("Fluxtream");
@@ -97,8 +97,6 @@ public class ApiDataServiceImpl implements ApiDataService {
     @Autowired
     SettingsService settingsService;
 
-    DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
-
     @Override
     public AbstractFacetVO<AbstractFacet> getFacet(final int api, final int objectType, final long facetId) {
         Connector connector = Connector.fromValue(api);
@@ -106,7 +104,7 @@ public class ApiDataServiceImpl implements ApiDataService {
         final AbstractFacet facet = em.find(ot.facetClass(), facetId);
         final GuestSettings guestSettings = settingsService.getSettings(facet.guestId);
         final TimeZone timeZone = metadataService.getTimeZone(facet.guestId, facet.start);
-        final String date = dateFormatter.withZone(DateTimeZone.forTimeZone(timeZone)).print(facet.start);
+        final String date = TimeUtils.dateFormatter.withZone(DateTimeZone.forTimeZone(timeZone)).print(facet.start);
         final DayMetadata dayMetadata = metadataService.getDayMetadata(facet.guestId, date);
         try {
             final AbstractFacetVO<AbstractFacet> vo = AbstractFacetVO.getFacetVOClass((AbstractFacet)facet).newInstance();
@@ -466,7 +464,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 
     @Override
     @Transactional(readOnly = false)
-    public <T extends AbstractFacet> T createOrReadModifyWrite(
+    public <T extends AbstractFacet> T createOrReadModifyWrite (
             Class<? extends AbstractFacet> facetClass, FacetQuery query, FacetModifier<T> modifier, Long apiKeyId) {
         //System.out.println("========================================");
         // TODO(rsargent): do we need @Transactional again on class?
@@ -494,23 +492,28 @@ public class ApiDataServiceImpl implements ApiDataService {
             logger.info("WARNING: non unique exception here, query: " + qlString);
         }
 
-        T modified = modifier.createOrModify(orig, apiKeyId);
-        // createOrModify must return passed argument if it is not null
-        assert(orig == null || orig == modified);
-        assert (modified != null);
-        //System.out.println("====== after modify, contained?: " + em.contains(modified));
-        if (orig == null) {
-            // Persist the newly-created facet (and its tags, if any)
-            persistExistingFacet(modified);
-            //System.out.println("====== after persist, contained?: " + em.contains(modified));
-        } else {
-            if (modified.hasTags()) {
-                persistTags(modified);
+        try {
+            T modified = modifier.createOrModify(orig, apiKeyId);
+            // createOrModify must return passed argument if it is not null
+            assert(orig == null || orig == modified);
+            assert (modified != null);
+            //System.out.println("====== after modify, contained?: " + em.contains(modified));
+            if (orig == null) {
+                // Persist the newly-created facet (and its tags, if any)
+                persistExistingFacet(modified);
+                //System.out.println("====== after persist, contained?: " + em.contains(modified));
+            } else {
+                if (modified.hasTags()) {
+                    persistTags(modified);
+                }
             }
+            assert(em.contains(modified));
+            //System.out.println("========================================");
+            return modified;
+        } catch (Throwable t) {
+            t.printStackTrace();
+            throw new RuntimeException("Couldn't createOrModify facet, orig=" + orig + ", facetClass=" + facetClass);
         }
-        assert(em.contains(modified));
-        //System.out.println("========================================");
-        return modified;
     }
 
     // Each user has a set of all tags.  persistTags makes sure this set of all tags includes the tags
@@ -746,4 +749,8 @@ public class ApiDataServiceImpl implements ApiDataService {
         logger.info(sb.toString());
     }
 
+    @Override
+    public void destroy() throws Exception {
+        executor.shutdown();
+    }
 }

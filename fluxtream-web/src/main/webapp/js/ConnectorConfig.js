@@ -113,6 +113,13 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     gps: false,
                     clock: ClockConfig.BODY_CATEGORY
                 },
+                activity:{
+                    list: true,
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: null
+                },
                 heart_pulse:{
                     list: true,
                     photos: false,

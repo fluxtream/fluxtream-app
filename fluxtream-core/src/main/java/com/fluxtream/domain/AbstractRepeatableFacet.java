@@ -4,9 +4,8 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.MappedSuperclass;
+import com.fluxtream.utils.TimeUtils;
 import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 /**
  * User: candide
@@ -21,10 +20,6 @@ public abstract class AbstractRepeatableFacet extends AbstractFacet {
 
     public boolean allDayEvent;
 
-
-    protected static final DateTimeFormatter formatter = DateTimeFormat
-            .forPattern("yyyy-MM-dd");
-
     public AbstractRepeatableFacet(final long apiKeyId) {
         super(apiKeyId);
     }
@@ -38,7 +33,7 @@ public abstract class AbstractRepeatableFacet extends AbstractFacet {
         final LocalDate endLocalDate = new LocalDate(endDate);
         List<String> dates = new ArrayList<String>();
         while(!currLocalDate.isAfter(endLocalDate)) {
-            final String date = formatter.withZoneUTC().print(currLocalDate);
+            final String date = TimeUtils.dateFormatterUTC.print(currLocalDate);
             dates.add(date);
             currLocalDate = currLocalDate.plusDays(1);
         }

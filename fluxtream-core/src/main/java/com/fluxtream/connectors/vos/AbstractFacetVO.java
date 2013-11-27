@@ -19,9 +19,8 @@ import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.utils.SecurityUtils;
+import com.fluxtream.utils.TimeUtils;
 import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 public abstract class AbstractFacetVO<T extends AbstractFacet> {
 
@@ -35,7 +34,6 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 
     public transient int api;
     public transient int objectType;
-    protected transient DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
 	/**
 	 * Thread-safe cache for vo classes
@@ -72,7 +70,7 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 
         // Set default date which subclasses can overwrite if they want to
         DateTimeZone zone = DateTimeZone.forTimeZone(timeInterval.getTimeZone(facet.start));
-        this.date = dateFormatter.withZone(zone).print(facet.start);
+        this.date = TimeUtils.dateFormatter.withZone(zone).print(facet.start);
 
 
         fromFacet(facet, timeInterval, settings);
