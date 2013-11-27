@@ -32,6 +32,8 @@ import org.joda.time.DateTimeConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import static com.fluxtream.utils.Utils.hash;
+
 @Component
 @Updater(prettyName = "Calendar", value = 0, objectTypes={GoogleCalendarEventFacet.class},
          settings=GoogleCalendarConnectorSettings.class, bodytrackResponder = GoogleCalendarBodytrackResponder.class,
@@ -309,17 +311,26 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
             System.out.println("deleted " + deleted + " calendar entry");
             return;
         }
-        final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.googleId=? AND e.calendarId=?",
-                                                                                   updateInfo.apiKey.getId(), event.getId(), calendarEntry.getId());
+        final String googleIdHash = hash(event.getId());
+        final String calendarIdHash = hash(calendarEntry.getId());
+        final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery(
+                "e.apiKeyId=? AND (e.googleId=? OR e.googleId=?) AND (e.calendarId=? OR e.calendarId=?)",
+                updateInfo.apiKey.getId(),
+                event.getId(), googleIdHash,
+                calendarEntry.getId(), calendarIdHash);
         final ApiDataService.FacetModifier<GoogleCalendarEventFacet> facetModifier = new ApiDataService.FacetModifier<GoogleCalendarEventFacet>() {
             @Override
             public GoogleCalendarEventFacet createOrModify(GoogleCalendarEventFacet facet, final Long apiKeyId) {
                 if (facet == null) {
                     facet = new GoogleCalendarEventFacet(updateInfo.apiKey.getId());
-                    facet.googleId = event.getId();
+                    facet.googleId = event.getId().length()>250
+                                   ? googleIdHash
+                                   :event.getId();
                     facet.guestId = updateInfo.apiKey.getGuestId();
                     facet.api = updateInfo.apiKey.getConnector().value();
-                    facet.calendarId = calendarEntry.getId();
+                    facet.calendarId = calendarEntry.getId().length()>250
+                                     ? calendarIdHash
+                                     : calendarEntry.getId();
                 }
                 facet.summary = event.getSummary();
                 facet.setCreated(event.getCreated());
