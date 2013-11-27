@@ -26,7 +26,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
 	content="black-translucent" />
 <meta name="viewport" content="width=1000, initial-scale=1.0">
-<title>Fluxtream - Personal Analytics</title>
+<title>Fluxtream</title>
 <meta name="description" content="">
 <meta name="author" content="">
 
