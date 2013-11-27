@@ -316,6 +316,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     }
 
     function getItemColor(item) {
+        if (item.color)
+            return item.color;
         if (item.type==="moves-place")
             return config.MOVES_PLACE_COLOR;
         else if (item.type==="moves-move-activity") {
