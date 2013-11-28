@@ -26,6 +26,11 @@ import org.hibernate.annotations.Index;
    		query = "DELETE FROM UpdateWorkerTask updt " +
                    "WHERE updt.apiKeyId=? " +
                    "AND updt.status=0"),
+     @NamedQuery( name = "updateWorkerTasks.delete.scheduledbyApiAndObjectType",
+                  query = "DELETE FROM UpdateWorkerTask updt " +
+                          "WHERE updt.apiKeyId= (?1) " +
+                          "AND updt.status=0 " +
+                          "AND updt.objectTypes= (?2)"),
     @NamedQuery( name = "updateWorkerTasks.deleteAll.byApi",
                  query = "DELETE FROM UpdateWorkerTask updt " +
                          "WHERE updt.apiKeyId=?"),
@@ -33,11 +38,6 @@ import org.hibernate.annotations.Index;
                  query = "DELETE FROM UpdateWorkerTask updt " +
                          "WHERE updt.apiKeyId=? " +
                          "AND updt.objectTypes=?"),
-    @NamedQuery( name = "updateWorkerTasks.delete.byApiAndObjectType",
-		query = "DELETE FROM UpdateWorkerTask updt " +
-                "WHERE updt.apiKeyId=? " +
-                "AND updt.objectTypes=?" +
-                "AND updt.updateType!=?"),
 	@NamedQuery( name = "updateWorkerTasks.byStatus",
 		query = "SELECT updt FROM UpdateWorkerTask updt " +
                 "WHERE updt.status=?1 " +
