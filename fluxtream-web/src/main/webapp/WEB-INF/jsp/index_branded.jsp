@@ -130,9 +130,13 @@
                 <li>
                     <a href="https://github.com/fluxtream/fluxtream-app/wiki" class="developerLink">Developers: join our open-source team!</a>
                 </li>
-                <li>
-                    <a href="#" class="learnMoreLink">Learn more</a>
-                </li>
+
+<!-- Comment this out until we have something good to point a learn more link at.  
+     Modify guideLink and developerLink in index.css when this is added back in -->
+<!--                <li> -->
+<!--                    <a href="#" class="learnMoreLink">Learn more</a> -->
+<!--                </li> -->
+
             </ul>
         </div>
     </div>
