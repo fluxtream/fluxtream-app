@@ -6,7 +6,8 @@ import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
-import com.fluxtream.connectors.updaters.UpdateInfo;
+    import com.fluxtream.connectors.updaters.RateLimitReachedException;
+    import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ChannelMapping;
 import com.fluxtream.services.impl.BodyTrackHelper;
@@ -14,7 +15,8 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
-import org.apache.http.HttpResponse;
+    import org.apache.http.Header;
+    import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
@@ -32,12 +34,17 @@ objectTypes={TweetFacet.class,
     defaultChannels = {"twitter.activity"})
 public class TwitterFeedUpdater extends AbstractUpdater {
 
-	FlxLogger logger = FlxLogger.getLogger(TwitterFeedUpdater.class);
+    private static final String STATUSES_USER_TIMELINE = "statuses/user_timeline";
+    private static final String DIRECT_MESSAGES_SENT = "direct_messages/sent";
+    private static final String STATUSES_MENTIONS_TIMELINE = "statuses/mentions_timeline";
+    private static final String DIRECT_MESSAGES = "direct_messages";
+
+    FlxLogger logger = FlxLogger.getLogger(TwitterFeedUpdater.class);
 
     @Autowired
     BodyTrackHelper bodyTrackHelper;
 
-	public TwitterFeedUpdater() {
+    public TwitterFeedUpdater() {
 		super();
 	}
 
@@ -287,6 +294,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 	}
 
 	private int getStatuses(UpdateInfo updateInfo, String screen_name, long max_id, long since_id, OAuthConsumer consumer) throws Exception {
+        checkRateLimitInfo(updateInfo, STATUSES_USER_TIMELINE);
 		long then = System.currentTimeMillis();
 		String requestUrl = "http://api.twitter.com/1.1/statuses/user_timeline.json?" +
 				"screen_name=" + screen_name + "&exclude_replies=t&count=200";
@@ -299,6 +307,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		consumer.sign(request);
 		HttpClient client = env.getHttpClient();
 		HttpResponse response = client.execute(request);
+        extractRateLimitHeaders(response, STATUSES_USER_TIMELINE, updateInfo);
         final int statusCode = response.getStatusLine().getStatusCode();
         if (statusCode == 200) {
 			countSuccessfulApiCall(updateInfo.apiKey,
@@ -318,7 +327,66 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		}
 	}
 
-	private int getReceivedDirectMessages(UpdateInfo updateInfo, long max_id, long since_id, OAuthConsumer consumer) throws Exception {
+    private void checkRateLimitInfo(final UpdateInfo updateInfo, String methodName) throws RateLimitReachedException {
+        final Integer remainingAPICalls = updateInfo.getRemainingAPICalls(methodName);
+        if (remainingAPICalls!=null && remainingAPICalls<1) {
+            throw new RateLimitReachedException();
+        }
+    }
+
+    private void extractRateLimitHeaders(HttpResponse response, String methodName, UpdateInfo updateInfo) {
+        extractLimitRemainingHeader(response, methodName, updateInfo);
+        extractLimitResetHeader(response, methodName, updateInfo);
+        extractLimitLimitHeader(response, methodName, updateInfo);
+    }
+
+    private void extractLimitLimitHeader(final HttpResponse response, final String methodName, final UpdateInfo updateInfo) {
+        final Header[] limitLimitHeaders = response.getHeaders("X-Rate-Limit-Limit");
+        if (limitLimitHeaders!=null&&limitLimitHeaders.length>0) {
+            final String value = limitLimitHeaders[0].getValue();
+            if (value!=null) {
+                try {
+                    int limit = Integer.valueOf(value);
+                    updateInfo.setContext(methodName + "/X-Rate-Limit-Limit", limit);
+                } catch(NumberFormatException e) {
+                    logger.warn("Could not parse X-Rate-Limit-Limit Twitter API header, its value is [" + value + "]");
+                }
+            }
+        }
+    }
+
+    private void extractLimitRemainingHeader(final HttpResponse response, final String methodName, final UpdateInfo updateInfo) {
+        final Header[] limitRemainingHeaders = response.getHeaders("X-Rate-Limit-Remaining");
+        if (limitRemainingHeaders!=null&&limitRemainingHeaders.length>0) {
+            final String value = limitRemainingHeaders[0].getValue();
+            if (value!=null) {
+                try {
+                    int remaining = Integer.valueOf(value);
+                    updateInfo.setRemainingAPICalls(methodName, remaining);
+                } catch(NumberFormatException e) {
+                    logger.warn("Could not parse X-Rate-Limit-Remaining Twitter API header, its value is [" + value + "]");
+                }
+            }
+        }
+    }
+
+    private void extractLimitResetHeader(final HttpResponse response, final String methodName, final UpdateInfo updateInfo) {
+        final Header[] limitResetHeaders = response.getHeaders("X-Rate-Limit-Reset");
+        if (limitResetHeaders!=null&&limitResetHeaders.length>0) {
+            final String value = limitResetHeaders[0].getValue();
+            if (value!=null) {
+                try {
+                    long resetTime = Long.valueOf(value)*1000;
+                    updateInfo.setResetTime(methodName, resetTime);
+                } catch(NumberFormatException e) {
+                    logger.warn("Could not parse X-Rate-Limit-Reset Twitter API header; its value is [" + value + "]");
+                }
+            }
+        }
+    }
+
+    private int getReceivedDirectMessages(UpdateInfo updateInfo, long max_id, long since_id, OAuthConsumer consumer) throws Exception {
+        checkRateLimitInfo(updateInfo, DIRECT_MESSAGES);
 		long then = System.currentTimeMillis();
 		String requestUrl = "http://api.twitter.com/1.1/direct_messages.json?count=200";
 		if (max_id!=-1)
@@ -330,6 +398,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		consumer.sign(request);
 		HttpClient client = env.getHttpClient();
 		HttpResponse response = client.execute(request);
+        extractRateLimitHeaders(response, DIRECT_MESSAGES, updateInfo);
         final int statusCode = response.getStatusLine().getStatusCode();
         if (statusCode == 200) {
 			countSuccessfulApiCall(updateInfo.apiKey,
@@ -354,6 +423,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 	}
 
 	private int getSentDirectMessages(UpdateInfo updateInfo, long max_id, long since_id, OAuthConsumer consumer) throws Exception {
+        checkRateLimitInfo(updateInfo, DIRECT_MESSAGES_SENT);
 		long then = System.currentTimeMillis();
 		String requestUrl = "http://api.twitter.com/1.1/direct_messages/sent.json?count=200";
 		if (max_id!=-1)
@@ -365,6 +435,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		consumer.sign(request);
 		HttpClient client = env.getHttpClient();
 		HttpResponse response = client.execute(request);
+        extractRateLimitHeaders(response, DIRECT_MESSAGES_SENT, updateInfo);
         final int statusCode = response.getStatusLine().getStatusCode();
         if (statusCode == 200) {
 			countSuccessfulApiCall(updateInfo.apiKey,
@@ -386,6 +457,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 	}
 
 	private int getMentions(UpdateInfo updateInfo, long max_id, long since_id, OAuthConsumer consumer) throws Exception {
+        checkRateLimitInfo(updateInfo, STATUSES_MENTIONS_TIMELINE);
 		long then = System.currentTimeMillis();
 		String requestUrl = "http://api.twitter.com/1.1/statuses/mentions_timeline.json?count=200";
 		if (max_id!=-1)
@@ -397,6 +469,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		consumer.sign(request);
 		HttpClient client = env.getHttpClient();
 		HttpResponse response = client.execute(request);
+        extractRateLimitHeaders(response, STATUSES_MENTIONS_TIMELINE, updateInfo);
         final int statusCode = response.getStatusLine().getStatusCode();
         if (statusCode == 200) {
 			countSuccessfulApiCall(updateInfo.apiKey,
