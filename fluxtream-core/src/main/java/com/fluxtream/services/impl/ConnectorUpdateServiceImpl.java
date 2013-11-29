@@ -153,7 +153,10 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         // that have stacked up in the queue
         if (force)
             flushUpdateWorkerTasks(apiKey, objectTypes, false);
-        scheduleObjectTypeUpdate(apiKey, objectTypes, scheduleResults, UpdateType.INCREMENTAL_UPDATE);
+        UpdateType updateType = isHistoryUpdateCompleted(apiKey, objectTypes)
+                ? UpdateType.INCREMENTAL_UPDATE
+                : UpdateType.INITIAL_HISTORY_UPDATE;
+        scheduleObjectTypeUpdate(apiKey, objectTypes, scheduleResults, updateType);
         return scheduleResults;
     }
 
