@@ -61,8 +61,11 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                     guestService.getApiKeyAttribute(updateInfo.apiKey, "refreshToken")==null) {
             sendOauth2UpgradeWarning(updateInfo);
         } else {
+            // Store a conservative value for the last time we checked for updated events so that we
+            // don't miss updates that happen between the start of the check and when the check completes
+            String lastTimeCheckedForUpdatedEvents = String.valueOf(System.currentTimeMillis());
             loadHistory(updateInfo, false);
-            guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_TIME_WE_CHECKED_FOR_UPDATED_EVENTS_ATT, String.valueOf(System.currentTimeMillis()));
+            guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_TIME_WE_CHECKED_FOR_UPDATED_EVENTS_ATT, lastTimeCheckedForUpdatedEvents);
         }
     }
 
@@ -220,8 +223,12 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                 since = System.currentTimeMillis()-20*DateTimeConstants.MILLIS_PER_DAY;
             else
                 since = Long.valueOf(lastTimeString);
+
+            // Store a conservative value for the last time we checked for updated events so that we
+            // don't miss updates that happen between the start of the check and when the check completes
+            String lastTimeCheckedForUpdatedEvents = String.valueOf(System.currentTimeMillis());
             updateCalendarEvents(calendar, calendarEntry, updateInfo, since);
-            guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_TIME_WE_CHECKED_FOR_UPDATED_EVENTS_ATT, String.valueOf(System.currentTimeMillis()));
+            guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_TIME_WE_CHECKED_FOR_UPDATED_EVENTS_ATT, lastTimeCheckedForUpdatedEvents);
             // now fetch new events
             String queryString = "select max(start) from Facet_GoogleCalendarEvent where apiKeyId=" + updateInfo.apiKey.getId() + " and calendarId='" + calendarEntry.getId() + "'";
             since = jpaDaoService.executeNativeQuery(queryString);
@@ -446,10 +453,11 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
     private Calendar getCalendar(final ApiKey apiKey) throws UpdateFailedException {
         HttpTransport httpTransport = new NetHttpTransport();
         JacksonFactory jsonFactory = new JacksonFactory();
+        // Get all the attributes for this connector's oauth token from the stored attributes
         final String accessToken = guestService.getApiKeyAttribute(apiKey, "accessToken");
         final String refreshToken = guestService.getApiKeyAttribute(apiKey, "refreshToken");
-        final String clientId = env.get("google.client.id");
-        final String clientSecret = env.get("google.client.secret");
+        final String clientId = guestService.getApiKeyAttribute(apiKey, "google.client.id");
+        final String clientSecret = guestService.getApiKeyAttribute(apiKey,"google.client.secret");
         final GoogleCredential.Builder builder = new GoogleCredential.Builder();
         builder.setTransport(httpTransport);
         builder.setJsonFactory(jsonFactory);
@@ -463,11 +471,12 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
             if (tokenExpires<System.currentTimeMillis()) {
                 boolean tokenRefreshed = false;
 
-                // Check to see if we are running on a mirrored test instance
-                // and should therefore refrain from swapping tokens lest we
-                // invalidate an existing token instance
+                // Check to see if we are running on a mirrored test instance.
+                // If we are and the stored google.client.id doesn't match the
+                // test instance's google.client.id, refrain from swapping tokens lest we
+                // invalidate an existing token instance on the main server
                 String disableTokenSwap = env.get("disableTokenSwap");
-                if(disableTokenSwap!=null && disableTokenSwap.equals("true")) {
+                if(disableTokenSwap!=null && disableTokenSwap.equals("true") && !clientId.equals(env.get("google.client.id"))) {
                     String msg = "**** Skipping token refresh for google calendar connector instance because disableTokenSwap is set on this server";
 
                     StringBuilder sb = new StringBuilder("module=GoogleCalendarUpdater component=background_updates action=refreshToken apiKeyId=" + apiKey.getId())
@@ -487,8 +496,8 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                     throw new UpdateFailedException("requires token reauthorization",true);
                 }
 
-                // We're not on a mirrored test server.  Try to swap the expired
-                // access token for a fresh one.
+                // We're not on a mirrored test server or else the token has been reauthorized on this server already.
+                // Try to swap the expired access token for a fresh one.
                 tokenRefreshed = credential.refreshToken();
 
                 if(tokenRefreshed) {
