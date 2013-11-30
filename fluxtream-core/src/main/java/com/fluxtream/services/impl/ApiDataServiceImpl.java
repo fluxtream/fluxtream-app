@@ -495,8 +495,13 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
         try {
             T modified = modifier.createOrModify(orig, apiKeyId);
             // createOrModify must return passed argument if it is not null
+            // If the passed argument is null and the attempt to parse the
+            // new data into a valid facet fails, createOrModify may return null.
+            // In that case, just don't try to persist it.
             assert(orig == null || orig == modified);
-            assert (modified != null);
+            if(modified == null)
+               return null;
+
             //System.out.println("====== after modify, contained?: " + em.contains(modified));
             if (orig == null) {
                 // Persist the newly-created facet (and its tags, if any)
