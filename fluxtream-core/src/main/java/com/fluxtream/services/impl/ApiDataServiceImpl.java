@@ -611,7 +611,7 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
     @Override
     @Transactional(readOnly = false)
     public void addGuestLocation(final long guestId, LocationFacet locationResource) {
-        locationResource.guestId = guestId;
+        locationResource.guestId = guestId;>
         // Persist the location and find out if it is new or not.  Only call updateLocationMetadata
         // if we did not already know about this location
         if(persistLocation(locationResource)) {
@@ -641,15 +641,15 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
             // This is a duplicate location, ignore and print a message.
             // TODO: consider what we should do if the new one differs from the
             // stored location.  Should we do a merge?
-            StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=addGuestLocation")
-                    .append(" guestId=").append(locationResource.guestId)
-                    .append(" source=").append(locationResource.source.toString())
-                    .append(" apiKeyId=").append(locationResource.apiKeyId)
-                    .append(" start=").append(locationResource.start)
-                    .append(" latitude=").append(locationResource.latitude)
-                    .append(" longitude=").append(locationResource.longitude)
-                    .append(" message=\"ignoring duplicate locationFacet\"");
-            logger.info(sb.toString());
+            //StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=addGuestLocation")
+            //        .append(" guestId=").append(locationResource.guestId)
+            //        .append(" source=").append(locationResource.source.toString())
+            //        .append(" apiKeyId=").append(locationResource.apiKeyId)
+            //        .append(" start=").append(locationResource.start)
+            //        .append(" latitude=").append(locationResource.latitude)
+            //        .append(" longitude=").append(locationResource.longitude)
+            //        .append(" message=\"ignoring duplicate locationFacet\"");
+            //logger.info(sb.toString());
             return false;
         }
     }
