@@ -1,22 +1,23 @@
-	package com.fluxtream.connectors.twitter;
+package com.fluxtream.connectors.twitter;
 
-    import java.util.HashMap;
+import java.util.HashMap;
 import java.util.List;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
-    import com.fluxtream.connectors.updaters.RateLimitReachedException;
-    import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.connectors.updaters.RateLimitReachedException;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ChannelMapping;
 import com.fluxtream.services.impl.BodyTrackHelper;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
-    import org.apache.http.Header;
-    import org.apache.http.HttpResponse;
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
@@ -170,93 +171,125 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 	}
 
 	private void refreshStatuses(UpdateInfo updateInfo, String screen_name, OAuthConsumer consumer) throws Exception {
-		TweetFacet mostRecentTweet = jpaDaoService.findOne("twitter.tweet.newest", TweetFacet.class, updateInfo.apiKey.getGuestId());
+		TweetFacet mostRecentTweet = jpaDaoService.findOne("twitter.tweet.biggestTwitterId", TweetFacet.class, updateInfo.apiKey.getGuestId());
+        TweetFacet lastMostRecentTweet = mostRecentTweet;
 		if (mostRecentTweet!=null) {
 			int newerTweets = 1;
 			while (newerTweets>0) {
 				newerTweets = getStatusesAfter(updateInfo, screen_name, mostRecentTweet.tweetId+1, consumer);
-				mostRecentTweet = jpaDaoService.findOne("twitter.tweet.newest", TweetFacet.class, updateInfo.apiKey.getGuestId());
+				mostRecentTweet = jpaDaoService.findOne("twitter.tweet.biggestTwitterId", TweetFacet.class, updateInfo.apiKey.getGuestId());
+                if (lastMostRecentTweet.tweetId==mostRecentTweet.tweetId)
+                    break;
+                lastMostRecentTweet = mostRecentTweet;
 			}
 		}
 	}
 
 	private void refreshMentions(UpdateInfo updateInfo, OAuthConsumer consumer) throws Exception {
-		TwitterMentionFacet mostRecentMention = jpaDaoService.findOne("twitter.mention.newest", TwitterMentionFacet.class, updateInfo.apiKey.getGuestId());
-		if (mostRecentMention!=null) {
+		TwitterMentionFacet mostRecentMention = jpaDaoService.findOne("twitter.mention.biggestTwitterId", TwitterMentionFacet.class, updateInfo.apiKey.getGuestId());
+        TwitterMentionFacet lastMostRecentMention = mostRecentMention;
+        if (mostRecentMention!=null) {
 			int newerMentions = 1;
 			while (newerMentions>0) {
 				newerMentions = getMentionsAfter(updateInfo, mostRecentMention.twitterId+1, consumer);
-				mostRecentMention = jpaDaoService.findOne("twitter.mention.newest", TwitterMentionFacet.class, updateInfo.apiKey.getGuestId());
+				mostRecentMention = jpaDaoService.findOne("twitter.mention.biggestTwitterId", TwitterMentionFacet.class, updateInfo.apiKey.getGuestId());
+                if (lastMostRecentMention.twitterId==mostRecentMention.twitterId)
+                    break;
+                lastMostRecentMention = mostRecentMention;
 			}
 		}
 	}
 
 	private void refreshReceivedDirectMessages(UpdateInfo updateInfo, OAuthConsumer consumer) throws Exception {
-		TwitterDirectMessageFacet mostRecentDM = jpaDaoService.findOne("twitter.received.dm.newest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+		TwitterDirectMessageFacet mostRecentDM = jpaDaoService.findOne("twitter.received.dm.biggestTwitterId", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+        TwitterDirectMessageFacet lastMostRecentDM = mostRecentDM;
 		if (mostRecentDM!=null) {
 			int newerDMs = 1;
 			while (newerDMs>0) {
-				newerDMs = getDirectMessagesReceivedAfter(updateInfo, mostRecentDM.twitterId+1, consumer);
-				mostRecentDM = jpaDaoService.findOne("twitter.received.dm.newest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+				newerDMs = getDirectMessagesReceivedAfter(updateInfo, mostRecentDM.twitterId + 1, consumer);
+				mostRecentDM = jpaDaoService.findOne("twitter.received.dm.biggestTwitterId", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+                if (lastMostRecentDM.twitterId==mostRecentDM.twitterId)
+                    break;
+                lastMostRecentDM = mostRecentDM;
 			}
 		}
 	}
 
 	private void refreshSentDirectMessages(UpdateInfo updateInfo, OAuthConsumer consumer) throws Exception {
-		TwitterDirectMessageFacet mostRecentDM = jpaDaoService.findOne("twitter.sent.dm.newest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+		TwitterDirectMessageFacet mostRecentDM = jpaDaoService.findOne("twitter.sent.dm.biggestTwitterId", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+        TwitterDirectMessageFacet lastMostRecentDM = mostRecentDM;
 		if (mostRecentDM!=null) {
 			int newerDMs = 1;
 			while (newerDMs>0) {
 				newerDMs = getDirectMessagesSentAfter(updateInfo, mostRecentDM.twitterId+1, consumer);
-				mostRecentDM = jpaDaoService.findOne("twitter.sent.dm.newest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+				mostRecentDM = jpaDaoService.findOne("twitter.sent.dm.biggestTwitterId", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+                if (lastMostRecentDM.twitterId==mostRecentDM.twitterId)
+                    break;
+                lastMostRecentDM = mostRecentDM;
 			}
 		}
 	}
 
 	private void getStatuses(UpdateInfo updateInfo, String screen_name, OAuthConsumer consumer) throws Exception {
 		getStatuses(updateInfo, screen_name, -1, -1, consumer);
-		TweetFacet oldestTweet = jpaDaoService.findOne("twitter.tweet.oldest", TweetFacet.class, updateInfo.apiKey.getGuestId());
+		TweetFacet oldestTweet = jpaDaoService.findOne("twitter.tweet.smallestTwitterId", TweetFacet.class, updateInfo.apiKey.getGuestId());
+        TweetFacet lastOldestTweet = oldestTweet;
 		if (oldestTweet!=null) {
 			int olderTweets = 1;
 			while(olderTweets>0) {
 				olderTweets = getStatusesBefore(updateInfo, screen_name, oldestTweet.tweetId-1, consumer);
-				oldestTweet = jpaDaoService.findOne("twitter.tweet.oldest", TweetFacet.class, updateInfo.apiKey.getGuestId());
+				oldestTweet = jpaDaoService.findOne("twitter.tweet.smallestTwitterId", TweetFacet.class, updateInfo.apiKey.getGuestId());
+                if (oldestTweet.tweetId==lastOldestTweet.tweetId)
+                    break;
+                lastOldestTweet = oldestTweet;
 			}
 		}
 	}
 
 	private void getMentions(UpdateInfo updateInfo, OAuthConsumer consumer) throws Exception {
 		getMentions(updateInfo, -1, -1, consumer);
-		TwitterMentionFacet oldestMention = jpaDaoService.findOne("twitter.mention.oldest", TwitterMentionFacet.class, updateInfo.apiKey.getGuestId());
-		if (oldestMention!=null) {
+		TwitterMentionFacet oldestMention = jpaDaoService.findOne("twitter.mention.smallestTwitterId", TwitterMentionFacet.class, updateInfo.apiKey.getGuestId());
+        TwitterMentionFacet lastOldestMention = oldestMention;
+        if (oldestMention!=null) {
 			int olderMentions = 1;
 			while(olderMentions>0) {
 				olderMentions = getMentionsBefore(updateInfo, oldestMention.twitterId-1, consumer);
-				oldestMention = jpaDaoService.findOne("twitter.mention.oldest", TwitterMentionFacet.class, updateInfo.apiKey.getGuestId());
+				oldestMention = jpaDaoService.findOne("twitter.mention.smallestTwitterId", TwitterMentionFacet.class, updateInfo.apiKey.getGuestId());
+                if (lastOldestMention.twitterId==oldestMention.twitterId)
+                    break;
+                lastOldestMention = oldestMention;
 			}
 		}
 	}
 
 	private void getReceivedDirectMessages(UpdateInfo updateInfo, OAuthConsumer consumer) throws Exception {
 		getReceivedDirectMessages(updateInfo, -1, -1, consumer);
-		TwitterDirectMessageFacet oldestDM = jpaDaoService.findOne("twitter.received.dm.oldest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+		TwitterDirectMessageFacet oldestDM = jpaDaoService.findOne("twitter.received.dm.smallestTwitterId", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+        TwitterDirectMessageFacet lastOldestDM = oldestDM;
 		if (oldestDM!=null) {
 			int olderDMs = 1;
 			while(olderDMs>0) {
 				olderDMs = getDirectMessagesReceivedBefore(updateInfo, oldestDM.twitterId-1, consumer);
-				oldestDM = jpaDaoService.findOne("twitter.received.dm.oldest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+				oldestDM = jpaDaoService.findOne("twitter.received.dm.smallestTwitterId", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+                if (lastOldestDM.twitterId==oldestDM.twitterId)
+                    break;
+                lastOldestDM = oldestDM;
 			}
 		}
 	}
 
 	private void getSentDirectMessages(UpdateInfo updateInfo, OAuthConsumer consumer) throws Exception {
 		getSentDirectMessages(updateInfo, -1, -1, consumer);
-		TwitterDirectMessageFacet oldestDM = jpaDaoService.findOne("twitter.sent.dm.oldest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+		TwitterDirectMessageFacet oldestDM = jpaDaoService.findOne("twitter.sent.dm.smallestTwitterId", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+        TwitterDirectMessageFacet lastOldestDM = oldestDM;
 		if (oldestDM!=null) {
 			int olderDMs = 1;
 			while(olderDMs>0) {
 				olderDMs = getDirectMessagesSentBefore(updateInfo, oldestDM.twitterId-1, consumer);
-				oldestDM = jpaDaoService.findOne("twitter.sent.dm.oldest", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+				oldestDM = jpaDaoService.findOne("twitter.sent.dm.smallestTwitterId", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+                if (lastOldestDM.twitterId==oldestDM.twitterId)
+                    break;
+                lastOldestDM = oldestDM;
 			}
 		}
 	}
@@ -323,7 +356,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
             final String reasonPhrase = response.getStatusLine().getReasonPhrase();
             countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, reasonPhrase,
                                statusCode, reasonPhrase);
-			throw new Exception("Unexpected error trying to get statuses");
+            throw new UnexpectedHttpResponseCodeException(statusCode, reasonPhrase);
 		}
 	}
 
@@ -418,7 +451,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 			countFailedApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, requestUrl, reasonPhrase,
                     statusCode, reasonPhrase);
-			throw new Exception("Unexpected error trying to get received messages");
+            throw new UnexpectedHttpResponseCodeException(statusCode, reasonPhrase);
 		}
 	}
 
@@ -452,7 +485,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
             final String reasonPhrase = response.getStatusLine().getReasonPhrase();
             countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, reasonPhrase,
                                statusCode, reasonPhrase);
-			throw new Exception("Unexpected error trying to get sent messages");
+            throw new UnexpectedHttpResponseCodeException(statusCode, reasonPhrase);
 		}
 	}
 
@@ -486,8 +519,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
             countFailedApiCall(updateInfo.apiKey,
                                updateInfo.objectTypes, then, requestUrl, reasonPhrase,
                                statusCode, reasonPhrase);
-            Exception exception = new Exception("Unexpected error trying to get mentions: " + reasonPhrase);
-			throw exception;
+            throw new UnexpectedHttpResponseCodeException(statusCode, reasonPhrase);
 		}
 	}
 }
