@@ -307,11 +307,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 		for (int i = 0; i < timeSeriesArray.size(); i++) {
             JSONObject entry = timeSeriesArray.getJSONObject(i);
             String date = entry.getString("dateTime");
-            DayMetadata dayMetadata = metadataService.getDayMetadata(apiKey.getGuestId(), date);
-            logger.debug("dayMetadata: " + dayMetadata);
-            logger.debug("dayMetadataFacet's timezone: " + dayMetadata.getTimeInterval().getMainTimeZone().getID());
-            TimeInterval timeInterval = dayMetadata.getTimeInterval();
-            logger.debug("dayMetadataFacet's timeInterval: " + timeInterval);
+
 
             if (objectType == sleepOT) {
                 FitbitSleepFacet facet = getSleepFacet(apiKey.getId(),
@@ -350,8 +346,15 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                     facet.date = date;
                     facet.api = connector().value();
                     facet.guestId = apiKey.getGuestId();
-                    facet.start = dayMetadata.start;
-                    facet.end = dayMetadata.end;
+
+                    final DateTime dateTime = TimeUtils.dateFormatterUTC.parseDateTime(date);
+
+                    facet.start = dateTime.getMillis();
+                    facet.end = dateTime.getMillis() + DateTimeConstants.MILLIS_PER_DAY - 1;
+
+                    facet.startTimeStorage = date + "T00:00:00.000";
+                    facet.endTimeStorage = date + "T23:59:59.999";
+
                     facetDao.persist(facet);
                 }
                 addToWeightFacet(facet, entry, fieldName);
