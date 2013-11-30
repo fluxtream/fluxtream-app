@@ -124,12 +124,22 @@ public class AdminController {
     }
 
     @Secured({ "ROLE_ADMIN" })
+    @RequestMapping("/admin/{guestId}/{apiKeyId}/{objectTypes}/historyUpdate")
+    public ModelAndView forceConnectorInstanceHistoryUpdate(@PathVariable("guestId") long guestId,
+                                                            @PathVariable("apiKeyId") long apiKeyId,
+                                                            @PathVariable("objectTypes") int objectTypes) {
+        final ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        connectorUpdateService.updateConnectorObjectType(apiKey, objectTypes, true, true);
+        return new ModelAndView(String.format("redirect:/admin/%s/%s", guestId, apiKeyId));
+    }
+
+    @Secured({ "ROLE_ADMIN" })
     @RequestMapping("/admin/{guestId}/{apiKeyId}/{objectTypes}/refresh")
     public ModelAndView refreshConnectorInstance(@PathVariable("guestId") long guestId,
                                                  @PathVariable("apiKeyId") long apiKeyId,
                                                  @PathVariable("objectTypes") int objectTypes) {
         final ApiKey apiKey = guestService.getApiKey(apiKeyId);
-        connectorUpdateService.updateConnectorObjectType(apiKey, objectTypes, true);
+        connectorUpdateService.updateConnectorObjectType(apiKey, objectTypes, true, false);
         return new ModelAndView(String.format("redirect:/admin/%s/%s", guestId, apiKeyId));
     }
 

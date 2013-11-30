@@ -32,7 +32,10 @@ public interface ConnectorUpdateService {
      * @param force force an update (sync now)
      * @return A list containing data about what was scheduled
      */
-    public List<ScheduleResult> updateConnectorObjectType(ApiKey apiKey, int objectTypes, boolean force);
+    public List<ScheduleResult> updateConnectorObjectType(ApiKey apiKey,
+                                                          int objectTypes,
+                                                          boolean force,
+                                                          boolean historyUpdate);
 
     public List<ScheduleResult> updateAllConnectors(long guestId, boolean force);
 

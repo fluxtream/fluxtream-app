@@ -100,8 +100,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
         // some connectors (e.g. the fitbit) need to decide what objectTypes to update by themselves;
         // for those, we pass 0 for the objectType parameter, which will be overridden by the connector's updater
-        final boolean historyUpdateCompleted = isHistoryUpdateCompleted(apiKey);
         if (apiKey.getConnector().isAutonomous()) {
+            final boolean historyUpdateCompleted = isHistoryUpdateCompleted(apiKey, 0);
             scheduleObjectTypeUpdate(apiKey, 0, scheduleResults, historyUpdateCompleted
                                                                              ? UpdateType.INCREMENTAL_UPDATE
                                                                              : UpdateType.INITIAL_HISTORY_UPDATE);
@@ -121,6 +121,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
                 return scheduleResults;
             }
             for (int objectTypes : objectTypeValues) {
+                final boolean historyUpdateCompleted = isHistoryUpdateCompleted(apiKey, objectTypes);
                 scheduleObjectTypeUpdate(apiKey, objectTypes, scheduleResults, historyUpdateCompleted
                                                                                            ? UpdateType.INCREMENTAL_UPDATE
                                                                                            : UpdateType.INITIAL_HISTORY_UPDATE);
@@ -135,24 +136,24 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         return scheduleResults;
     }
 
-    private boolean isHistoryUpdateCompleted(ApiKey apiKey) {
-        if (apiKey.getConnector().isAutonomous())
-            return isHistoryUpdateCompleted(apiKey, 0);
-        final int[] connectorObjectTypeValues = apiKey.getConnector().objectTypeValues();
-        for (int connectorObjectTypeValue : connectorObjectTypeValues)
-            if (!isHistoryUpdateCompleted(apiKey, connectorObjectTypeValue))
-                return false;
-        return true;
+    @Override
+    public boolean isHistoryUpdateCompleted(final ApiKey apiKey,
+                                            int objectTypes) {
+        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.completed", Status.DONE, UpdateType.INITIAL_HISTORY_UPDATE, objectTypes, apiKey.getId());
+        return updateWorkerTasks.size() > 0;
     }
 
     @Override
-    public List<ScheduleResult> updateConnectorObjectType(ApiKey apiKey, int objectTypes, boolean force) {
+    public List<ScheduleResult> updateConnectorObjectType(ApiKey apiKey,
+                                                          int objectTypes,
+                                                          boolean force,
+                                                          boolean historyUpdate) {
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
         getUpdateWorkerTask(apiKey, objectTypes);
         // if forcing an update (sync now), we actually want to flush the update requests
         // that have stacked up in the queue
         if (force)
-            flushUpdateWorkerTasks(apiKey, objectTypes, false);
+            flushUpdateWorkerTasks(apiKey, objectTypes, historyUpdate);
         UpdateType updateType = isHistoryUpdateCompleted(apiKey, objectTypes)
                 ? UpdateType.INCREMENTAL_UPDATE
                 : UpdateType.INITIAL_HISTORY_UPDATE;
@@ -427,13 +428,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     }
 
     @Override
-    public boolean isHistoryUpdateCompleted(final ApiKey apiKey,
-                                            int objectTypes) {
-        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.completed", Status.DONE, UpdateType.INITIAL_HISTORY_UPDATE, objectTypes, apiKey.getId());
-        return updateWorkerTasks.size() > 0;
-    }
-
-    @Override
     @Transactional(readOnly = false)
     public void addApiNotification(Connector connector, long guestId, String content) {
         ApiNotification notification = new ApiNotification();
@@ -636,7 +630,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         if (!wipeOutHistory) {
             // Here we want to leave the completed history updates but get rid of the scheduled
             // items for this apiKey.  That translates into deleting items with status=0.
-            JPAUtils.execute(em, "updateWorkerTasks.delete.scheduledbyApiAndObjectType",
+            JPAUtils.execute(em, "updateWorkerTasks.delete.scheduledByApiAndObjectType",
                              apiKey.getId(),
                              objectTypes);
         }
@@ -646,7 +640,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
             // This happens asynchronously after connector deletion and
             // is executed by ApiDataCleanupWorker, or while servicing a request to
             // reset a connector.
-            JPAUtils.execute(em, "updateWorkerTasks.deleteAll.byApiAndObjectType", apiKey.getId(),
+            JPAUtils.execute(em, "updateWorkerTasks.delete.scheduledAndHistoryByApiAndObjectType",
+                             apiKey.getId(),
                              objectTypes);
         }
     }
