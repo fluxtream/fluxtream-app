@@ -611,7 +611,7 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
     @Override
     @Transactional(readOnly = false)
     public void addGuestLocation(final long guestId, LocationFacet locationResource) {
-        locationResource.guestId = guestId;>
+        locationResource.guestId = guestId;
         // Persist the location and find out if it is new or not.  Only call updateLocationMetadata
         // if we did not already know about this location
         if(persistLocation(locationResource)) {
