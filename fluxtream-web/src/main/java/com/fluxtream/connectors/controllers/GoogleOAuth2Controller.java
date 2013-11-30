@@ -98,23 +98,37 @@ public class GoogleOAuth2Controller {
 		params.put("redirect_uri", redirectUri);
 		params.put("grant_type", "authorization_code");
 
-		String fetched = HttpUtils.fetch(swapTokenUrl, params);
-		
-		JSONObject token = JSONObject.fromObject(fetched);
-		
 		String scope = (String) request.getSession().getAttribute("oauth2Scope");
 		Connector scopedApi = systemService.getApiFromGoogleScope(scope);
 		
 		Guest guest = AuthHelper.getGuest();
 
-        if (!token.has("refresh_token")) {
+      // Get the google branding info.  Default to fluxtream if not set, but can override in
+      // oauth.properties by setting the default google.client.brandName parameter
+      String brandName = env.get("google.client.brandName");
+      if(brandName == null) {
+         // Not set in oauth.properties file, default to "Fluxtream"
+         brandName="Fluxtream";
+      }
+
+      // Try to renew the token.  On failure leave token=null
+      JSONObject token = null;
+
+      try {
+         String fetched = HttpUtils.fetch(swapTokenUrl, params);
+         token = JSONObject.fromObject(fetched);
+      } catch(Throwable e) {
+         token = null;
+      }
+
+        if (token == null || !token.has("refresh_token")) {
             String message = (new StringBuilder("<p>We couldn't get your oauth2 refresh token.  "))
                     .append("Something went wrong.</p>")
                     .append("<p>You'll have to surf to your ")
                     .append("<a target='_new'  href='https://accounts.google.com/b/0/IssuedAuthSubTokens'>token mgmt page at Google</a> ")
-                    .append("and hit \"Revoke Access\" next to \"fluxtream — ").append(getGooglePrettyName(scopedApi)).append("\"</p>")
-		.append("<p>Then please, head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a> ")
-		.append("and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)</p>")
+                    .append("and hit \"Revoke Access\" next to \"").append(brandName).append(" — ").append(getGooglePrettyName(scopedApi)).append("\"</p>")
+		              .append("<p>Then please, head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a> ")
+		              .append("and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)</p>")
                     .append("<p>We apologize for the inconvenience</p>").toString();
             notificationsService.addNotification(guest.getId(),
                                                  Notification.Type.ERROR,
