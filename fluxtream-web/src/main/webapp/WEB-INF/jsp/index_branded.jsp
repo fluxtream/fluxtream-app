@@ -60,10 +60,9 @@
             <table>
                 <tr>
                     <td rowspan="2">
-                        <video width="432" height="324" class="intro_video" controls>
-                            <source src="${release}/videos/Fluxtream.mp4" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
+                        <br><br>
+                        <iframe width="432" height="324" src="//www.youtube.com/embed/D85ICrW52e0?hd=1" frameborder="0" allowfullscreen></iframe>
+                    </td>
                     <td>
                         <div class="intro_txt">
                             An open-source non-profit personal data visualization framework to help you make sense of your life and compare hypotheses about what affects your well-being
