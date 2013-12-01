@@ -11,6 +11,7 @@ import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Notification;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
@@ -179,11 +180,11 @@ public class WithingsUpdater extends AbstractUpdater {
         if (facets.size()==0) return 0;
         return facets.get(0).start + 1000;
     }
-    public OAuthService getOAuthService() {
+    public OAuthService getOAuthService(final ApiKey apiKey) {
         return new ServiceBuilder()
                 .provider(WithingsApi.class)
-                .apiKey(env.get("withingsConsumerKey"))
-                .apiSecret(env.get("withingsConsumerSecret"))
+                .apiKey(guestService.getApiKeyAttribute(apiKey, "withingsConsumerKey"))
+                .apiSecret(guestService.getApiKeyAttribute(apiKey, "withingsConsumerSecret"))
                 .signatureType(SignatureType.QueryString)
                 .callback(env.get("homeBaseUrl") + "withings/upgradeToken")
                 .build();
@@ -198,7 +199,7 @@ public class WithingsUpdater extends AbstractUpdater {
                 request.addQuerystringParameter(parameterName,
                                                 parameters.get(parameterName));
             }
-            OAuthService service = getOAuthService();
+            OAuthService service = getOAuthService(updateInfo.apiKey);
             final String accessToken = guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken");
             final Token token = new Token(accessToken, guestService.getApiKeyAttribute(updateInfo.apiKey, "tokenSecret"));
             service.signRequest(token, request);
