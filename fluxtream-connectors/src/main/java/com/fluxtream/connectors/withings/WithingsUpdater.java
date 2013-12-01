@@ -214,6 +214,7 @@ public class WithingsUpdater extends AbstractUpdater {
                 storeMeasurements(updateInfo, json, apiVersion);
         } catch (UnexpectedHttpResponseCodeException e) {
             countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url, Utils.stackTrace(e), e.getHttpResponseCode(), e.getHttpResponseMessage());
+            throw e;
         }
     }
 

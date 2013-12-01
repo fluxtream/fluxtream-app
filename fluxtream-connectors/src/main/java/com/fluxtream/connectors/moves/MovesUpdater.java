@@ -717,7 +717,7 @@ public class MovesUpdater extends AbstractUpdater {
         // Check for change in the end time
         final DateTime endTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("endTime"));
         if(place.end != endTime.getMillis()) {
-            System.out.println(place.start + ": endTime changed");
+            //System.out.println(place.start + ": endTime changed");
             needsUpdating = true;
             place.end = endTime.getMillis();
         }
@@ -725,20 +725,20 @@ public class MovesUpdater extends AbstractUpdater {
         // Check for change in the place data
         JSONObject placeData = segment.getJSONObject("place");
         if (placeData.has("id")&&place.placeId==null) {
-            System.out.println(place.start + ": now the place has an id");
+            //System.out.println(place.start + ": now the place has an id");
             needsUpdating = true;
             place.placeId = placeData.getLong("id");
         }
         // update the place type
         String previousPlaceType = place.type;
         if (!placeData.getString("type").equals(place.type)) {
-            System.out.println(place.start + ": place type has changed");
+            //System.out.println(place.start + ": place type has changed");
             needsUpdating = true;
             place.type = placeData.getString("type");
         }
         if (placeData.has("name")&&
             (place.name==null || !place.name.equals(placeData.getString("name")))) {
-            System.out.println(place.start + ": place name has changed");
+            //System.out.println(place.start + ": place name has changed");
             needsUpdating = true;
             place.name = placeData.getString("name");
         }
@@ -746,7 +746,7 @@ public class MovesUpdater extends AbstractUpdater {
         // if the place wasn't identified previously, store its fourquare info now
         if (!previousPlaceType.equals("foursquare")&&
             place.type.equals("foursquare")){
-            System.out.println(place.start + ": storing foursquare info");
+            //System.out.println(place.start + ": storing foursquare info");
             needsUpdating = true;
             place.foursquareId = placeData.getString("foursquareId");
         }
@@ -754,7 +754,7 @@ public class MovesUpdater extends AbstractUpdater {
         float lat = (float) locationData.getDouble("lat");
         float lon = (float) locationData.getDouble("lon");
         if (Math.abs(lat-place.latitude)>0.0001 || Math.abs(lon-place.longitude)>0.0001) {
-            System.out.println(place.start + ": lat/lon have changed");
+            //System.out.println(place.start + ": lat/lon have changed");
             needsUpdating = true;
             place.latitude = lat;
             place.longitude = lon;

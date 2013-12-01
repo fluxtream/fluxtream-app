@@ -212,6 +212,7 @@ class UpdateWorker implements Runnable {
             failed.stackTrace = updateResult.stackTrace;
             connectorUpdateService.addAuditTrail(task.getId(), failed);
             final UpdateWorkerTask.AuditTrailEntry retry = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "retry");
+            retry.stackTrace = updateResult.stackTrace;
             // Consider this a transient failure and retry if the failure type was not permanent
             // and the current status of the connector instance is not already STATUS_PERMANENT_FAILURE.
             //

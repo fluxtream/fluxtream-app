@@ -495,8 +495,13 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
         try {
             T modified = modifier.createOrModify(orig, apiKeyId);
             // createOrModify must return passed argument if it is not null
+            // If the passed argument is null and the attempt to parse the
+            // new data into a valid facet fails, createOrModify may return null.
+            // In that case, just don't try to persist it.
             assert(orig == null || orig == modified);
-            assert (modified != null);
+            if(modified == null)
+               return null;
+
             //System.out.println("====== after modify, contained?: " + em.contains(modified));
             if (orig == null) {
                 // Persist the newly-created facet (and its tags, if any)
@@ -641,15 +646,15 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
             // This is a duplicate location, ignore and print a message.
             // TODO: consider what we should do if the new one differs from the
             // stored location.  Should we do a merge?
-            StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=addGuestLocation")
-                    .append(" guestId=").append(locationResource.guestId)
-                    .append(" source=").append(locationResource.source.toString())
-                    .append(" apiKeyId=").append(locationResource.apiKeyId)
-                    .append(" start=").append(locationResource.start)
-                    .append(" latitude=").append(locationResource.latitude)
-                    .append(" longitude=").append(locationResource.longitude)
-                    .append(" message=\"ignoring duplicate locationFacet\"");
-            logger.info(sb.toString());
+            //StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=addGuestLocation")
+            //        .append(" guestId=").append(locationResource.guestId)
+            //        .append(" source=").append(locationResource.source.toString())
+            //        .append(" apiKeyId=").append(locationResource.apiKeyId)
+            //        .append(" start=").append(locationResource.start)
+            //        .append(" latitude=").append(locationResource.latitude)
+            //        .append(" longitude=").append(locationResource.longitude)
+            //        .append(" message=\"ignoring duplicate locationFacet\"");
+            //logger.info(sb.toString());
             return false;
         }
     }

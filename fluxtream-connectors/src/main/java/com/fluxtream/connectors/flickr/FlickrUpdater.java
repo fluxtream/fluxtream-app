@@ -81,8 +81,8 @@ public class FlickrUpdater extends AbstractUpdater {
 	protected void updateConnectorDataHistory(UpdateInfo updateInfo)
 			throws Exception {
 		// taking care of resetting the data if things went wrong before
-		if (!connectorUpdateService.isHistoryUpdateCompleted( updateInfo.apiKey, -1))
-			apiDataService.eraseApiData(updateInfo.apiKey, -1);
+		//if (!connectorUpdateService.isHistoryUpdateCompleted( updateInfo.apiKey, -1))
+		//	apiDataService.eraseApiData(updateInfo.apiKey, -1);
         int page = 0, pages;
 		do {
             page++;
@@ -149,7 +149,10 @@ public class FlickrUpdater extends AbstractUpdater {
                                                                                        updateInfo.apiKey.getId(), flickrId);
             final ApiDataService.FacetModifier<FlickrPhotoFacet> facetModifier = new ApiDataService.FacetModifier<FlickrPhotoFacet>() {
                 @Override
-                public FlickrPhotoFacet createOrModify(FlickrPhotoFacet facet, final Long apiKeyId) {
+                public FlickrPhotoFacet createOrModify(FlickrPhotoFacet origFacet, final Long apiKeyId) {
+                    FlickrPhotoFacet facet=origFacet;
+
+                    try {
                     if (facet==null) {
                         facet = new FlickrPhotoFacet(updateInfo.apiKey.getId());
                         facet.flickrId = photo.getString("id");
@@ -195,6 +198,16 @@ public class FlickrUpdater extends AbstractUpdater {
                         }
                     }
                     return facet;
+                    }
+                       catch (Throwable e) {
+                           // Attempt to parse this photo failed.  Return the original facet.
+                           // If it was null then nothing is persisted.  If it was not null then
+                           // whatever changes we made before we died will be persisted, which is
+                           // really the best we can do
+
+                           // TODO: generate notification of failed import using getPhotoUrl
+                           return(origFacet);
+                       }
                 }
             };
             // we could use the resulting value (facet) from this call if we needed to do further processing on it (e.g. passing it on to the datastore)
@@ -204,6 +217,14 @@ public class FlickrUpdater extends AbstractUpdater {
         if (locationResources.size()>0)
             metadataService.updateLocationMetadata(updateInfo.getGuestId(), locationResources);
     }
+
+   public String getPhotoUrl(final JSONObject photoJson) {
+      // TODO: Return a string of the form http://www.flickr.com/photos/<owner>/<id>/edit-details/
+      //  photo.getString("id");
+      //  photo.getString("owner");
+      return null;
+   }
+
 
     private Long getLastUpdatedTime(final UpdateInfo updateInfo) {
         final String entityName = JPAUtils.getEntityName(FlickrPhotoFacet.class);

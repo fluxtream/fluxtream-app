@@ -14,6 +14,7 @@ import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.Notification;
+import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.NotificationsService;
 import oauth.signpost.OAuthConsumer;
@@ -43,6 +44,9 @@ public class BodymediaController {
 
     @Autowired
     NotificationsService notificationsService;
+
+    @Autowired
+    ConnectorUpdateService connectorUpdateService;
 
     static final Logger logger = Logger.getLogger(BodymediaController.class);
 
@@ -225,6 +229,12 @@ public class BodymediaController {
                                             "tokenSecret", consumer.getTokenSecret());
             guestService.setApiKeyAttribute(updateInfo.apiKey,
                                             "tokenExpiration", provider.getResponseParameters().get("xoauth_token_expiration_time").first());
+
+            // Record this connector as having status up
+            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_UP, null);
+            // Schedule an update for this connector
+            connectorUpdateService.updateConnector(updateInfo.apiKey, false);
+
         } catch (Throwable t) {
             // Notify the user that the tokens need to be manually renewed
             notificationsService.addNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
