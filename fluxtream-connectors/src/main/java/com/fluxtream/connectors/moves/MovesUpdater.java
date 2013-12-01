@@ -67,11 +67,11 @@ public class MovesUpdater extends AbstractUpdater {
 
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception, UpdateFailedException {
-        // Get Moves data for the range of dates starting the first profile date.  We don't need to
-        // do any fixup since we're already doing a full update for the full range of days.
-        String userRegistrationDate = getUserRegistrationDate(updateInfo);
+        // Get the date for starting the update.  This will either be a stored date from a previous run
+        // of the updater or the user's registration date.
+        String updateStartDate = getUpdateStartDate(updateInfo);
 
-        updateMovesData(updateInfo, userRegistrationDate, 0);
+        updateMovesData(updateInfo, updateStartDate, 0);
     }
 
     // Get/update moves data for the range of dates starting from the stored date of the last update.
@@ -339,7 +339,7 @@ public class MovesUpdater extends AbstractUpdater {
     }
 
     private String createOrUpdateData(List<String> dates, UpdateInfo updateInfo, boolean withTrackpoints)
-            throws Exception, UpdateFailedException {
+            throws Exception {
         // Create or update the data for a list of dates.  Returns the date of the latest day with non-empty data,
         // or null if no dates had data
 
@@ -353,6 +353,8 @@ public class MovesUpdater extends AbstractUpdater {
                     // This date is either invalid or would be before the registration date, skip it
                     continue;
                 }
+                System.out.println(date + " / withTrackPoints is " + withTrackpoints);
+                System.out.println("moves connector: fetching story line for date: " + date);
                 String fetched = fetchStorylineForDate(updateInfo, date, withTrackpoints);
 
                 if(fetched!=null) {
@@ -362,6 +364,8 @@ public class MovesUpdater extends AbstractUpdater {
 
                         if(dateHasData && (maxDateWithData==null || maxDateWithData.compareTo(date)<0)) {
                             maxDateWithData = date;
+                            if (withTrackpoints)
+                                guestService.setApiKeyAttribute(updateInfo.apiKey, updateDateKeyName, maxDateWithData);
                         }
                     }
                 }

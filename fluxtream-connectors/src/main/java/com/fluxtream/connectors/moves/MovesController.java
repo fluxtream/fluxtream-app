@@ -19,6 +19,7 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.HttpUtils;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -67,8 +68,9 @@ public class MovesController {
                                                "response_type=code&client_id=%s&" +
                                                "scope=activity location",
                                                redirectUri, env.get("moves.client.id"));
-        if (request.getParameter("apiKeyId")!=null)
-            approvalPageUrl += "&state=" + request.getParameter("apiKeyId");
+        final String apiKeyIdParameter = request.getParameter("apiKeyId");
+        if (apiKeyIdParameter !=null && !StringUtils.isEmpty(apiKeyIdParameter))
+            approvalPageUrl += "&state=" + apiKeyIdParameter;
 
         return "redirect:" + approvalPageUrl;
     }
@@ -134,13 +136,18 @@ public class MovesController {
         // ApiKeyAttributes with all of the keys fro oauth.properties needed for
         // subsequent update of this connector instance.
         ApiKey apiKey;
-        if (request.getParameter("state")!=null) {
-            long apiKeyId = Long.valueOf(request.getParameter("state"));
+        final String stateParameter = request.getParameter("state");
+        if (stateParameter !=null&&!StringUtils.isEmpty(stateParameter)) {
+            long apiKeyId = Long.valueOf(stateParameter);
             apiKey = guestService.getApiKey(apiKeyId);
         } else {
             apiKey = guestService.createApiKey(guest.getId(), Connector.getConnector("moves"));
         }
 
+        guestService.setApiKeyAttribute(apiKey,
+                                        "moves.client.id", env.get("moves.client.id"));
+        guestService.setApiKeyAttribute(apiKey,
+                                        "moves.client.secret", env.get("moves.client.secret"));
         guestService.setApiKeyAttribute(apiKey,
                                         "accessToken", token.getString("access_token"));
         guestService.setApiKeyAttribute(apiKey,
@@ -151,7 +158,7 @@ public class MovesController {
         // Record that this connector is now up
         guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null);
 
-        if (request.getParameter("state")!=null)
+        if (stateParameter !=null)
             return "redirect:/app/tokenRenewed/moves";
         else
             return "redirect:/app/from/moves";
