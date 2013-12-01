@@ -231,8 +231,13 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 	}
 
 	private void getStatuses(UpdateInfo updateInfo, String screen_name, OAuthConsumer consumer) throws Exception {
-		getStatuses(updateInfo, screen_name, -1, -1, consumer);
-		TweetFacet oldestTweet = jpaDaoService.findOne("twitter.tweet.smallestTwitterId", TweetFacet.class, updateInfo.apiKey.getGuestId());
+        TweetFacet oldestTweet = jpaDaoService.findOne("twitter.tweet.smallestTwitterId", TweetFacet.class, updateInfo.apiKey.getGuestId());
+        if (oldestTweet==null) {
+    		getStatuses(updateInfo, screen_name, -1, -1, consumer);
+        } else
+            getStatusesBefore(updateInfo, screen_name, oldestTweet.tweetId-1, consumer);
+
+        oldestTweet = jpaDaoService.findOne("twitter.tweet.smallestTwitterId", TweetFacet.class, updateInfo.apiKey.getGuestId());
         TweetFacet lastOldestTweet = oldestTweet;
 		if (oldestTweet!=null) {
 			int olderTweets = 1;
@@ -247,8 +252,13 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 	}
 
 	private void getMentions(UpdateInfo updateInfo, OAuthConsumer consumer) throws Exception {
-		getMentions(updateInfo, -1, -1, consumer);
-		TwitterMentionFacet oldestMention = jpaDaoService.findOne("twitter.mention.smallestTwitterId", TwitterMentionFacet.class, updateInfo.apiKey.getGuestId());
+        TwitterMentionFacet oldestMention = jpaDaoService.findOne("twitter.mention.smallestTwitterId", TwitterMentionFacet.class, updateInfo.apiKey.getGuestId());
+        if (oldestMention==null) {
+    		getMentions(updateInfo, -1, -1, consumer);
+        } else {
+            getMentionsBefore(updateInfo, oldestMention.twitterId-1, consumer);
+        }
+        oldestMention = jpaDaoService.findOne("twitter.mention.smallestTwitterId", TwitterMentionFacet.class, updateInfo.apiKey.getGuestId());
         TwitterMentionFacet lastOldestMention = oldestMention;
         if (oldestMention!=null) {
 			int olderMentions = 1;
@@ -263,8 +273,13 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 	}
 
 	private void getReceivedDirectMessages(UpdateInfo updateInfo, OAuthConsumer consumer) throws Exception {
-		getReceivedDirectMessages(updateInfo, -1, -1, consumer);
-		TwitterDirectMessageFacet oldestDM = jpaDaoService.findOne("twitter.received.dm.smallestTwitterId", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+        TwitterDirectMessageFacet oldestDM = jpaDaoService.findOne("twitter.received.dm.smallestTwitterId", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+        if (oldestDM==null) {
+    		getReceivedDirectMessages(updateInfo, -1, -1, consumer);
+        } else {
+            getDirectMessagesReceivedBefore(updateInfo, oldestDM.twitterId-1, consumer);
+        }
+        oldestDM = jpaDaoService.findOne("twitter.received.dm.smallestTwitterId", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
         TwitterDirectMessageFacet lastOldestDM = oldestDM;
 		if (oldestDM!=null) {
 			int olderDMs = 1;
@@ -279,8 +294,13 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 	}
 
 	private void getSentDirectMessages(UpdateInfo updateInfo, OAuthConsumer consumer) throws Exception {
-		getSentDirectMessages(updateInfo, -1, -1, consumer);
-		TwitterDirectMessageFacet oldestDM = jpaDaoService.findOne("twitter.sent.dm.smallestTwitterId", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+        TwitterDirectMessageFacet oldestDM = jpaDaoService.findOne("twitter.sent.dm.smallestTwitterId", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
+        if (oldestDM==null) {
+    		getSentDirectMessages(updateInfo, -1, -1, consumer);
+        } else {
+            getDirectMessagesSentBefore(updateInfo, oldestDM.twitterId-1, consumer);
+        }
+        oldestDM = jpaDaoService.findOne("twitter.sent.dm.smallestTwitterId", TwitterDirectMessageFacet.class, updateInfo.apiKey.getGuestId());
         TwitterDirectMessageFacet lastOldestDM = oldestDM;
 		if (oldestDM!=null) {
 			int olderDMs = 1;
