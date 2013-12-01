@@ -21,7 +21,6 @@ public class WithingsActivityFacet extends AbstractLocalTimeFacet {
     public float calories;
     public float elevation;
 
-
     public WithingsActivityFacet() {
         super();
     }

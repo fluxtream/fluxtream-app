@@ -22,6 +22,8 @@ import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
 import org.scribe.builder.ServiceBuilder;
 import org.scribe.builder.api.WithingsApi;
 import org.scribe.model.OAuthRequest;
@@ -344,10 +346,22 @@ public class WithingsUpdater extends AbstractUpdater {
                     facet = new WithingsActivityFacet(updateInfo.apiKey.getId());
                 extractCommonFacetData(facet, updateInfo);
                 facet.date = date;
+
+                final DateTime dateTime = TimeUtils.dateFormatterUTC.parseDateTime(facet.date);
+
+                // returns the starting midnight for the date
+                facet.start = dateTime.getMillis();
+                facet.end = dateTime.getMillis()+ DateTimeConstants.MILLIS_PER_DAY-1;
+
+                facet.startTimeStorage = facet.date + "T00:00:00.000";
+                facet.endTimeStorage = facet.date + "T23:59:59.999";
+
                 if (activityData.has("timezone"))
                     facet.timezone = activityData.getString("timezone");
                 if (activityData.has("steps"))
                     facet.steps = activityData.getInt("steps");
+                if (activityData.has("distance"))
+                    facet.distance = (float) activityData.getDouble("distance");
                 if (activityData.has("calories"))
                    facet.calories = (float) activityData.getDouble("calories");
                 if (activityData.has("elevation"))
