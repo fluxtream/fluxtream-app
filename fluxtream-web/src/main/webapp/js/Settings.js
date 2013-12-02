@@ -21,6 +21,7 @@ define(function() {
         App.makeModal(html);
         $("#password-settings").append(passwordTemplate.render());
         $("#username-uneditable").html(settings.username);
+        $("#guest_username").val(settings.username);
         $("#guest_firstname").val(settings.firstName);
         $("#guest_lastname").val(settings.lastName);
         var lengthOptions = $("#length_measure_unit").children();
