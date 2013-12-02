@@ -143,6 +143,7 @@ public class FlickrController {
         } else
             apiKey = guestService.createApiKey(guest.getId(), flickrConnector);
 
+        guestService.populateApiKey(apiKey.getId());
 		guestService.setApiKeyAttribute(apiKey,  "username", username);
 		guestService.setApiKeyAttribute(apiKey,  "token", token);
 		guestService.setApiKeyAttribute(apiKey,  "nsid", nsid);

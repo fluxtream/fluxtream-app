@@ -144,10 +144,7 @@ public class MovesController {
             apiKey = guestService.createApiKey(guest.getId(), Connector.getConnector("moves"));
         }
 
-        guestService.setApiKeyAttribute(apiKey,
-                                        "moves.client.id", env.get("moves.client.id"));
-        guestService.setApiKeyAttribute(apiKey,
-                                        "moves.client.secret", env.get("moves.client.secret"));
+        guestService.populateApiKey(apiKey.getId());
         guestService.setApiKeyAttribute(apiKey,
                                         "accessToken", token.getString("access_token"));
         guestService.setApiKeyAttribute(apiKey,

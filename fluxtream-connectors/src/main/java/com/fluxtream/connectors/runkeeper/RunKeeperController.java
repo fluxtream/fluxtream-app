@@ -89,6 +89,7 @@ public class RunKeeperController {
         } else
             apiKey = guestService.createApiKey(guest.getId(), connector);
 
+        guestService.populateApiKey(apiKey.getId());
         guestService.setApiKeyAttribute(apiKey, "accessToken", token);
         request.getSession().removeAttribute(RUNKEEPER_SERVICE);
         if (request.getParameter("state")!=null)

@@ -85,6 +85,7 @@ public class TwitterOAuthController {
         } else
             apiKey = guestService.createApiKey(guest.getId(), connector);
 
+        guestService.populateApiKey(apiKey.getId());
 		guestService.setApiKeyAttribute(apiKey,  "accessToken", consumer.getToken());
 		guestService.setApiKeyAttribute(apiKey,  "tokenSecret", consumer.getTokenSecret());
 

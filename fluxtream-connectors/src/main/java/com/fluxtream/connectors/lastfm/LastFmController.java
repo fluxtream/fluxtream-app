@@ -96,6 +96,7 @@ public class LastFmController {
         } else
             apiKey = guestService.createApiKey(guest.getId(), connector);
 
+        guestService.populateApiKey(apiKey.getId());
 		guestService.setApiKeyAttribute(apiKey, "sessionKey", sessionKey);
 		guestService.setApiKeyAttribute(apiKey,  "username", username);
 

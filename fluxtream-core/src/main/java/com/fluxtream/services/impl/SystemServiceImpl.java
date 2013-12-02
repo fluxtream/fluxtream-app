@@ -82,7 +82,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
 
     @Override
     public ConnectorInfo getConnectorInfo(final String connectorName)  throws Exception  {
-        List<ConnectorInfo> all = JPAUtils.find(em, ConnectorInfo.class, "connectors.all", (Object[])null);
+        //List<ConnectorInfo> all = JPAUtils.find(em, ConnectorInfo.class, "connectors.all", (Object[])null);
         // Removed check for initializing the Connector table since this was causing
         // duplication of the entries in the Connector table.  This means that we may
         // end up returning an incomplete list of connectors if this is
