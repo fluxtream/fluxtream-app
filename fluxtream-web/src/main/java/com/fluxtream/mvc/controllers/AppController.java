@@ -92,7 +92,8 @@ public class AppController {
         String intercomScriptPath = request.getSession().getServletContext().getRealPath("/WEB-INF/jsp/intercom.jsp");
         File intercomScriptFile = new File(intercomScriptPath);
         final boolean fileExists = intercomScriptFile.exists();
-        return fileExists;
+        final boolean hasApiKey = env.get("intercomApiKey")!=null;
+        return fileExists&&hasApiKey;
     }
 
     private boolean hasTracker(HttpServletRequest request) {
@@ -150,7 +151,10 @@ public class AppController {
 
 		ModelAndView mav = new ModelAndView("redirect:main");
         mav.addObject("tracker", hasTracker(request));
-        mav.addObject("intercom", hasIntercom(request));
+        final boolean hasIntercom = hasIntercom(request);
+        mav.addObject("intercom", hasIntercom);
+        if (hasIntercom)
+            mav.addObject("intercomApiKey", env.get("intercomApiKey"));
 		if (request.getSession(false) == null)
 			return mav;
 
