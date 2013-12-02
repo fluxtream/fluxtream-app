@@ -82,7 +82,7 @@
     <div id="content">
         <table>
             <tr class="sc_highlight">
-                <td><a href="images/s1.png"><img src="images/s1.png" class="screenshot_img_general screenshot_img_1"/></a></td>
+                <td><a href="javascript:showLightbox(1)"><img src="images/s1.png" class="screenshot_img_general screenshot_img_1"/></a></td>
                 <td><h1 class="screenshot_txt_1">Take control of your data</h1>
                     <div class="screenshot_txt_2">
                         Choose from our growing list of supported devices and APIs. Importing your data is easy.
@@ -90,21 +90,21 @@
                 <td rowspan="4"><div class="connector_img"></div></td>
             </tr>
             <tr class="sc_highlight">
-                <td><a href="images/s2.png"><img src="images/s2.png" class="screenshot_img_general screenshot_img_2"/></a></td>
+                <td><a href="javascript:showLightbox(2);"><img src="images/s2.png" class="screenshot_img_general screenshot_img_2"/></a></td>
                 <td><h1 class="screenshot_txt_1">The whole is more than the sum of its parts</h1>
                     <div class="screenshot_txt_2">
                         As you keep adding more different data types, the picture of your life will unfold.
                     </div></td>
             </tr>
             <tr class="sc_highlight">
-                <td><a href="images/s3.png"><img src="images/s3.png" class="screenshot_img_general screenshot_img_3"/></a></td>
+                <td><a href="javascript:showLightbox(3)"><img src="images/s3.png" class="screenshot_img_general screenshot_img_3"/></a></td>
                 <td><h1 class="screenshot_txt_1">Identify different patterns at different scales</h1>
                     <div class="screenshot_txt_2">
                         Long term and short term trends sometimes tell different stories.
                     </div></td>
             </tr>
             <tr class="sc_highlight">
-                <td><a href="images/s4.png"><img src="images/s4.png" class="screenshot_img_general screenshot_img_4"/></a></td>
+                <td><a href="javascript:showLightbox(4)"><img src="images/s4.png" class="screenshot_img_general screenshot_img_4"/></a></td>
                 <td><h1 class="screenshot_txt_1">Explore your daily life, be curious</h1>
                     <div class="screenshot_txt_2">
                         Awareness is a muscle. Fluxtream gives you the tools you need to exercise it.
@@ -208,6 +208,43 @@
     </div>
     <div class="modal-footer">
         <a href="#" class="btn" data-dismiss="modal">Ok</a>
+    </div>
+</div>
+
+<div class="modal fade hide" id="screenshots-lightbox">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4>UX Examples</h4>
+    </div>
+    <div class="modal-body">
+        <div id="myCarousel" class="carousel">
+            <ol class="carousel-indicators">
+                <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+                <li data-target="#myCarousel" data-slide-to="1"></li>
+                <li data-target="#myCarousel" data-slide-to="2"></li>
+            </ol>
+            <!-- Carousel items -->
+            <div class="carousel-inner">
+                <div class="active item">
+                    <img src="images/s1.png"/>
+                </div>
+                <div class="item">
+                    <img src="images/s2.png"/>
+                </div>
+                <div class="item">
+                    <img src="images/s3.png"/>
+                </div>
+                <div class="item">
+                    <img src="images/s4.png"/>
+                </div>
+            </div>
+            <!-- Carousel nav -->
+            <a class="carousel-control left" href="#myCarousel" data-slide="prev">&lsaquo;</a>
+            <a class="carousel-control right" href="#myCarousel" data-slide="next">&rsaquo;</a>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a href="#" class="btn" data-dismiss="modal">Dismiss</a>
     </div>
 </div>
 
