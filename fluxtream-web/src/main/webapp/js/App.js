@@ -785,7 +785,7 @@ define(
                 $("#connectorsDropdownToggle").popover({
                     container: "body",
                     placement: "bottom",
-                    title: "Click here to add your first Connector!",
+                    title: "Click menu above to add your first Connector!",
                     content: "Connectors let Fluxtream link up your data",
                     animation: true
                 });
