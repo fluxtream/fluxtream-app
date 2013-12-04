@@ -155,7 +155,7 @@ public class MovesController {
         // Record that this connector is now up
         guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null);
 
-        if (stateParameter !=null)
+        if (stateParameter !=null&&!StringUtils.isEmpty(stateParameter))
             return "redirect:/app/tokenRenewed/moves";
         else
             return "redirect:/app/from/moves";
