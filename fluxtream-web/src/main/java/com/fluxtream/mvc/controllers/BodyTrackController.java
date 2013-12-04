@@ -16,7 +16,7 @@ import com.fluxtream.domain.Guest;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.HttpUtils;
-import org.apache.commons.httpclient.HttpException;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -44,7 +44,7 @@ public class BodyTrackController {
     @RequestMapping(value = "/bodytrack/users/{UID}/log_items/get")
     public void bodyTrackLogItemsGet(HttpServletResponse response,
                                      HttpServletRequest request,
-                                     @PathVariable("UID") Long uid) throws IOException {
+                                     @PathVariable("UID") Long uid) throws IOException, UnexpectedHttpResponseCodeException {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
@@ -63,8 +63,7 @@ public class BodyTrackController {
 	public void bodyTrackPhotoTileFetch(HttpServletResponse response,
 			HttpServletRequest request, @PathVariable("UID") Long uid,
 			@PathVariable("Level") String level,
-			@PathVariable("Offset") String offset) throws HttpException,
-			IOException {
+			@PathVariable("Offset") String offset) throws IOException, UnexpectedHttpResponseCodeException {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
@@ -87,7 +86,7 @@ public class BodyTrackController {
     public void bodyTrackLogPhotosFetch(HttpServletResponse response,
                                         HttpServletRequest request,
                                         @PathVariable("UID") Long uid,
-                                        @PathVariable("PhotoSpec") String photoSpec) throws IOException {
+                                        @PathVariable("PhotoSpec") String photoSpec) throws IOException, UnexpectedHttpResponseCodeException {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
@@ -112,7 +111,7 @@ public class BodyTrackController {
 
 	@RequestMapping(value = "/bodytrack/users/{UID}/sources")
 	public void bodyTrackSources(HttpServletResponse response,
-			@PathVariable("UID") Long uid) throws IOException {
+			@PathVariable("UID") Long uid) throws IOException, UnexpectedHttpResponseCodeException {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
@@ -125,7 +124,7 @@ public class BodyTrackController {
     @RequestMapping(value = "/bodytrack/users/{UID}/logrecs/{LOGREC_ID}/get")
     public void bodyTrackGetMetadata(HttpServletResponse response,
     			HttpServletRequest request, @PathVariable("UID") Long uid,
-    			@PathVariable("LOGREC_ID") String LOGREC_ID) throws IOException {
+    			@PathVariable("LOGREC_ID") String LOGREC_ID) throws IOException, UnexpectedHttpResponseCodeException {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
@@ -156,7 +155,6 @@ public class BodyTrackController {
         ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("bodytrack"));
         String user_id = guestService.getApiKeyAttribute(apiKey, "user_id");
         String bodyTrackUrl = "http://localhost:3000/users/" + user_id + "/logrecs/" + LOGREC_ID + "/set";
-        Map parameterMap = request.getParameterMap();
         Enumeration parameterNames = request.getParameterNames();
         Map<String,String> tunneledParameters = new HashMap<String,String>();
         while(parameterNames.hasMoreElements()) {
@@ -185,8 +183,7 @@ public class BodyTrackController {
 	@RequestMapping(value = "/bodytrack/users/{UID}/tags/{LOGREC_ID}/get")
 	public void bodyTrackGetTags(HttpServletResponse response,
 			@PathVariable("UID") Long uid,
-			@PathVariable("LOGREC_ID") String LOGREC_ID) throws HttpException,
-			IOException {
+			@PathVariable("LOGREC_ID") String LOGREC_ID) throws IOException, UnexpectedHttpResponseCodeException {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
@@ -201,8 +198,7 @@ public class BodyTrackController {
 	public void bodyTrackSetTags(HttpServletResponse response,
 			@PathVariable("UID") Long uid,
 			@PathVariable("LOGREC_ID") String LOGREC_ID,
-			@RequestParam("tags") String tags) throws HttpException,
-			IOException {
+			@RequestParam("tags") String tags) throws IOException, UnexpectedHttpResponseCodeException {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
@@ -216,15 +212,14 @@ public class BodyTrackController {
 	}
 
 	private void writeTunnelResponse(String tunnelUrl,
-			HttpServletResponse response) throws IOException {
+			HttpServletResponse response) throws IOException, UnexpectedHttpResponseCodeException {
         System.out.println("tunneled URL: " + tunnelUrl);
 		String contents = HttpUtils.fetch(tunnelUrl);
 		response.getWriter().write(contents);
 	}
 
 	private void postTunnelRequest(String tunnelUrl,
-			HttpServletResponse response, Map<String, String> params)
-            throws IOException {
+			HttpServletResponse response, Map<String, String> params) throws IOException, UnexpectedHttpResponseCodeException {
         System.out.println("tunneled URL: " + tunnelUrl);
 		String contents = HttpUtils.fetch(tunnelUrl, params);
 		response.getWriter().write(contents);

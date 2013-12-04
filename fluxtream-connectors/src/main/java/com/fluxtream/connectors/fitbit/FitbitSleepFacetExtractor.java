@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class FitbitSleepFacetExtractor extends AbstractFacetExtractor {
 
-	public List<AbstractFacet> extractFacets(ApiData apiData,
+	public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, ApiData apiData,
 			ObjectType objectType) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 
@@ -44,10 +45,14 @@ public class FitbitSleepFacetExtractor extends AbstractFacetExtractor {
 			if (record.containsKey("minutesToFallAsleep"))
 				facet.minutesToFallAsleep = record
 						.getInt("minutesToFallAsleep");
+
             facet.date = (String) apiData.updateInfo.getContext("date");
-            final long startTimeMillis = AbstractLocalTimeFacet.timeStorageFormat.parseMillis(startTime);
+            final long startTimeMillis = AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().parseMillis(startTime);
             facet.start = startTimeMillis;
             facet.end = startTimeMillis + duration;
+            facet.startTimeStorage = startTime;
+            final long endTimeMillis = startTimeMillis + duration;
+            facet.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().print(endTimeMillis);
 
 			if (record.containsKey("awakeningsCount"))
 				facet.awakeningsCount = record.getInt("awakeningsCount");
@@ -60,16 +65,11 @@ public class FitbitSleepFacetExtractor extends AbstractFacetExtractor {
 		return facets;
 	}
 
-    private static String getDate(final String timeStr) {
-        int i = timeStr.indexOf("T");
-        return timeStr.substring(0, i);
-    }
-
     public static void main(final String[] args) {
         String s = "2012-11-07T03:13:00.000";
-        final long startTimeMillis = AbstractLocalTimeFacet.timeStorageFormat.parseMillis(s);
-        long endTimeMillis = startTimeMillis + 26820000;
-        final String endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.print(endTimeMillis);
+        final long startTimeMillis = AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().parseMillis(s);
+        long endTimeMillis = startTimeMillis+3600000;
+        final String endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().print(endTimeMillis);
         System.out.println(startTimeMillis);
         System.out.println(endTimeStorage);
     }

@@ -6,6 +6,7 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
     var digest;
     var grapher = null;
     var connectorEnabled;
+    var channelStates = {};
 
     function connectorDisplayable(connector){
         return connector.channelNames.length != 0;
@@ -15,7 +16,15 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
         return true;
     }
 
+    var targetTime = null;
+
     function render(params) {
+        targetTime = null;
+        if (params.facetToShow != null){
+            targetTime = (params.facetToShow.start + (params.facetToShow.end != null ? params.facetToShow.end : params.facetToShow.start)) / 2
+        }
+        if (targetTime == null && Calendar.dateAxisCursorPosition != null)
+            targetTime = Calendar.dateAxisCursorPosition * 1000;
         params.setTabParam(null);
         digest = params.digest;
         connectorEnabled = params.connectorEnabled;
@@ -43,10 +52,20 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
      */
     function onAxisChanged(prevState) {
         var timeUnit = grapher.getCurrentTimeUnit();
-        var center = (grapher.dateAxis.getMin() + grapher.dateAxis.getMax()) / 2.0;
+        var cursor = grapher.getTimeCursorPosition();
+        var minTime = grapher.dateAxis.getMin();
+        var maxTime = grapher.dateAxis.getMax();
+        var center;
+        var dateChangeInertia;
+        if (cursor >= minTime && cursor <= maxTime){//cursor is in the bounds, use it
+            center = cursor;
+            dateChangeInertia = 0;//no need for inertia with cursor
+        }
+        else{
+            center = (minTime + maxTime) / 2.0;
+            dateChangeInertia = 24 * 3600 * 1000 / 12;
+        }
         var date = new Date(center * 1000);
-
-        var dateChangeInertia = 24 * 3600 * 1000 / 12;
         var dateEarly = new Date(center * 1000 - dateChangeInertia);
         var dateLate = new Date(center * 1000 + dateChangeInertia);
 
@@ -59,7 +78,8 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
         if (state.tabState != prevTabState
                 && stateEarly.tabState != prevTabState
                 && stateLate.tabState != prevTabState) {
-            Calendar.changeTabState(state,true);
+            Calendar.changeTabState(state, true);
+            Calendar.timespanInited = false; // Need to be ready to refresh the date display if user hits back button
             return state;
         }
 
@@ -69,6 +89,12 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
     function setup(digest, timeUnit) {
         if (grapher !== null) {
             $(window).resize();
+            for (var connectorName in connectorEnabled){
+                connectorToggled(connectorName,null,connectorEnabled[connectorName]);
+            }
+            if (targetTime != null){
+                grapher.setTimeCursorPosition(targetTime / 1000);
+            }
             return;
         }
         grapher = new Grapher($("#timelineTabContainer"), {onLoadActions: [function() {
@@ -76,7 +102,13 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
                 connectorToggled(connectorName,null,connectorEnabled[connectorName]);
             }
             var state = null;
-            grapher.dateAxis.addAxisChangeListener(function() {
+            grapher.dateAxis.addAxisChangeListener(function(event) {
+                if (event.min <= event.cursorPosition && event.max >= event.cursorPosition){
+                    Calendar.dateAxisCursorPosition = event.cursorPosition;
+                }
+                else{
+                    Calendar.dateAxisCursorPosition = null;
+                }
                 // NOTE: we use $.doTimeout() here to avoid spamming onAxisChanged().
                 // This will fire 100ms after the user stops dragging, since
                 // $.doTimeout() cancels earlier timeouts with the same name.
@@ -85,24 +117,56 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
                     state = onAxisChanged(state);
                 });
             });
+            if (targetTime == null)
+                targetTime = (Calendar.timeRange.start + Calendar.timeRange.end) / 2;
+            grapher.setTimeCursorPosition(targetTime / 1000);
         }]});
     }
 
     function connectorToggled(connectorName,objectTypeNames,enabled){
+
+        var found = false;
+
         $.each(digest.selectedConnectors, function(i, connector) {
             if (connectorName !== connector.connectorName) {
                 return true;
             }
+            found = true;
+            if (channelStates[connectorName] == null)
+                channelStates[connectorName] = {};
             var channels = connector.channelNames;
-            $.each(connector.channelNames, function(j, channelName) {
-                if (enabled) {
-                    grapher.addChannel(channelName);
-                } else {
-                    grapher.removeChannel(channelName);
+
+
+            for (var channelName in channelStates[connectorName]){
+                if (channels.indexOf(channelName) == -1){
+                    if (channelStates[connectorName][channelName]){
+                        grapher.removeChannel(channelName);
+                    }
+                    delete channelStates[connectorName][channelName];
                 }
-            });
+            }
+            for (var i = 0, li = channels.length; i < li; i++){
+                if (channelStates[connectorName][channels[i]] == null)
+                    channelStates[connectorName][channels[i]] = false;
+            }
+
+
             return false;
         });
+
+        if (!found){
+            enabled = false;
+        }
+        for (var channel in channelStates[connectorName]){
+            if (channelStates[connectorName][channel] === enabled)
+                continue;
+            if (enabled) {
+                grapher.addChannel(channel);
+            } else {
+                grapher.removeChannel(channel);
+            }
+            channelStates[connectorName][channel] = enabled;
+        }
     }
 
     timelineTab.initialized = false;

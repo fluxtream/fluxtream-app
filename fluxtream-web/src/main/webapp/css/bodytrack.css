@@ -137,6 +137,7 @@
     margin: 0;
     padding: 0;
     border: 1px solid #D1D2D3;
+    background-color: white;
 }
 
 ._timeline_channel_hover {
@@ -248,7 +249,6 @@
 }
 
 ._timeline_plotContainer {
-    border-top: 1px solid #CCCCCC;
     border-left: 1px solid #CCCCCC;
     border-right: 1px solid #CCCCCC;
 }
@@ -332,7 +332,7 @@
 
 ._timeline_gotozoom {
     width: 202px;
-    height: 70px;
+    height: 40px;
     margin-left: 1px;
     border: 1px solid #CCCCCC;
     background: #BCBCBC;
@@ -357,7 +357,7 @@
 
 ._timeline_dateAxisContainer {
     width: auto;
-    height:70px;
+    height:40px;
     margin: 0 53px 0 0px;
     padding: 0;
     border: 1px solid #CCCCCC;
@@ -366,15 +366,16 @@
 
 ._timeline_dateAxis {
     width: auto;
-    height: 70px;
+    height: 40px;
     z-index: 2;
 }
 
 ._timeline_dateAxisLabelRegion {
     min-width: 400px;
     height: 20px;
-    padding: 0;
-    margin-top: -20px;
+    margin-top:-20px;
+    padding-left: 180px;
+    padding-right: 60px;
     z-index: 1;
 }
 
@@ -383,6 +384,7 @@
     padding: 0 5px 0 5px;
     text-align: left;
     color: #778899;
+    pointer-events: none;
 }
 
 ._timeline_dataPointValueLabel {
@@ -390,6 +392,7 @@
     padding: 0 5px 0 5px;
     text-align: right;
     margin-top: -20px;
+    pointer-events: none;
 }
 
 .ui-dialog .ui-dialog-content {
@@ -424,7 +427,7 @@
 }
 
 ._timeline_photo_dialog_timestamp {
-    font-size: 9pt;
+    font-size: 8pt;
     width: 300px;
     min-width: 300px;
     border-bottom: 1px solid #aaaaaa;
@@ -434,7 +437,7 @@
 ._timeline_photo_dialog_comment {
     margin: 12px 0 0 0;
     padding: 0 2px 0 2px;
-    width: 294px;
+    width: 290px;
     max-width: 300px;
     height: auto;
     font-size: .85em;

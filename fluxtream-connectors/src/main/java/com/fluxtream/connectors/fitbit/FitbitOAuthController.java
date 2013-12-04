@@ -3,18 +3,17 @@ package com.fluxtream.connectors.fitbit;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import com.fluxtream.Configuration;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.SignpostOAuthHelper;
+import com.fluxtream.connectors.controllers.ControllerSupport;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.GuestService;
-import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.OAuthProvider;
 import oauth.signpost.basic.DefaultOAuthConsumer;
@@ -31,7 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping(value = "/fitbit")
 public class FitbitOAuthController {
 
-	FlxLogger logger = FlxLogger.getLogger(FitbitOAuthController.class);
+    FlxLogger logger = FlxLogger.getLogger(FitbitOAuthController.class);
 
 	@Autowired
 	GuestService guestService;
@@ -46,6 +45,7 @@ public class FitbitOAuthController {
 	Configuration env;
 	private static final String FITBIT_OAUTH_CONSUMER = "fitbitOAuthConsumer";
 	private static final String FITBIT_OAUTH_PROVIDER = "fitbitOAuthProvider";
+    private static final String FITBIT_RENEWTOKEN_APIKEYID = "fitbit.renewtoken.apiKeyId";
 	public static final String GET_USER_PROFILE_CALL = "FITBIT_GET_USER_PROFILE_CALL";
 
 	static {
@@ -57,7 +57,7 @@ public class FitbitOAuthController {
 			OAuthMessageSignerException, OAuthNotAuthorizedException,
 			OAuthExpectationFailedException, OAuthCommunicationException {
 
-		String oauthCallback = env.get("homeBaseUrl") + "fitbit/upgradeToken";
+		String oauthCallback = ControllerSupport.getLocationBase(request, env) + "fitbit/upgradeToken";
 		if (request.getParameter("guestId") != null)
 			oauthCallback += "?guestId=" + request.getParameter("guestId");
 
@@ -74,6 +74,10 @@ public class FitbitOAuthController {
 
 		request.getSession().setAttribute(FITBIT_OAUTH_CONSUMER, consumer);
 		request.getSession().setAttribute(FITBIT_OAUTH_PROVIDER, provider);
+        
+        if (request.getParameter("apiKeyId")!=null)
+            request.getSession().setAttribute(FITBIT_RENEWTOKEN_APIKEYID,
+                                              request.getParameter("apiKeyId"));
 
 		String approvalPageUrl = provider.retrieveRequestToken(consumer,
 				oauthCallback);
@@ -81,58 +85,8 @@ public class FitbitOAuthController {
 		return "redirect:" + approvalPageUrl;
 	}
 
-	private void fetchUserProfile(ApiKey apiKey, FitbitUserProfile userProfile)
-			throws Exception {
-		logger.info("guestId=" + apiKey.getGuestId() + " action=fitbit.fetchUserProfile "
-				+ "helper=" + signpostHelper + " connector=" + connector()
-				+ " guestId=" + apiKey.getGuestId());
-		String json = signpostHelper.makeRestCall(apiKey,
-				GET_USER_PROFILE_CALL.hashCode(),
-				"http://api.fitbit.com/1/user/-/profile.json");
-
-		JSONObject rootJson = JSONObject.fromObject(json);
-		JSONObject userJson = rootJson.getJSONObject("user");
-
-		if (userJson.has("aboutMe"))
-			userProfile.aboutMe = userJson.getString("aboutMe");
-		if (userJson.has("city"))
-			userProfile.city = userJson.getString("city");
-		if (userJson.has("country"))
-			userProfile.country = userJson.getString("country");
-		if (userJson.has("dateOfBirth"))
-			userProfile.dateOfBirth = userJson.getString("dateOfBirth");
-		if (userJson.has("displayName"))
-			userProfile.displayName = userJson.getString("displayName");
-		if (userJson.has("encodedId"))
-			userProfile.encodedId = userJson.getString("encodedId");
-		if (userJson.has("fullName"))
-			userProfile.fullName = userJson.getString("fullName");
-		if (userJson.has("gender"))
-			userProfile.gender = userJson.getString("gender");
-		if (userJson.has("height"))
-			userProfile.height = userJson.getDouble("height");
-		if (userJson.has("nickname"))
-			userProfile.nickname = userJson.getString("nickname");
-		if (userJson.has("offsetFromUTCMillis"))
-			userProfile.offsetFromUTCMillis = userJson
-					.getLong("offsetFromUTCMillis");
-		if (userJson.has("state"))
-			userProfile.state = userJson.getString("state");
-		if (userJson.has("strideLengthRunning"))
-			userProfile.strideLengthRunning = userJson
-					.getDouble("strideLengthRunning");
-		if (userJson.has("strideLengthWalking"))
-			userProfile.strideLengthWalking = userJson
-					.getDouble("strideLengthWalking");
-		if (userJson.has("timezone"))
-			userProfile.timezone = userJson.getString("timezone");
-		if (userJson.has("weight"))
-			userProfile.weight = userJson.getDouble("weight");
-	}
-
 	@RequestMapping(value = "/upgradeToken")
-	public String upgradeToken(HttpServletRequest request,
-			HttpServletResponse response) throws Exception {
+	public String upgradeToken(HttpServletRequest request) throws Exception {
 		OAuthConsumer consumer = (OAuthConsumer) request.getSession()
 				.getAttribute(FITBIT_OAUTH_CONSUMER);
 		OAuthProvider provider = (OAuthProvider) request.getSession()
@@ -141,17 +95,24 @@ public class FitbitOAuthController {
 		provider.retrieveAccessToken(consumer, verifier);
 		Guest guest = AuthHelper.getGuest();
 
-        final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector());
+        ApiKey apiKey;
+        if (request.getSession().getAttribute(FITBIT_RENEWTOKEN_APIKEYID)!=null) {
+            final String apiKeyIdString = (String) request.getSession().getAttribute(FITBIT_RENEWTOKEN_APIKEYID);
+            long apiKeyId = Long.valueOf(apiKeyIdString);
+            apiKey = guestService.getApiKey(apiKeyId);
+        } else
+            apiKey = guestService.createApiKey(guest.getId(), connector());
 
+        guestService.populateApiKey(apiKey.getId());
 		guestService.setApiKeyAttribute(apiKey,
 				"accessToken", consumer.getToken());
 		guestService.setApiKeyAttribute(apiKey,
 				"tokenSecret", consumer.getTokenSecret());
 
-		FitbitUserProfile userProfile = new FitbitUserProfile();
-		fetchUserProfile(apiKey, userProfile);
-		guestService.saveUserProfile(guest.getId(), userProfile);
-
+        if (request.getSession().getAttribute(FITBIT_RENEWTOKEN_APIKEYID)!=null) {
+            request.getSession().removeAttribute(FITBIT_RENEWTOKEN_APIKEYID);
+            return "redirect:/app/tokenRenewed/" + connector().getName();
+        }
 		return "redirect:/app/from/" + connector().getName();
 	}
 

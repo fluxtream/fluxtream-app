@@ -1,4 +1,4 @@
-define(["core/grapher/BTCore"], function(BTCore) {
+define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core/Tooltip"], function(BTCore,ListUtils,Tooltip) {
 
     var Grapher = function(parentElement, options) {
         if (options == null) options = {};
@@ -14,6 +14,8 @@ define(["core/grapher/BTCore"], function(BTCore) {
             grapher[param] = options[param];
         if (grapher.onLoadActions == null)
             grapher.onLoadActions = [];
+        if (grapher.loadViewOverride == null)
+            grapher.loadViewOverride = function(){return false;};
         if (grapher.loaded != null || grapher.onLoad != null)
             console.log("grapher.loaded and grapher.onLoad should not be set with options to constructor");
         grapher.loaded = false;
@@ -57,6 +59,54 @@ define(["core/grapher/BTCore"], function(BTCore) {
         }
     }
 
+    var channelTemplate;
+
+    function makeChannelsSortable(grapher){
+        $("#" + grapher.grapherId + "_timeline_channels").sortable({
+            handle      : '.flx-channel',
+            axis        : 'y',
+            tolerance   : 'pointer',
+            containment : "#" + grapher.grapherId + "_timeline_channels",
+            /*merge		: function(event, ui) {
+             var templateValues = {
+             "deviceName"       : "Devices",
+             "channelName"      : "Compare Stub",
+             "plotElementId"    : "_timeline_channel_helper",
+             "channelElementId" : "_timeline_plot_helper",
+             "yAxisElementId"   : "_timeline_yAxis_helper",
+             "showDeleteBtn"    : grapher.showDeleteBtn,
+             "grapherId"        : grapher.grapherId
+             };
+             var html = template.render(templateValues);
+
+             $(ui.item[0]).remove();
+             $(ui.droppable.item[0]).replaceWith(html);
+             },
+             mergein		: function(event, ui) {
+             $(ui.droppable.item[0]).addClass("_timeline_channel_hover");
+             },
+             mergeout	: function(event, ui) {
+             $(ui.droppable.item[0]).removeClass("_timeline_channel_hover");
+             },*/
+            receive     : function(event, ui) {	// received new channel to add
+                var i, l, c;
+                var src = grapher.sourcesMap[dragSourceId];
+
+                // Iterate through channels and call addChannel on
+                // entries with no id
+                // NOTE: We assume the only reason the id is blank is if the
+                //       element is new (user dragged into channels)
+                c = $("#" + grapher.grapherId + "_timeline_channels").children();
+                l = c.length;
+                for (i = 0; i < l; i++) {
+                    if (c[i].id == "") {
+                        grapher.addChannel(src, c[i]);
+                    }
+                }
+            }
+        });
+    }
+
     function init(grapher, callback) {
         // Unsaved changes dialog handler
         $(window).bind("beforeunload", function() {
@@ -96,6 +146,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             // will automatically shrink if the Add Channels and/or Details pane is visible, so we don't explicitly need
             // to account for them here).
             var plotContainerWidth = $("#" + grapher.grapherId + "_timeline_channelsArea").width() - widthOfAreaLeftOfPlotContainer - widthOfAreaRightOfPlotContainer - widthOfPlotContainerLeftAndRightBorder - 20;
+            if (plotContainerWidth < 1) plotContainerWidth = 1; //sometimes the calculated value can be negative. This can cause crashes in IE so we force it to be > 0
 
             // resize plot containers
             var plotContainerEventId = SequenceNumber.getNext();
@@ -121,64 +172,12 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     }
                 }
             }
-            SOURCES.initialized = true
-            if (grapher.onLoad != null) {
-                var onload = grapher.onLoad;
-                grapher.onLoad = null;
-                onload();
-                $.doTimeout(1000, function() {
-                    $.ajax("/api/timezones/mapping", {success: function(mapping) {
-                        grapher.dateAxis.setTimeZoneMapping(mapping);
-                    }});
-                });
-            }
         });
 
         // Make the channel list sortable
         App.loadMustacheTemplate("core/grapher/timelineTemplates.html","channelTemplate",function(template){
-            $("#" + grapher.grapherId + "_timeline_channels").sortable({
-                handle      : '.flx-channel',
-                axis        : 'y',
-                tolerance   : 'pointer',
-                containment : "#" + grapher.grapherId + "_timeline_channels",
-                /*merge		: function(event, ui) {
-                    var templateValues = {
-                        "deviceName"       : "Devices",
-                        "channelName"      : "Compare Stub",
-                        "plotElementId"    : "_timeline_channel_helper",
-                        "channelElementId" : "_timeline_plot_helper",
-                        "yAxisElementId"   : "_timeline_yAxis_helper",
-                        "showDeleteBtn"    : grapher.showDeleteBtn,
-                        "grapherId"        : grapher.grapherId
-                    };
-                    var html = template.render(templateValues);
-
-                    $(ui.item[0]).remove();
-                    $(ui.droppable.item[0]).replaceWith(html);
-                },
-                mergein		: function(event, ui) {
-                    $(ui.droppable.item[0]).addClass("_timeline_channel_hover");
-                },
-                mergeout	: function(event, ui) {
-                    $(ui.droppable.item[0]).removeClass("_timeline_channel_hover");
-                },*/
-                receive     : function(event, ui) {	// received new channel to add
-                    var i, l, c;
-                    var src = grapher.sourcesMap[dragSourceId];
-
-                    // Iterate through channels and call addChannel on
-                    // entries with no id
-                    // NOTE: We assume the only reason the id is blank is if the
-                    //       element is new (user dragged into channels)
-                    c = $("#" + grapher.grapherId + "_timeline_channels").children();
-                    l = c.length;
-                    for (i = 0; i < l; i++) {
-                        if (c[i].id == "") {
-                            grapher.addChannel(src, c[i]);
-                        }
-                    }
-                }
-            });
+            channelTemplate = template;
+            makeChannelsSortable(grapher);
         });
         $("#" + grapher.grapherId + "_timeline_channels").disableSelection();
 
@@ -302,7 +301,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
         if (VIEWS.data != "") {
             updateViewData(grapher);
             newvdata = JSON.stringify(VIEWS.data);
-            if (loadedViewStr != newvdata) {
+            if (false && loadedViewStr != newvdata) {//TODO: fix this, it's disabled for now...
                 hasUnsavedChanges = true;
                 return confirm("You have unsaved changes. Do you wish to continue?");
             }
@@ -375,6 +374,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
                     idx += 1;
                 }
+                SOURCES.initialized = true;
             }
 
             // Render add channels area
@@ -525,6 +525,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
     }
 
     Grapher.prototype.newView = function(start, end) {
+        if (this.loadViewOverride(null)) return;
         if (start == null || end == null){
             end = new Date().getTime()/1000.0;
             start = end - 86400;
@@ -551,6 +552,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
     }
 
     Grapher.prototype.loadView = function(id, mode, callback) {
+        if (this.loadViewOverride(id)) return;
         $("#" + this.grapherId + "_timeline_save_view_btn").addClass("disabled");
         var grapher = this;
         VIEWS.load(id, function(data) {
@@ -687,38 +689,76 @@ define(["core/grapher/BTCore"], function(BTCore) {
         return false;
     }
 
-    Grapher.prototype.toggleDetailsPane = function() {
-        var area = $("#" + this.grapherId + "_timeline_detailsArea");
-        if (area.css("display") === "none") {
-            $("#" + this.grapherId + "_timeline_show_details_btn").addClass("active");
-            area.show();
+    Grapher.prototype.removeChannel = function(channel){
+        var deviceName;
+        var channelName;
+        var channelElementId = null;
+        var firstPeriod = channel.indexOf(".");
+        if (firstPeriod > 0){
+            deviceName = channel.substring(0,firstPeriod);
+            channelName = channel.substring(firstPeriod + 1);
         }
-        else {
-            $("#" + this.grapherId + "_timeline_show_details_btn").removeClass("active");
-            area.hide();
+        else{
+            channelElementId = channel;
         }
 
-        // call the resize handler to ensure that the grapher gets resized
-        TOOLS.resizeHandler();
+        if (channelElementId == null){
+            var channelElement = $("#" + this.grapherId +"_timeline_channel_" + deviceName + "_" + channelName);
+            if (channelElement.length != 0){
+                channelElementId = channelElement.parent().attr("id");
+            }
 
+        }
+        if (channelElementId != null){
+            this.plotContainersMap[channelElementId].removePlot(this.plotsMap[channelElementId]);
+            $("#" + channelElementId).remove();
+            delete this.channelsMap[channelElementId];
+        }
+    }
+
+    Grapher.prototype.hasChannel = function(channelName){
+        for (var member in this.channelsMap){
+            if (this.channelsMap[member].device_name + "." + this.channelsMap[member].channel_name == channelName)
+                return true;
+        }
         return false;
     }
 
-    Grapher.prototype.removeChannel = function(channel){
-        var firstPeriod = channel.indexOf(".");
-        var deviceName = channel.substring(0,firstPeriod);
-        var channelName = channel.substring(firstPeriod + 1);
+    Grapher.prototype.doCursorClick = function(plot){
+        if (plot.indexOf)
+            plot = this.getPlot(plot);
+        if (plot != null)
+            plot.doCursorClick();
+    }
 
-        var channelElement = $("#" + this.grapherId +"_timeline_channel_" + deviceName + "_" + channelName);
-        if (channelElement.length != 0){
-            var channelElementId = channelElement.parent().attr("id");
-            this.plotContainersMap[channelElementId].removePlot(this.plotsMap[channelElementId]);
-            $(channelElement.parent()).remove();
+    Grapher.prototype.getPlot = function(channel){
+        var deviceName;
+        var channelName;
+        var channelElementId = null;
+        var firstPeriod = channel.indexOf(".");
+        if (firstPeriod > 0){
+            deviceName = channel.substring(0,firstPeriod);
+            channelName = channel.substring(firstPeriod + 1);
         }
+        else{
+            channelElementId = channel;
+        }
+
+        if (channelElementId == null){
+            var channelElement = $("#" + this.grapherId +"_timeline_channel_" + deviceName + "_" + channelName);
+            if (channelElement.length != 0){
+                channelElementId = channelElement.parent().attr("id");
+            }
+
+        }
+        if (channelElementId == null)
+            return null
+        return this.plotsMap[channelElementId];
+
     }
 
     // Add new channel to target
-    Grapher.prototype.addChannel = function(channel, target) {
+    Grapher.prototype.addChannel = function(channel, target, dontPad) {
         var grapher = this;
         if (typeof channel == "string"){
             if (!SOURCES.initialized){
@@ -728,10 +768,18 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 });
                 return;
             }
+            else if (SOURCES.availableList == null || (SOURCES.availableList.length > 0 && SOURCES.availableList[0].channels.length > 0 && SOURCES.availableList[0].channels[0].id == null)){
+                getSources(grapher,function(){
+                    grapher.addChannel(channel,target);
+                });
+                return;
+
+            }
             var channel = getSourceChannelByFullName(channel);
             if (channel == null)
                 return;
             var channel = grapher.sourcesMap[channel.id];
+            console.log(channel);
         }
 
         App.loadMustacheTemplate("core/grapher/timelineTemplates.html","channelTemplate",function(template){
@@ -740,7 +788,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             // VERY important to clone the given channel here!
             channel = TOOLS.clone(channel);
 
-            id = channelIdx;
+            var id = channelIdx;
             channelIdx += 1;
 
             var channelElementId = grapher.grapherId + "_timeline_channel_" + id;
@@ -785,6 +833,8 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 padding = 0.1 * yDiff;
             }
 
+            if (dontPad) padding = 0;
+
             var yAxis = new NumberAxis(yAxisElementId, "vertical", {
                 "min" : yMin - padding,
                 "max" : yMax + padding
@@ -798,10 +848,22 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 ($("#_timeline_channels ._timeline_channel").length == 0)) {
                 max_time = channel["max_time"];
                 grapher.dateAxis.setRange(max_time - 86400.0, max_time);
-            }*/
+            }
+
+             "#e9e9e9",
+             MOVES_CYCLING_COLOR: "#68abef",
+             MOVES_WALKING_COLOR: "#23ee70",
+             MOVES_TRANSPORT_COLOR: "#8f8f8d",
+             MOVES_RUNNING_COLOR: "#e674ec"*/
 
             var plot = null;
-            if (("photo" == channel['type']) || "photo" == channel["channel_name"] || "photos" == channel["channel_name"]) {
+            if ("timespan" == channel["type"]){
+                plot = new TimespanSeriesPlot(timespanDatasource(App.getUID(), channel["device_name"], channel["channel_name"]), grapher.dateAxis,
+                    yAxis,
+                    {"style": channel["style"], "localDisplay": channel["time_type"] == "local"});
+                plot.addDataPointListener(timespanDataPointListener(grapher,plot));
+            }
+            else if (("photo" == channel['type']) || "photo" == channel["channel_name"] || "photos" == channel["channel_name"]) {
                 var tags = [];
                 var matchingStrategy = "any";
                 var photoStyle = channel['style'];
@@ -854,6 +916,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             }
 
             var plotContainer = new PlotContainer(plotElementId, false, [plot]);
+            plot.plotContainer = plotContainer;
 
             grapher.channelsMap[channelElementId] = channel;
             grapher.plotsMap[channelElementId] = plot;
@@ -868,12 +931,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
                 channelConfigElement.toggle();
 
-                if (channelConfigElement.css("display") === "none") {
-                    $(this).find("img").attr("src", "/static/images/gear_b.png");
-                }
-                else {
-                    $(this).find("img").attr("src", "/static/images/gear_green.png");
-                }
+                makeChannelsSortable(grapher);
             });
 
             // Delete buton
@@ -884,9 +942,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     event.preventDefault();
                     if (!grapher.showDeleteBtn)
                         return;
-                    var channelElement = $(this).parents("._timeline_channel").parent();
-                    plotContainer.removePlot(plot);
-                    $(channelElement).remove();
+                    grapher.removeChannel(channelElementId);
                 });
 
             // Drag to resize
@@ -902,8 +958,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 // Define a function which handles updating a channel's style
                 // whenever anything in the channel configuration changes
                 var updateDataSeriesPlotChannelConfig = function() {
-                    var channelElement = $(this).parents("._timeline_channel").parent();
-                    var plot = grapher.plotsMap[channelElement.attr("id")];
+                    var plot = grapher.plotsMap[channelElementId];
 
                     var newStyle = plot.getStyle();
 
@@ -925,16 +980,19 @@ define(["core/grapher/BTCore"], function(BTCore) {
                             "type"      : "line",
                             "show"      : $("#" + channelElementId + "-config-lines-show").is(':checked'),
                             "color"     : $("#" + channelElementId + "-config-lines-color").next(".color_picker").css("background-color"),
-                            "lineWidth" : TOOLS.parseInt($("#" + channelElementId + "-config-lines-lineWidth").val(), 1)
+                            "lineWidth" : TOOLS.parseInt($("#" + channelElementId + " .configLineWidth button").attr('value'), 1)
                         };
 
-                        var pointsStyleType = $("#" + channelElementId + "-config-points-type").val();
+                        var pointsStyleType = $("#" + channelElementId + " .configPointsType button").attr('value');
                         var pointsStyleFill = pointsStyleType.match(/-filled$/) !== null;
+
+                        $("#" + channelElementId + "-config-points-fillColor-container").toggle(pointsStyleFill);
+
                         var pointsStyle = {
                             "type"      : pointsStyleType.replace('-filled', ''),
                             "show"      : $("#" + channelElementId + "-config-points-show").is(':checked'),
                             "lineWidth" : 1,
-                            "radius"    : TOOLS.parseInt($("#" + channelElementId + "-config-points-radius").val(), 2),
+                            "radius"    : TOOLS.parseInt($("#" + channelElementId + " .configPointsRadius button").attr('value'), 2),
                             "color"     : $("#" + channelElementId + "-config-points-color").next(".color_picker").css("background-color"),
                             "fill"      : pointsStyleFill,
                             "fillColor" : $("#" + channelElementId + "-config-points-fillColor").next(".color_picker").css("background-color")
@@ -943,7 +1001,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         var barsStyle = {
                             "type"      : "lollipop",
                             "show"      : $("#" + channelElementId + "-config-bars-show").is(':checked'),
-                            "lineWidth" : TOOLS.parseInt($("#" + channelElementId + "-config-bars-lineWidth").val(), 1),
+                            "lineWidth" : TOOLS.parseInt($("#" + channelElementId + " .configBarsLineWidth button").attr('value'), 1),
                             "radius"    : 0,
                             "color"     : $("#" + channelElementId + "-config-bars-color").next(".color_picker").css("background-color"),
                             "fill"      : false
@@ -972,17 +1030,21 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         "type"           : "value",
                         "show"           : $("#" + channelElementId + "-config-values-show").is(':checked'),
                         "fillColor"      : $("#" + channelElementId + "-config-values-fillColor").next(".color_picker").css("background-color"),
-                        "marginWidth"    : TOOLS.parseInt($("#" + channelElementId + "-config-values-marginWidth").val(), 5),
-                        "verticalOffset" : TOOLS.parseInt($("#" + channelElementId + "-config-values-verticalOffset").val(), 7),
-                        "numberFormat"   : $("#" + channelElementId + "-config-values-numberFormat").val()
+                        "marginWidth"    : TOOLS.parseInt($("#" + channelElementId + " .configValuesMarginWidth button").attr('value'), 5),
+                        "verticalOffset" : TOOLS.parseInt($("#" + channelElementId + " .configValuesVerticalOffset button").attr('value'), 7),
+                        "numberFormat"   : $("#" + channelElementId + " .configValuesNumberFormat button").attr('value')
                     };
+
+
 
                     // We'll always put the values style in both the styles array AND the highlight styles array.  The "show"
                     // field will be false for both if Values option is unchecked.  The "show" field will be true for both if the
                     // Values option is checked and the showOnlyOnHighlight option is false.  If the showOnlyOnHighlight option is
                     // true, then the instance in the styles array will have show set to false
                     newStyle['highlight']['styles'][newStyle['highlight']['styles'].length] = valuesStyle;
-                    var onlyShowValuesOnHighlight = $("#" + channelElementId + "-config-values-showOnlyOnHighlight").val() === 'true';
+                    var onlyShowValuesOnHighlight = $("#" + channelElementId + " .configValuesShowOnlyOnHighlight button").attr('value') === 'true';
+                    $("#" + channelElementId + "-config-values-marginWidth-label-container").toggle(!onlyShowValuesOnHighlight);
+                    $("#" + channelElementId + "-config-values-marginWidth-container").toggle(!onlyShowValuesOnHighlight);
                     if (onlyShowValuesOnHighlight) {
                         // clone the valuesStyle instance
                         var valuesStyleCopy = TOOLS.clone(valuesStyle);
@@ -996,15 +1058,16 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     newStyle['highlight']['lineWidth'] = highlightLineWidth;
 
                     // Finally, build the comments style (this completely overwrites the existing comments object)
-                    var commentsStyleType = $("#" + channelElementId + "-config-comments-type").val();
+                    var commentsStyleType = $("#" + channelElementId + " .configCommentsType button").attr('value');
                     var commentsStyleFill = commentsStyleType.match(/-filled$/) !== null;
+                    $("#" + channelElementId + "-config-comments-fillColor-container").toggle(commentsStyleFill);
                     newStyle['comments'] = {
                         "show"           : $("#" + channelElementId + "-config-comments-show").is(':checked'),
                         "styles"         : [{
                                                 "type"      : commentsStyleType.replace('-filled', ''),
                                                 "show"      : $("#" + channelElementId + "-config-comments-show").is(':checked'),
                                                 "lineWidth" : 1,
-                                                "radius"    : TOOLS.parseInt($("#" + channelElementId + "-config-comments-radius").val(), 3),
+                                                "radius"    : TOOLS.parseInt($("#" + channelElementId + " .configCommentsRadius button").attr('value'), 3),
                                                 "color"     : $("#" + channelElementId + "-config-comments-color").next(".color_picker").css("background-color"),
                                                 "fill"      : commentsStyleFill,
                                                 "fillColor" : $("#" + channelElementId + "-config-comments-fillColor").next(".color_picker").css("background-color")
@@ -1207,6 +1270,21 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     return false;
                 });
 
+                //bind dropdown menus
+
+                $("#" + channelElementId + " .configDropdown").each(function(index,dropdown){
+                    dropdown = $(dropdown);
+                    dropdown.find("a").click(function(event){
+                        event.preventDefault();
+                        var button = dropdown.find("button");
+                        var target = $(event.delegateTarget);
+                        button.html(target.html() + ' <span class="caret"></span>');
+                        button.attr("value",target.attr("value"));
+                        updateDataSeriesPlotChannelConfig();
+                    });
+                });
+
+
                 /* Configure the Zeo options ------------------------------------------------------------------------------ */
                 $("#" + channelElementId + "-config-zeo-show").prop("checked", isZeo);
 
@@ -1235,9 +1313,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 $("#" + channelElementId + "-config-lines-show").change(updateDataSeriesPlotChannelConfig);
 
                 // Set the initial value of the lineWidth select menu
-                $("#" + channelElementId + "-config-lines-lineWidth").val(TOOLS.parseInt(linesStyle["lineWidth"], 1));
-                $("#" + channelElementId + "-config-lines-lineWidth").change(updateDataSeriesPlotChannelConfig);
-                $("#" + channelElementId + "-config-lines-lineWidth").msDropDown();
+                $("#" + channelElementId + " .configLineWidth a[value=" + TOOLS.parseInt(linesStyle["lineWidth"], 1) + "]").click();
 
                 // Create the color colorpicker, and set its initial value
                 $("#" + channelElementId + "-config-lines-color").colorPicker();
@@ -1255,19 +1331,11 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 $("#" + channelElementId + "-config-points-show").change(updateDataSeriesPlotChannelConfig);
 
                 // Set the initial value of the type select menu and the initial state of the fillColor color picker
-                $("#" + channelElementId + "-config-points-type").val(pointsStyle['type-ui']);
-                $("#" + channelElementId + "-config-points-type").change(updateDataSeriesPlotChannelConfig);
-                $("#" + channelElementId + "-config-points-type").change(function() {
-                    var isFilledType = $("#" + channelElementId + "-config-points-type").val().match(/-filled$/) !== null;
-                    $("#" + channelElementId + "-config-points-fillColor-container").toggle(isFilledType);
-                });
-                $("#" + channelElementId + "-config-points-type").msDropDown();
+                $("#" + channelElementId + " .configPointsType a[value=" + pointsStyle['type-ui'] + "]").click();
                 $("#" + channelElementId + "-config-points-fillColor-container").toggle(pointsStyle['fill']);
 
                 // Set the initial value of the radius select menu
-                $("#" + channelElementId + "-config-points-radius").val(TOOLS.parseInt(pointsStyle["radius"], 2));
-                $("#" + channelElementId + "-config-points-radius").change(updateDataSeriesPlotChannelConfig);
-                $("#" + channelElementId + "-config-points-radius").msDropDown();
+                $("#" + channelElementId + " .configPointsRadius a[value=" + TOOLS.parseInt(pointsStyle["radius"], 2) + "]").click();
 
                 // Create the color colorpicker, and set its initial value
                 $("#" + channelElementId + "-config-points-color").colorPicker();
@@ -1291,9 +1359,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 $("#" + channelElementId + "-config-bars-show").change(updateDataSeriesPlotChannelConfig);
 
                 // Set the initial value of the lineWidth select menu
-                $("#" + channelElementId + "-config-bars-lineWidth").val(TOOLS.parseInt(barsStyle["lineWidth"], 1));
-                $("#" + channelElementId + "-config-bars-lineWidth").change(updateDataSeriesPlotChannelConfig);
-                $("#" + channelElementId + "-config-bars-lineWidth").msDropDown();
+                $("#" + channelElementId + " .configBarsLineWidth a[value=" + TOOLS.parseInt(barsStyle["lineWidth"], 1) + "]").click();
 
                 // Create the color colorpicker, and set its initial value
                 $("#" + channelElementId + "-config-bars-color").colorPicker();
@@ -1314,32 +1380,20 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 $("#" + channelElementId + "-config-values-fillColor").change(updateDataSeriesPlotChannelConfig);
 
                 // Set the initial value of the numberFormat select menu
-                $("#" + channelElementId + "-config-values-numberFormat").val(typeof valuesStyle["numberFormat"] === 'undefined' ? "###,##0.0##" : valuesStyle["numberFormat"]);
-                $("#" + channelElementId + "-config-values-numberFormat").change(updateDataSeriesPlotChannelConfig);
-                $("#" + channelElementId + "-config-values-numberFormat").msDropDown();
+                $("#" + channelElementId + " .configValuesNumberFormat a[value=\"" + (typeof valuesStyle["numberFormat"] === 'undefined' ? "###,##0.0##" : valuesStyle["numberFormat"]) + "\"]").click();
 
                 // Set the initial value of the verticalOffset select menu
-                $("#" + channelElementId + "-config-values-verticalOffset").val(TOOLS.parseInt(valuesStyle["verticalOffset"], 7));
-                $("#" + channelElementId + "-config-values-verticalOffset").change(updateDataSeriesPlotChannelConfig);
-                $("#" + channelElementId + "-config-values-verticalOffset").msDropDown();
+                $("#" + channelElementId + " .configValuesVerticalOffset a[value=" + TOOLS.parseInt(valuesStyle["verticalOffset"], 7) + "]").click();
 
                 // Set the initial value of the showOnlyOnHighlight select menu and the initial visibility of the marginWidth select menu
-                $("#" + channelElementId + "-config-values-showOnlyOnHighlight").val(showValuesOnlyOnHighlight);
-                $("#" + channelElementId + "-config-values-showOnlyOnHighlight").change(updateDataSeriesPlotChannelConfig);
-                $("#" + channelElementId + "-config-values-showOnlyOnHighlight").change(function() {
-                    var shouldShowMarginMenu = $("#" + channelElementId + "-config-values-showOnlyOnHighlight").val() == 'false';
-                    $("#" + channelElementId + "-config-values-marginWidth-label-container").toggle(shouldShowMarginMenu);
-                    $("#" + channelElementId + "-config-values-marginWidth-container").toggle(shouldShowMarginMenu);
-                });
+                $("#" + channelElementId + " .configValuesShowOnlyOnHighlight a[value=" + showValuesOnlyOnHighlight + "]").click();
                 $("#" + channelElementId + "-config-values-showOnlyOnHighlight").msDropDown();
                 var showValuesOnlyOnHighlightBoolean = showValuesOnlyOnHighlight == 'true';
                 $("#" + channelElementId + "-config-values-marginWidth-label-container").toggle(!showValuesOnlyOnHighlightBoolean);
                 $("#" + channelElementId + "-config-values-marginWidth-container").toggle(!showValuesOnlyOnHighlightBoolean);
 
                 // Set the initial value of the marginWidth select menu
-                $("#" + channelElementId + "-config-values-marginWidth").val(TOOLS.parseInt(valuesStyle["marginWidth"], 5));
-                $("#" + channelElementId + "-config-values-marginWidth").change(updateDataSeriesPlotChannelConfig);
-                $("#" + channelElementId + "-config-values-marginWidth").msDropDown();
+                $("#" + channelElementId + " .configValuesMarginWidth a[value=" + TOOLS.parseInt(valuesStyle["marginWidth"], 5) + "]").click();
 
                 /* Configure the Comments options ------------------------------------------------------------------------- */
 
@@ -1348,19 +1402,10 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 $("#" + channelElementId + "-config-comments-show").change(updateDataSeriesPlotChannelConfig);
 
                 // Set the initial value of the type select menu and the initial state of the fillColor color picker
-                $("#" + channelElementId + "-config-comments-type").val(commentsStyle['type-ui']);
-                $("#" + channelElementId + "-config-comments-type").change(updateDataSeriesPlotChannelConfig);
-                $("#" + channelElementId + "-config-comments-type").change(function() {
-                    var isFilledType = $("#" + channelElementId + "-config-comments-type").val().match(/-filled$/) !== null;
-                    $("#" + channelElementId + "-config-comments-fillColor-container").toggle(isFilledType);
-                });
-                $("#" + channelElementId + "-config-comments-type").msDropDown();
-                $("#" + channelElementId + "-config-comments-fillColor-container").toggle(commentsStyle['fill']);
+                $("#" + channelElementId + " .configCommentsType a[value=" + commentsStyle['type-ui'] + "]").click();
 
                 // Set the initial value of the radius select menu
-                $("#" + channelElementId + "-config-comments-radius").val(TOOLS.parseInt(commentsStyle["radius"], 3));
-                $("#" + channelElementId + "-config-comments-radius").change(updateDataSeriesPlotChannelConfig);
-                $("#" + channelElementId + "-config-comments-radius").msDropDown();
+                $("#" + channelElementId + " .configCommentsRadius a[value=" + TOOLS.parseInt(commentsStyle["radius"],3) + "]").click();
 
                 // Create the color colorpicker, and set its initial value
                 $("#" + channelElementId + "-config-comments-color").colorPicker();
@@ -1415,8 +1460,24 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     };
 
                     // Display the filter settings in the channel tab
-                    if (userSelectedTags.length > 0) {
-                        var filterHtml = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_channel_tab_filter_template").render({"value":userSelectedTags.join(", ")});
+                    if (userSelectedTags.length > 0 || matchingStrategy == "untagged") {
+                        var params = {
+                            value:userSelectedTags.join(", "),
+                            matchingString: "Any of:"
+                        };
+                        switch (matchingStrategy){
+                            case "all":
+                                params.matchingString = "All of:";
+                                break;
+                            case "none":
+                                params.matchingString = "None of:";
+                                break;
+                            case "untagged":
+                                params.matchingString = "Untagged";
+                                params.value = "";
+                                break;
+                        }
+                        var filterHtml = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_channel_tab_filter_template").render(params);
                         $("#" + channelElementId + "-timeline-channel-filter").html(filterHtml).shorten();
                     } else {
                         $("#" + channelElementId + "-timeline-channel-filter").text('').hide();
@@ -1459,6 +1520,11 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 // Set the initial value of the matchingStrategy select menu
                 $("#" + channelElementId + "-photo-tags-matching-strategy").val("" + tagFilter["matchingStrategy"]);
                 $("#" + channelElementId + "-photo-tags-matching-strategy").change(updatePhotoSeriesPlotChannelConfig);
+                $("#" + channelElementId + "-photo-tags-matching-strategy").change(function(){
+                    // show/hide the tags text box depending on the matching strategy (hidden when the "untagged" strategy is selected)
+                    var matchingStrategy = $("#" + channelElementId + "-photo-tags-matching-strategy").val();
+                    $("#" + channelElementId + "-photo-tags-filter").toggle(matchingStrategy != "untagged");
+                });
 
                 // seed the tag filter editor with the tags currently saved in the channel (if any)
                 if (tagFilter['tags'].length > 0) {
@@ -1532,12 +1598,8 @@ define(["core/grapher/BTCore"], function(BTCore) {
         l = channelIds.length;
 
         // Update xAxis min/max
-        if (l > 0) {
-            plot = grapher.plotsMap[channelIds[0]];
-            xAxis = plot.getHorizontalAxis();
-            VIEWS.data["v2"]["x_axis"]["min"] = xAxis.getMin();
-            VIEWS.data["v2"]["x_axis"]["max"] = xAxis.getMax();
-        }
+        VIEWS.data["v2"]["x_axis"]["min"] = grapher.dateAxis.getMin();
+        VIEWS.data["v2"]["x_axis"]["max"] = grapher.dateAxis.getMax();
 
         // Update yAxis min/max, order, height
         for (i = 0; i < l; i++) {
@@ -1587,9 +1649,6 @@ define(["core/grapher/BTCore"], function(BTCore) {
             $("#" + grapher.grapherId + "_timeline_add_channels_btn").unbind('click')
                 .click(function(){grapher.toggleAddChannelsPane(); return false;})
                 .removeClass("disabled");
-            $("#" + grapher.grapherId + "_timeline_show_details_btn").unbind('click')
-                .click(function(){grapher.toggleDetailsPane(); return false;})
-                .removeClass("disabled");
 
             grapher.dateAxis.setRange(view["v2"]["x_axis"]["min"],
                 view["v2"]["x_axis"]["max"]);
@@ -1618,9 +1677,6 @@ define(["core/grapher/BTCore"], function(BTCore) {
             $("#" + grapher.grapherId + "_timeline_add_channels_btn").unbind('click')
                 .click(function(){grapher.toggleAddChannelsPane(); return false;})
                 .removeClass("disabled");
-            $("#" + grapher.grapherId + "_timeline_show_details_btn").unbind('click')
-                .click(function(){grapher.toggleDetailsPane(); return false;})
-                .removeClass("disabled");
 
             // Show/hide add channels pane
             if ((typeof view["v2"]["show_add_pane"] === "undefined") ||
@@ -1640,7 +1696,15 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 "min" : view["v2"]["x_axis"]["min"],
                 "max" : view["v2"]["x_axis"]["max"]
             });
-            grapher.dateAxis.addAxisChangeListener(function() {
+            grapher.cursorString = null;
+            grapher.prevCursorPos = null;
+            grapher.dateAxis.addAxisChangeListener(function(event) {
+                if (event.cursorPosition != grapher.prevCursorPos){
+                    grapher.prevCursorPos = event.cursorPosition;
+                    grapher.cursorString = event.cursorPositionString;
+                    grapher.clickPointString = null;
+                }
+                updateDataPointDisplay(grapher);
                 var center = (grapher.dateAxis.getMin() + grapher.dateAxis.getMax()) / 2.0;
                 var utcOffsetHrs = new Date(center * 1000).getTimezoneOffset() / -60;
                 // 60 mins/hour, and offset is backwards of the convention
@@ -1670,7 +1734,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     yAxes[i]["max_time"] = channel["max_time"];
                 }
 
-                grapher.addChannel(yAxes[i], null);
+                grapher.addChannel(yAxes[i], null, true);
             }
         }
         $(window).resize();//fixes issue of no date axis when window no channels are in view.
@@ -1678,8 +1742,8 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
     Grapher.prototype.getCurrentTimeUnit = function(){
         var range = this.dateAxis.getMax() - this.dateAxis.getMin();
-        if (range > 364 * 24 * 3600)
-            return "year";
+        //if (range > 364 * 24 * 3600)   Temporarily disabled
+        //    return "year";
         if (range > 27 * 24 * 3600)
             return "month";
         if (range > 6 * 24 * 3600)
@@ -1860,7 +1924,9 @@ define(["core/grapher/BTCore"], function(BTCore) {
                                             "orientation"      : photo['orientation'],
                                             "channel_name"     : photo['channel_name'],
                                             "dev_nickname"     : photo['dev_nickname'],
-                                            "object_type_name" : photo['object_type_name']
+                                            "object_type_name" : photo['object_type_name'],
+                                            "timeType"         : photo['time_type'],
+                                            "isLocalTimeType"  : (photo['time_type'] == "local")
                                         };
                                     });
 
@@ -2068,11 +2134,30 @@ define(["core/grapher/BTCore"], function(BTCore) {
     function dataPointListener(grapher, pointObj, sourceInfo) {
         if (pointObj) {
             App.loadMustacheTemplate("core/grapher/timelineTemplates.html","dataPointValueLabel",function (template){
-                $("#" + grapher.grapherId + "_timeline_dataPointValueLabel").html(template.render(pointObj));
+                if (sourceInfo.actionName == "highlight")
+                    grapher.pointString = template.render(pointObj);
+                else if (sourceInfo.actionName == "click")
+                    grapher.clickPointString = template.render(pointObj);
+                updateDataPointDisplay(grapher);
             });
         } else {
-            $("#" + grapher.grapherId + "_timeline_dataPointValueLabel").html("");
+            grapher.pointString = null;
+            updateDataPointDisplay(grapher);
         }
+    }
+
+    function updateDataPointDisplay(grapher){
+        var stringToUse = "";
+        if (grapher.pointString != null){
+            stringToUse = grapher.pointString;
+        }
+        else if (grapher.clickPointString != null){
+            stringToUse = grapher.clickPointString
+        }
+        else if (grapher.cursorString != null){
+            stringToUse = grapher.cursorString;
+        }
+        $("#" + grapher.grapherId + "_timeline_dataPointValueLabel").html(stringToUse);
     }
 
     function loadLogrecMetadata(logrecId, callbacks) {
@@ -2083,6 +2168,33 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
             TOOLS.loadJson(url, {}, callbacks);
         }
+    }
+
+    function timespanDataPointListener(grapher,plot){
+        var mainContentContainer = $("#" + grapher.grapherId + "_timeline_mainContentArea");
+
+        return function (pointObj, sourceInfo){
+            var timespanObject = sourceInfo.info.timespanInfo;
+            $.ajax("/api/connectors/" + timespanObject.objectType + "/data?start=" + timespanObject.start * 1000 + "&end=" + timespanObject.end * 1000 + "&value=" + encodeURIComponent(timespanObject.value),{
+                success: function(facets){
+                    $.ajax("/api/metadata/cities?start=" + timespanObject.start * 1000 + "&end=" + timespanObject.end * 1000,{
+                        success: function(cities){
+                            var plotContainer = $("#" + plot.plotContainer.getPlaceholder());
+                            var position = sourceInfo.info.position;
+                            var mainContentPosition = mainContentContainer.offset();
+                            var plotOffset = plotContainer.offset();
+                            var positionRelativeToMainContentArea = {
+                                x: plotOffset.left - mainContentPosition.left + position.x,
+                                y: plotOffset.top - mainContentPosition.top + position.y
+
+                            }
+
+                            Tooltip.createTooltip(mainContentContainer,positionRelativeToMainContentArea,ListUtils.buildList(facets,cities),sourceInfo.info.color);
+                        }
+                    });
+                }
+            });
+        };
     }
 
     function photoDataPointListener(grapher, channel, channelElementId) {
@@ -2196,13 +2308,6 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         });
                     }
 
-                    /*
-                    // TODO: do I need this?
-                    if (typeof data === 'string') {
-                        data = JSON.parse(data);
-                    }
-                    */
-
                     // treat undefined or null comment as an empty comment
                     if (typeof photoMetadata['comment'] === 'undefined' || photoMetadata['comment'] == null) {
                         photoMetadata['comment'] = '';
@@ -2233,8 +2338,10 @@ define(["core/grapher/BTCore"], function(BTCore) {
                                 theImage.attr("src",highResImageUrl);
                                 if (photoOrientation <= 4) {
                                     theImage.width(imageWidth).height(imageHeight);
+                                    theImage.css("max-width", imageWidth).css("max-height", imageHeight);
                                 } else {
                                     theImage.width(imageHeight).height(imageWidth);
+                                    theImage.css("max-width", imageHeight).css("max-height", imageWidth);
                                 }
                                 theImage.removeClass("_timeline_photo_dialog_image_orientation_1");
                                 theImage.addClass(highResOrientationCssClass);
@@ -2247,16 +2354,22 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
                                 theImage.attr("src", mediumResImageUrl);
 
+                                var originalWidth = theImage.width();
+                                var originalHeight = theImage.height();
                                 var imageHeight = 300;
                                 var imageWidth = 300;
-                                var imageAspectRatio = (photoOrientation <= 4 ) ? theImage.width() / theImage.height() : theImage.height() / theImage.width();
+                                var imageAspectRatio = (photoOrientation <= 4 ) ? originalWidth / originalHeight : originalHeight / originalWidth;
                                 if (imageAspectRatio > 1) {
                                     imageHeight = Math.round(imageWidth / imageAspectRatio);
                                 } else {
                                     imageWidth = imageAspectRatio * imageHeight;
                                 }
 
-                                theImage.width(imageWidth).height(imageHeight);
+                                if (originalWidth != 0 && originalHeight != 0 && !isNaN(imageWidth) && !isNaN(imageHeight)) {
+                                    theImage.width(imageWidth).height(imageHeight);
+                                }
+                                theImage.css("max-width", "300").css("max-height", "300");
+
                                 $("._timeline_photo_dialog_photo_table").width(300).height(300);
                                 centerPhotoDialog(grapher);
                                 theImage.removeClass(highResOrientationCssClass);
@@ -2309,7 +2422,25 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         if (typeof photoMetadata['timestampString'] === 'undefined') {
                             $("#_timeline_photo_dialog_timestamp").html("&nbsp;");
                         } else {
-                            $("#_timeline_photo_dialog_timestamp").text(new Date(photoMetadata['timestampString']).toString());
+                            var photoTimestamp = new Date(photoMetadata['timestampString']);
+                            var photoTimestampStr = null;
+                            if (photoMetadata['isLocalTimeType']) {
+                                // if local time type, then get the timezone offset (in minutes), convert
+                                // it to millis, and add to the time to get the correct time
+                                photoTimestamp = new Date(photoTimestamp.getTime() + photoTimestamp.getTimezoneOffset() * 60000);
+
+                                // format the date without the timezone
+                                photoTimestampStr = photoTimestamp.toDateString() + " " +
+                                                    (photoTimestamp.getHours() < 10 ? "0" : "") + photoTimestamp.getHours() +
+                                                    ":" +
+                                                    (photoTimestamp.getMinutes() < 10 ? "0" : "") + photoTimestamp.getMinutes() +
+                                                    ":" +
+                                                    (photoTimestamp.getSeconds() < 10 ? "0" : "") + photoTimestamp.getSeconds();
+                            }
+                            else {
+                                photoTimestampStr = photoTimestamp.toString();
+                            }
+                            $("#_timeline_photo_dialog_timestamp").text(photoTimestampStr);
                         }
 
                         // fill in the comment, if any
@@ -2817,6 +2948,24 @@ define(["core/grapher/BTCore"], function(BTCore) {
         });
     }
 
+    Grapher.prototype.getRange = function(){
+        return {min:this.dateAxis.getMin(), max:this.dateAxis.getMax()};
+    }
+
+    Grapher.prototype.getCenter = function(){
+        var range = this.getRange();
+        return (range.min + range.max) / 2;
+    }
+
+    Grapher.prototype.setTimeCursorPosition = function(position){
+        this.dateAxis.setCursorPosition(position);
+        repaintAllPlots(this);
+    }
+
+    Grapher.prototype.getTimeCursorPosition = function(){
+        return this.dateAxis.getCursorPosition();
+    }
+
     function repaintAllPlots(grapher) {
         for (var plotKey in grapher.plotsMap) {
             var plot = grapher.plotsMap[plotKey];
@@ -2835,6 +2984,24 @@ define(["core/grapher/BTCore"], function(BTCore) {
         APP.init(function() {
             init(grapher, function() {
                 grapher.newView();
+
+                var finishLoading = function(){
+                    if (SOURCES.initialized){
+                        if (grapher.onLoad != null) {
+                            var onload = grapher.onLoad;
+                            grapher.onLoad = null;
+                            onload();
+                        }
+                        /*$.ajax("/api/timezones/mapping", {success: function(mapping) {    //Disabled for now
+                            grapher.dateAxis.setTimeZoneMapping(mapping);
+                        }});    */
+                    }
+                    else{
+                        $.doTimeout(100,finishLoading);
+                    }
+                }
+
+                finishLoading();
             });
         });
     }

@@ -8,19 +8,26 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import com.fluxtream.Configuration;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.aspects.FlxLogger;
+import com.fluxtream.connectors.bodytrackResponders.AbstractBodytrackResponder;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.ChannelMapping;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.GrapherView;
 import com.fluxtream.domain.Tag;
+import com.fluxtream.services.ApiDataService;
+import com.fluxtream.services.GuestService;
 import com.fluxtream.services.PhotoService;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.Utils;
@@ -31,9 +38,13 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+//import java.nio.file.Path;
+//import java.nio.file.Paths;
 
 /**
  *
@@ -61,12 +72,22 @@ public class BodyTrackHelper {
     EntityManager em;
 
     static final boolean verboseOutput = false;
+    static final boolean showOutput = false;
 
     @Autowired
     Configuration env;
 
     @Autowired
     PhotoService photoService;
+
+    @Autowired
+    GuestService guestService;
+
+    @Autowired
+    ApiDataService apiDataService;
+
+    @Autowired
+    BeanFactory beanFactory;
 
     // Create a Gson parser which handles ChannelBounds specially to avoid problems with +/- infinity
     Gson gson = new GsonBuilder().registerTypeAdapter(ChannelBounds.class, new ChannelBoundsDeserializer()).create();
@@ -75,8 +96,12 @@ public class BodyTrackHelper {
     private DataStoreExecutionResult executeDataStore(String commandName, Object[] parameters){
         try{
             Runtime rt = Runtime.getRuntime();
-            String launchCommand = env.targetEnvironmentProps.getString("btdatastore.exec.location") + "/" + commandName + " " +
-                                   env.targetEnvironmentProps.getString("btdatastore.db.location");
+	    String launchCommand = env.targetEnvironmentProps.getString("btdatastore.exec.location") + "/" + commandName + " " +
+		                   env.targetEnvironmentProps.getString("btdatastore.db.location");
+
+	    //            Path commandPath= Paths.get(env.targetEnvironmentProps.getString("btdatastore.exec.location"));
+	    //            Path launchExecutable = commandPath.resolve(commandName);
+	    //            String launchCommand = launchExecutable.toString()+ " " + env.targetEnvironmentProps.getString("btdatastore.db.location");
             for (Object param : parameters){
                 launchCommand += ' ';
                 String part = param.toString();
@@ -87,7 +112,8 @@ public class BodyTrackHelper {
                     launchCommand += "\"" + part + "\"";
                 }
             }
-            System.out.println("BTDataStore: running with command: " + launchCommand);
+            if (showOutput)
+                System.out.println("BTDataStore: running with command: " + launchCommand);
 
             //create process for operation
             final Process pr = rt.exec(launchCommand);
@@ -97,7 +123,7 @@ public class BodyTrackHelper {
                     BufferedReader error = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
                     String line=null;
                     try{
-                        if (verboseOutput){
+                        if (verboseOutput && showOutput){
                             while((line=error.readLine()) != null) { //output all console output from the execution
                                 System.out.println("BTDataStore-error: " + line);
                             }
@@ -114,27 +140,30 @@ public class BodyTrackHelper {
             String line;
             String result = "";
 
+
             while((line=input.readLine()) != null) { //output all console output from the execution
-                System.out.println("BTDataStore: " + line);
+                if (showOutput)
+                    System.out.println("BTDataStore: " + line);
                 result += line;
             }
-
             int exitValue = pr.waitFor();
-            System.out.println("BTDataStore: exited with code " + exitValue);
+            if (showOutput)
+                System.out.println("BTDataStore: exited with code " + exitValue);
             return new DataStoreExecutionResult(exitValue, result);
         }
         catch (Exception e){
-            System.out.println("BTDataStore: datastore execution failed!");
+            if (showOutput)
+                System.out.println("BTDataStore: datastore execution failed!");
             throw new RuntimeException("Datastore execution failed");
         }
     }
 
-    public BodyTrackUploadResult uploadToBodyTrack(final Long uid,
+    public BodyTrackUploadResult uploadToBodyTrack(final Long guestId,
                                   final String deviceName,
                                   final Collection<String> channelNames,
                                   final List<List<Object>> data) {
         try{
-            if (uid == null)
+            if (guestId == null)
                 throw new IllegalArgumentException();
             final File tempFile = File.createTempFile("input",".json");
 
@@ -147,7 +176,7 @@ public class BodyTrackHelper {
             fos.write(bodyTrackJSONData.getBytes());
             fos.close();
 
-            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("import", new Object[]{uid, deviceName, tempFile.getAbsolutePath()});
+            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("import", new Object[]{guestId, deviceName, tempFile.getAbsolutePath()});
             tempFile.delete();
             return dataStoreExecutionResult;
         } catch (Exception e) {
@@ -157,11 +186,11 @@ public class BodyTrackHelper {
         }
     }
 
-    public BodyTrackUploadResult uploadJsonToBodyTrack(final Long uid,
+    public BodyTrackUploadResult uploadJsonToBodyTrack(final Long guestId,
                                       final String deviceName,
                                       final String json) {
          try{
-             if (uid == null)
+             if (guestId == null)
                  throw new IllegalArgumentException();
              final File tempFile = File.createTempFile("input",".json");
 
@@ -169,7 +198,7 @@ public class BodyTrackHelper {
              fos.write(json.getBytes());
              fos.close();
 
-             final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("import",new Object[]{uid,deviceName,tempFile.getAbsolutePath()});
+             final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("import",new Object[]{guestId,deviceName,tempFile.getAbsolutePath()});
              tempFile.delete();
              return dataStoreExecutionResult;
          } catch (Exception e) {
@@ -179,11 +208,14 @@ public class BodyTrackHelper {
          }
      }
 
-    public String fetchTile(Long uid, String deviceNickname, String channelName, int level, long offset){
+    public GetTileResponse fetchTileObject(Long guestId, String deviceNickname, String channelName, int level, long offset){
         try{
-            if (uid == null)
+            if (guestId == null)
                 throw new IllegalArgumentException();
-            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("gettile", new Object[]{uid, deviceNickname + "." + channelName, level, offset});
+            ChannelMapping mapping = getChannelMapping(guestId, deviceNickname,channelName);
+            String internalDeviceName = mapping != null ? mapping.internalDeviceName : deviceNickname;
+            String internalChannelName = mapping != null ? mapping.internalChannelName : channelName;
+            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("gettile", new Object[]{guestId, internalDeviceName + "." + internalChannelName, level, offset});
             String result = dataStoreExecutionResult.getResponse();
 
             // TODO: check statusCode in DataStoreExecutionResult
@@ -193,27 +225,33 @@ public class BodyTrackHelper {
                 tileResponse = GetTileResponse.getEmptyTile(level,offset);
             }//TODO:several fields are missing still and should be implemented
 
-            return gson.toJson(tileResponse);
+            return tileResponse;
         }
         catch(Exception e){
-            return gson.toJson(GetTileResponse.getEmptyTile(level,offset));
+            return GetTileResponse.getEmptyTile(level,offset);
         }
     }
 
-    public String listSources(Long uid, CoachingBuddy coachee){
+
+
+    public String fetchTile(Long guestId, String deviceNickname, String channelName, int level, long offset){
+        return gson.toJson(fetchTileObject(guestId,deviceNickname,channelName,level,offset));
+    }
+
+    public String listSources(Long guestId, CoachingBuddy coachee){
         SourcesResponse response = null;
         try{
-            if (uid == null) {
+            if (guestId == null) {
                 throw new IllegalArgumentException();
             }
-            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("info",new Object[]{"-r",uid});
+            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("info",new Object[]{"-r",guestId});
             String result = dataStoreExecutionResult.getResponse();
 
             // TODO: check statusCode in DataStoreExecutionResult
             ChannelInfoResponse infoResponse = gson.fromJson(result,ChannelInfoResponse.class);
 
             // Iterate over the various (photo) connectors (if any), manually inserting each into the ChannelSpecs
-            final Map<String, TimeInterval> photoChannelTimeRanges = photoService.getPhotoChannelTimeRanges(uid, coachee);
+            final Map<String, TimeInterval> photoChannelTimeRanges = photoService.getPhotoChannelTimeRanges(guestId, coachee);
 
             // create the 'All' photos block
             final Source allPhotosSource = new Source();
@@ -251,8 +289,8 @@ public class BodyTrackHelper {
                         channelSpecs.channel_bounds.max_time = defaultTimeForNullTimeIntervals;
                     }
                     else {
-                        channelSpecs.channel_bounds.min_time = timeInterval.start / 1000;
-                        channelSpecs.channel_bounds.max_time = timeInterval.end / 1000;
+                        channelSpecs.channel_bounds.min_time = timeInterval.getStart() / 1000;
+                        channelSpecs.channel_bounds.max_time = timeInterval.getEnd() / 1000;
                     }
                     channelSpecs.channel_bounds.min_value = .6;
                     channelSpecs.channel_bounds.max_value = 1;
@@ -270,34 +308,69 @@ public class BodyTrackHelper {
             }
 
             // create the respone
-            response = new SourcesResponse(infoResponse, coachee);
+            response = new SourcesResponse(infoResponse, guestId, coachee);
+
+            //TODO: this is a hack to prevent double flickr photo channel showing up
+            response.deleteSource("Flickr");
+
+            final List<ChannelMapping> channelMappings = getChannelMappings(guestId);
+            for (ChannelMapping mapping : channelMappings){
+                Source source = response.hasSource(mapping.deviceName);
+                if (source == null){
+                    source = new Source();
+                    response.sources.add(source);
+                    source.name = mapping.deviceName;
+                    source.channels = new ArrayList<Channel>();
+                    source.min_time = Double.MAX_VALUE;
+                    source.max_time = Double.MIN_VALUE;
+                }
+                Channel channel = new Channel();
+                channel.name = mapping.channelName;
+                channel.type = mapping.channelType.name();
+                channel.time_type = mapping.timeType.name();
+                source.channels.add(channel);
+
+                // Set builtin default style and style to a line by default
+                channel.builtin_default_style = ChannelStyle.getDefaultChannelStyle(channel.name);
+                channel.style = channel.builtin_default_style;
+
+                // getDefaultStyle checks for user-generated overrides in the database.
+                // If it returns non-null we set style to the user-generated value, otherwise we leave
+                // it as the builtin default
+                ChannelStyle userStyle = getDefaultStyle(guestId,source.name,channel.name);
+                if (userStyle != null)
+                    channel.style = userStyle;
+
+                if (mapping.apiKeyId != null){
+                    ApiKey api = guestService.getApiKey(mapping.apiKeyId);
+                    final AbstractBodytrackResponder bodytrackResponder = api.getConnector().getBodytrackResponder(beanFactory);
+                    AbstractBodytrackResponder.Bounds bounds = bodytrackResponder.getBounds(mapping);
+                    channel.min_time = bounds.min_time;
+                    channel.max_time = bounds.max_time;
+                    channel.min = bounds.min;
+                    channel.max = bounds.max;
+                    source.min_time = Math.min(source.min_time,channel.min_time);
+                    source.max_time = Math.max(source.max_time,channel.max_time);
+                }
+            }
 
             // add the All photos block to the response
             if (!photoChannelTimeRanges.isEmpty()) {
                 response.sources.add(allPhotosSource);
             }
 
-            // set default styles if necessary
             for (Source source : response.sources){
-                for (Channel channel : source.channels){
-                    ChannelStyle userStyle = getDefaultStyle(uid,source.name,channel.name);
-                    if (userStyle != null)
-                        channel.style = userStyle;
-                    // Temporary hack: Until generic support is available for time_type, special case
-                    // device named 'Zeo' to use time_type="local"
-                    if(source.name.equals("Zeo")) {
-                        
-                        channel.time_type="local";
-                    }
-                }
+                if (source.max_time < source.min_time)
+                    source.min_time = source.max_time = 0.0;
             }
 
-            return gson.toJson(response);
+            final String jsonResponse = gson.toJson(response);
+            return jsonResponse;
         }
         catch(Exception e){
             StringBuilder sb = new StringBuilder("module=bodytrackHelper component=listSources action=listSources")
                     .append(" guestId=")
-                    .append(uid)
+                    .append(guestId)
                     .append(" message=").append(e.getMessage());
 
             if(response!=null) {
@@ -310,44 +383,86 @@ public class BodyTrackHelper {
 
             logger.error(sb.toString());
 
-            return gson.toJson(new SourcesResponse(null, coachee));
+            return gson.toJson(new SourcesResponse(null, guestId, coachee));
         }
     }
 
-    public String getSourceInfo(final Long uid, final String deviceName) {
+    public SourceInfo getSourceInfoObject(final Long guestId, final String deviceName){
         try{
-            if (uid == null)
+            if (guestId == null)
                 throw new IllegalArgumentException();
-            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("info",new Object[]{"-r",uid});
+            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("info",new Object[]{"-r",guestId});
             String result = dataStoreExecutionResult.getResponse();
 
             // TODO: check statusCode in DataStoreExecutionResult
             ChannelInfoResponse infoResponse = gson.fromJson(result,ChannelInfoResponse.class);
 
+            final Map<String, TimeInterval> photoChannelTimeRanges = photoService.getPhotoChannelTimeRanges(guestId, null);
+            if (!photoChannelTimeRanges.isEmpty()) {
+                final double defaultTimeForNullTimeIntervals = System.currentTimeMillis() / 1000;
+
+                for (final String channelName : photoChannelTimeRanges.keySet()) {
+                    final ChannelSpecs channelSpecs = new ChannelSpecs();
+                    final TimeInterval timeInterval = photoChannelTimeRanges.get(channelName);
+
+                    // mark this channel as a photo channel so that the grapher can properly render it as a photo channel
+                    channelSpecs.channelType = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
+                    final String[] connectorNameAndObjectTypeName = channelName.split("\\.");
+                    if (connectorNameAndObjectTypeName.length > 1) {
+                        channelSpecs.objectTypeName = connectorNameAndObjectTypeName[1];
+                    }
+
+                    channelSpecs.channel_bounds = new ChannelBounds();
+                    if (timeInterval == null) {
+                        channelSpecs.channel_bounds.min_time = defaultTimeForNullTimeIntervals;
+                        channelSpecs.channel_bounds.max_time = defaultTimeForNullTimeIntervals;
+                    }
+                    else {
+                        channelSpecs.channel_bounds.min_time = timeInterval.getStart() / 1000;
+                        channelSpecs.channel_bounds.max_time = timeInterval.getEnd() / 1000;
+                    }
+                    channelSpecs.channel_bounds.min_value = .6;
+                    channelSpecs.channel_bounds.max_value = 1;
+
+                    infoResponse.channel_specs.put(channelName, channelSpecs);
+
+                    if (timeInterval != null) {
+                        // update the min/max times in ChannelInfoResponse and in the All photos channel
+                        infoResponse.min_time = Math.min(infoResponse.min_time, channelSpecs.channel_bounds.min_time);
+                        infoResponse.max_time = Math.max(infoResponse.max_time, channelSpecs.channel_bounds.max_time);
+                    }
+                }
+            }
+
             SourceInfo response = new SourceInfo(infoResponse,deviceName);
 
-            return gson.toJson(response);
+            return response;
         }
         catch(Exception e){
-            return gson.toJson(new SourcesResponse(null, null));
+            return new SourceInfo(null, null);
         }
     }
 
-    public void setDefaultStyle(final Long uid, final String deviceName, final String channelName, final ChannelStyle style) {
-        setDefaultStyle(uid,deviceName,channelName, gson.toJson(style));
+    public String getSourceInfo(final Long guestId, final String deviceName) {
+        return gson.toJson(getSourceInfoObject(guestId,deviceName));
+    }
+
+    public void setDefaultStyle(final Long guestId, final String deviceName, final String channelName, final ChannelStyle style) {
+        setDefaultStyle(guestId,deviceName,channelName, gson.toJson(style));
     }
 
     @Transactional(readOnly = false)
-    public void setDefaultStyle(final Long uid, final String deviceName, final String channelName, final String style) {
+    public void setDefaultStyle(final Long guestId, final String deviceName, final String channelName, final String style) {
         try{
-            if (uid == null)
+            if (guestId == null)
                 throw new IllegalArgumentException();
             com.fluxtream.domain.ChannelStyle savedStyle = JPAUtils.findUnique(em, com.fluxtream.domain.ChannelStyle.class,
                                                           "channelStyle.byDeviceNameAndChannelName",
-                                                          uid, deviceName, channelName);
+                                                          guestId, deviceName, channelName);
+
             if (savedStyle==null) {
                 savedStyle = new com.fluxtream.domain.ChannelStyle();
-                savedStyle.guestId = uid;
+                savedStyle.guestId = guestId;
                 savedStyle.channelName = channelName;
                 savedStyle.deviceName = deviceName;
                 savedStyle.json = style;
@@ -362,15 +477,66 @@ public class BodyTrackHelper {
         }
     }
 
+    public ChannelMapping getChannelMapping(long guestId, String displayDeviceName, String displayChannelName){
+        ChannelMapping channelMapping = JPAUtils.findUnique(em, ChannelMapping.class, "channelMapping.byDisplayName", guestId, displayDeviceName, displayChannelName);
+        return channelMapping;
+    }
+
+    public List<ChannelMapping> getChannelMappings(ApiKey apiKey, int objectTypeId){
+        return JPAUtils.find(em,ChannelMapping.class,"channelMapping.byApiKeyAndObjectType",apiKey.getGuestId(),apiKey.getId(),objectTypeId);
+    }
+
+    public List<ChannelMapping> getChannelMappings(ApiKey apiKey){
+        return JPAUtils.find(em,ChannelMapping.class,"channelMapping.byApiKey",apiKey.getGuestId(),apiKey.getId());
+    }
+
+
+    public List<ChannelMapping> getChannelMappings(long guestId){
+        return JPAUtils.find(em,ChannelMapping.class,"channelMapping.all",guestId);
+    }
+
+    public void deleteChannelMappings(ApiKey apiKey){
+        Query query = em.createNamedQuery("channelMapping.delete");
+        query.setParameter(1,apiKey.getGuestId());
+        query.setParameter(2,apiKey.getId());
+        query.executeUpdate();
+    }
+
+    public void persistChannelMapping(ChannelMapping mapping){
+        em.persist(mapping);
+    }
+
+    public Source getSourceForApiKey(ApiKey key){
+        List<ChannelMapping> channelMappings = JPAUtils.find(em, ChannelMapping.class, "channelMapping.byApiKeyID", key.getGuestId(), key.getId());
+        Source s = null;
+        if (channelMappings.size() > 0){
+            s = new Source();
+            s.channels = new ArrayList<Channel>();
+            s.name = key.getConnector().getName();
+            for (ChannelMapping mapping : channelMappings){
+                Channel c = new Channel();
+                s.channels.add(c);
+                c.name =  mapping.channelName;
+                c.type = mapping.channelType.name();
+                c.time_type = mapping.timeType.name();
+            }
+        }
+        return s;
+    }
+
+    public void setBuiltinDefaultStyle(final Long guestId, final String deviceName, final String channelName, final ChannelStyle style){
+        setBuiltinDefaultStyle(guestId,deviceName,channelName,gson.toJson(style));
+    }
+
     @Transactional(readOnly = false)
-    public void setBuiltinDefaultStyle(final Long uid, final String deviceName, final String channelName, final String style) {
+    public void setBuiltinDefaultStyle(final Long guestId, final String deviceName, final String channelName, final String style) {
         try{
-            if (uid == null)
+            if (guestId == null)
                 throw new IllegalArgumentException();
-            com.fluxtream.domain.ChannelStyle savedStyle = JPAUtils.findUnique(em, com.fluxtream.domain.ChannelStyle.class, "channelStyle.byDeviceNameAndChannelName", uid, deviceName, channelName);
+            com.fluxtream.domain.ChannelStyle savedStyle = JPAUtils.findUnique(em, com.fluxtream.domain.ChannelStyle.class, "channelStyle.byDeviceNameAndChannelName", guestId, deviceName, channelName);
             if (savedStyle==null) {
                 savedStyle = new com.fluxtream.domain.ChannelStyle();
-                savedStyle.guestId = uid;
+                savedStyle.guestId = guestId;
                 savedStyle.channelName = channelName;
                 savedStyle.deviceName = deviceName;
                 savedStyle.json = style;
@@ -382,10 +548,10 @@ public class BodyTrackHelper {
         }
     }
 
-    private ChannelStyle getDefaultStyle(long uid, String deviceName, String channelName){
+    private ChannelStyle getDefaultStyle(long guestId, String deviceName, String channelName){
         com.fluxtream.domain.ChannelStyle savedStyle = JPAUtils.findUnique(em, com.fluxtream.domain.ChannelStyle.class,
                                                                            "channelStyle.byDeviceNameAndChannelName",
-                                                                           uid, deviceName, channelName);
+                                                                           guestId, deviceName, channelName);
         if(savedStyle == null)
             return null;
         return gson.fromJson(savedStyle.json,ChannelStyle.class);
@@ -393,11 +559,11 @@ public class BodyTrackHelper {
     }
 
     @Transactional(readOnly = false)
-    public String saveView(long uid, String viewName, String viewJSON){
-        GrapherView view = JPAUtils.findUnique(em, GrapherView.class,"grapherView.byName",uid,viewName);
+    public String saveView(long guestId, String viewName, String viewJSON){
+        GrapherView view = JPAUtils.findUnique(em, GrapherView.class,"grapherView.byName",guestId,viewName);
         if (view == null){
             view = new GrapherView();
-            view.guestId = uid;
+            view.guestId = guestId;
             view.name = viewName;
             view.json = viewJSON;
             view.lastUsed = System.currentTimeMillis();
@@ -409,34 +575,34 @@ public class BodyTrackHelper {
         }
         AddViewResult result = new AddViewResult();
         result.saved_view_id = view.getId();
-        result.populateViews(em, gson, uid);
+        result.populateViews(em, gson, guestId);
         return gson.toJson(result);
     }
 
-    public String listViews(long uid){
+    public String listViews(long guestId){
         ViewsList list = new ViewsList();
-        list.populateViews(em, gson, uid);
+        list.populateViews(em, gson, guestId);
         return gson.toJson(list);
     }
 
     @Transactional(readOnly = false)
-    public String getView(Long uid, long viewId){
-        GrapherView view = JPAUtils.findUnique(em, GrapherView.class,"grapherView.byId",uid,viewId);
+    public String getView(Long guestId, long viewId){
+        GrapherView view = JPAUtils.findUnique(em, GrapherView.class,"grapherView.byId",guestId,viewId);
         if (view != null){
             view.lastUsed = System.currentTimeMillis();
             em.merge(view);
         }
-        return view == null ? "{\"error\",\"No matching view found for user " + uid + "\"}" : view.json;
+        return view == null ? "{\"error\",\"No matching view found for user " + guestId + "\"}" : view.json;
     }
 
     @Transactional(readOnly = false)
-    public void deleteView(Long uid, long viewId){
-        GrapherView view = JPAUtils.findUnique(em, GrapherView.class,"grapherView.byId",uid,viewId);
+    public void deleteView(Long guestId, long viewId){
+        GrapherView view = JPAUtils.findUnique(em, GrapherView.class,"grapherView.byId",guestId,viewId);
         em.remove(view);
     }
 
-    public String getAllTagsForUser(final Long uid) {
-        final List<Tag> tagList = JPAUtils.find(em, Tag.class, "tags.all", uid);
+    public String getAllTagsForUser(final Long guestId) {
+        final List<Tag> tagList = JPAUtils.find(em, Tag.class, "tags.all", guestId);
 
         final TagsJson tagsJson = new TagsJson();
         if ((tagList != null) && (!tagList.isEmpty())) {
@@ -455,12 +621,12 @@ public class BodyTrackHelper {
     }
 
     private static class ViewsList{
-        ArrayList<ViewStub> views = new ArrayList<ViewStub>();
+        LinkedList<ViewStub> views = new LinkedList<ViewStub>();
 
-        void populateViews(EntityManager em, Gson gson, long uid){
-            List<GrapherView> viewList = JPAUtils.find(em, GrapherView.class,"grapherView",uid);
+        void populateViews(EntityManager em, Gson gson, long guestId){
+            List<GrapherView> viewList = JPAUtils.find(em, GrapherView.class,"grapherView",guestId);
             for (GrapherView view : viewList){
-                views.add(new ViewStub(view,gson));
+                views.add(0,new ViewStub(view,gson));
             }
         }
     }
@@ -503,12 +669,13 @@ public class BodyTrackHelper {
         double max;
     }
 
-    private static class GetTileResponse{
-        Object[][] data;
-        String[] fields;
-        int level;
-        long offset;
-        int sample_width;
+    public static class GetTileResponse{
+        public Object[][] data;
+        public String[] fields;
+        public int level;
+        public long offset;
+        public int sample_width;
+        public String type = "value";
 
         public static GetTileResponse getEmptyTile(int level, long offset){
             GetTileResponse tileResponse = new GetTileResponse();
@@ -571,10 +738,10 @@ public class BodyTrackHelper {
         }
     }
 
-    private class SourcesResponse {
-        ArrayList<Source> sources;
+    public class SourcesResponse {
+        public ArrayList<Source> sources;
 
-        public SourcesResponse(ChannelInfoResponse infoResponse, CoachingBuddy coachee){
+        public SourcesResponse(ChannelInfoResponse infoResponse, Long guestId, CoachingBuddy coachee){
             sources = new ArrayList<Source>();
             if (infoResponse == null)
                 return;
@@ -601,15 +768,49 @@ public class BodyTrackHelper {
                         source.channels = new ArrayList<Channel>();
                         sources.add(source);
                     }
-                    source.channels.add(new Channel(objectTypeName,specs));
+
+                    Channel newChannel = new Channel(objectTypeName,specs);
+
+                    // Setup style settings.  The Channel constructor sets builtin_default_style
+                    // and style to default line settings.  getDefaultStyle checks for user-generated overrides
+                    // in the database.  If it returns non-null we set style to the user-generated value.
+                    ChannelStyle userStyle = getDefaultStyle(guestId,source.name,newChannel.name);
+                    if (userStyle != null)
+                        newChannel.style = userStyle;
+
+                    // Temporary hack: Until generic support is available for time_type, special case
+                    // devices named 'Zeo', 'Fitbit', or 'Flickr' to use time_type="local"
+                    if(source.name.equals("Zeo") || source.name.equals("Fitbit")  || source.name.equals("Flickr")) {
+                        newChannel.time_type="local";
+                    }
+
+                    // Add channel to source's channel list
+                    source.channels.add(newChannel);
                 }
+            }
+
+        }
+
+        public Source hasSource(String deviceName){
+            for (Source s : sources){
+                if (s.name.equals(deviceName))
+                    return s;
+            }
+            return null;
+        }
+
+        public void deleteSource(String deviceName){
+            for (Iterator<Source> i = sources.iterator(); i.hasNext();){
+                Source s = i.next();
+                if (s.name.equals(deviceName))
+                    i.remove();
             }
 
         }
     }
 
-    private static class SourceInfo{
-        Source info;
+    public static class SourceInfo{
+        public Source info;
 
         public SourceInfo(ChannelInfoResponse infoResponse, String deviceName){
             info = new Source();
@@ -643,24 +844,24 @@ public class BodyTrackHelper {
 
     }
 
-    private static class Source{
-        String name;
-        ArrayList<Channel> channels;
-        Double min_time;
-        Double max_time;
+    public static class Source{
+        public String name;
+        public ArrayList<Channel> channels;
+        public Double min_time = 0.0;
+        public Double max_time = 0.0;
     }
 
-    private static class Channel{
-        String type;
-        ChannelStyle builtin_default_style;
-        ChannelStyle style;
-        double max;
-        double min;
-        Double min_time;
-        Double max_time;
-        String name;
-        String objectTypeName;
-        String time_type;
+    public static class Channel{
+        public String type;
+        public ChannelStyle builtin_default_style;
+        public ChannelStyle style;
+        public double max;
+        public double min;
+        public Double min_time;
+        public Double max_time;
+        public String name;
+        public String objectTypeName;
+        public String time_type;
 
         public Channel(){
             // time_type defaults to gmt.  It can be overridden to "local" for channels that only know local time
@@ -685,17 +886,18 @@ public class BodyTrackHelper {
         }
     }
 
-    private static class ViewChannelData extends Channel{
-        Integer channel_height;
-        String channel_name;
-        String device_name;
+    public static class ViewChannelData extends Channel{
+        public Integer channel_height;
+        public String channel_name;
+        public String device_name;
     }
 
 
-    private static class ChannelStyle{
-        HighlightStyling highlight;
-        CommentStyling comments;
-        ArrayList<Style> styles;
+    public static class ChannelStyle{
+        public HighlightStyling highlight;
+        public CommentStyling comments;
+        public ArrayList<Style> styles;
+        public MainTimespanStyle timespanStyles;
 
         public static ChannelStyle getDefaultChannelStyle(String name){
             ChannelStyle style = new ChannelStyle();
@@ -718,31 +920,44 @@ public class BodyTrackHelper {
 
     }
 
-    private static class CommentStyling{
-        Boolean show;
-        Integer verticalMargin;
-        ArrayList<Style> styles;
+    public static class TimespanStyle{
+        public Integer borderWidth;
+        public String borderColor;
+        public String fillColor;
+        public Double top;
+        public Double bottom;
     }
 
-    private static class HighlightStyling{
-        Integer lineWidth;
-        ArrayList<Style> styles;
+    public static class MainTimespanStyle{
+        public TimespanStyle defaultStyle;
+        public Map<String, TimespanStyle> values;
     }
 
-    private static class Style{
-        String type;
-        Integer lineWidth;
-        String color;
-        String fillColor;
-        Integer marginWidth;
-        String numberFormat;
-        Integer verticalOffset;
-        Integer radius;
-        Boolean fill;
-        Boolean show;
+    public static class CommentStyling{
+        public Boolean show;
+        public Integer verticalMargin;
+        public ArrayList<Style> styles;
     }
 
-    private static final class DataStoreExecutionResult implements BodyTrackUploadResult {
+    public static class HighlightStyling{
+        public Integer lineWidth;
+        public ArrayList<Style> styles;
+    }
+
+    public static class Style{
+        public String type;
+        public Integer lineWidth;
+        public String color;
+        public String fillColor;
+        public Integer marginWidth;
+        public String numberFormat;
+        public Integer verticalOffset;
+        public Integer radius;
+        public Boolean fill;
+        public Boolean show;
+    }
+
+    public static final class DataStoreExecutionResult implements BodyTrackUploadResult {
         private final int statusCode;
         private final String response;
 

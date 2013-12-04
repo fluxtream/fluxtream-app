@@ -1,0 +1,403 @@
+@charset "UTF-8";
+
+body, html {
+  font-family: 'Open Sans', Arial, Helvetica, sans-serif;
+  text-align: center;
+  color: #5E5E5E;
+  background: white;
+  padding: 0;
+  margin: 0;
+  border: 0px;
+  display: block;
+  overflow-x: hidden;
+  border: 1px black;
+  font-size: 14px;
+}
+
+#wrapper {
+    line-height: normal;
+}
+
+#wrapper h1 {
+    line-height: normal;
+}
+
+#header {
+  margin: 0 auto;
+  margin-top: 20px;
+  color: #5E5E5E;
+  width: 850px;
+  height: 77px;
+}
+
+.logo {
+  background: url("../images/logo.png");
+  float: left;
+  width: 250px;
+  height: 56px;
+  margin-left: 0px;
+}
+
+.login_container {
+  float: right;
+  margin-top: -2px;
+  margin-right: 5px;
+}
+
+.login_container a:visited {
+  text-decoration: none;
+}
+
+.login_container a:link {
+  text-decoration: none;
+}
+
+.login_container a:hover {
+  text-decoration: underline;
+}
+
+.username_txt {
+  float: left;
+  margin-bottom: -1px;
+  font-size: 13px !important;
+}
+
+.password_txt {
+  float: left;
+  margin-bottom: -1px;
+  font-size: 13px !important;
+}
+
+.recover_email_txt {
+    float: left;
+    margin-bottom: -1px;
+    font-size: 13px !important;
+}
+
+.recover_email_input {
+    float: left;
+    margin-left: -1px;
+    margin-right: 15px;
+    width: 150px;
+    height: 10px !important;
+    border-radius: 1px !important;
+}
+
+.username_input {
+  float: left;
+  margin-left: -1px;
+  margin-right: 15px;
+  width: 150px;
+  height: 10px !important;
+  border-radius: 1px !important;
+}
+
+.password_input {
+  float: left;
+  margin-left: -1px;
+  margin-right: 15px;
+  width: 150px;
+  height: 10px !important;
+  border-radius: 1px !important;
+}
+
+.forgotPassword {
+  font-size: 12px;
+  float: left;
+  margin-top: -10px;
+}
+
+.login_btn {
+  float: left;
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #ffffff;
+  -webkit-border-top-left-radius: 0px;
+  -moz-border-radius-topleft: 0px;
+  border-top-left-radius: 0px;
+  -webkit-border-top-right-radius: 0px;
+  -moz-border-radius-topright: 0px;
+  border-top-right-radius: 0px;
+  -webkit-border-bottom-right-radius: 0px;
+  -moz-border-radius-bottomright: 0px;
+  border-bottom-right-radius: 0px;
+  -webkit-border-bottom-left-radius: 0px;
+  -moz-border-radius-bottomleft: 0px;
+  border-bottom-left-radius: 0px;
+  text-indent: 0;
+  border: 1px solid #5995de;
+  display: inline-block;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  font-style: normal;
+  width: 100px;
+  height: 35px;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  background-color: #5995de;
+  border-radius: 2px;
+  margin-right: 5px;
+  margin-top: -2px;
+}
+
+.login_btn:active {
+  position: relative;
+  top: 1px;
+}
+
+#introBar {
+  background-color: #5995de;
+  height: 400px;
+}
+
+#intro {
+  width: 850px;
+  margin: 0 auto;
+}
+
+.intro_video {
+  float: left;
+  margin-top: 35px;
+  box-shadow: 0px 0px 10px 5px #3072c3;
+}
+
+.intro_txt {
+  margin-left: 50px;
+  color: white;
+  font-size: 20px;
+  width: 350px;
+  float: left;
+  text-align: left;
+  margin-top: 71px;
+}
+
+.register_txt {
+	float: left;
+	text-align: left;
+	font-size: 30px;
+	color: white;
+	margin-left: 48px;
+	font-weight: bold;
+}
+
+.register_btn {
+  float: left;
+  font-family: Arial, Helvetica, sans-serif;
+  box-shadow: 0px 0px 5px 1px #3072c3;
+  background-color: #ffffff;
+  -webkit-border-top-left-radius: 0px;
+  -moz-border-radius-topleft: 0px;
+  border-top-left-radius: 0px;
+  -webkit-border-top-right-radius: 0px;
+  -moz-border-radius-topright: 0px;
+  border-top-right-radius: 0px;
+  -webkit-border-bottom-right-radius: 0px;
+  -moz-border-radius-bottomright: 0px;
+  border-bottom-right-radius: 0px;
+  -webkit-border-bottom-left-radius: 0px;
+  -moz-border-radius-bottomleft: 0px;
+  border-bottom-left-radius: 0px;
+  text-indent: 0;
+  border: 1px solid #3072c3;
+  display: inline-block;
+  color: #3072c3;
+  font-size: 26px;
+  font-weight: bold;
+  font-style: normal;
+  width: 180px;
+  height: 50px;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  background-color: white;
+  border-radius: 3px;
+  margin-left: 35px;
+  margin-top: -2px;
+  outline: none;
+}
+
+.register_btn:hover {
+  box-shadow: 0px 0px 15px 5px #3072c3;
+}
+
+.register_btn:active {
+  position: relative;
+  top: 1px;
+}
+
+#content {
+  width: 850px;
+  margin: 0 auto;
+}
+
+.screenshot_txt_1 {
+  text-align: left;
+  font-size: 22px;
+  float: left;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  margin-left: 20px;
+  width: 300px;
+}
+
+.screenshot_txt_2 {
+  text-align: left;
+  font-size: 18px;
+  float: left;
+  margin-top: 15px;
+  margin-left: 20px;
+  margin-bottom: 0px;
+  width: 300px;
+}
+
+.connector_img {
+  background: url("../images/connectors.png");
+  float: left;
+  margin-top: 0px;
+  width: 188px;
+  height: 878px;
+  margin-left: 8px;
+  margin-top: 30px;
+  border: 1px solid #a3a3a3;
+}
+
+.screenshot_img_general {
+    max-width: 400px;
+    float: left;
+    width: 300px;
+    height: 200px;
+    border: 1px solid #a3a3a3;
+}
+
+.screenshot_img_1 {
+  background: url("../images/s1.png");
+  margin-top: 30px;
+}
+
+.screenshot_img_2 {
+  background: url("../images/s2.png");
+  margin-top: 9px;
+}
+
+.screenshot_img_3 {
+  background: url("../images/s3.png");
+  margin-top: 9px;
+}
+
+.screenshot_img_4 {
+  background: url("../images/s4.png");
+  margin-top: 9px;
+}
+
+.line1 {
+  margin-top: 17px;
+  width: 850px;
+  border: 0;
+  border-top: 1px solid #dfdfdf;
+}
+
+.about_txt {
+  text-align: justify;
+  font-size: 14px;
+  float: left;
+  margin-top: 6px;
+  margin-bottom: -15px;
+}
+
+.nav {
+  float: left;
+  font-size: 14px;
+}
+
+.nav ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav a:visited {
+  text-decoration: none;
+}
+
+.nav a:link {
+  text-decoration: none;
+}
+
+.nav a:hover {
+  text-decoration: underline;
+}
+
+.nav li {
+  display: inline;
+}
+
+.nav li:hover {
+  text-decoration: underline;
+}
+
+.guideLink {
+  padding-right: 9px;
+  border-right: 1px solid #5E5E5E;
+/* Remove the following padding-left when the learn more link is added back */
+   padding-left: 80px;
+}
+
+.policyLink {
+  margin-left: 7px;
+  padding-right: 11px;
+  border-right: 1px solid #5E5E5E;
+}
+
+.developerLink {
+  margin-left: 7px;
+/* Re-enable the following two lines when the learn more link is added back
+  padding-right: 11px;
+  border-right: 1px solid #5E5E5E;
+  */
+}
+
+.learnMoreLink {
+  margin-left: 8px;
+}
+
+#footerBar {
+  background-color: #5995de;
+  height: 100px;
+  margin-top: 110px;
+}
+
+#footer {
+  width: 850px;
+  margin: 0 auto;
+}
+
+.createLab_logo {
+  background: url("../images/createlab.png");
+  float: left;
+  width: 163px;
+  height: 22px;
+  margin-top: 37px;
+}
+
+.creator {
+  color: white;
+  float: right;
+  margin-top: 33px;
+}
+
+.copyright {
+  color: white;
+  float: right;
+  margin-right: -418px;
+  margin-top: 50px;
+}
+
+.sc_highlight > td {
+    padding-bottom: 1em;
+}
+
+.nav {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}

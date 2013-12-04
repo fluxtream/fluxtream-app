@@ -4,12 +4,17 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import com.fluxtream.ApiData;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.AbstractLocalTimeFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
+import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import com.fluxtream.aspects.FlxLogger;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,8 +22,8 @@ public class FitbitActivityFacetExtractor extends AbstractFacetExtractor {
 
 	FlxLogger logger = FlxLogger.getLogger(FitbitActivityFacetExtractor.class);
 
-	public List<AbstractFacet> extractFacets(ApiData apiData,
-			ObjectType objectType) {
+	public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, final ApiData apiData,
+			final ObjectType objectType) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 		JSONObject fitbitResponse = JSONObject.fromObject(apiData.json);
 
@@ -51,6 +56,15 @@ public class FitbitActivityFacetExtractor extends AbstractFacetExtractor {
 		logger.info("guestId=" + guestId +
                     " connector=fitbit action=extractSummaryActivityInfo");
 		facet.date = (String) apiData.updateInfo.getContext("date");
+
+        final DateTime dateTime = TimeUtils.dateFormatterUTC.parseDateTime(facet.date);
+
+        // returns the starting midnight for the date
+        facet.start = dateTime.getMillis();
+        facet.end = dateTime.getMillis()+ DateTimeConstants.MILLIS_PER_DAY-1;
+
+        facet.startTimeStorage = facet.date + "T00:00:00.000";
+        facet.endTimeStorage = facet.date + "T23:59:59.999";
 
 		if (fitbitSummary.containsKey("activeScore"))
 			facet.activeScore = fitbitSummary.getInt("activeScore");
@@ -120,9 +134,14 @@ public class FitbitActivityFacetExtractor extends AbstractFacetExtractor {
             facet.date = (String) apiData.updateInfo.getContext("date");
 
             final String startTime = loggedActivity.getString("startTime");
-			if (loggedActivity.containsKey("duration")) {
+
+            facet.startTimeStorage = facet.endTimeStorage = facet.date+"T" + startTime+":00.000";
+            if (loggedActivity.containsKey("duration")) {
                 final int duration = loggedActivity.getInt("duration");
-                facet.duration = duration;
+                final DateTime startDateTime = AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().parseDateTime(facet.startTimeStorage);
+                final DateTime endDateTime = startDateTime.plus(duration);
+                facet.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().print(endDateTime.getMillis());
+                facet.end = endDateTime.getMillis();
             }
 			if (loggedActivity.containsKey("activityId"))
 				facet.activityId = loggedActivity.getLong("activityId");
@@ -149,5 +168,11 @@ public class FitbitActivityFacetExtractor extends AbstractFacetExtractor {
 		}
 
 	}
+
+    public static void main(final String[] args) {
+        final DateTime startDateTime = AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().parseDateTime("2013-05-19T10:51:00.000");
+        final DateTime endDateTime = startDateTime.plus(1000);
+        System.out.println(AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().print(endDateTime.getMillis()));
+    }
 
 }

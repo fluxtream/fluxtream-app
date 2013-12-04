@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.sql.DataSource;
 import com.fluxtream.ApiData;
 import com.fluxtream.Configuration;
@@ -19,34 +22,35 @@ import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.dao.FacetDao;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.AbstractRepeatableFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.domain.Tag;
 import com.fluxtream.domain.TagFilter;
-import com.fluxtream.domain.metadata.City;
-import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.events.DataReceivedEvent;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
+import com.fluxtream.metadata.DayMetadata;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.EventListenerService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
-import com.fluxtream.thirdparty.helpers.WWOHelper;
+import com.fluxtream.services.SettingsService;
 import com.fluxtream.utils.JPAUtils;
-import com.fluxtream.utils.Utils;
+import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONObject;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.core.type.filter.AssignableTypeFilter;
+import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -54,7 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Component
-public class ApiDataServiceImpl implements ApiDataService {
+public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 
 	static FlxLogger logger = FlxLogger.getLogger(ApiDataServiceImpl.class);
     private static final FlxLogger LOG_DEBUG = FlxLogger.getLogger("Fluxtream");
@@ -87,24 +91,37 @@ public class ApiDataServiceImpl implements ApiDataService {
     EventListenerService eventListenerService;
 
     @Autowired
-    WWOHelper wwoHelper;
-
-    @Autowired
-    ServicesHelper servicesHelper;
-
-    @Autowired
     @Qualifier("AsyncWorker")
     ThreadPoolTaskExecutor executor;
 
-    private static final DateTimeFormatter formatter = DateTimeFormat
-            .forPattern("yyyy-MM-dd");
+    @Autowired
+    SettingsService settingsService;
+
+    @Override
+    public AbstractFacetVO<AbstractFacet> getFacet(final int api, final int objectType, final long facetId) {
+        Connector connector = Connector.fromValue(api);
+        final ObjectType ot = ObjectType.getObjectType(connector, objectType);
+        final AbstractFacet facet = em.find(ot.facetClass(), facetId);
+        final GuestSettings guestSettings = settingsService.getSettings(facet.guestId);
+        final TimeZone timeZone = metadataService.getTimeZone(facet.guestId, facet.start);
+        final String date = TimeUtils.dateFormatter.withZone(DateTimeZone.forTimeZone(timeZone)).print(facet.start);
+        final DayMetadata dayMetadata = metadataService.getDayMetadata(facet.guestId, date);
+        try {
+            final AbstractFacetVO<AbstractFacet> vo = AbstractFacetVO.getFacetVOClass((AbstractFacet)facet).newInstance();
+            vo.extractValues(facet, dayMetadata.getTimeInterval(), guestSettings);
+            return vo;
+        }
+        catch (Exception e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            return null;
+        }
+    }
 
     @Override
 	@Transactional(readOnly = false)
 	public void cacheApiDataObject(UpdateInfo updateInfo, long start, long end,
 			AbstractFacet payload) {
 		payload.api = updateInfo.apiKey.getConnector().value();
-		payload.objectType = updateInfo.objectTypes;
 		payload.guestId = updateInfo.apiKey.getGuestId();
 		payload.timeUpdated = System.currentTimeMillis();
 
@@ -251,7 +268,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 	@Override
 	@Transactional(readOnly = false)
 	public void eraseApiData(ApiKey apiKey) {
-        JPAUtils.execute(em, "apiUpdates.delete.byApiKey", apiKey.getGuestId(), apiKey.getConnector().value(), apiKey.getId());
+        JPAUtils.execute(em, "apiUpdates.delete.byApiKey", apiKey.getId());
 		if (!apiKey.getConnector().hasFacets())
 			return;
 		jpaDao.deleteAllFacets(apiKey);
@@ -272,8 +289,8 @@ public class ApiDataServiceImpl implements ApiDataService {
     }
 
     @Override
-    public <T> List<T> getApiDataFacets(final ApiKey apiKey, final ObjectType objectType, final List<String> dates, final Class<T> clazz) {
-        return (List<T>) jpaDao.getFacetsByDates(apiKey, objectType, dates);
+    public List<AbstractRepeatableFacet> getApiDataFacets(final ApiKey apiKey, final ObjectType objectType, final String startDate, final String endDate) {
+        return jpaDao.getFacetsBetweenDates(apiKey, objectType, startDate, endDate);
     }
 
     @Override
@@ -290,21 +307,13 @@ public class ApiDataServiceImpl implements ApiDataService {
     }
 
     @Override
-    public <T> List<T> getApiDataFacets(ApiKey apiKey,
-                                        ObjectType objectType,
-                                        TimeInterval timeInterval,
-                                        Class<T> clazz) {
-        return (List<T>)jpaDao.getFacetsBetween(apiKey, objectType, timeInterval);
-    }
-
-    @Override
     public AbstractFacet getOldestApiDataFacet(ApiKey apiKey, ObjectType objectType){
-        return jpaDao.getOldestFacet(apiKey,objectType);
+        return jpaDao.getOldestFacet(apiKey, objectType);
     }
 
     @Override
     public AbstractFacet getLatestApiDataFacet(ApiKey apiKey, ObjectType objectType){
-        return jpaDao.getLatestFacet(apiKey,objectType);
+        return jpaDao.getLatestFacet(apiKey, objectType);
     }
 
     @Override
@@ -342,15 +351,17 @@ public class ApiDataServiceImpl implements ApiDataService {
 	@Transactional(readOnly = false)
 	private List<AbstractFacet> extractFacets(ApiData apiData, int objectTypes,
 			UpdateInfo updateInfo) throws Exception {
+        List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
 		AbstractFacetExtractor facetExtractor = apiData.updateInfo.apiKey
 				.getConnector().extractor(objectTypes, beanFactory);
-		facetExtractor.setUpdateInfo(updateInfo);
+        if (facetExtractor==null)
+            return newFacets;
+
 		List<ObjectType> connectorTypes = ObjectType.getObjectTypes(
 				apiData.updateInfo.apiKey.getConnector(), objectTypes);
-		List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
 		if (connectorTypes != null) {
 			for (ObjectType objectType : connectorTypes) {
-				List<AbstractFacet> facets = facetExtractor.extractFacets(
+				List<AbstractFacet> facets = facetExtractor.extractFacets(updateInfo,
 						apiData, objectType);
 				for (AbstractFacet facet : facets) {
 					AbstractFacet newFacet = persistFacet(facet);
@@ -359,7 +370,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 				}
 			}
 		} else {
-			List<AbstractFacet> facets = facetExtractor.extractFacets(apiData,
+			List<AbstractFacet> facets = facetExtractor.extractFacets(updateInfo, apiData,
 					null);
 			for (AbstractFacet facet : facets) {
 				AbstractFacet newFacet = persistFacet(facet);
@@ -381,10 +392,11 @@ public class ApiDataServiceImpl implements ApiDataService {
 			entityName = entityAnnotation.name();
 			facetEntityNames.put(facet.getClass().getName(), entityName);
 		}
-        Query query = em.createQuery("SELECT e FROM " + entityName + " e WHERE e.guestId=? AND e.start=? AND e.end=?");
+        Query query = em.createQuery("SELECT e FROM " + entityName + " e WHERE e.guestId=? AND e.start=? AND e.end=? AND e.apiKeyId=?");
 		query.setParameter(1, facet.guestId);
 		query.setParameter(2, facet.start);
 		query.setParameter(3, facet.end);
+        query.setParameter(4, facet.apiKeyId);
 		@SuppressWarnings("rawtypes")
 		List existing = query.getResultList();
 		if (existing.size()>0) {
@@ -452,17 +464,18 @@ public class ApiDataServiceImpl implements ApiDataService {
 
     @Override
     @Transactional(readOnly = false)
-    public <T extends AbstractFacet> T createOrReadModifyWrite(
+    public <T extends AbstractFacet> T createOrReadModifyWrite (
             Class<? extends AbstractFacet> facetClass, FacetQuery query, FacetModifier<T> modifier, Long apiKeyId) {
         //System.out.println("========================================");
         // TODO(rsargent): do we need @Transactional again on class?
 
         String tableName=getTableName(facetClass);
-        Query q = em.createQuery("SELECT e FROM " + tableName + " e WHERE " + query.query);
+        final String qlString = "SELECT e FROM " + tableName + " e WHERE " + query.query;
+        Query q = em.createQuery(qlString);
         for (int i = 0; i < query.args.length; i++) {
             q.setParameter(i+1, query.args[i]);
         }
-        T orig;
+        T orig = null;
         try {
             @SuppressWarnings("unchecked")
             T x = orig = (T) q.getSingleResult();
@@ -473,26 +486,39 @@ public class ApiDataServiceImpl implements ApiDataService {
         } catch (javax.persistence.NoResultException ignored) {
             orig = null;
             //System.out.println("====== Didn't find facet;  need to create new one");
+        } catch (NonUniqueResultException nonUnique) {
+            // pretend everything's OK
+            orig = (T) q.getResultList().get(0);
+            logger.info("WARNING: non unique exception here, query: " + qlString);
         }
 
-        T modified = modifier.createOrModify(orig, apiKeyId);
-        // createOrModify must return passed argument if it is not null
-        assert(orig == null || orig == modified);
-        assert(false);
-        assert (modified != null);
-        //System.out.println("====== after modify, contained?: " + em.contains(modified));
-        if (orig == null) {
-            // Persist the newly-created facet (and its tags, if any)
-            persistExistingFacet(modified);
-            //System.out.println("====== after persist, contained?: " + em.contains(modified));
-        } else {
-            if (modified.hasTags()) {
-                persistTags(modified);
+        try {
+            T modified = modifier.createOrModify(orig, apiKeyId);
+            // createOrModify must return passed argument if it is not null
+            // If the passed argument is null and the attempt to parse the
+            // new data into a valid facet fails, createOrModify may return null.
+            // In that case, just don't try to persist it.
+            assert(orig == null || orig == modified);
+            if(modified == null)
+               return null;
+
+            //System.out.println("====== after modify, contained?: " + em.contains(modified));
+            if (orig == null) {
+                // Persist the newly-created facet (and its tags, if any)
+                persistExistingFacet(modified);
+                //System.out.println("====== after persist, contained?: " + em.contains(modified));
+            } else {
+                if (modified.hasTags()) {
+                    persistTags(modified);
+                }
             }
+            assert(em.contains(modified));
+            //System.out.println("========================================");
+            return modified;
+        } catch (Throwable t) {
+            t.printStackTrace();
+            throw new RuntimeException("Couldn't createOrModify facet, orig=" + orig + ", facetClass=" + facetClass);
         }
-        assert(em.contains(modified));
-        //System.out.println("========================================");
-        return modified;
     }
 
     // Each user has a set of all tags.  persistTags makes sure this set of all tags includes the tags
@@ -537,7 +563,7 @@ public class ApiDataServiceImpl implements ApiDataService {
 					sb.append("]");
 				}
 			}
-			logger.warn(sb.toString());
+			logger.info(sb.toString());
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
@@ -565,107 +591,113 @@ public class ApiDataServiceImpl implements ApiDataService {
 		}
 	}
 
+    // addGuestLocation persists the location and adds it to the visited cities
+    // table.  The persistence does duplicate detection by checking for locations matching the time, source,
+    // and apiKeyId.  In the case of a duplicate the new locationFacet is not persisted.
     @Override
     @Transactional(readOnly = false)
     public void addGuestLocations(final long guestId, List<LocationFacet> locationResources) {
+        // Only call updateLocationMetadata for the subset of locations which we did not already know about.
+        // Keep track of which locations are new in newLocations.
+        List<LocationFacet> newLocations = new ArrayList<LocationFacet>();
         for (LocationFacet locationResource : locationResources) {
             locationResource.guestId = guestId;
-            // setting the processed flag to false
-            // will make it recognizable for a separate background task to pick it up and update daymetadata,
-            // which takes time
-            locationResource.processed = false;
-            em.persist(locationResource);
-            //
-            processLocation(locationResource);
+            if(persistLocation(locationResource)) {
+                newLocations.add(locationResource);
+            }
         }
+        metadataService.updateLocationMetadata(guestId, newLocations);
     }
+
+    // addGuestLocations persists a list of locations and adds them to the visited cities
+    // table.  The persistence does duplicate detection by checking for locations matching the time, source,
+    // and apiKeyId.  In the case of a duplicate the new locationFacet is not persisted.
 
     @Override
     @Transactional(readOnly = false)
     public void addGuestLocation(final long guestId, LocationFacet locationResource) {
         locationResource.guestId = guestId;
-        // setting the processed flag to false
-        // will make it recognizable for a separate background task to pick it up and update daymetadata,
-        // which takes time
-        locationResource.processed = false;
-        em.persist(locationResource);
-        processLocation(locationResource);
-    }
-
-    @Transactional(readOnly = false)
-    public void processLocation(LocationFacet locationResource) {
-        // Create query to check for duplicate
-        Query query = em.createQuery("SELECT e FROM Facet_Location e WHERE e.guestId=? AND e.start=? AND e.processed=true");
-        query.setParameter(1, locationResource.guestId);
-		query.setParameter(2, locationResource.timestampMs);
-		@SuppressWarnings("rawtypes")
-		List existing = query.getResultList();
-        // Only update Day metadata and persist if this location datapoint is not yet present in the DB table
-		if (existing.size()==0) {
-            // Fill in guestId, timeUpdated, and source.  These were removed in commit
-            // 2c8539c76acbbcd2576458c9ea0144d910a5d836 and location data tables using versions between
-            // there and here will have all location data assigned to guestId=0.  Connectors updated with
-            // those versions need to be removed and re-added or they will have data gaps
-            locationResource.timeUpdated=System.currentTimeMillis();
-            if(locationResource.source==LocationFacet.Source.GOOGLE_LATITUDE) {
-                locationResource.api=Connector.getConnector("google_latitude").value();
-            }
-            else if(locationResource.source==LocationFacet.Source.RUNKEEPER) {
-                locationResource.api=Connector.getConnector("runkeeper").value();
-            }
-            else {
-                locationResource.api=0;// This happens when GuestServiceImpl CheckIn function uses ip lookup
-            }
-
-            // Put updateDayMetadata in a try/catch block because we don't want to fail update or
-            // fail to persist this datapoint due to some problem in the timezone detection, etc.
-            try {
-                updateDayMetadata(locationResource.guestId, locationResource.timestampMs, locationResource.latitude, locationResource.longitude);
-            } catch(Throwable e) {
-                StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=addGuestLocation")
-                                    .append(" latitude=").append(locationResource.latitude)
-                                    .append(" longitude=").append(locationResource.longitude)
-                                    .append(" guestId=").append(locationResource.guestId)
-                                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
-                logger.warn(sb.toString());
-            }
-
-            // make location datapoint "legit"
-            locationResource.processed = true;
-            // Persist the location
-            // avoid persisting a facet that was just deleted (as a result of an interrupted update for example)
-            if (em.find(LocationFacet.class, locationResource.getId())!=null)
-                em.merge(locationResource);
-        } else {
-            locationResource = em.merge(locationResource);
-            em.remove(locationResource);
-            StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=addGuestLocation")
-                    .append(" latitude=").append(locationResource.latitude)
-                    .append(" longitude=").append(locationResource.longitude)
-                    .append(" guestId=").append(locationResource.guestId)
-                    .append(" message=\"deleted duplicate locationFacet\"");
-            logger.info(sb.toString());
+        // Persist the location and find out if it is new or not.  Only call updateLocationMetadata
+        // if we did not already know about this location
+        if(persistLocation(locationResource)) {
+            List<LocationFacet> locationResources = new ArrayList<LocationFacet>();
+            locationResources.add(locationResource);
+            metadataService.updateLocationMetadata(guestId, locationResources);
         }
     }
 
     @Transactional(readOnly = false)
-    private void updateDayMetadata(long guestId, long time, float latitude,
-                                  float longitude) {
-        City city = metadataService.getClosestCity((double)latitude, (double)longitude);
-        String date = formatter.withZone(DateTimeZone.forID(city.geo_timezone))
-                .print(time);
+    public boolean persistLocation(LocationFacet locationResource) {
+        // Create query to check for duplicate, return true if this is a new
+        // location; false otherwise
+        Query query = em.createQuery("SELECT e FROM Facet_Location e WHERE e.guestId=? AND e.start=? AND e.source=? AND e.apiKeyId=?");
+        query.setParameter(1, locationResource.guestId);
+		query.setParameter(2, locationResource.timestampMs);
+        query.setParameter(3, locationResource.source);
+        query.setParameter(4, locationResource.apiKeyId);
+		@SuppressWarnings("rawtypes")
+		List existing = query.getResultList();
+        // Only persist if this location datapoint is not yet present in the DB table
+		if (existing.size()==0) {
+            // This is a new location, persist it
+            em.persist(locationResource);
+            return true;
+       } else {
+            // This is a duplicate location, ignore and print a message.
+            // TODO: consider what we should do if the new one differs from the
+            // stored location.  Should we do a merge?
+            //StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=addGuestLocation")
+            //        .append(" guestId=").append(locationResource.guestId)
+            //        .append(" source=").append(locationResource.source.toString())
+            //        .append(" apiKeyId=").append(locationResource.apiKeyId)
+            //        .append(" start=").append(locationResource.start)
+            //        .append(" latitude=").append(locationResource.latitude)
+            //        .append(" longitude=").append(locationResource.longitude)
+            //        .append(" message=\"ignoring duplicate locationFacet\"");
+            //logger.info(sb.toString());
+            return false;
+        }
+    }
 
-        DayMetadataFacet info = metadataService.getDayMetadata(guestId, date, true);
-        servicesHelper.addCity(info, city);
+    @Override
+    @Transactional(readOnly=false)
+    public void setComment(final String connectorName, final String objectTypeName, final long guestId, final long facetId,
+                           final String comment) {
+        final AbstractFacet facet = getFacet(connectorName, objectTypeName, facetId);
+        if (facet==null)
+            throw new RuntimeException("No such facet (connectorName: " + connectorName + ", objectTypeName: " + objectTypeName + ", guestId: " + guestId + ", facetId: " + facetId);
+        if (facet.guestId!=guestId)
+            throw new RuntimeException("Facet doesn't have the expected guestId (expected: " + guestId + ", actual: " + facet.guestId + ")");
+        facet.comment = comment;
+        em.persist(facet);
+    }
 
-        //TimeZone tz = TimeZone.getTimeZone(info.timeZone);
-        //List<WeatherInfo> weatherInfo = metadataService.getWeatherInfo(city.geo_latitude,
-        //                                                               city.geo_longitude, info.date,
-        //                                                               AbstractFacetVO.toMinuteOfDay(new Date(info.start), tz),
-        //                                                               AbstractFacetVO.toMinuteOfDay(new Date(info.end), tz));
-        //wwoHelper.setWeatherInfo(info, weatherInfo);
+    private AbstractFacet getFacet(final String connectorName, final String objectTypeName, final long facetId) {
+        final Connector connector = Connector.getConnector(connectorName);
+        Class<? extends AbstractFacet> facetClass = connector.facetClass();
+        if (objectTypeName!=null) {
+            final ObjectType objectType = ObjectType.getObjectType(connector, objectTypeName);
+            facetClass = objectType.facetClass();
+        }
 
-        em.merge(info);
+        final TypedQuery<AbstractFacet> query = em.createQuery("SELECT facet FROM " + facetClass.getName() + " facet WHERE id=?", AbstractFacet.class);
+        query.setParameter(1, facetId);
+        final List<AbstractFacet> resultList = query.getResultList();
+        if (resultList.size()>0)
+            return resultList.get(0);
+        else return null;
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void deleteComment(final String connectorName, final String objectTypeName, final long guestId, final long facetId) {
+        final AbstractFacet facet = getFacet(connectorName, objectTypeName, facetId);
+        if (facet==null)
+            throw new RuntimeException("No such facet (connectorName: " + connectorName + ", objectTypeName: " + objectTypeName + ", guestId: " + guestId + ", facetId: " + facetId);
+        if (facet.guestId!=guestId)
+            throw new RuntimeException("Facet doesn't have the expected guestId (expected: " + guestId + ", actual: " + facet.guestId + ")");
+        facet.comment = null;
+        em.persist(facet);
     }
 
     @Override
@@ -678,39 +710,40 @@ public class ApiDataServiceImpl implements ApiDataService {
     @Override
     @Transactional(readOnly = false)
     public void cleanupStaleData() throws Exception {
-        ClassPathScanningCandidateComponentProvider provider = new ClassPathScanningCandidateComponentProvider(true);
-        provider.addIncludeFilter(new AssignableTypeFilter(AbstractFacet.class));
-        Set<BeanDefinition> components = provider.findCandidateComponents("com.fluxtream");
+        ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(
+                false);
+        scanner.addIncludeFilter(new AnnotationTypeFilter(Entity.class));
+        Set<BeanDefinition> components = scanner.findCandidateComponents("com.fluxtream");
         for (BeanDefinition component : components)
         {
             Class cls = Class.forName(component.getBeanClassName());
-            if (AbstractFacet.class.isAssignableFrom(cls)) {
-                final String entityName = JPAUtils.getEntityName(cls);
-                System.out.println("cleaning up " + entityName + "...");
-                if (entityName.startsWith("Facet_")) {
-                    if (!JPAUtils.hasRelation(cls)) {
-                        Query query = em
-                                .createNativeQuery("DELETE FROM " + entityName + " WHERE apiKeyId NOT IN (SELECT DISTINCT id from ApiKey);");
-                        final int i = query.executeUpdate();
+            final String entityName = JPAUtils.getEntityName(cls);
+            System.out.println("cleaning up " + entityName + "...");
+            if (entityName.startsWith("Facet_")) {
+                if (!JPAUtils.hasRelation(cls)) {
+                    // Clean up entries for apiKeyId's which are no longer present in the system, but preserve items with
+                    // api=0 to preserve the locations generated from reverse IP lookup when the users log in.
+                    Query query = em
+                            .createNativeQuery("DELETE FROM " + entityName + " WHERE (apiKeyId NOT IN (SELECT DISTINCT id from ApiKey)) AND api!=0;");
+                    final int i = query.executeUpdate();
+                    StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=deleteStaleData")
+                            .append(" facetTable=").append(entityName).append(" facetsDeleted=").append(i);
+                    logger.info(sb.toString());
+                } else {
+                    Query query = em
+                            .createNativeQuery("SELECT * FROM " + entityName + " WHERE (apiKeyId NOT IN (SELECT DISTINCT id from ApiKey)) AND api!=0;", cls);
+                    final List<?extends AbstractFacet> facetsToDelete = query.getResultList();
+                    final int i = facetsToDelete.size();
+                    if (i>0) {
+                        for (AbstractFacet facet : facetsToDelete) {
+                            em.remove(facet);
+                        }
                         StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=deleteStaleData")
                                 .append(" facetTable=").append(entityName).append(" facetsDeleted=").append(i);
                         logger.info(sb.toString());
-                    } else {
-                        Query query = em
-                                .createNativeQuery("SELECT * FROM " + entityName + " WHERE apiKeyId NOT IN (SELECT DISTINCT id from ApiKey);", cls);
-                        final List<?extends AbstractFacet> facetsToDelete = query.getResultList();
-                        final int i = facetsToDelete.size();
-                        if (i>0) {
-                            for (AbstractFacet facet : facetsToDelete) {
-                                em.remove(facet);
-                            }
-                            StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=deleteStaleData")
-                                    .append(" facetTable=").append(entityName).append(" facetsDeleted=").append(i);
-                            logger.info(sb.toString());
-                        }
                     }
-                    em.flush();
                 }
+                em.flush();
             }
         }
         Query query = em
@@ -721,4 +754,8 @@ public class ApiDataServiceImpl implements ApiDataService {
         logger.info(sb.toString());
     }
 
+    @Override
+    public void destroy() throws Exception {
+        executor.shutdown();
+    }
 }

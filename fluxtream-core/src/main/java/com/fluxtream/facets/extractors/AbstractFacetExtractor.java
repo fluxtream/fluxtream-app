@@ -1,27 +1,15 @@
 package com.fluxtream.facets.extractors;
 
 import java.util.List;
-
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 public abstract class AbstractFacetExtractor {
 
-    protected final static DateTimeFormatter dateFormatter = DateTimeFormat
-            .forPattern("yyyy-MM-dd");
-
-    protected UpdateInfo updateInfo;
-
-	public void setUpdateInfo(UpdateInfo updateInfo) {
-		this.updateInfo = updateInfo;
-	}
-	
-	protected Connector connector() {
+	protected Connector connector(UpdateInfo updateInfo) {
 		return updateInfo.apiKey.getConnector();
 	}
 
@@ -42,12 +30,22 @@ public abstract class AbstractFacetExtractor {
         return date + "T12:00:00.000";
     }
 
+    protected String toTimeStorage(int year, int month, int day, int hours,
+                                   int minutes, int seconds) {
+        //yyyy-MM-dd'T'HH:mm:ss.SSS
+        return (new StringBuilder()).append(year)
+                .append("-").append(pad(month)).append("-")
+                .append(pad(day)).append("T").append(pad(hours))
+                .append(":").append(pad(minutes)).append(":")
+                .append(pad(seconds)).append(".000").toString();
+    }
+
     protected static String pad(int i) {
         return i<10
                ? (new StringBuilder("0").append(i)).toString()
                : String.valueOf(i);
     }
 
-	public abstract List<AbstractFacet> extractFacets(ApiData apiData,
+	public abstract List<AbstractFacet> extractFacets(UpdateInfo updateInfo, ApiData apiData,
 			ObjectType objectType) throws Exception;
 }

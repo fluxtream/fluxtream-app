@@ -2,19 +2,32 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         "ConnectorConfig", "core/DateUtils", "core/StringUtils"],
        function(Application, FlxState, Builder, Datepicker, ConnectorConfig, DateUtils, StringUtils) {
 
-	var Calendar = new Application("calendar", "Candide Kemmler", "icon-calendar");
+	var Calendar = new Application("calendar", "Candide Kemmler", "icon-calendar", "Calendar App");
 
     var needDigestReload = false;
+    var currentCityPool;
+    var foursquareVenueTemplate;
 
     Calendar.currentTabName = Builder.tabs["date"][0];
     Calendar.currentTab = null;
     Calendar.tabState = null;
     Calendar.digest = null;
+    Calendar.weather = null;
     Calendar.timeUnit = "date";
     Calendar.digestTabState = false;
     Calendar.tabParam = null;
     Calendar.connectorEnabled = {"default":{}};
-    Calendar.timespanInited = false;
+    Calendar.timespanState = null;
+    Calendar.detailsTemplates = {};
+
+    App.loadAllMustacheTemplates("applications/calendar/facetTemplates.html",function(templates){
+        for (var templateId in templates){
+            Calendar.detailsTemplates[templateId] = templates[templateId];
+        }
+    });
+
+    Calendar.dateAxisCursorPosition = null;
+
     Calendar.timeRange = {
         updated: true,
         start: null,
@@ -37,15 +50,15 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		_.bindAll(this);
     };
 
-    function updateTimespan(currentTimespan) {
-        Calendar.timespanInited = true;
-        document.title = "Fluxtream Calendar | " + currentTimespan + " (" + Calendar.currentTabName + ")";
+    function updateTimespan(currentTimespan,currentState) {
+        Calendar.timespanState = currentState;
+        document.title = currentTimespan + " (" + Calendar.currentTabName + ")";
         $("#currentTimespanLabel span").html(currentTimespan);
     }
 
     function startLoading() {
         loading = true;
-        $(".calendar-navigation-button").addClass("disabled");
+        //$(".calendar-navigation-button").addClass("disabled");
         $(".loading").show();
         $("#tabs").css("opacity", ".3");
     }
@@ -53,9 +66,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     function stopLoading() {
         if (fetchId == latestFetchFinished){
             $("#tabs").css("opacity", "1");
-            $(".calendar-navigation-button").removeClass("disabled");
+            //$(".calendar-navigation-button").removeClass("disabled");
             $(".loading").hide();
         }
+        $(window).resize();
     }
 
     function handleError(msg) {
@@ -75,9 +89,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
            type: "GET",
            data: params,
            success: function(response) {
+               Calendar.dateAxisCursorPosition = null;
                Calendar.timeRange.start = response.start;
                Calendar.timeRange.end = response.end;
-               updateTimespan(response.currentTimespanLabel);
+               updateTimespan(response.currentTimespanLabel,params);
                Calendar.timeRange.updated = true;
                Calendar.navigateState(Calendar.currentTabName + "/" + response.state);
                // TODO: Change visible date in the datepicker to Sunday
@@ -146,24 +161,38 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             type: "GET",
             data: {state: state.tabState},
             success: function(response) {
+                Calendar.dateAxisCursorPosition = null;
                 Calendar.timeRange.start = response.start;
                 Calendar.timeRange.end = response.end;
-                updateTimespan(response.currentTimespanLabel);
+                updateTimespan(response.currentTimespanLabel,state.tabState);
+                Calendar.timeRange.updated = true;
                 stopLoading(doneLoadingId);
             },
             error: handleError("failed to fetch timespan label!")
         });
     }
 
+    function fetchWeatherData() {
+       $.ajax({ url: "/api/calendar/weather/"+Calendar.tabState,
+           success: function(response) {
+               // we should check that time boundaries are in line with the digest data
+               Calendar.weather = response;
+               var label = weatherLabel();
+               $(".ephemerisWrapper").remove();
+               $("#mainCityMetadata").prepend($("<span class='ephemerisWrapper'>" + label + "&nbsp;&nbsp;</span>"));
+           }
+       });
+    }
+
     function setDocumentTitle() {
-        document.title = "Fluxtream Calendar | " + $("#currentTimespanLabel").text().trim() + " (" + Calendar.currentTabName + ")";
+        document.title = $("#currentTimespanLabel").text().trim() + " (" + Calendar.currentTabName + ")";
     }
 
 	Calendar.renderState = function(state, forceUpdate) {
         startLoading();
         if (typeof state == "string")
             state = Calendar.parseState(state);
-        if (!Calendar.timespanInited) {
+        if (Calendar.timespanState !== state.tabState) {
             // NOTE: when loading a URL like /app/calendar/date/2012-12-25 directly,
             // the FlxState routes invoke renderState() directly instead of going
             // through fetchState. That bypasses the timespan label fetching, so we
@@ -187,6 +216,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             updateDatepicker(state);
             fetchCalendar(state);
         }
+        // Next time the page loads, won't accidentally believe that the timespan in the
+        // title and calendar bar has already been initialized
+        //Calendar.timespanInited = false;
 	};
 
     Calendar.setTabParam = function(tabParam){
@@ -214,33 +246,50 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     var fetchId = 0;
     var latestFetchFinished = 0;
+    var lastFetch = null;
 
 	function fetchCalendar(state) {
         needDigestReload = false;
         startLoading();
         var thisFetchId = ++fetchId;
-		$.ajax({
+        if (lastFetch != null)
+            lastFetch.abort();
+        lastFetch = $.ajax({
             url: "/api/calendar/all/" + state.tabState,
 			success : function(response) {
-                if (thisFetchId != fetchId)//filter out old fetch responses
+                if (thisFetchId != fetchId)//we litter the callback with these in case a we got to the callback but a new request started
                     return;
                 latestFetchFinished = thisFetchId;
                 if (response.result === "KO") {
                     handleError(response.message)();
                     return;
                 }
-                if (Calendar.timeUnit==="date") {
-                    handleCityInfo(response);
-                } else {
-                    $("#mainCity").empty();
-                }
                 Calendar.digest = response;
                 Calendar.digestTabState = state.tabState;
+                if (thisFetchId != fetchId)
+                    return;
                 enhanceDigest(Calendar.digest);
+                if (thisFetchId != fetchId)
+                    return;
+                Builder.updateTab(Calendar.digest, Calendar);
+                if (thisFetchId != fetchId)
+                    return;
                 processDigest(Calendar.digest);
-				Builder.updateTab(Calendar.digest, Calendar);
-                //stopLoading();
+                if (thisFetchId != fetchId)
+                    return;
+                Builder.updateTab(Calendar.digest, Calendar); //TODO: shouldn't be calling this twice really
+                if (thisFetchId != fetchId)
+                    return;
                 Builder.handleNotifications(response);
+                if (Calendar.timeUnit==="date") {
+                    $(".ephemerisWrapper").show();
+                    handleCityInfo(response);
+                    fetchWeatherData();
+                } else {
+                    $(".ephemerisWrapper").hide();
+                    $("#mainCity").empty();
+                    $("#visitedCitiesDetails").hide();
+                }
 			},
 			error: function(){
                 if (thisFetchId != fetchId)//we don't really care about errors on old fetches
@@ -251,39 +300,166 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		});
 	}
 
+    Calendar.processFacets = function(facets){
+        if (facets == null || facets.length == 0 || facets[0].getDetails != null)
+            return;
+        for (var i = 0, li = facets.length; i < li; i++){
+            var facet = facets[i];
+            facet.getDetails = function(array,showDate){
+                if (typeof(array) == "boolean"){
+                    showDate = array;
+                    array = null;
+                }
+                if (array == null)
+                    array = [this];
+                return buildDetails(array,showDate);
+            };
+            facet.shouldGroup = function(facet){
+                return shouldFacetsGroup(this,facet);
+            };
+            switch (facet.type){
+                case "picasa-photo":
+                case "flickr-photo":
+                case "fluxtream_capture-photo":
+                    facet.hasImage = true;
+                    break;
+                case "mymee-observation":
+                    facet.hasImage = facet.photoUrl != null;
+                    break;
+            }
+            if (facet.hasImage) {
+                var photo42 = facet.photoUrl;
+                if (typeof(facet.thumbnailUrl)!="undefined")
+                    photo42 = facet.thumbnailUrl;
+                if (facet.thumbnailUrls != null){
+                    var bestMatch = -1;
+                    var bestMatchAmmount = 0;
+                    for (var j in facet.thumbnailSizes){
+                        var size = facet.thumbnailSizes[j];
+                        var matchAmmount = (size.width - 42) * (size.width - 42) + (size.height - 42) * (size.height - 42);
+                        if (bestMatch == -1 || matchAmmount < bestMatchAmmount){
+                            bestMatchAmmount = matchAmmount;
+                            bestMatch = j;
+                        }
+                    }
+                    if (bestMatch != -1){
+                        photo42 = facet.thumbnailUrls[bestMatch];
+                    }
+                }
+                facet.photo42 = photo42;
+            }
+            if (facet.start == undefined){
+                if (facet.date != undefined && facet.date != null){
+                    var dateParts = facet.date.split("-");
+                    var year = parseInt(dateParts[0]);
+                    var month = parseInt(dateParts[1]) - 1;
+                    var day = parseInt(dateParts[2]);
+                    if (facet.startTime != null){
+                        var hours = parseInt(facet.startTime.hours);
+                        var minutes = parseInt(facet.startTime.minutes);
+                        if (facet.startTime.ampm == "pm" && hours < 12)
+                            hours += 12;
+                        facet.start = new Date(year,month,day,hours,minutes,0,0).getTime();
+                    }
+                    if (facet.endTime != null) {
+                        var hours = parseInt(facet.endTime.hours);
+                        var minutes = parseInt(facet.endTime.minutes);
+                        if (facet.endTime.ampm == "pm" && hours < 12)
+                            hours += 12;
+                        facet.end = new Date(year,month,day,hours,minutes,0,0).getTime();
+                        if (facet.end < facet.start){
+                            facet.end = new Date(year,month,day+1,hours,0,0).getTime();
+                        }
+                    }
+                }
+            }
+
+            if (facet.type === "moves-move"){
+                for (var j = 0, lj = facet.activities.length; j < lj; j++){
+                    var subfacet = facet.activities[j];
+                    subfacet.parentType = facet.type;
+                    subfacet.parentId = facet.id;
+                    subfacet.parentStartTime = facet.startTime;
+                    subfacet.parentEndTime = facet.endTime;
+                    subfacet.comment = facet.comment;
+                    subfacet.getDetails = function(array,showDate){
+                        if (typeof(array) == "boolean"){
+                            showDate = array;
+                            array = null;
+                        }
+                        if (array == null)
+                            array = [this];
+                        return buildDetails(array,showDate);
+                    };
+                    subfacet.shouldGroup = function(facet){
+                        return shouldFacetsGroup(this,facet);
+                    };
+
+                    if (subfacet.start == undefined){
+                        if (subfacet.date != undefined && subfacet.date != null){
+                            var dateParts = subfacet.date.split("-");
+                            var year = parseInt(dateParts[0]);
+                            var month = parseInt(dateParts[1]) - 1;
+                            var day = parseInt(dateParts[2]);
+                            if (subfacet.startTime != null){
+                                var hours = parseInt(subfacet.startTime.hours);
+                                var minutes = parseInt(subfacet.startTime.minutes);
+                                if (subfacet.startTime.ampm == "pm" && hours < 12)
+                                    hours += 12;
+                                subfacet.start = new Date(year,month,day,hours,minutes,0,0).getTime();
+                            }
+                            if (subfacet.endTime != null) {
+                                var hours = parseInt(subfacet.endTime.hours);
+                                var minutes = parseInt(subfacet.endTime.minutes);
+                                if (subfacet.endTime.ampm == "pm" && hours < 12)
+                                    hours += 12;
+                                subfacet.end = new Date(year,month,day,hours,minutes,0,0).getTime();
+                                if (subfacet.end < subfacet.start){
+                                    subfacet.end = new Date(year,month,day+1,hours,0,0).getTime();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+
+    }
+
     function enhanceDigest(digest){
-        digest.detailsTemplates = {};
+        if (typeof(digest.settings.messageDisplayCounters)!="undefined") {
+            App.setupBeginnersFriendlyUI(digest.settings.messageDisplayCounters, digest.nApis);
+        }
+        digest.getConsensusCitiesList = function(){
+            if (digest.metadata.timeUnit === "DAY")
+                return [digest.metadata.mainCity];
+            return digest.metadata.consensusCities;
+        };
+        digest.getCitiesList = function(){
+            if (digest.metadata.timeUnit === "DAY")
+                return [digest.metadata.mainCity];
+            return digest.metadata.cities;
+        };
         var templatePath = "applications/calendar/facetTemplates.html";
         function loadTemplate(name) {
             App.loadMustacheTemplate(templatePath, name, function(template){
                 if (template == null) {
                     console.log("WARNING: no template found for " + name + ".");
                 }
-                digest.detailsTemplates[name] = template;
+                Calendar.detailsTemplates[name] = template;
             });
         }
         $.each(digest.selectedConnectors, function(i, connector) {
             $.each(connector.facetTypes, function(j, facetType) {
-                console.log("loading facetType: " + facetType);
                 loadTemplate(facetType);
             });
         });
         loadTemplate("fluxtream-address");
+        loadTemplate("foursquare-venue");
+        loadTemplate("moves-move-activity");
         for (var connectorId in digest.cachedData){
-            $.each(digest.cachedData[connectorId], function(i, connector) {
-                connector.getDetails = function(array,showDate){
-                    if (typeof(array) == "boolean"){
-                        showDate = array;
-                        array = null;
-                    }
-                    if (array == null)
-                        array = [this];
-                    return buildDetails(digest,array,showDate);
-                };
-                connector.shouldGroup = function(facet){
-                    return shouldFacetsGroup(this,facet);
-                };
-            });
+            Calendar.processFacets(digest.cachedData[connectorId]);
             digest.cachedData[connectorId].hasImages = false;
             switch (connectorId){
                 case "picasa-photo":
@@ -293,13 +469,31 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     break;
                 case "mymee-observation":
                     for (var i = 0; i < digest.cachedData[connectorId].length && !digest.cachedData[connectorId].hasImages; i++){
-                        digest.cachedData[connectorId].hasImages = digest.cachedData[connectorId][i].photoUrl != null;
+                        digest.cachedData[connectorId].hasImages = digest.cachedData[connectorId][i].hasImage;
                     }
                     break;
             }
 
+            var connectorName = connectorId.split("-")[0];
+            var config = App.getConnectorConfig(connectorName);
+            var hasGeneralSettings = false;
+            if (typeof(config.hasGeneralSettings)!="undefined"&&config.hasGeneralSettings)
+                hasGeneralSettings = true;
             for (var i = 0; i < digest.cachedData[connectorId].length; i++){
                 var facet = digest.cachedData[connectorId][i];
+                if (typeof(config.isFilteredOut)!="undefined"&&config.isFilteredOut!=null) {
+                    var filteredOut = config.isFilteredOut(facet, digest.settings.connectorSettings);
+                    if (filteredOut) {
+                        digest.cachedData[connectorId].splice(i, 1);
+                        i = -1;
+                        continue;
+                    }
+                }
+            }
+            for (var i = 0; i < digest.cachedData[connectorId].length; i++){
+                var facet = digest.cachedData[connectorId][i];
+                if (hasGeneralSettings)
+                    config.applySettings(facet, digest.settings.connectorSettings);
                 if (digest.cachedData[connectorId].hasImages){
                     switch (connectorId){
                         case "picasa-photo":
@@ -311,8 +505,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                             facet.hasImage = facet.photoUrl != null;
                             break;
                     }
-                    if (facet.hasImage){
-                        var photo42 = facet.thumbnailUrl;
+                    if (facet.hasImage) {
+                        var photo42 = facet.photoUrl;
+                        if (typeof(facet.thumbnailUrl)!="undefined")
+                            photo42 = facet.thumbnailUrl;
                         if (facet.thumbnailUrls != null){
                             var bestMatch = -1;
                             var bestMatchAmmount = 0;
@@ -340,14 +536,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                         if (facet.startTime != null){
                             var hours = parseInt(facet.startTime.hours);
                             var minutes = parseInt(facet.startTime.minutes);
-                            if (facet.startTime.ampm == "pm")
+                            if (facet.startTime.ampm == "pm" && hours > 12)
                                 hours += 12;
                             facet.start = new Date(year,month,day,hours,minutes,0,0).getTime();
                         }
                         if (facet.endTime != null) {
                             var hours = parseInt(facet.endTime.hours);
                             var minutes = parseInt(facet.endTime.minutes);
-                            if (facet.endTime.ampm == "pm")
+                            if (facet.endTime.ampm == "pm" && hours > 12)
                                 hours += 12;
                             facet.end = new Date(year,month,day,hours,minutes,0,0).getTime();
                             if (facet.end < facet.start){
@@ -374,6 +570,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         switch (facet1.type){
             case "twitter-dm":
                 return facet1.sent == facet2.sent;
+            case "sms_backup-call_log":
+                return facet1.callType == facet2.callType;
+            case "sms_backup-sms":
+                return facet1.smsType == facet2.smsType;
         }
         return true;
     }
@@ -419,7 +619,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function buildAddressDetails(digest, address){
-        if (digest.detailsTemplates["fluxtream-address"] == null){
+        if (Calendar.detailsTemplates["fluxtream-address"] == null){
             console.log("WARNING: no template found for fluxtream-address.");
             return "";
         }
@@ -445,19 +645,22 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     params[member] = address[member];
             }
         }
-        return digest.detailsTemplates["fluxtream-address"].render(params);
+        return Calendar.detailsTemplates["fluxtream-address"].render(params);
     }
 
-    function buildDetails(digest,facets,showDate){
+    function buildDetails(facets,showDate){
         if (facets.length == 0)
             return"";
-        if (digest.detailsTemplates[facets[0].type] == null){
-            console.log("WARNING: hey, no template found for " + facets[0].type + ".");
-            return "";
+        if (Calendar.detailsTemplates[facets[0].type] == null){
+            console.warn("hey, no template found for " + facets[0].type + ".");
+            return $("");
         }
-        var params = {color:App.getFacetConfig(facets[0].type).color,facets:[],sent:facets[0].sent};
+        var facetConfig = App.getFacetConfig(facets[0].type);
+        var params = {color:facetConfig.color,facets:[],sent:facets[0].sent,callType:facets[0].callType,smsType:facets[0].smsType};
         for (var i = 0; i < facets.length; i++){
             var data = facets[i];
+            if (typeof(facetConfig.applySettings)!="undefined")
+                facetConfig.applySettings(data, Calendar.digest.settings.connectorSettings);
             var newFacet = {};
             params.facets[i] = newFacet;
             for (var member in data){
@@ -474,6 +677,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                                 break;
                             case "RUNKEEPER":
                                 newFacet[member] = "Runkeeper";
+                                break;
+                            case "FLUXTREAM_CAPTURE":
+                                newFacet[member] = "Fluxtream Capture";
+                                break;
+                            case "MOVES":
+                                newFacet[member] = "Moves";
                                 break;
                             case "OTHER":
                                 newFacet[member] = "IP lookup";
@@ -501,12 +710,45 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                             newFacet[member] = data[member];
                         }
                         break;
+                    case "averageHeartRate":
+                        newFacet[member] = data[member];
+                        newFacet.showHeartRate = newFacet[member] != 0;
+                        break;
+                    case "total_climb":
+                        newFacet[member] = data[member];
+                        newFacet.showClimb = newFacet[member] != 0;
+                        break;
+                    case "position":
+                        newFacet[member] = data[member];
+                        newFacet.hasPosition = true;
+                        break;
+                    case "uri":
+                        var parts = data[member].split("/");
+                        if (parts.length == 2){
+                            params.iconClass = "-activity " + parts[0];
+                        }
+                        break;
+                    case "smsType":
+                    case "callType":
+                        newFacet[data[member]] = true;
+                        newFacet[member] = data[member];
+                        break;
+                    case "message":
+                        if (data.type == "sms_backup-sms"){
+                            newFacet[member] = data[member];
+                        }
+                        else{
+                            newFacet[member] = data[member];
+                        }
+                        break;
+
                     default:
                         newFacet[member] = data[member];
                 }
             }
             if (showDate){
-                newFacet.displayDate = App.formatDate(data.start + digest.timeZoneOffset,false,true);
+                var facetCity = App.getFacetCity(data, Calendar.digest.getConsensusCitiesList());
+                newFacet.displayDate = App.formatDate(data.start + facetCity.tzOffset,false,true);
             }
         }
 
@@ -531,32 +773,197 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 }
             }
         }
-        return digest.detailsTemplates[data.type].render(params);
+
+        // retrieve foursquare venues asynchronously
+        var foursquareVenueIds = [];
+        for (var i=0; i<params.facets.length; i++) {
+            if (facets[i].type=="moves-place") {
+                var placeType = facets[i].placeType;
+                if (placeType==="foursquare")  {
+                    foursquareVenueIds.push(facets[i].foursquareId);
+                }
+            }
+        }
+
+        foursquareVenueTemplate = Calendar.detailsTemplates["foursquare-venue"];
+        var details = $(Calendar.detailsTemplates[data.type].render(params));
+        details.find("img");
+        setTimeout(function(){getFoursquareVenues(details,foursquareVenueIds);}, 100);
+        return details;
     }
 
+    function getFacet(facetType, facetId){
+        var cachedData = Calendar.digest.cachedData[facetType];
+        var facet = null;
+        for (var i = 0, li = cachedData.length; i < li; i++){
+            if (cachedData[i].id == facetId){
+                facet = cachedData[i];
+                break;
+            }
+        }
+        if (facet == null){
+            console.warn("Couldn't find " + facetType + " " + facetid);
+        }
+        return facet;
 
-           var topLevelDomains = ["aero","asia","biz","cat","com","coop","info", "int", "jobs", "mobi",
-                           "museum", "name", "net", "org", "pro", "tel", "travel", "xxx", "edu",
-                           "edu", "gov", "mil", "ac", "ad", "ae", "af", "ag", "ai", "al", "am",
-                           "am", "an", "aq", "ar", "as", "at", "au", "aw", "ax", "az", "ba", "bb",
-                           "be", "bf", "bg", "bh", "bi", "bj", "bm", "bn" , "bo", "br", "bs", "bt",
-                           "bv", "bw", "by", "bz", "ca", "cc", "cd", "cf", "cg", "ch", "ci", "ck",
-                           "cl", "cm", "cn", "co", "cr", "cs", "cu", "cv", "cx", "cy", "cz", "dd",
-                           "de", "dj", "dk", "dm", "do", "dz", "ec", "ee", "eg", "eh", "er", "es", "et",
-                           "eu", "fi", "fj", "fk", "fm", "fo", "fr", "ga", "gb", "gd", "ge", "gf", "gg",
-                           "gh", "gi", "gl", "gm", "gn", "gp", "gq", "gr", "gs", "gt", "gu", "gw", "gy",
-                           "hk", "hm", "hn", "hr", "ht", "hu", "id", "ie", "il", "im", "in", "io", "iq",
-                           "iq", "ir", "is", "it", "je", "jm", "jo", "jp", "ke", "kg", "kh", "ki", "km",
-                           "kn", "kp", "kr", "kw", "ky", "kz", "la", "lb", "lc", "li", "lk", "lr", "ls",
-                           "lt", "lu", "lv", "ly", "ma", "mc", "md", "me", "mg", "mh", "mk", "ml", "mm",
-                           "mn", "mo", "mp", "mq", "mr", "ms", "mt", "mu", "mv", "mw", "mx", "my", "mz",
-                           "na", "nc", "ne", "nf", "ng", "ni", "nl", "no", "np", "nr", "nu", "nz", "om",
-                           "pa", "pe", "pf", "pg", "ph", "pk", "pl", "pm", "pn", "pr", "ps", "pt", "pw",
-                           "py", "qa", "re", "ro", "rs", "ru", "rw", "sa", "sb", "sc", "sd", "se", "sg",
-                           "sh", "si", "sj", "sk", "sl", "sm", "sn", "so", "sr", "ss", "st", "su", "sv",
-                           "sy", "sz", "tc", "td", "tf", "tg", "th", "tj", "tk", "tl", "tm", "tn", "to",
-                           "tp", "tr", "tt", "tv", "tw", "tz", "ua", "uk", "us", "uy", "uz", "va", "vc",
-                           "ve", "vg", "vi", "vn", "vu", "wf", "ws", "ye", "yt", "yu", "za", "zm", "zw"]
+    }
+
+    function switchToAppForFacet(appname,tabname,facet){
+
+        App.renderApp(appname,tabname + (appname === "calendar" ? "/" + getTabState() : ""),{facetToShow:facet});
+    }
+
+    var activePopup = null;
+
+    Calendar.rebindDetailsControls = function(details,facetList){
+        function getFacet(facetType,facetId){
+            try{
+                for (var i = 0, li = facetList.length; i < li; i++){
+                    if (facetList[i].type === facetType && facetList[i].id === facetId)
+                        return facetList[i];
+                }
+                var facets = facetList[facetType];
+                for (var i = 0, li = facets.length; i < li; i++){
+                    if (facets[i].id === facetId)
+                        return facets[i];
+                }
+            } catch (e){}
+            console.warn("Couldn't find " + facetType + " with id " + facetId);
+            return null;
+        }
+
+        details.find(".facet-edit a").unbind("click").click(function(event){
+            var facetType = $(event.delegateTarget).parent().parent().attr("facettype");
+            var facetId = parseInt($(event.delegateTarget).parent().parent().attr("itemid"));
+            Calendar.commentEdit(event,getFacet(facetType,facetId));
+            return false;
+        });
+        if (App.activeApp.name != "bodytrack"){
+            details.find(".timedropdown").unbind('click').click(function(event){
+                var element;
+                for (element = $(event.delegateTarget); !element.hasClass("facetDetails"); element = element.parent());
+
+                var facet = getFacet(element.attr("facettype"),parseInt(element.attr('itemid')));
+
+                var popup = $('<ul id="menu1" class="dropdown-menu">' +
+                                  '<li><a class="clockLink" notthide="true" href="javascript:void(0)">Show in Clock</a></li>' +
+                '<li><a class="mapLink" href="javascript:void(0)">Show on Map</a></li>' +
+                    '<li><a class="listLink" href="javascript:void(0)">Show in List</a></li>' +
+                '<li><a class="timelineLink" href="javascript:void(0)">Show on Timeline</a></li>' +
+                    //'<li><a class="bodytrackLink" href="javascript:void(0)">Show in Bodytrack</a></li>' +
+                '</ul>');
+
+                var config = App.getFacetConfig(facet.type);
+                if (!config.map || (App.activeApp.name === "calendar" && Calendar.currentTabName === "map")){
+                    popup.find(".mapLink").css("display","none");
+                }
+                if (!config.list || (App.activeApp.name === "calendar" && Calendar.currentTabName === "list")){
+                    popup.find(".listLink").css("display","none");
+                }
+                if (config.clock == null || (Calendar.timeUnit != null && Calendar.timeUnit !== "date") || (App.activeApp.name === "calendar" && Calendar.currentTabName === "clock")){
+                    popup.find(".clockLink").css("display","none");
+                }
+                if ((App.activeApp.name === "calendar" && Calendar.currentTabName === "timeline")){
+                    popup.find(".timelineLink").css("display","none");
+                }
+                if (App.activeApp.name === "bodytrack"){
+                    popup.find(".bodytrackLink").css("display","none");
+                }
+
+                popup.css("position","absolute");
+                $("body").append(popup);
+
+                var target = $(event.delegateTarget);
+
+                var offset = target.offset();
+                popup.css("top",offset.top + target.height());
+                popup.css("left",offset.left);
+                popup.css("display","inline-block");
+
+                popup.find(".mapLink").unbind('click').click(function(event){
+                    switchToAppForFacet("calendar","map",facet);
+                });
+                popup.find(".clockLink").unbind('click').click(function(event){
+                    switchToAppForFacet("calendar","clock",facet);
+                });
+                popup.find(".listLink").unbind('click').click(function(event){
+                    switchToAppForFacet("calendar","list",facet);
+                });
+                popup.find(".timelineLink").unbind('click').click(function(event){
+                    switchToAppForFacet("calendar","timeline",facet);
+                });
+                popup.find(".bodytrackLink").unbind('click').click(function(event){
+                    switchToAppForFacet("bodytrack","grapher",facet);
+                });
+
+                if (activePopup != null)
+                    activePopup.remove();
+
+                activePopup = popup;
+                return false;
+            });
+        }
+    }
+
+   $("body").mousedown(function(event){
+       if (activePopup != null){
+           var top = $("body");
+           for (var cur = $(event.target); cur[0] != activePopup[0] && cur[0] != top[0]; cur = cur.parent());
+           if (cur[0] == top[0]){
+               activePopup.remove();
+               activePopup = null;
+           }
+       }
+   });
+
+    $("body").click(function(){
+        if (activePopup != null){
+            activePopup.remove();
+            activePopup = null;
+        }
+    });
+
+    function getFoursquareVenues(details,foursquareVenueIds) {
+        for (var i=0; i<foursquareVenueIds.length; i++) {
+            $.ajax({
+                url: "/api/metadata/foursquare/venue/" + foursquareVenueIds[i],
+                success: function(response) {
+                    var html = foursquareVenueTemplate.render(response);
+                    var foursquareVenueDiv = details.find("#foursquare-venue-"+response.foursquareId);
+                    foursquareVenueDiv.replaceWith(html);
+                    foursquareVenueDiv = details.find("#foursquare-venue-"+response.foursquareId);
+                    var icon = foursquareVenueDiv.closest(".moves-place").find(".flx-deviceIcon");
+                    icon.css("background-image","url(" + response.categoryIconUrlPrefix + "bg_32" + response.categoryIconUrlSuffix + ")");
+                    icon.css("background-position", "7px 0px");
+                    icon.css("background-size", "32px 32px");
+                    details.trigger("contentchange");
+                }
+            });
+        }
+    }
+
+    var topLevelDomains = ["aero","asia","biz","cat","com","coop","info", "int", "jobs", "mobi",
+                   "museum", "name", "net", "org", "pro", "tel", "travel", "xxx", "edu",
+                   "edu", "gov", "mil", "ac", "ad", "ae", "af", "ag", "ai", "al", "am",
+                   "am", "an", "aq", "ar", "as", "at", "au", "aw", "ax", "az", "ba", "bb",
+                   "be", "bf", "bg", "bh", "bi", "bj", "bm", "bn" , "bo", "br", "bs", "bt",
+                   "bv", "bw", "by", "bz", "ca", "cc", "cd", "cf", "cg", "ch", "ci", "ck",
+                   "cl", "cm", "cn", "co", "cr", "cs", "cu", "cv", "cx", "cy", "cz", "dd",
+                   "de", "dj", "dk", "dm", "do", "dz", "ec", "ee", "eg", "eh", "er", "es", "et",
+                   "eu", "fi", "fj", "fk", "fm", "fo", "fr", "ga", "gb", "gd", "ge", "gf", "gg",
+                   "gh", "gi", "gl", "gm", "gn", "gp", "gq", "gr", "gs", "gt", "gu", "gw", "gy",
+                   "hk", "hm", "hn", "hr", "ht", "hu", "id", "ie", "il", "im", "in", "io", "iq",
+                   "iq", "ir", "is", "it", "je", "jm", "jo", "jp", "ke", "kg", "kh", "ki", "km",
+                   "kn", "kp", "kr", "kw", "ky", "kz", "la", "lb", "lc", "li", "lk", "lr", "ls",
+                   "lt", "lu", "lv", "ly", "ma", "mc", "md", "me", "mg", "mh", "mk", "ml", "mm",
+                   "mn", "mo", "mp", "mq", "mr", "ms", "mt", "mu", "mv", "mw", "mx", "my", "mz",
+                   "na", "nc", "ne", "nf", "ng", "ni", "nl", "no", "np", "nr", "nu", "nz", "om",
+                   "pa", "pe", "pf", "pg", "ph", "pk", "pl", "pm", "pn", "pr", "ps", "pt", "pw",
+                   "py", "qa", "re", "ro", "rs", "ru", "rw", "sa", "sb", "sc", "sd", "se", "sg",
+                   "sh", "si", "sj", "sk", "sl", "sm", "sn", "so", "sr", "ss", "st", "su", "sv",
+                   "sy", "sz", "tc", "td", "tf", "tg", "th", "tj", "tk", "tl", "tm", "tn", "to",
+                   "tp", "tr", "tt", "tv", "tw", "tz", "ua", "uk", "us", "uy", "uz", "va", "vc",
+                   "ve", "vg", "vi", "vn", "vu", "wf", "ws", "ye", "yt", "yu", "za", "zm", "zw"]
 
     var uriRegex = "\\b(http://|ftp://)?[A-z0-9\\-.]+[.](" + topLevelDomains.join("|") + ")(/[/A-z0-9#@_\\-&?=.]+\\b|\\b)";
     var twitterNameRegex = "@[A-Za-z0-9_]+";
@@ -590,53 +997,286 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     function handleCityInfo(digestInfo) {
         $("#mainCity").empty();
-        if (digestInfo.cities&&digestInfo.cities.length>0) {
-            $("#mainCity").html(cityLabel(digestInfo.cities[0]) +
-                                temperaturesLabel(digestInfo))
+        if (digestInfo.metadata.mainCity) {
+           $("#mainCity").html(cityLabel(digestInfo.metadata.mainCity))
+            if (digestInfo.metadata.previousInferredCity!=null||
+                digestInfo.metadata.nextInferredCity!=null) {
+                $("#visitedCitiesDetails").html("Wrong city? You can fix it!");
+                $("#mainCity").addClass("guessed");
+            } else {
+                $("#visitedCitiesDetails").html("More cities visited that day...");
+                $("#mainCity").removeClass("guessed");
+            }
         }
+        $("#visitedCitiesDetails").show();
+        $("#visitedCitiesDetails").off("click");
+        $("#visitedCitiesDetails").on("click", function(){
+            showVisitedCities(digestInfo.metadata);
+        });
     }
 
-    function ephemerisLabel(digestInfo) {
-        var sunriseH = Math.floor(digestInfo.solarInfo.sunrise/60);
-        var sunriseM = digestInfo.solarInfo.sunrise%60;
-        var sunsetH = Math.floor(digestInfo.solarInfo.sunset/60);
-        var sunsetM = digestInfo.solarInfo.sunset%60;
-        if (sunriseM<10) sunriseM = "0" + sunriseM;
-        if (sunsetM<10) sunsetM = "0" + sunsetM;
-        return "<span class=\"ephemeris\"><i class=\"flx-pict-sun\">&nbsp;</i><span>" + sunriseH + ":" + sunriseM + " am"+
-               "</span>&nbsp;<i class=\"flx-pict-moon\">&nbsp;</i><span>" + sunsetH + ":" + sunsetM + " pm</span></span>";
-    }
+    function showVisitedCities(metadata) {
+        var cities = [];
+        for(var i=0; i<metadata.cities.length;i++)
+            cities.push(metadata.cities[i]);
+        var timeUnit = metadata.timeUnit;
+        var mainCity = metadata.mainCity;
+        var cityData = [];
+        if (typeof(metadata.previousInferredCity)!="undefined") {
+            cities.push(metadata.previousInferredCity);
+        }
+        if (typeof(metadata.nextInferredCity)!="undefined") {
+            cities.push(metadata.nextInferredCity);
+        }
+        for (var i=0; i<cities.length; i++) {
+            var cityInfo = {};
+            cityInfo.visitedCityId = cities[i].visitedCityId;
+            cityInfo.count = cities[i].count;
+            cityInfo.isUser = cities[i].source=="USER";
+            cityInfo.source = toPrettySource(cities[i].source);
+            cityInfo.description = cities[i].description;
+            cityInfo.timezone = cities[i].shortTimezone;
+            cityInfo.startMinute = cities[i].startMinute;
+            cityInfo.endMinute = cities[i].endMinute;
+            cityInfo.daysInferred = cities[i].daysInferred;
+            if (cities[i].daysInferred!=0) {
+                var dayOrDays = Math.abs(cities[i].daysInferred)==1?"day":"days";
+                cityInfo.when = (cities[i].daysInferred<0)
+                    ? Math.abs(cities[i].daysInferred) + " " + dayOrDays + " ago"
+                    : cities[i].daysInferred + " " + dayOrDays + " later";
+            }
+            if (timeUnit=="DAY") {
+                var minutes = cities[i].startMinute%60;
+                minutes = minutes<10?"0"+minutes:""+minutes;
+                cityInfo.firstSeenHere = Math.floor(cities[i].startMinute/60)+"h"+minutes;
+                minutes = cities[i].endMinute%60;
+                minutes = minutes<10?"0"+minutes:""+minutes;
+                cityInfo.lastSeenHere = Math.floor(cities[i].endMinute/60)+"h"+minutes;
+            } else {
+                cityInfo.firstSeenHere = cities[i].startTime;
+                cityInfo.lastSeenHere = cities[i].endTime;
+            }
+            cityData[cityData.length] = cityInfo;
+        }
+        for (var i=0; i<cityData.length; i++) {
+            if (cityData[i].startMinute==metadata.mainCity.startMinute&&
+                cityData[i].endMinute==metadata.mainCity.endMinute&&
+                cityData[i].source==toPrettySource(metadata.mainCity.source)&&
+                cityData[i].daysInferred==metadata.mainCity.daysInferred)
+            cityData[i].consensus = true;
+        }
+        var mainCityMessage;
+        var guessed = false;
+        if (metadata.previousInferredCity!=null||metadata.nextInferredCity!=null) {
+            guessed = true;
+            mainCityMessage = "Based on past/future location data, we guessed the you were in <b>" + cityLabel(mainCity) + "</b>";
+        } else if (mainCity.source!="USER")
+            mainCityMessage="We detected that you were in <b>" + cityLabel(mainCity) + "</b>";
+        else
+            mainCityMessage="You have indicated that you were in <b>" + cityLabel(mainCity) + "</b>";
+        switch (timeUnit) {
+            case "DAY":
+                mainCityMessage += " today.<br>";
+                break;
+            case "WEEK":
+                mainCityMessage += " this week.<br>";
+                break;
+            case "MONTH":
+                mainCityMessage += " this month.<br>";
+                break;
+        }
+        var changeMainCityMessage;
+        if (cities.length>0)
+            changeMainCityMessage="You can choose an alternate city in the list below.<br><br>";
 
-    function temperaturesLabel(digestInfo) {
-        if (digestInfo.maxTempC == -10000) {
-            return "";
-        }
-        else if (digestInfo.settings.temperatureUnit != "CELSIUS") {
-            return ephemerisLabel(digestInfo) + "<i class=\"flx-pict-temp\">&nbsp;</i>"
-                       + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
-                       + digestInfo.minTempF
-                       + " / "
-                       + digestInfo.maxTempF
-                       + "&deg;F"
-                + "</span>";
-        }
         else {
-            return ephemerisLabel(digestInfo) + "<i class=\"flx-pict-temp\">&nbsp;</i>"
-                       + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
-                       + digestInfo.minTempC
-                       + " / "
-                       + digestInfo.maxTempC
-                       + "&deg;C"
-                + "</span>";
+            changeMainCityMessage="You can change it by entering a city name below.<br><br>";
         }
+
+        App.loadMustacheTemplate("applications/calendar/facetTemplates.html","visitedCities-details",function(template){
+
+            bindCitySearch(template.render(
+                {
+                    cities:cityData,
+                    guessed:guessed,
+                    mainCityMessage:mainCityMessage,
+                    changeMainCityMessage:changeMainCityMessage
+                }), timeUnit);
+
+        });
+    }
+
+    function toPrettySource(source) {
+        source = source.replace(/_/g, ' ');
+        source = source.toLowerCase().replace(/^.|\s\S/g, function(a) { return a.toUpperCase(); });
+        return source;
+    }
+
+    function bindCitySearch(html, timeUnit) {
+        App.makeModal(html);
+
+        $("#mainCitySearch").off("click");
+        $("#mainCitySearch").on("click", function(){
+            var cityName = $("#mainCityInput").val();
+            $("#mainCitySelect").attr("disabled","disabled");
+            $("#mainCitySearch").attr("disabled","disabled");
+            $("#mainCityInput").attr("disabled","disabled");
+            App.geocoder.geocode({"address":cityName},function(results,status){
+                var options = $("#mainCitySelect").children();
+                for (var i = 1; i < options.length; i++)
+                    $(options[i]).remove();
+                if (status == google.maps.GeocoderStatus.OK) {
+                    if (results.length>0) {
+                        $("#selectMainCity").removeClass("disabled");
+                        $("#selectMainCity").addClass("enabled");
+                        $("#selectMainCity").click(function(){
+                            selectMainCity(timeUnit);
+                        });
+                    }
+                    for (var i = 0; i < results.length; i++){
+                        $("#mainCitySelect").append('<option>' + results[i].formatted_address + '</option>')
+                    }
+                    currentCityPool = results;
+                    $("#mainCitySelect")[0].selectedIndex = 1;
+                }
+                else{
+                    $("#mainCitySelect")[0].selectedIndex = 0;
+                    $("#selectMainCity").removeClass("enabled");
+                    $("#selectMainCity").addClass("disabled");
+                    currentCityPool = [];
+                }
+                $("#mainCitySelect").removeAttr("disabled");
+                $("#mainCitySearch").removeAttr("disabled");
+                $("#mainCityInput").removeAttr("disabled");
+            });
+        });
+        $("#mainCityInput").off("keyup");
+        $("#mainCityInput").on("keyup", function(event){
+            event.preventDefault();
+            if (event.keyCode == 13)
+                $("#mainCitySearch").click();
+            else{
+                var options = $("#mainCitySelect").children();
+                for (var i = 1; i < options.length; i++)
+                    $(options[i]).remove();
+                currentCityPool = [];
+            }
+        });
+        $(".selectVisitedCity").click(function(evt){selectVisitedCity(evt);});
+
+    }
+
+    function selectVisitedCity(evt) {
+        var state = App.state.getState("calendar");
+        state = state.substring(state.indexOf("/"));
+        if ($(evt.target).hasClass("undo")) {
+            removeMainVisitedCity("/api/metadata/mainCity"+state);
+        } else {
+            var visitedCityId = evt.target.id.substring("visitedCity-".length);
+            postMainVisitedCity("/api/metadata/mainCity/"+visitedCityId+state);
+        }
+    }
+
+    function selectMainCity(timeUnit) {
+        var selectedIndex = $("#mainCitySelect")[0].selectedIndex-1;
+        var selectedCity = currentCityPool[selectedIndex];
+        if(typeof(selectedCity.geometry)!="undefined"&&
+            selectedCity.geometry.location!="undefined") {
+            var latitude = selectedCity.geometry.location.lat();
+            var longitude = selectedCity.geometry.location.lng();
+            var state = App.state.getState("calendar");
+            state = state.substring(state.indexOf("/"));
+            postMainCity("/api/metadata/mainCity"+state, {"latitude":latitude,"longitude":longitude});
+        } else {
+            console.log("no city (" + timeUnit + ")");
+        }
+    }
+
+
+    function removeMainVisitedCity(url) {
+       $.ajax({
+           url: url,
+           type: "DELETE",
+           success: function(status) {
+               $("#visitedCitiesDialog").modal('hide');
+               App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
+           }
+       })
+    }
+
+    function postMainCity(url, data) {
+       $.ajax({
+           url: url,
+           type: "POST",
+           data: data,
+           success: function(status) {
+               $("#visitedCitiesDialog").modal('hide');
+               App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
+           }
+       })
+    }
+
+    function postMainVisitedCity(url) {
+       $.ajax({
+           url: url,
+           type: "POST",
+           success: function(status) {
+               $("#visitedCitiesDialog").modal('hide');
+               App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
+           }
+       })
     }
 
     function cityLabel(cityInfo) {
-        var s = "";
-        s += cityInfo.name;
-        if (cityInfo.state) s += ", " + cityInfo.state;
-        s += ", " + cityInfo.country;
-        return s;
+       var s = "";
+       s += cityInfo.name;
+       if (cityInfo.country=="US"||cityInfo.country=="USA") s += ", " + cityInfo.state;
+       s += ", " + cityInfo.country + " (" + cityInfo.timezone + ")";
+       return s;
+    }
+
+    function ephemerisLabel() {
+        var sunriseH = Math.floor(Calendar.weather.solarInfo.sunrise/60);
+        var sunriseM = Calendar.weather.solarInfo.sunrise%60;
+        var sunsetH = Math.floor(Calendar.weather.solarInfo.sunset/60);
+        var sunsetM = Calendar.weather.solarInfo.sunset%60;
+        if (sunriseM<10) sunriseM = "0" + sunriseM;
+        if (sunsetM<10) sunsetM = "0" + sunsetM;
+        return "<span class=\"ephemeris\"><span title='Sunrise'><i class=\"flx-pict-sun\">&nbsp;</i><span>" + sunriseH + ":" + sunriseM + " am"+
+               "</span></span>&nbsp;<span title='Sunset'><i class=\"flx-pict-moon\">&nbsp;</i><span>" + sunsetH + ":" + sunsetM + " pm</span></span></span>";
+    }
+
+    function weatherLabel() {
+        function getFahrenheitTemps() {
+            if (Calendar.weather.minTempF==null) return "";
+            var FahrenheitTemps = "<span title='Temperature Min / Max'><i class=\"flx-pict-temp\">&nbsp;</i>"
+                                      + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
+                                      + Calendar.weather.minTempF
+                                      + " / "
+                                      + Calendar.weather.maxTempF
+                + "&deg;F</span>";
+            return FahrenheitTemps;
+        }
+
+        function getCelsiusTemps() {
+            if (Calendar.weather.minTempC==null) return "";
+            return "<i class=\"flx-pict-temp\">&nbsp;</i>"
+                       + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
+                       + Calendar.weather.minTempC
+                       + " / "
+                       + Calendar.weather.maxTempC
+                       + "&deg;C"
+                + "</span>";
+        }
+
+        if (Calendar.weather.temperatureUnit != "CELSIUS") {
+            var FahrenheitTemps = getFahrenheitTemps();
+            return ephemerisLabel() + FahrenheitTemps
+                + "</span>";
+        }
+        else {
+            return ephemerisLabel() + getCelsiusTemps();
+        }
     }
 
     Calendar.toState = function(tabName, timeUnit, date) {
@@ -707,6 +1347,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
     };
 
+    function getTabState(){
+        if (Calendar.tabState != null)
+            return Calendar.tabState;
+        else
+            return "date/" + App.formatDateAsDatePicker(new Date());
+    }
+
     var viewBtnIds = {date:"#dayViewBtn",week:"#weekViewBtn",month:"#monthViewBtn",year:"#yearViewBtn"};
 
     function updateDisplays(state){
@@ -715,6 +1362,100 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
         $(viewBtnIds[state.timeUnit]).addClass("active");
     }
+
+    Calendar.fbShare = function(ogLink) {
+        window.open(
+            'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(ogLink),
+            'facebook-share-dialog',
+            'width=626,height=436');
+    };
+
+    Calendar.commentEdit = function(evt,facet) {
+        var target = $(evt.target);
+        var facetDetails = target.parent().parent();
+        if (facetDetails.find(".facet-comment").length > 0){
+            facetDetails.find(".cancel").click();
+            return;
+        }
+        facet = facet;
+
+        var hasComment = facet.comment != null;
+        if (hasComment) {
+            facetDetails.find(".facet-comment-text").remove();
+        }
+        var commentDiv =     '<div class="facet-comment" style="margin-bottom:5px">'+
+                             '<textarea placeholder="type a comment..." rows="3"></textarea>' +
+                             '<button class="btn btn-small save disabled" type="button"><i class="icon icon-save"/> Save</button>&nbsp;' +
+                             '<button class="btn btn-small cancel" type="button"><i class="icon icon-undo"/> Cancel</button>&nbsp;' +
+                             '<button class="btn btn-link delete" type="button"><i class="icon icon-trash"/> Delete</button>';
+
+        if (typeof(facet.ogLink)!="undefined") {
+            commentDiv +=    '<a class="fbShare" title="Share on Facebook" onclick="App.apps[\'calendar\'].fbShare(\'' + facet.ogLink + '\');" type="button"><img src="/static/images/facetSharing/FB-f-Logo__blue_22.png"/></a>';
+        }
+        commentDiv += '</div>';
+
+        facetDetails.append(commentDiv);
+        var commentWarning = facetDetails.find(".commentWarning");
+        commentWarning.removeClass("hidden");
+        facetDetails.trigger("contentchange");
+        var textarea = facetDetails.find("textarea");
+        if (hasComment) {
+            textarea.val(facet.comment);
+        }
+        var cancelButton = facetDetails.find(".cancel");
+        var saveButton = facetDetails.find(".save");
+        var deleteButton = facetDetails.find(".delete");
+        textarea.focus();
+        var originalComment = textarea.val();
+        textarea.keyup(function(){
+            if (originalComment==textarea.val()) {
+                saveButton.addClass("disabled");
+            } else {
+                saveButton.removeClass("disabled");
+            }
+        });
+        saveButton.click(function(event) {
+            event.stopPropagation();
+            $.ajax({
+                url: "/api/comments/" + facet.type + "/" + facet.id,
+                data: {comment: textarea.val()},
+                type: "POST",
+                success: function() {
+                    facet.comment = textarea.val();
+                    facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + facet.comment + '</div>');
+                    commentWarning.addClass("hidden");
+                    facetDetails.trigger("contentchange");
+                }
+            });
+        });
+        cancelButton.click(function(event) {
+            event.stopPropagation();
+            if (hasComment)
+                facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + originalComment + '</div>');
+            else
+                facetDetails.find(".facet-comment").remove();
+            commentWarning.addClass("hidden");
+            facetDetails.trigger("contentchange");
+        });
+        deleteButton.click(function(event) {
+            event.stopPropagation();
+            $.ajax({
+                url: "/api/comments/" + facet.type + "/" + facet.id,
+                data: {comment: textarea.val()},
+                type: "DELETE",
+                success: function() {
+                    facetDetails.find(".facet-comment").remove();
+                    commentWarning.addClass("hidden");
+                    facetDetails.trigger("contentchange");
+                    delete facet.comment;
+                }
+            });
+        });
+    };
+
+    Calendar.startLoading = startLoading;
+    Calendar.stopLoading = stopLoading;
+    Calendar.handleError = handleError;
 
 	return Calendar;
 });

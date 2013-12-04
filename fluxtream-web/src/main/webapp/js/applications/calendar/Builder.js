@@ -13,9 +13,9 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
 	var tabs = {
         "fullList":["clock","dashboards","map","photos","list","timeline"],
         "date":["clock", "dashboards", "map", "photos", "list", "timeline"],
-        "week":["dashboards", "map", "photos", "list", "timeline"],
-        "month":["dashboards", "map", "photos", "list", "timeline"],
-        "year":["dashboards", "photos", "list", "timeline"]
+        "week":["list", "map", "photos", "dashboards", "timeline"],
+        "month":["list", "map", "photos", "dashboards", "timeline"],
+        "year":["list", "photos", "dashboards", "timeline"]
 	};
     tabInterface.setTabVisibility(tabs.fullList,true);
 
@@ -99,9 +99,9 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
     function connectorClicked(Calendar, connector) {
         var connectorName = connector.connectorName,
             button = Builder.getConnectorButton(connectorName);
-        if (button.is(".flx-disconnected")) {
-            return;
-        }
+        //if (button.is(".flx-disconnected")) {
+        //    return;
+        //}
         var enabled = !Calendar.connectorEnabled[Calendar.currentTabName][connectorName];
         Calendar.connectorEnabled[Calendar.currentTabName][connectorName] = enabled;
         button.toggleClass("flx-active", enabled);
@@ -118,6 +118,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
             id: "flx-connector-btn-" + connector.connectorName,
             class: "flx-active"
         }).click(function(event){
+            console.log("filter button clicked");
             event.preventDefault();
             $(document).click(); //needed for click away to work on tooltips in clock tab
             connectorClicked(Calendar, connector);
@@ -136,6 +137,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
         }).appendTo(button);
         button.hide();
         $("#selectedConnectors").append(button);
+        return button;
     }
 
     function bindConnectorButtons(App, Calendar) {
@@ -149,6 +151,27 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
                 });
             }
         });
+
+        $(window).scroll(function(event){
+            var beginFloat = $("#calendar-app .nav-tabs").offset().top + $("#calendar-app .nav-tabs").height();
+            if (beginFloat <= 0){
+                beginFloat = $(window).height() * 5000;
+            }
+            var scrollTop = $("body").scrollTop();
+            if (scrollTop < beginFloat){
+                $("#filtersContainer").removeClass("floating");
+                $("#filterPlaceHolderElement").addClass("hidden");
+
+            }
+            else{
+                $("#filtersContainer").addClass("floating");
+                $("#filterPlaceHolderElement").removeClass("hidden");
+                $("#filterPlaceHolderElement").width($("#filtersContainer").width());
+                $("#filterPlaceHolderElement").height($("#filtersContainer").height());
+            }
+        });
+
+        $(window).scroll();
     }
 	
 	function timeUnitToURL(timeUnit) {
@@ -225,10 +248,10 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
             notification.type+"Notification",
             function(template) {
                 if ($("#notification-" + notification.id).length==0) {
-                    var html = template.render(notification), message = notification.message;
+                    if (notification.repeated>1) notification.message += " (" + notification.repeated + "x)";
+                    var html = template.render(notification);
                     $("#notifications").append(html);
-                    if (notification.repeated>1) message += " (" + notification.repeated + "x)";
-                    $("#notification-" + notification.id).append(message);
+                    $("abbr.timeago").timeago();
                     $(window).resize();
                 }
             });
@@ -238,7 +261,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
         if (App.activeApp.name != "calendar")
             return;
         tabInterface.setRenderParamsFunction(function(){
-            return {
+            return $.extend({
                 digest:digest,
                 timeUnit:Calendar.timeUnit,
                 calendarState:Calendar.tabState,
@@ -246,7 +269,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
                 tabParam:Calendar.tabParam,
                 setTabParam:Calendar.setTabParam,
                 doneLoading:Calendar.stopLoading,
-                forceReload: force};
+                forceReload: force}, Calendar.params);
         });
         tabInterface.setActiveTab(Calendar.currentTabName);
         updateCurrentTab(digest, Calendar);
@@ -260,6 +283,9 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
         }
         for (var i = 0; i < digest.selectedConnectors.length; i++){
             var button = $("#flx-connector-btn-" + digest.selectedConnectors[i].connectorName);
+            if (button.length == 0){
+                button = createConnectorButton(App,Calendar,digest.selectedConnectors[i]);
+            }
             if (Calendar.currentTab.connectorDisplayable(digest.selectedConnectors[i])){
                 button.show();
                 if (Calendar.currentTab.connectorsAlwaysEnabled()){

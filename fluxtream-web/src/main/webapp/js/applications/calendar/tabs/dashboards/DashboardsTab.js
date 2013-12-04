@@ -41,6 +41,11 @@ define(["core/Tab",
         );
    };
 
+   function dashboardTabClickHandler(evt){
+       var dashboardId = Number($(evt.target).parent().attr("id").substring("dashboard-".length));
+       setActiveDashboard(dashboardId);
+   }
+
    function makeDashboardTabs(dashboardsTemplateData) {
         App.loadMustacheTemplate("applications/calendar/tabs/dashboards/dashboardsTabTemplates.html","dashboardTabs", function(template){
             var html = template.render(dashboardsTemplateData);
@@ -51,10 +56,7 @@ define(["core/Tab",
             $(".dashboardName").unbind();
             $("#addWidgetButton").click(addWidget);
             $("#manageDashboardsButton").click(manageDashboards);
-            $(".dashboardName").click(function(evt) {
-                var dashboardId = Number($(evt.target).parent().attr("id").substring("dashboard-".length));
-                setActiveDashboard(dashboardId);
-            });
+            $(".dashboardName").click(dashboardTabClickHandler);
             fetchWidgets(getActiveWidgetInfos(dashboardsTemplateData.dashboards));
         });
    }
@@ -192,6 +194,7 @@ define(["core/Tab",
             var tab = $("#dashboard-" + tabId);
             tab.remove();
             $("#dashboardTabs").append(tab);
+            tab.click(dashboardTabClickHandler);
         }
         $.ajax({
             url: "/api/dashboards/reorder",

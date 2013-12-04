@@ -7,7 +7,6 @@ import java.util.Map;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.ApiKey;
-import com.google.gson.annotations.Expose;
 
 public class UpdateInfo implements Cloneable {
 
@@ -17,7 +16,9 @@ public class UpdateInfo implements Cloneable {
 	public int objectTypes;
 	
 	private transient Map<String,Object> context;
-	
+    private transient Map<String,Integer> remainingApiCalls;
+    private transient Map<String,Long> resetTimes;
+
 	public enum UpdateType {
 		NOOP_UPDATE,
 		TIME_INTERVAL_UPDATE,
@@ -25,7 +26,7 @@ public class UpdateInfo implements Cloneable {
 		INCREMENTAL_UPDATE,
 		PUSH_TRIGGERED_UPDATE
 	}
-	
+
 	UpdateType updateType;
 	
 	UpdateInfo(ApiKey apiKey) {this.apiKey = apiKey;}
@@ -34,6 +35,36 @@ public class UpdateInfo implements Cloneable {
 		List<ObjectType> connectorTypes = ObjectType.getObjectTypes(apiKey.getConnector(), objectTypes);
 		return connectorTypes;
 	}
+
+    public void setRemainingAPICalls(String methodName, int remaining) {
+        if (remainingApiCalls==null) remainingApiCalls = new HashMap<String, Integer>();
+        remainingApiCalls.put(methodName, remaining);
+    }
+
+    public Integer getRemainingAPICalls(String methodName) {
+        if (remainingApiCalls==null) return null;
+        return remainingApiCalls.get(methodName);
+    }
+
+    public void setResetTime(String methodName, long resetTime) {
+        if (resetTimes==null) resetTimes = new HashMap<String,Long>();
+        resetTimes.put(methodName, resetTime);
+    }
+
+    /**
+     * of all the reset times that have been collected during an update,
+     * return the one that is farthest away in the future
+     * @return time in millis (usually in the future)
+     */
+    public Long getSafeResetTime() {
+        if (resetTimes==null||resetTimes.size()==0) return null;
+        long resetTime = Long.MIN_VALUE;
+        for (Long aLong : resetTimes.values()) {
+            if (aLong>resetTime)
+                resetTime = aLong;
+        }
+        return resetTime;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -46,7 +77,7 @@ public class UpdateInfo implements Cloneable {
         if (!sameData) return false;
         boolean sameTimeInterval = timeInterval==null
                                  ? other.timeInterval==null
-                                 : other.timeInterval.start == timeInterval.start && other.timeInterval.end == timeInterval.start;
+                                 : other.timeInterval.getStart() == timeInterval.getStart() && other.timeInterval.getEnd() == timeInterval.getStart();
         if (!sameTimeInterval) return false;
         boolean sameUpdateType = updateType == other.updateType;
         if (!sameUpdateType) return false;

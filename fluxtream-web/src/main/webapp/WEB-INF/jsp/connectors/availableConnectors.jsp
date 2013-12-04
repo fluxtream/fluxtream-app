@@ -27,7 +27,7 @@
 				<a  href="javascript:App.addConnector('<%=connectUrl%>')">
 					<img src="<%=connectorImage%>" alt="" width=178 Height=120>
 				</a>
-				<p><%=connectorText%></p> 
+				<p><%=connectorText%></p>
 <%-- 				<div onclick="javascript:App.addConnector('<%=connectUrl%>')" role="button" class="v-button v-button- addConnectorButton" tabindex="0">  --%>
 <!-- 					<span class="btn">Add</span>  -->
 <!-- 				</div>  -->

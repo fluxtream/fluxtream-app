@@ -54,7 +54,8 @@ define(["core/Tab",
                 photos.sort(function(a,b) {return a.start- b.start;});
                 onDataReceived(photos);
             }
-            doneLoading();
+            if (doneLoading != null)
+                doneLoading();
         });
     }
 
@@ -77,6 +78,7 @@ define(["core/Tab",
                 if (found){
                    if (connectorEnabled[digest.selectedConnectors[j].connectorName]){
                        data[data.length] = photos[i];
+                       break;//to avoid duplicates
                    }
                 }
             }
@@ -93,19 +95,26 @@ define(["core/Tab",
         var carouselHTML = PhotoUtils.getCarouselHTML(digest);
         var currentGroup = [];
         var currentDate = null;
+        var facetCity = null;
+        var currentCity = null;
         for (var i = 0; i < data.length; i++){
-           var date = App.formatDate(data[i].start + digest.timeZoneOffset,false,true);
+           facetCity = App.getFacetCity(data[i], digest.getConsensusCitiesList());
+           if (facetCity==null)
+               continue;
+           var date = App.formatDate(data[i].start + facetCity.tzOffset,false,true);
            if (currentDate == null){
-               currentDate = date;
+               currentDate = facetCity.dateWithTimezone;
+               currentCity = facetCity;
            }
-           else if (currentDate != date) {
-               $("#photoTab").append(thumbnailGroupTemplate.render({date:currentDate,photos:currentGroup}));
+           else if (currentDate != facetCity.dateWithTimezone) {
+               $("#photoTab").append(thumbnailGroupTemplate.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:currentCity.shortTimezone,state:"photos/date/"+currentDate.split(" ")[0],photos:currentGroup}));
                currentGroup = [];
-               currentDate = date;
+               currentDate = facetCity.dateWithTimezone;
+               currentCity = facetCity;
            }
             var photoUrl = data[i].photoUrl;
             if (typeof(data[i].thumbnailUrl)!="undefined")
-                var photoUrl = data[i].thumbnailUrl;
+                photoUrl = data[i].thumbnailUrl;
             if (data[i].thumbnailSizes != null){
                 var closest = null;
                 var closestValue = 100000;
@@ -120,15 +129,19 @@ define(["core/Tab",
                     photoUrl = data[i].thumbnailUrls[closest];
                 }
             }
-            currentGroup[currentGroup.length] = {id:data[i].id,photoUrl:photoUrl};
+            var time = "", ampm = "";
+            if (typeof(data[i].startMinute)!="undefined") {
+                time = App.formatMinuteOfDay(data[i].startMinute)[0];
+                ampm = App.formatMinuteOfDay(data[i].startMinute)[1];
+            }
+            currentGroup[currentGroup.length] = {id:data[i].id,photoUrl:photoUrl,time:time,ampm:ampm};
         }
         if (currentGroup.length != 0){
-            $("#photoTab").append(thumbnailGroupTemplate.render({date:currentDate,photos:currentGroup}));
+            $("#photoTab").append(thumbnailGroupTemplate.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:currentCity.shortTimezone,state:"photos/date/"+currentDate.split(" ")[0],photos:currentGroup}));
         }
         for (var i = 0; i < data.length; i++){
-            $("#photo-" + i).click({i:i},function(event){
-                App.makeModal(carouselHTML);
-                App.carousel(event.data.i);
+            $("#photo-" + data[i].id).click({i:data[i].id},function(event){
+                PhotoUtils.showCarouselHTML(carouselHTML,event.data.i);
             });
         }
         var groups = $(".thumbnailGroup");
@@ -156,6 +169,52 @@ define(["core/Tab",
         }
         return false;
     }
+
+    function onScroll(scrollPosition){
+        var listTops = $("#photoTab .dateHeadingGroup");
+        for (var i = 0, li = listTops.length; i < li; i++){
+            var listTop = $(listTops[i]);
+            var hr = listTop.find(".priorRuler");
+            var floater = listTop.find(".dateLabel");
+            var placeholder = listTop.find(".placeholder");
+            var beginFloat = hr.offset().top + hr.outerHeight(false) + parseInt(hr.css("marginBottom"));
+            if (beginFloat < 0){
+                beginFloat = 0;
+            }
+            var endFloat = null;
+            if (i < li - 1){
+                var nextListTop = $(listTops[i+1]);
+                var nextHr = nextListTop.find(".priorRuler");
+                endFloat = nextHr.offset().top + nextHr.outerHeight(false) + parseInt(nextHr.css("marginBottom"));
+            }
+            if (scrollPosition < beginFloat){
+                placeholder.addClass("hidden");
+                floater.removeClass("floating");
+                floater.css("marginTop","0px");
+            }
+            else{
+                placeholder.removeClass("hidden");
+                floater.addClass("floating");
+                floater.css("top",$("#selectedConnectors").height() + "px");
+                if (endFloat != null){
+                    var temp = scrollPosition +  floater.outerHeight(false);
+                    var marginAmount = endFloat - temp;
+                    if (marginAmount > 0) marginAmount = 0;
+                    floater.css("marginTop",marginAmount + "px");
+                }
+
+            }
+            placeholder.height(floater.height());
+
+        }
+    }
+
+    $(window).scroll(function(){
+        if ($("#photoTab").parent().hasClass("active"))
+            onScroll($("body").scrollTop() + $("#selectedConnectors").height());
+        else
+            onScroll(-100);;
+    });
 
     var photosTab = new Tab("calendar", "photos", "Candide Kemmler", "icon-camera", true);
     photosTab.render = render;

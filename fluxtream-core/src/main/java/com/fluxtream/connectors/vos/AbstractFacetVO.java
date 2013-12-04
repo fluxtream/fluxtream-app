@@ -1,20 +1,26 @@
 package com.fluxtream.connectors.vos;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
+import java.util.ResourceBundle;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
+import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.utils.SecurityUtils;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
+import com.fluxtream.utils.TimeUtils;
+import org.joda.time.DateTimeZone;
 
 public abstract class AbstractFacetVO<T extends AbstractFacet> {
 
@@ -24,7 +30,10 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 	public String comment;
     public final SortedSet<String> tags = new TreeSet<String>();
 	public String subType;
-    protected static DateTimeFormatter timeStorageFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
+    public String ogLink;
+
+    public transient int api;
+    public transient int objectType;
 
 	/**
 	 * Thread-safe cache for vo classes
@@ -37,9 +46,13 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
         objectTypeNames = new Hashtable<Class<? extends AbstractFacet>, String>();
 	}
 
-	public void extractValues(T facet, TimeInterval timeInterval, GuestSettings settings) {
+    public String date;
+
+    public void extractValues(T facet, TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
 		getType(facet);
 		this.id = facet.getId();
+        this.api = facet.api;
+        this.objectType = facet.objectType;
 		if (facet.comment!=null&&!facet.comment.equals("")) {
 			if (SecurityUtils.isDemoUser())
 				this.comment = "***demo - comment hidden***";
@@ -54,8 +67,30 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
                 tags.addAll(facet.getTagsAsStrings());
             }
         }
+
+        // Set default date which subclasses can overwrite if they want to
+        DateTimeZone zone = DateTimeZone.forTimeZone(timeInterval.getTimeZone(facet.start));
+        this.date = TimeUtils.dateFormatter.withZone(zone).print(facet.start);
+
+
         fromFacet(facet, timeInterval, settings);
+        ResourceBundle res = ResourceBundle.getBundle("facetSharing");
+        final ArrayList<String> openGraphSharableFacets = new ArrayList(Arrays.asList(res.getString("opengraph").split(",")));
+        final Connector connector = Connector.fromValue(facet.api);
+        String facetName = String.format("%s.%s", connector.getName(), ObjectType.getObjectType(connector, facet.objectType));
+        if (openGraphSharableFacets.contains(facetName)&&isShareable(facet)) {
+            String encryptedUrl = settings.config.encrypt(String.format("%s/%s/%s", facet.api, facet.objectType, String.valueOf(id)));
+            try {
+                encryptedUrl = URLEncoder.encode(encryptedUrl, "UTF-8");
+            } catch (UnsupportedEncodingException e) {}
+            ogLink = String.format("%sopenGraph/%s.html", settings.config.get("homeBaseUrl"),
+                                   encryptedUrl);
+        }
 	}
+
+    protected boolean isShareable(T facet) {
+        return true;
+    }
 
     /**
      * Returns a copy of this VO's set of tags. Assumes {@link #extractValues} has already been called. Guaranteed to
@@ -78,7 +113,7 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 	}
 
     protected String getObjectTypeName(T facet) {
-        if (objectTypeNames.contains(facet.getClass()))
+        if (objectTypeNames.containsKey(facet.getClass()))
             return objectTypeNames.get(facet.getClass());
         String objectTypeName = facet.getClass().getAnnotation(ObjectTypeSpec.class).name();
         objectTypeNames.put(facet.getClass(), objectTypeName);
@@ -89,7 +124,7 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 		return null;
 	}
 
-	protected abstract void fromFacet(T facet, TimeInterval timeInterval, GuestSettings settings);
+	protected abstract void fromFacet(T facet, TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException;
 
 	public static int toMinuteOfDay(java.util.Date date, TimeZone tz) {
 		if (date == null)

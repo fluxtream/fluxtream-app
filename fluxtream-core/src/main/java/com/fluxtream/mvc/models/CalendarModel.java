@@ -1,29 +1,22 @@
 package com.fluxtream.mvc.models;
 
-import java.util.Calendar;
-import java.util.Date;
 import java.util.TimeZone;
-
+import com.fluxtream.Configuration;
+import com.fluxtream.TimeUnit;
 import com.fluxtream.services.MetadataService;
+import com.fluxtream.utils.TimeUtils;
+import com.fluxtream.utils.Utils;
 import net.sf.json.JSONObject;
-
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import com.fluxtream.Configuration;
-import com.fluxtream.TimeUnit;
-import com.fluxtream.utils.TimeUtils;
-import com.fluxtream.utils.Utils;
-
 public class CalendarModel {
 
     private static final DateTimeFormatter currentDateFormatter = DateTimeFormat
             .forPattern("EEE, MMM d, yyyy");
-    private static final DateTimeFormatter jsDateFormatter = DateTimeFormat
-            .forPattern("yyyy-MM-dd");
     private static final DateTimeFormatter shortDayFormatter = DateTimeFormat
             .forPattern("MMM d");
     private static final DateTimeFormatter currentMonthFormatter = DateTimeFormat
@@ -60,7 +53,7 @@ public class CalendarModel {
         this.timeUnit = TimeUnit.DAY;
         // TODO: If we were using JodaTime 2.0 or later, we could simply write
         // fromDate = LocalDate.parse(formattedDate, jsDateFormatter)
-        fromDate = jsDateFormatter.parseDateTime(formattedDate).toLocalDate();
+        fromDate = TimeUtils.dateFormatter.parseDateTime(formattedDate).toLocalDate();
     }
 
     public void setWeek(final int year, final int week) {
@@ -131,12 +124,16 @@ public class CalendarModel {
                 .getMillis();
     }
 
+    private long getMillisAtTrailingMidnight(final LocalDate date){
+        return getMillis(date) + DateTimeConstants.MILLIS_PER_DAY;
+    }
+
     public long getStart() {
         return getMillis(fromDate);
     }
 
     public long getEnd() {
-        return getMillis(getToDate());
+        return getMillisAtTrailingMidnight(getToDate().minusDays(1));
     }
 
     public String toJSONString(final Configuration env) {
@@ -165,7 +162,7 @@ public class CalendarModel {
     private String getState() {
         switch (timeUnit) {
             case DAY:
-                return "date/" + jsDateFormatter.print(fromDate);
+                return "date/" + TimeUtils.dateFormatter.print(fromDate);
             case WEEK:
                 return String.format("week/%d/%d", getWeekYear(), getWeek());
             case MONTH:
@@ -286,8 +283,15 @@ public class CalendarModel {
     }
 
     public void setWeekTimeUnit() {
+        LocalDate origFromDate = fromDate;
+
         timeUnit = TimeUnit.WEEK;
         fromDate = new LocalDate(fromDate.getYear(), fromDate.getMonthOfYear(), fromDate.getDayOfMonth())
                 .withDayOfWeek(TimeUtils.FIRST_DAY_OF_WEEK);
+        // Unfortunately, the above code returns the following week instead of the containing week for
+        // every day other than Sunday.  Check for this and decrement the week if needed.
+        if(fromDate.isAfter(origFromDate)) {
+            fromDate = fromDate.minusWeeks(1);
+        }
     }
 }

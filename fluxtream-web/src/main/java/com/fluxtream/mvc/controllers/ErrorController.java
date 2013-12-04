@@ -36,8 +36,20 @@ public class ErrorController {
         else return "accessDenied";
     }
 
-                                  @RequestMapping(value = "/errors/{code}.html")
-	public ModelAndView handle404(@PathVariable("code") int code,
+    public ModelAndView handleError(int code,
+                                    String errorMessage,
+                                    String stackTrace) {
+        ModelAndView mav = new ModelAndView("error");
+        mav.addObject("code", code);
+        mav.addObject("errorMessage", errorMessage);
+        mav.addObject("stackTrace", stackTrace);
+        mav.addObject("release", env.get("release"));
+        return mav;
+    }
+
+
+    @RequestMapping(value = "/error/{code}.html")
+	public ModelAndView handleError(@PathVariable("code") int code,
 			HttpServletRequest request) {
 		ModelAndView mav = new ModelAndView("error");
 		Throwable e = (Throwable) request.getAttribute(SERVLET_EXCEPTION_ATTR);

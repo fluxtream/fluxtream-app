@@ -366,6 +366,7 @@ define([], function() {
 			discoveryList  : [],
 
 			getAvailableList : function(callback) {
+                SOURCES.intialized = false;
 				$.ajax({
 					cache   : false,
 					type    : "GET",
@@ -446,6 +447,12 @@ define([], function() {
         return __createDatasource(urlPrefix);
     }
 
+    window.timespanDatasource = function(userId, deviceName, channelName) {
+        var urlPrefix = "/api/bodytrack/timespans/" + userId + "/" + deviceName + "."
+                            + channelName + "/";
+        return __createDatasource(urlPrefix);
+    }
+
     window.photoDatasource = function(userId, deviceName, channelName, tags, matchingStrategy, nsfw) {
         var urlPrefix = "/api/bodytrack/photos/" + userId + "/"+ (deviceName == null ? "All" : deviceName) + "." + channelName + "/";
         var urlParams = {};
@@ -497,15 +504,15 @@ define([], function() {
                        url     : urlPrefix + level + "." + offset + ".json",
                        data    : urlParams,
                        success : function(data, textStatus, jqXHR) {
-                           try {
+                          // try {
                                if (success_callback) {
                                    // we must always send the JSON as a String...
                                    success_callback(typeof data === 'string' ? data : JSON.stringify(data));
                                }
-                           }
-                           catch (ex) {
-                               onerr(jqXHR, "JSON parse error", ex);
-                           }
+                          // }
+                          // catch (ex) {
+                           //    onerr(jqXHR, "JSON parse error", ex);
+                          // }
                        },
                        failure : onerr
                    });

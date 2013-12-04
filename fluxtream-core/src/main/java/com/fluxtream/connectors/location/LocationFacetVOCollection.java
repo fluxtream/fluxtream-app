@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractFacetVOCollection;
 import com.fluxtream.connectors.vos.StartMinuteComparator;
@@ -15,7 +16,7 @@ public class LocationFacetVOCollection extends AbstractFacetVOCollection<Locatio
 	
 	@Override
 	public void extractFacets(List<LocationFacet> facets, TimeInterval timeInterval,
-			GuestSettings settings) {
+			GuestSettings settings) throws OutsideTimeBoundariesException {
 		positions = new ArrayList<LocationFacetVO>();
 		for (LocationFacet locationResource : facets) {
 			LocationFacetVO facet = new LocationFacetVO();

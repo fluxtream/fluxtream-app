@@ -8,8 +8,10 @@ import org.hibernate.annotations.Index;
 
 @Entity(name="ChannelStyle")
 @NamedQueries({
-    @NamedQuery(name="channelStyle.byDeviceNameAndChannelName",
-                query="SELECT style FROM ChannelStyle style WHERE style.guestId=? AND style.deviceName=? AND style.channelName=?")
+      @NamedQuery(name="channelStyle.delete.all",
+                  query="DELETE from ChannelStyle channelStyle WHERE channelStyle.guestId=?"),
+      @NamedQuery(name="channelStyle.byDeviceNameAndChannelName",
+                  query="SELECT style FROM ChannelStyle style WHERE style.guestId=? AND style.deviceName=? AND style.channelName=?")
 })
 public class ChannelStyle extends AbstractEntity {
 

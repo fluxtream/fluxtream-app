@@ -2,6 +2,7 @@ package com.fluxtream.connectors.twitter;
 
 import java.util.Date;
 
+import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
 import com.fluxtream.domain.GuestSettings;
@@ -15,10 +16,10 @@ public class TwitterDirectMessageFacetVO extends AbstractInstantFacetVO<TwitterD
 	
 	@Override
 	public void fromFacet(TwitterDirectMessageFacet facet, TimeInterval timeInterval,
-			GuestSettings settings) {
+			GuestSettings settings) throws OutsideTimeBoundariesException {
 		Date date = new Date(facet.start);
 		
-		this.startMinute = toMinuteOfDay(date, timeInterval.timeZone);
+		this.startMinute = toMinuteOfDay(date, timeInterval.getTimeZone(facet.start));
 		if (SecurityUtils.isDemoUser())
 			this.description = "***demo - text content hidden***";
 		else

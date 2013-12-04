@@ -1,46 +1,48 @@
 package com.fluxtream.connectors.lastfm;
 
-import static com.fluxtream.utils.Utils.hash;
-
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.controllers.ControllerSupport;
 import com.fluxtream.domain.ApiKey;
-import org.apache.commons.httpclient.HttpException;
+import com.fluxtream.domain.Guest;
+import com.fluxtream.domain.Notification;
+import com.fluxtream.services.GuestService;
+import com.fluxtream.services.NotificationsService;
+import com.fluxtream.utils.HttpUtils;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.fluxtream.Configuration;
-import com.fluxtream.connectors.Connector;
-import com.fluxtream.domain.Guest;
-import com.fluxtream.services.GuestService;
-import com.fluxtream.utils.HttpUtils;
+import static com.fluxtream.utils.Utils.hash;
 
 @Controller
 @RequestMapping(value = "/lastfm")
 public class LastFmController {
 
-	@Autowired
+    private static final String LASTFM_RENEWTOKEN_APIKEYID = "lastfm.renewtoken.apiKeyId";
+    @Autowired
 	GuestService guestService;
 
 	@Autowired
 	Configuration env;
 
-	@RequestMapping(value = "/token")
-	public String getToken(HttpServletRequest request,
-			HttpServletResponse response) throws IOException, ServletException {
+    @Autowired
+    NotificationsService notificationsService;
 
-		String oauthCallback = env.get("homeBaseUrl")
+	@RequestMapping(value = "/token")
+	public String getToken(HttpServletRequest request) throws IOException, ServletException {
+
+		String oauthCallback = ControllerSupport.getLocationBase(request, env)
 				+ "lastfm/upgradeToken";
 		if (request.getParameter("guestId") != null)
 			oauthCallback += "?guestId=" + request.getParameter("guestId");
@@ -48,13 +50,16 @@ public class LastFmController {
 		String approvalPageUrl = "http://www.last.fm/api/auth/?api_key="
 				+ env.get("lastfmConsumerKey") + "&cb=" + oauthCallback;
 
+        if (request.getParameter("apiKeyId")!=null)
+            request.getSession().setAttribute(LASTFM_RENEWTOKEN_APIKEYID,
+                                              request.getParameter("apiKeyId"));
+
 		return "redirect:" + approvalPageUrl;
 	}
 
 	@RequestMapping(value = "/upgradeToken")
-	public String upgradeToken(HttpServletRequest request,
-			HttpServletResponse response) throws NoSuchAlgorithmException,
-			HttpException, IOException {
+	public String upgradeToken(HttpServletRequest request) throws NoSuchAlgorithmException,
+			IOException {
 
 		String token = request.getParameter("token");
 		String api_key = env.get("lastfmConsumerKey");
@@ -64,19 +69,41 @@ public class LastFmController {
 		Map<String, String> params = toMap("method", "auth.getsession",
 				"format", "json",
 				"token", token, "api_key", api_key, "api_sig", api_sig);
-		String jsonResponse = HttpUtils.fetch(
-				"https://ws.audioscrobbler.com/2.0/", params);
-		
-		String sessionKey = LastfmHelper.getSessionKey(jsonResponse);
+        String jsonResponse;
+        try {
+            jsonResponse = HttpUtils.fetch("https://ws.audioscrobbler.com/2.0/", params);
+        }
+        catch (UnexpectedHttpResponseCodeException e) {
+            e.printStackTrace();
+            notificationsService.addNamedNotification(AuthHelper.getGuestId(), Notification.Type.ERROR, Connector.getConnector("lastfm").statusNotificationName(),
+                                                      String.format("Oops, we couldn't link your LastFM account (reason: '%s', http code: %s)" +
+                                                                    "<br>Please contact your administrator.",
+                                                                    e.getHttpResponseMessage(),
+                                                                    e.getHttpResponseCode()));
+            return "redirect:/app";
+        }
+
+        String sessionKey = LastfmHelper.getSessionKey(jsonResponse);
 		String username = LastfmHelper.getUsername(jsonResponse);
 		Guest guest = AuthHelper.getGuest();
 
         final Connector connector = Connector.getConnector("lastfm");
-        final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector);
+        ApiKey apiKey;
+        if (request.getSession().getAttribute(LASTFM_RENEWTOKEN_APIKEYID)!=null) {
+            final String apiKeyIdString = (String) request.getSession().getAttribute(LASTFM_RENEWTOKEN_APIKEYID);
+            long apiKeyId = Long.valueOf(apiKeyIdString);
+            apiKey = guestService.getApiKey(apiKeyId);
+        } else
+            apiKey = guestService.createApiKey(guest.getId(), connector);
 
+        guestService.populateApiKey(apiKey.getId());
 		guestService.setApiKeyAttribute(apiKey, "sessionKey", sessionKey);
 		guestService.setApiKeyAttribute(apiKey,  "username", username);
-		
+
+        if (request.getSession().getAttribute(LASTFM_RENEWTOKEN_APIKEYID)!=null) {
+            request.getSession().removeAttribute(LASTFM_RENEWTOKEN_APIKEYID);
+            return "redirect:/app/tokenRenewed/"+connector.getName();
+        }
 		return "redirect:/app/from/"+connector.getName();
 	}
 

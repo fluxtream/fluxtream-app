@@ -7,34 +7,52 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import com.fluxtream.domain.metadata.DayMetadataFacet;
-import com.fluxtream.domain.metadata.WeatherInfo;
-import com.sun.jersey.core.util.StringIgnoreCaseKeyComparator;
+import com.fluxtream.Configuration;
+import com.fluxtream.TimeUnit;
+import com.fluxtream.metadata.AbstractTimespanMetadata;
 
 public class DigestModel {
 
 	public TimeBoundariesModel tbounds;
-	public SolarInfoModel solarInfo;
 	public int nApis;
-	public Set<String> updateNeeded = new HashSet<String>();
 	public boolean hasPictures;
 	public List<NotificationModel> notifications;
-	public Map<String,Collection> addresses;
-	public List<DayMetadataFacet.VisitedCity> cities;
-	public DayMetadataFacet.InTransitType inTransit;
-	public DayMetadataFacet.TravelType travelType;
-	public float minTempC, maxTempC;
-	public float minTempF, maxTempF;
+    public Map<String,Collection> addresses;
 	public SettingsModel settings;
 	public Set<String> haveDataConnectors = new HashSet<String>();
 	public Set<String> haveNoDataConnectors = new HashSet<String>();
 	public List<ConnectorDigestModel> selectedConnectors = new ArrayList<ConnectorDigestModel>();
-    public List<WeatherInfo> hourlyWeatherData = null;
-    public String timeUnit;
-    public long timeZoneOffset;
     public List<GuestModel> coachees;
     public long generationTimestamp;
+
+    public Metadata metadata;
+
+    public DigestModel(TimeUnit timeUnit, AbstractTimespanMetadata metadata, Configuration env) {
+        VisitedCityModel nic = null, pic = null;
+        if (metadata.nextInferredCity!=null)
+            nic = new VisitedCityModel(metadata.nextInferredCity, env);
+        if (metadata.previousInferredCity!=null)
+            pic = new VisitedCityModel(metadata.previousInferredCity, env);
+        this.metadata = new Metadata(timeUnit.toString(), pic, nic);
+    }
+
+    public class Metadata {
+
+        public SolarInfoModel solarInfo;
+
+        Metadata(String timeUnit, VisitedCityModel previousInferredCity, VisitedCityModel nextInferredCity) {
+            this.timeUnit = timeUnit;
+            this.previousInferredCity = previousInferredCity;
+            this.nextInferredCity = nextInferredCity;
+        }
+
+        public String timeUnit;
+        public List<VisitedCityModel> cities = new ArrayList<VisitedCityModel>();
+        public List<VisitedCityModel> consensusCities = new ArrayList<VisitedCityModel>();
+        public VisitedCityModel previousInferredCity;
+        public VisitedCityModel nextInferredCity;
+        public VisitedCityModel mainCity;
+    }
 
 	@SuppressWarnings("rawtypes")
 	public Map<String,Collection> cachedData
@@ -45,11 +63,7 @@ public class DigestModel {
 			notifications = new ArrayList<NotificationModel>();
 		notifications.add(nm);
 	}
-	
-	public void setUpdateNeeded(String connectorName) {
-		updateNeeded.add(connectorName);
-	}
-	
+
 	public void hasData(String connectorName, boolean b) {
 		if (b) {
 			haveDataConnectors.add(connectorName);

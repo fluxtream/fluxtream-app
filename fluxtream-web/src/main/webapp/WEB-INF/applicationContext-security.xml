@@ -9,6 +9,8 @@
 	<http pattern="/support/*" security="none" />
 	<http pattern="/**/notify" security="none" />
 	<http pattern="/${release}/js/**" security="none" />
+    <http pattern="/${release}/videos/**" security="none" />
+    <http pattern="/${release}/html/**" security="none" />
 	<http pattern="/${release}/css/**" security="none" />
     <http pattern="/${release}/assets-home/**" security="none" />
     <http pattern="/static/**" security="none" />
@@ -21,14 +23,16 @@
 	<http pattern="/favicon.ico" security="none" />
 	<http pattern="/apple-touch-icon-precomposed.png" security="none" />
 	<http pattern="/get-invitation*" security="none" />
-	<http pattern="/createAccount*" security="none" />
+    <http pattern="/createAccount*" security="none" />
     <http pattern="/register*" security="none" />
     <http pattern="/createAccountForm*" security="none" />
     <http pattern="/widgets.json" security="none" />
     <http pattern="/widgets/**" security="none" />
     <http pattern="/api/test/**" security="none" />
     <http pattern="/api/ping" security="none" />
-
+    <http pattern="/api/facebook/login*" security="none" />
+    <http pattern="/openGraph/**" security="none" />
+    <http pattern="/channel.html" security="none" />
 
     <http access-denied-page="/accessDenied" entry-point-ref="loginUrlAuthenticationEntryPoint"
 		use-expressions="true" create-session="ifRequired">
@@ -66,10 +70,17 @@
 	</beans:bean>
 
 	<beans:bean id="successHandler"
-		class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler">
-		<beans:property name="defaultTargetUrl" value="/app" />
+		class="com.fluxtream.auth.FlxSavedRequestAwareAuthenticationSuccessHandler">
+		<beans:property name="defaultTargetUrl" value="/checkIn" />
 		<beans:property name="alwaysUseDefaultTargetUrl" value="true" />
+        <beans:property name="requestCache" ref="requestCache"/>
 	</beans:bean>
+
+    <beans:bean id="requestCache" class="org.springframework.security.web.savedrequest.HttpSessionRequestCache"/>
+    <beans:bean id="requestCacheAwareFilter"
+          class="org.springframework.security.web.savedrequest.RequestCacheAwareFilter">
+        <beans:constructor-arg ref="requestCache"/>
+    </beans:bean>
 
 	<beans:bean id="failureHandler" class="com.fluxtream.auth.FlxAuthFailureHandler">
 		<beans:property name="defaultFailureUrl" value="/welcome" />
@@ -84,6 +95,6 @@
 	</authentication-manager>
 
 	<beans:bean id="guestService" class="com.fluxtream.auth.FlxUserDetailsService">
-	</beans:bean>
+    </beans:bean>
 
 </beans:beans>

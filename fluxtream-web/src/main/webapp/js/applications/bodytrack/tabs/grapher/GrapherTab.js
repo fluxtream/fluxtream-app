@@ -1,15 +1,32 @@
-define(["core/Tab","core/grapher/Grapher"], function(Tab,Grapher) {
+define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher,FlxState) {
 	
 	var grapherTab = new Tab("bodytrack", "grapher", "Candide Kemmler", "icon-film", true);
+    var currentView = null;
 
     var grapher = null;
+    var pointLoad = null;
+    var currentPointLoad = null;
+    var cursorPositionToSet = null;
+    var channelToAdd = null;
 
     grapherTab.render = function(params){
+        if (params.rebuildURL){
+            params.rebuildURL = false;
+            var append = "";
+            if (currentView != null){
+                append = "/view/" + currentView;
+            }
+            App.renderApp("bodytrack","grapher" + append,params);
+            return;
+        }
+        if (params.facetToShow != null){
+            cursorPositionToSet = (params.facetToShow.start + (params.facetToShow.end != null ? params.facetToShow.end : params.facetToShow.start)) / 2;
+        }
         tbounds = params.tbounds;
         this.getTemplate("text!applications/bodytrack/tabs/grapher/grapher.html", "grapher", function() {
             var sourceName = null;
-            if (params.stateParts != null && params.stateParts.length == 4 && params.stateParts[2] == "source") {
-                srcLoad = params.stateParts[3];
+            if (params.stateParts != null && params.stateParts.length == 2 && params.stateParts[0] == "source") {
+                srcLoad = params.stateParts[1];
             }
             if (params.stateParts != null && params.stateParts.length == 2 && params.stateParts[0] == "view"){
                 viewLoad = params.stateParts[1];
@@ -25,7 +42,7 @@ define(["core/Tab","core/grapher/Grapher"], function(Tab,Grapher) {
     function setup(){
         if (grapher == null)
             grapher = new Grapher($("#grapherContainer"),
-                {showFullControls: true, showDeleteBtn: true, onLoadActions: [onGrapherLoad]});
+                {showFullControls: true, showDeleteBtn: true, onLoadActions: [onGrapherLoad], loadViewOverride: loadView});
         else
             onGrapherLoad();
     }
@@ -45,16 +62,48 @@ define(["core/Tab","core/grapher/Grapher"], function(Tab,Grapher) {
     }
 
     function onSourceLoad(){
-        if (viewLoad != null){
-            var view = viewLoad;
-            viewLoad = null;
-            grapher.loadView(view);
-        }
-        if (tbounds != null){
+        if (channelToAdd != null)
+            if (!grapher.hasChannel(channelToAdd))
+                grapher.addChannel(channelToAdd);
+        if (tbounds != null)
             grapher.setRange(tbounds.start/1000,tbounds.end/1000);
-            tbounds = null;
+        if (cursorPositionToSet != null){
+            grapher.setTimeCursorPosition(cursorPositionToSet);
         }
+        if (channelToAdd != null)
+            grapher.doCursorClick(channelToAdd);
+        onPointLoad();
+    }
 
+    function onPointLoad(){
+        if (viewLoad != null){
+            if (currentView != viewLoad){
+                var view = viewLoad;
+
+                currentView = view;
+                grapher.loadView(view);
+            }
+            viewLoad = null;
+        }
+        else{
+            currentView = null;
+        }
+        if (grapher.getTimeCursorPosition() == null)
+            grapher.setTimeCursorPosition(grapher.getCenter());
+
+    }
+
+    function loadView(viewId){
+        if (currentView == viewId)
+            return false;
+        if (viewId == null){
+            App.renderApp("bodytrack","grapher");
+            return false;
+        }
+        else{
+            App.renderApp("bodytrack","grapher/view/" + viewId);
+            return true;
+        }
     }
 
 	return grapherTab;

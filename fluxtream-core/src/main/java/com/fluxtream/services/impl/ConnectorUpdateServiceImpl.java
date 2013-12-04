@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.UUID;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
@@ -17,7 +18,7 @@ import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiNotification;
 import com.fluxtream.domain.ApiUpdate;
-import com.fluxtream.domain.Guest;
+import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.domain.UpdateWorkerTask;
 import com.fluxtream.domain.UpdateWorkerTask.Status;
 import com.fluxtream.services.ApiDataService;
@@ -26,7 +27,9 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.SystemService;
 import com.fluxtream.utils.JPAUtils;
+import org.joda.time.DateTimeConstants;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -38,7 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Component
 @Transactional(readOnly=true)
-public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, InitializingBean {
+public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, InitializingBean, DisposableBean {
 
     static FlxLogger logger = FlxLogger.getLogger(ConnectorUpdateServiceImpl.class);
 
@@ -85,9 +88,10 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
      * @return
      */
     @Override
-    public List<ScheduleResult> updateConnector(final ApiKey apiKey, boolean force){
-        System.out.println("updateConnector");
+    public List<ScheduleResult> updateConnector(final ApiKey apiKey, boolean force) {
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
+        // TODO: check if this connector type is enabled and supportsSync before calling update.
+        // If it is disabled and/or does not support sync, don't try to update it.
 
         // if forcing an update (sync now), we actually want to flush the update requests
         // that have stacked up in the queue
@@ -96,41 +100,64 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
         // some connectors (e.g. the fitbit) need to decide what objectTypes to update by themselves;
         // for those, we pass 0 for the objectType parameter, which will be overridden by the connector's updater
-        final boolean historyUpdateCompleted = isHistoryUpdateCompleted(apiKey);
         if (apiKey.getConnector().isAutonomous()) {
+            final boolean historyUpdateCompleted = isHistoryUpdateCompleted(apiKey, 0);
             scheduleObjectTypeUpdate(apiKey, 0, scheduleResults, historyUpdateCompleted
                                                                              ? UpdateType.INCREMENTAL_UPDATE
                                                                              : UpdateType.INITIAL_HISTORY_UPDATE);
         } else {
             int[] objectTypeValues = apiKey.getConnector().objectTypeValues();
+            ConnectorInfo connectorInfo = null;
+            String connectorName = "unknown";
+            try {
+                connectorInfo = systemService.getConnectorInfo(apiKey.getConnector().getName());
+                connectorName = connectorInfo.connectorName;
+            }
+            catch (Throwable e) {
+                // This connector is not in Connector info; skip it
+            }
+            if (connectorInfo==null || !connectorInfo.enabled ||!connectorInfo.supportsSync) {
+                logger.info("Not updating " + connectorName);
+                return scheduleResults;
+            }
             for (int objectTypes : objectTypeValues) {
+                final boolean historyUpdateCompleted = isHistoryUpdateCompleted(apiKey, objectTypes);
                 scheduleObjectTypeUpdate(apiKey, objectTypes, scheduleResults, historyUpdateCompleted
                                                                                            ? UpdateType.INCREMENTAL_UPDATE
                                                                                            : UpdateType.INITIAL_HISTORY_UPDATE);
             }
         }
+        long guestId=0;
+        if(apiKey !=null) {
+            guestId = apiKey.getGuestId();
+        }
+        System.out.println("updateConnector: guestId=" + guestId + ", apiKey=" + apiKey);
+
         return scheduleResults;
     }
 
-    private boolean isHistoryUpdateCompleted(ApiKey apiKey) {
-        if (apiKey.getConnector().isAutonomous())
-            return isHistoryUpdateCompleted(apiKey, 0);
-        final int[] connectorObjectTypeValues = apiKey.getConnector().objectTypeValues();
-        for (int connectorObjectTypeValue : connectorObjectTypeValues)
-            if (!isHistoryUpdateCompleted(apiKey, connectorObjectTypeValue))
-                return false;
-        return true;
+    @Override
+    public boolean isHistoryUpdateCompleted(final ApiKey apiKey,
+                                            int objectTypes) {
+        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.completed", Status.DONE, UpdateType.INITIAL_HISTORY_UPDATE, objectTypes, apiKey.getId());
+        return updateWorkerTasks.size() > 0;
     }
 
     @Override
-    public List<ScheduleResult> updateConnectorObjectType(ApiKey apiKey, int objectTypes, boolean force) {
+    public List<ScheduleResult> updateConnectorObjectType(ApiKey apiKey,
+                                                          int objectTypes,
+                                                          boolean force,
+                                                          boolean historyUpdate) {
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
         getUpdateWorkerTask(apiKey, objectTypes);
         // if forcing an update (sync now), we actually want to flush the update requests
         // that have stacked up in the queue
         if (force)
-            flushUpdateWorkerTasks(apiKey, objectTypes, false);
-        scheduleObjectTypeUpdate(apiKey, objectTypes, scheduleResults, UpdateType.INCREMENTAL_UPDATE);
+            flushUpdateWorkerTasks(apiKey, objectTypes, historyUpdate);
+        UpdateType updateType = isHistoryUpdateCompleted(apiKey, objectTypes)
+                ? UpdateType.INCREMENTAL_UPDATE
+                : UpdateType.INITIAL_HISTORY_UPDATE;
+        scheduleObjectTypeUpdate(apiKey, objectTypes, scheduleResults, updateType);
         return scheduleResults;
     }
 
@@ -145,10 +172,19 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     private void scheduleObjectTypeUpdate(final ApiKey apiKey, int objectTypes,
                                           List<ScheduleResult> scheduleResults,
                                           UpdateType updateType) {
+        ConnectorInfo connectorInfo = null;
+        try {
+            connectorInfo = systemService.getConnectorInfo(apiKey.getConnector().getName());
+        }
+        catch (Throwable e) {
+            // This connector is not in Connector info; skip it
+        }
+        if (connectorInfo == null || !connectorInfo.supportsSync)
+            return;
+
         UpdateWorkerTask updateWorkerTask = getUpdateWorkerTask(apiKey, objectTypes);
         if (updateWorkerTask != null)
-            scheduleResults.add(new ScheduleResult(apiKey.getId(), apiKey.getConnector().getName(),
-                                                   objectTypes, ScheduleResult.ResultType.ALREADY_SCHEDULED, updateWorkerTask.timeScheduled));
+            scheduleResults.add(new ScheduleResult(apiKey.getId(), apiKey.getConnector().getName(), objectTypes, ScheduleResult.ResultType.ALREADY_SCHEDULED, updateWorkerTask.timeScheduled));
         else {
             final ScheduleResult scheduleResult = scheduleUpdate(apiKey, objectTypes, updateType, System.currentTimeMillis());
             scheduleResults.add(scheduleResult);
@@ -158,10 +194,13 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     @Override
     @Transactional(readOnly=false)
     public void cleanupStaleData() {
-        final List<Guest> allGuests = guestService.getAllGuests();
-        for (Guest guest : allGuests) {
-            cleanupStaleData(guest.getId());
-        }
+        long oneWeekAgo = System.currentTimeMillis() - (DateTimeConstants.MILLIS_PER_DAY*7);
+        final Query cleanupUpdateWorkerTasks = em.createNativeQuery(String.format("DELETE FROM UpdateWorkerTask WHERE not(status=2 AND updateType=2) and timeScheduled<%s", oneWeekAgo));
+        final int updateWorkerTasksDeleted = cleanupUpdateWorkerTasks.executeUpdate();
+        System.out.println("deleted " + updateWorkerTasksDeleted + " UpdateWorkerTasks");
+        final Query cleanupApiUpdates = em.createNativeQuery(String.format("DELETE FROM ApiUpdates WHERE ts<%s", oneWeekAgo));
+        final int apiUpdatesDeleted = cleanupApiUpdates.executeUpdate();
+        System.out.println("deleted " + apiUpdatesDeleted + " ApiUpdates");
     }
 
     /**
@@ -187,13 +226,24 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
      * to the update queue
      */
     @Override
-    public List<ScheduleResult> updateAllConnectors(final long guestId) {
+    public List<ScheduleResult> updateAllConnectors(final long guestId, boolean force) {
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
         final List<ApiKey> connectors = guestService.getApiKeys(guestId);
         for (ApiKey key : connectors) {
-            if (key!=null && key.getConnector()!=null) {
-                List<ScheduleResult> updateRes = updateConnector(key, false);
-                scheduleResults.addAll(updateRes);
+            // Make sure the connector is of a type which is still supported.  Otherwise
+            // skip trying to update it.
+            try {
+                if (key != null && key.getConnector() != null) {
+                    final ConnectorInfo connectorInfo = systemService.getConnectorInfo(key.getConnector().getName());
+                    // Make sure that this connector type supports sync and is enabled in this Fluxtream instance
+                    if (connectorInfo.supportsSync && connectorInfo.enabled && key.getStatus() != ApiKey.Status.STATUS_PERMANENT_FAILURE) {
+                        List<ScheduleResult> updateRes = updateConnector(key, force);
+                        scheduleResults.addAll(updateRes);
+                    }
+                }
+            }
+            catch (Throwable e) {
+                // Ignore this connector
             }
         }
         return scheduleResults;
@@ -206,9 +256,25 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         UpdateWorkerTask updt = em
                 .find(UpdateWorkerTask.class, updateWorkerTaskId);
 
+        // Check if updt is null.  This can happen if we were in the process of updating a
+        // connector instance which was subsequently deleted.  In that case, print a message
+        // and return
+        if(updt==null) {
+            StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=reScheduleUpdateTask")
+                        .append(" updateWorkerTaskId="+updateWorkerTaskId)
+                        .append(" message=\"Ignoring reschedule of an update task which is no longer in the system (deleted connector?)");
+            logger.info(sb);
+            return null;
+        }
+
+        // Set the audit trail according to what just happened
+        updt.addAuditTrailEntry(auditTrailEntry);
+
+        // Spawn a duplicate entry in the UpdateWorker table to record this failure and the reason for it
         if (!incrementRetries) {
             UpdateWorkerTask failed = new UpdateWorkerTask(updt);
             failed.auditTrail = updt.auditTrail;
+            failed.apiKeyId = updt.apiKeyId;
             failed.retries = updt.retries;
             failed.connectorName = updt.connectorName;
             failed.status = Status.FAILED;
@@ -219,8 +285,12 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         } else
             updt.retries += 1;
 
-        updt.addAuditTrailEntry(auditTrailEntry);
+        // Reschedule the original task
         updt.status = Status.SCHEDULED;
+
+        // Reset serverUUID to UNCLAIMED to reflect the fact that this task is no longer in the process of being
+        // executed.
+        updt.serverUUID = UNCLAIMED;
         updt.timeScheduled = time;
         em.persist(updt);
 
@@ -238,54 +308,71 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
             throws RuntimeException {
         UpdateWorkerTask updt = em
                 .find(UpdateWorkerTask.class, updateWorkerTaskId);
+        // Check if updt is null.  This can happen if we were in the process of updating a
+        // connector instance which was subsequently deleted.  In that case, print a message
+        // and return
         if (updt == null) {
-            RuntimeException exception = new RuntimeException(
-                    "null UpdateWorkerTask trying to set its status: "
-                    + updateWorkerTaskId);
-            logger.error("module=updateQueue component=connectorUpdateService action=setUpdateWorkerTaskStatus");
-            throw exception;
+            StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=setUpdateWorkerTaskStatus")
+                        .append(" updateWorkerTaskId="+updateWorkerTaskId)
+                        .append(" message=\"Ignoring set status for an update task which is no longer in the system (deleted connector?)");
+            logger.info(sb);
         }
-        updt.status = status;
+        else {
+            updt.status = status;
+
+            // If the status is in_progress, set serverUUID to the current one.
+            // For anything other than IN_PROGRESS, set the serverUUID to null to reflect that it's not claimed
+            if(status==Status.IN_PROGRESS) {
+                updt.serverUUID = SERVER_UUID;
+            } else {
+                updt.serverUUID = UNCLAIMED;
+            }
+
+            em.persist(updt);
+        }
     }
 
     @Override
     @Transactional(readOnly = false)
     public void pollScheduledUpdateWorkerTasks() {
-        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.byStatus", Status.SCHEDULED, getLiveOrUnclaimedServerUUIDs(), System.currentTimeMillis());
-        if (updateWorkerTasks.size() == 0) {
-            logger.debug("module=updateQueue component=connectorUpdateService action=pollScheduledUpdateWorkerTasks message=\"Nothing to do\"");
-            return;
-        }
 
         int maxThreads = executor.getMaxPoolSize();
         int activeThreads = executor.getActiveCount();
         int availableThreads = maxThreads - activeThreads;
 
-        StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=pollScheduleUpdates")
-            .append(" availableThreads="+availableThreads);
-
-        logger.info(sb);
-        if (availableThreads<updateWorkerTasks.size()) {
-            sb.append(" message=\"tasks overflow!\" nTasks=" + updateWorkerTasks.size());
-            logger.warn(sb);
+        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.findWithLimit(em, UpdateWorkerTask.class,
+                                                                          "updateWorkerTasks.byStatus",
+                                                                          0, availableThreads,
+                                                                          Status.SCHEDULED,
+                                                                          System.currentTimeMillis());
+        if (updateWorkerTasks.size() == 0) {
+            logger.debug("module=updateQueue component=connectorUpdateService action=pollScheduledUpdateWorkerTasks message=\"Nothing to do\"");
+            return;
         }
 
-        int nWorkers = Math.min(updateWorkerTasks.size(), availableThreads);
+        StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=pollScheduleUpdates")
+            .append(" availableThreads="+availableThreads)
+            .append(" message=\"adding " + updateWorkerTasks.size() + " update worker tasks\"");
 
-        for (int i=0; i<nWorkers; i++) {
+        logger.info(sb);
+
+        for (int i=0; i<updateWorkerTasks.size(); i++) {
             UpdateWorkerTask updateWorkerTask = updateWorkerTasks.get(i);
             logger.info("module=updateQueue component=connectorUpdateService action=pollScheduledUpdateWorkerTasks" +
                         " message=\"Executing update: " +
                         " \"" + updateWorkerTask);
 
-            claim(updateWorkerTask.getId());
-
-            UpdateWorker updateWorker = beanFactory.getBean(UpdateWorker.class);
-            updateWorker.task = updateWorkerTask;
-            try {
-                executor.execute(updateWorker);
-            } catch (Throwable t) {
-                t.printStackTrace();
+            // Claim can return false if the task with that ID has been deleted, such as in the case
+            // of connector deletion.  In that case just skip this task.  If it returns true then
+            // continue with task execution
+            if(claim(updateWorkerTask.getId()) == true){
+                UpdateWorker updateWorker = beanFactory.getBean(UpdateWorker.class);
+                updateWorker.task = updateWorkerTask;
+                try {
+                    executor.execute(updateWorker);
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
             }
         }
     }
@@ -341,13 +428,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     }
 
     @Override
-    public boolean isHistoryUpdateCompleted(final ApiKey apiKey,
-                                            int objectTypes) {
-        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.completed", Status.DONE, apiKey.getGuestId(), UpdateType.INITIAL_HISTORY_UPDATE, objectTypes, apiKey.getConnector().getName(), apiKey.getId());
-        return updateWorkerTasks.size() > 0;
-    }
-
-    @Override
     @Transactional(readOnly = false)
     public void addApiNotification(Connector connector, long guestId, String content) {
         ApiNotification notification = new ApiNotification();
@@ -360,7 +440,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
     @Override
     @Transactional(readOnly = false)
-    public void addApiUpdate(final ApiKey apiKey, int objectTypes, long ts, long elapsed, String query, boolean success) {
+    public void addApiUpdate(final ApiKey apiKey, int objectTypes, long ts, long elapsed, String query,
+                             boolean success, Integer httpResponseCode, String reason) {
         ApiUpdate updt = new ApiUpdate();
         updt.guestId = apiKey.getGuestId();
         updt.api = apiKey.getConnector().value();
@@ -370,22 +451,24 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         updt.objectTypes = objectTypes;
         updt.elapsed = elapsed;
         updt.success = success;
+        updt.httpResponseCode = httpResponseCode;
+        updt.reason = reason;
         em.persist(updt);
     }
 
     @Override
     public ApiUpdate getLastUpdate(ApiKey apiKey) {
-        return JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last", apiKey.getGuestId(), apiKey.getConnector().value(), apiKey.getId());
+        return JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last", apiKey.getId());
     }
 
     @Override
     public ApiUpdate getLastSuccessfulUpdate(ApiKey apiKey) {
-        return JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last.successful.byApi", apiKey.getGuestId(), apiKey.getConnector().value(), apiKey.getId());
+        return JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last.successful.byApi", apiKey.getId());
     }
 
     @Override
     public List<ApiUpdate> getUpdates(ApiKey apiKey, final int pageSize, final int page) {
-        return JPAUtils.findPaged(em, ApiUpdate.class, "apiUpdates.last.paged", pageSize, page, apiKey.getGuestId(), apiKey.getConnector().value(), apiKey.getId());
+        return JPAUtils.findPaged(em, ApiUpdate.class, "apiUpdates.last.paged", pageSize, page, apiKey.getId());
     }
 
     @Override
@@ -393,16 +476,24 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
                                              int objectTypes) {
         if (objectTypes == -1)
             return getLastSuccessfulUpdate(apiKey);
-        return JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last.successful.byApiAndObjectTypes", apiKey.getGuestId(), apiKey.getConnector().value(), objectTypes, apiKey.getId());
+        return JPAUtils.findUnique(em, ApiUpdate.class, "apiUpdates.last.successful.byApiAndObjectTypes", objectTypes, apiKey.getId());
     }
 
     @Override
-    @Transactional(readOnly = false)
+    public List<UpdateWorkerTask> getUpdateWorkerTasks(final ApiKey apiKey, int objectTypes, int max) {
+        final List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.findWithLimit(em, UpdateWorkerTask.class,
+                                                                                "updateWorkerTasks.withObjectTypes", 0,
+                                                                                max, objectTypes, apiKey.getId(),
+                                                                                getLiveServerUUIDs());
+        return updateWorkerTasks;
+    }
+
+    @Override
     public UpdateWorkerTask getUpdateWorkerTask(final ApiKey apiKey, int objectTypes) {
         UpdateWorkerTask updateWorkerTask = JPAUtils.findUnique(em,
                                                                 UpdateWorkerTask.class, "updateWorkerTasks.withObjectTypes.isScheduled",
-                                                                Status.SCHEDULED, Status.IN_PROGRESS, apiKey.getGuestId(),
-                                                                objectTypes, apiKey.getConnector().getName(),
+                                                                getLiveServerUUIDs(),
+                                                                objectTypes,
                                                                 apiKey.getId());
         if (updateWorkerTask!=null&&hasStalled(updateWorkerTask)) {
             updateWorkerTask.status = Status.STALLED;
@@ -413,9 +504,25 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     }
 
     @Override
-    @Transactional(readOnly = false)
+    public List<UpdateWorkerTask> getAllSynchingUpdateWorkerTasks() {
+        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.all.synching", getLiveServerUUIDs());
+        return updateWorkerTasks;
+    }
+
+    @Override
+    public List<UpdateWorkerTask> getAllScheduledUpdateWorkerTasks() {
+        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class,
+                                                                 "updateWorkerTasks.all.scheduled");
+        return updateWorkerTasks;
+    }
+
+    @Override
     public List<UpdateWorkerTask> getScheduledOrInProgressUpdateTasks(final ApiKey apiKey) {
-        List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.isScheduledOrInProgress", apiKey.getGuestId(), apiKey.getConnector().getName(), apiKey.getId());
+        // Get the tasks that are currently scheduled or in progress and either have the active
+        List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em, UpdateWorkerTask.class,
+                                                                "updateWorkerTasks.isScheduledOrInProgress",
+                                                                getLiveServerUUIDs(),
+                                                                apiKey.getId());
         for (UpdateWorkerTask workerTask : updateWorkerTask) {
             if (hasStalled(workerTask)) {
                 workerTask.status = Status.STALLED;
@@ -428,8 +535,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     @Override
     public Collection<UpdateWorkerTask> getUpdatingUpdateTasks(final ApiKey apiKey) {
         List<UpdateWorkerTask> tasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.isInProgressOrScheduledBefore",
-                                                     System.currentTimeMillis(), apiKey.getGuestId(), getLiveServerUUIDs(),
-                                                     apiKey.getConnector().getName(), apiKey.getId());
+                                                     System.currentTimeMillis(), getLiveServerUUIDs(),
+                                                     apiKey.getId());
         HashMap<Integer, UpdateWorkerTask> seen = new HashMap<Integer, UpdateWorkerTask>();
         for(UpdateWorkerTask task : tasks)
         {
@@ -477,7 +584,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
      */
     @Transactional(readOnly = false)
     public void cleanupUpdateWorkerTasks(final ApiKey apiKey) {
-        final int tasksDeleted = JPAUtils.execute(em, "updateWorkerTasks.cleanup.byApi", apiKey.getGuestId(), apiKey.getConnector().getName(), apiKey.getId(), UpdateType.INITIAL_HISTORY_UPDATE);
+        final int tasksDeleted = JPAUtils.execute(em, "updateWorkerTasks.cleanup.byApi", apiKey.getId(), UpdateType.INITIAL_HISTORY_UPDATE);
         logger.info("module=updateQueue component=connectorUpdateService action=cleanupUpdateWorkerTasks" +
                     " deleted=" + tasksDeleted + " connector=" + apiKey.getConnector().getName());
         em.flush();
@@ -493,14 +600,21 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     @Transactional(readOnly = false)
     @Override
     public void flushUpdateWorkerTasks(final ApiKey apiKey, boolean wipeOutHistory) {
-        if (!wipeOutHistory)
-            JPAUtils.execute(em, "updateWorkerTasks.delete.byApi", apiKey.getGuestId(),
-                             apiKey.getConnector().getName(),
-                             apiKey.getId(),
-                             UpdateType.INITIAL_HISTORY_UPDATE);
-        else
-            JPAUtils.execute(em, "updateWorkerTasks.deleteAll.byApi", apiKey.getGuestId(),
-                             apiKey.getConnector().getName(), apiKey.getId());
+        if (!wipeOutHistory) {
+            // Here we want to leave the completed history updates but get rid of the scheduled
+            // items for this apiKey.  That translates into deleting items with status=0.
+             JPAUtils.execute(em, "updateWorkerTasks.delete.scheduledByApi",
+                             apiKey.getId());
+        }
+        else {
+            // Here we want to delete all update worker tasks relating to this
+            // apiKey other than the ones that are currently in progress.
+            // This happens asynchronously after connector deletion and
+            // is executed by ApiDataCleanupWorker, or while servicing a request to
+            // reset a connector.
+            JPAUtils.execute(em, "updateWorkerTasks.delete.byApi", apiKey.getId(),
+                             Status.IN_PROGRESS);
+        }
     }
 
     /**
@@ -513,16 +627,23 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     @Transactional(readOnly = false)
     @Override
     public void flushUpdateWorkerTasks(final ApiKey apiKey, int objectTypes, boolean wipeOutHistory) {
-        if (!wipeOutHistory)
-            JPAUtils.execute(em, "updateWorkerTasks.delete.byApiAndObjectType", apiKey.getGuestId(),
-                             apiKey.getConnector().getName(),
+        if (!wipeOutHistory) {
+            // Here we want to leave the completed history updates but get rid of the scheduled
+            // items for this apiKey.  That translates into deleting items with status=0.
+            JPAUtils.execute(em, "updateWorkerTasks.delete.scheduledByApiAndObjectType",
                              apiKey.getId(),
-                             objectTypes,
-                             UpdateType.INITIAL_HISTORY_UPDATE);
-        else
-            JPAUtils.execute(em, "updateWorkerTasks.deleteAll.byApiAndObjectType", apiKey.getGuestId(),
-                             apiKey.getConnector().getName(), apiKey.getId(),
                              objectTypes);
+        }
+        else {
+            // Here we want to delete all update worker tasks relating to this
+            // apiKey other than the ones that are currently in progress.
+            // This happens asynchronously after connector deletion and
+            // is executed by ApiDataCleanupWorker, or while servicing a request to
+            // reset a connector.
+            JPAUtils.execute(em, "updateWorkerTasks.delete.scheduledAndHistoryByApiAndObjectType",
+                             apiKey.getId(),
+                             objectTypes);
+        }
     }
 
     @Override
@@ -543,8 +664,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         List<UpdateWorkerTask> tasks = JPAUtils.find(em, UpdateWorkerTask.class,
                                                      "updateWorkerTasks.getLastFinishedTask",
                                                      System.currentTimeMillis(),
-                                                     apiKey.getGuestId(),
-                                                     apiKey.getConnector().getName(),
                                                      apiKey.getId());
         HashMap<Integer, UpdateWorkerTask> seen = new HashMap<Integer, UpdateWorkerTask>();
         for(UpdateWorkerTask task : tasks)
@@ -564,19 +683,51 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
     @Override
     @Transactional(readOnly=false)
-    public void claim(final long taskId) {
+    public boolean claim(final long taskId) {
         UpdateWorkerTask task = em.find(UpdateWorkerTask.class, taskId);
-        task.serverUUID = SERVER_UUID;
-        task.status = Status.IN_PROGRESS;
-        task.addAuditTrailEntry(new UpdateWorkerTask.AuditTrailEntry(new java.util.Date(), SERVER_UUID));
-        em.persist(task);
+
+        // Check if task is null.  This can happen if we were in the process of updating a
+        // connector instance which was subsequently deleted.  In that case, print a message
+        // and return
+        if(task==null) {
+            StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=claim")
+                        .append(" updateWorkerTaskId="+taskId)
+                        .append(" message=\"Ignoring claim request for an update task which is no longer in the system (deleted connector?)");
+            logger.info(sb);
+            return false;
+
+        } else {
+            task.serverUUID = SERVER_UUID;
+            task.status = Status.IN_PROGRESS;
+            task.addAuditTrailEntry(new UpdateWorkerTask.AuditTrailEntry(new java.util.Date(), SERVER_UUID));
+            em.persist(task);
+            return true;
+        }
+
     }
 
     @Override
     @Transactional(readOnly=false)
     public void addAuditTrail(final long updateWorkerTaskId, final UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
         UpdateWorkerTask task = em.find(UpdateWorkerTask.class, updateWorkerTaskId);
-        task.addAuditTrailEntry(auditTrailEntry);
-        em.persist(task);
+
+        // Check if task is null.  This can happen if we were in the process of updating a
+        // connector instance which was subsequently deleted.  In that case, print a message
+        // and return
+        if(task==null) {
+            StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=addAuditTrail")
+                        .append(" updateWorkerTaskId="+updateWorkerTaskId)
+                        .append(" message=\"Ignoring addAuditTrail request for an update task which is no longer in the system (deleted connector?)");
+            logger.info(sb);
+        }
+        else {
+            task.addAuditTrailEntry(auditTrailEntry);
+            em.persist(task);
+        }
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        executor.shutdown();
     }
 }

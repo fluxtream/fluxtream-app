@@ -19,7 +19,7 @@ import org.joda.time.format.DateTimeFormatter;
  * Stores data from the bodymedia burn api
  */
 @Entity(name="Facet_BodymediaBurn")
-@ObjectTypeSpec(name = "burn", value = 1, prettyname = "Calories Burned", extractor = BodymediaBurnFacetExtractor.class)
+@ObjectTypeSpec(name = "burn", value = 1, prettyname = "Calories Burned", isDateBased = true)
 @NamedQueries({
     @NamedQuery(name = "bodymedia.burn.getFailedUpdate", query = "SELECT facet FROM Facet_BodymediaBurn facet WHERE facet.guestId=? AND facet.lastSync=1"),
     @NamedQuery(name = "bodymedia.burn.getDaysPrior", query = "SELECT facet FROM Facet_BodymediaBurn facet WHERE facet.guestId=? AND facet.start<? ORDER BY facet.start DESC"),
@@ -57,7 +57,6 @@ public class BodymediaBurnFacet extends BodymediaAbstractFacet {
         */
         DateTimeFormatter syncTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
         DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
-        DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
         BodymediaBurnFacet facet=null;
 
         if (existing == null) {
@@ -87,7 +86,7 @@ public class BodymediaBurnFacet extends BodymediaAbstractFacet {
             facet.lastSync = d.getMillis();
 
             DateTime date = formatter.parseDateTime(day.getString("date"));
-            facet.date = dateFormatter.print(date.getMillis());
+            facet.date = TimeUtils.dateFormatter.print(date.getMillis());
 
             long fromMidnight = TimeUtils.fromMidnight(date.getMillis(), timeZone.toTimeZone());
             long toMidnight = TimeUtils.toMidnight(date.getMillis(), timeZone.toTimeZone());

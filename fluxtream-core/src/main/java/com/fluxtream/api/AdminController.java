@@ -9,6 +9,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
@@ -21,6 +22,7 @@ import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
+import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.WidgetsService;
 import com.google.gson.Gson;
 import net.sf.json.JSONArray;
@@ -56,6 +58,9 @@ public class AdminController {
     @Autowired
     ApiDataService apiDataService;
 
+    @Autowired
+    MetadataService metadataService;
+
     @GET
     @Secured({ "ROLE_ADMIN" })
 	@Path("/properties/{propertyName}")
@@ -75,6 +80,24 @@ public class AdminController {
 				+ propertyName);
 		return gson.toJson(failure);
 	}
+
+    @POST
+    @Secured({ "ROLE_ADMIN" })
+    @Path("/{username}/metadata/rebuild")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String populateBetterMetadataTables(@PathParam("username") String username)
+            throws InstantiationException, IllegalAccessException,
+                   ClassNotFoundException {
+
+        try {
+            metadataService.rebuildMetadata(username);
+            StatusModel success = new StatusModel(true, "done");
+            return gson.toJson(success);
+        } catch (Throwable t) {
+            StatusModel failure = new StatusModel(false, ExceptionUtils.getStackTrace(t));
+            return gson.toJson(failure);
+        }
+    }
 
     @POST
     @Secured({ "ROLE_ADMIN" })
@@ -161,10 +184,47 @@ public class AdminController {
     @DELETE
     @Path("/apiKeys/{apiKeyId}")
     @Secured({ "ROLE_ADMIN" })
-    @Produces({MediaType.TEXT_PLAIN})
-    public String deleteApiKey(@PathParam("apiKeyId") long apiKeyId) throws IOException {
+    @Produces({MediaType.APPLICATION_JSON})
+    public StatusModel deleteApiKey(@PathParam("apiKeyId") long apiKeyId) throws IOException {
         guestService.removeApiKey(apiKeyId);
-        return "OK";
+        return new StatusModel(true, "apiKey was deleted");
+    }
+
+    @POST
+    @Path("/apiKeys/{apiKeyId}/attribute")
+    @Secured({ "ROLE_ADMIN" })
+    @Produces({MediaType.APPLICATION_JSON})
+    public StatusModel setApiKeyAttributeValue(@PathParam("apiKeyId") long apiKeyId,
+                                               @FormParam("attributeKey") String attributeKey,
+                                               @FormParam("attributeValue") String attributeValue) throws IOException {
+        final ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        guestService.setApiKeyAttribute(apiKey, attributeKey, attributeValue);
+        return new StatusModel(true, "attribute value was set");
+    }
+
+    @POST
+    @Path("/apiKeys/{apiKeyId}/attribute/add")
+    @Secured({ "ROLE_ADMIN" })
+    @Produces({MediaType.APPLICATION_JSON})
+    public StatusModel addApiKeyAttribute(@PathParam("apiKeyId") long apiKeyId,
+                                          @FormParam("attributeKey") String attributeKey,
+                                          @FormParam("attributeValue") String attributeValue) throws IOException {
+        final ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        final String existingValue = guestService.getApiKeyAttribute(apiKey, attributeKey);
+        if (existingValue!=null)
+            return new StatusModel(false, "This attribute already exists. Please edit the value if you want to change it.");
+        guestService.setApiKeyAttribute(apiKey, attributeKey, attributeValue);
+        return new StatusModel(true, "attribute was created");
+    }
+
+    @DELETE
+    @Path("/apiKeys/{apiKeyId}/{attributeKey}")
+    @Secured({ "ROLE_ADMIN" })
+    @Produces({MediaType.APPLICATION_JSON})
+    public StatusModel deleteApiKeyAttribute(@PathParam("apiKeyId") long apiKeyId,
+                                        @PathParam("attributeKey") String attributeKey) throws IOException {
+        guestService.removeApiKeyAttribute(apiKeyId, attributeKey);
+        return new StatusModel(true, "attribute was deleted");
     }
 
     @DELETE
@@ -187,6 +247,17 @@ public class AdminController {
         final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
         connectorUpdateService.flushUpdateWorkerTasks(apiKey, true);
         return new StatusModel(true, "reset controller " + connectorName);
+    }
+
+    @POST
+    @Path("/{username}/password")
+    @Secured({ "ROLE_ADMIN" })
+    @Produces({MediaType.APPLICATION_JSON})
+    public StatusModel setPassword(@PathParam("username") String username,
+                                   @QueryParam("password") String password){
+        final long guestId = guestService.getGuest(username).getId();
+        guestService.setPassword(guestId, password);
+        return new StatusModel(true, "set password for user " + username);
     }
 
     @POST

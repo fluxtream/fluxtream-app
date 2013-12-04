@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import com.fluxtream.Configuration;
+import com.fluxtream.SimpleTimeInterval;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.Connector;
@@ -105,11 +106,12 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
                                  String deviceName,
                                  List<AbstractFacet> deviceFacets,
                                  String facetName) {
-        List<String> dailyDataChannelNames = getDailyDataChannelNames(facetName);
-        List<List<Object>> dailyDataChannelValues = getDailyDataChannelValues(deviceFacets, dailyDataChannelNames);
+        List<String> datastoreChannelNames = getDailyDatastoreChannelNames(facetName);
+        List<String> facetColumnNames = getFacetColumnNames(facetName);
+        List<List<Object>> dailyDataChannelValues = getDailyDataChannelValues(deviceFacets, facetColumnNames);
 
         // TODO: check the status code in the BodyTrackUploadResult
-        bodyTrackHelper.uploadToBodyTrack(guestId, deviceName, dailyDataChannelNames, dailyDataChannelValues);
+        bodyTrackHelper.uploadToBodyTrack(guestId, deviceName, datastoreChannelNames, dailyDataChannelValues);
     }
 
     private void uploadIntradayData(long guestId, List<AbstractFacet> deviceFacets, FieldHandler fieldHandler) {
@@ -127,7 +129,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
         return fieldHandlers.get(HandlerName);
     }
 
-    private List<String> getDailyDataChannelNames(String facetName) {
+    private List<String> getDailyDatastoreChannelNames(String facetName) {
         String[] channelNamesMappings = env.bodytrackProperties.getStringArray(facetName + ".channel_names");
         List<String> channelNames = new ArrayList<String>();
         for (String mapping : channelNamesMappings) {
@@ -135,6 +137,18 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
             if (terms[1].startsWith("#"))
                 continue;
             channelNames.add(terms[0]);
+        }
+        return channelNames;
+    }
+
+    private List<String> getFacetColumnNames(String facetName) {
+        String[] channelNamesMappings = env.bodytrackProperties.getStringArray(facetName + ".channel_names");
+        List<String> channelNames = new ArrayList<String>();
+        for (String mapping : channelNamesMappings) {
+            String[] terms = StringUtils.split(mapping, ":");
+            if (terms[1].startsWith("#"))
+                continue;
+            channelNames.add(terms[1]);
         }
         return channelNames;
     }
@@ -162,7 +176,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
         for (AbstractFacet deviceFacet : deviceFacets) {
             Iterator<String> eachFieldName = dailyDataChannelNames.iterator();
             List<Object> values = new ArrayList<Object>();
-            values.add(deviceFacet.start / 1000);
+            values.add(deviceFacet.start / 1000.0);
             while (eachFieldName.hasNext()) {
                 String fieldName = eachFieldName.next();
                 try {
@@ -224,8 +238,8 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 	public void storeInitialHistory(ApiKey apiKey) {
         logger.info("module=updateQueue component=bodytrackStorageService action=storeInitialHistory" +
                     " guestId=" + apiKey.getGuestId() + " connector=" + apiKey.getConnector().getName());
-		TimeInterval timeInterval = new TimeInterval(0,
-				System.currentTimeMillis(), TimeUnit.DAY, TimeZone.getDefault());
+		TimeInterval timeInterval = new SimpleTimeInterval(0,
+				System.currentTimeMillis(), TimeUnit.ARBITRARY, TimeZone.getDefault());
 		List<AbstractFacet> facets = apiDataService.getApiDataFacets(apiKey, null, timeInterval);
 		storeApiData(apiKey.getGuestId(), facets);
 	}

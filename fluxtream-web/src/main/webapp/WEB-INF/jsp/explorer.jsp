@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
     content="black-translucent" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fluxtream - Personal Analytics</title>
+<title>Fluxtream</title>
 <meta name="description" content="">
 <meta name="author" content="">
 
@@ -22,14 +22,14 @@
     <link rel="stylesheet" href="/css/flx.css">
     <link rel="stylesheet" href="/css/bodytrack.css">
     <link rel="stylesheet" href="/css/datepicker.css">
-    <link rel="stylesheet" href="/static/css/jquery-ui/jquery-ui-1.8.18.custom.css">
+    <link rel="stylesheet" href="/static/css/jquery-ui/jquery-ui-1.10.3.custom.css">
     <link rel="stylesheet"
         href="/static/css/jquery-colorPicker/jquery.colorPicker.css">
     <link rel="stylesheet" href="/static/css/msdropdown/dd.css">
     <link rel="stylesheet" href="/static/css/tagedit/css/jquery.tagedit.css">
 </g:compress>
 
-<link rel="stylesheet" href="/static/css/font-awesome.css">
+<link rel="stylesheet" href="/static/css/font-awesome-3.2.1.css">
 
 <script
     src="https://maps-api-ssl.google.com/maps/api/js?libraries=geometry&v=3&sensor=false"
@@ -55,15 +55,15 @@
     </script>
 
     <script
-        src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+        src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script>
         window.jQuery
                 || document
-                        .write('<script src="/static/js/jquery-1.7.1.min.js"><\/script>')
+                        .write('<script src="/static/js/jquery-1.10.2.min.js"><\/script>')
     </script>
     <g:compress>
-        <script src="/static/js/jquery-ui-1.8.18.custom.min.js"></script>
-        <script src="/static/js/jquery.ui.sortable-1.8.2-bt-1.0.0.js"></script>
+        <script src="/static/js/jquery-ui-1.10.3.custom.min.js"></script>
+        <script src="/static/js/jquery.ui.sortable-1.8.2-bt-1.0.1.js"></script>
         <script src="/static/tiny_mce/jquery.tinymce.js"></script>
         <script src="/static/js/json2-2011.10.19.js"></script>
         <script src="/static/js/hogan-2.0.0.js"></script>
@@ -79,7 +79,7 @@
         <script src="/static/js/bootstrap-2.0.2.min.js"></script>
         <script src="/static/js/raphael-2.1.0.js"></script>
         <script src="/static/js/underscore-1.3.3-min.js"></script>
-        <script src="/static/js/backbone-0.9.2-min.js"></script>
+        <script src="/static/js/backbone-1.0.0-custom.1-min.js"></script>
     </g:compress>
 </body>
 </html>

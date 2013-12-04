@@ -1,8 +1,9 @@
 <p>
-    The Fluxtream Capture connector is automatically added the first time you upload data from any Fluxtream Capture
+    The FluxtreamCapture connector is automatically added the first time you upload data from any Fluxtream Capture
     app.
 </p>
 
 <p>
-    Fluxtream Capture apps will be available for iOS and Android.
+    The FluxtreamCapture app is currently available for testing on iOS through TestFlight.  <br>
+    Please contact info@fluxtream.org to participate.
 </p>

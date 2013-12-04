@@ -7,6 +7,7 @@ import java.util.TimeZone;
 import com.fluxtream.ApiData;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import net.sf.json.JSONArray;
@@ -23,7 +24,8 @@ public class FitbitWeightFacetExtractor extends AbstractFacetExtractor {
     FlxLogger logger = FlxLogger.getLogger(FitbitActivityFacetExtractor.class);
 
     @Override
-    public List<AbstractFacet> extractFacets(final ApiData apiData, final ObjectType objectType) throws Exception {
+    public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, final ApiData apiData,
+                                             final ObjectType objectType) throws Exception {
         List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         JSONObject fitbitResponse = JSONObject.fromObject(apiData.json);
 
@@ -50,6 +52,7 @@ public class FitbitWeightFacetExtractor extends AbstractFacetExtractor {
             super.extractCommonFacetData(facet, apiData);
 
             facet.date = (String) apiData.updateInfo.getContext("date");
+            facet.startTimeStorage = facet.endTimeStorage = noon(facet.date);
 
             if (fitbitWeightMeasurements.getJSONObject(i).containsKey("bmi"))
                 facet.bmi = fitbitWeightMeasurements.getJSONObject(i).getDouble("bmi");
@@ -69,7 +72,9 @@ public class FitbitWeightFacetExtractor extends AbstractFacetExtractor {
                 int day = Integer.valueOf(dateParts[2]);
                 Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
                 c.set(year, month-1, day, hours, minutes, seconds);
+                c.set(Calendar.MILLISECOND, 0);
                 facet.start = facet.end = c.getTimeInMillis();
+                facet.startTimeStorage = facet.endTimeStorage = toTimeStorage(year, month, day, hours, minutes, seconds);
             }
 
             facets.add(facet);

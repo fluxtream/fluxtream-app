@@ -64,16 +64,16 @@ public class HttpUtils {
         return content;
     }
 
-    public static String fetch(String url) throws IOException {
+    public static String fetch(String url) throws IOException, UnexpectedHttpResponseCodeException {
         return fetch(url, new BasicResponseHandler());
     }
 
     /** Calls the given <code>url</code> and returns the contents as a <code>byte[]</code>. */
-    public static byte[] fetchBinary(final String url) throws IOException {
+    public static byte[] fetchBinary(final String url) throws UnexpectedHttpResponseCodeException, IOException {
         return fetch(url, BINARY_RESPONSE_HANDLER);
     }
 
-    public static String fetch(String url, Map<String, String> params) throws IOException {
+    public static String fetch(String url, Map<String, String> params) throws UnexpectedHttpResponseCodeException, IOException {
         HttpClient client = new DefaultHttpClient();
         String content = "";
         try {
@@ -95,7 +95,8 @@ public class HttpUtils {
                 content = responseHandler.handleResponse(response);
             }
             else {
-                throw new RuntimeException(response.getStatusLine().toString());
+                throw new UnexpectedHttpResponseCodeException(response.getStatusLine().getStatusCode(),
+                                                              response.getStatusLine().getReasonPhrase());
             }
         }
         finally {
@@ -124,11 +125,12 @@ public class HttpUtils {
         }.start();
     }
 
-    public static String fetch(final String url, final String body) throws IOException {
+    public static String fetch(final String url, final String body) throws UnexpectedHttpResponseCodeException, IOException {
         return fetch(url, body, null, -1);
     }
 
-    public static String fetch(final String url, String body, String proxyHost, int proxyPort) throws IOException {
+    public static String fetch(final String url, String body, String proxyHost, int proxyPort)
+            throws UnexpectedHttpResponseCodeException, IOException {
         DefaultHttpClient client = new DefaultHttpClient();
         if (proxyHost!=null)
             setProxy(client, proxyHost, proxyPort);
@@ -144,7 +146,8 @@ public class HttpUtils {
                 content = responseHandler.handleResponse(response);
             }
             else {
-                throw new RuntimeException(response.getStatusLine().toString());
+                throw new UnexpectedHttpResponseCodeException(response.getStatusLine().getStatusCode(),
+                                                              response.getStatusLine().getReasonPhrase());
             }
         }
         finally {
@@ -173,7 +176,7 @@ public class HttpUtils {
         }.start();
     }
 
-    private static <T> T fetch(final String url, final ResponseHandler<T> responseHandler) throws IOException {
+    private static <T> T fetch(final String url, final ResponseHandler<T> responseHandler) throws UnexpectedHttpResponseCodeException, IOException {
         HttpClient client = new DefaultHttpClient();
 
         T content;
@@ -186,7 +189,8 @@ public class HttpUtils {
                 content = responseHandler.handleResponse(response);
             }
             else {
-                throw new RuntimeException(response.getStatusLine().toString());
+                throw new UnexpectedHttpResponseCodeException(response.getStatusLine().getStatusCode(),
+                                                              response.getStatusLine().getReasonPhrase());
             }
         }
         finally {

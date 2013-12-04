@@ -7,8 +7,8 @@
     <meta name="description" content="Landing page,Subscribe">
     <meta name="author" content="">
     <!-- Styles -->
-    <link href="css/bootstrap-2.0.3.min.css" rel="stylesheet">
-    <link href="css/bootstrap-responsive-2.0.3.min.css" rel="stylesheet">
+    <link href="css/bootstrap-2.3.2.min.css" rel="stylesheet">
+    <link href="css/bootstrap-responsive-2.3.2.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/font-awesome.css">
     <link href="assets-home/css/style-responsive-red.css" rel="stylesheet">
     <link href="assets-home/css/style.css" rel="stylesheet">
@@ -21,10 +21,12 @@
     <!--<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>-->
     <![endif]-->
 
+    <script src="/static/js/modernizr-2.6.2-custom1.js"></script>
+
     <!-- For IE 7 and 8 Media Query Support -->
     <script type="text/javascript" src="assets-home/js/respond.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-    <script src="js/bootstrap-2.0.2.min.js"></script>
+    <script src="js/bootstrap-2.3.2.min.js"></script>
     <script type="text/javascript" src="assets-home/js/welcome.js"></script>
 
     <!-- fav icons -->
@@ -118,7 +120,7 @@
 
                     <div class="media dividerHoriTop">
                         <div class="img">
-                            <div class="footericon img"><a href="https://twitter.com/_Fluxtream"><i class="icon-twitter-sign"></i></a></div>
+                            <div class="footericon img"><a href="https://twitter.com/fluxtream"><i class="icon-twitter-sign"></i></a></div>
                         </div>
                         <div class="bd">
                             <p>For more details leading up to our launch <br/>follow us on Twitter</p>
@@ -170,7 +172,7 @@
 
         <!--
               <h4>For more details leading up to our launch <br/>follow us on twitter</h4>
-              <div class="footericon"><a href="https://twitter.com/_Fluxtream"><i class="icon-twitter-sign"></i></a></div>
+              <div class="footericon"><a href="https://twitter.com/fluxtream"><i class="icon-twitter-sign"></i></a></div>
         -->
         <div class="span6" >
             <p style="text-align:right;"> The BodyTrack Team @ CMU CREATE Lab &amp; Candide Kemmler.<br>&copy; 2012 - All rights reserved.</p>
@@ -200,6 +202,23 @@
     </div>
     <div class="modal-body">
             <strong>Thanks for subscribing!</strong> We'll send you an email when we (re-)open the doors to the website and you'll be among the first to know.
+    </div>
+    <div class="modal-footer">
+        <a href="#" class="btn" data-dismiss="modal">Ok</a>
+    </div>
+</div>
+
+<div class="modal fade hide" id="incompatibleBrowser">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h3>Incompatibility Warning</h3>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-error">
+            <strong>Your browser isn't fully compatible!</strong> We've determined that your web browser doesn't support all of the features
+            required for the best experience. You can still try to use the website but some features may be broken. We recommend updating to
+            a newer version of your web browser.
+        </div>
     </div>
     <div class="modal-footer">
         <a href="#" class="btn" data-dismiss="modal">Ok</a>

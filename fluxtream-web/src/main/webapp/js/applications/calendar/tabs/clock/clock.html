@@ -29,12 +29,15 @@
         }
 </style>
 <div id="clockTab" class="fullwidth">
-	<div class="centered" id="tabContents">
+	<div class="centered" style="position:relative;" id="tabContents">
+        <div class="noDataOverlay">
+            No Data
+        </div>
 		<img style="position:absolute; z-index:1" src="/{{release}}/js/applications/calendar/tabs/clock/clock-bg.svg" />
 		<div style="position:relative; z-index:2" id="paper"></div>
 	</div>
     <div class="flx-spacer"></div>
 </div>
-<div style="position:fixed; left: -200px; width:200px; height:188px; z-index:100000" id="clockMapContainer">
+<div style="position:fixed; left: -400px; width:200px; height:188px; z-index:100000" id="clockMapContainer">
     <div style="width:200px; height:188px" id="clockMap"></div>
 </div>

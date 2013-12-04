@@ -15,12 +15,13 @@ define(["App"], function(App) {
         });
     }
 
+    App.addHideTooltipListener(function() {
+        $("#manageDashboardsDropdown").hide();
+    });
+
     function dataLoaded(data){
         App.loadMustacheTemplate("applications/calendar/tabs/dashboards/dashboardsTabTemplates.html","manageDashboardsDropdown",function(template){
             var html = template.render( { dashboards : data } );
-            App.addHideTooltipListener(function() {
-                $("#manageDashboardsDropdown").hide();
-            });
             $("#manageDashboardsDropdown").empty();
             $("#manageDashboardsDropdown").show();
             $("#manageDashboardsDropdown").append(html);

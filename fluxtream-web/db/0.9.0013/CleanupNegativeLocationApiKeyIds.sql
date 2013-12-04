@@ -1,0 +1,1 @@
+delete from Facet_Location where apiKeyId<0;

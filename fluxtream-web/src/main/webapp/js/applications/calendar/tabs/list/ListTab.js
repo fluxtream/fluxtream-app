@@ -1,16 +1,37 @@
-define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Tab, PhotoUtils) {
+define(["core/Tab", "applications/calendar/tabs/list/ListUtils"], function(Tab, ListUtils) {
 
     var listTab = new Tab("calendar", "list", "Candide Kemmler", "icon-list", true);
 
     var lastTimestamp = null;
 
+    var setTabParam;
+
+    var currentTimeUnit;
+
     function render(params) {
+        currentTimeUnit = params.timeUnit;
+        var doneLoading = params.doneLoading;
+
+        params.doneLoading = function(){
+            if (params.facetToShow != null){
+                var findResults = $("#list ." + params.facetToShow.type + "-" + params.facetToShow.id);
+                if (findResults.length > 0){
+                    var facetDiv = $(findResults[0]);
+                    var offset = facetDiv.offset();
+                    $("body").scrollTop(offset.top - 101);
+                }
+
+            }
+            doneLoading();
+        }
+        setTabParam = params.setTabParam;
         this.getTemplate("text!applications/calendar/tabs/list/list.html", "list", function() {
-            if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){
+            //TODO: implement comment refreshing algorithm so the entire list tab doesn't have to be refreshed every time
+           /* if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){        //disabled for now to force refreshing of comments
                 params.doneLoading();
                 return;
             }
-            else
+            else   */
                 lastTimestamp = params.digest.generationTimestamp;
             setup(params.digest,params.connectorEnabled,0,params.doneLoading);
         });
@@ -20,10 +41,9 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
     var itemGroups;
     var list;
     var pagination;
-    var maxPerPage = 250;
+    var maxPerPage = 200;
     var currentPage = 0;
-    var photoCarouselHTML;
-    var timeZoneOffset;
+    var dgst;
 
     var templates;
 
@@ -31,23 +51,28 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
 
     function setup(digest,connectorEnabled,page,doneLoading){
         App.loadAllMustacheTemplates("applications/calendar/tabs/list/listTemplates.html",function(listTemplates){
+            dgst = digest;
             templates = listTemplates;
-            timeZoneOffset = digest.timeZoneOffset;
             list = $("#list");
             pagination = $("#pagination");
             currentPage = page;
             items = [];
             itemGroups = {};
             list.empty();
-            for (var connectorName in digest.cachedData){
+            var photoCount = 0;
+            there:for (var connectorName in digest.cachedData){
                 if (!shouldDisplayInListView(connectorName))
                     continue;
                 for (var i = 0; i < digest.cachedData[connectorName].length; i++){
                     var item = {};
                     item.facet = digest.cachedData[connectorName][i];
+                    if (typeof(item.facet)=="undefined") {
+                        console.log("warning: undefined facet for connector " + connectorName);
+                        continue;
+                    }
+                    if (item.facet.hasPhoto)
+                        item.facet.id = photoCount++;
                     item.visible = true;
-                    if (connectorName == "picasa-photo")
-                        item.id = i;
                     var found = false;
                     for (var j = 0; j < digest.selectedConnectors.length; j++){
                         for (var k = 0; !found && k < digest.selectedConnectors[j].facetTypes.length; k++){
@@ -59,12 +84,19 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                         }
 
                     }
+
+                    var itemCity = App.getFacetCity(item.facet, digest.getConsensusCitiesList());
+                    if (itemCity==null)
+                        continue;
                     for (var j = 0; j <= items.length; j++){
                         if (j == items.length){
                             items[j] = item;
                             break;
                         }
-                        if (items[j].facet.start + timeZoneOffset > item.facet.start + timeZoneOffset || item.facet.start + timeZoneOffset == null){
+                        var facetCity = App.getFacetCity(items[j].facet, digest.getConsensusCitiesList());
+                        if (facetCity==null)
+                            continue there;
+                        if (items[j].facet.start + facetCity.tzOffset > item.facet.start + itemCity.tzOffset || item.facet.start + itemCity.tzOffset == null){
                             items.splice(j,0,item);
                             break;
                         }
@@ -75,8 +107,6 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
                     itemGroups[item.facet.type][itemGroups[item.facet.type].length] = item;
                 }
             }
-
-            photoCarouselHTML = PhotoUtils.getCarouselHTML(digest,["picasa-photo","flickr-photo","mymee-observation"]);
 
 
             rebuildPagination();
@@ -127,99 +157,24 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
         $("#eventCount").empty().append(totalCount + " event" + (totalCount == 1 ? "" : "s"));
     }
 
-    /*//new design for full loading
     function repopulateList(){
-        list.empty();
-        populateList(++rendererCount,0);
-
-    }
-
-    function populateList(expectedRendererCount, index){
-        if (rendererCount != expectedRendererCount)
-            return;
         var visibleCount = 0;
-        var currentArray = [];
-        var i = index;
-        for (; i < items.length && visibleCount < maxPerPage; i++){
-            var item = items[i];
-            if (item.visible){
-                if (currentArray.length == 0)
-                    currentArray = [item.facet];
-                else if (currentArray[0].shouldGroup(item.facet))
-                    currentArray[currentArray.length] = item.facet;
-                else{
-                    list.append("<div class=\"flx-listItem\">" + currentArray[0].getDetails(currentArray) + "</div>");
-                    currentArray = [];
-                    i--;
-                    visibleCount++;
-                }
-            }
-        }
-        var newIndex = i;
-        var photos = $(".flx-box.picasa-photo img");
-        for (var i = 0; i < photos.length; i++){
-            $(photos[i]).unbind("click").click({i:i}, function(event){
-                App.makeModal(photoCarouselHTML);
-                App.carousel(event.data.i);
-            });
-        }
-        if (currentArray.length != 0)
-            list.append("<div class=\"flx-listItem\">" + currentArray[0].getDetails(currentArray) + "</div>");
-        if (i == items.length){
-            if (list.children().length == 0)
-                list.append("Sorry, no data to show.");
-        }
-        else{
-            $.doTimeout(1000,function(){
-                populateList(expectedRendererCount,newIndex);
-            });
-        }
-    }*/
+        var facetsToShow = [];
 
-    function repopulateList(){
-        var currentDate = null;
-        var prevDate = null;
-        list.empty();
-        var visibleCount = 0;
-        var currentArray = [];
         for (var i = 0; i < items.length; i++){
            var item = items[i];
            if (item.visible){
                visibleCount++;
-               if (visibleCount >= currentPage * maxPerPage && visibleCount <= (currentPage + 1) * maxPerPage){
-                    var facetDate = App.formatDate(item.facet.start  + timeZoneOffset,false,true);
-                    if (currentArray.length == 0){
-                        currentArray = [item.facet];
-                        currentDate = facetDate;
-                    }
-                    else if (currentArray[0].shouldGroup(item.facet) && facetDate == currentDate)
-                        currentArray[currentArray.length] = item.facet;
-                    else{
-                        if (currentDate != prevDate){
-                            list.append(templates.date.render({date:currentDate}));
-                            prevDate = currentDate;
-                        }
-                        list.append(templates.item.render({item:currentArray[0].getDetails(currentArray)}));
-                        currentArray = [item.facet];
-                        currentDate = facetDate;
-                    }
+               if (visibleCount > currentPage * maxPerPage && visibleCount <= (currentPage + 1) * maxPerPage){
+                   facetsToShow.push(item.facet);
                }
            }
         }
-        if (currentArray.length != 0){
-            if (currentDate != prevDate)
-                list.append(templates.date.render({date:currentDate}));
-            list.append(templates.item.render({item:currentArray[0].getDetails(currentArray)}));
-        }
-        if (list.children().length == 0)
-            list.append("Sorry, no data to show.");
-        var photos = $(".flx-box.picasa-photo img, .flx-box.mymee-observation img");
-        for (var i = 0; i < photos.length; i++){
-            $(photos[i]).click({i:i}, function(event){
-                App.makeModal(photoCarouselHTML);
-                App.carousel(event.data.i);
-            });
-        }
+
+        list.empty().append(ListUtils.buildList(facetsToShow,dgst.getConsensusCitiesList()));
+
+
+
     }
 
     function paginationClickCallback(event){
@@ -271,6 +226,56 @@ define(["core/Tab", "applications/calendar/tabs/photos/PhotoUtils"], function(Ta
         }
         return false;
     }
+
+    function onScroll(scrollPosition){
+        var listTops = $("#list .dateHeadingGroup");
+        for (var i = 0, li = listTops.length; i < li; i++){
+            var listTop = $(listTops[i]);
+            var hr = listTop.find(".priorRuler");
+            var floater = listTop.find(".dateLabel");
+            var placeholder = listTop.find(".placeholder");
+            var beginFloat = hr.offset().top + hr.outerHeight(false) + parseInt(hr.css("marginBottom"));
+            if (beginFloat < 0){
+                beginFloat = 0;
+            }
+            var endFloat = null;
+            if (i < li - 1){
+                var nextListTop = $(listTops[i+1]);
+                var nextHr = nextListTop.find(".priorRuler");
+                endFloat = nextHr.offset().top + nextHr.outerHeight(false) + parseInt(nextHr.css("marginBottom"));
+            }
+            if (scrollPosition < beginFloat){
+                placeholder.addClass("hidden");
+                floater.removeClass("floating");
+                floater.css("marginTop","0px");
+            }
+            else{
+                placeholder.removeClass("hidden");
+                floater.addClass("floating");
+                floater.css("top",$("#selectedConnectors").height() + "px");
+                if (endFloat != null){
+                    var temp = scrollPosition +  floater.outerHeight(false);
+                    var marginAmount = endFloat - temp;
+                    if (marginAmount > 0) marginAmount = 0;
+                    floater.css("marginTop",marginAmount + "px");
+                }
+
+            }
+            placeholder.height(floater.height());
+
+        }
+    }
+
+    $(window).scroll(function(){
+        if ($("#listTab").parent().hasClass("active"))
+            onScroll($("body").scrollTop() + $("#selectedConnectors").height());
+        else
+            onScroll(-100);
+    });
+
+    /*$(window).resize(function(){
+        $(window).scroll();
+    });*/
 
     listTab.render = render;
     listTab.connectorToggled = connectorToggled;

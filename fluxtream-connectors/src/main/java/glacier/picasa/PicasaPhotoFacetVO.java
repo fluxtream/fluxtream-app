@@ -1,6 +1,5 @@
 package glacier.picasa;
 
-import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -8,13 +7,12 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.GuestSettings;
+import com.fluxtream.mvc.models.DimensionModel;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 
 public class PicasaPhotoFacetVO extends AbstractPhotoFacetVO<PicasaPhotoFacet> {
 
@@ -27,8 +25,7 @@ public class PicasaPhotoFacetVO extends AbstractPhotoFacetVO<PicasaPhotoFacet> {
 	public void fromFacet(PicasaPhotoFacet facet, TimeInterval timeInterval,
 			GuestSettings settings) {
         start = facet.start;
-		startMinute = toMinuteOfDay(new Date(facet.start),
-				timeInterval.timeZone);
+		startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getMainTimeZone());
 		thumbnailUrl = facet.thumbnailUrl;
 		photoUrl = facet.photoUrl;
 		description = facet.title;
@@ -51,13 +48,13 @@ public class PicasaPhotoFacetVO extends AbstractPhotoFacetVO<PicasaPhotoFacet> {
 	}
 
 	@Override
-	public List<Dimension> getThumbnailSizes() {
+	public List<DimensionModel> getThumbnailSizes() {
 		Collection<JSONObject> sortedThumbnails = getSortedThumbnails();
-		List<Dimension> dimensions = new ArrayList<Dimension>();
+		List<DimensionModel> dimensions = new ArrayList<DimensionModel>();
 		Iterator<JSONObject> eachThumbnail = sortedThumbnails.iterator();
 		while (eachThumbnail.hasNext()) {
 			JSONObject jsonThumbnail = eachThumbnail.next();
-			dimensions.add(new Dimension(jsonThumbnail.getInt("width"),
+			dimensions.add(new DimensionModel(jsonThumbnail.getInt("width"),
 					jsonThumbnail.getInt("height")));
 		}
 		return dimensions;

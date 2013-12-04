@@ -1,11 +1,7 @@
 package com.fluxtream.connectors.runkeeper;
 
-import java.util.List;
-import javax.persistence.CollectionTable;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.AbstractFacet;
@@ -15,7 +11,7 @@ import com.fluxtream.domain.AbstractFacet;
  * @author Candide Kemmler (candide@fluxtream.com)
  */
 @Entity(name="Facet_RunKeeperFitnessActivity")
-@ObjectTypeSpec(name = "fitnessActivity", value = 1, extractor=RunKeeperFitnessActivityExtractor.class,
+@ObjectTypeSpec(name = "fitnessActivity", value = 2,
                 prettyname = "Fitness Activity", isDateBased = false, locationFacetSource = LocationFacet.Source.RUNKEEPER)
     public class RunKeeperFitnessActivityFacet extends AbstractFacet {
 
@@ -26,12 +22,15 @@ import com.fluxtream.domain.AbstractFacet;
     public double total_distance;
     public int duration;
 
-    @ElementCollection(fetch=FetchType.EAGER)
-    @CollectionTable(
-            name = "FitnessActivityHeartRate",
-            joinColumns = @JoinColumn(name="FitnessActivityID")
-    )
-    public List<HeartRateMeasure> heart_rate;
+    @Lob
+    public String distanceStorage;
+    @Lob
+    public String heartRateStorage;
+    @Lob
+    public String caloriesStorage;
+
+    public Integer averageHeartRate;
+    public Double totalCalories;
 
     public double total_climb;
     public String source;

@@ -45,12 +45,10 @@ public class FlxLogger {
 
     public void warn(StringBuilder message) {
         logger.warn(message);
-        NewRelic.noticeError("WARNING: " + message);
     }
 
     public void warn(String message) {
         logger.warn(message);
-        NewRelic.noticeError("WARNING: " + message);
     }
 
     public boolean isInfoEnabled() {

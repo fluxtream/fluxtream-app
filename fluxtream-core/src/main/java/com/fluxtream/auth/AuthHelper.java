@@ -16,7 +16,7 @@ public class AuthHelper {
 
 	public static long getGuestId() {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		long guestId = ((FlxUserDetails)auth.getPrincipal()).getGuest().getId();
+		long guestId = ((FlxUserDetails)auth.getPrincipal()).guestId;
 		return guestId;
 	}
 
@@ -26,14 +26,14 @@ public class AuthHelper {
         if (principal.coachee==null)
             return true;
         else {
-            return coachingService.isViewingGranted(principal.getGuest().getId(), principal.coachee.guestId, connectorName);
+            return coachingService.isViewingGranted(principal.guestId, principal.coachee.guestId, connectorName);
         }
     }
 
     public static void as(CoachingBuddy coachee) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         final FlxUserDetails principal = (FlxUserDetails) auth.getPrincipal();
-        addViewee(principal.getGuest().getId(), coachee);
+        addViewee(principal.guestId, coachee);
         principal.coachee = coachee;
     }
 
@@ -68,9 +68,9 @@ public class AuthHelper {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         final FlxUserDetails principal = (FlxUserDetails) auth.getPrincipal();
         if (principal.coachee==null)
-            return principal.getGuest().getId();
+            return principal.guestId;
         else {
-            final Set<CoachingBuddy> guestsCoachees = viewees.get(principal.getGuest().getId());
+            final Set<CoachingBuddy> guestsCoachees = viewees.get(principal.guestId);
             if (guestsCoachees.contains(principal.coachee))
                 return principal.coachee.guestId;
             else {
@@ -84,7 +84,7 @@ public class AuthHelper {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         final FlxUserDetails principal = (FlxUserDetails) auth.getPrincipal();
         if (principal.coachee!=null)
-            if (viewees.get(principal.getGuest().getId()).contains(principal.coachee))
+            if (viewees.get(principal.guestId).contains(principal.coachee))
                 return principal.coachee;
             else {
                 principal.coachee = null;
@@ -97,7 +97,11 @@ public class AuthHelper {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if (auth==null)
 			return null;
-		Guest guest = ((FlxUserDetails)auth.getPrincipal()).getGuest();
+        final FlxUserDetails principal = (FlxUserDetails)auth.getPrincipal();
+        Guest guest = principal.getGuest();
+        // set the guest's ID in case we got an instance that was deserialized from
+        // disk (in which case it will be null)
+        guest.setId(principal.guestId);
 		return guest;
 	}
 }

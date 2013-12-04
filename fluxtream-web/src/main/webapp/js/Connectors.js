@@ -1,7 +1,22 @@
 define(function() {
 	
 	var Connectors = {};
-	
+
+    function submitMymeeAuthInfo() {
+        var username = $("input#mymee-username").val();
+        var password = $("input#mymee-password").val();
+        var activationCode = $("input#mymee-activationCode").val();
+        $.ajax({
+            url:"/mymee/setAuthInfo",
+            type: "POST",
+            data: {username : username, password : password, activationCode : activationCode},
+            success: function(html) {
+                $(".addConnectorsMain").html(html);
+                $("#mymee-username").focus();
+            }
+        });
+    }
+
 	function submitMymeeFetchURL() {
 		var fetchURL = $("input#mymee-fetchURL").val();
 		$.ajax({
@@ -10,7 +25,7 @@ define(function() {
 			data: {url: fetchURL},
 			success: function(html) {
 				$(".addConnectorsMain").html(html);
-				$(".focushere").focus();
+				$("#mymee-fetchURL").focus();
 			}
 		});
 	}
@@ -172,6 +187,7 @@ define(function() {
 	Connectors.submitToodledoCredentials = submitToodledoCredentials;
 	Connectors.submitNikePlusCredentials = submitNikePlusCredentials;
     Connectors.submitMymeeFetchURL = submitMymeeFetchURL;
+    Connectors.submitMymeeAuthInfo = submitMymeeAuthInfo;
 	Connectors.submitOpenPathKeypair = submitOpenPathKeypair;
     Connectors.getQuantifiedMindToken = getQuantifiedMindToken;
 

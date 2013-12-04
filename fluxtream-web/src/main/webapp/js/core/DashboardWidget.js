@@ -130,7 +130,7 @@ define(function() {
     }
 
     DashboardWidget.prototype.getTimeUnit=function() {
-        return this.digest.timeUnit;
+        return this.digest.metadata.timeUnit;
     }
 
     DashboardWidget.prototype.setTitle=function(title){

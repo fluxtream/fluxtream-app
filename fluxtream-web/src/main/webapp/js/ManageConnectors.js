@@ -1,6 +1,15 @@
-define(["core/grapher/BTCore"],function(BodyTrack) {
+define(["core/grapher/BTCore",
+        "settings/google_calendar"],function(BodyTrack,
+        GoogleCalendarSettingsHandler) {
 
     var connectors;
+
+    /**
+     * list settings handlers here in order for them to be able to be looked up by connectorName
+     */
+    var settingsHandlers = {
+        "google_calendar" : GoogleCalendarSettingsHandler
+    };
 
     function show(){
         $.ajax("/api/connectors/installed",{
@@ -73,10 +82,18 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
                     var formatted = App.formatDate(data[member],true);
                     if (formatted == "Present")
                         formatted = member == "lastSync" ? "Never" : "No Data";
+                    else if (member == "latestData"){
+                        var state = App.apps.calendar.toState(App.apps.calendar.currentTabName,"date",new Date(data[member]));
+                        params.latestDataCalendarState = state.tabName + "/" + state.tabState;
+                    }
                     params[member] = formatted;
                     break;
             }
         }
+        var config = App.getConnectorConfig(data.connectorName);
+        var hasTimelineSettings = typeof(config.hasTimelineSettings)!="undefined"&&config.hasTimelineSettings;
+        var hasGeneralSettings = typeof(config.hasGeneralSettings)!="undefined"&&config.hasGeneralSettings;
+        params.hasSettings = hasTimelineSettings||hasGeneralSettings;
         return params;
     }
 
@@ -87,7 +104,11 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
             for (var i = 0; i < data.length; i++){
                 if (!data[i].manageable)
                     continue;
+                var config = App.getConnectorConfig(data[i].connectorName);
+                var hasTimelineSettings = typeof(config.hasTimelineSettings)!="undefined"&&config.hasTimelineSettings;
+                var hasGeneralSettings = typeof(config.hasGeneralSettings)!="undefined"&&config.hasGeneralSettings;
                 params[i] = getConnectorParams(data[i])
+                params[i].hasSettings = hasTimelineSettings||hasGeneralSettings;
             }
             var html = template.render({connectors:params});
             if (update){
@@ -97,6 +118,18 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
             }
             else{
                 App.makeModal(html);
+                $("#modal .modal-body").scroll(function(event){
+                    var scrollTop = $("#modal .modal-body").scrollTop();
+                    $("#modal .modal-body .topHeader").width($("#modal .modal-body table").width())
+                    if (scrollTop < 48){
+                        $("#modal .modal-body .topHeader").removeClass("floating");
+                        $("#modal .modal-body .placeholder").addClass("hidden");
+                    }
+                    else{
+                        $("#modal .modal-body .topHeader").addClass("floating");
+                        $("#modal .modal-body .placeholder").removeClass("hidden");
+                    }
+                });
             }
             bindDialog();
         });
@@ -143,7 +176,17 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
                 type:"POST"
             });
         });
+        var uploadBtn = $(".upload-" + connector.connectorName);
+        uploadBtn.off("click");
+        uploadBtn.click(function(event){
+            event.preventDefault();
+            App.loadMustacheTemplate("connectorMgmtTemplates.html","uploadDialog",function(template){
+                handleSubmitForm(template, connector);
+            });
+        });
         var viewDataBtn = $("#viewUpdates-" + connector.connectorName);
+        // remove previously bound handler
+        viewDataBtn.off("click");
         viewDataBtn.click(function(event){
             event.preventDefault();
             App.loadMustacheTemplate("connectorMgmtTemplates.html","viewUpdates",function(template){
@@ -151,9 +194,17 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
             });
         });
         var settingsBtn = $("#settings-" + connector.connectorName);
+        // remove previously bound handler
+        settingsBtn.off("click");
         settingsBtn.click(function(event){
             event.preventDefault();
             connectorSettings(connector);
+        });
+        var renewBtn = $("#renew-" + connector.connectorName);
+        renewBtn.off("click");
+        renewBtn.click(function(event){
+            event.preventDefault();
+            confirmRenew(connector);
         });
     }
 
@@ -161,8 +212,20 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
         BodyTrack.SOURCES.getAvailableList(function(sources){
             var source = null;
             for (var i = 0; i < sources.length; i++){
-                console.log("source.name: " + sources[i].name + " <-> " + connector.name);
-                if (sources[i].name == connector.name){
+                // Here is where we decide whether a given device name from the
+                // datastore (sources name) belongs to this connector or not
+                // This is a nasty hack, but for the time being consider any
+                // device name to be a match if it matches either connector name
+                // or connector.connectorName.  This is to work around the problem
+                // that lowercase device names need to be used for the timerange channels
+                // to work, and connector.name fields are mostly camelcase. In the future we need to be
+                // able to be more general about this.  A current example where this
+                // is a problem is that FluxtreamCapture also includes PolarStrap.
+                // We will need to make modifications to respect items in the ChannelMapping table
+                // for mapping device names to their connectors and make multiple instances of
+                // a given connector type work.
+                if (sources[i].name == connector.name ||
+                    sources[i].name == connector.connectorName){
                     source = sources[i];
                     break;
                 }
@@ -173,40 +236,88 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
                     displayName: source.name + "." + source.channels[i].name
                 };
             }
-            console.log("channelNames");
-            console.log(channelNames);
             App.loadMustacheTemplate("connectorMgmtTemplates.html","settings",function(template){
+                var config = App.getConnectorConfig(connector.connectorName);
+                config.hasTimelineSettings = typeof(config.hasTimelineSettings)!="undefined"&&config.hasTimelineSettings;
+                config.hasGeneralSettings = typeof(config.hasGeneralSettings)!="undefined"&&config.hasGeneralSettings
                 App.makeModal(template.render({
                     connectorName:connector.connectorName,
                     name:connector.name,
-                    channelNames:channelNames
+                    config: config
                 }));
-
-                for (var i = 0; i < connector.channels.length; i++){
-                    var name = connector.channels[i];
-                    if (name == "")
-                        break;
-                    var index = name.substring(0,name.indexOf(".")) + name.substring(name.indexOf(".") + 1);
-                    $("#" + index + "-checkbox")[0].checked = true;
+                if (config.hasGeneralSettings) {
+                    $("#generalSettingsLink").click(function(){
+                        showGeneralSettings(connector, source);
+                        $("#generalSettingsLink").parent().toggleClass("active");
+                        $("#timelineSettingsLink").parent().toggleClass("active");
+                    });
+                    showGeneralSettings(connector, source);
+                    $("#generalSettingsLink").parent().toggleClass("active");
                 }
+                if (config.hasTimelineSettings) {
+                    $("#timelineSettingsLink").click(function(){
+                        showTimelineSettings(connector, channelNames, source);
+                        $("#generalSettingsLink").parent().toggleClass("active");
+                        $("#timelineSettingsLink").parent().toggleClass("active");
+                    });
+                    if (!config.hasGeneralSettings) {
+                        showTimelineSettings(connector, channelNames, source);
+                        $("#timelineSettingsLink").parent().toggleClass("active");
+                    }
+                }
+            });
+        });
+    }
 
-                $("#" + connector.connectorName + "SettingsDialog input").click(function(event){
-                    var channelList = "";
-                    for (var i = 0; source != null && i < source.channels.length; i++){
-                        if ($("#" + source.name + source.channels[i].name + "-checkbox")[0].checked){
-                            if (channelList == "")
-                                channelList = source.name + "." + source.channels[i].name;
-                            else
-                                channelList += "," + source.name + "." + source.channels[i].name;
+    function showTimelineSettings(connector, channelNames, source) {
+        console.log(connector.channels);
+        App.loadMustacheTemplate("connectorMgmtTemplates.html","channel-settings",function(template){
+            var settingsHtml = template.render({
+                connectorName:connector.connectorName,
+                name:connector.name,
+                channelNames: channelNames
+            });
+
+            $("#connectorSettingsTab").empty();
+            $("#connectorSettingsTab").append(settingsHtml);
+
+            for (var i = 0; i < connector.channels.length; i++){
+                var name = connector.channels[i];
+                if (name == "")
+                    break;
+                var index = name.substring(0,name.indexOf(".")) + name.substring(name.indexOf(".") + 1);
+                $("#" + index + "-checkbox")[0].checked = true;
+            }
+
+            $("#" + connector.connectorName + "SettingsDialog input").click(function(event){
+                var channelList = "";
+                connector.channels = [];
+                for (var i = 0; source != null && i < source.channels.length; i++){
+                    if ($("#" + source.name + source.channels[i].name + "-checkbox")[0].checked){
+                        connector.channels.push(source.name + "." + source.channels[i].name);
+                        if (channelList == "")
+                            channelList = source.name + "." + source.channels[i].name;
+                        else {
+                            channelList += "," + source.name + "." + source.channels[i].name;
                         }
                     }
-                    $.ajax({
-                        url:"/api/connectors/" + connector.name + "/channels",
-                        type:"POST",
-                        data:{channels:channelList}
-                    })
-                });
+                }
+                $.ajax({
+                    url:"/api/connectors/" + connector.name + "/channels",
+                    type:"POST",
+                    data:{channels:channelList}
+                })
             });
+            $("#resetSettingsButton").hide();
+        });
+
+    }
+
+    function showGeneralSettings(connector, source) {
+        App.loadMustacheTemplate("connectorMgmtTemplates.html",connector.connectorName + "-settings",function(template){
+            var settingsHandler = settingsHandlers[connector.connectorName];
+            settingsHandler.loadSettings(connector.apiKeyId, connector, template);
+            $("#resetSettingsButton").show();
         });
     }
 
@@ -225,6 +336,43 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
         });
     }
 
+    function handleSubmitForm(template, connector) {
+        connector.uploadMessage= "We support upload of zip encoded json-formatted location history files as generated from " +
+                                 "<a target=\"_blank\" href=\"https://www.google.com/takeout/#custom:latitude\"> Google Takeout </a><br>" +
+                                 "<div class=\"alert alert-info\"><strong>Heads up!</strong> Please do not open the zip file provided by Google.  Just upload it as-is!</div>";
+        var html = template.render({connector:connector});
+        App.makeModal(html);
+        var submitFileUploadForm = $("#submitFileUploadForm");
+        console.log(submitFileUploadForm);
+        submitFileUploadForm.click(function(event){
+            event.stopImmediatePropagation();
+            var formData = new FormData($("#fileUploadForm")[0]);
+            $.ajax({
+                url: "/upload/",
+                method: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response){
+                    var status;
+                    try { status = JSON.parse(response); }
+                    catch(err) { alert("Couldn't upload data:" + err); }
+                    if (status.result==="OK") {
+                        $("#uploadModal").modal("hide");
+                        App.activeApp.renderState(App.state.getState(App.activeApp.name),true);
+                    }
+                    else {
+                        if (typeof(status.stackTrace)!="undefined")
+                            console.log(status.stackTrace);
+                        alert("Could upload data: " + status.message);
+                    }
+                }
+            });
+            console.log("we should send this file now...");
+        });
+    }
+
+
     function setToSyncing(connectorName){
         var row = $("#connector-" + connectorName);
         if (row.hasClass("nowSynchro"))
@@ -234,14 +382,14 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
         syncLED.removeClass("syncLED-yes");
         syncLED.removeClass("syncLED-no");
         syncLED.addClass("syncLED-waiting");
-        syncLED.html("<span class=\"syncLED-waiting\">" +
-                     "<img src=\"/images/syncing.gif\" alt=\"load\">" +
+        syncLED.hide();
+        syncLED.parent().html("<span class=\"syncLED-waiting\">" +
+                     "<i class=\"icon-refresh icon-spin\" style=\"font-size:30px\"></i>" +
                      "</span>");
         var lastSync = $("#lastSync-" + connectorName);
         lastSync.html("Now synchronizing");
         var syncNowBtn = $("#syncNow-" + connectorName);
-        var disabledBtn = $("<span>" + syncNowBtn.html() + "</span>");
-        syncNowBtn.replaceWith(disabledBtn);
+        syncNowBtn.css("display","none");
     }
 
     function setAllToSyncing(){
@@ -282,6 +430,47 @@ define(["core/grapher/BTCore"],function(BodyTrack) {
                     },
                     error: function() {
                         $("#deleteConnectorConfirm").modal("hide");
+                    }
+                });
+            });
+        });
+
+    }
+
+    function confirmRenew(connector) {
+        App.loadMustacheTemplate("connectorMgmtTemplates.html","renewConnectorConfirm",function(template){
+            var html = template.render(connector);
+
+            $("body").append(html);
+            $("#renewConnectorConfirm").modal();
+
+            $("#renewConnectorConfirm").css("zIndex","1052");
+
+            $("#renewConnectorConfirm").on("hidden",function(){
+                $("#renewConnectorConfirm").remove();
+            });
+
+            var backdrops = $(".modal-backdrop");
+            $(backdrops[backdrops.length - 1]).css("zIndex","1051");
+
+            var confirmRenew = $("#confirmRenewConnectorBtn");
+            var cancelRenew = $("#cancelRenewConnectorBtn");
+
+            cancelRenew.click(function() {
+                $("#renewConnectorConfirm").modal("hide");
+            });
+
+            confirmRenew.click(function(){
+                $.ajax({
+                    url: "/api/connectors/renew/" + connector.apiKeyId,
+                    type:"POST",
+                    success: function(result) {
+                        console.log("redirect to: " + result.redirectTo);
+                        window.location = result.redirectTo;
+                        $("#renewConnectorConfirm").modal("hide");
+                    },
+                    error: function() {
+                        $("#renewConnectorConfirm").modal("hide");
                     }
                 });
             });

@@ -1,11 +1,12 @@
 package com.fluxtream.connectors.mymee;
 
-import java.awt.Dimension;
 import java.util.Date;
 import java.util.List;
+import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.GuestSettings;
+import com.fluxtream.mvc.models.DimensionModel;
 
 /**
  *
@@ -22,12 +23,12 @@ public class MymeeObservationFacetVO extends AbstractPhotoFacetVO<MymeeObservati
     public Integer baseAmount;
     public String unit;
     public String baseUnit;
-    public Double longitude;
-    public Double latitude;
+    public float[] position;
 
     @Override
-    protected void fromFacet(final MymeeObservationFacet facet, final TimeInterval timeInterval, final GuestSettings settings) {
-        startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.timeZone);
+    protected void fromFacet(final MymeeObservationFacet facet, final TimeInterval timeInterval, final GuestSettings settings)
+            throws OutsideTimeBoundariesException {
+        startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getTimeZone(facet.start));
         this.start = facet.start;
         this.mymeeId = facet.mymeeId;
         this.name = facet.name;
@@ -39,8 +40,11 @@ public class MymeeObservationFacetVO extends AbstractPhotoFacetVO<MymeeObservati
         this.unit = facet.unit;
         this.baseUnit = facet.baseUnit;
         this.photoUrl = facet.imageURL;
-        this.longitude = facet.longitude;
-        this.latitude = facet.latitude;
+        if (facet.longitude != null){
+            position = new float[2];
+            position[0] = facet.latitude.floatValue();
+            position[1] = facet.longitude.floatValue();
+        }
     }
 
     double round(double v) {
@@ -59,7 +63,7 @@ public class MymeeObservationFacetVO extends AbstractPhotoFacetVO<MymeeObservati
     }
 
     @Override
-    public List<Dimension> getThumbnailSizes() {
+    public List<DimensionModel> getThumbnailSizes() {
         // TODO
         return null;
     }

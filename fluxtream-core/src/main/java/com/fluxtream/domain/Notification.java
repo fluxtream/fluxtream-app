@@ -9,6 +9,9 @@ import org.hibernate.annotations.Index;
 
 @Entity(name = "Notifications")
 @NamedQueries({
+    @NamedQuery(name = "notifications.withName", query = "SELECT notification "
+                                                  + "FROM Notifications notification "
+                                                  + "WHERE notification.guestId=? AND notification.name=?"),
 	@NamedQuery(name = "notifications.all", query = "SELECT notification "
 			+ "FROM Notifications notification "
 			+ "WHERE notification.guestId=? AND notification.deleted=false "
@@ -28,6 +31,8 @@ public class Notification extends AbstractEntity {
 
 	public Type type;
 
+    public String name;
+
 	@Index(name = "guestId_index")
 	public long guestId;
 
@@ -42,7 +47,7 @@ public class Notification extends AbstractEntity {
     @Lob
     public String stackTrace;
 
-	long ts;
+	public long ts;
 
 	public Notification() {
 		ts = System.currentTimeMillis();

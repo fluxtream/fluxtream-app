@@ -11,13 +11,7 @@ import org.hibernate.search.annotations.Indexed;
 @ObjectTypeSpec(name = "sleep", value = 4, extractor=FitbitSleepFacetExtractor.class, prettyname = "Sleep", isDateBased = true)
 @NamedQueries({
 		@NamedQuery(name = "fitbit.sleep.byDate",
-				query = "SELECT facet FROM Facet_FitbitSleep facet WHERE facet.guestId=? AND facet.date=?"),
-		@NamedQuery(name = "fitbit.sleep.byStartEnd",
-				query = "SELECT facet FROM Facet_FitbitSleep facet WHERE facet.guestId=? AND facet.start=? AND facet.end=?"),
-		@NamedQuery(name = "fitbit.sleep.newest",
-				query = "SELECT facet FROM Facet_FitbitSleep facet WHERE facet.guestId=? and facet.isEmpty=false ORDER BY facet.end DESC LIMIT 1"),
-		@NamedQuery(name = "fitbit.sleep.oldest",
-				query = "SELECT facet FROM Facet_FitbitSleep facet WHERE facet.guestId=? and facet.isEmpty=false ORDER BY facet.start ASC LIMIT 1")
+				query = "SELECT facet FROM Facet_FitbitSleep facet WHERE facet.apiKeyId=? AND facet.date=?")
 })
 
 //SELECT * FROM Facet_FitbitSleep facet WHERE facet.guestId=1 ORDER BY facet.start ASC LIMIT 1

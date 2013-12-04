@@ -7,15 +7,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import com.fluxtream.connectors.annotations.JsonFacetCollection;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.connectors.annotations.Updater;
+import com.fluxtream.connectors.bodytrackResponders.AbstractBodytrackResponder;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
-import com.fluxtream.connectors.vos.AbstractFacetVOCollection;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
-import com.fluxtream.aspects.FlxLogger;
 import org.apache.velocity.util.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.BeanFactory;
@@ -45,6 +44,7 @@ public class Connector {
     private boolean hasFacets;
     private String[] defaultChannels;
     private Class<? extends AbstractUpdater> updaterClass;
+    private Class<? extends AbstractBodytrackResponder> bodytrackResponder;
 
     static {
         Connector flxConnector = new Connector();
@@ -58,9 +58,6 @@ public class Connector {
         objectType.name = "comment";
         ObjectType.addObjectType(objectType.name, flxConnector, objectType);
     }
-
-    @SuppressWarnings("rawtypes")
-    private Map<String, Class<? extends AbstractFacetVOCollection>> jsonFacetCollectionClasses = new ConcurrentHashMap<String, Class<? extends AbstractFacetVOCollection>>();
 
     public String toString() {
         String string = "{name:" + name;
@@ -97,23 +94,6 @@ public class Connector {
 
     public static Connector fromString(String s) {
         return connectors.get(s);
-    }
-
-    @SuppressWarnings("rawtypes")
-    private AbstractFacetVOCollection getJsonFacetCollection(String name) {
-        if (name == null)
-            name = "default";
-        Class<? extends AbstractFacetVOCollection> clazz = jsonFacetCollectionClasses
-                .get(name);
-        if (clazz == null)
-            return null;
-        try {
-            return clazz.newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(
-                    "Could not instantiate json facet collection: "
-                    + this.getClass().getName() + "/" + name);
-        }
     }
 
     private static boolean initialized = false;
@@ -169,18 +149,13 @@ public class Connector {
         if (connectorObjectTypes.size()>0)
             connector.objectTypes = connectorObjectTypes.toArray(new ObjectType[0]);
 
-        JsonFacetCollection jsonFacetAnnotation = connector.updaterClass
-                .getAnnotation(JsonFacetCollection.class);
-        if (jsonFacetAnnotation != null)
-            connector.jsonFacetCollectionClasses.put(
-                    jsonFacetAnnotation.name(),
-                    jsonFacetAnnotation.value());
-
         connectors.put(connectorName, connector);
         connectorsByValue.put(connector.value(), connector);
         if (connector.prettyName != null) {
             connectorsByPrettyName.put(connector.prettyName, connector);
         }
+
+        connector.bodytrackResponder = updaterAnnotation.bodytrackResponder();
 
     }
 
@@ -205,6 +180,7 @@ public class Connector {
         objectType.prettyname = ots.prettyname();
         objectType.isImageType = ots.isImageType();
         objectType.isDateBased = ots.isDateBased();
+        objectType.isMixedType = ots.isMixedType();
         if (ots.extractor() != null && ots.extractor()!=AbstractFacetExtractor.class) {
             connector.addObjectTypeExtractorClass(
                     objectType.value, ots.extractor(),
@@ -267,6 +243,10 @@ public class Connector {
 
     public Class<? extends AbstractUpdater> getUpdaterClass() {
         return updaterClass;
+    }
+
+    public String statusNotificationName() {
+        return new StringBuilder(getName()).append(".status").toString();
     }
 
     public enum UpdateStrategyType {
@@ -360,6 +340,10 @@ public class Connector {
         return this.updateStrategyType;
     }
 
+    public String getPrettyName() {
+        return prettyName();
+    }
+
     public String prettyName() {
         return prettyName;
     }
@@ -395,6 +379,18 @@ public class Connector {
             return connectorsByPrettyName.get(prettyName);
         }
         return null;
+    }
+
+    public AbstractBodytrackResponder getBodytrackResponder(BeanFactory beanFactory){
+        try{
+            final AbstractBodytrackResponder bean = beanFactory.getBean(bodytrackResponder);
+            return bean;
+        }
+        catch (Exception e){
+            System.out.println("COULD NOT INSTANTIATE RESPONDER: " + bodytrackResponder);
+            System.out.println("PLEASE CHECK THAT IT HAS THE @Component ANNOTATION!");
+            return null;
+        }
     }
 
 }

@@ -19,7 +19,30 @@ public class NotificationsServiceImpl implements NotificationsService {
 	@PersistenceContext
 	EntityManager em;
 
-	@Override
+    @Override
+    @Transactional(readOnly = false)
+    public void addNamedNotification(final long guestId, final Type type, final String name, String message) {
+        final Notification previousNotification = JPAUtils.findUnique(em,
+                                                                      Notification.class,
+                                                                      "notifications.withName",
+                                                                      guestId, name);
+        if (previousNotification==null) {
+            Notification notification = new Notification();
+            notification.guestId = guestId;
+            notification.type = type;
+            notification.message = message;
+            notification.name = name;
+            em.persist(notification);
+        } else {
+            previousNotification.deleted = false;
+            previousNotification.type = type;
+            previousNotification.message = message;
+            previousNotification.ts = System.currentTimeMillis();
+            em.merge(previousNotification);
+        }
+    }
+
+    @Override
 	@Transactional(readOnly = false)
 	public void addNotification(long guestId, Type type, String message) {
         final Notification sameNotification = JPAUtils.findUnique(em,
@@ -33,13 +56,14 @@ public class NotificationsServiceImpl implements NotificationsService {
             notification.message = message;
             em.persist(notification);
         } else {
+            sameNotification.ts = System.currentTimeMillis();
             sameNotification.repeated++;
             em.merge(sameNotification);
         }
 	}
 
     @Override
-    public void addNotification(final long guestId, final Type type, final String message, final String stackTrace) {
+    public void addExceptionNotification(final long guestId, final Type type, final String message, final String stackTrace) {
         final Notification sameNotification = JPAUtils.findUnique(em,
                                                                   Notification.class,
                                                                   "notifications.withTypeAndMessage",
@@ -50,10 +74,12 @@ public class NotificationsServiceImpl implements NotificationsService {
             notification.type = type;
             notification.message = message;
             notification.stackTrace = stackTrace;
+            notification.ts = System.currentTimeMillis();
             em.persist(notification);
         } else {
             sameNotification.stackTrace = stackTrace;
             sameNotification.repeated++;
+            sameNotification.ts = System.currentTimeMillis();
             em.merge(sameNotification);
         }
     }

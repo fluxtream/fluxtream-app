@@ -1,5 +1,6 @@
 package com.fluxtream.api;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -14,19 +15,28 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.auth.CoachRevokedException;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.mvc.models.guest.GuestModel;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.impl.ExistingEmailException;
+import com.fluxtream.services.impl.UsernameAlreadyTakenException;
+import com.fluxtream.utils.HttpUtils;
 import com.google.gson.Gson;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import static com.fluxtream.utils.Utils.hash;
 
 @Path("/guest")
 @Component("RESTGuestController")
@@ -41,7 +51,7 @@ public class GuestController {
 	@Autowired
 	Configuration env;
 
-	@GET
+    @GET
 	@Path("/")
 	@Produces({ MediaType.APPLICATION_JSON })
 	public String getCurrentGuest() throws InstantiationException,
@@ -58,6 +68,69 @@ public class GuestController {
             return gson.toJson(new StatusModel(false,"Failed to get current guest: " + e.getMessage()));
         }
 	}
+
+    @GET
+    @Path("/avatarImage")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String getAvatarImage() {
+        Guest guest = AuthHelper.getGuest();
+        JSONObject json = new JSONObject();
+        String type = "none";
+        String url;
+        try {
+            final CoachingBuddy coachee = AuthHelper.getCoachee();
+            if (coachee!=null)
+                guest = guestService.getGuestById(coachee.guestId);
+        }
+        catch (CoachRevokedException e) {}
+        if (guest.registrationMethod == Guest.RegistrationMethod.REGISTRATION_METHOD_FACEBOOK||
+            guest.registrationMethod == Guest.RegistrationMethod.REGISTRATION_METHOD_FACEBOOK_WITH_PASSWORD) {
+            url = getFacebookAvatarImageURL(guest);
+            if (url!=null)
+                type = "facebook";
+        } else {
+            url = getGravatarImageURL(guest);
+            if (url!=null)
+                type = "gravatar";
+        }
+        json.put("type", type);
+        json.put("url", url);
+        final String jsonString = json.toString();
+        return jsonString;
+    }
+
+    private String getGravatarImageURL(Guest guest) {
+        String emailHash = hash(guest.email.toLowerCase().trim()); //gravatar specifies the email should be trimmed, taken to lowercase, and then MD5 hashed
+        String gravatarURL = String.format("http://www.gravatar.com/avatar/%s?s=27&d=404", emailHash);
+        HttpGet get = new HttpGet(gravatarURL);
+        int res = 0;
+        try { res = ((new DefaultHttpClient()).execute(get)).getStatusLine().getStatusCode(); }
+        catch (IOException e) {e.printStackTrace();}
+        return res==200 ? gravatarURL : null;
+    }
+
+    public String getFacebookAvatarImageURL(Guest guest) {
+        final ApiKey facebook = guestService.getApiKey(guest.getId(), Connector.getConnector("facebook"));
+        final String meString = guestService.getApiKeyAttribute(facebook, "me");
+        JSONObject meJSON = JSONObject.fromObject(meString);
+        final String facebookId = meJSON.getString("id");
+        try {
+            String avatarURL = String.format("http://graph.facebook.com/%s/picture?type=small&redirect=false&return_ssl_resources=true", facebookId);
+            String jsonString = HttpUtils.fetch(avatarURL);
+            JSONObject json = JSONObject.fromObject(jsonString);
+            if (json.has("data")) {
+                json = json.getJSONObject("data");
+                if (json.has("url")&&json.has("is_silhouette")) {
+                    if (!json.getBoolean("is_silhouette")) {
+                        return json.getString("url");
+                    }
+                }
+            }
+        } catch (Throwable t){
+            t.printStackTrace();
+        }
+        return null;
+    }
 
     @GET
 	@Path("/{connector}/oauthTokens")
@@ -160,11 +233,12 @@ public class GuestController {
 			@FormParam("firstname") String firstname,
 			@FormParam("lastname") String lastname,
 			@FormParam("password") String password,
-			@FormParam("email") String email) throws InstantiationException,
-			IllegalAccessException, ClassNotFoundException {
+			@FormParam("email") String email) throws InstantiationException, IllegalAccessException,
+                                                     ClassNotFoundException, UsernameAlreadyTakenException,
+                                                     ExistingEmailException {
 		try {
 			guestService.createGuest(username, firstname, lastname, password,
-					email);
+					email, Guest.RegistrationMethod.REGISTRATION_METHOD_FORM);
 			StatusModel result = new StatusModel(true, "User " + username
 					+ " was successfully created");
 			return gson.toJson(result);
@@ -311,5 +385,4 @@ public class GuestController {
 			array.add(userRole);
 		return array;
 	}
-
 }

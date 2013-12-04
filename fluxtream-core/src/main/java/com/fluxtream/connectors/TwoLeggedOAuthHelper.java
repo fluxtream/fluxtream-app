@@ -42,21 +42,23 @@ public class TwoLeggedOAuthHelper extends ApiClientSupport {
 				throw new RuntimeException("OAuth exception: " + e.getMessage());
 			}
 			request.connect();
-			if (request.getResponseCode() == 200) {
+            final int httpResponseCode = request.getResponseCode();
+            final String httpResponseMessage = request.getResponseMessage();
+            if (httpResponseCode == 200) {
 				String response = IOUtils.toString(request.getInputStream());
 				connectorUpdateService.addApiUpdate(apiKey,
 						objectTypes, then, System.currentTimeMillis() - then,
-						urlString, true);
+						urlString, true, null, null);
 				// logger.info(apiKey.getGuestId(), "REST call success: " +
 				// urlString);
 				return response;
 			} else {
 				connectorUpdateService.addApiUpdate(apiKey,
 						objectTypes, then, System.currentTimeMillis() - then,
-						urlString, false);
+						urlString, false, httpResponseCode, httpResponseMessage);
 				throw new RuntimeException(
 						"Could not make REST call, got response code: "
-								+ request.getResponseCode() + ", message: "
+								+ httpResponseCode + ", message: "
 								+ request.getResponseMessage()
 								+ "\n+REST url: " + urlString);
 			}

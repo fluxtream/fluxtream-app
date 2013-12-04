@@ -8,10 +8,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.images.ImageOrientation;
+import com.fluxtream.mvc.models.DimensionModel;
 
 /**
  * @author Chris Bartley (bartley@cmu.edu)
@@ -20,12 +22,16 @@ public class FluxtreamCapturePhotoFacetVO extends AbstractPhotoFacetVO<Fluxtream
 
     public Map<Integer, String> thumbnailUrls = new HashMap<Integer, String>(FluxtreamCapturePhotoFacet.NUM_THUMBNAILS);
     public SortedMap<Integer, Dimension> thumbnailSizes = new TreeMap<Integer, Dimension>();
-    public ImageOrientation imageOrientation;
+
+    public transient ImageOrientation imageOrientation;
+
+    public int orientation;
 
     @Override
-    protected void fromFacet(final FluxtreamCapturePhotoFacet facet, final TimeInterval timeInterval, final GuestSettings settings) {
+    protected void fromFacet(final FluxtreamCapturePhotoFacet facet, final TimeInterval timeInterval, final GuestSettings settings)
+            throws OutsideTimeBoundariesException {
         start = facet.start;
-        startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.timeZone);
+        startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getTimeZone(facet.start));
 
         final String photoStoreKey = facet.getPhotoStoreKey();
         photoUrl = "/api/bodytrack/photo/" + photoStoreKey;
@@ -36,6 +42,7 @@ public class FluxtreamCapturePhotoFacetVO extends AbstractPhotoFacetVO<Fluxtream
             thumbnailSizes.put(i, facet.getThumbnailSize(i));
         }
         imageOrientation = facet.getOrientation();
+        orientation = imageOrientation.getId();
     }
 
     @Override
@@ -49,10 +56,10 @@ public class FluxtreamCapturePhotoFacetVO extends AbstractPhotoFacetVO<Fluxtream
     }
 
     @Override
-    public List<Dimension> getThumbnailSizes() {
-        List<Dimension> sizes = new ArrayList<Dimension>();
+    public List<DimensionModel> getThumbnailSizes() {
+        List<DimensionModel> sizes = new ArrayList<DimensionModel>();
         for (final Dimension dimension : thumbnailSizes.values()) {
-            sizes.add(new Dimension(dimension)); // create a copy so the caller can't modify this instance
+            sizes.add(new DimensionModel(dimension.width, dimension.height)); // create a copy so the caller can't modify this instance
         }
         return sizes;
     }

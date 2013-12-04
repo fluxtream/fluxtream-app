@@ -21,7 +21,6 @@
             </ul>
         </div>
       <a href="#" class="btn disabled" id="{{grapherId}}_timeline_add_channels_btn">Add Channels</a>
-      <a href="#" class="btn disabled" id="{{grapherId}}_timeline_show_details_btn">Show Details</a>
     </span>
             <div id="{{grapherId}}_timeline_view_dialog"></div>
 
@@ -49,13 +48,13 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td>
+                                <td id="timelineRuler">
+                                    <div id="{{grapherId}}_timeline_dateAxisLabelRegion" class="_timeline_dateAxisLabelRegion">
+                                        <div id="{{grapherId}}_timeline_dataPointTimeZoneLabel" class="_timeline_dataPointTimeZoneLabel"></div>
+                                        <div id="{{grapherId}}_timeline_dataPointValueLabel" class="_timeline_dataPointValueLabel"></div>
+                                    </div>
                                     <div id="{{grapherId}}_timeline_dateAxisContainer" class="_timeline_dateAxisContainer">
                                         <div id="{{grapherId}}_timeline_dateAxis" class="_timeline_dateAxis"></div>
-                                        <div id="{{grapherId}}_timeline_dateAxisLabelRegion" class="_timeline_dateAxisLabelRegion">
-                                            <div id="{{grapherId}}_timeline_dataPointTimeZoneLabel" class="_timeline_dataPointTimeZoneLabel"></div>
-                                            <div id="{{grapherId}}_timeline_dataPointValueLabel" class="_timeline_dataPointValueLabel"></div>
-                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -72,9 +71,6 @@
                                 </table>
                             </div>
                         </div>
-                    </td>
-                    <td id="{{grapherId}}_timeline_detailsArea" class="_timeline_pane">
-                        <div class="_timeline_pane_title">Details</div>
                     </td>
                 </tr>
             </table>
@@ -132,18 +128,25 @@
 <div class="_timeline_channelTabAndPlot">
     <table border="0" cellpadding="0" cellspacing="0">
         <tr>
-            <td class="_timeline_channeltd" rowspan="2">
-                <div class="flx-channel" id="_timeline_channelTab_{{plotId}}">
-                    <div class="flx-remove-channel" id="{{channelElementId}}_delete_btn">{{#showDeleteBtn}}<a href="#"><i class="icon-remove-sign"></i></a>{{/showDeleteBtn}}{{^showDeleteBtn}}<span><i style="opacity:0" class="icon-remove-sign"></i></span>{{/showDeleteBtn}}</div>
-                    <div class="flx-channel-name">
-                        <h4>{{deviceName}}</h4>
-                        <p>{{channelName}}</p>
-                    </div>
-                    <ul class="flx-channel-controls">
-                        <li><a href="#" id="{{channelElementId}}_btnShowAllY"><i class="icon-resize-vertical"></i></a></li>
-                        <li><a href="#" id="{{channelElementId}}_btnGear"><i class="icon-pencil"></i></a></li>
-                    </ul>
-                </div>
+            <td class="_timeline_channeltd flx-channel" rowspan="2">
+                <table class="flx-channel-tab" border="0" cellpadding="0" cellspacing="0" id="_timeline_channelTab_{{plotId}}">
+                    <tr valign="middle">
+                        {{#showDeleteBtn}}<td style="width:25px"><div class="flx-remove-channel" id="{{channelElementId}}_delete_btn"><a href="#"><i class="icon-remove-sign"></i></a></div></td>{{/showDeleteBtn}}
+                        <td>
+                            <div class="flx-channel-name{{^showDeleteBtn}}-nodeletebutton{{/showDeleteBtn}}">
+                                <h4 title="{{deviceName}}">{{deviceName}}</h4>
+                                <p title="{{channelName}}">{{channelName}}</p>
+                                <p id="{{channelElementId}}-timeline-channel-filter" class="flx-channel-filter"></p>
+                            </div>
+                        </td>
+                        <td style="width:25px">
+                            <ul class="flx-channel-controls">
+                                <li><a href="#" id="{{channelElementId}}_btnShowAllY"><i class="icon-resize-vertical"></i></a></li>
+                                <li><a href="#" id="{{channelElementId}}_btnGear"><i class="icon-pencil"></i></a></li>
+                            </ul>
+                        </td>
+                    </tr>
+                </table>
             </td>
             <td class="_timeline_plottd">
                 <div id="{{plotElementId}}_container" class="_timeline_plotContainer">
@@ -173,19 +176,18 @@
 <div class="_timeline_channelConfig">
 <table border="0" cellpadding="0" cellspacing="0">
 <tr>
-<td>
+<td style="padding:5px">
 <table border="0" cellpadding="0" cellspacing="0" style="width:auto" class="_timeline_photo_series_plot_config">
     <tr>
         <td style="font-size:8pt">
             Show photos that
-            <select id="{{channelElementId}}-photo-tags-matching-strategy">
+            <select id="{{channelElementId}}-photo-tags-matching-strategy" style="font-family: Arial, Verdana, sans-serif; font-size: 11px; margin-bottom:0; width:auto">
                 <option value="any">contain any of the tags specified below</option>
                 <option value="all">contain all of the tags specified below</option>
                 <option value="none">contain none of the tags specified below</option>
                 <option value="untagged">are untagged</option>
             </select>
-            <br><br>
-            <form id="{{channelElementId}}-photo-tags-filter" style="margin-right:10px" action="" method="post" onsubmit="return false;">
+            <form id="{{channelElementId}}-photo-tags-filter" style="margin:10px 0 0 0;" action="" method="post" onsubmit="return false;">
                 <input type="text" name="tag[]" value="" class="tag"/>
             </form>
         </td>
@@ -218,13 +220,16 @@
                     <td><input id="{{channelElementId}}-config-lines-color" type="text"/></td>
                     <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                     <td>
-                        <select id="{{channelElementId}}-config-lines-lineWidth" class="_timeline_channelConfig_image_menu">
-                            <option value="1" title="/static/images/msdropdown/lineWidth1.png"></option>
-                            <option value="2" title="/static/images/msdropdown/lineWidth2.png"></option>
-                            <option value="3" title="/static/images/msdropdown/lineWidth3.png"></option>
-                            <option value="4" title="/static/images/msdropdown/lineWidth4.png"></option>
-                            <option value="5" title="/static/images/msdropdown/lineWidth5.png"></option>
-                        </select>
+                        <div class="btn-group configDropdown configLineWidth">
+                            <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="1"><img style="display:inline;" src="/static/images/msdropdown/lineWidth1.png"> <span class="caret"></span></button>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" value="1"><img style="display:inline;" src="/static/images/msdropdown/lineWidth1.png"></a></li>
+                                <li><a href="#" value="2"><img style="display:inline;" src="/static/images/msdropdown/lineWidth2.png"></a></li>
+                                <li><a href="#" value="3"><img style="display:inline;" src="/static/images/msdropdown/lineWidth3.png"></a></li>
+                                <li><a href="#" value="4"><img style="display:inline;" src="/static/images/msdropdown/lineWidth4.png"></a></li>
+                                <li><a href="#" value="5"><img style="display:inline;" src="/static/images/msdropdown/lineWidth5.png"></a></li>
+                            </ul>
+                        </div>
                     </td>
                     <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                     <td>&nbsp;</td>
@@ -237,27 +242,33 @@
                     <td><input id="{{channelElementId}}-config-points-color" type="text"/></td>
                     <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                     <td>
-                        <select id="{{channelElementId}}-config-points-radius" class="_timeline_channelConfig_image_menu">
-                            <option value="1" title="/static/images/msdropdown/pointSize1.png"></option>
-                            <option value="2" title="/static/images/msdropdown/pointSize2.png"></option>
-                            <option value="3" title="/static/images/msdropdown/pointSize3.png"></option>
-                            <option value="4" title="/static/images/msdropdown/pointSize4.png"></option>
-                            <option value="5" title="/static/images/msdropdown/pointSize5.png"></option>
-                        </select>
+                        <div class="btn-group configDropdown configPointsRadius">
+                            <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="1"><img style="display:inline;" src="/static/images/msdropdown/pointSize1.png"> <span class="caret"></span></button>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" value="1"><img style="display:inline;" src="/static/images/msdropdown/pointSize1.png"></a></li>
+                                <li><a href="#" value="2"><img style="display:inline;" src="/static/images/msdropdown/pointSize2.png"></a></li>
+                                <li><a href="#" value="3"><img style="display:inline;" src="/static/images/msdropdown/pointSize3.png"></a></li>
+                                <li><a href="#" value="4"><img style="display:inline;" src="/static/images/msdropdown/pointSize4.png"></a></li>
+                                <li><a href="#" value="5"><img style="display:inline;" src="/static/images/msdropdown/pointSize5.png"></a></li>
+                            </ul>
+                        </div>
                     </td>
                     <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                     <td>
                         <table border="0" cellpadding="0" cellspacing="0" style="width:auto">
                             <tr>
                                 <td style="padding-right:3px">
-                                    <select id="{{channelElementId}}-config-points-type" class="_timeline_channelConfig_image_menu">
-                                        <option value="point-filled" title="/static/images/msdropdown/pointStyleCircleFilled.png"></option>
-                                        <option value="square-filled" title="/static/images/msdropdown/pointStyleSquareFilled.png"></option>
-                                        <option value="point" title="/static/images/msdropdown/pointStyleCircle.png"></option>
-                                        <option value="square" title="/static/images/msdropdown/pointStyleSquare.png"></option>
-                                        <option value="cross" title="/static/images/msdropdown/pointStyleCross.png"></option>
-                                        <option value="plus" title="/static/images/msdropdown/pointStylePlus.png"></option>
-                                    </select>
+                                    <div class="btn-group configDropdown configPointsType">
+                                        <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="point-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircleFilled.png"> <span class="caret"></span></button>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="#" value="point-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircleFilled.png"></a></li>
+                                            <li><a href="#" value="square-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleSquareFilled.png"></a></li>
+                                            <li><a href="#" value="point"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircle.png"></a></li>
+                                            <li><a href="#" value="square"><img style="display:inline;" src="/static/images/msdropdown/pointStyleSquare.png"></a></li>
+                                            <li><a href="#" value="cross"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCross.png"></a></li>
+                                            <li><a href="#" value="plus"><img style="display:inline;" src="/static/images/msdropdown/pointStylePlus.png"></a></li>
+                                        </ul>
+                                    </div>
                                 </td>
                                 <td id="{{channelElementId}}-config-points-fillColor-container">
                                     <input id="{{channelElementId}}-config-points-fillColor" type="text"/>
@@ -274,13 +285,16 @@
                     <td><input id="{{channelElementId}}-config-bars-color" type="text"/></td>
                     <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                     <td>
-                        <select id="{{channelElementId}}-config-bars-lineWidth" class="_timeline_channelConfig_image_menu">
-                            <option value="1" title="/static/images/msdropdown/barWidth1.png"></option>
-                            <option value="2" title="/static/images/msdropdown/barWidth2.png"></option>
-                            <option value="3" title="/static/images/msdropdown/barWidth3.png"></option>
-                            <option value="4" title="/static/images/msdropdown/barWidth4.png"></option>
-                            <option value="5" title="/static/images/msdropdown/barWidth5.png"></option>
-                        </select>
+                        <div class="btn-group configDropdown configBarsLineWidth">
+                            <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="1"><img style="display:inline;" src="/static/images/msdropdown/barWidth1.png"> <span class="caret"></span></button>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" value="1"><img style="display:inline;" src="/static/images/msdropdown/barWidth1.png"></a></li>
+                                <li><a href="#" value="2"><img style="display:inline;" src="/static/images/msdropdown/barWidth2.png"></a></li>
+                                <li><a href="#" value="3"><img style="display:inline;" src="/static/images/msdropdown/barWidth3.png"></a></li>
+                                <li><a href="#" value="4"><img style="display:inline;" src="/static/images/msdropdown/barWidth4.png"></a></li>
+                                <li><a href="#" value="5"><img style="display:inline;" src="/static/images/msdropdown/barWidth5.png"></a></li>
+                            </ul>
+                        </div>
                     </td>
                     <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                     <td>&nbsp;</td>
@@ -293,41 +307,53 @@
                     <td><input id="{{channelElementId}}-config-values-fillColor" type="text"/></td>
                     <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                     <td>
-                        <select id="{{channelElementId}}-config-values-numberFormat" class="_timeline_channelConfig_image_menu">
-                            <option value="###,##0.0##">#.###</option>
-                            <option value="###,##0.0#">#.##</option>
-                            <option value="###,##0.0">#.#</option>
-                            <option value="###,##0">#</option>
-                        </select>
+                        <div class="btn-group configDropdown configValuesNumberFormat">
+                            <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="###,##0.0##">#.### <span class="caret"></span></button>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" value="###,##0.0##">#.###</a></li>
+                                <li><a href="#" value="###,##0.0#">#.##</a></li>
+                                <li><a href="#" value="###,##0.0">#.#</a></li>
+                                <li><a href="#" value="###,##0">#</a></li>
+                            </ul>
+                        </div>
                     </td>
                     <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                     <td>
                         <table border="0" cellpadding="0" cellspacing="0">
                             <tr>
-                                <td><label for="{{channelElementId}}-config-values-verticalOffset">Position:</label></td>
+                                <td><label>Position:</label></td>
                                 <td style="padding-left:2px">
-                                    <select id="{{channelElementId}}-config-values-verticalOffset" class="_timeline_channelConfig_image_menu">
-                                        <option value="7">Above</option>
-                                        <option value="-3">On</option>
-                                        <option value="-13">Below</option>
-                                    </select>
+                                    <div class="btn-group configDropdown configValuesVerticalOffset">
+                                        <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="7">Above <span class="caret"></span></button>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="#" value="7">Above</a></li>
+                                            <li><a href="#" value="-3">On</a></li>
+                                            <li><a href="#" value="-13">Below</a></li>
+                                        </ul>
+                                    </div>
                                 </td>
-                                <td style="padding-left:10px"><label for="{{channelElementId}}-config-values-showOnlyOnHighlight">Visible:</label></td>
+                                <td style="padding-left:10px"><label>Visible:</label></td>
                                 <td style="padding-left:2px">
-                                    <select id="{{channelElementId}}-config-values-showOnlyOnHighlight" style="width:70px">
-                                        <option value="false">Always</option>
-                                        <option value="true">Mouseover</option>
-                                    </select>
+                                    <div class="btn-group configDropdown configValuesShowOnlyOnHighlight">
+                                        <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="false">Always <span class="caret"></span></button>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="#" value="false">Always</a></li>
+                                            <li><a href="#" value="true">Mouseover</a></li>
+                                        </ul>
+                                    </div>
                                 </td>
-                                <td id="{{channelElementId}}-config-values-marginWidth-label-container" style="padding-left:10px"><label for="{{channelElementId}}-config-values-marginWidth">Margin:</label></td>
+                                <td id="{{channelElementId}}-config-values-marginWidth-label-container" style="padding-left:10px"><label>Margin:</label></td>
                                 <td id="{{channelElementId}}-config-values-marginWidth-container" style="padding-left:2px">
-                                    <select id="{{channelElementId}}-config-values-marginWidth" class="_timeline_channelConfig_image_menu">
-                                        <option value="5">5</option>
-                                        <option value="10">10</option>
-                                        <option value="15">15</option>
-                                        <option value="20">20</option>
-                                        <option value="25">25</option>
-                                    </select>
+                                    <div class="btn-group configDropdown configValuesMarginWidth">
+                                        <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="5">5 <span class="caret"></span></button>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="#" value="5">5</a></li>
+                                            <li><a href="#" value="10">10</a></li>
+                                            <li><a href="#" value="15">15</a></li>
+                                            <li><a href="#" value="20">20</a></li>
+                                            <li><a href="#" value="25">25</a></li>
+                                        </ul>
+                                    </div>
                                 </td>
                             </tr>
                         </table>
@@ -341,27 +367,33 @@
                     <td><input id="{{channelElementId}}-config-comments-color" type="text"/></td>
                     <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                     <td>
-                        <select id="{{channelElementId}}-config-comments-radius" class="_timeline_channelConfig_image_menu">
-                            <option value="1" title="/static/images/msdropdown/pointSize1.png"></option>
-                            <option value="2" title="/static/images/msdropdown/pointSize2.png"></option>
-                            <option value="3" title="/static/images/msdropdown/pointSize3.png"></option>
-                            <option value="4" title="/static/images/msdropdown/pointSize4.png"></option>
-                            <option value="5" title="/static/images/msdropdown/pointSize5.png"></option>
-                        </select>
+                        <div class="btn-group configDropdown configCommentsRadius">
+                            <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="1"><img style="display:inline;" src="/static/images/msdropdown/pointSize1.png"> <span class="caret"></span></button>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" value="1"><img style="display:inline;" src="/static/images/msdropdown/pointSize1.png"></a></li>
+                                <li><a href="#" value="2"><img style="display:inline;" src="/static/images/msdropdown/pointSize2.png"></a></li>
+                                <li><a href="#" value="3"><img style="display:inline;" src="/static/images/msdropdown/pointSize3.png"></a></li>
+                                <li><a href="#" value="4"><img style="display:inline;" src="/static/images/msdropdown/pointSize4.png"></a></li>
+                                <li><a href="#" value="5"><img style="display:inline;" src="/static/images/msdropdown/pointSize5.png"></a></li>
+                            </ul>
+                        </div>
                     </td>
                     <td class="_timeline_channelConfig_table_cell_padding">&nbsp;</td>
                     <td>
                         <table border="0" cellpadding="0" cellspacing="0" style="width:auto">
                             <tr>
                                 <td style="padding-right:3px">
-                                    <select id="{{channelElementId}}-config-comments-type" class="_timeline_channelConfig_image_menu">
-                                        <option value="point-filled" title="/static/images/msdropdown/pointStyleCircleFilled.png"></option>
-                                        <option value="square-filled" title="/static/images/msdropdown/pointStyleSquareFilled.png"></option>
-                                        <option value="point" title="/static/images/msdropdown/pointStyleCircle.png"></option>
-                                        <option value="square" title="/static/images/msdropdown/pointStyleSquare.png"></option>
-                                        <option value="cross" title="/static/images/msdropdown/pointStyleCross.png"></option>
-                                        <option value="plus" title="/static/images/msdropdown/pointStylePlus.png"></option>
-                                    </select>
+                                    <div class="btn-group configDropdown configCommentsType">
+                                        <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="point-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircleFilled.png"> <span class="caret"></span></button>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="#" value="point-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircleFilled.png"></a></li>
+                                            <li><a href="#" value="square-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleSquareFilled.png"></a></li>
+                                            <li><a href="#" value="point"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircle.png"></a></li>
+                                            <li><a href="#" value="square"><img style="display:inline;" src="/static/images/msdropdown/pointStyleSquare.png"></a></li>
+                                            <li><a href="#" value="cross"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCross.png"></a></li>
+                                            <li><a href="#" value="plus"><img style="display:inline;" src="/static/images/msdropdown/pointStylePlus.png"></a></li>
+                                        </ul>
+                                    </div>
                                 </td>
                                 <td id="{{channelElementId}}-config-comments-fillColor-container">
                                     <input id="{{channelElementId}}-config-comments-fillColor" type="text"/>
@@ -420,7 +452,7 @@
 <template id="_timeline_photo_dialog_loading_template">
   <table border="0" cellpadding="0" cellspacing="0" class="_timeline_photo_dialog_loading_table">
     <tr valign="middle">
-      <td align="center"><img src="/images/loading.gif" /><br>Loading...</td>
+      <td align="center"><i class="icon-refresh icon-spin"></i><br>Loading...</td>
     </tr>
   </table>
 </template>
@@ -434,7 +466,7 @@
         <table border="0" cellpadding="0" cellspacing="0" class="_timeline_photo_dialog_photo_table">
           <tr valign="middle">
             <td align="center">
-              <img id="_timeline_photo_dialog_image" src="{{photoUrl}}">
+              <img id="_timeline_photo_dialog_image" src="{{photoUrl}}" style="max-width: 300px; max-height: 300px;">
             </td>
           </tr>
         </table>
@@ -446,7 +478,14 @@
         <div id="_timeline_photo_dialog_form_status"></div>
           <div id="_timeline_photo_dialog_form"></div>
           <div id="_timeline_photo_dialog_save_preferences">
-            <input id="_timeline_photo_dialog_save_should_goto_neighbor" type="checkbox" value="true" tabindex="107"><label for="_timeline_photo_dialog_save_should_goto_neighbor">After saving, go to the </label><select id="_timeline_photo_dialog_save_should_goto_neighbor_choice" tabindex="108" disabled="disabled"><option value="1">next</option><option value="-1">previous</option></select><label for="_timeline_photo_dialog_save_should_goto_neighbor"> photo.</label><img id="_timeline_photo_dialog_post_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="109"/>
+              <table border="0" cellpadding="3" cellspacing="0" align="center">
+                  <tr valign="middle">
+                      <td><input id="_timeline_photo_dialog_save_should_goto_neighbor" type="checkbox" value="true" tabindex="107"></td>
+                      <td><label for="_timeline_photo_dialog_save_should_goto_neighbor" style="font-size:8pt; margin:0">After saving, go to the </label></td>
+                      <td><select id="_timeline_photo_dialog_save_should_goto_neighbor_choice" tabindex="108" disabled="disabled" style="width:auto; font-size:8pt; margin:0; font-family: 'Arial Unicode MS', Arial, sans-serif"><option value="1">next</option><option value="-1">previous</option></select></td>
+                      <td><label for="_timeline_photo_dialog_save_should_goto_neighbor" style="font-size:8pt; margin:0"> photo.</label><img id="_timeline_photo_dialog_post_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="109"/></td>
+                  </tr>
+              </table>
           </div>
       </td>
     </tr>
@@ -458,13 +497,13 @@
     <img id="_timeline_photo_dialog_comment_tabhelper_pre_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="98"/>
     <img id="_timeline_photo_dialog_comment_tabhelper_pre_proxy_backward" src="/images/clear.gif" width="1" height="1" tabindex="99"/>
   </div>
-  <div id="_timeline_photo_dialog_timestamp"></div>
-    <textarea rows="2" id="_timeline_photo_dialog_comment" tabindex="100"></textarea>
+  <div id="_timeline_photo_dialog_timestamp" style="font-size:8pt"></div>
+    <textarea rows="2" id="_timeline_photo_dialog_comment" tabindex="100" style="width:290px"></textarea>
     <div style="width:1px;height:1px;">
       <img id="_timeline_photo_dialog_tags_editor_tabhelper_pre_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="101"/>
     </div>
     <form id="_timeline_photo_dialog_tags_editor" action="" method="post" onsubmit="return false;"></form>
-    <form id="_timeline_photo_dialog_form_buttons" action="" method="post" onsubmit="return false;">
+    <form id="_timeline_photo_dialog_form_buttons" action="" method="post" onsubmit="return false;" style="text-align:right">
       <div style="width:1px; height:1px">
         <img id="_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="103"/>
         <img id="_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_backward" src="/images/clear.gif" width="1" height="1" tabindex="104"/>
@@ -478,4 +517,4 @@
   <input type="text" name="tag[]" value="{{value}}" class="tag"/>
 </template>
 
-<template id="_timeline_channel_tab_filter_template"><span class="_timeline_channelFilter_label">Tags</span>: {{value}}</template>
+<template id="_timeline_channel_tab_filter_template"><span class="_timeline_channelFilter_label">{{matchingString}}</span> {{value}}</template>

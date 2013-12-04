@@ -5,7 +5,6 @@ import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.Connector.UpdateStrategyType;
 import com.fluxtream.connectors.RESTHelper;
-import com.fluxtream.connectors.annotations.JsonFacetCollection;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
@@ -26,7 +25,6 @@ import static com.fluxtream.utils.Utils.hash;
 @Component
 @Updater(prettyName = "Toodledo", value = 37, objectTypes = {
 		ToodledoTaskFacet.class, ToodledoGoalFacet.class }, updateStrategyType = UpdateStrategyType.ALWAYS_UPDATE)
-@JsonFacetCollection(ToodledoFacetVOCollection.class)
 public class ToodledoUpdater extends AbstractUpdater {
 
 	private static final String TOODLEDO_ACCOUNT_TOKEN = "http://api.toodledo.com/2/account/token.php";

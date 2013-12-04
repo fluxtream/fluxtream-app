@@ -2,18 +2,16 @@ package com.fluxtream.connectors.lastfm;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.JPADaoService;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class LastFmFacetExtractor extends AbstractFacetExtractor {
@@ -21,12 +19,12 @@ public class LastFmFacetExtractor extends AbstractFacetExtractor {
 	@Autowired
 	JPADaoService jpaDaoService;
 
-	public List<AbstractFacet> extractFacets(ApiData apiData,
+	public List<AbstractFacet> extractFacets(UpdateInfo updateInfo, ApiData apiData,
 			ObjectType objectType) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 
 		try {
-			if (objectType == ObjectType.getObjectType(connector(),
+			if (objectType == ObjectType.getObjectType(connector(updateInfo),
 					"recent_track")) {
 				extractLastfmRecentTracks(apiData, facets);
 			}
@@ -58,6 +56,7 @@ public class LastFmFacetExtractor extends AbstractFacetExtractor {
 			super.extractCommonFacetData(facet, apiData);
 
 			JSONObject it = tracks.getJSONObject(i);
+
 			if (!it.containsKey("artist"))
 				continue;
 			if (!it.getJSONObject("artist").containsKey("#text")) {
@@ -99,9 +98,14 @@ public class LastFmFacetExtractor extends AbstractFacetExtractor {
 				}
 			}
 
+            if (it.containsKey("url"))
+                facet.url = it.getString("url");
+            if (it.containsKey("mbid"))
+                facet.mbid = it.getString("mbid");
+
 			LastFmRecentTrackFacet duplicate = jpaDaoService.findOne("lastfm.recent_track.byStartEnd",
 					LastFmRecentTrackFacet.class,
-					apiData.updateInfo.getGuestId(), date, date);
+					apiData.updateInfo.apiKey.getId(), date, date);
 			if (duplicate==null)
 				facets.add(facet);
 		}

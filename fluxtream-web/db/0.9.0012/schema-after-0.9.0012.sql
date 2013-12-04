@@ -104,7 +104,7 @@ CREATE TABLE `ApiUpdates` (
   `elapsed` bigint(20) NOT NULL,
   `guestId` bigint(20) NOT NULL,
   `objectTypes` int(11) NOT NULL,
-  `query` mediumtext,
+  `query` longtext,
   `success` char(1) NOT NULL,
   `ts` bigint(20) NOT NULL,
   `apiKeyId` bigint(20) DEFAULT NULL,
@@ -153,8 +153,6 @@ CREATE TABLE `CoachingBuddies` (
   PRIMARY KEY (`id`),
   KEY `guestId_index` (`guestId`),
   KEY `buddyId_index` (`buddyId`),
-  KEY `buddyId` (`buddyId`),
-  KEY `guestId` (`guestId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

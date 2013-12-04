@@ -6,11 +6,10 @@ import java.util.Iterator;
 import java.util.List;
 import com.fluxtream.Configuration;
 import com.fluxtream.aspects.FlxLogger;
-import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.domain.metadata.WeatherInfo;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.apache.commons.httpclient.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -25,25 +24,7 @@ public class WWOHelper {
 	private Configuration env;
 
 
-    public void setWeatherInfo(DayMetadataFacet info,
-                                List<WeatherInfo> weatherInfo) {
-        if (weatherInfo.size() == 0)
-            return;
-
-        for (WeatherInfo weather : weatherInfo) {
-            if (weather.tempC < info.minTempC)
-                info.minTempC = weather.tempC;
-            if (weather.tempF < info.minTempF)
-                info.minTempF = weather.tempF;
-            if (weather.tempC > info.maxTempC)
-                info.maxTempC = weather.tempC;
-            if (weather.tempF > info.maxTempF)
-                info.maxTempF = weather.tempF;
-        }
-
-    }
-
-    public List<WeatherInfo> getWeatherInfo(double latitude, double longitude, String fdate) throws HttpException, IOException {
+    public List<WeatherInfo> getWeatherInfo(double latitude, double longitude, String fdate) throws UnexpectedHttpResponseCodeException, IOException {
         List<WeatherInfo> weather = new ArrayList<WeatherInfo>();
 
         // if no key is provided, just return an empty List

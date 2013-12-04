@@ -1,9 +1,10 @@
 define(["core/FlxState"], function(FlxState) {
 	
-	function Application(name, author, icon) {
+	function Application(name, author, icon, prettyName) {
 		this.name = name;
 		this.author = author;
 		this.icon = icon;
+        this.prettyName = prettyName;
 	}
 	
 	Application.prototype.destroy = function() {
@@ -47,12 +48,22 @@ define(["core/FlxState"], function(FlxState) {
 	Application.prototype.renderState = function(state) {
 	};
 
-    Application.prototype.navigateState = function(state) {
+    Application.prototype.getParams = function(){
+        return this.params;
+    }
+
+    Application.prototype.navigateState = function(state,params) {
+        this.params = params;
+        if (this.params == null)
+            this.params = {};
         var url = "app/" + this.name;
         if (state) {
             url += "/" + state;
         }
         FlxState.router.navigate(url, {trigger: true});
+        if (typeof(ga)!="undefined") {
+            ga("send", "pageview", url);
+        }
         FlxState.saveState(this.name, state);
     }
 

@@ -8,6 +8,7 @@ public class GuestModel {
 	public String firstname, lastname;
     public String email;
     public String roles;
+    public long id;
 
 	public GuestModel(Guest guest) {
 		this.username = guest.username;
@@ -15,6 +16,7 @@ public class GuestModel {
 		this.lastname = guest.lastname;
         this.email = guest.email;
         this.roles = guest.getUserRoles().toString();
+        this.id=guest.getId();
     }
 	
 }

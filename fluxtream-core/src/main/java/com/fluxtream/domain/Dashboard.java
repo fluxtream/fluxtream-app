@@ -11,6 +11,8 @@ import org.hibernate.annotations.Type;
  */
 @Entity(name = "Dashboard")
 @NamedQueries({
+      @NamedQuery(name = "dashboards.delete.all",
+                  query = "DELETE FROM Dashboard dashboard WHERE dashboard.guestId=?"),
       @NamedQuery(name = "dashboards.all",
                   query = "SELECT dashboard FROM Dashboard dashboard WHERE dashboard.guestId=?"),
       @NamedQuery(name = "dashboards.maxOrder",

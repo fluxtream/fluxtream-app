@@ -13,6 +13,8 @@ public class TimeUtils {
 
 	private static final long MILLIS_IN_DAY = 86400000l;
 	public static final int FIRST_DAY_OF_WEEK = DateTimeConstants.SUNDAY;
+    public static final DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+    public static final DateTimeFormatter dateFormatterUTC = DateTimeFormat.forPattern("yyyy-MM-dd").withZoneUTC();
 
 	public static String getStart(String date, TimeZone tz) {
 		return date + " 00:00:00 " + tz.getDisplayName(true, TimeZone.SHORT);
@@ -63,4 +65,17 @@ public class TimeUtils {
 		// one day earlier than JodaTime's standard than 6 days later than
 		// users' expectations.
 	}
+
+    public static LocalDate getEndOfMonth(final int year, final int month) {
+        return (new LocalDate())
+                .withWeekyear(year)
+                .withMonthOfYear(month).dayOfMonth().withMaximumValue();
+    }
+
+    public static LocalDate getBeginningOfMonth(final int year, final int month) {
+        return (new LocalDate())
+                .withWeekyear(year)
+                .withMonthOfYear(month).dayOfMonth().withMinimumValue();
+    }
+
 }

@@ -64,6 +64,7 @@ public class SyncController {
         try{
             final long guestId = AuthHelper.getGuestId();
             final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
+            guestService.setApiKeyToSynching(apiKey.getId(), true);
             if (apiKey==null) {
                 return gson.toJson(new StatusModel(false, "we don't have an ApiKey for this connector"));
             }
@@ -89,8 +90,8 @@ public class SyncController {
         try {
             final long guestId = AuthHelper.getGuestId();
             final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
-            final List<ScheduleResult> scheduleResults = connectorUpdateService.updateConnectorObjectType(apiKey, objectTypes,
-                                                                                                force);
+            final List<ScheduleResult> scheduleResults = connectorUpdateService.updateConnectorObjectType(
+                    apiKey, objectTypes, force, false);
             StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
             statusModel.payload = scheduleResults;
             return gson.toJson(scheduleResults);
@@ -105,7 +106,7 @@ public class SyncController {
     @Produces({MediaType.APPLICATION_JSON})
     public String updateAllConnectors(){
         try {
-            final List<ScheduleResult> scheduleResults = connectorUpdateService.updateAllConnectors(AuthHelper.getGuestId());
+            final List<ScheduleResult> scheduleResults = connectorUpdateService.updateAllConnectors(AuthHelper.getGuestId(), true);
             StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
             statusModel.payload = scheduleResults;
             return gson.toJson(scheduleResults);
@@ -118,8 +119,7 @@ public class SyncController {
     @POST
     @Path("/producerTest")
     @Produces({MediaType.APPLICATION_JSON})
-    public String TestUpdate()
-    {
+    public String TestUpdate() throws InterruptedException {
         Producer p = new Producer();
         p.scheduleIncrementalUpdates();
         return gson.toJson(null);

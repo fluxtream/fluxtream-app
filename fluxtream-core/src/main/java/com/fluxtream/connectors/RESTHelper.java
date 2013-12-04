@@ -1,6 +1,7 @@
 package com.fluxtream.connectors;
 
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import org.springframework.stereotype.Component;
 
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
@@ -20,12 +21,12 @@ public class RESTHelper extends ApiClientSupport {
 			String restResult = HttpUtils.fetch(urlString);
 			connectorUpdateService.addApiUpdate(apiKey,
 					objectTypes, then, System.currentTimeMillis() - then,
-					urlString, true);
+					urlString, true, null, null);
 			return restResult;
-		} catch (Exception e) {
+		} catch (UnexpectedHttpResponseCodeException e) {
 			connectorUpdateService.addApiUpdate(apiKey,
 					objectTypes, then, System.currentTimeMillis() - then,
-					urlString, false);
+					urlString, false, e.getHttpResponseCode(), e.getHttpResponseMessage());
 			throw e;
 		}
 	}

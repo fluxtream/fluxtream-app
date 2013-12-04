@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.controllers.ControllerSupport;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.services.GuestService;
@@ -39,13 +40,26 @@ public class RunKeeperController {
     @RequestMapping(value = "/token")
     public String getRunkeeperToken(HttpServletRequest request) throws IOException, ServletException {
 
-        OAuthService service = getOAuthService();
+        OAuthService service = getOAuthService(request);
         request.getSession().setAttribute(RUNKEEPER_SERVICE, service);
 
         // Obtain the Authorization URL
         String authorizationUrl = service.getAuthorizationUrl(EMPTY_TOKEN);
+        if (request.getParameter("apiKeyId") != null)
+            authorizationUrl += authorizationUrl.indexOf("?")!=-1
+                             ? "&state=" + request.getParameter("apiKeyId")
+                             : "?state=" + request.getParameter("apiKeyId");
 
         return "redirect:" + authorizationUrl;
+    }
+
+    public OAuthService getOAuthService(HttpServletRequest request) {
+        return new ServiceBuilder()
+                .provider(RunKeeperApi.class)
+                .apiKey(getConsumerKey())
+                .apiSecret(getConsumerSecret())
+                .callback(ControllerSupport.getLocationBase(request, env) + "runkeeper/upgradeToken")
+                .build();
     }
 
     public OAuthService getOAuthService() {
@@ -68,11 +82,18 @@ public class RunKeeperController {
 
         Guest guest = AuthHelper.getGuest();
         final Connector connector = Connector.getConnector("runkeeper");
-        final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector);
+        ApiKey apiKey;
+        if (request.getParameter("state")!=null) {
+            long apiKeyId = Long.valueOf(request.getParameter("state"));
+            apiKey = guestService.getApiKey(apiKeyId);
+        } else
+            apiKey = guestService.createApiKey(guest.getId(), connector);
 
+        guestService.populateApiKey(apiKey.getId());
         guestService.setApiKeyAttribute(apiKey, "accessToken", token);
-
         request.getSession().removeAttribute(RUNKEEPER_SERVICE);
+        if (request.getParameter("state")!=null)
+            return "redirect:/app/tokenRenewed/runkeeper";
         return "redirect:/app/from/runkeeper";
     }
 

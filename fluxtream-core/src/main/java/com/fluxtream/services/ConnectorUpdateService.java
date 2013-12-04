@@ -32,9 +32,12 @@ public interface ConnectorUpdateService {
      * @param force force an update (sync now)
      * @return A list containing data about what was scheduled
      */
-    public List<ScheduleResult> updateConnectorObjectType(ApiKey apiKey, int objectTypes, boolean force);
+    public List<ScheduleResult> updateConnectorObjectType(ApiKey apiKey,
+                                                          int objectTypes,
+                                                          boolean force,
+                                                          boolean historyUpdate);
 
-    public List<ScheduleResult> updateAllConnectors(long guestId);
+    public List<ScheduleResult> updateAllConnectors(long guestId, boolean force);
 
     public List<ApiUpdate> getUpdates(ApiKey apiKey, int pageSize, int page);
 
@@ -49,7 +52,8 @@ public interface ConnectorUpdateService {
 	public ApiUpdate getLastSuccessfulUpdate(ApiKey apiKey,
 			int objectTypes);
 
-	public void addApiUpdate(final ApiKey apiKey, int objectTypes, long ts, long elapsed, String query, boolean success);
+	public void addApiUpdate(final ApiKey apiKey, int objectTypes, long ts, long elapsed, String query,
+                             boolean success, Integer httpResponseCode, String reason);
 
 	public void addApiNotification(Connector connector, long guestId, String content);
 
@@ -94,9 +98,17 @@ public interface ConnectorUpdateService {
 
     public Collection<UpdateWorkerTask> getLastFinishedUpdateTasks(ApiKey apiKey);
 
-    public void claim(long taskId);
+    // Returns true if the task was claimed and false otherwise.  If returns false the caller
+    // should not try to continue with task execution.
+    public boolean claim(long taskId);
 
     public void addAuditTrail(long updateWorkerTaskId, UpdateWorkerTask.AuditTrailEntry auditTrailEntry);
 
     public void cleanupStaleData();
+
+    List<UpdateWorkerTask> getAllSynchingUpdateWorkerTasks();
+
+    List<UpdateWorkerTask> getAllScheduledUpdateWorkerTasks();
+
+    List<UpdateWorkerTask> getUpdateWorkerTasks(ApiKey apiKey, int objectTypes, int max);
 }

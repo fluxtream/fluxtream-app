@@ -1,6 +1,5 @@
 package com.fluxtream.api;
 
-import java.awt.Dimension;
 import java.lang.reflect.Type;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -27,12 +26,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import com.fluxtream.Configuration;
+import com.fluxtream.SimpleTimeInterval;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.bodytrackResponders.AbstractBodytrackResponder;
 import com.fluxtream.connectors.fluxtream_capture.FluxtreamCapturePhoto;
 import com.fluxtream.connectors.fluxtream_capture.FluxtreamCapturePhotoStore;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
@@ -43,7 +44,9 @@ import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.Tag;
 import com.fluxtream.domain.TagFilter;
 import com.fluxtream.images.ImageOrientation;
+import com.fluxtream.mvc.models.DimensionModel;
 import com.fluxtream.mvc.models.StatusModel;
+import com.fluxtream.mvc.models.TimespanModel;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.BodyTrackStorageService;
 import com.fluxtream.services.CoachingService;
@@ -66,6 +69,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -107,7 +111,11 @@ public class BodyTrackController {
 
     @Autowired JsonResponseHelper jsonResponseHelper;
 
-	@POST
+    @Autowired
+    BeanFactory beanFactory;
+
+
+    @POST
 	@Path("/uploadHistory")
 	@Produces({ MediaType.APPLICATION_JSON })
 	public String loadHistory(@QueryParam("username") String username,
@@ -461,10 +469,10 @@ public class BodyTrackController {
     @Produces({MediaType.APPLICATION_JSON})
     public String fetchTile(@PathParam("UID") Long uid, @PathParam("DeviceNickname") String deviceNickname,
                                    @PathParam("ChannelName") String channelName, @PathParam("Level") int level, @PathParam("Offset") long offset){
-        long loggedInUserId = AuthHelper.getGuestId();
-        boolean accessAllowed = checkForPermissionAccess(uid);
-        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
         try{
+            long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
             if (!accessAllowed&&coachee==null){
                 uid = null;
             }
@@ -478,10 +486,10 @@ public class BodyTrackController {
     @Path("/users/{UID}/views")
     @Produces({MediaType.APPLICATION_JSON})
     public String getViews(@PathParam("UID") Long uid) {
-        long loggedInUserId = AuthHelper.getGuestId();
-        boolean accessAllowed = checkForPermissionAccess(uid);
-        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
         try{
+            long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
             if (!accessAllowed&&coachee==null){
                 uid = null;
             }
@@ -496,11 +504,11 @@ public class BodyTrackController {
     @Path("/users/{UID}/views/{id}")
     @Produces({MediaType.APPLICATION_JSON})
     public String bodyTrackView(@PathParam("UID") Long uid, @PathParam("id") long id) {
-        long loggedInUserId = AuthHelper.getGuestId();
-        boolean accessAllowed = checkForPermissionAccess(uid);
-        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
-
         try{
+            long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+
             if (!accessAllowed && coachee==null) {
                 uid = null;
             }
@@ -516,11 +524,11 @@ public class BodyTrackController {
     @Path("/users/{UID}/views")
     @Produces({MediaType.APPLICATION_JSON})
     public String setView(@PathParam("UID") Long uid, @FormParam("name") String name, @FormParam("data") String data) {
-        long loggedInUserId = AuthHelper.getGuestId();
-        boolean accessAllowed = checkForPermissionAccess(uid);
-        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
-
         try{
+            long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+
             if (!accessAllowed && coachee==null) {
                 uid = null;
             }
@@ -535,14 +543,14 @@ public class BodyTrackController {
     @Path("/users/{UID}/sources/list")
     @Produces({MediaType.APPLICATION_JSON})
     public String getSourceList(@PathParam("UID") Long uid) {
-        final long loggedInUserId = AuthHelper.getGuestId();
-        boolean accessAllowed = checkForPermissionAccess(uid);
-        CoachingBuddy coachee = null;
-        if (!accessAllowed) {
-            coachee = coachingService.getCoachee(loggedInUserId, uid);
-            accessAllowed = (coachee!=null);
-        }
         try{
+            final long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = null;
+            if (!accessAllowed) {
+                coachee = coachingService.getCoachee(loggedInUserId, uid);
+                accessAllowed = (coachee!=null);
+            }
             if (!accessAllowed){
                 uid = null;
             }
@@ -557,11 +565,11 @@ public class BodyTrackController {
     @Path(value = "/users/{UID}/sources/{source}/default_graph_specs")
     @Produces({MediaType.APPLICATION_JSON})
     public String bodyTrackGetDefaultGraphSpecs(@PathParam("UID") Long uid, @PathParam("source") String name) {
-        long loggedInUserId = AuthHelper.getGuestId();
-        boolean accessAllowed = checkForPermissionAccess(uid);
-        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
-
         try{
+            long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+
             if (!accessAllowed && coachee==null) {
                 uid = null;
             }
@@ -576,10 +584,10 @@ public class BodyTrackController {
     @Path(value = "/users/{UID}/tags")
     @Produces({MediaType.APPLICATION_JSON})
     public String getAllTagsForUser(@PathParam("UID") Long uid) {
-        long loggedInUserId = AuthHelper.getGuestId();
-        boolean accessAllowed = checkForPermissionAccess(uid);
-        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
         try {
+            long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
             if (!accessAllowed && coachee == null) {
                 uid = null;
             }
@@ -608,6 +616,70 @@ public class BodyTrackController {
     }
 
     @GET
+    @Path("/timespans/{UID}/{ConnectorName}.{ObjectTypeName}/{Level}.{Offset}.json")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String fetchTimespanTile(@PathParam("UID") Long uid,
+                                 @PathParam("ConnectorName") String connectorName,
+                                 @PathParam("ObjectTypeName") String objectTypeName,
+                                 @PathParam("Level") int level,
+                                 @PathParam("Offset") long offset) {
+        try{
+            long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+
+            if (!accessAllowed && coachee==null) {
+                uid = null;
+            }
+
+            if (uid == null) {
+                return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
+            }
+
+            List<ApiKey> keys = guestService.getApiKeys(uid);
+            ApiKey api = null;
+
+            for (ApiKey key : keys){
+                Connector connector = key.getConnector();
+                if (connector.getName().equals(connectorName)){
+                    api = key;
+                    break;
+                }
+            }
+
+            if (api == null) {
+                return gson.toJson(new StatusModel(false, "Invalid Channel (null)"));
+            }
+
+
+            final long startTimeMillis = (long)(LevelOffsetHelper.offsetAtLevelToUnixTime(level, offset) * 1000);
+            final long endTimeMillis = (long)(LevelOffsetHelper.offsetAtLevelToUnixTime(level, offset + 1) * 1000);
+
+            final AbstractBodytrackResponder bodytrackResponder = api.getConnector().getBodytrackResponder(beanFactory);
+            final List<TimespanModel> timespans = bodytrackResponder.getTimespans(startTimeMillis, endTimeMillis, api, objectTypeName);
+            TimespanTileResponse response = new TimespanTileResponse(timespans);
+            return gson.toJson(response);
+
+        }
+        catch (Exception e) {
+            LOG.error("BodyTrackController.fetchTimespanTile(): Exception while trying to fetch timespans: ", e);
+            return gson.toJson(new StatusModel(false, "Access Denied"));
+        }
+
+    }
+
+    private class TimespanTileResponse{
+
+        List<TimespanModel> data = new ArrayList<TimespanModel>();
+        String type = "timespan";
+
+        public TimespanTileResponse(List<TimespanModel> data){
+            this.data = data;
+        }
+    }
+
+
+    @GET
     @Path("/photos/{UID}/{ConnectorPrettyName}.{ObjectTypeName}/{Level}.{Offset}.json")
     @Produces({MediaType.APPLICATION_JSON})
     public String fetchPhotoTile(@PathParam("UID") Long uid,
@@ -617,13 +689,13 @@ public class BodyTrackController {
                                  @PathParam("Offset") long offset,
                                  @QueryParam("tags") String tagsStr,
                                  @QueryParam("tag-match") String tagMatchingStrategyName) {
-        long loggedInUserId = AuthHelper.getGuestId();
-        boolean accessAllowed = checkForPermissionAccess(uid);
-        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
-
-        final TagFilter.FilteringStrategy tagFilteringStrategy = TagFilter.FilteringStrategy.findByName(tagMatchingStrategyName);
-
         try {
+            long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+
+            final TagFilter.FilteringStrategy tagFilteringStrategy = TagFilter.FilteringStrategy.findByName(tagMatchingStrategyName);
+
             if (!accessAllowed && coachee==null) {
                 uid = null;
             }
@@ -636,7 +708,7 @@ public class BodyTrackController {
             final long startTimeMillis = (long)(LevelOffsetHelper.offsetAtLevelToUnixTime(level, offset) * 1000);
             final long endTimeMillis = (long)(LevelOffsetHelper.offsetAtLevelToUnixTime(level, offset + 1) * 1000);
 
-            final TimeInterval timeInterval = new TimeInterval(startTimeMillis, endTimeMillis, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
+            final TimeInterval timeInterval = new SimpleTimeInterval(startTimeMillis, endTimeMillis, TimeUnit.ARBITRARY, TimeZone.getTimeZone("UTC"));
 
             // fetch the photos for this time interval, and for the desired device/channel
             final TagFilter tagFilter = TagFilter.create(Tag.parseTagsIntoStrings(tagsStr, Tag.COMMA_DELIMITER), tagFilteringStrategy);
@@ -697,13 +769,13 @@ public class BodyTrackController {
                                              @QueryParam("tags") String tagsStr,
                                              @QueryParam("tag-match") String tagMatchingStrategyName
                                              ) {
-        long loggedInUserId = AuthHelper.getGuestId();
-        boolean accessAllowed = checkForPermissionAccess(uid);
-        CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
-
-        final TagFilter.FilteringStrategy tagFilteringStrategy = TagFilter.FilteringStrategy.findByName(tagMatchingStrategyName);
-
         try {
+            long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+
+            final TagFilter.FilteringStrategy tagFilteringStrategy = TagFilter.FilteringStrategy.findByName(tagMatchingStrategyName);
+
             if (!accessAllowed && coachee==null) {
                 return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
              }
@@ -907,6 +979,7 @@ public class BodyTrackController {
         ArrayList<PhotoItemThumbnail> thumbnails = new ArrayList<PhotoItemThumbnail>();
         int count = 1;
         int orientation;
+        String time_type;
 
         public PhotoItem(final PhotoService.Photo photo) {
             final AbstractPhotoFacetVO photoFacetVO = photo.getAbstractPhotoFacetVO();
@@ -921,11 +994,12 @@ public class BodyTrackController {
             this.dev_id = photo.getConnector().getName();
             this.dev_nickname = photo.getConnector().prettyName();
             this.object_type_name = photo.getObjectType().getName();
+            this.time_type = photoFacetVO.timeType;
             this.channel_name = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;   // photo channels are always named the same
-            final List<Dimension> thumbnailSizes = photoFacetVO.getThumbnailSizes();
+            final List<DimensionModel> thumbnailSizes = photoFacetVO.getThumbnailSizes();
             if ((thumbnailSizes != null) && (!thumbnailSizes.isEmpty())) {
                 int i = 0;
-                for (final Dimension thumbnailDimension : thumbnailSizes) {
+                for (final DimensionModel thumbnailDimension : thumbnailSizes) {
                     final String url = photoFacetVO.getThumbnail(i);
                     thumbnails.add(new PhotoItemThumbnail(url, thumbnailDimension.width, thumbnailDimension.height));
                     i++;

@@ -7,7 +7,7 @@ import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import org.hibernate.search.annotations.Indexed;
 
 @Entity(name="Facet_BodymediaSleep")
-@ObjectTypeSpec(name = "sleep", value = 4, prettyname = "sleep", extractor = BodymediaSleepFacetExtractor.class)
+@ObjectTypeSpec(name = "sleep", value = 4, prettyname = "sleep", isDateBased = true)
 @NamedQueries({
     @NamedQuery(name = "bodymedia.sleep.getFailedUpdate", query = "SELECT facet FROM Facet_BodymediaSleep facet WHERE facet.guestId=? AND facet.lastSync=1"),
     @NamedQuery(name = "bodymedia.sleep.getDaysPrior", query = "SELECT facet FROM Facet_BodymediaSleep facet WHERE facet.guestId=? AND facet.start<? ORDER BY facet.start DESC"),

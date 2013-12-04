@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.TimeZone;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.MetadataService;
@@ -22,7 +23,7 @@ public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
     @Autowired
 	MetadataService metadataService;
 
-	public List<AbstractFacet> extractFacets(ApiData apiData,
+	public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, final ApiData apiData,
 			ObjectType objectType) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 
@@ -83,12 +84,15 @@ public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
 		int seconds = o.getInt("second");
 
         Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        c.set(Calendar.MILLISECOND, 0);
         c.set(year, month-1, day, hours, minutes, seconds);
-		if (key.equals("bedTime"))
+		if (key.equals("bedTime")) {
+            facet.startTimeStorage = toTimeStorage(year, month, day, hours, minutes, seconds);
             facet.start = c.getTimeInMillis();
-		else {
+        } else {
             facet.date = (new StringBuilder()).append(year)
                     .append("-").append(pad(month)).append("-").append(pad(day)).toString();
+            facet.endTimeStorage = toTimeStorage(year, month, day, hours, minutes, seconds);
             facet.end = c.getTimeInMillis();
         }
 
