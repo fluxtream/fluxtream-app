@@ -1,4 +1,4 @@
-package glacier.evernote;
+package com.fluxtream.connectors.evernote;
 
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -71,7 +71,7 @@ public class EvernoteController {
         final Connector connector = Connector.getConnector("evernote");
         final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector);
 
-        guestService.setApiKeyAttribute(apiKey, "tokenSecret", secret);
+        guestService.setApiKeyAttribute(apiKey, "accessToken", token);
         guestService.setApiKeyAttribute(apiKey, "tokenSecret", secret);
 
         request.getSession().removeAttribute(EVERNOTE_REQUEST_TOKEN);

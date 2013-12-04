@@ -100,6 +100,16 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         int order = 0;
         String release = env.get("release");
 
+        final String evernote = "Evernote";
+        String[] evernoteKeys = checkKeysExist(evernote, Arrays.asList("evernoteConsumerKey", "evernoteConsumerSecret"));
+        final ConnectorInfo evernoteConnectorInfo = new ConnectorInfo(evernote,
+                                                                      "/" + release + "/images/connectors/connector-evernote.jpg",
+                                                                      res.getString("evernote"),
+                                                                      "/evernote/token",
+                                                                      Connector.getConnector("evernote"), order++, evernoteKeys!=null,
+                                                                      false, true, evernoteKeys);
+        em.persist(evernoteConnectorInfo);
+
         final String facebook = "Facebook";
         String[] facebookKeys = checkKeysExist(facebook, Arrays.asList("facebook.appId", "facebook.appSecret"));
         final ConnectorInfo facebookConnectorInfo = new ConnectorInfo(facebook,
