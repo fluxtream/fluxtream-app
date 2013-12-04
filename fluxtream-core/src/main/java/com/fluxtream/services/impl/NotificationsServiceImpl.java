@@ -37,6 +37,7 @@ public class NotificationsServiceImpl implements NotificationsService {
             previousNotification.deleted = false;
             previousNotification.type = type;
             previousNotification.message = message;
+            previousNotification.ts = System.currentTimeMillis();
             em.merge(previousNotification);
         }
     }
@@ -55,6 +56,7 @@ public class NotificationsServiceImpl implements NotificationsService {
             notification.message = message;
             em.persist(notification);
         } else {
+            sameNotification.ts = System.currentTimeMillis();
             sameNotification.repeated++;
             em.merge(sameNotification);
         }
@@ -72,10 +74,12 @@ public class NotificationsServiceImpl implements NotificationsService {
             notification.type = type;
             notification.message = message;
             notification.stackTrace = stackTrace;
+            notification.ts = System.currentTimeMillis();
             em.persist(notification);
         } else {
             sameNotification.stackTrace = stackTrace;
             sameNotification.repeated++;
+            sameNotification.ts = System.currentTimeMillis();
             em.merge(sameNotification);
         }
     }

@@ -47,7 +47,7 @@ public class Notification extends AbstractEntity {
     @Lob
     public String stackTrace;
 
-	long ts;
+	public long ts;
 
 	public Notification() {
 		ts = System.currentTimeMillis();

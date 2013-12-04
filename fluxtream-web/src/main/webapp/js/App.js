@@ -112,7 +112,7 @@ Date.prototype.format = function (mask, utc) {
 
 define(
     [ "core/FlxState", "Addresses", "ManageConnectors", "AddConnectors", "ConnectorConfig", "Settings", "SharingDialog",
-      "libs/jquery.form", "libs/jquery.jeditable.mini" ],
+      "libs/jquery.form", "libs/jquery.jeditable.mini", "libs/jquery.timeago" ],
     function(FlxState, Addresses, ManageConnectors, AddConnectors, ConnectorConfig, Settings,
         SharingDialog ) {
 

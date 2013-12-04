@@ -248,10 +248,10 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
             notification.type+"Notification",
             function(template) {
                 if ($("#notification-" + notification.id).length==0) {
-                    var html = template.render(notification), message = notification.message;
+                    if (notification.repeated>1) notification.message += " (" + notification.repeated + "x)";
+                    var html = template.render(notification);
                     $("#notifications").append(html);
-                    if (notification.repeated>1) message += " (" + notification.repeated + "x)";
-                    $("#notification-" + notification.id).append(message);
+                    $("abbr.timeago").timeago();
                     $(window).resize();
                 }
             });
