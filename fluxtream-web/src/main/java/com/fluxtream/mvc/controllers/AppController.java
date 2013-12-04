@@ -235,7 +235,7 @@ public class AppController {
     public String welcomeBack(String connectorName, String message) {
         long guestId = AuthHelper.getGuestId();
         final Connector connector = Connector.getConnector(connectorName);
-        notificationsService.addNamedNotification(guestId, Type.INFO, connectorName + ".status", message);
+        notificationsService.addNamedNotification(guestId, Type.INFO, connector.statusNotificationName(), message);
         ApiKey apiKey = guestService.getApiKey(guestId, connector);
         connectorUpdateService.updateConnector(apiKey, true);
         return "redirect:/app";

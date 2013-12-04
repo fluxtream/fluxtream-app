@@ -245,6 +245,10 @@ public class Connector {
         return updaterClass;
     }
 
+    public String statusNotificationName() {
+        return new StringBuilder(getName()).append(".status").toString();
+    }
+
     public enum UpdateStrategyType {
         ALWAYS_UPDATE, INCREMENTAL
     }

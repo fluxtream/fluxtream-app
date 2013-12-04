@@ -69,10 +69,10 @@ public class WithingsUpdater extends AbstractUpdater {
 
         // get user info and find out first seen date
         if (guestService.getApiKeyAttribute(updateInfo.apiKey, WithingsOAuthConnectorController.HAS_UPGRADED_TO_OAUTH)==null) {
-            notificationsService.addNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
-                                                 "Heads Up. This server has recently been upgraded to a version that supports<br>" +
-                                                 "oauth with the Withings API. Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
-                                                 "scroll to the Withings connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+            notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
+                                                      "Heads Up. This server has recently been upgraded to a version that supports<br>" +
+                                                      "oauth with the Withings API. Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                      "scroll to the Withings connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
             return;
         }
 
@@ -102,10 +102,10 @@ public class WithingsUpdater extends AbstractUpdater {
         final long enddate = System.currentTimeMillis() / 1000;
 
         if (guestService.getApiKeyAttribute(updateInfo.apiKey, WithingsOAuthConnectorController.HAS_UPGRADED_TO_OAUTH)==null) {
-            notificationsService.addNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
-                                                 "Heads Up. This server has recently been upgraded to a version that supports<br>" +
-                                                 "oauth with the Withings API. Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
-                                                 "scroll to the Withings connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+            notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
+                                                      "Heads Up. This server has recently been upgraded to a version that supports<br>" +
+                                                      "oauth with the Withings API. Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                      "scroll to the Withings connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
             return;
         }
 

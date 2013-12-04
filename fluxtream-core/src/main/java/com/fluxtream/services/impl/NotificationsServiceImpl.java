@@ -63,7 +63,7 @@ public class NotificationsServiceImpl implements NotificationsService {
 	}
 
     @Override
-    public void addNotification(final long guestId, final Type type, final String message, final String stackTrace) {
+    public void addExceptionNotification(final long guestId, final Type type, final String message, final String stackTrace) {
         final Notification sameNotification = JPAUtils.findUnique(em,
                                                                   Notification.class,
                                                                   "notifications.withTypeAndMessage",

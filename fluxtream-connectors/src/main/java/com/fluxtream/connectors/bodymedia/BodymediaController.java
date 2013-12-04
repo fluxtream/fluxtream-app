@@ -89,10 +89,10 @@ public class BodymediaController {
         } catch (Throwable t) {
             logger.error("Couldn't retrieve BodyMedia request token.");
             t.printStackTrace();
-            notificationsService.addNotification(AuthHelper.getGuestId(),
-                                                 Notification.Type.ERROR,
-                                                 "Oops. There was an error with the BodyMedia API. " +
-                                                 "Hang tight, we are working on it.");
+            notificationsService.addNamedNotification(AuthHelper.getGuestId(),
+                                                      Notification.Type.ERROR, connector().statusNotificationName(),
+                                                      "Oops. There was an error with the BodyMedia API. " +
+                                                      "Hang tight, we are working on it.");
             // TODO: Should we record permanent failure since an existing connector won't work again until
             // it is reauthenticated?  We would need to get hold of the apiKey and do:
             //  guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
@@ -180,10 +180,10 @@ public class BodymediaController {
             System.out.println(msg);
 
              // Notify the user that the tokens need to be manually renewed
-            notificationsService.addNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
-                                                 "Heads Up. This server cannot automatically refresh your authentication tokens.<br>" +
-                                                 "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
-                                                 "scroll to the BodyMedia connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+            notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
+                                                      "Heads Up. This server cannot automatically refresh your authentication tokens.<br>" +
+                                                      "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                      "scroll to the BodyMedia connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
 
             // Record permanent failure since this connector won't work again until
             // it is reauthenticated
@@ -237,10 +237,10 @@ public class BodymediaController {
 
         } catch (Throwable t) {
             // Notify the user that the tokens need to be manually renewed
-            notificationsService.addNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
-                                                 "Heads Up. We failed in our attempt to automatically refresh your authentication tokens.<br>" +
-                                                 "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
-                                                 "scroll to the BodyMedia connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+            notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
+                                                      "Heads Up. We failed in our attempt to automatically refresh your authentication tokens.<br>" +
+                                                      "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                      "scroll to the BodyMedia connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
             // Record permanent failure since this connector won't work again until
             // it is reauthenticated
             guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);

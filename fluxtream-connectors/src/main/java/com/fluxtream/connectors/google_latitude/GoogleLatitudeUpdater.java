@@ -51,12 +51,12 @@ public class GoogleLatitudeUpdater extends AbstractUpdater implements FileUpload
 	}
 
     private void sendServiceDiscontinuedWarning(final UpdateInfo updateInfo) {
-        notificationsService.addNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
-                                             "Heads Up. Google recently discontinued support for their Latitude service.<br>" +
-                                             "However, Google Takeout will let you get a backup of your data that you will be able to import in Fluxtream.<br>" +
-                                             "If you choose to do this, please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
-                                             "go to the Google Latitude connector section and click on the upload icon <i class=\"icon-arrow-up\"></i>," +
-                                             "To track your location, we now recommend using the <a target=\"_blank\" href\"http://movesapp.com/\">Moves App<a>.");
+        notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
+                                                  "Heads Up. Google recently discontinued support for their Latitude service.<br>" +
+                                                  "However, Google Takeout will let you get a backup of your data that you will be able to import in Fluxtream.<br>" +
+                                                  "If you choose to do this, please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                  "go to the Google Latitude connector section and click on the upload icon <i class=\"icon-arrow-up\"></i>," +
+                                                  "To track your location, we now recommend using the <a target=\"_blank\" href\"http://movesapp.com/\">Moves App<a>.");
     }
 
     private void cleanupOldTokens(final UpdateInfo updateInfo) {
@@ -79,9 +79,9 @@ public class GoogleLatitudeUpdater extends AbstractUpdater implements FileUpload
             throw new RuntimeException("Couldn't find LocationHistory.json in the uploaded zip file");
         }
         catch (Exception e) {
-            notificationsService.addNotification(apiKey.getGuestId(), Notification.Type.WARNING,
-                                                 "Failed to import Google Latitude zip file, error is:<br>" +
-                                                 e.getMessage());
+            notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
+                                                      "Failed to import Google Latitude zip file, error is:<br>" +
+                                                      e.getMessage());
             throw (e);
         }
     }

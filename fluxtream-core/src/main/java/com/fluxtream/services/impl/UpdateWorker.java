@@ -165,7 +165,7 @@ class UpdateWorker implements Runnable {
                          + ". Your data is now being retrieved. "
                          + "It may take a little while until it becomes visible.";
         notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.INFO,
-                                                  apiKey.getConnector().getName() + ".status", message);
+                                                  apiKey.getConnector().statusNotificationName(), message);
         // TODO: check if this connector type is enabled and supportsSync before calling update.
         // If it is disabled and/or does not support sync, don't try to update it.
         logger.info("module=updateQueue component=worker action=updateDataHistory " +
@@ -200,7 +200,7 @@ class UpdateWorker implements Runnable {
 		case UPDATE_SUCCEEDED:
             if (updateInfo.getUpdateType()== UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE)
                 notificationsService.addNamedNotification(updateInfo.apiKey.getGuestId(), Notification.Type.INFO,
-                                                          updateInfo.apiKey.getConnector().getName() + ".status",
+                                                          updateInfo.apiKey.getConnector().statusNotificationName(),
                                                           "<i class=\"icon-ok\" style=\"margin-right:7px\"/>Your " + updateInfo.apiKey.getConnector().getPrettyName() + " data was successfully imported.  " +
                                                           "See <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a> dialog for details."
                 );
@@ -227,7 +227,7 @@ class UpdateWorker implements Runnable {
             }
             if (updateInfo.getUpdateType()== UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE)
                 notificationsService.addNamedNotification(updateInfo.apiKey.getGuestId(), Notification.Type.ERROR,
-                                                          updateInfo.apiKey.getConnector().getName() + ".status",
+                                                          updateInfo.apiKey.getConnector().statusNotificationName(),
                                                           "<i class=\"icon-remove-sign\" style=\"color:red;margin-right:7px\"/>There was a problem while importing your " + updateInfo.apiKey.getConnector().getPrettyName() + " data. We will try again later.  " +
                                                           "See <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a> dialog for details."
                 );

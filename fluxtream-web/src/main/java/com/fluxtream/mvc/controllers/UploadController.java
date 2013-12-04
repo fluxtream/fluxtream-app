@@ -106,10 +106,8 @@ public class UploadController {
                     }
                     catch (Exception e) {
                         e.printStackTrace();
-                        notificationsService.addNotification(guestId, Notification.Type.ERROR,
-                                                             "There was a problem importing your " + connector.prettyName() + " data.<br>" +
-                                                             "Please check the type and format of your file.",
-                                                             ExceptionUtils.getStackTrace(e));
+                        notificationsService.addExceptionNotification(guestId, Notification.Type.ERROR, "There was a problem importing your " + connector.prettyName() + " data.<br>" +
+                                                                                                        "Please check the type and format of your file.", ExceptionUtils.getStackTrace(e));
                     }
                 }
             });

@@ -58,8 +58,11 @@ public class FlickrController {
             final long guestId = AuthHelper.getGuestId();
             final String validRedirectBase = getBaseURL(validRedirectUrl);
 
-            notificationsService.addNotification(guestId, Notification.Type.WARNING, "Adding a Flickr connector only works when logged in through " + validRedirectBase +
-            ".  You are logged in through " + ControllerSupport.getLocationBase(request, env) + ".<br>Please re-login via the supported URL or inform your Fluxtream administrator that the flickr.validRedirectURL setting does not match your needs.");
+            notificationsService.addNamedNotification(guestId, Notification.Type.WARNING, Connector.getConnector("flickr").statusNotificationName(),
+                                                      "Adding a Flickr connector only works when logged in through " + validRedirectBase +
+                                                      ".  You are logged in through " + ControllerSupport.getLocationBase(request, env) +
+                                                      ".<br>Please re-login via the supported URL or inform your Fluxtream administrator " +
+                                                      "that the flickr.validRedirectURL setting does not match your needs.");
             return "redirect:/app";
         }
         if (request.getParameter("apiKeyId") != null)
@@ -107,10 +110,10 @@ public class FlickrController {
         }
         catch (Exception e) {
             e.printStackTrace();
-            notificationsService.addNotification(AuthHelper.getGuestId(),
-                                                 Notification.Type.ERROR,
-                                                 "Oops, we could not link your Flickr account<br>" +
-                                                 "Please contact your administrator.");
+            notificationsService.addNamedNotification(AuthHelper.getGuestId(),
+                                                      Notification.Type.ERROR, Connector.getConnector("flickr").statusNotificationName(),
+                                                      "Oops, we could not link your Flickr account<br>" +
+                                                      "Please contact your administrator.");
             return "redirect:/app";
         }
 

@@ -10,8 +10,7 @@ public interface NotificationsService {
 
 	public void addNotification(long guestId, Notification.Type type, String message);
 
-    public void addNotification(long guestId, Notification.Type type, String message,
-                                String stackTrace);
+    public void addExceptionNotification(long guestId, Notification.Type type, String message, String stackTrace);
 
 	public void deleteNotification(long guestId, long notificationId);
 	

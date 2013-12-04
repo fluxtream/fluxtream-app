@@ -70,10 +70,10 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
     }
 
     private void sendOauth2UpgradeWarning(final UpdateInfo updateInfo) throws UpdateFailedException {
-        notificationsService.addNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
-                                             "Heads Up. This server has recently been upgraded to a version that supports<br>" +
-                                             "oauth 2 with Google APIs. Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
-                                             "scroll to the Google Calendar connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+        notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
+                                                  "Heads Up. This server has recently been upgraded to a version that supports<br>" +
+                                                  "oauth 2 with Google APIs. Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                  "scroll to the Google Calendar connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
         // Report this connector as having failed permanently
         throw new UpdateFailedException("requires token reauthorization", true);
     }
@@ -411,10 +411,10 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                                 " error=<![CDATA[" + e.getMessage() + "]]> "
                     );
                     // Notify the user that the tokens need to be manually renewed
-                    notificationsService.addNotification(apiKey.getGuestId(), Notification.Type.WARNING,
-                                                         "Heads Up. Your Google Calendar connector has suffered a permanent authentication failure.<br>" +
-                                                         "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
-                                                         "scroll to the Google Calendar connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+                    notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
+                                                              "Heads Up. Your Google Calendar connector has suffered a permanent authentication failure.<br>" +
+                                                              "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                              "scroll to the Google Calendar connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
 
                     // Throwing the UpdateFailedException with isPermanent set to true
                     // will mark this connector as permenently failed
@@ -485,10 +485,10 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                     System.out.println(msg);
 
                     // Notify the user that the tokens need to be manually renewed
-                    notificationsService.addNotification(apiKey.getGuestId(), Notification.Type.WARNING,
-                                                         "Heads Up. This server cannot automatically refresh your authentication tokens.<br>" +
-                                                         "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
-                                                         "scroll to the Google Calendar connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+                    notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
+                                                              "Heads Up. This server cannot automatically refresh your authentication tokens.<br>" +
+                                                              "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                              "scroll to the Google Calendar connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
 
                     // Record permanent failure since this connector won't work again until
                     // it is reauthenticated
@@ -513,10 +513,10 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
             logger.warn("module=GoogleCalendarUpdater component=background_updates action=refreshToken" +
                         " connector=" + apiKey.getConnector().getName() + " guestId=" + apiKey.getGuestId() + " status=permanently failed");
             // Notify the user that the tokens need to be manually renewed
-            notificationsService.addNotification(apiKey.getGuestId(), Notification.Type.WARNING,
-                                                 "Heads Up. We failed in our attempt to automatically refresh your Google Calendar authentication tokens.<br>" +
-                                                 "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
-                                                 "scroll to the Google Calendar connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+            notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
+                                                      "Heads Up. We failed in our attempt to automatically refresh your Google Calendar authentication tokens.<br>" +
+                                                      "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                      "scroll to the Google Calendar connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
 
             // Record permanent update failure since this connector is never
             // going to succeed
