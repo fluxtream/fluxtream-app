@@ -140,7 +140,9 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                sb .append(", error message: \"")
                         .append(t.getMessage()).toString();
             }
-            notificationsService.addExceptionNotification(updateInfo.apiKey.getGuestId(), Notification.Type.WARNING, sb.toString(), stackTrace);
+            notificationsService.addNamedNotification(updateInfo.apiKey.getGuestId(), Notification.Type.WARNING,
+                                                      connector().statusNotificationName(),
+                                                      sb.toString());
             return UpdateResult.failedResult(stackTrace);
         }
 	}

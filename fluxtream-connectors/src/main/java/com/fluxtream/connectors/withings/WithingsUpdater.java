@@ -69,10 +69,9 @@ public class WithingsUpdater extends AbstractUpdater {
 
         // get user info and find out first seen date
         if (guestService.getApiKeyAttribute(updateInfo.apiKey, WithingsOAuthConnectorController.HAS_UPGRADED_TO_OAUTH)==null) {
-            notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
-                                                      "Heads Up. This server has recently been upgraded to a version that supports<br>" +
-                                                      "oauth with the Withings API. Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
-                                                      "scroll to the Withings connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+            notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(), "Heads Up. This server has recently been upgraded to a version that supports<br>" +
+                                                                                                                                                "oauth with the Withings API. Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                                                                                                                "scroll to the Withings connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
             return;
         }
 
@@ -102,10 +101,9 @@ public class WithingsUpdater extends AbstractUpdater {
         final long enddate = System.currentTimeMillis() / 1000;
 
         if (guestService.getApiKeyAttribute(updateInfo.apiKey, WithingsOAuthConnectorController.HAS_UPGRADED_TO_OAUTH)==null) {
-            notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
-                                                      "Heads Up. This server has recently been upgraded to a version that supports<br>" +
-                                                      "oauth with the Withings API. Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
-                                                      "scroll to the Withings connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+            notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(), "Heads Up. This server has recently been upgraded to a version that supports<br>" +
+                                                                                                                                                "oauth with the Withings API. Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                                                                                                                "scroll to the Withings connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
             return;
         }
 
@@ -206,8 +204,9 @@ public class WithingsUpdater extends AbstractUpdater {
             final Token token = new Token(accessToken, guestService.getApiKeyAttribute(updateInfo.apiKey, "tokenSecret"));
             service.signRequest(token, request);
             Response response = request.send();
-            if (response.getCode()!=200)
-                throw new UnexpectedHttpResponseCodeException(response.getCode(), response.getBody());
+            final int httpResponseCode = response.getCode();
+            if (httpResponseCode!=200)
+                throw new UnexpectedHttpResponseCodeException(httpResponseCode, response.getBody());
             String json = response.getBody();
             JSONObject jsonObject = JSONObject.fromObject(json);
             if (jsonObject.getInt("status")!=0)
