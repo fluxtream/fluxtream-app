@@ -158,7 +158,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         }
     }
 
-    private void createOrUpdateActivity(final JSONObject jsonObject, final UpdateInfo updateInfo) {
+    private void createOrUpdateActivity(final JSONObject jsonObject, final UpdateInfo updateInfo) throws Exception {
         final String uri = jsonObject.getString("uri");
         final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.uri=?",
                                                                                    updateInfo.apiKey.getId(), uri);

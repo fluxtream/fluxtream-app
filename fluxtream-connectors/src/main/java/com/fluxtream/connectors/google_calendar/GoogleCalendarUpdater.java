@@ -304,13 +304,13 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
         } while (pageToken != null);
     }
 
-    private void storeEvents(final UpdateInfo updateInfo, final CalendarListEntry calendarEntry, final List<Event> eventList) {
+    private void storeEvents(final UpdateInfo updateInfo, final CalendarListEntry calendarEntry, final List<Event> eventList) throws Exception {
         for (final Event event : eventList) {
             createOrUpdateEvent(updateInfo, calendarEntry, event);
         }
     }
 
-    private void createOrUpdateEvent(final UpdateInfo updateInfo, final CalendarListEntry calendarEntry, final Event event) {
+    private void createOrUpdateEvent(final UpdateInfo updateInfo, final CalendarListEntry calendarEntry, final Event event) throws Exception {
         if (event.getStatus().equalsIgnoreCase("cancelled")) {
             System.out.println("event " + event.getSummary() + "/" + event.getDescription() + " was canceled");
             final int deleted = jpaDaoService.execute(String.format("DELETE FROM Facet_GoogleCalendarEvent facet WHERE " +

@@ -140,7 +140,7 @@ public class FlickrUpdater extends AbstractUpdater {
         } while (page<pages);
 	}
     
-    private void createOrUpdatePhotos(final JSONArray photos, final UpdateInfo updateInfo) {
+    private void createOrUpdatePhotos(final JSONArray photos, final UpdateInfo updateInfo) throws Exception {
         final List<LocationFacet> locationResources = new ArrayList<LocationFacet>();
         for (int i=0; i<photos.size(); i++) {
             final JSONObject photo = photos.getJSONObject(i);

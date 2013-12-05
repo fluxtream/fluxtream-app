@@ -828,7 +828,7 @@ public class BodyTrackController {
             return executeFacetMetaDataOperation(uid, connectorName, objectTypeName, facetId, new FacetMetaDataOperation() {
                 @Override
                 @NotNull
-                public Response executeOperation(@NotNull final AbstractFacet facet) {
+                public Response executeOperation(@NotNull final AbstractFacet facet) throws Exception {
                     if (LOG.isInfoEnabled()) {
                         LOG.info("BodyTrackController.setFacetMetadata(): Attempting to set metadata for facet [" + facetId + "] for connector [" + connectorName + "] and object type [" + objectTypeName + "]");
                     }
@@ -859,7 +859,7 @@ public class BodyTrackController {
 
     private static interface FacetMetaDataOperation {
         @NotNull
-        Response executeOperation(@NotNull final AbstractFacet facet);
+        Response executeOperation(@NotNull final AbstractFacet facet) throws Exception;
     }
 
     private Response executeFacetMetaDataOperation(final long uid,
