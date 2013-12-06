@@ -25,7 +25,8 @@ public class EvernoteNotebookFacet extends EvernoteFacet {
 
     @Override
     protected void makeFullTextIndexable() {
-        //To change body of implemented methods use File | Settings | File Templates.
+        if (name!=null)
+            fullTextDescription = name;
     }
 
 }

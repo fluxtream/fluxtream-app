@@ -34,6 +34,12 @@ public  class EvernoteNoteFacet extends EvernoteFacet {
 
     @Override
     protected void makeFullTextIndexable() {
+        StringBuilder sb = new StringBuilder();
+
+        if (title!=null)
+            sb.append(title);
+        if (content!=null)
+            sb.append(" ").append(content);
     }
 
 }

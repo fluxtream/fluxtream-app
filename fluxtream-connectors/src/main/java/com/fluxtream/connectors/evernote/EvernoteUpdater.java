@@ -35,7 +35,7 @@ public class EvernoteUpdater extends AbstractUpdater {
 
     private static final int MAX_ENTRIES = 200;
 
-    private final String LAST_UPDATE_COUNT = "lastUpdateCount";
+    private static final String LAST_UPDATE_COUNT = "lastUpdateCount";
     private static final String LAST_SYNC_TIME = "lastSyncTime";
 
     @Autowired
