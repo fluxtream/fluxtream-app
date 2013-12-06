@@ -1,9 +1,7 @@
 package com.fluxtream.connectors.evernote;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 import com.evernote.auth.EvernoteAuth;
 import com.evernote.auth.EvernoteService;
 import com.evernote.clients.ClientFactory;
@@ -22,6 +20,8 @@ import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.utils.JPAUtils;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,84 +35,128 @@ public class EvernoteUpdater extends AbstractUpdater {
 
     private static final int MAX_ENTRIES = 200;
 
+    private final String LAST_UPDATE_COUNT = "lastUpdateCount";
+    private static final String LAST_SYNC_TIME = "lastSyncTime";
+
     @Autowired
     JPADaoService jpaDaoService;
 
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
         try {
-            fullSync(updateInfo);
+            performSync(updateInfo);
         } catch (EDAMUserException e) {
             if (e.getErrorCode()==EDAMErrorCode.RATE_LIMIT_REACHED)
                 throw new RateLimitReachedException();
         }
     }
 
-    private void fullSync(UpdateInfo updateInfo) throws Exception {
+    @Override
+    protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
+        try {
+            performSync(updateInfo);
+        } catch (EDAMUserException e) {
+            if (e.getErrorCode()==EDAMErrorCode.RATE_LIMIT_REACHED)
+                throw new RateLimitReachedException();
+        }
+    }
+
+    private void performSync(UpdateInfo updateInfo) throws Exception {
         String token = guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken");
 
         EvernoteAuth evernoteAuth = new EvernoteAuth(EvernoteService.SANDBOX, token);
         ClientFactory factory = new ClientFactory(evernoteAuth);
         final NoteStoreClient noteStore = factory.createNoteStoreClient();
 
-        SyncChunk chunk = noteStore.getSyncChunk(0, MAX_ENTRIES, true);
-        final List<SyncChunk> chunks = new ArrayList<SyncChunk>();
-        chunks.add(chunk);
+        final String lastUpdateCountAtt = guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_UPDATE_COUNT);
+        int lastUpdateCount = 0;
+        if (lastUpdateCountAtt!=null)
+            lastUpdateCount = Integer.valueOf(lastUpdateCountAtt);
+
+        SyncChunk chunk = noteStore.getSyncChunk(lastUpdateCount, MAX_ENTRIES, true);
+        updateSyncChunk(updateInfo, noteStore, chunk);
         if (chunk.getChunkHighUSN()<chunk.getUpdateCount()) {
             chunk = noteStore.getSyncChunk(chunk.getChunkHighUSN(), MAX_ENTRIES, true);
-            chunks.add(chunk);
+            updateSyncChunk(updateInfo, noteStore, chunk);
+            int serviceLastUpdateCount = chunk.getUpdateCount();
+            final long serviceLastSyncTime = chunk.getCurrentTime();
+            guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_UPDATE_COUNT, String.valueOf(serviceLastUpdateCount));
+            guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_SYNC_TIME, String.valueOf(serviceLastSyncTime));
         }
-        for (SyncChunk syncChunk : chunks) {
-            final Iterator<String> expungedTagsIterator = syncChunk.getExpungedTagsIterator();
-            while(expungedTagsIterator.hasNext())
-                removeEvernoteFacet(updateInfo, EvernoteTagFacet.class, expungedTagsIterator.next());
-            final Iterator<Tag> tagsIterator = syncChunk.getTagsIterator();
-            while(tagsIterator.hasNext())
-                createOrUpdateTag(updateInfo, tagsIterator.next());
+    }
 
-            final Iterator<String> expungedNotebooksIterator = syncChunk.getExpungedNotebooksIterator();
-            while(expungedNotebooksIterator.hasNext())
-                removeNotebook(updateInfo, expungedNotebooksIterator.next());
-            final Iterator<Notebook> notebooksIterator = syncChunk.getNotebooksIterator();
-            while(notebooksIterator.hasNext())
-                createOrUpdateNotebook(updateInfo, notebooksIterator.next());
+    private void updateSyncChunk(final UpdateInfo updateInfo, final NoteStoreClient noteStore, final SyncChunk chunk) throws Exception {
+        final Iterator<String> expungedTagsIterator = chunk.getExpungedTagsIterator();
+        while(expungedTagsIterator.hasNext())
+            removeEvernoteFacet(updateInfo, EvernoteTagFacet.class, expungedTagsIterator.next());
+        final Iterator<Tag> tagsIterator = chunk.getTagsIterator();
+        while(tagsIterator.hasNext())
+            createOrUpdateTag(updateInfo, tagsIterator.next());
 
-            final Iterator<String> expungedNotesIterator = syncChunk.getExpungedNotesIterator();
-            while(expungedNotesIterator.hasNext())
-                removeEvernoteFacet(updateInfo, EvernoteNoteFacet.class, expungedNotesIterator.next());
-            final Iterator<Note> notesIterator = syncChunk.getNotesIterator();
-            while(notesIterator.hasNext())
-                createOrUpdateNote(updateInfo, notesIterator.next(), noteStore);
-        }
+        final Iterator<String> expungedNotebooksIterator = chunk.getExpungedNotebooksIterator();
+        while(expungedNotebooksIterator.hasNext())
+            removeNotebook(updateInfo, expungedNotebooksIterator.next());
+        final Iterator<Notebook> notebooksIterator = chunk.getNotebooksIterator();
+        while(notebooksIterator.hasNext())
+            createOrUpdateNotebook(updateInfo, notebooksIterator.next());
+
+        final Iterator<String> expungedNotesIterator = chunk.getExpungedNotesIterator();
+        while(expungedNotesIterator.hasNext())
+            removeEvernoteFacet(updateInfo, EvernoteNoteFacet.class, expungedNotesIterator.next());
+        final Iterator<Note> notesIterator = chunk.getNotesIterator();
+        while(notesIterator.hasNext())
+            createOrUpdateNote(updateInfo, notesIterator.next(), noteStore);
     }
 
     private void createOrUpdateNote(final UpdateInfo updateInfo, final Note note, final NoteStoreClient noteStore) throws Exception {
         final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery(
-                "e.apiKeyId=? AND e.GUID=?",
+                "e.apiKeyId=? AND e.guid=?",
                 updateInfo.apiKey.getId(), note.getGuid());
         final ApiDataService.FacetModifier<EvernoteNoteFacet> facetModifier = new ApiDataService.FacetModifier<EvernoteNoteFacet>() {
             @Override
             public EvernoteNoteFacet createOrModify(EvernoteNoteFacet facet, final Long apiKeyId) throws Exception {
                 if (facet == null) {
                     facet = new EvernoteNoteFacet(updateInfo.apiKey.getId());
-                    facet.GUID = note.getGuid();
-                    facet.guestId = updateInfo.apiKey.getGuestId();
-                    facet.api = updateInfo.apiKey.getConnector().value();
+                    extractCommonFacetData(facet, updateInfo);
+                    facet.guid = note.getGuid();
                 }
                 if ((facet.contentHash==null||!Arrays.equals(facet.contentHash, note.getContentHash())||
-                    facet.contentLength!=note.getContentLength())){
-                    noteStore.getNoteContent(note.getGuid());
+                    facet.contentLength!=note.getContentLength())||
+                    facet.USN<note.getUpdateSequenceNum()){
                 }
-                facet.USN = note.getUpdateSequenceNum();
-                facet.contentHash = note.getContentHash();
-                facet.contentLength = note.getContentLength();
-                facet.content = note.getContent();
+                Note freshlyRetrievedNote = noteStore.getNote(note.getGuid(), true, false, false, false);
+                facet.timeUpdated = System.currentTimeMillis();
+                if (freshlyRetrievedNote.isSetUpdateSequenceNum())
+                    facet.USN = freshlyRetrievedNote.getUpdateSequenceNum();
+                if (freshlyRetrievedNote.isSetContentHash())
+                    facet.contentHash = freshlyRetrievedNote.getContentHash();
+                if (freshlyRetrievedNote.isSetContentLength())
+                    facet.contentLength = freshlyRetrievedNote.getContentLength();
+                if (freshlyRetrievedNote.isSetContent())
+                    facet.content = freshlyRetrievedNote.getContent();
                 facet.clearTags();
-                facet.addTags(StringUtils.join(note.getTagNames(), ","), ',');
-                facet.title = note.getTitle();
-                facet.created = note.getCreated();
-                facet.updated = note.getUpdated();
-                facet.notebookGUID = note.getNotebookGuid();
+                if (freshlyRetrievedNote.isSetTagNames())
+                    facet.addTags(StringUtils.join(freshlyRetrievedNote.getTagNames(), ","), ',');
+
+                if (freshlyRetrievedNote.isSetTitle())
+                    facet.title = freshlyRetrievedNote.getTitle();
+                if (freshlyRetrievedNote.isSetCreated())
+                    facet.created = freshlyRetrievedNote.getCreated();
+                if (freshlyRetrievedNote.isSetUpdated())
+                    facet.updated = freshlyRetrievedNote.getUpdated();
+                if (freshlyRetrievedNote.isSetDeleted())
+                    facet.deleted = freshlyRetrievedNote.getDeleted();
+                if (freshlyRetrievedNote.isSetNotebookGuid())
+                    facet.notebookGuid = freshlyRetrievedNote.getNotebookGuid();
+                if (freshlyRetrievedNote.isSetActive())
+                    facet.active = freshlyRetrievedNote.isActive();
+
+                if (freshlyRetrievedNote.isSetResources()) {
+                    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+                    String json = ow.writeValueAsString(freshlyRetrievedNote.getResources());
+                    facet.resourcesStorage = json;
+                }
+
                 return facet;
             }
         };
@@ -121,47 +165,74 @@ public class EvernoteUpdater extends AbstractUpdater {
     }
 
     private void removeEvernoteFacet(final UpdateInfo updateInfo, Class<? extends EvernoteFacet> clazz, final String guid) {
-        jpaDaoService.execute(String.format("DELETE FROM %s facet WHERE " +
-                                            "facet.apiKeyId=%s AND facet.GUID='%s'", JPAUtils.getEntityName(clazz),
-                                            updateInfo.apiKey.getId(), guid));
+        jpaDaoService.execute(String.format("DELETE FROM %s facet WHERE " + "facet.apiKeyId=%s AND facet.guid='%s'", JPAUtils.getEntityName(clazz), updateInfo.apiKey.getId(), guid));
     }
 
-    private void createOrUpdateNotebook(final UpdateInfo updateInfo, final Notebook notebook) {
-        //To change body of created methods use File | Settings | File Templates.
+    private void createOrUpdateNotebook(final UpdateInfo updateInfo, final Notebook notebook) throws Exception {
+        final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery(
+                "e.apiKeyId=? AND e.guid=?",
+                updateInfo.apiKey.getId(), notebook.getGuid());
+        final ApiDataService.FacetModifier<EvernoteNotebookFacet> facetModifier = new ApiDataService.FacetModifier<EvernoteNotebookFacet>() {
+            @Override
+            public EvernoteNotebookFacet createOrModify(EvernoteNotebookFacet facet, final Long apiKeyId) throws Exception {
+                if (facet == null) {
+                    facet = new EvernoteNotebookFacet(updateInfo.apiKey.getId());
+                    extractCommonFacetData(facet, updateInfo);
+                    facet.guid = notebook.getGuid();
+                }
+                facet.timeUpdated = System.currentTimeMillis();
+                if (notebook.isSetUpdateSequenceNum())
+                    facet.USN = notebook.getUpdateSequenceNum();
+                if (notebook.isSetName())
+                    facet.name = notebook.getName();
+                if (notebook.isSetServiceCreated())
+                    facet.serviceCreated = notebook.getServiceCreated();
+                if (notebook.isSetServiceUpdated())
+                    facet.serviceUpdated = notebook.getServiceUpdated();
+                if (notebook.isSetPublishing())
+                    facet.publishing = notebook.getPublishing();
+                if (notebook.isSetPublished())
+                    facet.published = notebook.isPublished();
+                if (notebook.isSetStack())
+                    facet.stack = notebook.getStack();
+                if (notebook.isSetDefaultNotebook())
+                    facet.defaultNotebook = notebook.isDefaultNotebook();
+                //omitting business information: contact, businessNotebook
+                //omitting sharedNotebooks
+                return facet;
+            }
+        };
+        // we could use the resulting value (facet) from this call if we needed to do further processing on it (e.g. passing it on to the datastore)
+        apiDataService.createOrReadModifyWrite(EvernoteNotebookFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
     }
 
     private void removeNotebook(final UpdateInfo updateInfo, final String guid) {
         removeEvernoteFacet(updateInfo, EvernoteNotebookFacet.class, guid);
-        jpaDaoService.execute(String.format("DELETE FROM %s facet WHERE " +
-                                            "facet.apiKeyId=%s AND facet.notebookGUID='%s'",
-                                            JPAUtils.getEntityName(EvernoteNoteFacet.class),
-                                            updateInfo.apiKey.getId(), guid));
+        jpaDaoService.execute(String.format("DELETE FROM %s facet WHERE " + "facet.apiKeyId=%s AND facet.notebookGuid='%s'", JPAUtils.getEntityName(EvernoteNoteFacet.class), updateInfo.apiKey.getId(), guid));
     }
 
     private void createOrUpdateTag(final UpdateInfo updateInfo, final Tag tag) throws Exception {
         final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery(
-                "e.apiKeyId=? AND e.GUID=?",
+                "e.apiKeyId=? AND e.guid=?",
                 updateInfo.apiKey.getId(), tag.getGuid());
         final ApiDataService.FacetModifier<EvernoteTagFacet> facetModifier = new ApiDataService.FacetModifier<EvernoteTagFacet>() {
             @Override
             public EvernoteTagFacet createOrModify(EvernoteTagFacet facet, final Long apiKeyId) {
                 if (facet == null) {
                     facet = new EvernoteTagFacet(updateInfo.apiKey.getId());
-                    facet.GUID = tag.getGuid();
-                    facet.guestId = updateInfo.apiKey.getGuestId();
-                    facet.api = updateInfo.apiKey.getConnector().value();
+                    extractCommonFacetData(facet, updateInfo);
+                    facet.guid = tag.getGuid();
                 }
-                facet.USN = tag.getUpdateSequenceNum();
-                facet.name = tag.getName();
+                facet.timeUpdated = System.currentTimeMillis();
+                if (tag.isSetUpdateSequenceNum())
+                    facet.USN = tag.getUpdateSequenceNum();
+                if (tag.isSetName())
+                    facet.name = tag.getName();
                 return facet;
             }
         };
         // we could use the resulting value (facet) from this call if we needed to do further processing on it (e.g. passing it on to the datastore)
         apiDataService.createOrReadModifyWrite(EvernoteTagFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
-    }
-
-    @Override
-    protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
     }
 
 }

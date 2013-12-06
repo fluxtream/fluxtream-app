@@ -1,6 +1,7 @@
 package com.fluxtream.connectors.evernote;
 
 import javax.persistence.Entity;
+import javax.persistence.Lob;
 
 /**
  * User: candide
@@ -11,12 +12,17 @@ import javax.persistence.Entity;
 public  class EvernoteNoteFacet extends EvernoteFacet {
 
     public byte[] contentHash;
-    public int contentLength;
+    public Integer contentLength;
     public String content;
     public String title;
-    public long created;
-    public long updated;
-    public String notebookGUID;
+    public Long created;
+    public Long updated;
+    public Long deleted;
+    public String notebookGuid;
+    public Boolean active;
+
+    @Lob
+    public String resourcesStorage;
 
     public EvernoteNoteFacet() {
         super();

@@ -1,6 +1,7 @@
 package com.fluxtream.connectors.evernote;
 
 import javax.persistence.Entity;
+import com.evernote.edam.type.Publishing;
 
 /**
  * User: candide
@@ -9,6 +10,14 @@ import javax.persistence.Entity;
  */
 @Entity(name="Facet_EvernoteNotebook")
 public class EvernoteNotebookFacet extends EvernoteFacet {
+
+    public String name;
+    public Boolean defaultNotebook;
+    public Long serviceCreated;
+    public Long serviceUpdated;
+    public Publishing publishing;
+    public String stack;
+    public Boolean published;
 
     public EvernoteNotebookFacet() { super(); }
 

@@ -10,8 +10,8 @@ import com.fluxtream.domain.AbstractFacet;
  */
 public abstract class EvernoteFacet extends AbstractFacet {
 
-    public String GUID;
-    public long USN;
+    public String guid;
+    public Integer USN;
 
     public EvernoteFacet() {
         this.api = Connector.getConnector("evernote").value();
