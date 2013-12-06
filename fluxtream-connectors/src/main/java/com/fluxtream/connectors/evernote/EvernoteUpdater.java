@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
  * @author Candide Kemmler (candide@fluxtream.com)
  */
 @Component
-@Updater(prettyName = "Evernote", value = 17, objectTypes ={})
+@Updater(prettyName = "Evernote", value = 17, objectTypes ={EvernoteNotebookFacet.class, EvernoteNoteFacet.class, EvernoteTagFacet.class})
 public class EvernoteUpdater extends AbstractUpdater {
 
     private static final int MAX_ENTRIES = 200;
@@ -87,25 +87,37 @@ public class EvernoteUpdater extends AbstractUpdater {
 
     private void updateSyncChunk(final UpdateInfo updateInfo, final NoteStoreClient noteStore, final SyncChunk chunk) throws Exception {
         final Iterator<String> expungedTagsIterator = chunk.getExpungedTagsIterator();
-        while(expungedTagsIterator.hasNext())
-            removeEvernoteFacet(updateInfo, EvernoteTagFacet.class, expungedTagsIterator.next());
+        if (expungedTagsIterator!=null) {
+            while(expungedTagsIterator.hasNext())
+                removeEvernoteFacet(updateInfo, EvernoteTagFacet.class, expungedTagsIterator.next());
+        }
         final Iterator<Tag> tagsIterator = chunk.getTagsIterator();
-        while(tagsIterator.hasNext())
-            createOrUpdateTag(updateInfo, tagsIterator.next());
+        if (tagsIterator!=null) {
+            while(tagsIterator.hasNext())
+                createOrUpdateTag(updateInfo, tagsIterator.next());
+        }
 
         final Iterator<String> expungedNotebooksIterator = chunk.getExpungedNotebooksIterator();
-        while(expungedNotebooksIterator.hasNext())
-            removeNotebook(updateInfo, expungedNotebooksIterator.next());
+        if (expungedNotebooksIterator!=null) {
+            while(expungedNotebooksIterator.hasNext())
+                removeNotebook(updateInfo, expungedNotebooksIterator.next());
+        }
         final Iterator<Notebook> notebooksIterator = chunk.getNotebooksIterator();
-        while(notebooksIterator.hasNext())
-            createOrUpdateNotebook(updateInfo, notebooksIterator.next());
+        if (notebooksIterator!=null) {
+            while(notebooksIterator.hasNext())
+                createOrUpdateNotebook(updateInfo, notebooksIterator.next());
+        }
 
         final Iterator<String> expungedNotesIterator = chunk.getExpungedNotesIterator();
-        while(expungedNotesIterator.hasNext())
-            removeEvernoteFacet(updateInfo, EvernoteNoteFacet.class, expungedNotesIterator.next());
+        if (expungedNotesIterator!=null) {
+            while(expungedNotesIterator.hasNext())
+                removeEvernoteFacet(updateInfo, EvernoteNoteFacet.class, expungedNotesIterator.next());
+        }
         final Iterator<Note> notesIterator = chunk.getNotesIterator();
-        while(notesIterator.hasNext())
-            createOrUpdateNote(updateInfo, notesIterator.next(), noteStore);
+        if (notesIterator!=null) {
+            while(notesIterator.hasNext())
+                createOrUpdateNote(updateInfo, notesIterator.next(), noteStore);
+        }
     }
 
     private void createOrUpdateNote(final UpdateInfo updateInfo, final Note note, final NoteStoreClient noteStore) throws Exception {

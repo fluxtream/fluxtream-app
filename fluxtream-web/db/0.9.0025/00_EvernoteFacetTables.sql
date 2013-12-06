@@ -1,5 +1,7 @@
 CREATE TABLE `Facet_EvernoteNote` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `guid` varchar(255) NULL,
+  `USN` int(11) NULL,
   `api` int(11) NOT NULL,
   `apiKeyId` bigint(20) DEFAULT NULL,
   `comment` longtext,
@@ -12,14 +14,14 @@ CREATE TABLE `Facet_EvernoteNote` (
   `tags` longtext,
   `timeUpdated` bigint(20) NOT NULL,
   `active` bit(1) DEFAULT NULL,
-  `content` varchar(255) DEFAULT NULL,
+  `content` longtext DEFAULT NULL,
   `contentHash` tinyblob,
   `contentLength` int(11) DEFAULT NULL,
   `created` bigint(20) DEFAULT NULL,
   `deleted` bigint(20) DEFAULT NULL,
   `notebookGuid` varchar(255) DEFAULT NULL,
   `resourcesStorage` longtext,
-  `title` varchar(255) DEFAULT NULL,
+  `title` longtext DEFAULT NULL,
   `updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `isEmpty_index` (`isEmpty`),
@@ -34,6 +36,8 @@ CREATE TABLE `Facet_EvernoteNote` (
 
 CREATE TABLE `Facet_EvernoteNotebook` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `guid` varchar(255) NULL,
+  `USN` int(11) NULL,
   `api` int(11) NOT NULL,
   `apiKeyId` bigint(20) DEFAULT NULL,
   `comment` longtext,
@@ -65,6 +69,8 @@ CREATE TABLE `Facet_EvernoteNotebook` (
 
 CREATE TABLE `Facet_EvernoteTag` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `guid` varchar(255) NULL,
+  `USN` int(11) NULL,
   `api` int(11) NOT NULL,
   `apiKeyId` bigint(20) DEFAULT NULL,
   `comment` longtext,

@@ -1,6 +1,7 @@
 package com.fluxtream.connectors.evernote;
 
 import javax.persistence.Entity;
+import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 
 /**
  * User: candide
@@ -8,6 +9,7 @@ import javax.persistence.Entity;
  * Time: 16:43
  */
 @Entity(name="Facet_EvernoteTag")
+@ObjectTypeSpec(name = "tag", value = 8, prettyname = "Tag")
 public class EvernoteTagFacet extends EvernoteFacet {
 
     public String name;

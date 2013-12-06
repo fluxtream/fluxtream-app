@@ -1,5 +1,6 @@
 package com.fluxtream.connectors.evernote;
 
+import javax.persistence.MappedSuperclass;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.AbstractFacet;
 
@@ -8,6 +9,7 @@ import com.fluxtream.domain.AbstractFacet;
  * Date: 05/12/13
  * Time: 16:45
  */
+@MappedSuperclass
 public abstract class EvernoteFacet extends AbstractFacet {
 
     public String guid;
