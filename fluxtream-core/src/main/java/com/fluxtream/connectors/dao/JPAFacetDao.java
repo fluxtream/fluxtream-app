@@ -54,6 +54,8 @@ public class JPAFacetDao implements FacetDao {
 
     @Override
     public List<AbstractFacet> getFacetsByDates(final ApiKey apiKey, ObjectType objectType, List<String> dates) {
+        if (!objectType.isClientFacet())
+            return new ArrayList<AbstractFacet>();
         ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         if (!apiKey.getConnector().hasFacets()) return facets;
         Class<? extends AbstractFacet> facetClass = getFacetClass(apiKey.getConnector(), objectType);
@@ -70,6 +72,8 @@ public class JPAFacetDao implements FacetDao {
 
     @Override
     public List<AbstractRepeatableFacet> getFacetsBetweenDates(final ApiKey apiKey, final ObjectType objectType, final String startDateString, final String endDateString) {
+        if (!objectType.isClientFacet())
+            return new ArrayList<AbstractRepeatableFacet>();
         ArrayList<AbstractRepeatableFacet> facets = new ArrayList<AbstractRepeatableFacet>();
         if (!apiKey.getConnector().hasFacets()) return facets;
         Class<? extends AbstractRepeatableFacet> facetClass = (Class<? extends AbstractRepeatableFacet>)getFacetClass(apiKey.getConnector(), objectType);
@@ -119,6 +123,8 @@ public class JPAFacetDao implements FacetDao {
         if (objectType==null) {
             return getFacetsBetween(apiKey, timeInterval, tagFilter);
         } else {
+            if (!objectType.isClientFacet())
+                return new ArrayList<AbstractFacet>();
             if (!apiKey.getConnector().hasFacets()) return new ArrayList<AbstractFacet>();
             Class<? extends AbstractFacet> facetClass = getFacetClass(apiKey.getConnector(), objectType);
             final String facetName = getEntityName(facetClass);
@@ -138,6 +144,8 @@ public class JPAFacetDao implements FacetDao {
         final ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
         List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         for (ObjectType type : objectTypes) {
+            if (!type.isClientFacet())
+                return new ArrayList<AbstractFacet>();
             facets.addAll(getFacetsBetween(apiKey, type, timeInterval, tagFilter));
         }
         return facets;

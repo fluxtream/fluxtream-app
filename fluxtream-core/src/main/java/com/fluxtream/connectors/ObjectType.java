@@ -9,7 +9,13 @@ import java.util.Vector;
 import com.fluxtream.domain.AbstractFacet;
 
 public class ObjectType {
-	
+
+    String name;
+    String prettyname;
+    boolean isDateBased;
+    boolean isMixedType;
+    boolean isClientFacet;
+
 	private static Map<Connector,List<ObjectType>> connectorObjectTypes = new Hashtable<Connector,List<ObjectType>>();
 	
 	private static Map<Connector,Map<String,ObjectType>> connectorNamedObjectTypes = new Hashtable<Connector,Map<String,ObjectType>>();
@@ -61,12 +67,7 @@ public class ObjectType {
 		ObjectType namedObjectType = connectorObjectTypes.get(name);
 		return namedObjectType;
 	}
-	
-	String name;
-	String prettyname;
-    boolean isDateBased;
-    boolean isMixedType;
-	
+
 	public static List<ObjectType> getObjectTypes(Connector connector, int objectTypes) {
 		List<ObjectType> connectorTypes = connectorObjectTypes.get(connector);
 		if (connectorTypes==null) return null;
@@ -81,7 +82,11 @@ public class ObjectType {
     public boolean isDateBased() {
         return isDateBased;
     }
-	
+
+    public boolean isClientFacet() {
+        return isClientFacet;
+    }
+
 	public String toString() {
 		return name;
 	}

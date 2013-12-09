@@ -1,17 +1,23 @@
 package com.fluxtream.connectors.evernote;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import com.evernote.auth.EvernoteAuth;
 import com.evernote.auth.EvernoteService;
 import com.evernote.clients.ClientFactory;
 import com.evernote.clients.NoteStoreClient;
 import com.evernote.edam.error.EDAMErrorCode;
+import com.evernote.edam.error.EDAMSystemException;
 import com.evernote.edam.error.EDAMUserException;
 import com.evernote.edam.notestore.SyncChunk;
+import com.evernote.edam.notestore.SyncState;
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Notebook;
 import com.evernote.edam.type.Tag;
+import com.evernote.thrift.TException;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
@@ -30,11 +36,12 @@ import org.springframework.stereotype.Component;
  * @author Candide Kemmler (candide@fluxtream.com)
  */
 @Component
-@Updater(prettyName = "Evernote", value = 17, objectTypes ={EvernoteNotebookFacet.class, EvernoteNoteFacet.class, EvernoteTagFacet.class})
+@Updater(prettyName = "Evernote", value = 17, objectTypes ={EvernoteNoteFacet.class})
 public class EvernoteUpdater extends AbstractUpdater {
 
-    private static final int MAX_ENTRIES = 200;
+    FlxLogger logger = FlxLogger.getLogger(EvernoteUpdater.class);
 
+    private static final int MAX_ENTRIES = 200;
     private static final String LAST_UPDATE_COUNT = "lastUpdateCount";
     private static final String LAST_SYNC_TIME = "lastSyncTime";
 
@@ -44,7 +51,8 @@ public class EvernoteUpdater extends AbstractUpdater {
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
         try {
-            performSync(updateInfo);
+            final NoteStoreClient noteStore = getNoteStoreClient(updateInfo);
+            performSync(updateInfo, noteStore, true);
         } catch (EDAMUserException e) {
             if (e.getErrorCode()==EDAMErrorCode.RATE_LIMIT_REACHED)
                 throw new RateLimitReachedException();
@@ -54,70 +62,149 @@ public class EvernoteUpdater extends AbstractUpdater {
     @Override
     protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
         try {
-            performSync(updateInfo);
+            final NoteStoreClient noteStore = getNoteStoreClient(updateInfo);
+            final SyncState syncState = noteStore.getSyncState();
+            long lastSyncTime = Long.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_SYNC_TIME));
+            long lastUpdateCount = Long.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_UPDATE_COUNT));
+            if (syncState.getFullSyncBefore()>lastSyncTime) {
+                // according to the edam sync spec, fullSyncBefore is "the cut-off date for old caching clients
+                // to perform an incremental (vs. full) synchronization. This value may correspond to the point
+                // where historic data (e.g. regarding expunged objects) was wiped from the account, or possibly
+                // the time of a serious server issue that would invalidate client USNs"
+                // This means that we are may leave items that the user actually deleted in the database, and thus
+                // we need to basically do a history update again
+                apiDataService.eraseApiData(updateInfo.apiKey);
+                guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), LAST_SYNC_TIME);
+                guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), LAST_UPDATE_COUNT);
+                // let's properly log this
+                logger.info("FullSync required for evernote connector, apiKeyId=" + updateInfo.apiKey.getId());
+                performSync(updateInfo, noteStore, true);
+            }
+            else if (syncState.getUpdateCount()==lastUpdateCount)
+                // nothing happened since we last updated
+                return;
+            else
+                performSync(updateInfo, noteStore, false);
         } catch (EDAMUserException e) {
             if (e.getErrorCode()==EDAMErrorCode.RATE_LIMIT_REACHED)
                 throw new RateLimitReachedException();
         }
     }
 
-    private void performSync(UpdateInfo updateInfo) throws Exception {
+    private NoteStoreClient getNoteStoreClient(final UpdateInfo updateInfo) throws EDAMUserException, EDAMSystemException, TException {
         String token = guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken");
-
         EvernoteAuth evernoteAuth = new EvernoteAuth(EvernoteService.SANDBOX, token);
         ClientFactory factory = new ClientFactory(evernoteAuth);
-        final NoteStoreClient noteStore = factory.createNoteStoreClient();
+        return factory.createNoteStoreClient();
+    }
 
+    private void performSync(final UpdateInfo updateInfo, final NoteStoreClient noteStore,
+                             final boolean forceFullSync) throws Exception {
+        // retrieve lastUpdateCount - this could be an incremental update or
+        // a second attempt at a previously failed history update
         final String lastUpdateCountAtt = guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_UPDATE_COUNT);
         int lastUpdateCount = 0;
         if (lastUpdateCountAtt!=null)
             lastUpdateCount = Integer.valueOf(lastUpdateCountAtt);
 
-        SyncChunk chunk = noteStore.getSyncChunk(lastUpdateCount, MAX_ENTRIES, true);
-        updateSyncChunk(updateInfo, noteStore, chunk);
-        if (chunk.getChunkHighUSN()<chunk.getUpdateCount()) {
-            chunk = noteStore.getSyncChunk(chunk.getChunkHighUSN(), MAX_ENTRIES, true);
-            updateSyncChunk(updateInfo, noteStore, chunk);
-            int serviceLastUpdateCount = chunk.getUpdateCount();
-            final long serviceLastSyncTime = chunk.getCurrentTime();
-            guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_UPDATE_COUNT, String.valueOf(serviceLastUpdateCount));
-            guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_SYNC_TIME, String.valueOf(serviceLastSyncTime));
+        // retrieve sync chunks at once
+        LinkedList<SyncChunk> chunks = getSyncChunks(noteStore, lastUpdateCount);
+
+        createOrUpdateTags(updateInfo, chunks);
+        createOrUpdateNotebooks(updateInfo, chunks);
+        createOrUpdateNotes(updateInfo, chunks, noteStore);
+
+        // process expunged items in the case of an incremental update and we are not required
+        // to do a full sync (in which case it would be a no-op)
+        if (updateInfo.getUpdateType()==UpdateInfo.UpdateType.INCREMENTAL_UPDATE && !forceFullSync) {
+            processExpungedNotes(updateInfo, chunks);
+            processExpungedNotebooks(updateInfo, chunks);
+            processExpungedTags(updateInfo, chunks);
+        }
+
+        saveSyncState(updateInfo, noteStore);
+    }
+
+    private void processExpungedNotes(final UpdateInfo updateInfo, final LinkedList<SyncChunk> chunks) {
+        List<String> expungedNoteGuids = new ArrayList<String>();
+        for (SyncChunk chunk : chunks)
+            expungedNoteGuids.addAll(chunk.getExpungedNotes());
+        for (String expungedNoteGuid : expungedNoteGuids)
+            removeEvernoteFacet(updateInfo, EvernoteNoteFacet.class, expungedNoteGuid);
+    }
+
+    private void processExpungedNotebooks(final UpdateInfo updateInfo, final LinkedList<SyncChunk> chunks) {
+        List<String> expungedNotebookGuids = new ArrayList<String>();
+        for (SyncChunk chunk : chunks)
+            expungedNotebookGuids.addAll(chunk.getExpungedNotebooks());
+        for (String expungedNotebookGuid : expungedNotebookGuids)
+            removeNotebook(updateInfo, expungedNotebookGuid);
+    }
+
+    private void processExpungedTags(final UpdateInfo updateInfo, final LinkedList<SyncChunk> chunks) {
+        List<String> expungedTagGuids = new ArrayList<String>();
+        for (SyncChunk chunk : chunks)
+            expungedTagGuids.addAll(chunk.getExpungedNotes());
+        for (String expungedTagGuid : expungedTagGuids)
+            removeEvernoteFacet(updateInfo, EvernoteTagFacet.class, expungedTagGuid);
+    }
+
+    private void createOrUpdateTags(final UpdateInfo updateInfo, final LinkedList<SyncChunk> chunks) throws Exception {
+        List<Tag> tags = new ArrayList<Tag>();
+        List<String> expungedTagGuids = new ArrayList<String>();
+        for (SyncChunk chunk : chunks){
+            tags.addAll(chunk.getTags());
+            expungedTagGuids.addAll(chunk.getExpungedTags());
+        }
+        for (Tag tag : tags) {
+            if (!expungedTagGuids.contains(tag.getGuid()))
+                createOrUpdateTag(updateInfo, tag);
         }
     }
 
-    private void updateSyncChunk(final UpdateInfo updateInfo, final NoteStoreClient noteStore, final SyncChunk chunk) throws Exception {
-        final Iterator<String> expungedTagsIterator = chunk.getExpungedTagsIterator();
-        if (expungedTagsIterator!=null) {
-            while(expungedTagsIterator.hasNext())
-                removeEvernoteFacet(updateInfo, EvernoteTagFacet.class, expungedTagsIterator.next());
+    private void createOrUpdateNotebooks(final UpdateInfo updateInfo, final LinkedList<SyncChunk> chunks) throws Exception {
+        List<Notebook> notebooks = new ArrayList<Notebook>();
+        List<String> expungedNotebookGuids = new ArrayList<String>();
+        for (SyncChunk chunk : chunks){
+            notebooks.addAll(chunk.getNotebooks());
+            expungedNotebookGuids.addAll(chunk.getExpungedNotebooks());
         }
-        final Iterator<Tag> tagsIterator = chunk.getTagsIterator();
-        if (tagsIterator!=null) {
-            while(tagsIterator.hasNext())
-                createOrUpdateTag(updateInfo, tagsIterator.next());
+        for (Notebook notebook : notebooks) {
+            if (!expungedNotebookGuids.contains(notebook.getGuid()))
+                createOrUpdateNotebook(updateInfo, notebook);
         }
+    }
 
-        final Iterator<String> expungedNotebooksIterator = chunk.getExpungedNotebooksIterator();
-        if (expungedNotebooksIterator!=null) {
-            while(expungedNotebooksIterator.hasNext())
-                removeNotebook(updateInfo, expungedNotebooksIterator.next());
+    private void createOrUpdateNotes(final UpdateInfo updateInfo, final LinkedList<SyncChunk> chunks, NoteStoreClient noteStoreClient) throws Exception {
+        List<Note> notes = new ArrayList<Note>();
+        List<String> expungedNoteGuids = new ArrayList<String>();
+        for (SyncChunk chunk : chunks){
+            notes.addAll(chunk.getNotes());
+            expungedNoteGuids.addAll(chunk.getExpungedNotes());
         }
-        final Iterator<Notebook> notebooksIterator = chunk.getNotebooksIterator();
-        if (notebooksIterator!=null) {
-            while(notebooksIterator.hasNext())
-                createOrUpdateNotebook(updateInfo, notebooksIterator.next());
+        for (Note note : notes) {
+            if (!expungedNoteGuids.contains(note.getGuid()))
+                createOrUpdateNote(updateInfo, note, noteStoreClient);
         }
+    }
 
-        final Iterator<String> expungedNotesIterator = chunk.getExpungedNotesIterator();
-        if (expungedNotesIterator!=null) {
-            while(expungedNotesIterator.hasNext())
-                removeEvernoteFacet(updateInfo, EvernoteNoteFacet.class, expungedNotesIterator.next());
+    private LinkedList<SyncChunk> getSyncChunks(final NoteStoreClient noteStore, final int lastUpdateCount) throws EDAMUserException, EDAMSystemException, TException {
+        LinkedList<SyncChunk> chunks = new LinkedList<SyncChunk>();
+        SyncChunk chunk = noteStore.getSyncChunk(lastUpdateCount, MAX_ENTRIES, true);
+        chunks.add(chunk);
+        while (chunk.getChunkHighUSN()<chunk.getUpdateCount()) {
+            chunk = noteStore.getSyncChunk(chunk.getChunkHighUSN(), MAX_ENTRIES, true);
+            chunks.add(chunk);
         }
-        final Iterator<Note> notesIterator = chunk.getNotesIterator();
-        if (notesIterator!=null) {
-            while(notesIterator.hasNext())
-                createOrUpdateNote(updateInfo, notesIterator.next(), noteStore);
-        }
+        return chunks;
+    }
+
+    private void saveSyncState(final UpdateInfo updateInfo, NoteStoreClient noteStore) throws TException, EDAMUserException, EDAMSystemException {
+        final SyncState syncState = noteStore.getSyncState();
+        int serviceLastUpdateCount = syncState.getUpdateCount();
+        final long serviceLastSyncTime = syncState.getCurrentTime();
+        guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_UPDATE_COUNT, String.valueOf(serviceLastUpdateCount));
+        guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_SYNC_TIME, String.valueOf(serviceLastSyncTime));
     }
 
     private void createOrUpdateNote(final UpdateInfo updateInfo, final Note note, final NoteStoreClient noteStore) throws Exception {
@@ -152,10 +239,14 @@ public class EvernoteUpdater extends AbstractUpdater {
 
                 if (freshlyRetrievedNote.isSetTitle())
                     facet.title = freshlyRetrievedNote.getTitle();
-                if (freshlyRetrievedNote.isSetCreated())
+                if (freshlyRetrievedNote.isSetCreated()) {
                     facet.created = freshlyRetrievedNote.getCreated();
-                if (freshlyRetrievedNote.isSetUpdated())
+                    facet.start = facet.created;
+                }
+                if (freshlyRetrievedNote.isSetUpdated()) {
                     facet.updated = freshlyRetrievedNote.getUpdated();
+                    facet.start = facet.created;
+                }
                 if (freshlyRetrievedNote.isSetDeleted())
                     facet.deleted = freshlyRetrievedNote.getDeleted();
                 if (freshlyRetrievedNote.isSetNotebookGuid())
@@ -197,8 +288,9 @@ public class EvernoteUpdater extends AbstractUpdater {
                     facet.USN = notebook.getUpdateSequenceNum();
                 if (notebook.isSetName())
                     facet.name = notebook.getName();
-                if (notebook.isSetServiceCreated())
+                if (notebook.isSetServiceCreated()) {
                     facet.serviceCreated = notebook.getServiceCreated();
+                }
                 if (notebook.isSetServiceUpdated())
                     facet.serviceUpdated = notebook.getServiceUpdated();
                 if (notebook.isSetPublishing())

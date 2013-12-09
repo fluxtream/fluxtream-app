@@ -11,6 +11,7 @@ import com.fluxtream.connectors.annotations.ObjectTypeSpec;
  */
 @Entity(name="Facet_EvernoteNote")
 @ObjectTypeSpec(name = "note", value = 4, prettyname = "Note")
+
 public  class EvernoteNoteFacet extends EvernoteFacet {
 
     public byte[] contentHash;

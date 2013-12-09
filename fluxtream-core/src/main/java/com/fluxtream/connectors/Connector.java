@@ -181,6 +181,7 @@ public class Connector {
         objectType.isImageType = ots.isImageType();
         objectType.isDateBased = ots.isDateBased();
         objectType.isMixedType = ots.isMixedType();
+        objectType.isClientFacet = ots.clientFacet();
         if (ots.extractor() != null && ots.extractor()!=AbstractFacetExtractor.class) {
             connector.addObjectTypeExtractorClass(
                     objectType.value, ots.extractor(),

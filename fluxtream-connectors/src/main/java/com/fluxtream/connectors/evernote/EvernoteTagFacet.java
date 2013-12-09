@@ -9,7 +9,7 @@ import com.fluxtream.connectors.annotations.ObjectTypeSpec;
  * Time: 16:43
  */
 @Entity(name="Facet_EvernoteTag")
-@ObjectTypeSpec(name = "tag", value = 8, prettyname = "Tag")
+@ObjectTypeSpec(name = "tag", value = 8, prettyname = "Tag", clientFacet = false)
 public class EvernoteTagFacet extends EvernoteFacet {
 
     public String name;
