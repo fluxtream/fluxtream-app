@@ -127,24 +127,33 @@ public class EvernoteUpdater extends AbstractUpdater {
 
     private void processExpungedNotes(final UpdateInfo updateInfo, final LinkedList<SyncChunk> chunks) {
         List<String> expungedNoteGuids = new ArrayList<String>();
-        for (SyncChunk chunk : chunks)
-            expungedNoteGuids.addAll(chunk.getExpungedNotes());
+        for (SyncChunk chunk : chunks) {
+            final List<String> chunkExpungedNotes = chunk.getExpungedNotes();
+            if (chunkExpungedNotes!=null)
+                expungedNoteGuids.addAll(chunkExpungedNotes);
+        }
         for (String expungedNoteGuid : expungedNoteGuids)
             removeEvernoteFacet(updateInfo, EvernoteNoteFacet.class, expungedNoteGuid);
     }
 
     private void processExpungedNotebooks(final UpdateInfo updateInfo, final LinkedList<SyncChunk> chunks) {
         List<String> expungedNotebookGuids = new ArrayList<String>();
-        for (SyncChunk chunk : chunks)
-            expungedNotebookGuids.addAll(chunk.getExpungedNotebooks());
+        for (SyncChunk chunk : chunks) {
+            final List<String> chunkExpungedNotebooks = chunk.getExpungedNotebooks();
+            if (chunkExpungedNotebooks!=null)
+                expungedNotebookGuids.addAll(chunkExpungedNotebooks);
+        }
         for (String expungedNotebookGuid : expungedNotebookGuids)
             removeNotebook(updateInfo, expungedNotebookGuid);
     }
 
     private void processExpungedTags(final UpdateInfo updateInfo, final LinkedList<SyncChunk> chunks) {
         List<String> expungedTagGuids = new ArrayList<String>();
-        for (SyncChunk chunk : chunks)
-            expungedTagGuids.addAll(chunk.getExpungedNotes());
+        for (SyncChunk chunk : chunks) {
+            final List<String> chunkExpungedNotes = chunk.getExpungedNotes();
+            if (chunkExpungedNotes!=null)
+                expungedTagGuids.addAll(chunkExpungedNotes);
+        }
         for (String expungedTagGuid : expungedTagGuids)
             removeEvernoteFacet(updateInfo, EvernoteTagFacet.class, expungedTagGuid);
     }
@@ -153,8 +162,12 @@ public class EvernoteUpdater extends AbstractUpdater {
         List<Tag> tags = new ArrayList<Tag>();
         List<String> expungedTagGuids = new ArrayList<String>();
         for (SyncChunk chunk : chunks){
-            tags.addAll(chunk.getTags());
-            expungedTagGuids.addAll(chunk.getExpungedTags());
+            final List<Tag> chunkTags = chunk.getTags();
+            if (chunkTags!=null)
+                tags.addAll(chunkTags);
+            final List<String> expungedTags = chunk.getExpungedTags();
+            if (expungedTags!=null)
+                expungedTagGuids.addAll(expungedTags);
         }
         for (Tag tag : tags) {
             if (!expungedTagGuids.contains(tag.getGuid()))
@@ -166,8 +179,12 @@ public class EvernoteUpdater extends AbstractUpdater {
         List<Notebook> notebooks = new ArrayList<Notebook>();
         List<String> expungedNotebookGuids = new ArrayList<String>();
         for (SyncChunk chunk : chunks){
-            notebooks.addAll(chunk.getNotebooks());
-            expungedNotebookGuids.addAll(chunk.getExpungedNotebooks());
+            final List<Notebook> chunkNotebooks = chunk.getNotebooks();
+            if (chunkNotebooks!=null)
+                notebooks.addAll(chunkNotebooks);
+            final List<String> expungedNotebooks = chunk.getExpungedNotebooks();
+            if (expungedNotebooks!=null)
+            expungedNotebookGuids.addAll(expungedNotebooks);
         }
         for (Notebook notebook : notebooks) {
             if (!expungedNotebookGuids.contains(notebook.getGuid()))
@@ -179,8 +196,12 @@ public class EvernoteUpdater extends AbstractUpdater {
         List<Note> notes = new ArrayList<Note>();
         List<String> expungedNoteGuids = new ArrayList<String>();
         for (SyncChunk chunk : chunks){
-            notes.addAll(chunk.getNotes());
-            expungedNoteGuids.addAll(chunk.getExpungedNotes());
+            final List<Note> chunkNotes = chunk.getNotes();
+            if (chunkNotes!=null)
+                notes.addAll(chunkNotes);
+            final List<String> chunkExpungedNotes = chunk.getExpungedNotes();
+            if (chunkExpungedNotes!=null)
+                expungedNoteGuids.addAll(chunkExpungedNotes);
         }
         for (Note note : notes) {
             if (!expungedNoteGuids.contains(note.getGuid()))
@@ -191,10 +212,13 @@ public class EvernoteUpdater extends AbstractUpdater {
     private LinkedList<SyncChunk> getSyncChunks(final NoteStoreClient noteStore, final int lastUpdateCount) throws EDAMUserException, EDAMSystemException, TException {
         LinkedList<SyncChunk> chunks = new LinkedList<SyncChunk>();
         SyncChunk chunk = noteStore.getSyncChunk(lastUpdateCount, MAX_ENTRIES, true);
-        chunks.add(chunk);
-        while (chunk.getChunkHighUSN()<chunk.getUpdateCount()) {
-            chunk = noteStore.getSyncChunk(chunk.getChunkHighUSN(), MAX_ENTRIES, true);
+        if (chunk!=null) {
             chunks.add(chunk);
+            while (chunk.getChunkHighUSN()<chunk.getUpdateCount()) {
+                chunk = noteStore.getSyncChunk(chunk.getChunkHighUSN(), MAX_ENTRIES, true);
+                if (chunk!=null)
+                    chunks.add(chunk);
+            }
         }
         return chunks;
     }
@@ -242,10 +266,12 @@ public class EvernoteUpdater extends AbstractUpdater {
                 if (freshlyRetrievedNote.isSetCreated()) {
                     facet.created = freshlyRetrievedNote.getCreated();
                     facet.start = facet.created;
+                    facet.end = facet.created;
                 }
                 if (freshlyRetrievedNote.isSetUpdated()) {
                     facet.updated = freshlyRetrievedNote.getUpdated();
-                    facet.start = facet.created;
+                    facet.start = facet.updated;
+                    facet.end = facet.updated;
                 }
                 if (freshlyRetrievedNote.isSetDeleted())
                     facet.deleted = freshlyRetrievedNote.getDeleted();

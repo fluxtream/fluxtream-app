@@ -17,6 +17,22 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             clockOutline: false,
             facets: {}
         },
+        evernote:{
+            color: "rgb(130, 182, 82)",
+            mapicon: {
+                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/evernote.png",
+                size: new google.maps.Size(32,37)
+            },
+            facets:{
+                note:{
+                    list:true,
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: ClockConfig.AT_HOME_CATEGORY
+                }
+            }
+        },
         fitbit:{
             hasTimelineSettings: true,
             device_name: "Fitbit",
