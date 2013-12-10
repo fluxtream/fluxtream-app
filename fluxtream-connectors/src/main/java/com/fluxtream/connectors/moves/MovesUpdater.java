@@ -478,7 +478,7 @@ public class MovesUpdater extends AbstractUpdater {
 
                     logger.info("module=movesUpdater component=fetchMovesAPI action=fetchMovesAPI" +
                                 " message=\"Rescheduling due to quota limit: " +
-                                " \"" + updateWorkerTask + " newUpdateTime=" + rescheduleTime);
+                                updateWorkerTask + "\" newUpdateTime=" + rescheduleTime);
                 }
             }
 
@@ -577,8 +577,10 @@ public class MovesUpdater extends AbstractUpdater {
             }
             else {
                 // We need to start again at the top of the next minute
-                DateTime topOfNextMinute = topOfThisMinute.plusMinutes(1);
-                retMillis = topOfNextMinute.getMillis();
+                // However, experimentally it didn't reset quota until ~14 sec after the top of the next minute,
+                // so pad forward by 20 seconds
+                DateTime topOfNextMinutePlusPadding = topOfThisMinute.plusMinutes(1).plusSeconds(20);
+                retMillis = topOfNextMinutePlusPadding.getMillis();
             }
 
             long now = System.currentTimeMillis();
@@ -691,23 +693,6 @@ public class MovesUpdater extends AbstractUpdater {
                         }
                     }
                 }
-
-                // In the case that maxDateWithData is set to non-null and we're moving forward in time, record
-                // the maxDateWithData date to start with next time.  This has the unfortunate effect that restarts
-                // may get an already completed date multiple times, but the alternative would be to
-                // potentially fail to update a date that doesn't have complete data on the Moves server.
-                // This may set updateDateKeyName to an earlier date than the place above where updateDateKeyName
-                // is set.  This looks a bit strange, but it's the best I could come up with to both handle the
-                // case where the Moves server doesn't have data for the most recent of days and where the
-                // user registration date is set to way before the earliest real data.  In the former case, the above
-                // set of updateDateKeyName will now be overridden with an earlier date.  In the latter case, the
-                // above set or updateDateKeyName will stand as-is and continue moving forward on restarts until we have
-                // seen a date that really has some data.  There's still a vulnerability in the case where date
-                // is beyond where we would want updateDateKeyName to end up and we have to do a restart, but this
-                // works in the common case and is the best I can come up with for now.
-                if(withTrackpoints && maxDateWithData!=null) {
-                    guestService.setApiKeyAttribute(updateInfo.apiKey, updateDateKeyName, maxDateWithData);
-                }
             }
         }
         catch (UpdateFailedException e) {
@@ -738,13 +723,34 @@ public class MovesUpdater extends AbstractUpdater {
             // Throw the appropriate exception.
             throw new UpdateFailedException(e);
         }
-        finally {
-            // See comment above about setting updateDateKeyName if we're moving forward and maxDateWithData is non-null
-            // We also want to do that setting in the case that there was an exception thrown.
-            if(withTrackpoints && maxDateWithData!=null) {
-                guestService.setApiKeyAttribute(updateInfo.apiKey, updateDateKeyName, maxDateWithData);
+
+        // In the case that maxDateWithData is set to non-null and we're moving forward in time and we completed successfully,
+        // record the maxDateWithData date to start with next time.  This has the unfortunate effect that we may end up
+        // reading in the dates since the user last had access to wireless or since they gave up on Moves many
+        // times.  The alternative would be to potentially fail to update a range of dates that don't have complete
+        // data on the Moves server.  This may set updateDateKeyName to an earlier date than the place above where updateDateKeyName
+        // is set.  This looks a bit strange, but it's the best I could come up with to both handle the
+        // case where the Moves server doesn't have data for the most recent of days and where the
+        // user registration date is set to way before the earliest real data.  In the former case, the above
+        // set of updateDateKeyName will now be overridden with an earlier date.  In the latter case, the
+        // above set or updateDateKeyName will stand as-is and continue moving forward on restarts until we have
+        // seen a date that really has some data.  To prevent excessive updating in the case where a user
+        // has given up on Moves and is really never going to update, limit the setback to a maximum of 7 days.
+        if(withTrackpoints && maxDateWithData!=null) {
+            String dateToStore = maxDateWithData;
+            DateTime maxDateTimeWithData = TimeUtils.dateFormatterUTC.parseDateTime(maxDateWithData);
+            DateTime nowMinusSevenDays = new DateTime().minusDays(7);
+            if(maxDateTimeWithData.isBefore(nowMinusSevenDays)) {
+                // maxDateWithData is too long ago.  Use 7 days ago instead.
+                dateToStore = TimeUtils.dateFormatterUTC.print(nowMinusSevenDays);
+                System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", maxDateWithData=" + maxDateWithData + " < 7 days ago, using " + dateToStore);
             }
+            else {
+                System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", storing maxDateWithData=" + maxDateWithData);
+            }
+            guestService.setApiKeyAttribute(updateInfo.apiKey, updateDateKeyName, dateToStore);
         }
+
         return(maxDateWithData);
     }
 
