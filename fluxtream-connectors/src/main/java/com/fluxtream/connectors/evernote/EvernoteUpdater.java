@@ -336,73 +336,71 @@ public class EvernoteUpdater extends AbstractUpdater {
                     extractCommonFacetData(facet, updateInfo);
                     facet.guid = resource.getGuid();
                 }
-                if (facet.USN!=null&&resource.getUpdateSequenceNum()>facet.USN) {
-                    if (resource.isSetAlternateData()) {
-                        Data alternateData = resource.getAlternateData();
-                        if (alternateData.isSetBody())
-                            facet.alternateDataBody = alternateData.getBody();
-                        if (alternateData.isSetBodyHash())
-                            facet.alternateDataBodyHash = alternateData.getBodyHash();
-                        if (alternateData.isSetSize())
-                            facet.alternateDataSize = alternateData.getSize();
-                    }
-                    if (resource.isSetAttributes()) {
-                        final ResourceAttributes resourceAttributes = resource.getAttributes();
-                        if (resourceAttributes.isSetAltitude())
-                            facet.altitude = resourceAttributes.getAltitude();
-                        if (resourceAttributes.isSetAttachment())
-                            facet.isAttachment = resourceAttributes.isAttachment();
-                        if (resourceAttributes.isSetCameraMake())
-                            facet.cameraMake = resourceAttributes.getCameraMake();
-                        if (resourceAttributes.isSetCameraModel())
-                            facet.cameraModel = resourceAttributes.getCameraModel();
-                        if (resourceAttributes.isSetFileName())
-                            facet.fileName = resourceAttributes.getFileName();
-                        if (resourceAttributes.isSetLatitude())
-                            facet.latitude = resourceAttributes.getLatitude();
-                        if (resourceAttributes.isSetLongitude())
-                            facet.longitude = resourceAttributes.getLongitude();
-                        if (resourceAttributes.isSetRecoType())
-                            facet.recoType = resourceAttributes.getRecoType();
-                        if (resourceAttributes.isSetSourceURL())
-                            facet.sourceURL = resourceAttributes.getSourceURL();
-                        if (resourceAttributes.isSetTimestamp())
-                            facet.timestamp = resourceAttributes.getTimestamp();
-                        if (resourceAttributes.isSetTimestamp() &&
-                            resourceAttributes.isSetLongitude() &&
-                            resourceAttributes.isSetLatitude()){
-                            addGuestLocation(updateInfo, facet.latitude, facet.longitude, facet.altitude, facet.timestamp);
-                        }
-                    }
-                    if (resource.isSetData()) {
-                        Data Data = resource.getData();
-                        if (Data.isSetBody())
-                            facet.dataBody = Data.getBody();
-                        if (Data.isSetBodyHash())
-                            facet.dataBodyHash = Data.getBodyHash();
-                        if (Data.isSetSize())
-                            facet.dataSize = Data.getSize();
-                    }
-                    if (resource.isSetHeight())
-                        facet.height = resource.getHeight();
-                    if (resource.isSetMime())
-                        facet.mime = resource.getMime();
-                    if (resource.isSetNoteGuid())
-                        facet.noteGuid = resource.getNoteGuid();
-                    if (resource.isSetRecognition()) {
-                        Data recognitionData = resource.getRecognition();
-                        if (recognitionData.isSetBody())
-                            facet.recognitionDataBody = recognitionData.getBody();
-                        if (recognitionData.isSetBodyHash())
-                            facet.recognitionDataBodyHash = recognitionData.getBodyHash();
-                        if (recognitionData.isSetSize())
-                            facet.recognitionDataSize = recognitionData.getSize();
-                    }
-                    if (resource.isSetUpdateSequenceNum())
-                        facet.USN = resource.getUpdateSequenceNum();
-                    if (resource.isSetWidth())
-                        facet.width = resource.getWidth();
+                if (resource.isSetAlternateData()) {
+                    Data alternateData = resource.getAlternateData();
+                    if (alternateData.isSetBody())
+                        facet.alternateDataBody = alternateData.getBody();
+                    if (alternateData.isSetBodyHash())
+                        facet.alternateDataBodyHash = alternateData.getBodyHash();
+                    if (alternateData.isSetSize())
+                        facet.alternateDataSize = alternateData.getSize();
                 }
+                if (resource.isSetAttributes()) {
+                    final ResourceAttributes resourceAttributes = resource.getAttributes();
+                    if (resourceAttributes.isSetAltitude())
+                        facet.altitude = resourceAttributes.getAltitude();
+                    if (resourceAttributes.isSetAttachment())
+                        facet.isAttachment = resourceAttributes.isAttachment();
+                    if (resourceAttributes.isSetCameraMake())
+                        facet.cameraMake = resourceAttributes.getCameraMake();
+                    if (resourceAttributes.isSetCameraModel())
+                        facet.cameraModel = resourceAttributes.getCameraModel();
+                    if (resourceAttributes.isSetFileName())
+                        facet.fileName = resourceAttributes.getFileName();
+                    if (resourceAttributes.isSetLatitude())
+                        facet.latitude = resourceAttributes.getLatitude();
+                    if (resourceAttributes.isSetLongitude())
+                        facet.longitude = resourceAttributes.getLongitude();
+                    if (resourceAttributes.isSetRecoType())
+                        facet.recoType = resourceAttributes.getRecoType();
+                    if (resourceAttributes.isSetSourceURL())
+                        facet.sourceURL = resourceAttributes.getSourceURL();
+                    if (resourceAttributes.isSetTimestamp())
+                        facet.timestamp = resourceAttributes.getTimestamp();
+                    if (resourceAttributes.isSetTimestamp() &&
+                        resourceAttributes.isSetLongitude() &&
+                        resourceAttributes.isSetLatitude()){
+                        addGuestLocation(updateInfo, facet.latitude, facet.longitude, facet.altitude, facet.timestamp);
+                    }
+                }
+                if (resource.isSetData()) {
+                    Data Data = resource.getData();
+                    if (Data.isSetBody())
+                        facet.dataBody = Data.getBody();
+                    if (Data.isSetBodyHash())
+                        facet.dataBodyHash = Data.getBodyHash();
+                    if (Data.isSetSize())
+                        facet.dataSize = Data.getSize();
+                }
+                if (resource.isSetHeight())
+                    facet.height = resource.getHeight();
+                if (resource.isSetMime())
+                    facet.mime = resource.getMime();
+                if (resource.isSetNoteGuid())
+                    facet.noteGuid = resource.getNoteGuid();
+                if (resource.isSetRecognition()) {
+                    Data recognitionData = resource.getRecognition();
+                    if (recognitionData.isSetBody())
+                        facet.recognitionDataBody = recognitionData.getBody();
+                    if (recognitionData.isSetBodyHash())
+                        facet.recognitionDataBodyHash = recognitionData.getBodyHash();
+                    if (recognitionData.isSetSize())
+                        facet.recognitionDataSize = recognitionData.getSize();
+                }
+                if (resource.isSetUpdateSequenceNum())
+                    facet.USN = resource.getUpdateSequenceNum();
+                if (resource.isSetWidth())
+                    facet.width = resource.getWidth();
                 return facet;
             }
         };
