@@ -6,17 +6,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
+import java.util.Random;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
+import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractLocalTimeFacet;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ChannelMapping;
+import com.fluxtream.domain.Notification;
+import com.fluxtream.domain.UpdateWorkerTask;
 import com.fluxtream.services.ApiDataService;
+import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.impl.BodyTrackHelper;
@@ -24,12 +30,21 @@ import com.fluxtream.services.impl.BodyTrackHelper.ChannelStyle;
 import com.fluxtream.services.impl.BodyTrackHelper.MainTimespanStyle;
 import com.fluxtream.services.impl.BodyTrackHelper.TimespanStyle;
 import com.fluxtream.utils.HttpUtils;
+import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.TimeUtils;
 import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.BasicResponseHandler;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +70,20 @@ public class MovesUpdater extends AbstractUpdater {
 
     public static DateTimeFormatter compactDateFormat = DateTimeFormat.forPattern("yyyyMMdd");
     public static DateTimeFormatter timeStorageFormat = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmss'Z'");
+    public static DateTimeFormatter httpResponseDateFormat = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss ZZZ");
+
+    // This holds onto the next time that we know quota is available.  The quota for Moves is global
+    // across all the instances using a given consumer key.  The MovesUpdater is a singleton, so
+    // all the Moves updates in a given system will share this same object.  The access to this variable is
+    // synchronized such that the first thread that finds out that the quota has been exceeded for now
+    // can be treated specially with respect to handling rescheduling.  Subsequent threads that find out
+    // that quotaAvailableTime has already been updated beyond the present can either wait until more quota
+    // is available or yield until a later time, but should not try to handle rescheduling.
+    private volatile long quotaAvailableTime=0;
+
+    // This is the maximum number of millis we're willing to wait for quota to become available.  By default it's a
+    // minute
+    private long maxQuotaWaitMillis=DateTimeConstants.MILLIS_PER_MINUTE;
 
     @Autowired
     MovesController controller;
@@ -64,6 +93,10 @@ public class MovesUpdater extends AbstractUpdater {
 
     @Autowired
     JPADaoService jpaDaoService;
+
+    @Autowired
+    ConnectorUpdateService connectorUpdateService;
+
 
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception, UpdateFailedException {
@@ -98,7 +131,7 @@ public class MovesUpdater extends AbstractUpdater {
             String accessToken = controller.getAccessToken(updateInfo.apiKey);
             String query = host + "/user/profile?access_token=" + accessToken;
             try {
-                final String fetched = HttpUtils.fetch(query);
+                final String fetched = fetchMovesAPI(updateInfo, query);
                 countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query);
                 JSONObject json = JSONObject.fromObject(fetched);
                 if (!json.has("profile"))
@@ -131,6 +164,21 @@ public class MovesUpdater extends AbstractUpdater {
                 // The update failed.  We don't know if this is permanent or temporary.
                 // Throw the appropriate exception.
                 throw new UpdateFailedException(e);
+
+            } catch (RateLimitReachedException e) {
+                // Couldn't get user registration date, rate limit reached
+                StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
+                        .append(" message=\"rate limit reached while retrieving UserRegistrationDate\" connector=")
+                        .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+                        .append(updateInfo.apiKey.getGuestId())
+                        .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
+                logger.info(sb.toString());
+
+                countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e),
+                                   429, "Rate limit reached");
+
+                // Rethrow the rate limit reached exception
+                throw e;
 
             } catch (IOException e) {
                 // Couldn't get user registration date
@@ -276,7 +324,7 @@ public class MovesUpdater extends AbstractUpdater {
             String accessToken = controller.getAccessToken(updateInfo.apiKey);
             fetchUrl = String.format(host + "/user/storyline/daily/%s?trackPoints=%s&access_token=%s",
                                             compactDate, withTrackpoints, accessToken);
-            fetched = HttpUtils.fetch(fetchUrl);
+            fetched = fetchMovesAPI(updateInfo, fetchUrl);
             countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, fetchUrl);
         } catch (UnexpectedHttpResponseCodeException e) {
             countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, fetchUrl, Utils.stackTrace(e),
@@ -285,8 +333,17 @@ public class MovesUpdater extends AbstractUpdater {
             // The update failed.  We don't know if this is permanent or temporary.
             // Throw the appropriate exception.
             throw new UpdateFailedException(e);
+        } catch (RateLimitReachedException e) {
+            // Couldn't fetch storyline, rate limit reached
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, fetchUrl, Utils.stackTrace(e),
+                               429, "Rate limit reached");
+
+            // Rethrow the rate limit reached exception
+            throw e;
+
+
         } catch (IOException e) {
-            reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, fetchUrl, Utils.stackTrace(e), "I/O");
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, fetchUrl, Utils.stackTrace(e), -1, "I/O");
 
             // The update failed.  We don't know if this is permanent or temporary.
             // Throw the appropriate exception.
@@ -294,6 +351,266 @@ public class MovesUpdater extends AbstractUpdater {
         }
         return fetched;
     }
+
+    // Return true if we are the first to update the quotaAvailableTime to the new value, and
+    // false otherwise.  In the case that nextQuotaAvailableTime is in the future, the first instance to
+    // update it has the responsibility to deal with rescheduling.  The other instances should wait or defer.
+    private boolean tryUpdateQuotaAvailableTime(final long nextQuotaAvailableTime) {
+        boolean retVal = false;
+
+        // First check if we're obviously not the first to set the most up-to-date quota time.  We
+        // don't need to lock quotaAvailableTime to do that since we'll check it again if we're
+        // possibly the first
+        if(quotaAvailableTime >= nextQuotaAvailableTime)
+            return false;
+
+        // We're potentially the first, check again inside a synchronized block.
+        // If we're still the first, set quotaAvailableTime and return true.  If another
+        // instance beat us, return false.
+        synchronized (this) {
+            if(quotaAvailableTime >= nextQuotaAvailableTime)
+                return false;
+            else {
+                quotaAvailableTime = nextQuotaAvailableTime;
+                return true;
+            }
+
+        }
+    }
+
+    private long getQuotaAvailableTime()
+    {
+        synchronized (this) {
+            return(quotaAvailableTime);
+        }
+    }
+
+    // First attempt: problem is that synchronized doesn't work on primitive types
+    //private boolean tryUpdateQuotaAvailableTime(final long nextQuotaAvailableTime) {
+    //    boolean retVal = false;
+    //
+    //    // First check if we're obviously not the first to set the most up-to-date quota time.  We
+    //    // don't need to lock quotaAvailableTime to do that since we'll check it again if we're
+    //    // possibly the first
+    //    if(quotaAvailableTime >= nextQuotaAvailableTime)
+    //        return false;
+    //
+    //    // We're potentially the first, check again inside a synchronized block.
+    //    // If we're still the first, set quotaAvailableTime and return true.  If another
+    //    // instance beat us, return false.
+    //    synchronized (quotaAvailableTime) {
+    //        if(quotaAvailableTime >= nextQuotaAvailableTime)
+    //            return false;
+    //        else {
+    //            quotaAvailableTime = nextQuotaAvailableTime;
+    //            return true;
+    //        }
+    //
+    //    }
+    //}
+
+    // Check if we would expect quota to be currently available for making a Moves API call.
+    // If so, return 0.  If not, return the milliseconds between now and when we'd expect quota to
+    // be available.  This isn't a guarantee that we won't run out of quota before the call happens,
+    // it's just an optimization in the case where there's a current thread and a short quota delay so
+    // we may avoid a 429/retry cycle
+    private long getQuotaWaitTime() {
+        long now = System.currentTimeMillis();
+        long quotaAvailableIn = getQuotaAvailableTime()-now;
+        if(quotaAvailableIn<0)
+            return 0;
+        return quotaAvailableIn;
+    }
+
+    // Generate a time that's randomly distributed through the hour after quotaAvailableTime
+    // to do some load balancing
+    private long getRandomRescheduleTime() {
+        Random generator = new Random();
+        long randomDelayMillis = (long)(generator.nextInt(DateTimeConstants.MILLIS_PER_HOUR));
+        return getQuotaAvailableTime() + randomDelayMillis;
+    }
+
+    // Before call:  Check quotaAvailableTime to see if we can reasonably expect a call to succeed.
+    // After call: Check for X-RateLimit-MinuteRemaining and X-RateLimit-HourRemaining to determine
+    // if we need to change quotaAvailableTime.  If we try to change it and succeed, we should take care
+    // of rescheduling.  If we try to change it and someone else beat us to it, we should just defer
+    private String fetchMovesAPI(final UpdateInfo updateInfo, final String url)
+            throws UnexpectedHttpResponseCodeException, UpdateFailedException, RateLimitReachedException, IOException {
+        String content=null;
+        HttpClient client = env.getHttpClient();
+
+        // Check if we would expect to have enough quota to make this call
+        long waitTime = getQuotaWaitTime();
+        if (waitTime>0) {
+            do {
+                // We don't currently have quota available.  If it'll be available in < 1 minute, just wait.
+                // Otherwise, quit and retry later
+                if(waitTime > maxQuotaWaitMillis) {
+                    // We're not willing to wait that long, reschedule
+                    System.out.println(new StringBuilder().append("MOVES: guestId=").append(updateInfo.getGuestId()).append(", waitTime=").append(waitTime).append(", RESCHEDULING").toString());
+                    // Set the reset time info in updateInfo so that we get scheduled for when the quota becomes available
+                    // + a random number of minutes in the range of 0 to 60 to spread the load of lots of competing
+                    // updaters across the next hour
+                    updateInfo.setResetTime("moves", getRandomRescheduleTime());
+                    throw new RateLimitReachedException();
+                }
+                // We are willing to wait that long
+                System.out.println(new StringBuilder().append("MOVES: guestId=").append(updateInfo.getGuestId()).append(", waitTime=").append(waitTime).append(", WAITING").toString());
+
+                try { Thread.currentThread().sleep(waitTime); }
+                catch(Throwable e) {
+                    e.printStackTrace();
+                    throw new RuntimeException("Unexpected error waiting to enforce rate limits.");
+                }
+                waitTime = getQuotaWaitTime();
+            } while (waitTime>0);
+        }
+
+        // By the time we get to here, we should likely have quota available
+        try {
+            HttpGet get = new HttpGet(url);
+
+            HttpResponse response = client.execute(get);
+
+            // Get the millisecond time of the next available bit of quota.  These fields will be populated for
+            // status 200 or status 429 (over quota).  Other responses may not have them, in which case
+            // responseToQuotaAvailableTime will return -1.  Ignore that case.
+            long nextQuotaAvailableTime = responseToQuotaAvailableTime(updateInfo, response);
+
+            // Update the quotaAvailableTime and check if we're the first to learn that we just blew quota
+            boolean firstToUpdate = tryUpdateQuotaAvailableTime(nextQuotaAvailableTime);
+            long now = System.currentTimeMillis();
+
+            if(firstToUpdate && nextQuotaAvailableTime>now) {
+                // We're the first to find out that quota is gone.  We may or may not have succeeded on this call,
+                // depending on the status code.  Regardless of the status code, fix the scheduling of moves updates
+                // that would otherwise happen before the next quota window opens up.
+                List<UpdateWorkerTask> updateWorkerTasks = connectorUpdateService.getScheduledUpdateWorkerTasksForConnectorNameBeforeTime("moves", nextQuotaAvailableTime);
+                for (int i=0; i<updateWorkerTasks.size(); i++) {
+                    UpdateWorkerTask updateWorkerTask = updateWorkerTasks.get(i);
+                    long rescheduleTime = nextQuotaAvailableTime + i*(DateTimeConstants.MILLIS_PER_MINUTE*3);
+
+                    // Update the scheduled execution time for any moves tasks that would otherwise happen during
+                    // the current quota outage far enough into the future that we should have quota available by then.
+                    // If there's more than one pending, stagger them by a few minutes so that they don't all try to
+                    // happen at once.  The reason the "incrementRetries" arg is true is that that appears to be the
+                    // way to prevent spawning a duplicate entry in the UpdateWorkerTask table.
+                    connectorUpdateService.reScheduleUpdateTask(updateWorkerTask.getId(),
+                                                                rescheduleTime,
+                                                                true,null);
+
+                    logger.info("module=movesUpdater component=fetchMovesAPI action=fetchMovesAPI" +
+                                " message=\"Rescheduling due to quota limit: " +
+                                " \"" + updateWorkerTask + " newUpdateTime=" + rescheduleTime);
+                }
+            }
+
+
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == HttpStatus.SC_OK) {
+                ResponseHandler<String> responseHandler = new BasicResponseHandler();
+                content = responseHandler.handleResponse(response);
+            }
+            else if(statusCode == 401) {
+                // Unauthorized, so this is never going to work
+                // Notify the user that the tokens need to be manually renewed
+                notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
+                                                      "Heads Up. We failed in our attempt to update your Moves connector.<br>" +
+                                                      "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                      "scroll to the Moves connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+                // Record permanent failure since this connector won't work again until
+                // it is reauthenticated
+                guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
+                throw new UpdateFailedException("Unauthorized access", true);
+            }
+            else if(statusCode == 429) {
+                // Over quota, so this API attempt didn't work
+                // Set the reset time info in updateInfo so that we get scheduled for when the quota becomes available
+                updateInfo.setResetTime("moves", getQuotaAvailableTime());
+                throw new RateLimitReachedException();
+            }
+            else {
+                throw new UnexpectedHttpResponseCodeException(response.getStatusLine().getStatusCode(),
+                                                              response.getStatusLine().getReasonPhrase());
+            }
+        }
+        finally {
+            client.getConnectionManager().shutdown();
+        }
+        return content;
+    }
+
+    // Check for Date, X-RateLimit-MinuteRemaining, and X-RateLimit-HourRemaining to determine
+    // the quotaAvailableTime.  If X-RateLimit-MinuteRemaining and X-RateLimit-HourRemaining are
+    // both > 0, then quotaAvailableTime is the start of the minute represented by the Date header.
+    // If X-RateLimit-HourRemaining is zero, then quotaAvailableTime is the start of the next hour
+    // after Date.  If X-RateLimit-HourRemaining is > 0 but X-RateLimit-MinuteRemaining is zero,
+    // then quotaAvailableTime is the start of the minute after Date.
+    // Returns -1 if there's a problem.
+    private static long responseToQuotaAvailableTime(final UpdateInfo updateInfo, final HttpResponse response)
+    {
+        final Header[] dateHeader = response.getHeaders("Date");
+        final Header[] minuteRemainingHeader = response.getHeaders("X-RateLimit-MinuteRemaining");
+        final Header[] hourRemainingHeader = response.getHeaders("X-RateLimit-HourRemaining");
+
+        DateTime headerDate = null;
+        long retMillis=-1;
+
+        if (dateHeader!=null&&dateHeader.length>0) {
+            final String value = dateHeader[0].getValue();
+            if (value!=null) {
+                try {
+                    headerDate = httpResponseDateFormat.parseDateTime(value);
+                } catch(Throwable e) {
+                    logger.warn("Could not parse Date Moves API header, its value is [" + value + "]");
+                }
+            }
+        }
+
+        if(headerDate==null) {
+            return -1;
+        }
+
+        if (minuteRemainingHeader!=null&&minuteRemainingHeader.length>0 &&
+            hourRemainingHeader!=null&&hourRemainingHeader.length>0) {
+            final String minuteRemValue = minuteRemainingHeader[0].getValue();
+            final String hourRemValue = hourRemainingHeader[0].getValue();
+            if (minuteRemValue==null || hourRemValue==null) {
+                return -1;
+            }
+            // Determine if either or both of the minute and hour quotas are gone
+            // by comparing their values to "0"
+            final boolean hourQuotaGone= hourRemValue.equals("0");
+            final boolean minuteQuotaGone= minuteRemValue.equals("0");
+
+            // At this point we know that minuteRemValue and hourRemValue have non-null values
+            // Compute the top of the minute by setting the seconds of minute for
+            // a copy of headerDate to zero
+            DateTime topOfThisMinute = headerDate.secondOfMinute().setCopy(0);
+
+            if(!minuteQuotaGone && !hourQuotaGone) {
+                // We still have quota left for now, return topOfThisMinute
+                retMillis = topOfThisMinute.getMillis();
+            }
+            else if(hourQuotaGone) {
+                // We need to start again at the top of the next hour
+                DateTime topOfThisHour = topOfThisMinute.minuteOfHour().setCopy(0);
+                DateTime topOfNextHour = topOfThisHour.plusHours(1);
+                retMillis = topOfNextHour.getMillis();
+            }
+            else {
+                // We need to start again at the top of the next minute
+                DateTime topOfNextMinute = topOfThisMinute.plusMinutes(1);
+                retMillis = topOfNextMinute.getMillis();
+            }
+
+            long now = System.currentTimeMillis();
+            System.out.println(new StringBuilder().append("MOVES: guestId=").append(updateInfo.getGuestId()).append(", minuteRem=").append(minuteRemValue).append(", hourRem=").append(hourRemValue).append(", nextQuotaMillis=").append(retMillis).append(" (now=").append(now).append(", delta=").append(retMillis - now).append(")").toString());
+        }
+
+        return retMillis;
+    }
+
 
     // getDatesSince takes argument and returns a list of dates in storage format (yyyy-mm-dd)
     private static List<String> getDatesSince(String fromDate) {
@@ -353,8 +670,7 @@ public class MovesUpdater extends AbstractUpdater {
                     // This date is either invalid or would be before the registration date, skip it
                     continue;
                 }
-                System.out.println(date + " / withTrackPoints is " + withTrackpoints);
-                System.out.println("moves connector: fetching story line for date: " + date);
+                System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", moves connector: fetching story line for date " + date + ", withTrackPoints is " + withTrackpoints);
                 String fetched = fetchStorylineForDate(updateInfo, date, withTrackpoints);
 
                 if(fetched!=null) {
@@ -373,6 +689,11 @@ public class MovesUpdater extends AbstractUpdater {
         }
         catch (UpdateFailedException e) {
             // The update failed and whoever threw the error knew enough to have all the details.
+            // Rethrow the error
+            throw e;
+        }
+        catch (RateLimitReachedException e) {
+            // We reached rate limit and whoever threw the error knew enough to have all the details.
             // Rethrow the error
             throw e;
         }
