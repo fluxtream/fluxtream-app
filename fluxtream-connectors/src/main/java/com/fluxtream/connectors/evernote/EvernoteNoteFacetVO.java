@@ -15,6 +15,7 @@ import org.joda.time.format.ISODateTimeFormat;
  */
 public class EvernoteNoteFacetVO extends AbstractInstantFacetVO<EvernoteNoteFacet> {
 
+    public String title;
     public String content;
     public String created;
 
@@ -29,5 +30,6 @@ public class EvernoteNoteFacetVO extends AbstractInstantFacetVO<EvernoteNoteFace
             created = ISODateTimeFormat.basicDateTimeNoMillis().print(facet.created);
         if (facet.htmlContent!=null)
             content = facet.htmlContent;
+        title = facet.title;
     }
 }
