@@ -70,9 +70,11 @@ public class EvernoteUpdater extends AbstractUpdater {
             final NoteStoreClient noteStore = getNoteStoreClient(updateInfo);
             final UserStoreClient userStore = getUserStoreClient(updateInfo);
             performSync(updateInfo, noteStore, userStore, true);
-        } catch (EDAMUserException e) {
-            if (e.getErrorCode()==EDAMErrorCode.RATE_LIMIT_REACHED)
+        } catch (EDAMSystemException e) {
+            if (e.getErrorCode()==EDAMErrorCode.RATE_LIMIT_REACHED) {
+                updateInfo.setResetTime("all", System.currentTimeMillis()+e.getRateLimitDuration()*1000);
                 throw new RateLimitReachedException();
+            }
         }
     }
 
@@ -103,9 +105,11 @@ public class EvernoteUpdater extends AbstractUpdater {
                 return;
             else
                 performSync(updateInfo, noteStore, userStore, false);
-        } catch (EDAMUserException e) {
-            if (e.getErrorCode()==EDAMErrorCode.RATE_LIMIT_REACHED)
+        } catch (EDAMSystemException e) {
+            if (e.getErrorCode()==EDAMErrorCode.RATE_LIMIT_REACHED) {
+                updateInfo.setResetTime("all", System.currentTimeMillis()+e.getRateLimitDuration()*1000);
                 throw new RateLimitReachedException();
+            }
         }
     }
 
