@@ -209,6 +209,19 @@ class UpdateWorker implements Runnable {
 			rescheduleAccordingToQuotaSpecifications(updateInfo, rateLimit);
 			break;
 		case UPDATE_SUCCEEDED:
+            // Check for existing status notification
+            long guestId=updateInfo.apiKey.getGuestId();
+            String statusName = updateInfo.apiKey.getConnector().statusNotificationName();
+            Notification notification = notificationsService.getNamedNotification(guestId,statusName);
+            if (updateInfo.getUpdateType()== UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE ||
+                (notification!=null && notification.deleted==false)) {
+                // This is either an initial history update or there's an existing visible status notification.
+                // Update the notification to show the update succeeded.
+                notificationsService.addNamedNotification(guestId, Notification.Type.INFO,
+                                                          statusName,
+                                                          "<i class=\"icon-ok\" style=\"margin-right:7px\"/>Your " + updateInfo.apiKey.getConnector().getPrettyName() + " data was successfully imported.  " +
+                                                          "See <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a> dialog for details.");
+            }
             if (updateInfo.getUpdateType()== UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE)
                 notificationsService.addNamedNotification(updateInfo.apiKey.getGuestId(), Notification.Type.INFO,
                                                           connector.statusNotificationName(),

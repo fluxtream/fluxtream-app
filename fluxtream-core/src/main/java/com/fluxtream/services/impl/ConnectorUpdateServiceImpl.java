@@ -267,8 +267,9 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
             return null;
         }
 
-        // Set the audit trail according to what just happened
-        updt.addAuditTrailEntry(auditTrailEntry);
+        // Set the audit trail according to what just happened if a non-null auditTrailEntry is provided
+        if(auditTrailEntry!=null)
+            updt.addAuditTrailEntry(auditTrailEntry);
 
         // Spawn a duplicate entry in the UpdateWorker table to record this failure and the reason for it
         if (!incrementRetries) {
@@ -513,6 +514,16 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     public List<UpdateWorkerTask> getAllScheduledUpdateWorkerTasks() {
         List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class,
                                                                  "updateWorkerTasks.all.scheduled");
+        return updateWorkerTasks;
+    }
+
+    @Override
+    public List<UpdateWorkerTask> getScheduledUpdateWorkerTasksForConnectorNameBeforeTime(final String connectorName, long beforeTime) {
+        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class,
+                                                                                  "updateWorkerTasks.byStatus.andName",
+                                                                                  Status.SCHEDULED,
+                                                                                  connectorName,
+                                                                                  beforeTime);
         return updateWorkerTasks;
     }
 

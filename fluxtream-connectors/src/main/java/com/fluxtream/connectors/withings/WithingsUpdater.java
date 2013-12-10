@@ -9,6 +9,7 @@ import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
+import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
@@ -72,7 +73,10 @@ public class WithingsUpdater extends AbstractUpdater {
             notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(), "Heads Up. This server has recently been upgraded to a version that supports<br>" +
                                                                                                                                                 "oauth with the Withings API. Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
                                                                                                                                                 "scroll to the Withings connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
-            return;
+            // Record permanent failure since this connector won't work again until
+            // it is reauthenticated
+            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
+            throw new UpdateFailedException("requires token reauthorization",true);
         }
 
         final String userid = guestService.getApiKeyAttribute(updateInfo.apiKey, "userid");
@@ -104,7 +108,10 @@ public class WithingsUpdater extends AbstractUpdater {
             notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(), "Heads Up. This server has recently been upgraded to a version that supports<br>" +
                                                                                                                                                 "oauth with the Withings API. Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
                                                                                                                                                 "scroll to the Withings connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
-            return;
+            // Record permanent failure since this connector won't work again until
+            // it is reauthenticated
+            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
+            throw new UpdateFailedException("requires token reauthorization",true);
         }
 
         // do v1 API call
