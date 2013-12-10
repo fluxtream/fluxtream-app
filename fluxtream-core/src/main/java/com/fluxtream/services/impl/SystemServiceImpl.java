@@ -108,6 +108,8 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
                                                                       "/evernote/token",
                                                                       Connector.getConnector("evernote"), order++, evernoteKeys!=null,
                                                                       false, true, evernoteKeys);
+        evernoteConnectorInfo.supportsRenewTokens = true;
+        evernoteConnectorInfo.renewTokensUrlTemplate = "evernote/token?apiKeyId=%s";
         em.persist(evernoteConnectorInfo);
 
         final String facebook = "Facebook";

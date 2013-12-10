@@ -34,6 +34,7 @@ public class EvernoteController {
 
     private static final String EVERNOTE_SERVICE = "evernoteService";
     private static final String EVERNOTE_REQUEST_TOKEN = "evernoteRequestToken";
+    private static final String EVERNOTE_RENEWTOKEN_APIKEYID = "evernote.renewtoken.apiKeyId";
 
     @Autowired
     Configuration env;
@@ -61,6 +62,9 @@ public class EvernoteController {
         Token requestToken = service.getRequestToken();
         request.getSession().setAttribute(EVERNOTE_REQUEST_TOKEN, requestToken);
         String authorizationUrl = service.getAuthorizationUrl(requestToken);
+        final String apiKeyIdParameter = request.getParameter("apiKeyId");
+        if (apiKeyIdParameter!=null)
+            request.getSession().setAttribute(EVERNOTE_RENEWTOKEN_APIKEYID, apiKeyIdParameter);
 
         return "redirect:" + authorizationUrl;
     }
@@ -80,13 +84,25 @@ public class EvernoteController {
         Guest guest = AuthHelper.getGuest();
 
         final Connector connector = Connector.getConnector("evernote");
-        final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector);
 
+        ApiKey apiKey;
+        if (request.getSession().getAttribute(EVERNOTE_RENEWTOKEN_APIKEYID)!=null) {
+            final String apiKeyIdString = (String) request.getSession().getAttribute(EVERNOTE_RENEWTOKEN_APIKEYID);
+            long apiKeyId = Long.valueOf(apiKeyIdString);
+            apiKey = guestService.getApiKey(apiKeyId);
+        } else
+            apiKey = guestService.createApiKey(guest.getId(), connector);
+
+        guestService.populateApiKey(apiKey.getId());
         guestService.setApiKeyAttribute(apiKey, "accessToken", token);
         guestService.setApiKeyAttribute(apiKey, "tokenSecret", secret);
 
         request.getSession().removeAttribute(EVERNOTE_REQUEST_TOKEN);
         request.getSession().removeAttribute(EVERNOTE_SERVICE);
+        if (request.getSession().getAttribute(EVERNOTE_RENEWTOKEN_APIKEYID)!=null) {
+            request.getSession().removeAttribute(EVERNOTE_RENEWTOKEN_APIKEYID);
+            return "redirect:/app/tokenRenewed/evernote";
+        }
         return "redirect:/app/from/evernote";
     }
 
