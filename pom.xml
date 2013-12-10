@@ -612,6 +612,11 @@
             <artifactId>evernote-api</artifactId>
             <version>1.25.1</version>
         </dependency>
+        <dependency>
+            <groupId>com.syncthemall</groupId>
+            <artifactId>enml4j</artifactId>
+            <version>0.2.1</version>
+        </dependency>
     </dependencies>
 	<properties>
 		<spring.version>3.1.0.RELEASE</spring.version>

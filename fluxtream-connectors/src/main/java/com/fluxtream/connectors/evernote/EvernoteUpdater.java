@@ -2,32 +2,42 @@ package com.fluxtream.connectors.evernote;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import com.evernote.auth.EvernoteAuth;
 import com.evernote.auth.EvernoteService;
 import com.evernote.clients.ClientFactory;
 import com.evernote.clients.NoteStoreClient;
+import com.evernote.clients.UserStoreClient;
 import com.evernote.edam.error.EDAMErrorCode;
+import com.evernote.edam.error.EDAMNotFoundException;
 import com.evernote.edam.error.EDAMSystemException;
 import com.evernote.edam.error.EDAMUserException;
 import com.evernote.edam.notestore.SyncChunk;
 import com.evernote.edam.notestore.SyncState;
+import com.evernote.edam.type.Data;
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Notebook;
+import com.evernote.edam.type.Resource;
+import com.evernote.edam.type.ResourceAttributes;
 import com.evernote.edam.type.Tag;
+import com.evernote.edam.type.User;
+import com.evernote.edam.userstore.PublicUserInfo;
 import com.evernote.thrift.TException;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.annotations.Updater;
+import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
+import com.fluxtream.services.MetadataService;
 import com.fluxtream.utils.JPAUtils;
+import com.syncthemall.enml4j.ENMLProcessor;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,9 +46,12 @@ import org.springframework.stereotype.Component;
  * @author Candide Kemmler (candide@fluxtream.com)
  */
 @Component
-@Updater(prettyName = "Evernote", value = 17, objectTypes ={EvernoteNoteFacet.class})
+@Updater(prettyName = "Evernote", value = 17, objectTypes ={LocationFacet.class, EvernoteNoteFacet.class,
+                                                            EvernoteTagFacet.class, EvernoteNotebookFacet.class,
+                                                            EvernoteResourceFacet.class})
 public class EvernoteUpdater extends AbstractUpdater {
 
+    private static final String PUBLIC_USER_INFO = "publicUserInfo";
     FlxLogger logger = FlxLogger.getLogger(EvernoteUpdater.class);
 
     private static final int MAX_ENTRIES = 200;
@@ -48,11 +61,15 @@ public class EvernoteUpdater extends AbstractUpdater {
     @Autowired
     JPADaoService jpaDaoService;
 
+    @Autowired
+    MetadataService metadataService;
+
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
         try {
             final NoteStoreClient noteStore = getNoteStoreClient(updateInfo);
-            performSync(updateInfo, noteStore, true);
+            final UserStoreClient userStore = getUserStoreClient(updateInfo);
+            performSync(updateInfo, noteStore, userStore, true);
         } catch (EDAMUserException e) {
             if (e.getErrorCode()==EDAMErrorCode.RATE_LIMIT_REACHED)
                 throw new RateLimitReachedException();
@@ -63,6 +80,7 @@ public class EvernoteUpdater extends AbstractUpdater {
     protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
         try {
             final NoteStoreClient noteStore = getNoteStoreClient(updateInfo);
+            final UserStoreClient userStore = getUserStoreClient(updateInfo);
             final SyncState syncState = noteStore.getSyncState();
             long lastSyncTime = Long.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_SYNC_TIME));
             long lastUpdateCount = Long.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_UPDATE_COUNT));
@@ -78,13 +96,13 @@ public class EvernoteUpdater extends AbstractUpdater {
                 guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), LAST_UPDATE_COUNT);
                 // let's properly log this
                 logger.info("FullSync required for evernote connector, apiKeyId=" + updateInfo.apiKey.getId());
-                performSync(updateInfo, noteStore, true);
+                performSync(updateInfo, noteStore, userStore, true);
             }
             else if (syncState.getUpdateCount()==lastUpdateCount)
                 // nothing happened since we last updated
                 return;
             else
-                performSync(updateInfo, noteStore, false);
+                performSync(updateInfo, noteStore, userStore, false);
         } catch (EDAMUserException e) {
             if (e.getErrorCode()==EDAMErrorCode.RATE_LIMIT_REACHED)
                 throw new RateLimitReachedException();
@@ -98,8 +116,14 @@ public class EvernoteUpdater extends AbstractUpdater {
         return factory.createNoteStoreClient();
     }
 
-    private void performSync(final UpdateInfo updateInfo, final NoteStoreClient noteStore,
-                             final boolean forceFullSync) throws Exception {
+    private UserStoreClient getUserStoreClient(final UpdateInfo updateInfo) throws EDAMUserException, EDAMSystemException, TException {
+        String token = guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken");
+        EvernoteAuth evernoteAuth = new EvernoteAuth(EvernoteService.SANDBOX, token);
+        ClientFactory factory = new ClientFactory(evernoteAuth);
+        return factory.createUserStoreClient();
+    }
+
+    private void performSync(final UpdateInfo updateInfo, final NoteStoreClient noteStore, final UserStoreClient userStore, final boolean forceFullSync) throws Exception {
         // retrieve lastUpdateCount - this could be an incremental update or
         // a second attempt at a previously failed history update
         final String lastUpdateCountAtt = guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_UPDATE_COUNT);
@@ -112,7 +136,7 @@ public class EvernoteUpdater extends AbstractUpdater {
 
         createOrUpdateTags(updateInfo, chunks);
         createOrUpdateNotebooks(updateInfo, chunks);
-        createOrUpdateNotes(updateInfo, chunks, noteStore);
+        createOrUpdateNotes(updateInfo, chunks, noteStore, userStore);
 
         // process expunged items in the case of an incremental update and we are not required
         // to do a full sync (in which case it would be a no-op)
@@ -192,7 +216,8 @@ public class EvernoteUpdater extends AbstractUpdater {
         }
     }
 
-    private void createOrUpdateNotes(final UpdateInfo updateInfo, final LinkedList<SyncChunk> chunks, NoteStoreClient noteStoreClient) throws Exception {
+    private void createOrUpdateNotes(final UpdateInfo updateInfo, final LinkedList<SyncChunk> chunks,
+                                     NoteStoreClient noteStore, final UserStoreClient userStore) throws Exception {
         List<Note> notes = new ArrayList<Note>();
         List<String> expungedNoteGuids = new ArrayList<String>();
         for (SyncChunk chunk : chunks){
@@ -205,7 +230,7 @@ public class EvernoteUpdater extends AbstractUpdater {
         }
         for (Note note : notes) {
             if (!expungedNoteGuids.contains(note.getGuid()))
-                createOrUpdateNote(updateInfo, note, noteStoreClient);
+                createOrUpdateNote(updateInfo, note, noteStore, userStore);
         }
     }
 
@@ -231,7 +256,7 @@ public class EvernoteUpdater extends AbstractUpdater {
         guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_SYNC_TIME, String.valueOf(serviceLastSyncTime));
     }
 
-    private void createOrUpdateNote(final UpdateInfo updateInfo, final Note note, final NoteStoreClient noteStore) throws Exception {
+    private void createOrUpdateNote(final UpdateInfo updateInfo, final Note note, final NoteStoreClient noteStore, final UserStoreClient userStore) throws Exception {
         final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery(
                 "e.apiKeyId=? AND e.guid=?",
                 updateInfo.apiKey.getId(), note.getGuid());
@@ -247,7 +272,7 @@ public class EvernoteUpdater extends AbstractUpdater {
                     facet.contentLength!=note.getContentLength())||
                     facet.USN<note.getUpdateSequenceNum()){
                 }
-                Note freshlyRetrievedNote = noteStore.getNote(note.getGuid(), true, false, false, false);
+                Note freshlyRetrievedNote = noteStore.getNote(note.getGuid(), true, true, true, true);
                 facet.timeUpdated = System.currentTimeMillis();
                 if (freshlyRetrievedNote.isSetUpdateSequenceNum())
                     facet.USN = freshlyRetrievedNote.getUpdateSequenceNum();
@@ -255,8 +280,20 @@ public class EvernoteUpdater extends AbstractUpdater {
                     facet.contentHash = freshlyRetrievedNote.getContentHash();
                 if (freshlyRetrievedNote.isSetContentLength())
                     facet.contentLength = freshlyRetrievedNote.getContentLength();
-                if (freshlyRetrievedNote.isSetContent())
+                Map<String, String> mapHashtoURL = new HashMap<String, String>();
+                if (freshlyRetrievedNote.isSetResources()) {
+                    for (Resource resource : freshlyRetrievedNote.getResources()) {
+                        createOrUpdateResource(updateInfo, resource);
+                        String webResourcePath = new StringBuilder("/evernote/res/").append(resource.getGuid()).toString();
+                        mapHashtoURL.put(resource.getGuid(), webResourcePath);
+                    }
+                }
+                if (freshlyRetrievedNote.isSetContent()) {
                     facet.content = freshlyRetrievedNote.getContent();
+                    ENMLProcessor processor = new ENMLProcessor();
+                    final String htmlContent = processor.noteToHTMLString(freshlyRetrievedNote, mapHashtoURL);
+                    facet.htmlContent = htmlContent;
+                }
                 facet.clearTags();
                 if (freshlyRetrievedNote.isSetTagNames())
                     facet.addTags(StringUtils.join(freshlyRetrievedNote.getTagNames(), ","), ',');
@@ -280,17 +317,122 @@ public class EvernoteUpdater extends AbstractUpdater {
                 if (freshlyRetrievedNote.isSetActive())
                     facet.active = freshlyRetrievedNote.isActive();
 
-                if (freshlyRetrievedNote.isSetResources()) {
-                    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-                    String json = ow.writeValueAsString(freshlyRetrievedNote.getResources());
-                    facet.resourcesStorage = json;
-                }
-
                 return facet;
             }
         };
         // we could use the resulting value (facet) from this call if we needed to do further processing on it (e.g. passing it on to the datastore)
         apiDataService.createOrReadModifyWrite(EvernoteNoteFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
+    }
+
+    private void createOrUpdateResource(final UpdateInfo updateInfo, final Resource resource) throws Exception {
+        final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery(
+                "e.apiKeyId=? AND e.guid=?",
+                updateInfo.apiKey.getId(), resource.getGuid());
+        final ApiDataService.FacetModifier<EvernoteResourceFacet> facetModifier = new ApiDataService.FacetModifier<EvernoteResourceFacet>() {
+            @Override
+            public EvernoteResourceFacet createOrModify(EvernoteResourceFacet facet, final Long apiKeyId) throws Exception {
+                if (facet == null) {
+                    facet = new EvernoteResourceFacet(updateInfo.apiKey.getId());
+                    extractCommonFacetData(facet, updateInfo);
+                    facet.guid = resource.getGuid();
+                }
+                if (facet.USN!=null&&resource.getUpdateSequenceNum()>facet.USN) {
+                    if (resource.isSetAlternateData()) {
+                        Data alternateData = resource.getAlternateData();
+                        if (alternateData.isSetBody())
+                            facet.alternateDataBody = alternateData.getBody();
+                        if (alternateData.isSetBodyHash())
+                            facet.alternateDataBodyHash = alternateData.getBodyHash();
+                        if (alternateData.isSetSize())
+                            facet.alternateDataSize = alternateData.getSize();
+                    }
+                    if (resource.isSetAttributes()) {
+                        final ResourceAttributes resourceAttributes = resource.getAttributes();
+                        if (resourceAttributes.isSetAltitude())
+                            facet.altitude = resourceAttributes.getAltitude();
+                        if (resourceAttributes.isSetAttachment())
+                            facet.isAttachment = resourceAttributes.isAttachment();
+                        if (resourceAttributes.isSetCameraMake())
+                            facet.cameraMake = resourceAttributes.getCameraMake();
+                        if (resourceAttributes.isSetCameraModel())
+                            facet.cameraModel = resourceAttributes.getCameraModel();
+                        if (resourceAttributes.isSetFileName())
+                            facet.fileName = resourceAttributes.getFileName();
+                        if (resourceAttributes.isSetLatitude())
+                            facet.latitude = resourceAttributes.getLatitude();
+                        if (resourceAttributes.isSetLongitude())
+                            facet.longitude = resourceAttributes.getLongitude();
+                        if (resourceAttributes.isSetRecoType())
+                            facet.recoType = resourceAttributes.getRecoType();
+                        if (resourceAttributes.isSetSourceURL())
+                            facet.sourceURL = resourceAttributes.getSourceURL();
+                        if (resourceAttributes.isSetTimestamp())
+                            facet.timestamp = resourceAttributes.getTimestamp();
+                        if (resourceAttributes.isSetTimestamp() &&
+                            resourceAttributes.isSetLongitude() &&
+                            resourceAttributes.isSetLatitude()){
+                            addGuestLocation(updateInfo, facet.latitude, facet.longitude, facet.altitude, facet.timestamp);
+                        }
+                    }
+                    if (resource.isSetData()) {
+                        Data Data = resource.getData();
+                        if (Data.isSetBody())
+                            facet.dataBody = Data.getBody();
+                        if (Data.isSetBodyHash())
+                            facet.dataBodyHash = Data.getBodyHash();
+                        if (Data.isSetSize())
+                            facet.dataSize = Data.getSize();
+                    }
+                    if (resource.isSetHeight())
+                        facet.height = resource.getHeight();
+                    if (resource.isSetMime())
+                        facet.mime = resource.getMime();
+                    if (resource.isSetNoteGuid())
+                        facet.noteGuid = resource.getNoteGuid();
+                    if (resource.isSetRecognition()) {
+                        Data recognitionData = resource.getRecognition();
+                        if (recognitionData.isSetBody())
+                            facet.recognitionDataBody = recognitionData.getBody();
+                        if (recognitionData.isSetBodyHash())
+                            facet.recognitionDataBodyHash = recognitionData.getBodyHash();
+                        if (recognitionData.isSetSize())
+                            facet.recognitionDataSize = recognitionData.getSize();
+                    }
+                    if (resource.isSetUpdateSequenceNum())
+                        facet.USN = resource.getUpdateSequenceNum();
+                    if (resource.isSetWidth())
+                        facet.width = resource.getWidth();
+                }
+                return facet;
+            }
+        };
+        apiDataService.createOrReadModifyWrite(EvernoteResourceFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
+    }
+
+    private void addGuestLocation(final UpdateInfo updateInfo, final Double latitude, final Double longitude, final Double altitude, final Long timestamp) {
+        LocationFacet locationFacet = new LocationFacet(updateInfo.apiKey.getId());
+        locationFacet.latitude = latitude.floatValue();
+        locationFacet.longitude = longitude.floatValue();
+        if (altitude!=null)
+            locationFacet.altitude = altitude.intValue();
+        locationFacet.timestampMs = timestamp;
+        locationFacet.start = locationFacet.timestampMs;
+        locationFacet.end = locationFacet.timestampMs;
+        locationFacet.source = LocationFacet.Source.EVERNOTE;
+        locationFacet.apiKeyId = updateInfo.apiKey.getId();
+        locationFacet.api = connector().value();
+        apiDataService.addGuestLocation(updateInfo.getGuestId(), locationFacet);
+    }
+
+    private PublicUserInfo getPublicUserInfo(final UpdateInfo updateInfo, final UserStoreClient userStore)
+            throws TException, EDAMUserException, EDAMSystemException, EDAMNotFoundException {
+        final Object publicUserInfoObj = updateInfo.getContext(PUBLIC_USER_INFO);
+        if (publicUserInfoObj==null) {
+            final User user = userStore.getUser();
+            PublicUserInfo userInfo = userStore.getPublicUserInfo(user.getUsername());
+            updateInfo.setContext(PUBLIC_USER_INFO, userInfo);
+        }
+        return (PublicUserInfo)updateInfo.getContext(PUBLIC_USER_INFO);
     }
 
     private void removeEvernoteFacet(final UpdateInfo updateInfo, Class<? extends EvernoteFacet> clazz, final String guid) {
