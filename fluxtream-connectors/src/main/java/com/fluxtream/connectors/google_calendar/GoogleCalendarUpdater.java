@@ -471,32 +471,10 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
             if (tokenExpires<System.currentTimeMillis()) {
                 boolean tokenRefreshed = false;
 
-                // Check to see if we are running on a mirrored test instance.
-                // If we are and the stored google.client.id doesn't match the
-                // test instance's google.client.id, refrain from swapping tokens lest we
-                // invalidate an existing token instance on the main server
-                String disableTokenSwap = env.get("disableTokenSwap");
-                if(disableTokenSwap!=null && disableTokenSwap.equals("true") && !clientId.equals(env.get("google.client.id"))) {
-                    String msg = "**** Skipping token refresh for google calendar connector instance because disableTokenSwap is set on this server";
+                // Don't worry about checking if we are running on a mirrored test instance.
+                // Refreshing tokens independently on both the main server and a mirrored instance
+                // seems to work just fine.
 
-                    StringBuilder sb = new StringBuilder("module=GoogleCalendarUpdater component=background_updates action=refreshToken apiKeyId=" + apiKey.getId())
-                            .append(" message=\"").append(msg).append("\"");
-                    logger.info(sb.toString());
-                    System.out.println(msg);
-
-                    // Notify the user that the tokens need to be manually renewed
-                    notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
-                                                              "Heads Up. This server cannot automatically refresh your authentication tokens.<br>" +
-                                                              "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
-                                                              "scroll to the Google Calendar connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
-
-                    // Record permanent failure since this connector won't work again until
-                    // it is reauthenticated
-                    guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
-                    throw new UpdateFailedException("requires token reauthorization",true);
-                }
-
-                // We're not on a mirrored test server or else the token has been reauthorized on this server already.
                 // Try to swap the expired access token for a fresh one.
                 tokenRefreshed = credential.refreshToken();
 
