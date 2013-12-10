@@ -173,6 +173,7 @@ public class AdminController {
         mav.addObject("guestId", guest.getId());
         mav.addObject("apiKeyId", apiKeyId);
         mav.addObject("apiKey", apiKey);
+        mav.addObject("attributes", guestService.getApiKeyAttributes(apiKeyId));
         mav.addObject("connectorInstanceModel", connectorInstanceModel);
         mav.addObject("lastUpdates", lastUpdates);
         List<UpdateWorkerTask> scheduledTasks = getScheduledTasks(apiKey);

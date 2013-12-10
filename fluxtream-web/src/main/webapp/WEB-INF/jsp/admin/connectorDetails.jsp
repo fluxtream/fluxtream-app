@@ -1,29 +1,31 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"%><%@ page import="java.util.ArrayList"
-%><%@ page import="java.util.Arrays"
 %><%@ page import="java.util.List"
+%><%@ page import="java.util.Map"
 %>
-<%@ page import="java.util.Map" %>
+<%@ page import="java.util.Set" %>
 <%@ page import="com.fluxtream.connectors.Connector" %>
 <%@ page import="com.fluxtream.connectors.ObjectType" %>
 <%@ page import="com.fluxtream.domain.ApiKey" %>
 <%@ page import="com.fluxtream.domain.ApiUpdate" %>
 <%@ page import="com.fluxtream.domain.Guest" %>
 <%@ page import="com.fluxtream.domain.UpdateWorkerTask" %>
-<%@ page import="org.joda.time.format.DateTimeFormat" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="org.joda.time.format.DateTimeFormat" %>
 <%
     Guest guest = (Guest)request.getAttribute("guest");
     Map<String,Object> connectorInstanceModel = (Map<String,Object>) request.getAttribute("connectorInstanceModel");
     List<ApiUpdate> lastUpdates = (List<ApiUpdate>) request.getAttribute("lastUpdates");
     List<UpdateWorkerTask> scheduledTasks = (List<UpdateWorkerTask>)request.getAttribute("scheduledTasks");
     ApiKey apiKey = (ApiKey)request.getAttribute("apiKey");
+    Map<String,String> attributes = (Map<String,String>)request.getAttribute("attributes");
     final int[] values = apiKey.getConnector().objectTypeValues();
     final List<Integer> connectorObjectTypes = new ArrayList<Integer>();
     for (int value : values)
         connectorObjectTypes.add(value);
     String errors = (String) connectorInstanceModel.get("auditTrail");
 %>
+<jsp:include page="editAttributesScript.jsp"></jsp:include>
 
 <h3><%=guest.getGuestName()%>/<%=apiKey.getConnector().prettyName()%>
     <% if (connectorInstanceModel.get("status").equals("STATUS_PERMANENT_FAILURE")) { %>
@@ -38,6 +40,19 @@
     <a class="btn btn-link" style="vertical-align: bottom" href="/admin/<%=apiKey.getGuestId()%>/<%=apiKey.getId()%>/setToPermanentFail">Set to permanent fail</a>
     <% } %>
 </h3>
+
+
+<div class="well">
+    <% Set<Map.Entry<String,String>> attributeEntries = attributes.entrySet();
+        for (Map.Entry<String,String> attributeEntry : attributeEntries) {%>
+    <%=attributeEntry.getKey()%> : <%=attributeEntry.getValue()%>
+    <a onclick="editApiKeyAttributeValue(<%=apiKey.getId()%>, '<%=attributeEntry.getKey()%>', '<%=attributeEntry.getValue()%>')"><i class="icon icon-pencil"></i></a>
+    <a onclick="deleteApiKeyAttributeValue(<%=apiKey.getId()%>, '<%=attributeEntry.getKey()%>')"><i class="icon icon-trash"></i></a>
+    <br>
+    <% } %>
+    <a onclick="addApiKeyAttribute(<%=apiKey.getId()%>)"><i class="icon icon-plus"></i>&nbsp;add attribute</a>
+</div>
+
 
 <h4>Force Update <small> - the type of update (history vs incremental) will depend on the type and
     status of the last update of that facet type</small>
