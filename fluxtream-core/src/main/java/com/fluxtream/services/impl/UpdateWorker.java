@@ -188,10 +188,21 @@ class UpdateWorker implements Runnable {
 
 	private void handleUpdateResult(final UpdateInfo updateInfo, UpdateResult updateResult) {
         guestService.setApiKeyToSynching(updateInfo.apiKey.getId(), false);
-		switch (updateResult.getType()) {
+        final Connector connector = updateInfo.apiKey.getConnector();
+        switch (updateResult.getType()) {
 		case DUPLICATE_UPDATE:
 			duplicateUpdate();
 			break;
+        case NEEDS_REAUTH:
+            notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
+                                                      connector.statusNotificationName(),
+                                                      "Heads Up. Your " + connector.prettyName() + " Authorization Token has expired.<br>" +
+                                                      "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                      "scroll to the " + connector.prettyName() + " section, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+            // ideally we would have an ApiKey.Status specifically for this but STATUS_OVER_RATE_LIMIT is good enough
+            // especially with the accompanying message
+            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_OVER_RATE_LIMIT, connector.getName() + " needs re-auth");
+            break;
 		case HAS_REACHED_RATE_LIMIT:
             final UpdateWorkerTask.AuditTrailEntry rateLimit = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "long reschedule");
             rateLimit.stackTrace = updateResult.stackTrace;
@@ -200,8 +211,8 @@ class UpdateWorker implements Runnable {
 		case UPDATE_SUCCEEDED:
             if (updateInfo.getUpdateType()== UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE)
                 notificationsService.addNamedNotification(updateInfo.apiKey.getGuestId(), Notification.Type.INFO,
-                                                          updateInfo.apiKey.getConnector().statusNotificationName(),
-                                                          "<i class=\"icon-ok\" style=\"margin-right:7px\"/>Your " + updateInfo.apiKey.getConnector().getPrettyName() + " data was successfully imported.  " +
+                                                          connector.statusNotificationName(),
+                                                          "<i class=\"icon-ok\" style=\"margin-right:7px\"/>Your " + connector.getPrettyName() + " data was successfully imported.  " +
                                                           "See <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a> dialog for details."
                 );
 			success(updateInfo.apiKey);
@@ -227,8 +238,8 @@ class UpdateWorker implements Runnable {
             }
             if (updateInfo.getUpdateType()== UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE)
                 notificationsService.addNamedNotification(updateInfo.apiKey.getGuestId(), Notification.Type.ERROR,
-                                                          updateInfo.apiKey.getConnector().statusNotificationName(),
-                                                          "<i class=\"icon-remove-sign\" style=\"color:red;margin-right:7px\"/>There was a problem while importing your " + updateInfo.apiKey.getConnector().getPrettyName() + " data. We will try again later.  " +
+                                                          connector.statusNotificationName(),
+                                                          "<i class=\"icon-remove-sign\" style=\"color:red;margin-right:7px\"/>There was a problem while importing your " + connector.getPrettyName() + " data. We will try again later.  " +
                                                           "See <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a> dialog for details."
                 );
 			break;

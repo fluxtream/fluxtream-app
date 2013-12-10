@@ -30,6 +30,7 @@ import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
+import com.fluxtream.connectors.updaters.AuthExpiredException;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.services.ApiDataService;
@@ -66,51 +67,37 @@ public class EvernoteUpdater extends AbstractUpdater {
 
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
-        try {
-            final NoteStoreClient noteStore = getNoteStoreClient(updateInfo);
-            final UserStoreClient userStore = getUserStoreClient(updateInfo);
-            performSync(updateInfo, noteStore, userStore, true);
-        } catch (EDAMSystemException e) {
-            if (e.getErrorCode()==EDAMErrorCode.RATE_LIMIT_REACHED) {
-                updateInfo.setResetTime("all", System.currentTimeMillis()+e.getRateLimitDuration()*1000);
-                throw new RateLimitReachedException();
-            }
-        }
+        final NoteStoreClient noteStore = getNoteStoreClient(updateInfo);
+        final UserStoreClient userStore = getUserStoreClient(updateInfo);
+        performSync(updateInfo, noteStore, userStore, true);
     }
 
     @Override
     protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
-        try {
-            final NoteStoreClient noteStore = getNoteStoreClient(updateInfo);
-            final UserStoreClient userStore = getUserStoreClient(updateInfo);
-            final SyncState syncState = noteStore.getSyncState();
-            long lastSyncTime = Long.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_SYNC_TIME));
-            long lastUpdateCount = Long.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_UPDATE_COUNT));
-            if (syncState.getFullSyncBefore()>lastSyncTime) {
-                // according to the edam sync spec, fullSyncBefore is "the cut-off date for old caching clients
-                // to perform an incremental (vs. full) synchronization. This value may correspond to the point
-                // where historic data (e.g. regarding expunged objects) was wiped from the account, or possibly
-                // the time of a serious server issue that would invalidate client USNs"
-                // This means that we are may leave items that the user actually deleted in the database, and thus
-                // we need to basically do a history update again
-                apiDataService.eraseApiData(updateInfo.apiKey);
-                guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), LAST_SYNC_TIME);
-                guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), LAST_UPDATE_COUNT);
-                // let's properly log this
-                logger.info("FullSync required for evernote connector, apiKeyId=" + updateInfo.apiKey.getId());
-                performSync(updateInfo, noteStore, userStore, true);
-            }
-            else if (syncState.getUpdateCount()==lastUpdateCount)
-                // nothing happened since we last updated
-                return;
-            else
-                performSync(updateInfo, noteStore, userStore, false);
-        } catch (EDAMSystemException e) {
-            if (e.getErrorCode()==EDAMErrorCode.RATE_LIMIT_REACHED) {
-                updateInfo.setResetTime("all", System.currentTimeMillis()+e.getRateLimitDuration()*1000);
-                throw new RateLimitReachedException();
-            }
+        final NoteStoreClient noteStore = getNoteStoreClient(updateInfo);
+        final UserStoreClient userStore = getUserStoreClient(updateInfo);
+        final SyncState syncState = noteStore.getSyncState();
+        long lastSyncTime = Long.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_SYNC_TIME));
+        long lastUpdateCount = Long.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_UPDATE_COUNT));
+        if (syncState.getFullSyncBefore()>lastSyncTime) {
+            // according to the edam sync spec, fullSyncBefore is "the cut-off date for old caching clients
+            // to perform an incremental (vs. full) synchronization. This value may correspond to the point
+            // where historic data (e.g. regarding expunged objects) was wiped from the account, or possibly
+            // the time of a serious server issue that would invalidate client USNs"
+            // This means that we are may leave items that the user actually deleted in the database, and thus
+            // we need to basically do a history update again
+            apiDataService.eraseApiData(updateInfo.apiKey);
+            guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), LAST_SYNC_TIME);
+            guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), LAST_UPDATE_COUNT);
+            // let's properly log this
+            logger.info("FullSync required for evernote connector, apiKeyId=" + updateInfo.apiKey.getId());
+            performSync(updateInfo, noteStore, userStore, true);
         }
+        else if (syncState.getUpdateCount()==lastUpdateCount)
+            // nothing happened since we last updated
+            return;
+        else
+            performSync(updateInfo, noteStore, userStore, false);
     }
 
     private NoteStoreClient getNoteStoreClient(final UpdateInfo updateInfo) throws EDAMUserException, EDAMSystemException, TException {
@@ -128,29 +115,43 @@ public class EvernoteUpdater extends AbstractUpdater {
     }
 
     private void performSync(final UpdateInfo updateInfo, final NoteStoreClient noteStore, final UserStoreClient userStore, final boolean forceFullSync) throws Exception {
-        // retrieve lastUpdateCount - this could be an incremental update or
-        // a second attempt at a previously failed history update
-        final String lastUpdateCountAtt = guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_UPDATE_COUNT);
-        int lastUpdateCount = 0;
-        if (lastUpdateCountAtt!=null)
-            lastUpdateCount = Integer.valueOf(lastUpdateCountAtt);
+        try {
+            // retrieve lastUpdateCount - this could be an incremental update or
+            // a second attempt at a previously failed history update
+            final String lastUpdateCountAtt = guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_UPDATE_COUNT);
+            int lastUpdateCount = 0;
+            if (lastUpdateCountAtt!=null)
+                lastUpdateCount = Integer.valueOf(lastUpdateCountAtt);
 
-        // retrieve sync chunks at once
-        LinkedList<SyncChunk> chunks = getSyncChunks(noteStore, lastUpdateCount);
+            // retrieve sync chunks at once
+            LinkedList<SyncChunk> chunks = getSyncChunks(noteStore, lastUpdateCount);
 
-        createOrUpdateTags(updateInfo, chunks);
-        createOrUpdateNotebooks(updateInfo, chunks);
-        createOrUpdateNotes(updateInfo, chunks, noteStore, userStore);
+            createOrUpdateTags(updateInfo, chunks);
+            createOrUpdateNotebooks(updateInfo, chunks);
+            createOrUpdateNotes(updateInfo, chunks, noteStore, userStore);
 
-        // process expunged items in the case of an incremental update and we are not required
-        // to do a full sync (in which case it would be a no-op)
-        if (updateInfo.getUpdateType()==UpdateInfo.UpdateType.INCREMENTAL_UPDATE && !forceFullSync) {
-            processExpungedNotes(updateInfo, chunks);
-            processExpungedNotebooks(updateInfo, chunks);
-            processExpungedTags(updateInfo, chunks);
+            // process expunged items in the case of an incremental update and we are not required
+            // to do a full sync (in which case it would be a no-op)
+            if (updateInfo.getUpdateType()==UpdateInfo.UpdateType.INCREMENTAL_UPDATE && !forceFullSync) {
+                processExpungedNotes(updateInfo, chunks);
+                processExpungedNotebooks(updateInfo, chunks);
+                processExpungedTags(updateInfo, chunks);
+            }
+
+            saveSyncState(updateInfo, noteStore);
+        } catch (EDAMSystemException e) {
+            // if rate limit has been reached, EN will send us the time when we can call the API again
+            // and we can explicitely inform the userInfo object of it
+            if (e.getErrorCode()== EDAMErrorCode.RATE_LIMIT_REACHED) {
+                updateInfo.setResetTime("all", System.currentTimeMillis()+e.getRateLimitDuration()*1000);
+                throw new RateLimitReachedException();
+            }
+        } catch (EDAMUserException e) {
+            // if the auth token expired, we have no other choice than to have the user re-authenticate
+            if (e.getErrorCode()==EDAMErrorCode.AUTH_EXPIRED) {
+                throw new AuthExpiredException();
+            }
         }
-
-        saveSyncState(updateInfo, noteStore);
     }
 
     private void processExpungedNotes(final UpdateInfo updateInfo, final LinkedList<SyncChunk> chunks) {

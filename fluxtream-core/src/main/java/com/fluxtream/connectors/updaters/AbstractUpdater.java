@@ -116,6 +116,13 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                     .append(updateInfo.apiKey.getGuestId());
             logger.warn(sb.toString());
             return UpdateResult.rateLimitReachedResult(e);
+        } catch (AuthExpiredException e) {
+            StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateDataHistory")
+                    .append(" message=\"connector needs re-authorization\" connector=")
+                    .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+                    .append(updateInfo.apiKey.getGuestId());
+            logger.warn(sb.toString());
+            return UpdateResult.needsReauth();
         } catch (UpdateFailedException e) {
             String stackTrace = stackTrace(e);
             StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateDataHistory")

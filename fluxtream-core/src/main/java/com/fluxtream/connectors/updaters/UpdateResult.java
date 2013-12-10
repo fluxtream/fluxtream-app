@@ -24,7 +24,7 @@ public class UpdateResult {
 
     public enum ResultType {
 		NO_RESULT, UPDATE_SUCCEEDED, UPDATE_FAILED, HAS_REACHED_RATE_LIMIT,
-			DUPLICATE_UPDATE, UPDATE_FAILED_PERMANENTLY
+			DUPLICATE_UPDATE, UPDATE_FAILED_PERMANENTLY, NEEDS_REAUTH
 	}
 
     // Failusre can either be transient or permanent.  Default to transient, but allow optional
@@ -47,6 +47,10 @@ public class UpdateResult {
 	public static UpdateResult successResult() {
         return new UpdateResult(ResultType.UPDATE_SUCCEEDED);
 	}
+
+    public static UpdateResult needsReauth() {
+        return new UpdateResult(ResultType.NEEDS_REAUTH);
+    }
 
 	public static UpdateResult rateLimitReachedResult(RateLimitReachedException rateLimitReachedException) {
         final UpdateResult updateResult = new UpdateResult(ResultType.HAS_REACHED_RATE_LIMIT);
