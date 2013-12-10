@@ -465,7 +465,7 @@ public class MovesUpdater extends AbstractUpdater {
                 List<UpdateWorkerTask> updateWorkerTasks = connectorUpdateService.getScheduledUpdateWorkerTasksForConnectorNameBeforeTime("moves", nextQuotaAvailableTime);
                 for (int i=0; i<updateWorkerTasks.size(); i++) {
                     UpdateWorkerTask updateWorkerTask = updateWorkerTasks.get(i);
-                    long rescheduleTime = nextQuotaAvailableTime + i*(DateTimeConstants.MILLIS_PER_MINUTE*3);
+                    long rescheduleTime = nextQuotaAvailableTime + i*(DateTimeConstants.MILLIS_PER_MINUTE*2);
 
                     // Update the scheduled execution time for any moves tasks that would otherwise happen during
                     // the current quota outage far enough into the future that we should have quota available by then.
