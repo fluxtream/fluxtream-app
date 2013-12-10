@@ -15,5 +15,7 @@ public interface NotificationsService {
 	public void deleteNotification(long guestId, long notificationId);
 	
 	public List<Notification> getNotifications(long guestId);
+
+    public Notification getNamedNotification(final long guestId, final String name);
 	
 }

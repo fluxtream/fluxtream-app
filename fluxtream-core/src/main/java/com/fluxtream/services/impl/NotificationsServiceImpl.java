@@ -101,4 +101,13 @@ public class NotificationsServiceImpl implements NotificationsService {
 		return notifications;
 	}
 
+    @Override
+    public Notification getNamedNotification(final long guestId, final String name) {
+        final Notification notification = JPAUtils.findUnique(em,
+                                                                      Notification.class,
+                                                                      "notifications.withName",
+                                                                      guestId, name);
+        return notification;
+    }
+
 }
