@@ -68,6 +68,10 @@ public class MovesUpdater extends AbstractUpdater {
     final static String host = "https://api.moves-app.com/api/v1";
     final static String updateDateKeyName = "lastDate";
 
+    // Typically we would intend to set pastDaysToUpdatePlaces to 7 so we fixup the place data for a full week.
+    // Right now we're having trouble with quotas though, so we're setting it back temporarily to 1
+    final static int pastDaysToUpdatePlaces = 1;
+
     public static DateTimeFormatter compactDateFormat = DateTimeFormat.forPattern("yyyyMMdd");
     public static DateTimeFormatter timeStorageFormat = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmss'Z'");
     public static DateTimeFormatter httpResponseDateFormat = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss ZZZ");
@@ -108,14 +112,14 @@ public class MovesUpdater extends AbstractUpdater {
     }
 
     // Get/update moves data for the range of dates starting from the stored date of the last update.
-    // Do a maximum of 7 days of fixup on earlier dates to pickup user-initiated changes
+    // Do a maximum of pastDaysToUpdatePlaces days of fixup on earlier dates to pickup user-initiated changes
     @Override
     protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception, UpdateFailedException {
         // Get the date for starting the update.  This will either be a stored date from a previous run
         // of the updater or the user's registration date.
         String updateStartDate = getUpdateStartDate(updateInfo);
 
-        updateMovesData(updateInfo, updateStartDate, 7);
+        updateMovesData(updateInfo, updateStartDate, pastDaysToUpdatePlaces);
     }
 
     public String getUserRegistrationDate(UpdateInfo updateInfo) throws Exception, UpdateFailedException {
@@ -238,7 +242,7 @@ public class MovesUpdater extends AbstractUpdater {
         // The days prior to fullUpdateStartDate should presumably have imported
         // complete updates during a previous update so we don't need to reimport the GPS data points.  However,
         // we do need to import the move/place segments and reconcile them with our stored versions since the
-        // user may have tweaked some of them.  We currently arbitrarily re-import the 7 prior days to do this
+        // user may have tweaked some of them.  We currently arbitrarily re-import the pastDaysToUpdatePlaces prior days to do this
         // fixup operation.
 
         // getDatesSince and getDatesBefore both take their arguments and return their list of dates in storage
@@ -298,14 +302,10 @@ public class MovesUpdater extends AbstractUpdater {
         }
         final List<String> fullUpdateDates = getDatesSince(fullUpdateStartDate);
 
-        // For the dates that aren't yet completed (fullUpdateStartDate through today), createOrUpdate with trackpoints
+        // For the dates that aren't yet completed (fullUpdateStartDate through today), createOrUpdate with trackpoints.
+        // createOrUpdateData will also update updateDateKeyName to set the start time for the next update as it goes
+        // to be the last date that had non-empty data when withTrackpoints is true (meaning we're moving forward in time)
         String maxDateWithData = createOrUpdateData(fullUpdateDates, updateInfo, true);
-
-        // If any of these dates had data, potentially update the start date for next time
-        if(maxDateWithData!=null && fullUpdateStartDate.compareTo(maxDateWithData)<0) {
-            // Got non-empty data for a day more recent than fullUpdateStartDate, store for where to start next time
-            guestService.setApiKeyAttribute(updateInfo.apiKey, updateDateKeyName, maxDateWithData);
-        }
 
         // If fixupDateNum>0, do createOrUpdate without trackpoints for the fixupDateNum dates prior to
         // fullUpdateStartDate
@@ -384,30 +384,6 @@ public class MovesUpdater extends AbstractUpdater {
             return(quotaAvailableTime);
         }
     }
-
-    // First attempt: problem is that synchronized doesn't work on primitive types
-    //private boolean tryUpdateQuotaAvailableTime(final long nextQuotaAvailableTime) {
-    //    boolean retVal = false;
-    //
-    //    // First check if we're obviously not the first to set the most up-to-date quota time.  We
-    //    // don't need to lock quotaAvailableTime to do that since we'll check it again if we're
-    //    // possibly the first
-    //    if(quotaAvailableTime >= nextQuotaAvailableTime)
-    //        return false;
-    //
-    //    // We're potentially the first, check again inside a synchronized block.
-    //    // If we're still the first, set quotaAvailableTime and return true.  If another
-    //    // instance beat us, return false.
-    //    synchronized (quotaAvailableTime) {
-    //        if(quotaAvailableTime >= nextQuotaAvailableTime)
-    //            return false;
-    //        else {
-    //            quotaAvailableTime = nextQuotaAvailableTime;
-    //            return true;
-    //        }
-    //
-    //    }
-    //}
 
     // Check if we would expect quota to be currently available for making a Moves API call.
     // If so, return 0.  If not, return the milliseconds between now and when we'd expect quota to
@@ -616,6 +592,9 @@ public class MovesUpdater extends AbstractUpdater {
     private static List<String> getDatesSince(String fromDate) {
         List<String> dates = new ArrayList<String>();
         DateTime then = TimeUtils.dateFormatterUTC.parseDateTime(fromDate);
+        // TODO: Today should be relative to the timezone the user is in rather than UTC
+        // We could either use the Moves profile TZ or the metadata TZ.  It's not clear which
+        // would be better.
         String today = TimeUtils.dateFormatterUTC.print(System.currentTimeMillis());
         DateTime todaysTime = TimeUtils.dateFormatterUTC.parseDateTime(today);
         if (then.isAfter(todaysTime))
@@ -671,6 +650,7 @@ public class MovesUpdater extends AbstractUpdater {
                     continue;
                 }
                 System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", moves connector: fetching story line for date " + date + ", withTrackPoints is " + withTrackpoints);
+
                 String fetched = fetchStorylineForDate(updateInfo, date, withTrackpoints);
 
                 if(fetched!=null) {
@@ -680,6 +660,10 @@ public class MovesUpdater extends AbstractUpdater {
 
                         if(dateHasData && (maxDateWithData==null || maxDateWithData.compareTo(date)<0)) {
                             maxDateWithData = date;
+                            // In the case where we're moving forward in time and this date had data, record
+                            // this date to start with next time.  This has the unfortunate effect that restarts
+                            // may get an already completed date multiple times, but the alternative would be to
+                            // potentially fail to update a date that doesn't have complete data on the Moves server.
                             if (withTrackpoints)
                                 guestService.setApiKeyAttribute(updateInfo.apiKey, updateDateKeyName, maxDateWithData);
                         }
