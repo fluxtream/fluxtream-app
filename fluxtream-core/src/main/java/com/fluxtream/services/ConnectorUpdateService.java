@@ -110,5 +110,7 @@ public interface ConnectorUpdateService {
 
     List<UpdateWorkerTask> getAllScheduledUpdateWorkerTasks();
 
+    List<UpdateWorkerTask> getScheduledUpdateWorkerTasksForConnectorNameBeforeTime(final String connectorName, long beforeTime);
+
     List<UpdateWorkerTask> getUpdateWorkerTasks(ApiKey apiKey, int objectTypes, int max);
 }
