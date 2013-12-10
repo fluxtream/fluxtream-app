@@ -11,6 +11,7 @@ import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.location.LocationFacet;
+import com.fluxtream.connectors.runkeeper.RunKeeperFitnessActivityFacet;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.UpdateFailedException;
@@ -634,6 +635,26 @@ public class MovesUpdater extends AbstractUpdater {
         return dates;
     }
 
+    private String getMaxDateWithDataInDB(UpdateInfo updateInfo) {
+        final String entityName = JPAUtils.getEntityName(MovesPlaceFacet.class);
+        final List<MovesPlaceFacet> newest = jpaDaoService.executeQueryWithLimit(
+                        "SELECT facet from " + entityName + " facet WHERE facet.apiKeyId=? ORDER BY facet.end DESC,facet.date DESC",
+                        1,
+                        MovesPlaceFacet.class, updateInfo.apiKey.getId());
+
+        // If there are existing moves place facets, return the date of the most recent one.
+        // If there are no existing moves place facets, return null
+        String ret = null;
+        if (newest.size()>0) {
+            ret = newest.get(0).date;
+            System.out.println("Moves: guestId=" + updateInfo.getGuestId() + ", maxDateInDB=" + ret);
+        }
+        else {
+            System.out.println("Moves: guestId=" + updateInfo.getGuestId() + ", maxDateInDB=null");
+        }
+        return ret;
+    }
+
     private String createOrUpdateData(List<String> dates, UpdateInfo updateInfo, boolean withTrackpoints)
             throws Exception {
         // Create or update the data for a list of dates.  Returns the date of the latest day with non-empty data,
@@ -641,7 +662,7 @@ public class MovesUpdater extends AbstractUpdater {
 
         // Get the user registration date for comparison.  There's no point in trying to update data from before then.
         String userRegistrationDate = getUserRegistrationDate(updateInfo);
-        String maxDateWithData=null;
+        String maxDateWithData=getMaxDateWithDataInDB(updateInfo);
 
         try {
             for (String date : dates) {
@@ -651,6 +672,12 @@ public class MovesUpdater extends AbstractUpdater {
                 }
                 System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", moves connector: fetching story line for date " + date + ", withTrackPoints is " + withTrackpoints);
 
+                // In the case where we're moving forward in time, record the date we're about to fetch as the
+                // date to start with next time in case we encounter a failure during the update
+                if (withTrackpoints) {
+                   guestService.setApiKeyAttribute(updateInfo.apiKey, updateDateKeyName, date);
+                }
+
                 String fetched = fetchStorylineForDate(updateInfo, date, withTrackpoints);
 
                 if(fetched!=null) {
@@ -658,27 +685,43 @@ public class MovesUpdater extends AbstractUpdater {
                     if(segments!=null && segments.size()>0) {
                         boolean dateHasData=createOrUpdateDataForDate(updateInfo, segments, date);
 
+                        // Update maxDateWithData only if there was data for this date
                         if(dateHasData && (maxDateWithData==null || maxDateWithData.compareTo(date)<0)) {
                             maxDateWithData = date;
-                            // In the case where we're moving forward in time and this date had data, record
-                            // this date to start with next time.  This has the unfortunate effect that restarts
-                            // may get an already completed date multiple times, but the alternative would be to
-                            // potentially fail to update a date that doesn't have complete data on the Moves server.
-                            if (withTrackpoints)
-                                guestService.setApiKeyAttribute(updateInfo.apiKey, updateDateKeyName, maxDateWithData);
                         }
                     }
+                }
+
+                // In the case that maxDateWithData is set to non-null and we're moving forward in time, record
+                // the maxDateWithData date to start with next time.  This has the unfortunate effect that restarts
+                // may get an already completed date multiple times, but the alternative would be to
+                // potentially fail to update a date that doesn't have complete data on the Moves server.
+                // This may set updateDateKeyName to an earlier date than the place above where updateDateKeyName
+                // is set.  This looks a bit strange, but it's the best I could come up with to both handle the
+                // case where the Moves server doesn't have data for the most recent of days and where the
+                // user registration date is set to way before the earliest real data.  In the former case, the above
+                // set of updateDateKeyName will now be overridden with an earlier date.  In the latter case, the
+                // above set or updateDateKeyName will stand as-is and continue moving forward on restarts until we have
+                // seen a date that really has some data.  There's still a vulnerability in the case where date
+                // is beyond where we would want updateDateKeyName to end up and we have to do a restart, but this
+                // works in the common case and is the best I can come up with for now.
+                if(withTrackpoints && maxDateWithData!=null) {
+                    guestService.setApiKeyAttribute(updateInfo.apiKey, updateDateKeyName, maxDateWithData);
                 }
             }
         }
         catch (UpdateFailedException e) {
             // The update failed and whoever threw the error knew enough to have all the details.
             // Rethrow the error
+            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED");
+
             throw e;
         }
         catch (RateLimitReachedException e) {
             // We reached rate limit and whoever threw the error knew enough to have all the details.
             // Rethrow the error
+            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", RATE LIMIT REACHED");
+
             throw e;
         }
         catch (Exception e) {
@@ -689,9 +732,18 @@ public class MovesUpdater extends AbstractUpdater {
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
             logger.info(sb.toString());
 
+            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED (don't know why)");
+
             // The update failed.  We don't know if this is permanent or temporary.
             // Throw the appropriate exception.
             throw new UpdateFailedException(e);
+        }
+        finally {
+            // See comment above about setting updateDateKeyName if we're moving forward and maxDateWithData is non-null
+            // We also want to do that setting in the case that there was an exception thrown.
+            if(withTrackpoints && maxDateWithData!=null) {
+                guestService.setApiKeyAttribute(updateInfo.apiKey, updateDateKeyName, maxDateWithData);
+            }
         }
         return(maxDateWithData);
     }
