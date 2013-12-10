@@ -11,6 +11,7 @@ import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.OAuth2Helper;
+import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.Notification;
@@ -144,21 +145,6 @@ public class GoogleOAuth2Controller {
          token = null;
       }
 
-        if (token == null || !token.has("refresh_token")) {
-            String message = (new StringBuilder("<p>We couldn't get your oauth2 refresh token.  "))
-                    .append("Something went wrong.</p>")
-                    .append("<p>You'll have to surf to your ")
-                    .append("<a target='_new'  href='https://accounts.google.com/b/0/IssuedAuthSubTokens'>token mgmt page at Google</a> ")
-                    .append("and hit \"Revoke Access\" next to \"").append(brandName).append(" — ").append(getGooglePrettyName(scopedApi)).append("\"</p>")
-		              .append("<p>Then please, head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a> ")
-		              .append("and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)</p>")
-                    .append("<p>We apologize for the inconvenience</p>").toString();
-            notificationsService.addNotification(guest.getId(),
-                                                 Notification.Type.ERROR,
-                                                 message);
-            return new ModelAndView("redirect:/app");
-        }
-        final String refresh_token = token.getString("refresh_token");
         ApiKey apiKey;
         final boolean isRenewToken = request.getSession().getAttribute(APIKEYID_ATTRIBUTE) != null;
         if (isRenewToken) {
@@ -170,6 +156,27 @@ public class GoogleOAuth2Controller {
                 String errorMessage = "no apiKey with id '%s'... It looks like you are trying to renew the tokens of a non-existing Connector (/ApiKey)";
                 return errorController.handleError(500, errorMessage, stackTrace);
             }
+
+            if (token == null || !token.has("refresh_token")) {
+                String message = (new StringBuilder("<p>We couldn't get your oauth2 refresh token.  "))
+                        .append("Something went wrong.</p>")
+                        .append("<p>You'll have to surf to your ")
+                        .append("<a target='_new'  href='https://accounts.google.com/b/0/IssuedAuthSubTokens'>token mgmt page at Google</a> ")
+                        .append("and hit \"Revoke Access\" next to \"").append(brandName).append(" — ").append(getGooglePrettyName(scopedApi)).append("\"</p>")
+    		              .append("<p>Then please, head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a> ")
+    		              .append("and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)</p>")
+                        .append("<p>We apologize for the inconvenience</p>").toString();
+
+                notificationsService.addNamedNotification(guest.getId(),
+                                                     Notification.Type.ERROR,
+                                                     apiKey.getConnector().statusNotificationName(),
+                                                     message);
+                // Record permanent failure since this connector won't work again until
+                // it is reauthenticated
+                guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
+                return new ModelAndView("redirect:/app");
+            }
+
             // Remove oauth1 keys if upgrading from previous connector version.
             // Remember whether or not we're upgrading from previous connector version.
             // If so, do a full history update.  Otherwise don't force a full
@@ -201,6 +208,8 @@ public class GoogleOAuth2Controller {
         // not the latter.  Do it in all cases here.
         guestService.setApiKeyAttribute(apiKey, "google.client.id", env.get("google.client.id"));
         guestService.setApiKeyAttribute(apiKey, "google.client.secret", env.get("google.client.secret"));
+
+        final String refresh_token = token.getString("refresh_token");
 
         guestService.setApiKeyAttribute(apiKey,
 				"accessToken", token.getString("access_token"));
