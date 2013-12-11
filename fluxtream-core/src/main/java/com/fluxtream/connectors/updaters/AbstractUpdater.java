@@ -227,7 +227,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                 .append(" guestId=").append(apiKey.getGuestId())
                 .append(" query=").append(query)
                 .append(" httpResponseCode=").append(httpResponseCode)
-                .append(" reason=").append(reason)
+                .append(" reason=\"").append(reason).append("\"")
                 .append(" stackTrace=<![CDATA[").append(stackTrace).append("]]>");
         logger.info(sb.toString());
 		connectorUpdateService.addApiUpdate(apiKey, objectTypes, then, System.currentTimeMillis() - then, query,
@@ -243,7 +243,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                 .append(" guestId=").append(apiKey.getGuestId())
                 .append(" time=").append(ISODateTimeFormat.basicDateTimeNoMillis().print(then))
                 .append(" query=").append(query)
-                .append(" reason=").append(reason)
+                .append(" reason=\"").append(reason).append("\"")
                 .append(" stackTrace=<![CDATA[").append(stackTrace).append("]]>");
         logger.info(sb.toString());
     }
