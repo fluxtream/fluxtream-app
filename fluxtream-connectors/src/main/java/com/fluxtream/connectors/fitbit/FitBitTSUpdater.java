@@ -12,6 +12,7 @@ import com.fluxtream.connectors.Autonomous;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.SignpostOAuthHelper;
 import com.fluxtream.connectors.annotations.Updater;
+import com.fluxtream.connectors.moves.MovesPlaceFacet;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.UnexpectedResponseCodeException;
@@ -23,7 +24,9 @@ import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.services.impl.BodyTrackHelper;
+import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.TimeUtils;
+import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.joda.time.DateTime;
@@ -192,11 +195,36 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
             jpaDaoService.execute("DELETE FROM Facet_FitbitSleep sleep WHERE sleep.start=0");
             final JSONArray deviceStatusesArray = getDeviceStatusesArray(updateInfo.apiKey);
-            final long trackerLastSyncDate = getLastServerSyncMillis(deviceStatusesArray, "TRACKER");
-            final long scaleLastSyncDate = getLastServerSyncMillis(deviceStatusesArray, "SCALE");
 
+            // Store TRACKER.lastSyncDate
+            long trackerLastSyncDate = -1;
+
+            try {
+                trackerLastSyncDate = getLastServerSyncMillis(deviceStatusesArray, "TRACKER");
+            }
+            catch (Throwable t) {
+                logger.info("guestId=" + updateInfo.getGuestId() +
+                            " connector=fitbit action=updateConnectorDataHistory " +
+                            " message=\"Error getting TRACKER.lastSyncDate\" stackTrace=<![CDATA[\"" + t.getStackTrace() + "]]>");
+            }
+
+            if(trackerLastSyncDate==-1) {
+                // Default to yesterday if no better value is available
+                trackerLastSyncDate = System.currentTimeMillis() - DateTimeConstants.MILLIS_PER_DAY;
+            }
             guestService.setApiKeyAttribute(updateInfo.apiKey, "TRACKER.lastSyncDate",
                                             String.valueOf(trackerLastSyncDate));
+
+            // Store SCALE.lastSyncDate
+            long scaleLastSyncDate = -1;
+
+            try {
+                scaleLastSyncDate = getLastServerSyncMillis(deviceStatusesArray, "SCALE");
+            } catch (Throwable t) {
+                logger.info("guestId=" + updateInfo.getGuestId() +
+                            " connector=fitbit action=updateConnectorDataHistory " +
+                            " message=\"Error getting SCALE.lastSyncDate\" stackTrace=<![CDATA[\"" + t.getStackTrace() + "]]>");
+            }
 
             // In the case that the scale doesn't have a valid scaleLastSyncDate, store
             // the timestamp for when we asked about the weight for use in doing incremental
@@ -443,8 +471,38 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             // TRACKER.lastSyncDate is actually used to record our progress in where we got to at the end of the last 
             // successful incremental update.  It should be <= the actual "lastSyncTime" returned by the server
             // during the last update
-            final String trackerLastStoredSyncMillis = guestService.getApiKeyAttribute(apiKey, "TRACKER.lastSyncDate");
-            lastStoredSyncMillis = Long.valueOf(trackerLastStoredSyncMillis);
+            try {
+                final String trackerLastStoredSyncMillis = guestService.getApiKeyAttribute(apiKey, "TRACKER.lastSyncDate");
+                lastStoredSyncMillis = Long.valueOf(trackerLastStoredSyncMillis);
+            } catch (Throwable t) {
+                // As a fallback, get the latest facet in the DB and use the start time from it as lastStoredSyncMillis
+                final String entityName = JPAUtils.getEntityName(FitbitTrackerActivityFacet.class);
+                final List<FitbitTrackerActivityFacet> newest = jpaDaoService.executeQueryWithLimit(
+                        "SELECT facet from " + entityName + " facet WHERE facet.apiKeyId=? ORDER BY facet.start DESC",
+                        1,
+                        FitbitTrackerActivityFacet.class, updateInfo.apiKey.getId());
+
+                // If there are existing fitbit facets, use the start field of the most recent one.
+                // If there are no existing fitbit facets, just start with today
+                if (newest.size()>0) {
+                    lastStoredSyncMillis = newest.get(0).start;
+                    System.out.println("Fitbit: guestId=" + updateInfo.getGuestId() + ", using DB for lastStoredSyncMillis=" + lastStoredSyncMillis);
+                }
+                else {
+                    System.out.println("Fitbit: guestId=" + updateInfo.getGuestId() + ", nothing in DB for lastStoredSyncMillis, default to yesterday");
+                    lastStoredSyncMillis = System.currentTimeMillis()-DateTimeConstants.MILLIS_PER_DAY;
+                }
+
+                // Now make sure we're getting at least one day of data by setting lastStoredSyncMillis to
+                // trackerLastServerSyncMillis if it's not already less
+                if(trackerLastServerSyncMillis < lastStoredSyncMillis) {
+                    lastStoredSyncMillis = trackerLastServerSyncMillis;
+                }
+                logger.info("guestId=" + updateInfo.getGuestId() +
+                            " connector=fitbit action=getDaysToSync deviceType="+ deviceType +
+                            " message=\"Error parsing TRACKER.lastSyncDate, using default of " + lastStoredSyncMillis +
+                            "\" error=" + t.getMessage() + " stackTrace=<![CDATA[\"" + Utils.stackTrace(t) + "]]>");
+            }
         } else {
             final String scaleLastSyncMillis = guestService.getApiKeyAttribute(apiKey, "SCALE.lastSyncDate");
             lastStoredSyncMillis = Long.valueOf(scaleLastSyncMillis);
@@ -489,14 +547,19 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
     }
 
     private long getLastServerSyncMillis(JSONArray devices, String device) {
-        for (int i=0; i<devices.size(); i++) {
-            JSONObject deviceStatus = devices.getJSONObject(i);
-            String type = deviceStatus.getString("type");
-            String dateTime = deviceStatus.getString("lastSyncTime");
-            long ts = AbstractLocalTimeFacet.timeStorageFormat.parseMillis(dateTime);
-            if (type.equalsIgnoreCase(device)) {
-                return ts;
+        try {
+            for (int i=0; i<devices.size(); i++) {
+                JSONObject deviceStatus = devices.getJSONObject(i);
+                String type = deviceStatus.getString("type");
+                String dateTime = deviceStatus.getString("lastSyncTime");
+                long ts = AbstractLocalTimeFacet.timeStorageFormat.parseMillis(dateTime);
+                if (type.equalsIgnoreCase(device)) {
+                    return ts;
+                }
             }
+        } catch (Throwable t) {
+            logger.info("connector=fitbit action=getLastServerSyncMillis message=\"Error parsing lastSyncTime from fitbit json\"  devices=\"" + devices.toString() +
+                        "\" stackTrace=<![CDATA[\"" + Utils.stackTrace(t) + "]]>");
         }
         return -1;
     }
