@@ -194,11 +194,13 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     @Override
     @Transactional(readOnly=false)
     public void cleanupStaleData() {
-        long oneWeekAgo = System.currentTimeMillis() - (DateTimeConstants.MILLIS_PER_DAY*7);
-        final Query cleanupUpdateWorkerTasks = em.createNativeQuery(String.format("DELETE FROM UpdateWorkerTask WHERE not(status=2 AND updateType=2) and timeScheduled<%s", oneWeekAgo));
+        // Keeping one week seems to lead to api/connectors/installed being too slow as of December 2013.
+        // Reduce to two days
+        long twoDaysAgo = System.currentTimeMillis() - (DateTimeConstants.MILLIS_PER_DAY*2);
+        final Query cleanupUpdateWorkerTasks = em.createNativeQuery(String.format("DELETE FROM UpdateWorkerTask WHERE not(status=2 AND updateType=2) and timeScheduled<%s", twoDaysAgo));
         final int updateWorkerTasksDeleted = cleanupUpdateWorkerTasks.executeUpdate();
         System.out.println("deleted " + updateWorkerTasksDeleted + " UpdateWorkerTasks");
-        final Query cleanupApiUpdates = em.createNativeQuery(String.format("DELETE FROM ApiUpdates WHERE ts<%s", oneWeekAgo));
+        final Query cleanupApiUpdates = em.createNativeQuery(String.format("DELETE FROM ApiUpdates WHERE ts<%s", twoDaysAgo));
         final int apiUpdatesDeleted = cleanupApiUpdates.executeUpdate();
         System.out.println("deleted " + apiUpdatesDeleted + " ApiUpdates");
     }
