@@ -66,7 +66,11 @@ public class AppController {
     ErrorController errorController;
 
     @RequestMapping(value = { "", "/", "/welcome" })
-    public ModelAndView index(HttpServletRequest request) {
+    public ModelAndView index(HttpServletRequest request,
+                              HttpServletResponse response) {
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
+        response.setHeader("Pragma", "no-cache"); // HTTP 1.0.
+        response.setDateHeader("Expires", 0);
         Authentication auth = SecurityContextHolder.getContext()
                 .getAuthentication();
         if (auth != null && auth.isAuthenticated())
@@ -144,8 +148,12 @@ public class AppController {
         return mav;
     }
 
-    public ModelAndView home(HttpServletRequest request) {
+    public ModelAndView home(HttpServletRequest request,
+                             HttpServletResponse response) {
 		logger.info("action=loggedIn");
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
+        response.setHeader("Pragma", "no-cache"); // HTTP 1.0.
+        response.setDateHeader("Expires", 0);
 
 		long guestId = AuthHelper.getGuestId();
 
@@ -210,7 +218,7 @@ public class AppController {
             final String redirectUrl = savedRequest.getRedirectUrl();
             return new ModelAndView(redirectUrl);
         }
-        return home(request);
+        return home(request, response);
     }
 
     @RequestMapping(value = "/app/tokenRenewed/{connectorName}")

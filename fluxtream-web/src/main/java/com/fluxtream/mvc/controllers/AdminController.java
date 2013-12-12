@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletResponse;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ApiKey;
@@ -50,7 +51,10 @@ public class AdminController {
 
     @Secured({ "ROLE_ADMIN" })
     @RequestMapping(value = { "/admin" })
-    public ModelAndView admin() throws Exception {
+    public ModelAndView admin(HttpServletResponse response) throws Exception {
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
+        response.setHeader("Pragma", "no-cache"); // HTTP 1.0.
+        response.setDateHeader("Expires", 0);
         final ModelAndView mav = getAdminModel();
         final List<ConnectorInfo> connectors = systemService.getConnectors();
         mav.addObject("subview", "connectorHealthDashboard");
