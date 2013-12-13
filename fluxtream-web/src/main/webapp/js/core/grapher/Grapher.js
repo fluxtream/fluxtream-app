@@ -9,6 +9,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         this.plotsMap = {}; // maps DOM element ID to grapher widget
         this.grapherId = new Date().getTime() + "-" + Math.round(Math.random()*10000000);
         this.plotContainers = [];    // array of plot containers
+        this.currentTooltip = null; //holds a reference to the current tooltip object
         var grapher = this;
         for (var param in options)
             grapher[param] = options[param];
@@ -1699,6 +1700,8 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             grapher.cursorString = null;
             grapher.prevCursorPos = null;
             grapher.dateAxis.addAxisChangeListener(function(event) {
+                if (grapher.currentTooltip != null)
+                    grapher.currentTooltip.remove();
                 if (event.cursorPosition != grapher.prevCursorPos){
                     grapher.prevCursorPos = event.cursorPosition;
                     grapher.cursorString = event.cursorPositionString;
@@ -2189,7 +2192,11 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
 
                             }
 
-                            Tooltip.createTooltip(mainContentContainer,positionRelativeToMainContentArea,ListUtils.buildList(facets,cities),sourceInfo.info.color);
+                            grapher.currentTooltip = Tooltip.createTooltip(mainContentContainer,positionRelativeToMainContentArea,ListUtils.buildList(facets,cities),sourceInfo.info.color);
+                            grapher.currentTooltip.onRemove = function(){
+                                if (grapher.currentTooltip == this)
+                                    grapher.currentTooltip = null;
+                            }
                         }
                     });
                 }
