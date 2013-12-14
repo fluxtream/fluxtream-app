@@ -23,7 +23,7 @@
             <form method="post" action="signIn" id="loginForm">
                 <table>
                     <tr>
-                        <td><label class="username_txt" for="f_username">Username:</label></td>
+                        <td><label class="username_txt" for="f_username">Username/email:</label></td>
                         <td><label class="password_txt" for="f_password">Password:</label></td>
                         <td rowspan="2"><button class="login_btn">Login</button></td>
                     </tr>
