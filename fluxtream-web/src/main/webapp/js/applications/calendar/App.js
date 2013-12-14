@@ -192,6 +192,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         startLoading();
         if (typeof state == "string")
             state = Calendar.parseState(state);
+
+        //if we're showing a specific facet, we should make sure our state will hold the facet!
+        if (this.params != null && this.params.facetToShow != null){
+            var facet = this.params.facetToShow;
+            state = Calendar.toState(state.tabName, state.timeUnit,new Date(facet.end == null ? facet.start : (facet.start + facet.end) / 2));
+        }
+
         if (Calendar.timespanState !== state.tabState) {
             // NOTE: when loading a URL like /app/calendar/date/2012-12-25 directly,
             // the FlxState routes invoke renderState() directly instead of going
@@ -809,7 +816,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function switchToAppForFacet(appname,tabname,facet){
-
         App.renderApp(appname,tabname + (appname === "calendar" ? "/" + getTabState() : ""),{facetToShow:facet});
     }
 
