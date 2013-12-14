@@ -157,7 +157,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
             if (beginFloat <= 0){
                 beginFloat = $(window).height() * 5000;
             }
-            var scrollTop = $("body").scrollTop();
+            var scrollTop = $(window).scrollTop();
             if (scrollTop < beginFloat){
                 $("#filtersContainer").removeClass("floating");
                 $("#filterPlaceHolderElement").addClass("hidden");
