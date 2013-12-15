@@ -219,7 +219,7 @@ define(["core/Tab",
 
     $(window).scroll(function(){
         if ($("#photoTab").parent().hasClass("active"))
-            onScroll($("body").scrollTop() + $("#selectedConnectors").height());
+            onScroll($(window).scrollTop() + $("#selectedConnectors").height());
         else
             onScroll(-100);;
     });

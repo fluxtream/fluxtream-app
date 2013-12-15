@@ -841,6 +841,15 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                 "max" : yMax + padding
             });
 
+            var oldMin = yMin - padding;
+            var oldMax = yMax + padding;
+            yAxis.addAxisChangeListener(function(event){
+                if ((oldMin != event.min || oldMax != event.max) && grapher.currentTooltip != null)//this is to avoid processing on events where the axis bounds didn't change
+                    grapher.currentTooltip.remove();
+                oldMin = event.min;
+                oldMax = event.max;
+            });
+
             // Now that yAxis is initialized, if this is a new view,
             // set xAxis range to be the latest 24 hrs of data from the
             // first added channel
@@ -1699,9 +1708,13 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             });
             grapher.cursorString = null;
             grapher.prevCursorPos = null;
+            var currentMin = view["v2"]["x_axis"]["min"];
+            var currentMax = view["v2"]["x_axis"]["max"];
             grapher.dateAxis.addAxisChangeListener(function(event) {
-                if (grapher.currentTooltip != null)
+                if ((currentMin != event.min || currentMax != event.max) && grapher.currentTooltip != null)//this is to avoid processing on events where the axis bounds didn't change
                     grapher.currentTooltip.remove();
+                currentMin = event.min;
+                currentMax = event.max;
                 if (event.cursorPosition != grapher.prevCursorPos){
                     grapher.prevCursorPos = event.cursorPosition;
                     grapher.cursorString = event.cursorPositionString;
