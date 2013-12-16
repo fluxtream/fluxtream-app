@@ -1,5 +1,6 @@
 package com.fluxtream.connectors.evernote;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -14,6 +15,11 @@ import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
+import net.coobird.thumbnailator.Thumbnailator;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.scribe.builder.ServiceBuilder;
 import org.scribe.builder.api.EvernoteApi;
 import org.scribe.model.Token;
@@ -37,6 +43,7 @@ public class EvernoteController {
     private static final String EVERNOTE_SERVICE = "evernoteService";
     private static final String EVERNOTE_REQUEST_TOKEN = "evernoteRequestToken";
     private static final String EVERNOTE_RENEWTOKEN_APIKEYID = "evernote.renewtoken.apiKeyId";
+    private static final short MAX_WIDTH = 600;
 
     @Autowired
     Configuration env;
@@ -119,24 +126,53 @@ public class EvernoteController {
     @RequestMapping(value="/res/{guid}")
     public void getResource(@PathVariable("guid") String guid,
                             HttpServletResponse response) throws IOException {
-        final Query nativeQuery = em.createNativeQuery(String.format("SELECT mime, dataBody FROM Facet_EvernoteResource WHERE guid='%s'", guid));
+        final Query nativeQuery = em.createNativeQuery(String.format("SELECT mime, dataBody, width FROM Facet_EvernoteResource WHERE guid='%s'", guid));
         final Object[] singleResult = (Object[])nativeQuery.getSingleResult();
-        response.setContentType((String)singleResult[0]);
+        final String mimeType = (String)singleResult[0];
+        response.setContentType(mimeType);
         byte[] resourceData = (byte[])singleResult[1];
+        if (mimeType.indexOf("image")!=-1) {
+            short width = (Short) singleResult[2];
+            if (width>MAX_WIDTH) {
+                Thumbnailator.createThumbnail(new ByteArrayInputStream(resourceData),
+                                              response.getOutputStream(), MAX_WIDTH,
+                                              Integer.MAX_VALUE);
+                return;
+            }
+        }
         response.getOutputStream().write(resourceData, 0, resourceData.length);
     }
 
     @RequestMapping(value="/content/{guid}")
     public ModelAndView getContent(@PathVariable("guid") String guid,
-                            HttpServletResponse response) throws IOException {
+                            HttpServletResponse response) throws IOException{
         ModelAndView mav = new ModelAndView("connectors/evernote/content");
         final Query nativeQuery = em.createNativeQuery(String.format("SELECT htmlContent FROM Facet_EvernoteNote WHERE guid='%s'", guid));
-        final String content = (String)nativeQuery.getSingleResult();
+        String content = (String)nativeQuery.getSingleResult();
+        content = removeImageSizeAttributes(content);
         response.setContentType("text/html; charset=utf-8");
         mav.addObject("content", content);
         mav.addObject("guid", guid);
         return mav;
     }
 
+    private String removeImageSizeAttributes(String html) {
+        Document doc = Jsoup.parse(html);
+        Elements e = doc.getElementsByTag("img");
+        for (Element element : e) {
+            final String width = element.attr("width");
+            if (width!=null&&Integer.valueOf(width)>MAX_WIDTH) {
+                element.attr("width", String.valueOf(MAX_WIDTH));
+                final String height = element.attr("height");
+                if (height !=null) {
+                    float w = Float.valueOf(width);
+                    float h = Float.valueOf(height);
+                    float r = Float.valueOf(MAX_WIDTH)/w;
+                    element.attr("height", String.valueOf((int)(h*r)));
+                }
+            }
+        }
+        return doc.html();
+    }
 
 }
