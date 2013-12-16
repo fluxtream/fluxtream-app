@@ -48,7 +48,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
     var hasUnsavedChanges    = false; // used by unsaved changes dialog handler
     var loadedViewStr        = "";    // JSON string of loaded view
     var addPaneChannelsState = [];    // add channels pane channel visibility
-    var CHANNEL_PADDING      = 3;     // Pixels between plot and drag area
+    var CHANNEL_PADDING      = 0;     // Pixels between plot and drag area
 
     var connectorEnabled;
 
@@ -677,10 +677,12 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         if (area.css("display") === "none") {
             $("#" + this.grapherId + "_timeline_add_channels_btn").addClass("active");
             area.show();
+            $("#" + this.grapherId + "_timeline_dateAxisLabelRegion").addClass("channelAreaShowing");
             TOOLS.resizeElementHeight($("#" + this.grapherId + "_timeline_addChannelsArea #_timeline_sources_list"));
         }
         else {
             $("#"  + this.grapherId + "_timeline_add_channels_btn").removeClass("active");
+            $("#" + this.grapherId + "_timeline_dateAxisLabelRegion").removeClass("channelAreaShowing");
             area.hide();
         }
 
