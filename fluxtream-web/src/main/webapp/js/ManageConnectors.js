@@ -120,14 +120,18 @@ define(["core/grapher/BTCore",
                 App.makeModal(html);
                 $("#modal .modal-body").scroll(function(event){
                     var scrollTop = $("#modal .modal-body").scrollTop();
-                    $("#modal .modal-body .topHeader").width($("#modal .modal-body table").width())
+                    $("#modal .modal-body .topHeader").width($("#modal .modal-body table").width());
                     if (scrollTop < 48){
-                        $("#modal .modal-body .topHeader").removeClass("floating");
+                        $("#modal .modal-body .topHeaderHolder").removeClass("floating");
                         $("#modal .modal-body .placeholder").addClass("hidden");
+                        $("#modal .modal-body .topHeaderHolder").width($("#modal .modal-body table").width());
+                        $("#modal .modal-body .topHeader").css("margin-left",0);
                     }
                     else{
-                        $("#modal .modal-body .topHeader").addClass("floating");
+                        $("#modal .modal-body .topHeaderHolder").addClass("floating");
                         $("#modal .modal-body .placeholder").removeClass("hidden");
+                        $("#modal .modal-body .topHeaderHolder").width($("#modal .modal-body").width() - 15);
+                        $("#modal .modal-body .topHeader").css("margin-left",-$("#modal .modal-body").scrollLeft());
                     }
                 });
             }

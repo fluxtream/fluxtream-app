@@ -479,7 +479,11 @@ a img { text-decoration: none; }
   font-weight: bold;
 }
 
-.manageConnectors .topHeader.floating{
+.manageConnectors .topHeaderHolder{
+  overflow:hidden;
+}
+
+.manageConnectors .topHeaderHolder.floating{
   position:fixed;
   border-bottom: 1px solid #E0E0E0;
   border-top: 1px solid #E0E0E0;
@@ -1180,4 +1184,8 @@ i.mainmenu-icon {
     width:960px;
     margin-left:-480px;
   }
+}
+
+.manageConnectors .modal-body .content{
+  min-width: 735px;
 }
