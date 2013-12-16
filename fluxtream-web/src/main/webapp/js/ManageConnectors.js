@@ -99,6 +99,7 @@ define(["core/grapher/BTCore",
 
     function dataLoaded(data,update){
         connectors = data;
+        $(window).off("scroll.manageConnectorsHeader");
         App.loadMustacheTemplate("connectorMgmtTemplates.html","manageConnectors",function(template){
             var params = [];
             for (var i = 0; i < data.length; i++){
@@ -134,6 +135,9 @@ define(["core/grapher/BTCore",
                         $("#modal .modal-body .topHeader").css("margin-left",-$("#modal .modal-body").scrollLeft());
                     }
                 });
+                $(window).on("resize.manageConnectorsHeader",function(){
+                    $("#modal .modal-body").scroll();
+                });
             }
             bindDialog();
         });
@@ -160,6 +164,7 @@ define(["core/grapher/BTCore",
         });
         $("#modal").unbind("hide");
         $("#modal").on("hide",function(){
+            $(window).off("resize.manageConnectorsHeader");
             hidden = true;
             $.doTimeout("manageConnectorsUpdater");
             App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
