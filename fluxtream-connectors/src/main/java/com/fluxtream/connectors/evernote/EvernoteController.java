@@ -16,6 +16,7 @@ import com.fluxtream.domain.Guest;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
 import net.coobird.thumbnailator.Thumbnailator;
+import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -149,22 +150,22 @@ public class EvernoteController {
         ModelAndView mav = new ModelAndView("connectors/evernote/content");
         final Query nativeQuery = em.createNativeQuery(String.format("SELECT htmlContent FROM Facet_EvernoteNote WHERE guid='%s'", guid));
         String content = (String)nativeQuery.getSingleResult();
-        content = removeImageSizeAttributes(content);
+        content = adjustImageSizeAttributes(content);
         response.setContentType("text/html; charset=utf-8");
         mav.addObject("content", content);
         mav.addObject("guid", guid);
         return mav;
     }
 
-    private String removeImageSizeAttributes(String html) {
+    private String adjustImageSizeAttributes(String html) {
         Document doc = Jsoup.parse(html);
         Elements e = doc.getElementsByTag("img");
         for (Element element : e) {
             final String width = element.attr("width");
-            if (width!=null&&Integer.valueOf(width)>MAX_WIDTH) {
+            if (StringUtils.isNotEmpty(width)&&Integer.valueOf(width)>MAX_WIDTH) {
                 element.attr("width", String.valueOf(MAX_WIDTH));
                 final String height = element.attr("height");
-                if (height !=null) {
+                if (StringUtils.isNotEmpty(height)) {
                     float w = Float.valueOf(width);
                     float h = Float.valueOf(height);
                     float r = Float.valueOf(MAX_WIDTH)/w;
