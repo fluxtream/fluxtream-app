@@ -101,7 +101,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         String release = env.get("release");
 
         final String evernote = "Evernote";
-        String[] evernoteKeys = checkKeysExist(evernote, Arrays.asList("evernoteConsumerKey", "evernoteConsumerSecret"));
+        String[] evernoteKeys = checkKeysExist(evernote, Arrays.asList("evernoteConsumerKey", "evernoteConsumerSecret", "evernote.sandbox"));
         final ConnectorInfo evernoteConnectorInfo = new ConnectorInfo(evernote,
                                                                       "/" + release + "/images/connectors/connector-evernote.jpg",
                                                                       res.getString("evernote"),

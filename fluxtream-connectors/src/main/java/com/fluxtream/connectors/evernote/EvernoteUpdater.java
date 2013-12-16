@@ -101,15 +101,17 @@ public class EvernoteUpdater extends AbstractUpdater {
     }
 
     private NoteStoreClient getNoteStoreClient(final UpdateInfo updateInfo) throws EDAMUserException, EDAMSystemException, TException {
+        final Boolean sandbox = Boolean.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, EvernoteController.EVERNOTE_SANDBOX_KEY));
         String token = guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken");
-        EvernoteAuth evernoteAuth = new EvernoteAuth(EvernoteService.SANDBOX, token);
+        EvernoteAuth evernoteAuth = new EvernoteAuth(sandbox?EvernoteService.SANDBOX:EvernoteService.PRODUCTION, token);
         ClientFactory factory = new ClientFactory(evernoteAuth);
         return factory.createNoteStoreClient();
     }
 
     private UserStoreClient getUserStoreClient(final UpdateInfo updateInfo) throws EDAMUserException, EDAMSystemException, TException {
+        final Boolean sandbox = Boolean.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, EvernoteController.EVERNOTE_SANDBOX_KEY));
         String token = guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken");
-        EvernoteAuth evernoteAuth = new EvernoteAuth(EvernoteService.SANDBOX, token);
+        EvernoteAuth evernoteAuth = new EvernoteAuth(sandbox?EvernoteService.SANDBOX:EvernoteService.PRODUCTION, token);
         ClientFactory factory = new ClientFactory(evernoteAuth);
         return factory.createUserStoreClient();
     }

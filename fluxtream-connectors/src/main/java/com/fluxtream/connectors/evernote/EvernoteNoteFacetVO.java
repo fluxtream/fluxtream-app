@@ -18,6 +18,7 @@ public class EvernoteNoteFacetVO extends AbstractInstantFacetVO<EvernoteNoteFace
     public String title;
     public String content;
     public String created;
+    public String guid;
 
     @JsonRawValue
     public String resources;
@@ -25,6 +26,7 @@ public class EvernoteNoteFacetVO extends AbstractInstantFacetVO<EvernoteNoteFace
     @Override
     protected void fromFacet(final EvernoteNoteFacet facet, final TimeInterval timeInterval, final GuestSettings settings)
             throws OutsideTimeBoundariesException {
+        this.guid = facet.guid;
         startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getTimeZone(facet.start));
         if (facet.created!=null)
             created = ISODateTimeFormat.basicDateTimeNoMillis().print(facet.created);

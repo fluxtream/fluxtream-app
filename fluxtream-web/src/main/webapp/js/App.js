@@ -920,7 +920,14 @@ define(
             return [r,theta];
         }
 
-
+        App.adjustiFrameHeight = function(iFrameId) {
+            var iFrame = document.getElementById(iFrameId);
+            if(iFrame) {
+                // here you can make the height, I delete it first, then I make it again
+                iFrame.height = "";
+                iFrame.height = iFrame.contentWindow.document.body.scrollHeight + "px";
+            }
+        }
 
         App.getUsername = getUsername;
         App.getUID = getUID;

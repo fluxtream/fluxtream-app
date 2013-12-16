@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
 
 /**
  *
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping(value = "/evernote")
 public class EvernoteController {
 
+    public static final String EVERNOTE_SANDBOX_KEY = "evernote.sandbox";
     private static final String EVERNOTE_SERVICE = "evernoteService";
     private static final String EVERNOTE_REQUEST_TOKEN = "evernoteRequestToken";
     private static final String EVERNOTE_RENEWTOKEN_APIKEYID = "evernote.renewtoken.apiKeyId";
@@ -50,8 +52,9 @@ public class EvernoteController {
 
     @RequestMapping(value = "/token")
     public String getEvernoteToken(HttpServletRequest request) throws IOException, ServletException {
+        final Boolean sandbox = Boolean.valueOf(env.get(EVERNOTE_SANDBOX_KEY));
         OAuthService service = new ServiceBuilder()
-                .provider(EvernoteApi.Sandbox.class)
+                .provider(sandbox?EvernoteApi.Sandbox.class:EvernoteApi.class)
                 .apiKey(getConsumerKey())
                 .apiSecret(getConsumerSecret())
                 .callback(env.get("homeBaseUrl") + "evernote/upgradeToken")
@@ -95,7 +98,6 @@ public class EvernoteController {
 
         guestService.populateApiKey(apiKey.getId());
         guestService.setApiKeyAttribute(apiKey, "accessToken", token);
-        guestService.setApiKeyAttribute(apiKey, "tokenSecret", secret);
 
         request.getSession().removeAttribute(EVERNOTE_REQUEST_TOKEN);
         request.getSession().removeAttribute(EVERNOTE_SERVICE);
@@ -122,6 +124,18 @@ public class EvernoteController {
         response.setContentType((String)singleResult[0]);
         byte[] resourceData = (byte[])singleResult[1];
         response.getOutputStream().write(resourceData, 0, resourceData.length);
+    }
+
+    @RequestMapping(value="/content/{guid}")
+    public ModelAndView getContent(@PathVariable("guid") String guid,
+                            HttpServletResponse response) throws IOException {
+        ModelAndView mav = new ModelAndView("connectors/evernote/content");
+        final Query nativeQuery = em.createNativeQuery(String.format("SELECT htmlContent FROM Facet_EvernoteNote WHERE guid='%s'", guid));
+        final String content = (String)nativeQuery.getSingleResult();
+        response.setContentType("text/html; charset=utf-8");
+        mav.addObject("content", content);
+        mav.addObject("guid", guid);
+        return mav;
     }
 
 
