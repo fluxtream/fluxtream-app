@@ -881,7 +881,7 @@ CREATE TABLE `Facet_GoogleCalendarEvent` (
   `apiKeyId` bigint(20) DEFAULT NULL,
   `comment` longtext,
   `end` bigint(20) NOT NULL,
-  `fullTextDescription` longtext,
+  `fullTextDescription` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `guestId` bigint(20) NOT NULL,
   `isEmpty` char(1) NOT NULL,
   `objectType` int(11) NOT NULL,
@@ -913,7 +913,7 @@ CREATE TABLE `Facet_GoogleCalendarEvent` (
   `sequence` int(11) DEFAULT NULL,
   `startTimezoneShift` int(11) NOT NULL,
   `status` longtext,
-  `summary` longtext,
+  `summary` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `transparency` varchar(255) DEFAULT NULL,
   `visibility` varchar(255) DEFAULT NULL,
   `allDayEvent` bit(1) DEFAULT NULL,
@@ -2219,4 +2219,4 @@ CREATE TABLE `cities1000` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2013-12-15 19:41:21
+-- Dump completed on 2013-12-15 21:50:59
