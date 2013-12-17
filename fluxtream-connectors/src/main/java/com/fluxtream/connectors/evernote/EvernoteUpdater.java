@@ -19,6 +19,7 @@ import com.evernote.edam.notestore.SyncChunk;
 import com.evernote.edam.notestore.SyncState;
 import com.evernote.edam.type.Data;
 import com.evernote.edam.type.Note;
+import com.evernote.edam.type.NoteAttributes;
 import com.evernote.edam.type.Notebook;
 import com.evernote.edam.type.Resource;
 import com.evernote.edam.type.ResourceAttributes;
@@ -39,6 +40,7 @@ import com.fluxtream.services.MetadataService;
 import com.fluxtream.utils.JPAUtils;
 import com.syncthemall.enml4j.ENMLProcessor;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -106,14 +108,6 @@ public class EvernoteUpdater extends AbstractUpdater {
         return factory.createNoteStoreClient();
     }
 
-    private UserStoreClient getUserStoreClient(final UpdateInfo updateInfo) throws EDAMUserException, EDAMSystemException, TException {
-        final Boolean sandbox = Boolean.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, EvernoteController.EVERNOTE_SANDBOX_KEY));
-        String token = guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken");
-        EvernoteAuth evernoteAuth = new EvernoteAuth(sandbox?EvernoteService.SANDBOX:EvernoteService.PRODUCTION, token);
-        ClientFactory factory = new ClientFactory(evernoteAuth);
-        return factory.createUserStoreClient();
-    }
-
     private void performSync(final UpdateInfo updateInfo, final NoteStoreClient noteStore, final boolean forceFullSync) throws Exception {
         try {
             // retrieve lastUpdateCount - this could be an incremental update or
@@ -161,8 +155,12 @@ public class EvernoteUpdater extends AbstractUpdater {
             if (chunkExpungedNotes!=null)
                 expungedNoteGuids.addAll(chunkExpungedNotes);
         }
-        for (String expungedNoteGuid : expungedNoteGuids)
+        for (String expungedNoteGuid : expungedNoteGuids) {
             removeEvernoteFacet(updateInfo, EvernoteNoteFacet.class, expungedNoteGuid);
+            jpaDaoService.execute(String.format("DELETE FROM %s facet WHERE facet.apiKeyId=%s AND facet.noteGuid='%s'",
+                                                JPAUtils.getEntityName(EvernoteResourceFacet.class),
+                                                updateInfo.apiKey.getId(), expungedNoteGuid));
+        }
     }
 
     private void processExpungedNotebooks(final UpdateInfo updateInfo, final LinkedList<SyncChunk> chunks) {
@@ -322,6 +320,46 @@ public class EvernoteUpdater extends AbstractUpdater {
                 if (freshlyRetrievedNote.isSetActive())
                     facet.active = freshlyRetrievedNote.isActive();
 
+                if (freshlyRetrievedNote.isSetAttributes()) {
+                    final NoteAttributes attributes = freshlyRetrievedNote.getAttributes();
+                    if (attributes.isSetAltitude())
+                        facet.altitude = attributes.getAltitude();
+                    if (attributes.isSetAuthor())
+                        facet.author = attributes.getAuthor();
+                    if (attributes.isSetContentClass())
+                        facet.contentClass = attributes.getContentClass();
+                    if (attributes.isSetCreatorId())
+                        facet.creatorId = attributes.getCreatorId();
+                    if (attributes.isSetLastEditedBy())
+                        facet.lastEditedBy = attributes.getLastEditedBy();
+                    if (attributes.isSetLastEditorId())
+                        facet.lastEditorId = attributes.getLastEditorId();
+                    if (attributes.isSetLatitude())
+                        facet.latitude = attributes.getLatitude();
+                    if (attributes.isSetLongitude())
+                        facet.longitude = attributes.getLongitude();
+                    if (attributes.isSetPlaceName())
+                        facet.placeName = attributes.getPlaceName();
+                    if (attributes.isSetReminderDoneTime())
+                        facet.reminderDoneTime = attributes.getReminderDoneTime();
+                    if (attributes.isSetReminderOrder())
+                        facet.reminderOrder = attributes.getReminderOrder();
+                    if (attributes.isSetReminderTime())
+                        facet.reminderTime = attributes.getReminderTime();
+                    if (attributes.isSetShareDate())
+                        facet.shareDate = attributes.getShareDate();
+                    if (attributes.isSetSource())
+                        facet.source = attributes.getSource();
+                    if (attributes.isSetSourceApplication())
+                        facet.sourceApplication = attributes.getSourceApplication();
+                    if (attributes.isSetSourceURL())
+                        facet.sourceURL = attributes.getSourceURL();
+                    if (attributes.isSetSubjectDate())
+                        facet.subjectDate = attributes.getSubjectDate();
+                    if (attributes.isSetLatitude()&&attributes.isSetLongitude()&&freshlyRetrievedNote.isSetCreated()){
+                        addGuestLocation(updateInfo, facet.latitude, facet.longitude, facet.altitude, facet.created);
+                    }
+                }
                 return facet;
             }
         };
@@ -341,6 +379,9 @@ public class EvernoteUpdater extends AbstractUpdater {
                     extractCommonFacetData(facet, updateInfo);
                     facet.guid = resource.getGuid();
                 }
+                ObjectMapper mapper = new ObjectMapper();
+                final String resourceJson = mapper.writeValueAsString(resource);
+                System.out.println(resourceJson);
                 if (resource.isSetAlternateData()) {
                     Data alternateData = resource.getAlternateData();
                     if (alternateData.isSetBody())

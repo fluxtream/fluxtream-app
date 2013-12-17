@@ -31,6 +31,32 @@ public  class EvernoteNoteFacet extends EvernoteFacet {
     @Lob
     public String htmlContent;
 
+    public Double altitude;
+    @Lob
+    public String author;
+    public String contentClass;
+    public Integer creatorId;
+    @Lob
+    public String lastEditedBy;
+    public Integer lastEditorId;
+    public Double latitude;
+    public Double longitude;
+
+    @Lob
+    public String placeName;
+    public Long reminderDoneTime;
+    public Long reminderOrder;
+    public Long reminderTime;
+    public Long shareDate;
+    @Lob
+    public String source;
+    @Lob
+    public String sourceApplication;
+    @Lob
+    public String sourceURL;
+    public Long subjectDate;
+
+
     public EvernoteNoteFacet() {
         super();
     }

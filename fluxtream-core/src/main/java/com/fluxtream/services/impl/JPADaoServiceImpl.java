@@ -69,6 +69,7 @@ public class JPADaoServiceImpl implements JPADaoService {
 	}
 
     @Override
+    @Transactional(readOnly=false)
     public int execute(final String jpql) {
         Query query = em.createQuery(jpql);
         return query.executeUpdate();
