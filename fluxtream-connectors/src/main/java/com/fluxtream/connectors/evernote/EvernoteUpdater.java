@@ -68,14 +68,12 @@ public class EvernoteUpdater extends AbstractUpdater {
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
         final NoteStoreClient noteStore = getNoteStoreClient(updateInfo);
-        final UserStoreClient userStore = getUserStoreClient(updateInfo);
-        performSync(updateInfo, noteStore, userStore, true);
+        performSync(updateInfo, noteStore, true);
     }
 
     @Override
     protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
         final NoteStoreClient noteStore = getNoteStoreClient(updateInfo);
-        final UserStoreClient userStore = getUserStoreClient(updateInfo);
         final SyncState syncState = noteStore.getSyncState();
         long lastSyncTime = Long.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_SYNC_TIME));
         long lastUpdateCount = Long.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_UPDATE_COUNT));
@@ -91,13 +89,13 @@ public class EvernoteUpdater extends AbstractUpdater {
             guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), LAST_UPDATE_COUNT);
             // let's properly log this
             logger.info("FullSync required for evernote connector, apiKeyId=" + updateInfo.apiKey.getId());
-            performSync(updateInfo, noteStore, userStore, true);
+            performSync(updateInfo, noteStore, true);
         }
         else if (syncState.getUpdateCount()==lastUpdateCount)
             // nothing happened since we last updated
             return;
         else
-            performSync(updateInfo, noteStore, userStore, false);
+            performSync(updateInfo, noteStore, false);
     }
 
     private NoteStoreClient getNoteStoreClient(final UpdateInfo updateInfo) throws EDAMUserException, EDAMSystemException, TException {
@@ -116,7 +114,7 @@ public class EvernoteUpdater extends AbstractUpdater {
         return factory.createUserStoreClient();
     }
 
-    private void performSync(final UpdateInfo updateInfo, final NoteStoreClient noteStore, final UserStoreClient userStore, final boolean forceFullSync) throws Exception {
+    private void performSync(final UpdateInfo updateInfo, final NoteStoreClient noteStore, final boolean forceFullSync) throws Exception {
         try {
             // retrieve lastUpdateCount - this could be an incremental update or
             // a second attempt at a previously failed history update
@@ -130,7 +128,7 @@ public class EvernoteUpdater extends AbstractUpdater {
 
             createOrUpdateTags(updateInfo, chunks);
             createOrUpdateNotebooks(updateInfo, chunks);
-            createOrUpdateNotes(updateInfo, chunks, noteStore, userStore);
+            createOrUpdateNotes(updateInfo, chunks, noteStore);
 
             // process expunged items in the case of an incremental update and we are not required
             // to do a full sync (in which case it would be a no-op)
@@ -224,7 +222,7 @@ public class EvernoteUpdater extends AbstractUpdater {
     }
 
     private void createOrUpdateNotes(final UpdateInfo updateInfo, final LinkedList<SyncChunk> chunks,
-                                     NoteStoreClient noteStore, final UserStoreClient userStore) throws Exception {
+                                     NoteStoreClient noteStore) throws Exception {
         List<Note> notes = new ArrayList<Note>();
         List<String> expungedNoteGuids = new ArrayList<String>();
         for (SyncChunk chunk : chunks){
@@ -237,7 +235,7 @@ public class EvernoteUpdater extends AbstractUpdater {
         }
         for (Note note : notes) {
             if (!expungedNoteGuids.contains(note.getGuid()))
-                createOrUpdateNote(updateInfo, note, noteStore, userStore);
+                createOrUpdateNote(updateInfo, note, noteStore);
         }
     }
 
@@ -263,7 +261,7 @@ public class EvernoteUpdater extends AbstractUpdater {
         guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_SYNC_TIME, String.valueOf(serviceLastSyncTime));
     }
 
-    private void createOrUpdateNote(final UpdateInfo updateInfo, final Note note, final NoteStoreClient noteStore, final UserStoreClient userStore) throws Exception {
+    private void createOrUpdateNote(final UpdateInfo updateInfo, final Note note, final NoteStoreClient noteStore) throws Exception {
         final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery(
                 "e.apiKeyId=? AND e.guid=?",
                 updateInfo.apiKey.getId(), note.getGuid());
