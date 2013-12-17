@@ -808,7 +808,9 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                 "channelElementId" : channelElementId,
                 "yAxisElementId"   : yAxisElementId,
                 "showDeleteBtn"    : grapher.showDeleteBtn,
-                "grapherId"        : grapher.grapherId
+                "grapherId"        : grapher.grapherId,
+                "channelType"      : channel["type"] == null ? "CONTINUOUS" : channel["type"].toUpperCase(),
+                "hideYAxis"        : channel["type"] == "timespan"
             };
 
             // Render template

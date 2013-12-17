@@ -744,3 +744,12 @@ canvas {
     font-size: 1.2em;
     vertical-align: middle;
 }
+
+
+._channelType_TIMESPAN .flx-channel-controls{
+    display:none;
+}
+
+.channelHideYAxis ._timeline_yaxistd{
+    opacity:0;
+}
