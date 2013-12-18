@@ -292,7 +292,7 @@ public class ConnectorStore {
                 return dateTime.getMillis();
             }
         } else {
-            long maxTime = -1;
+            long maxTime = Long.MIN_VALUE;
             for (ObjectType objectType : objectTypes) {
                 final String maxTimeAtt = guestService.getApiKeyAttribute(apiKey, objectType.getApiKeyAttributeName(ApiKeyAttribute.MAX_TIME_KEY));
                 if (maxTimeAtt !=null && StringUtils.isNotEmpty(maxTimeAtt)) {
@@ -303,7 +303,7 @@ public class ConnectorStore {
                 }
             }
             // only return the ApiKey's maxTime if we have it cached as an attribute for any its connector's objectTypes
-            if (maxTime>-1)
+            if (maxTime>Long.MIN_VALUE)
                 return maxTime;
         }
         // fall back to old method of querying the facets table
