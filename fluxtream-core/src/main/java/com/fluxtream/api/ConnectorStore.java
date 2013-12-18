@@ -276,7 +276,7 @@ public class ConnectorStore {
             return dateTime.getMillis();
         }
         // fall back to old method of querying the ApiUpdates table
-        ApiUpdate update = connectorUpdateService.getLastSuccessfulUpdate(apiKey);
+        ApiUpdate update = null;  // connectorUpdateService.getLastSuccessfulUpdate(apiKey);
         return update != null ? update.ts : Long.MAX_VALUE;
     }
 
@@ -307,7 +307,7 @@ public class ConnectorStore {
                 return maxTime;
         }
         // fall back to old method of querying the facets table
-        AbstractFacet facet = apiDataService.getLatestApiDataFacet(apiKey, null);
+        AbstractFacet facet = null; // apiDataService.getLatestApiDataFacet(apiKey, null);
         return facet == null ? Long.MAX_VALUE : facet.end;
     }
 
