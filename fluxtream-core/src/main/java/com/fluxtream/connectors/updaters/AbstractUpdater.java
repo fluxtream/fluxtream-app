@@ -112,7 +112,6 @@ public abstract class AbstractUpdater extends ApiClientSupport {
             // manually make sure to flush the data to the datastore.
             // See the Mymee updater for an example.
 
-            updateTimeBounds(updateInfo);
             return UpdateResult.successResult();
         } catch (RateLimitReachedException e) {
             StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateDataHistory")
@@ -150,6 +149,10 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                                                       sb.toString());
             return UpdateResult.failedResult(stackTrace);
         }
+        finally {
+            // Update the time bounds no matter how we exit the updater.
+            updateTimeBounds(updateInfo);
+        }
 	}
 
 	@SuppressWarnings({"unchecked","unused"})
@@ -183,7 +186,6 @@ public abstract class AbstractUpdater extends ApiClientSupport {
         try {
             updateConnectorData(updateInfo);
             updateResult = UpdateResult.successResult();
-            updateTimeBounds(updateInfo);
         } catch (RateLimitReachedException e) {
             updateResult = UpdateResult.rateLimitReachedResult(e);
         } catch (UpdateFailedException e) {
@@ -206,6 +208,10 @@ public abstract class AbstractUpdater extends ApiClientSupport {
             logger.warn(sb.toString());
             updateResult = UpdateResult.failedResult(stackTrace);
         }
+        finally {
+            // Update the time bounds no matter how we exit the updater.
+            updateTimeBounds(updateInfo);
+        }
 
 		return updateResult;
 	}
@@ -219,12 +225,12 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                 saveTimeBoundaries(updateInfo.apiKey, objectType);
             }
         }
-        ApiUpdate update = connectorUpdateService.getLastSuccessfulUpdate(updateInfo.apiKey);
-        if (update!=null) {
-            guestService.setApiKeyAttribute(updateInfo.apiKey,
-                                            ApiKeyAttribute.LAST_SYNC_TIME_KEY,
-                                            ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().print(update.ts));
-        }
+        // Consider the last sync time to be whenever the updater
+        // completes
+        guestService.setApiKeyAttribute(updateInfo.apiKey,
+                                        ApiKeyAttribute.LAST_SYNC_TIME_KEY,
+                                        ISODateTimeFormat.dateHourMinuteSecondFraction().
+                                                withZoneUTC().print(System.currentTimeMillis()));
     }
 
     private void saveTimeBoundaries(final ApiKey apiKey, final ObjectType objectType) {
