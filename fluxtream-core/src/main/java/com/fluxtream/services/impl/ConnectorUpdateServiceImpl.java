@@ -606,8 +606,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     /**
      * delete pending tasks for a guest's connector
      * @param apiKey The apiKey for which we want to update facets
-     * @param wipeOutHistory wether to delete everything including the initial history update that
-     *                       we use to track wether we need to everything from scratch or just do so
+     * @param wipeOutHistory whether to delete everything including the initial history update that
+     *                       we use to track whether we need to everything from scratch or just do so
      *                       incrementally
      */
     @Transactional(readOnly = false)
@@ -633,8 +633,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     /**
      * delete pending tasks for a guest's connector
      * @param apiKey The apiKey for which we want to update a specific facet/object type
-     * @param wipeOutHistory wether to delete everything including the initial history update that
-     *                       we use to track wether we need to everything from scratch or just do so
+     * @param wipeOutHistory whether to delete everything including the initial history update that
+     *                       we use to track whether we need to everything from scratch or just do so
      *                       incrementally
      */
     @Transactional(readOnly = false)
