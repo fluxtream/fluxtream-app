@@ -268,7 +268,7 @@ define(["core/Tab", "applications/calendar/tabs/list/ListUtils"], function(Tab, 
 
     $(window).scroll(function(){
         if ($("#listTab").parent().hasClass("active"))
-            onScroll($("body").scrollTop() + $("#selectedConnectors").height());
+            onScroll($(window).scrollTop() + $("#selectedConnectors").height());
         else
             onScroll(-100);
     });

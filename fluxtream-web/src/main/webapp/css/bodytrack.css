@@ -332,10 +332,15 @@
 
 ._timeline_gotozoom {
     width: 202px;
-    height: 40px;
+    height: 36px;
     margin-left: 1px;
     border: 1px solid #CCCCCC;
     background: #BCBCBC;
+}
+
+._timeline_gotozoom .btn-toolbar{
+    margin-top:4px;
+    margin-bottom:0px;
 }
 
 ._timeline_gotozoom_button {
@@ -357,26 +362,30 @@
 
 ._timeline_dateAxisContainer {
     width: auto;
-    height:40px;
+    height: 35px;
     margin: 0 53px 0 0px;
     padding: 0;
     border: 1px solid #CCCCCC;
     border-bottom-width: 0;
+    border-right-width:0;
 }
 
 ._timeline_dateAxis {
     width: auto;
-    height: 40px;
+    height: 37px;
+    border-right: 1px solid #CCCCCC;
     z-index: 2;
 }
 
 ._timeline_dateAxisLabelRegion {
-    min-width: 400px;
     height: 20px;
     margin-top:-20px;
-    padding-left: 180px;
-    padding-right: 60px;
+    padding-left: 385px;
     z-index: 1;
+}
+
+._timeline_dateAxisLabelRegion.channelAreaShowing{
+    padding-left:180px;
 }
 
 ._timeline_dataPointTimeZoneLabel {
@@ -628,8 +637,11 @@
 ._timeline_dragArea {
     height: 3px;
     cursor: ns-resize;
-    border-left: 1px solid #CCCCCC;
-    background: #D1D2D3;
+    background: transparent;
+    position:absolute;
+    bottom:0px;
+    left:0px;
+    right:0px;
 }
 
 .g2d-Surface canvas {
@@ -731,4 +743,13 @@ canvas {
     border: 1px solid #d1d2d3;
     font-size: 1.2em;
     vertical-align: middle;
+}
+
+
+._channelType_TIMESPAN .flx-channel-controls{
+    display:none;
+}
+
+.channelHideYAxis ._timeline_yaxistd{
+    opacity:0;
 }

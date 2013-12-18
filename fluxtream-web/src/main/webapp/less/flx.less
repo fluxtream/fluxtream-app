@@ -479,7 +479,11 @@ a img { text-decoration: none; }
   font-weight: bold;
 }
 
-.manageConnectors .topHeader.floating{
+.manageConnectors .topHeaderHolder{
+  overflow:hidden;
+}
+
+.manageConnectors .topHeaderHolder.floating{
   position:fixed;
   border-bottom: 1px solid #E0E0E0;
   border-top: 1px solid #E0E0E0;
@@ -1005,7 +1009,7 @@ a.enabled {
 }
 
 .dateHeading{
-  padding-top: 20px;
+  padding-top: 10px;
   font-size: 16px;
 }
 
@@ -1019,6 +1023,7 @@ a.enabled {
 
 .dateHeading hr{
   margin-bottom: 0;
+  margin-top: 10px;
 }
 
 .dateHeading.floating{
@@ -1160,4 +1165,28 @@ i.mainmenu-icon {
 
 .timeago {
   margin-left: 1em;
+}
+
+@media(min-width:768px){
+  .modal.manageConnectors, .settingsDialog {
+    width:750px;
+    margin-left:-375px;
+  }
+}
+@media(min-width:668px){
+  #viewUpdatesModal, .addConnectorsDialog{
+    width: 650px;
+    margin-left:-325px;
+  }
+
+}
+@media(min-width:978px){
+  .settingsDialog{
+    width:960px;
+    margin-left:-480px;
+  }
+}
+
+.manageConnectors .modal-body .content{
+  min-width: 735px;
 }

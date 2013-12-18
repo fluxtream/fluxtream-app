@@ -11,7 +11,6 @@ define(function(){
         for (var i = 0, li = tooltips.length; i < li; i++){
             tooltips[i].remove();
         }
-        tooltips = [];
     });
 
     return {
@@ -102,7 +101,20 @@ define(function(){
                     tooltip.css("left",position.x - tooltipWidth - tail.outerWidth() / 2);
                 }
             }
-            console.log(arguments);
+
+            var oldRemove = tooltip.remove;
+
+            tooltip.remove = function(){
+                oldRemove.apply(this);
+                var index = tooltips.indexOf(this);
+                if (index >= 0)
+                    tooltips.splice(index,1);
+                if (tooltip.onRemove != null)
+                    tooltip.onRemove();
+            }
+            tooltip.onRemove = null;
+
+            return tooltip;
 
         }
 
