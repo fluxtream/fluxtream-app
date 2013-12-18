@@ -1592,9 +1592,8 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                 // Finally, trigger a call updatePhotoSeriesPlotChannelConfig() so that the grapher properly represents the config settings
                 $("#" + channelElementId + "-photo-tags-matching-strategy").change();
             } else if (plot instanceof TimespanSeriesPlot){
+                yAxis.setMaxRange(0,1);
                 $("#" + channelElementId + " #" + channelElementId + "_btnShowAllY").click(function(event){
-                    event.preventDefault();
-                    var yAxis = plot.getVerticalAxis();
                     yAxis.setRange(0,1);
                 });
             }
