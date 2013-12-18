@@ -23,6 +23,7 @@ import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.ApiKeyAttribute;
 import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.domain.Guest;
@@ -37,6 +38,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -213,6 +217,7 @@ public class ConnectorStore {
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getInstalledConnectors")
                     .append(" guestId=").append(guest.getId())
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
+            System.out.println(sb.toString());
             logger.warn(sb.toString());
             return gson.toJson(new StatusModel(false,"Failed to get installed connectors: " + e.getMessage()));
         }
@@ -262,11 +267,42 @@ public class ConnectorStore {
     }
 
     private long getLastSync(ApiKey apiKey) {
+        final String lastSyncTimeAtt = guestService.getApiKeyAttribute(apiKey, ApiKeyAttribute.LAST_SYNC_TIME_KEY);
+        // only return the ApiKey's lastSyncTime if we have it cached as an attribute
+        if (lastSyncTimeAtt !=null && StringUtils.isNotEmpty(lastSyncTimeAtt)) {
+            final DateTime dateTime = ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().parseDateTime(lastSyncTimeAtt);
+            return dateTime.getMillis();
+        }
+        // fall back to old method of querying the ApiUpdates table
         ApiUpdate update = connectorUpdateService.getLastSuccessfulUpdate(apiKey);
         return update != null ? update.ts : Long.MAX_VALUE;
     }
 
     private long getLatestData(ApiKey apiKey) {
+        final ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
+        if (objectTypes==null||objectTypes.length==0) {
+            final String maxTimeAtt = guestService.getApiKeyAttribute(apiKey, ApiKeyAttribute.MAX_TIME_KEY);
+            // only return the ApiKey's maxTime if we have it cached as an attribute
+            if (maxTimeAtt !=null && StringUtils.isNotEmpty(maxTimeAtt)) {
+                final DateTime dateTime = ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().parseDateTime(maxTimeAtt);
+                return dateTime.getMillis();
+            }
+        } else {
+            long maxTime = -1;
+            for (ObjectType objectType : objectTypes) {
+                final String maxTimeAtt = guestService.getApiKeyAttribute(apiKey, objectType.getApiKeyAttributeName(ApiKeyAttribute.MAX_TIME_KEY));
+                if (maxTimeAtt !=null && StringUtils.isNotEmpty(maxTimeAtt)) {
+                    final DateTime dateTime = ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().parseDateTime(maxTimeAtt);
+                    final long maxObjectTypeTime = dateTime.getMillis();
+                    if (maxObjectTypeTime>maxTime)
+                        maxTime = maxObjectTypeTime;
+                }
+            }
+            // only return the ApiKey's maxTime if we have it cached as an attribute for any its connector's objectTypes
+            if (maxTime>-1)
+                return maxTime;
+        }
+        // fall back to old method of querying the facets table
         AbstractFacet facet = apiDataService.getLatestApiDataFacet(apiKey, null);
         return facet == null ? Long.MAX_VALUE : facet.end;
     }

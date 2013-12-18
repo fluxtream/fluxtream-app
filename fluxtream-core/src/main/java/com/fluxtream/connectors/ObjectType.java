@@ -34,7 +34,11 @@ public class ObjectType {
 	public static ObjectType getCustomObjectType(String name) {
 		return customObjectTypes.get(name);
 	}
-	
+
+    public String getApiKeyAttributeName(String attName) {
+        return new StringBuilder(name).append("/").append(attName).toString();
+    }
+
 	public static ObjectType getObjectType(Connector connector, int objectType) {
 		Map<Integer, ObjectType> connectorObjectTypes = connectorObjectTypeValues.get(connector);
         if (connectorObjectTypes!=null) {
