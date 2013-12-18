@@ -267,7 +267,7 @@ public class ConnectorStore {
     }
 
     private long getLastSync(ApiKey apiKey) {
-        if (!apiKey.getConnector().hasFacets()||apiKey.getConnector().getName().equals("fluxtream_capture"))
+        if (!apiKey.getConnector().hasFacets())
             return Long.MAX_VALUE;
         final String lastSyncTimeAtt = guestService.getApiKeyAttribute(apiKey, ApiKeyAttribute.LAST_SYNC_TIME_KEY);
         // only return the ApiKey's lastSyncTime if we have it cached as an attribute
@@ -281,7 +281,7 @@ public class ConnectorStore {
     }
 
     private long getLatestData(ApiKey apiKey) {
-        if (!apiKey.getConnector().hasFacets()||apiKey.getConnector().getName().equals("fluxtream_capture"))
+        if (!apiKey.getConnector().hasFacets())
             return Long.MAX_VALUE;
         final ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
         if (objectTypes==null||objectTypes.length==0) {
