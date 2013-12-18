@@ -188,7 +188,7 @@ public class ConnectorStore {
                     connectorJson.accumulate("text", connector.text);
                     connectorJson.accumulate("api", connector.api);
                     connectorJson.accumulate("apiKeyId", apiKey.getId());
-                    connectorJson.accumulate("lastSync", getLastSync(apiKey));
+                    connectorJson.accumulate("lastSync", connector.supportsSync?getLastSync(apiKey):Long.MAX_VALUE);
                     connectorJson.accumulate("latestData", getLatestData(apiKey));
                     final String auditTrail = checkForErrors(apiKey);
                     connectorJson.accumulate("errors", auditTrail!=null);
@@ -267,6 +267,8 @@ public class ConnectorStore {
     }
 
     private long getLastSync(ApiKey apiKey) {
+        if (!apiKey.getConnector().hasFacets()||apiKey.getConnector().getName().equals("fluxtream_capture"))
+            return Long.MAX_VALUE;
         final String lastSyncTimeAtt = guestService.getApiKeyAttribute(apiKey, ApiKeyAttribute.LAST_SYNC_TIME_KEY);
         // only return the ApiKey's lastSyncTime if we have it cached as an attribute
         if (lastSyncTimeAtt !=null && StringUtils.isNotEmpty(lastSyncTimeAtt)) {
@@ -279,6 +281,8 @@ public class ConnectorStore {
     }
 
     private long getLatestData(ApiKey apiKey) {
+        if (!apiKey.getConnector().hasFacets()||apiKey.getConnector().getName().equals("fluxtream_capture"))
+            return Long.MAX_VALUE;
         final ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
         if (objectTypes==null||objectTypes.length==0) {
             final String maxTimeAtt = guestService.getApiKeyAttribute(apiKey, ApiKeyAttribute.MAX_TIME_KEY);
