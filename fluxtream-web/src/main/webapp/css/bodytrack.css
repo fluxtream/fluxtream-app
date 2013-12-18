@@ -746,7 +746,7 @@ canvas {
 }
 
 
-._channelType_TIMESPAN .flx-channel-controls{
+._channelType_TIMESPAN ._grapher_btnGear{
     display:none;
 }
 

@@ -810,7 +810,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                 "showDeleteBtn"    : grapher.showDeleteBtn,
                 "grapherId"        : grapher.grapherId,
                 "channelType"      : channel["type"] == null ? "CONTINUOUS" : channel["type"].toUpperCase(),
-                "hideYAxis"        : channel["type"] == "timespan"
+                "hideYAxis"        : false
             };
 
             // Render template
@@ -831,12 +831,16 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             var yMin = channel.min;
             var yMax = channel.max;
             var yDiff = yMax - yMin;
-            var padding = 0.5;
-            if(yDiff < 1e-10) {
+            var padding;
+            if (channel["type"] == "timespan"){
+                padding = 0;
+            }
+            else if(yDiff < 1e-10) {
                 padding = 0.5;
             } else {
                 padding = 0.1 * yDiff;
             }
+
 
             if (dontPad) padding = 0;
 
@@ -1587,6 +1591,12 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
 
                 // Finally, trigger a call updatePhotoSeriesPlotChannelConfig() so that the grapher properly represents the config settings
                 $("#" + channelElementId + "-photo-tags-matching-strategy").change();
+            } else if (plot instanceof TimespanSeriesPlot){
+                $("#" + channelElementId + " #" + channelElementId + "_btnShowAllY").click(function(event){
+                    event.preventDefault();
+                    var yAxis = plot.getVerticalAxis();
+                    yAxis.setRange(0,1);
+                });
             }
 
             // Force initial resize
