@@ -69,9 +69,8 @@ public class MovesUpdater extends AbstractUpdater {
     final static String host = "https://api.moves-app.com/api/v1";
     final static String updateDateKeyName = "lastDate";
 
-    // Typically we would intend to set pastDaysToUpdatePlaces to 7 so we fixup the place data for a full week.
-    // Right now we're having trouble with quotas though, so we're setting it back temporarily to 1
-    final static int pastDaysToUpdatePlaces = 1;
+    // Fixup the place data for a full week into the past
+    final static int pastDaysToUpdatePlaces = 7;
 
     public static DateTimeFormatter compactDateFormat = DateTimeFormat.forPattern("yyyyMMdd");
     public static DateTimeFormatter timeStorageFormat = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmss'Z'");
@@ -465,7 +464,8 @@ public class MovesUpdater extends AbstractUpdater {
                 List<UpdateWorkerTask> updateWorkerTasks = connectorUpdateService.getScheduledUpdateWorkerTasksForConnectorNameBeforeTime("moves", nextQuotaAvailableTime);
                 for (int i=0; i<updateWorkerTasks.size(); i++) {
                     UpdateWorkerTask updateWorkerTask = updateWorkerTasks.get(i);
-                    long rescheduleTime = nextQuotaAvailableTime + i*(DateTimeConstants.MILLIS_PER_MINUTE*2);
+                    // Space the tasks 30 seconds apart so they don't all try to start at the same time
+                    long rescheduleTime = nextQuotaAvailableTime + i*(DateTimeConstants.MILLIS_PER_SECOND*30);
 
                     // Update the scheduled execution time for any moves tasks that would otherwise happen during
                     // the current quota outage far enough into the future that we should have quota available by then.

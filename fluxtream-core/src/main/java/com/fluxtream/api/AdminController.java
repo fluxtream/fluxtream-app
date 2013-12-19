@@ -14,8 +14,13 @@ import javax.ws.rs.core.MediaType;
 import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.updaters.ScheduleResult;
+import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.ApiKeyAttribute;
+import com.fluxtream.domain.ApiUpdate;
+import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.ApiDataService;
@@ -23,11 +28,13 @@ import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.MetadataService;
+import com.fluxtream.services.SystemService;
 import com.fluxtream.services.WidgetsService;
 import com.google.gson.Gson;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.codehaus.plexus.util.ExceptionUtils;
+import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.annotation.Secured;
@@ -60,6 +67,9 @@ public class AdminController {
 
     @Autowired
     MetadataService metadataService;
+
+    @Autowired
+    SystemService sysService;
 
     @GET
     @Secured({ "ROLE_ADMIN" })
@@ -97,6 +107,58 @@ public class AdminController {
             StatusModel failure = new StatusModel(false, ExceptionUtils.getStackTrace(t));
             return gson.toJson(failure);
         }
+    }
+
+    @POST
+    @Secured({ "ROLE_ADMIN" })
+    @Path("/timebounds/fixup")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String fixUpTimeBounds()
+            throws Exception {
+        List<ConnectorInfo> connectors =  sysService.getConnectors();
+        for (ConnectorInfo connectorInfo : connectors) {
+            final Connector connector = connectorInfo.getApi();
+            if (connector==null)
+                continue;
+            else {
+                List<Guest> guests = guestService.getAllGuests();
+                for (Guest g : guests) {
+                    ApiKey apiKey = guestService.getApiKey(g.getId(), connector);
+                    if (apiKey==null) continue;
+                    final ObjectType[] objectTypes = connector.objectTypes();
+                    if (objectTypes!=null&&objectTypes.length>0) {
+                        for (ObjectType objectType : objectTypes)
+                            saveTimeBoundaries(apiKey, objectType);
+                    } else
+                        saveTimeBoundaries(apiKey, null);
+                    ApiUpdate update = connectorUpdateService.getLastSuccessfulUpdate(apiKey);
+                    if (update!=null) {
+                        guestService.setApiKeyAttribute(apiKey,
+                                                        ApiKeyAttribute.LAST_SYNC_TIME_KEY,
+                                                        ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().print(update.ts));
+                    }
+                }
+            }
+        }
+        StatusModel success = new StatusModel(true, "done");
+        return gson.toJson(success);
+    }
+
+    private void saveTimeBoundaries(final ApiKey apiKey, final ObjectType objectType) {
+        final AbstractFacet oldestApiDataFacet = apiDataService.getOldestApiDataFacet(apiKey, objectType);
+        if (oldestApiDataFacet!=null)
+            guestService.setApiKeyAttribute(apiKey,
+                                            objectType==null
+                                                       ? ApiKeyAttribute.MIN_TIME_KEY
+                                                       : objectType.getApiKeyAttributeName(ApiKeyAttribute.MIN_TIME_KEY),
+                                            ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().print(oldestApiDataFacet.start));
+        final AbstractFacet latestApiDataFacet = apiDataService.getLatestApiDataFacet(apiKey, objectType);
+        if (latestApiDataFacet!=null)
+            guestService.setApiKeyAttribute(apiKey,
+                                            objectType==null
+                                                       ? ApiKeyAttribute.MAX_TIME_KEY
+                                                       : objectType.getApiKeyAttributeName(ApiKeyAttribute.MAX_TIME_KEY),
+                                            ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().print(Math.max(latestApiDataFacet.end, latestApiDataFacet.start)));
     }
 
     @POST

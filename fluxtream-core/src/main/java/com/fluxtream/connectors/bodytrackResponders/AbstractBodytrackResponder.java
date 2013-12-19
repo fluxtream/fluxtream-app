@@ -7,12 +7,16 @@ import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.ApiKeyAttribute;
 import com.fluxtream.domain.ChannelMapping;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.mvc.models.TimespanModel;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -78,7 +82,102 @@ public abstract class AbstractBodytrackResponder {
 
     public abstract List<AbstractFacetVO<AbstractFacet>> getFacetVOs(GuestSettings guestSettings, ApiKey apiKey, String objectTypeName,long start,long end,String value);
 
+    protected long getMinTimeForApiKey(long apiKeyId, Integer objectTypeId){
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
+
+        ObjectType[] objectTypes;
+        if (objectTypeId != null)
+            objectTypes = apiKey.getConnector().getObjectTypesForValue(objectTypeId);
+        else
+            objectTypes = apiKey.getConnector().objectTypes();
+        if (objectTypes == null || objectTypes.length == 0){
+            final String minTimeAtt = guestService.getApiKeyAttribute(apiKey, ApiKeyAttribute.MIN_TIME_KEY);
+            if (minTimeAtt !=null && StringUtils.isNotEmpty(minTimeAtt)) {
+                final DateTime dateTime = ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().parseDateTime(minTimeAtt);
+                return dateTime.getMillis();
+            }
+        }
+        else{
+            long minTime = Long.MAX_VALUE;
+            for (ObjectType objectType : objectTypes){
+                final String minTimeAtt = guestService.getApiKeyAttribute(apiKey, objectType.getApiKeyAttributeName(ApiKeyAttribute.MIN_TIME_KEY));
+                if (minTimeAtt !=null && StringUtils.isNotEmpty(minTimeAtt)) {
+                    final DateTime dateTime = ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().parseDateTime(minTimeAtt);
+                    minTime = Math.min(minTime, dateTime.getMillis());
+                }
+
+            }
+            if (minTime < Long.MAX_VALUE)
+                return minTime;
+        }
+        //if we couldn't get the minTime from ApiKey Attributes fallback to oldest facet
+        AbstractFacet facet;
+        if (objectTypes == null || objectTypes.length == 0){
+            facet = apiDataService.getOldestApiDataFacet(apiKey,null);
+        }
+        else{
+            facet = null;
+            for (ObjectType objectType : objectTypes){
+                AbstractFacet potentialFacet = apiDataService.getOldestApiDataFacet(apiKey,objectType);
+                if (facet == null || facet.start > potentialFacet.start)
+                    facet = potentialFacet;
+            }
+        }
+        if (facet != null)
+            return facet.start;
+        else
+            return Long.MAX_VALUE;
+    }
+
+    protected long getMaxTimeForApiKey(long apiKeyId, Integer objectTypeId){
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
+
+        ObjectType[] objectTypes;
+        if (objectTypeId != null)
+            objectTypes = apiKey.getConnector().getObjectTypesForValue(objectTypeId);
+        else
+            objectTypes = apiKey.getConnector().objectTypes();
+        if (objectTypes == null || objectTypes.length == 0){
+            final String maxTimeAtt = guestService.getApiKeyAttribute(apiKey, ApiKeyAttribute.MAX_TIME_KEY);
+            if (maxTimeAtt !=null && StringUtils.isNotEmpty(maxTimeAtt)) {
+                final DateTime dateTime = ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().parseDateTime(maxTimeAtt);
+                return dateTime.getMillis();
+            }
+        }
+        else{
+            long maxTime = Long.MIN_VALUE;
+            for (ObjectType objectType : objectTypes){
+                final String maxTimeAtt= guestService.getApiKeyAttribute(apiKey, objectType.getApiKeyAttributeName(ApiKeyAttribute.MAX_TIME_KEY));
+                if (maxTimeAtt !=null && StringUtils.isNotEmpty(maxTimeAtt)) {
+                    final DateTime dateTime = ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().parseDateTime(maxTimeAtt);
+                    maxTime = Math.max(maxTime,dateTime.getMillis());
+                }
+
+            }
+            if (maxTime > Long.MIN_VALUE)
+                return maxTime;
+        }
+        //if we couldn't get the minTime from ApiKey Attributes fallback to oldest facet
+        AbstractFacet facet;
+        if (objectTypes == null || objectTypes.length == 0){
+            facet = apiDataService.getLatestApiDataFacet(apiKey,null);
+        }
+        else{
+            facet = null;
+            for (ObjectType objectType : objectTypes){
+                AbstractFacet potentialFacet = apiDataService.getLatestApiDataFacet(apiKey,objectType);
+                if (facet == null || facet.end < potentialFacet.end)
+                    facet = potentialFacet;
+            }
+        }
+        if (facet != null)
+            return facet.end;
+        else
+            return Long.MIN_VALUE;
+    }
+
     public Bounds getBounds(final ChannelMapping mapping) {
+
         Bounds bounds = new Bounds();
         switch (mapping.channelType){
             case photo:
@@ -90,34 +189,17 @@ public abstract class AbstractBodytrackResponder {
                 bounds.max = 1;
                 break;
         }
-        ApiKey apiKey = guestService.getApiKey(mapping.apiKeyId);
-        if (mapping.objectTypeId == null){
-            bounds.min_time = Double.MAX_VALUE;
-            bounds.max_time = Double.MIN_VALUE;
-            for (ObjectType objectType : apiKey.getConnector().objectTypes()){
-                AbstractFacet facet = apiDataService.getOldestApiDataFacet(apiKey,objectType);
-                if (facet!=null) {
-                    bounds.min_time = Math.min(bounds.min_time,facet.start / 1000.0);
-                }
-                facet = apiDataService.getLatestApiDataFacet(apiKey,objectType);
-                if (facet!=null) {
-                    bounds.max_time = Math.max(bounds.max_time,facet.end / 1000.0);
-                }
-            }
-            if (bounds.max_time < bounds.min_time){
-                bounds.min_time = bounds.max_time = 0;
-            }
+        long maxTime = getMaxTimeForApiKey(mapping.apiKeyId,mapping.objectTypeId);
+        long minTime = getMinTimeForApiKey(mapping.apiKeyId, mapping.objectTypeId);
+        if (maxTime < minTime){
+            bounds.max_time = 0;
+            bounds.min_time = 0;
         }
-        else {
-            AbstractFacet facet = apiDataService.getOldestApiDataFacet(apiKey,ObjectType.getObjectType(apiKey.getConnector(),mapping.objectTypeId));
-            if (facet!=null) {
-                bounds.min_time = facet.start / 1000.0;
-            }
-            facet = apiDataService.getLatestApiDataFacet(apiKey,ObjectType.getObjectType(apiKey.getConnector(),mapping.objectTypeId));
-            if (facet!=null) {
-                bounds.max_time = facet.end / 1000.0;
-            }
+        else{
+            bounds.max_time = maxTime / 1000.0;
+            bounds.min_time = minTime / 1000.0;
         }
+
         return bounds;
     }
 }
