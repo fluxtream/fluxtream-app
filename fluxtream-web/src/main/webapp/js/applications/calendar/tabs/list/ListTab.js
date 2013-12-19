@@ -18,7 +18,7 @@ define(["core/Tab", "applications/calendar/tabs/list/ListUtils"], function(Tab, 
                 if (findResults.length > 0){
                     var facetDiv = $(findResults[0]);
                     var offset = facetDiv.offset();
-                    $("body").scrollTop(offset.top - 101);
+                    $(window).scrollTop(offset.top - 101);
                 }
 
             }
