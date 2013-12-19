@@ -197,6 +197,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         if (this.params != null && this.params.facetToShow != null){
             var facet = this.params.facetToShow;
             state = Calendar.toState(state.tabName, state.timeUnit,new Date(facet.end == null ? facet.start : (facet.start + facet.end) / 2));
+            Calendar.connectorEnabled[state.tabName][this.params.facetToShow.type.split("-")[0]] = true;
         }
 
         if (Calendar.timespanState !== state.tabState) {

@@ -272,6 +272,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
                 forceReload: force}, Calendar.params);
         });
         tabInterface.setActiveTab(Calendar.currentTabName);
+
         updateCurrentTab(digest, Calendar);
 	}
 
