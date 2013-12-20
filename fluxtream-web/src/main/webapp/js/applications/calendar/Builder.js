@@ -194,9 +194,17 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
                 .unbind("click")
                 .click(function(event){
                     var timeUnit = $(event.target).attr("unit");
-                    var url = timeUnitToURL(timeUnit),
-                        params = {state: Calendar.tabState};
-                    Calendar.fetchState(url, params);
+
+                    if (Calendar.dateAxisCursorPosition == null || (Calendar.currentTabName != "map" && Calendar.currentTabName != "timeline")){
+                        var url = timeUnitToURL(timeUnit);
+                        var params = {state: Calendar.tabState};
+                        Calendar.fetchState(url, params);
+                    }
+                    else{
+                        var state = Calendar.toState(Calendar.currentTabName,timeUnit,new Date(Calendar.dateAxisCursorPosition * 1000));
+                        Calendar.renderState(state);
+                    }
+
                 });
         });
 	}
