@@ -89,9 +89,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
            type: "GET",
            data: params,
            success: function(response) {
-               Calendar.dateAxisCursorPosition = null;
                Calendar.timeRange.start = response.start;
                Calendar.timeRange.end = response.end;
+               if (Calendar.dateAxisCursorPosition * 1000 < Calendar.timeRange.start || Calendar.dateAxisCursorPosition * 1000 > Calendar.timeRange.end)
+                   Calendar.dateAxisCursorPosition = null;
                updateTimespan(response.currentTimespanLabel,params);
                Calendar.timeRange.updated = true;
                Calendar.navigateState(Calendar.currentTabName + "/" + response.state);
@@ -161,9 +162,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             type: "GET",
             data: {state: state.tabState},
             success: function(response) {
-                Calendar.dateAxisCursorPosition = null;
                 Calendar.timeRange.start = response.start;
                 Calendar.timeRange.end = response.end;
+                if (Calendar.dateAxisCursorPosition * 1000 < Calendar.timeRange.start || Calendar.dateAxisCursorPosition * 1000 > Calendar.timeRange.end)
+                    Calendar.dateAxisCursorPosition = null;
                 updateTimespan(response.currentTimespanLabel,state.tabState);
                 Calendar.timeRange.updated = true;
                 stopLoading(doneLoadingId);
@@ -197,6 +199,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         if (this.params != null && this.params.facetToShow != null){
             var facet = this.params.facetToShow;
             state = Calendar.toState(state.tabName, state.timeUnit,new Date(facet.end == null ? facet.start : (facet.start + facet.end) / 2));
+            Calendar.connectorEnabled[state.tabName][this.params.facetToShow.type.split("-")[0]] = true;
         }
 
         if (Calendar.timespanState !== state.tabState) {
