@@ -2268,6 +2268,8 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
 
                 var createPhotoDialog = function(compoundPhotoId, timestamp, completionCallback) {
 
+                    grapher.setTimeCursorPosition(timestamp);
+
                     var photoMetadata = photoCache.getPhotoMetadata(compoundPhotoId);
                     var thumbnails = photoMetadata['thumbnails'];
                     // This assumes the thumbnails are ordered from smallest to largest.  Might be better to eventually search for the largest.
@@ -2326,8 +2328,8 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                                           typeof previousPhotoMetadata['photoId'] !== 'undefined';
                     if (isPreviousPhoto) {
                         $("#_timeline_photo_dialog_previous_button").show().click(function() {
-                            createPhotoDialog(previousPhotoMetadata['photoId'],
-                                previousPhotoMetadata['timestamp']);
+                            var timestamp = previousPhotoMetadata.isLocalTimeType ? grapher.dateAxis.localTimeToUTC(previousPhotoMetadata.timestamp) : previousPhotoMetadata.timestamp;
+                            createPhotoDialog(previousPhotoMetadata['photoId'],timestamp);
                         });
                     }
 
@@ -2336,8 +2338,8 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                                       typeof nextPhotoMetadata['photoId'] !== 'undefined';
                     if (isNextPhoto) {
                         $("#_timeline_photo_dialog_next_button").show().click(function() {
-                            createPhotoDialog(nextPhotoMetadata['photoId'],
-                                nextPhotoMetadata['timestamp']);
+                            var timestamp = nextPhotoMetadata.isLocalTimeType ? grapher.dateAxis.localTimeToUTC(nextPhotoMetadata.timestamp) : nextPhotoMetadata.timestamp;
+                            createPhotoDialog(nextPhotoMetadata['photoId'],timestamp);
                         });
                     }
 
