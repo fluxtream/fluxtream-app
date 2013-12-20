@@ -89,9 +89,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
            type: "GET",
            data: params,
            success: function(response) {
-               Calendar.dateAxisCursorPosition = null;
                Calendar.timeRange.start = response.start;
                Calendar.timeRange.end = response.end;
+               if (Calendar.dateAxisCursorPosition * 1000 < Calendar.timeRange.start || Calendar.dateAxisCursorPosition * 1000 > Calendar.timeRange.end)
+                   Calendar.dateAxisCursorPosition = null;
                updateTimespan(response.currentTimespanLabel,params);
                Calendar.timeRange.updated = true;
                Calendar.navigateState(Calendar.currentTabName + "/" + response.state);
@@ -161,9 +162,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             type: "GET",
             data: {state: state.tabState},
             success: function(response) {
-                Calendar.dateAxisCursorPosition = null;
                 Calendar.timeRange.start = response.start;
                 Calendar.timeRange.end = response.end;
+                if (Calendar.dateAxisCursorPosition * 1000 < Calendar.timeRange.start || Calendar.dateAxisCursorPosition * 1000 > Calendar.timeRange.end)
+                    Calendar.dateAxisCursorPosition = null;
                 updateTimespan(response.currentTimespanLabel,state.tabState);
                 Calendar.timeRange.updated = true;
                 stopLoading(doneLoadingId);
