@@ -801,7 +801,7 @@ table .remove { text-align:center;
 //----------FOOTER
 
 footer { color: gray; }
-.flx-credits { float: left; margin-right: 30px;}
+.flx-credits { float: left; margin-right: 30px; margin-top:-10px; div {margin-top: 3px;}}
 .feedback-call { height: 100%; float: right; margin-right:25px; }
 .anne, .bubbles, .candide { .flx-floatL; }
 .anne, .candide { background: url(../images/spriteAandC.png) no-repeat 0 0; width: 40px; height: 40px; background-size: 100%; }
@@ -1189,4 +1189,36 @@ i.mainmenu-icon {
 
 .manageConnectors .modal-body .content{
   min-width: 735px;
+}
+
+iframe {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  font-size: 100%;
+  vertical-align: baseline;
+  background: transparent;
+  border-image-source: initial;
+  border-image-slice: initial;
+  border-image-repeat: initial;
+}
+
+body .modal-reading {
+  /* new custom width */
+  width: 750px;
+  /* must be half of the width, minus scrollbar on the left (30px) */
+  margin-left: -375px;
+  top:10%; bottom:10%;
+  .modal-body {
+    max-height:100%;
+    height:83%; // note: when the window gets smaller, a gap between modal-body and modal-footer appears and this
+                // value must be adjusted downwards (e.g. 77%). OTOH if we choose a smaller value, a white space
+                // will appear beneath the modal-footer. 83% is a compromise and will display perfectly for
+                // reasonably sized windows (min. 612px in height)
+    overflow-y:
+    hidden;
+  }
 }

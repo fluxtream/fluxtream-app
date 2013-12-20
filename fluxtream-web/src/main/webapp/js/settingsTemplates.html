@@ -229,3 +229,35 @@
         </div>
     </div>
 </template>
+<template id="privacyPolicyDialog">
+    <div id="privacyPolicyModal" class="modal modal-reading hide in">
+        <div class="modal-header">
+            <a class="close" data-dismiss="modal">&times;</a>
+            <h3>Privacy Policy</h3>
+        </div>
+        <div class="modal-body">
+            <iframe src="/{{release}}/html/privacyPolicy.html">
+
+            </iframe>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" onclick="$('#findUserModal').modal('hide');">Close</button>
+        </div>
+    </div>
+</template>
+<template id="quickStartDialog">
+    <div id="quickStartModal" class="modal modal-reading hide in">
+        <div class="modal-header">
+            <a class="close" data-dismiss="modal">&times;</a>
+            <h3>Quick Start Guide</h3>
+        </div>
+        <div class="modal-body">
+            <iframe src="/{{release}}/html/QuickStartGuide.pdf">
+
+            </iframe>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" onclick="$('#findUserModal').modal('hide');">Close</button>
+        </div>
+    </div>
+</template>
