@@ -1251,6 +1251,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         var sunsetM = Calendar.weather.solarInfo.sunset%60;
         if (sunriseM<10) sunriseM = "0" + sunriseM;
         if (sunsetM<10) sunsetM = "0" + sunsetM;
+        if (sunsetH>12)sunsetH-=12;
         return "<span class=\"ephemeris\"><span title='Sunrise'><i class=\"flx-pict-sun\">&nbsp;</i><span>" + sunriseH + ":" + sunriseM + " am"+
                "</span></span>&nbsp;<span title='Sunset'><i class=\"flx-pict-moon\">&nbsp;</i><span>" + sunsetH + ":" + sunsetM + " pm</span></span></span>";
     }
