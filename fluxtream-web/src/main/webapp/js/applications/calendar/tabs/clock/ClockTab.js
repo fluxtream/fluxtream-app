@@ -281,13 +281,19 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                         if (clockCircleElements[item.type] == null)
                             clockCircleElements[item.type] = [];
                         clockCircleElements[item.type][clockCircleElements[item.type].length] = span.node;
+                        //we only want to consider the main type and the facet type, not the facet subtypes present in moves-move for example
+                        var itemTypeSearch = item.type.split("-").slice(0,2).join("-");
                         for (var i = 0; i < selectedConnectors.length; i++){
                             var found = false;
                             for (var j = 0; !found && j < selectedConnectors[i].facetTypes.length; j++){
-                                found = item.type == selectedConnectors[i].facetTypes[j];
+
+                                found = itemTypeSearch == selectedConnectors[i].facetTypes[j];
                             }
                             if (found){
                                 span.node.style.display = connectorEnabled[selectedConnectors[i].connectorName] ? "inline" : "none";
+                                if (typeof (span.node.outline)!="undefined") {
+                                    span.node.outline.node.style.display = connectorEnabled[selectedConnectors[i].connectorName] ? "inline" : "none";
+                                }
                                 break;
                             }
                         }
