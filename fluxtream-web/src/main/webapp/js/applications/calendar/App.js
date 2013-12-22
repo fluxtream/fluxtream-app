@@ -847,71 +847,69 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             Calendar.commentEdit(event,getFacet(facetType,facetId));
             return false;
         });
-        if (App.activeApp.name != "bodytrack"){
-            details.find(".timedropdown").unbind('click').click(function(event){
-                var element;
-                for (element = $(event.delegateTarget); !element.hasClass("facetDetails"); element = element.parent());
+        details.find(".timedropdown").unbind('click').click(function(event){
+            var element;
+            for (element = $(event.delegateTarget); !element.hasClass("facetDetails"); element = element.parent());
 
-                var facet = getFacet(element.attr("facettype"),parseInt(element.attr('itemid')));
+            var facet = getFacet(element.attr("facettype"),parseInt(element.attr('itemid')));
 
-                var popup = $('<ul id="menu1" class="dropdown-menu">' +
-                                  '<li><a class="clockLink" notthide="true" href="javascript:void(0)">Show in Clock</a></li>' +
-                '<li><a class="mapLink" href="javascript:void(0)">Show on Map</a></li>' +
-                    '<li><a class="listLink" href="javascript:void(0)">Show in List</a></li>' +
-                '<li><a class="timelineLink" href="javascript:void(0)">Show on Timeline</a></li>' +
-                    //'<li><a class="bodytrackLink" href="javascript:void(0)">Show in Bodytrack</a></li>' +
-                '</ul>');
+            var popup = $('<ul id="menu1" class="dropdown-menu">' +
+                              '<li><a class="clockLink" notthide="true" href="javascript:void(0)">Show in Clock</a></li>' +
+            '<li><a class="mapLink" href="javascript:void(0)">Show on Map</a></li>' +
+                '<li><a class="listLink" href="javascript:void(0)">Show in List</a></li>' +
+            '<li><a class="timelineLink" href="javascript:void(0)">Show on Timeline</a></li>' +
+                '<li><a class="bodytrackLink" href="javascript:void(0)">Show in Bodytrack</a></li>' +
+            '</ul>');
 
-                var config = App.getFacetConfig(facet.type);
-                if (!config.map || (App.activeApp.name === "calendar" && Calendar.currentTabName === "map")){
-                    popup.find(".mapLink").css("display","none");
-                }
-                if (!config.list || (App.activeApp.name === "calendar" && Calendar.currentTabName === "list")){
-                    popup.find(".listLink").css("display","none");
-                }
-                if (config.clock == null || (Calendar.timeUnit != null && Calendar.timeUnit !== "date") || (App.activeApp.name === "calendar" && Calendar.currentTabName === "clock")){
-                    popup.find(".clockLink").css("display","none");
-                }
-                if ((App.activeApp.name === "calendar" && Calendar.currentTabName === "timeline")){
-                    popup.find(".timelineLink").css("display","none");
-                }
-                if (App.activeApp.name === "bodytrack"){
-                    popup.find(".bodytrackLink").css("display","none");
-                }
+            var config = App.getFacetConfig(facet.type);
+            if (!config.map || (App.activeApp.name === "calendar" && Calendar.currentTabName === "map")){
+                popup.find(".mapLink").css("display","none");
+            }
+            if (!config.list || (App.activeApp.name === "calendar" && Calendar.currentTabName === "list")){
+                popup.find(".listLink").css("display","none");
+            }
+            if (config.clock == null || (Calendar.timeUnit != null && Calendar.timeUnit !== "date") || (App.activeApp.name === "calendar" && Calendar.currentTabName === "clock")){
+                popup.find(".clockLink").css("display","none");
+            }
+            if ((App.activeApp.name === "calendar" && Calendar.currentTabName === "timeline")){
+                popup.find(".timelineLink").css("display","none");
+            }
+            if (App.activeApp.name === "bodytrack"){
+                popup.find(".bodytrackLink").css("display","none");
+            }
 
-                popup.css("position","absolute");
-                $("body").append(popup);
+            popup.css("position","absolute");
+            $("body").append(popup);
 
-                var target = $(event.delegateTarget);
+            var target = $(event.delegateTarget);
 
-                var offset = target.offset();
-                popup.css("top",offset.top + target.height());
-                popup.css("left",offset.left);
-                popup.css("display","inline-block");
+            var offset = target.offset();
+            popup.css("top",offset.top + target.height());
+            popup.css("left",offset.left);
+            popup.css("display","inline-block");
 
-                popup.find(".mapLink").unbind('click').click(function(event){
-                    switchToAppForFacet("calendar","map",facet);
-                });
-                popup.find(".clockLink").unbind('click').click(function(event){
-                    switchToAppForFacet("calendar","clock",facet);
-                });
-                popup.find(".listLink").unbind('click').click(function(event){
-                    switchToAppForFacet("calendar","list",facet);
-                });
-                popup.find(".timelineLink").unbind('click').click(function(event){
-                    switchToAppForFacet("calendar","timeline",facet);
-                });
-                popup.find(".bodytrackLink").unbind('click').click(function(event){
-                    switchToAppForFacet("bodytrack","grapher",facet);
-                });
-
-                if (activePopup != null)
-                    activePopup.remove();
-
-                activePopup = popup;
-                return false;
+            popup.find(".mapLink").unbind('click').click(function(event){
+                switchToAppForFacet("calendar","map",facet);
             });
-        }
+            popup.find(".clockLink").unbind('click').click(function(event){
+                switchToAppForFacet("calendar","clock",facet);
+            });
+            popup.find(".listLink").unbind('click').click(function(event){
+                switchToAppForFacet("calendar","list",facet);
+            });
+            popup.find(".timelineLink").unbind('click').click(function(event){
+                switchToAppForFacet("calendar","timeline",facet);
+            });
+            popup.find(".bodytrackLink").unbind('click').click(function(event){
+                switchToAppForFacet("bodytrack","grapher",facet);
+            });
+
+            if (activePopup != null)
+                activePopup.remove();
+
+            activePopup = popup;
+            return false;
+        });
     }
 
    $("body").mousedown(function(event){
