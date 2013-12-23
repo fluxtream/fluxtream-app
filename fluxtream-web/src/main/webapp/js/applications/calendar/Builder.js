@@ -157,7 +157,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
             if (beginFloat <= 0){
                 beginFloat = $(window).height() * 5000;
             }
-            var scrollTop = $("body").scrollTop();
+            var scrollTop = $(window).scrollTop();
             if (scrollTop < beginFloat){
                 $("#filtersContainer").removeClass("floating");
                 $("#filterPlaceHolderElement").addClass("hidden");
@@ -194,9 +194,17 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
                 .unbind("click")
                 .click(function(event){
                     var timeUnit = $(event.target).attr("unit");
-                    var url = timeUnitToURL(timeUnit),
-                        params = {state: Calendar.tabState};
-                    Calendar.fetchState(url, params);
+
+                    if (Calendar.dateAxisCursorPosition == null || (Calendar.currentTabName != "map" && Calendar.currentTabName != "timeline")){
+                        var url = timeUnitToURL(timeUnit);
+                        var params = {state: Calendar.tabState};
+                        Calendar.fetchState(url, params);
+                    }
+                    else{
+                        var state = Calendar.toState(Calendar.currentTabName,timeUnit,new Date(Calendar.dateAxisCursorPosition * 1000));
+                        Calendar.renderState(state);
+                    }
+
                 });
         });
 	}
@@ -272,6 +280,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
                 forceReload: force}, Calendar.params);
         });
         tabInterface.setActiveTab(Calendar.currentTabName);
+
         updateCurrentTab(digest, Calendar);
 	}
 

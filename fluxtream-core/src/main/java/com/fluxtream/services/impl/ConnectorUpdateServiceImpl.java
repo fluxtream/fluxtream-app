@@ -194,11 +194,13 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     @Override
     @Transactional(readOnly=false)
     public void cleanupStaleData() {
-        long oneWeekAgo = System.currentTimeMillis() - (DateTimeConstants.MILLIS_PER_DAY*7);
-        final Query cleanupUpdateWorkerTasks = em.createNativeQuery(String.format("DELETE FROM UpdateWorkerTask WHERE not(status=2 AND updateType=2) and timeScheduled<%s", oneWeekAgo));
+        // Keeping one week seems to lead to api/connectors/installed being too slow as of December 2013.
+        // Reduce to two days
+        long twoDaysAgo = System.currentTimeMillis() - (DateTimeConstants.MILLIS_PER_DAY*2);
+        final Query cleanupUpdateWorkerTasks = em.createNativeQuery(String.format("DELETE FROM UpdateWorkerTask WHERE not(status=2 AND updateType=2) and timeScheduled<%s", twoDaysAgo));
         final int updateWorkerTasksDeleted = cleanupUpdateWorkerTasks.executeUpdate();
         System.out.println("deleted " + updateWorkerTasksDeleted + " UpdateWorkerTasks");
-        final Query cleanupApiUpdates = em.createNativeQuery(String.format("DELETE FROM ApiUpdates WHERE ts<%s", oneWeekAgo));
+        final Query cleanupApiUpdates = em.createNativeQuery(String.format("DELETE FROM ApiUpdates WHERE ts<%s", twoDaysAgo));
         final int apiUpdatesDeleted = cleanupApiUpdates.executeUpdate();
         System.out.println("deleted " + apiUpdatesDeleted + " ApiUpdates");
     }
@@ -604,8 +606,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     /**
      * delete pending tasks for a guest's connector
      * @param apiKey The apiKey for which we want to update facets
-     * @param wipeOutHistory wether to delete everything including the initial history update that
-     *                       we use to track wether we need to everything from scratch or just do so
+     * @param wipeOutHistory whether to delete everything including the initial history update that
+     *                       we use to track whether we need to everything from scratch or just do so
      *                       incrementally
      */
     @Transactional(readOnly = false)
@@ -631,8 +633,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     /**
      * delete pending tasks for a guest's connector
      * @param apiKey The apiKey for which we want to update a specific facet/object type
-     * @param wipeOutHistory wether to delete everything including the initial history update that
-     *                       we use to track wether we need to everything from scratch or just do so
+     * @param wipeOutHistory whether to delete everything including the initial history update that
+     *                       we use to track whether we need to everything from scratch or just do so
      *                       incrementally
      */
     @Transactional(readOnly = false)

@@ -45,6 +45,7 @@ public class LocationFacet extends AbstractFacet implements Comparable<LocationF
             RUNKEEPER, FLUXTREAM_CAPTURE, FLICKR, MOVES, MYMEE, NONE, EVERNOTE
     }
 
+    @Index(name="source")
 	public Source source = Source.GOOGLE_LATITUDE;
 	
 	@Key

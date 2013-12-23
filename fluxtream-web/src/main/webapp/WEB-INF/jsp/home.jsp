@@ -82,6 +82,13 @@
                             </ul>
                             <ul class="nav pull-right">
                                 <li class="divider-vertical"></li>
+                                <li class="dropdown" id="" data-container="body">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Help <i class="icon-lightbulb icon-large"></i></a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="javascript:App.quickStart();">Quick Start</a></li>
+                                        <li><a href="javascript:App.privacyPolicy();">Privacy Policy</a></li>
+                                    </ul>
+                                </li>
                                 <li class="dropdown" id="connectorsDropdownToggle" data-container="body">
                                     <a href="#" class="dropdown-toggle" onclick="$('#connectorsDropdownToggle').popover('destroy');"
                                                         data-toggle="dropdown">Connectors
@@ -103,7 +110,7 @@
                                         <%  } %>
                                     <li><a onclick="if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'viewMyData', 1);}" href="javascript:App.as('self')">View My data</a></li>
                                     <% } %>
-                                    <li><a href="javascript:App.sharingDialog.show();if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'sharingDialog', 1);}"><i class="mainmenu-icon icon-share icon-large pull-right"></i>Share your data...</a></li>
+                                    <li><a href="javascript:App.sharingDialog.show();if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'sharingDialog', 1);}"><i class="mainmenu-icon icon-share icon-large pull-right"></i><span style="margin-right:2em">Share your data...</span></a></li>
                                     <li class="divider"></li>
 									<li><a href="/logout" onclick="if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'logout', 1);}"><i class="mainmenu-icon icon-off icon-large pull-right"></i>Logout</a></li>
 								</ul></li>

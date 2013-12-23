@@ -1,13 +1,17 @@
 package com.fluxtream.connectors.updaters;
 
+import java.util.List;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.ApiClientSupport;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.dao.FacetDao;
 import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.ApiKeyAttribute;
+import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.domain.Notification;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.BodyTrackStorageService;
@@ -152,6 +156,10 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                                                       sb.toString());
             return UpdateResult.failedResult(stackTrace);
         }
+        finally {
+            // Update the time bounds no matter how we exit the updater.
+            updateTimeBounds(updateInfo);
+        }
 	}
 
 	@SuppressWarnings({"unchecked","unused"})
@@ -207,11 +215,49 @@ public abstract class AbstractUpdater extends ApiClientSupport {
             logger.warn(sb.toString());
             updateResult = UpdateResult.failedResult(stackTrace);
         }
+        finally {
+            // Update the time bounds no matter how we exit the updater.
+            updateTimeBounds(updateInfo);
+        }
 
 		return updateResult;
 	}
 
-	final protected void countSuccessfulApiCall(ApiKey apiKey, int objectTypes,
+    private void updateTimeBounds(final UpdateInfo updateInfo) {
+        final List<ObjectType> objectTypes = updateInfo.objectTypes();
+        if (objectTypes==null||objectTypes.size()==0) {
+            saveTimeBoundaries(updateInfo.apiKey, null);
+        } else {
+            for (ObjectType objectType : objectTypes) {
+                saveTimeBoundaries(updateInfo.apiKey, objectType);
+            }
+        }
+        // Consider the last sync time to be whenever the updater
+        // completes
+        guestService.setApiKeyAttribute(updateInfo.apiKey,
+                                        ApiKeyAttribute.LAST_SYNC_TIME_KEY,
+                                        ISODateTimeFormat.dateHourMinuteSecondFraction().
+                                                withZoneUTC().print(System.currentTimeMillis()));
+    }
+
+    private void saveTimeBoundaries(final ApiKey apiKey, final ObjectType objectType) {
+        final AbstractFacet oldestApiDataFacet = apiDataService.getOldestApiDataFacet(apiKey, objectType);
+        if (oldestApiDataFacet!=null)
+            guestService.setApiKeyAttribute(apiKey,
+                                            objectType==null
+                                                       ? ApiKeyAttribute.MIN_TIME_KEY
+                                                       : objectType.getApiKeyAttributeName(ApiKeyAttribute.MIN_TIME_KEY),
+                                            ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().print(oldestApiDataFacet.start));
+        final AbstractFacet latestApiDataFacet = apiDataService.getLatestApiDataFacet(apiKey, objectType);
+        if (latestApiDataFacet!=null)
+            guestService.setApiKeyAttribute(apiKey,
+                                            objectType==null
+                                                       ? ApiKeyAttribute.MAX_TIME_KEY
+                                                       : objectType.getApiKeyAttributeName(ApiKeyAttribute.MAX_TIME_KEY),
+                                            ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().print(Math.max(latestApiDataFacet.end, latestApiDataFacet.start)));
+    }
+
+    final protected void countSuccessfulApiCall(ApiKey apiKey, int objectTypes,
 			long then, String query) {
         StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=countSuccessfulApiCall")
                 .append(" connector=" + connector().getName())
@@ -234,7 +280,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                 .append(" guestId=").append(apiKey.getGuestId())
                 .append(" query=").append(query)
                 .append(" httpResponseCode=").append(httpResponseCode)
-                .append(" reason=").append(reason)
+                .append(" reason=\"").append(reason).append("\"")
                 .append(" stackTrace=<![CDATA[").append(stackTrace).append("]]>");
         logger.info(sb.toString());
 		connectorUpdateService.addApiUpdate(apiKey, objectTypes, then, System.currentTimeMillis() - then, query,
@@ -250,7 +296,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                 .append(" guestId=").append(apiKey.getGuestId())
                 .append(" time=").append(ISODateTimeFormat.basicDateTimeNoMillis().print(then))
                 .append(" query=").append(query)
-                .append(" reason=").append(reason)
+                .append(" reason=\"").append(reason).append("\"")
                 .append(" stackTrace=<![CDATA[").append(stackTrace).append("]]>");
         logger.info(sb.toString());
     }

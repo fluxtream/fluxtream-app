@@ -11,7 +11,7 @@ define(["core/Tab",
     function render(params) {
         params.setTabParam(null);
         this.getTemplate("text!applications/calendar/tabs/photos/photos.html", "photos", function() {
-            $(window).resize(); //masonry reorganizes pictures when the window is resized and some tabs can braek the layout, this fixes it
+            //$(window).resize(); //masonry reorganizes pictures when the window is resized and some tabs can braek the layout, this fixes it
             if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){
                 params.doneLoading();
                 return;
@@ -137,22 +137,30 @@ define(["core/Tab",
             currentGroup[currentGroup.length] = {id:data[i].id,photoUrl:photoUrl,time:time,ampm:ampm};
         }
         if (currentGroup.length != 0){
-            $("#photoTab").append(thumbnailGroupTemplate.render({date:App.prettyDateFormat(currentDate),city:currentCity.name,timezone:currentCity.shortTimezone,state:"photos/date/"+currentDate.split(" ")[0],photos:currentGroup}));
+            $("#photoTab").append(thumbnailGroupTemplate.render({
+                date: App.prettyDateFormat(currentDate),
+                city: currentCity.name,
+                timezone: currentCity.shortTimezone,
+                state: "photos/date/"+currentDate.split(" ")[0],
+                photos: currentGroup
+            }));
         }
         for (var i = 0; i < data.length; i++){
             $("#photo-" + data[i].id).click({i:data[i].id},function(event){
                 PhotoUtils.showCarouselHTML(carouselHTML,event.data.i);
             });
         }
-        var groups = $(".thumbnailGroup");
-        for (var i = 0; i < groups.length; i++){
-            $(groups[i]).imagesLoaded(function(event){
-                $(this).masonry({
-                     itemSelector: '.photoThumbnail',
-                     columnWidth:1
-                 });
-            });
-        }
+        //var groups = $(".thumbnailGroup");
+        //for (var i = 0; i < groups.length; i++){
+        //    $(groups[i]).imagesLoaded(function(event){
+        //        $(this).masonry({
+        //             itemSelector: '.photoThumbnail',
+        //             columnWidth:1,
+        //             hiddenStyle: null,
+        //             isResizeBound: false
+        //         });
+        //    });
+        //}
 
     }
 
@@ -211,7 +219,7 @@ define(["core/Tab",
 
     $(window).scroll(function(){
         if ($("#photoTab").parent().hasClass("active"))
-            onScroll($("body").scrollTop() + $("#selectedConnectors").height());
+            onScroll($(window).scrollTop() + $("#selectedConnectors").height());
         else
             onScroll(-100);;
     });

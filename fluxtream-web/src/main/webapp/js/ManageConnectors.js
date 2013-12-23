@@ -99,6 +99,7 @@ define(["core/grapher/BTCore",
 
     function dataLoaded(data,update){
         connectors = data;
+        $(window).off("scroll.manageConnectorsHeader");
         App.loadMustacheTemplate("connectorMgmtTemplates.html","manageConnectors",function(template){
             var params = [];
             for (var i = 0; i < data.length; i++){
@@ -120,15 +121,22 @@ define(["core/grapher/BTCore",
                 App.makeModal(html);
                 $("#modal .modal-body").scroll(function(event){
                     var scrollTop = $("#modal .modal-body").scrollTop();
-                    $("#modal .modal-body .topHeader").width($("#modal .modal-body table").width())
+                    $("#modal .modal-body .topHeader").width($("#modal .modal-body table").width());
                     if (scrollTop < 48){
-                        $("#modal .modal-body .topHeader").removeClass("floating");
+                        $("#modal .modal-body .topHeaderHolder").removeClass("floating");
                         $("#modal .modal-body .placeholder").addClass("hidden");
+                        $("#modal .modal-body .topHeaderHolder").width($("#modal .modal-body table").width());
+                        $("#modal .modal-body .topHeader").css("margin-left",0);
                     }
                     else{
-                        $("#modal .modal-body .topHeader").addClass("floating");
+                        $("#modal .modal-body .topHeaderHolder").addClass("floating");
                         $("#modal .modal-body .placeholder").removeClass("hidden");
+                        $("#modal .modal-body .topHeaderHolder").width($("#modal .modal-body").width() - 15);
+                        $("#modal .modal-body .topHeader").css("margin-left",-$("#modal .modal-body").scrollLeft());
                     }
+                });
+                $(window).on("resize.manageConnectorsHeader",function(){
+                    $("#modal .modal-body").scroll();
                 });
             }
             bindDialog();
@@ -156,6 +164,7 @@ define(["core/grapher/BTCore",
         });
         $("#modal").unbind("hide");
         $("#modal").on("hide",function(){
+            $(window).off("resize.manageConnectorsHeader");
             hidden = true;
             $.doTimeout("manageConnectorsUpdater");
             App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state

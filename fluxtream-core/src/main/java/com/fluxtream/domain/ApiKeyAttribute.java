@@ -18,7 +18,11 @@ import com.fluxtream.Configuration;
 })
 public class ApiKeyAttribute extends AbstractEntity {
 
-	@ManyToOne
+    public static final String MIN_TIME_KEY = "minTime";
+    public static final String MAX_TIME_KEY = "maxTime";
+    public static final String LAST_SYNC_TIME_KEY = "lastSyncTime";
+
+    @ManyToOne
 	public ApiKey apiKey;
 
 	public String attributeKey;

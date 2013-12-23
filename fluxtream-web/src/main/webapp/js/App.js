@@ -928,6 +928,19 @@ define(
                 iFrame.height = iFrame.contentWindow.document.body.scrollHeight + "px";
             }
         }
+        App.quickStart = function() {
+            App.loadMustacheTemplate("settingsTemplates.html","quickStartDialog",function(template){
+                var html = template.render({release : window.FLX_RELEASE_NUMBER});
+                App.makeModal(html);
+            });
+        }
+
+        App.privacyPolicy = function() {
+            App.loadMustacheTemplate("settingsTemplates.html","privacyPolicyDialog",function(template){
+                var html = template.render({release : window.FLX_RELEASE_NUMBER});
+                App.makeModal(html);
+            });
+        }
 
         App.getUsername = getUsername;
         App.getUID = getUID;
