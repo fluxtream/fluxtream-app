@@ -582,15 +582,58 @@ define(
             }
         };
 
+        var monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Nov","Dec"];
+
+        App.duplicateVisitedCityForDate = function(city,date){
+            var cityToReturn = $.extend({},city,{});
+            cityToReturn.date = date;
+            var dateWithTimezoneParts = cityToReturn.dateWithTimezone.split(" ");
+            dateWithTimezoneParts.splice(0,1,date);
+            cityToReturn.dateWithTimezone = dateWithTimezoneParts.join(" ");
+
+            var msDifference = new Date(cityToReturn.dateWithTimezone) - new Date(city.dateWithTimezone);
+            cityToReturn.dayStart += msDifference;
+            cityToReturn.dayEnd += msDifference;
+
+            var startTime = city.startTime.split(" ");
+            var endTime = city.endTime.split(" ");
+
+            var targetDate = new Date(cityToReturn.dateWithTimezone);
+            startTime[0] = endTime[0] = monthNames[targetDate.getMonth()];
+            startTime[1] = endTime[1] = targetDate.getDate();
+            if (startTime[1] < 10)
+                startTime[1] = endTime[1] = "0" + startTime[1];
+            startTime[1] = endTime[1] = startTime[1] + ",";
+
+            cityToReturn.startTime = startTime.join(" ");
+            cityToReturn.endTime = endTime.join(" ");
+
+
+            return cityToReturn;
+
+        }
+
         App.getFacetCity = function(facet, citiesList){
+            var closestCity = null;
+            var cityTimeDistance = 0;
             for (var i= 0, li = citiesList.length; i < li; i++) {
                 var city = citiesList[i];
                 if (city.date===facet.date) {
                     //console.log("found date for facet\ncity: " + JSON.stringify(city) + "\nfacet: " + JSON.stringify(facet));
                     return city;
                 }
+                else{
+                    var distance = Math.abs(new Date(city.date) - new Date(facet.date));
+                    if (closestCity == null || distance < cityTimeDistance){
+                        cityTimeDistance = distance;
+                        closestCity = city;
+                    }
+
+
+                }
             }
-            return null;
+            //if we couldn't find the city for the facet we attempt to get a closest match, in many places having no city will make the facet unviewable
+            return App.duplicateVisitedCityForDate(closestCity,facet.date);
         };
 
         App.prettyDateFormat = function(dateString) {
