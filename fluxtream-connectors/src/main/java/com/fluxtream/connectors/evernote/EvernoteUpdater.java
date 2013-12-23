@@ -1,5 +1,8 @@
 package com.fluxtream.connectors.evernote;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -40,7 +43,6 @@ import com.fluxtream.services.MetadataService;
 import com.fluxtream.utils.JPAUtils;
 import com.syncthemall.enml4j.ENMLProcessor;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -66,6 +68,13 @@ public class EvernoteUpdater extends AbstractUpdater {
 
     @Autowired
     MetadataService metadataService;
+
+    ENMLProcessor processor = new ENMLProcessor();
+    static {
+        System.setProperty("javax.xml.stream.XMLInputFactory", "com.ctc.wstx.stax.WstxInputFactory");
+        System.setProperty("javax.xml.stream.XMLOutputFactory", "com.ctc.wstx.stax.WstxOutputFactory");
+        System.setProperty("javax.xml.stream.XMLEventFactory", "com.ctc.wstx.stax.WstxEventFactory");
+    }
 
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
@@ -108,7 +117,7 @@ public class EvernoteUpdater extends AbstractUpdater {
         return factory.createNoteStoreClient();
     }
 
-    private void performSync(final UpdateInfo updateInfo, final NoteStoreClient noteStore, final boolean forceFullSync) throws Exception {
+    private void performSync(final UpdateInfo updateInfo, final NoteStoreClient noteStore, final boolean fullSync) throws Exception {
         try {
             // retrieve lastUpdateCount - this could be an incremental update or
             // a second attempt at a previously failed history update
@@ -126,7 +135,7 @@ public class EvernoteUpdater extends AbstractUpdater {
 
             // process expunged items in the case of an incremental update and we are not required
             // to do a full sync (in which case it would be a no-op)
-            if (updateInfo.getUpdateType()==UpdateInfo.UpdateType.INCREMENTAL_UPDATE && !forceFullSync) {
+            if (updateInfo.getUpdateType()==UpdateInfo.UpdateType.INCREMENTAL_UPDATE && !fullSync) {
                 processExpungedNotes(updateInfo, chunks);
                 processExpungedNotebooks(updateInfo, chunks);
                 processExpungedTags(updateInfo, chunks);
@@ -276,6 +285,7 @@ public class EvernoteUpdater extends AbstractUpdater {
                     facet.USN<note.getUpdateSequenceNum()){
                 }
                 Note freshlyRetrievedNote = noteStore.getNote(note.getGuid(), true, true, true, true);
+                writeToDisk(freshlyRetrievedNote);
                 facet.timeUpdated = System.currentTimeMillis();
                 if (freshlyRetrievedNote.isSetUpdateSequenceNum())
                     facet.USN = freshlyRetrievedNote.getUpdateSequenceNum();
@@ -291,10 +301,13 @@ public class EvernoteUpdater extends AbstractUpdater {
                         mapHashtoURL.put(resource.getGuid(), webResourcePath);
                     }
                 }
+                writeResourcesToDisk(freshlyRetrievedNote, mapHashtoURL);
                 if (freshlyRetrievedNote.isSetContent()) {
                     facet.content = freshlyRetrievedNote.getContent();
-                    ENMLProcessor processor = new ENMLProcessor();
+                    final long then = System.currentTimeMillis();
                     final String htmlContent = processor.noteToHTMLString(freshlyRetrievedNote, mapHashtoURL);
+                    final long now = System.currentTimeMillis();
+                    System.out.println("converting enml note took " + (now-then) + " ms");
                     facet.htmlContent = htmlContent;
                 }
                 facet.clearTags();
@@ -367,6 +380,20 @@ public class EvernoteUpdater extends AbstractUpdater {
         apiDataService.createOrReadModifyWrite(EvernoteNoteFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
     }
 
+    private void writeResourcesToDisk(final Note freshlyRetrievedNote, final Map<String, String> mapHashtoURL) throws IOException {
+        FileOutputStream fileoutput = new FileOutputStream("/Users/candide/Desktop/" + freshlyRetrievedNote.getGuid() + ".resources");
+        ObjectOutputStream oos = new ObjectOutputStream(fileoutput);
+        oos.writeObject(mapHashtoURL);
+        fileoutput.close();
+    }
+
+    private void writeToDisk(final Note freshlyRetrievedNote) throws IOException {
+        FileOutputStream fileoutput = new FileOutputStream("/Users/candide/Desktop/" + freshlyRetrievedNote.getGuid() + ".enml");
+        ObjectOutputStream oos = new ObjectOutputStream(fileoutput);
+        oos.writeObject(freshlyRetrievedNote);
+        fileoutput.close();
+    }
+
     private void createOrUpdateResource(final UpdateInfo updateInfo, final Resource resource) throws Exception {
         final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery(
                 "e.apiKeyId=? AND e.guid=?",
@@ -379,9 +406,6 @@ public class EvernoteUpdater extends AbstractUpdater {
                     extractCommonFacetData(facet, updateInfo);
                     facet.guid = resource.getGuid();
                 }
-                ObjectMapper mapper = new ObjectMapper();
-                final String resourceJson = mapper.writeValueAsString(resource);
-                System.out.println(resourceJson);
                 if (resource.isSetAlternateData()) {
                     Data alternateData = resource.getAlternateData();
                     if (alternateData.isSetBody())

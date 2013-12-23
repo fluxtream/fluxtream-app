@@ -30,8 +30,9 @@ public class EvernoteNoteFacetVO extends AbstractInstantFacetVO<EvernoteNoteFace
         startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getTimeZone(facet.start));
         if (facet.created!=null)
             created = ISODateTimeFormat.basicDateTimeNoMillis().print(facet.created);
-        if (facet.htmlContent!=null)
+        if (facet.htmlContent!=null) {
             content = facet.htmlContent;
+        }
         title = facet.title;
     }
 }

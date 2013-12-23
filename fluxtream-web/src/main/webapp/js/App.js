@@ -925,9 +925,12 @@ define(
             if(iFrame) {
                 // here you can make the height, I delete it first, then I make it again
                 iFrame.height = "";
-                iFrame.height = iFrame.contentWindow.document.body.scrollHeight + "px";
+                var height = iFrame.contentWindow.document.body.scrollHeight + "px";
+                iFrame.height = height;
+                $(iFrame).closest(".evernote-note").height(height);
             }
         }
+
         App.quickStart = function() {
             App.loadMustacheTemplate("settingsTemplates.html","quickStartDialog",function(template){
                 var html = template.render({release : window.FLX_RELEASE_NUMBER});
