@@ -13,9 +13,7 @@ import com.evernote.auth.EvernoteAuth;
 import com.evernote.auth.EvernoteService;
 import com.evernote.clients.ClientFactory;
 import com.evernote.clients.NoteStoreClient;
-import com.evernote.clients.UserStoreClient;
 import com.evernote.edam.error.EDAMErrorCode;
-import com.evernote.edam.error.EDAMNotFoundException;
 import com.evernote.edam.error.EDAMSystemException;
 import com.evernote.edam.error.EDAMUserException;
 import com.evernote.edam.notestore.SyncChunk;
@@ -27,8 +25,6 @@ import com.evernote.edam.type.Notebook;
 import com.evernote.edam.type.Resource;
 import com.evernote.edam.type.ResourceAttributes;
 import com.evernote.edam.type.Tag;
-import com.evernote.edam.type.User;
-import com.evernote.edam.userstore.PublicUserInfo;
 import com.evernote.thrift.TException;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.annotations.Updater;
@@ -56,12 +52,11 @@ import org.springframework.stereotype.Component;
                                                             EvernoteResourceFacet.class})
 public class EvernoteUpdater extends AbstractUpdater {
 
-    private static final String PUBLIC_USER_INFO = "publicUserInfo";
     FlxLogger logger = FlxLogger.getLogger(EvernoteUpdater.class);
 
     private static final int MAX_ENTRIES = 200;
-    private static final String LAST_UPDATE_COUNT = "lastUpdateCount";
-    private static final String LAST_SYNC_TIME = "lastSyncTime";
+    private static final String LAST_UPDATE_COUNT = "evernoteLastUpdateCount";
+    private static final String LAST_SYNC_TIME = "evernoteLastSyncTime";
 
     @Autowired
     JPADaoService jpaDaoService;
@@ -86,8 +81,10 @@ public class EvernoteUpdater extends AbstractUpdater {
     protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
         final NoteStoreClient noteStore = getNoteStoreClient(updateInfo);
         final SyncState syncState = noteStore.getSyncState();
-        long lastSyncTime = Long.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_SYNC_TIME));
-        long lastUpdateCount = Long.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_UPDATE_COUNT));
+        final String lastSyncTimeAtt = guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_SYNC_TIME);
+        long lastSyncTime = Long.valueOf(lastSyncTimeAtt);
+        final String lastUpdateCountAtt = guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_UPDATE_COUNT);
+        long lastUpdateCount = Long.valueOf(lastUpdateCountAtt);
         if (syncState.getFullSyncBefore()>lastSyncTime) {
             // according to the edam sync spec, fullSyncBefore is "the cut-off date for old caching clients
             // to perform an incremental (vs. full) synchronization. This value may correspond to the point
@@ -264,8 +261,10 @@ public class EvernoteUpdater extends AbstractUpdater {
         final SyncState syncState = noteStore.getSyncState();
         int serviceLastUpdateCount = syncState.getUpdateCount();
         final long serviceLastSyncTime = syncState.getCurrentTime();
-        guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_UPDATE_COUNT, String.valueOf(serviceLastUpdateCount));
-        guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_SYNC_TIME, String.valueOf(serviceLastSyncTime));
+        final String lastUpdateCountAtt = String.valueOf(serviceLastUpdateCount);
+        guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_UPDATE_COUNT, lastUpdateCountAtt);
+        final String lastSyncTimeAtt = String.valueOf(serviceLastSyncTime);
+        guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_SYNC_TIME, lastSyncTimeAtt);
     }
 
     private void createOrUpdateNote(final UpdateInfo updateInfo, final Note note, final NoteStoreClient noteStore) throws Exception {
@@ -490,17 +489,6 @@ public class EvernoteUpdater extends AbstractUpdater {
         locationFacet.apiKeyId = updateInfo.apiKey.getId();
         locationFacet.api = connector().value();
         apiDataService.addGuestLocation(updateInfo.getGuestId(), locationFacet);
-    }
-
-    private PublicUserInfo getPublicUserInfo(final UpdateInfo updateInfo, final UserStoreClient userStore)
-            throws TException, EDAMUserException, EDAMSystemException, EDAMNotFoundException {
-        final Object publicUserInfoObj = updateInfo.getContext(PUBLIC_USER_INFO);
-        if (publicUserInfoObj==null) {
-            final User user = userStore.getUser();
-            PublicUserInfo userInfo = userStore.getPublicUserInfo(user.getUsername());
-            updateInfo.setContext(PUBLIC_USER_INFO, userInfo);
-        }
-        return (PublicUserInfo)updateInfo.getContext(PUBLIC_USER_INFO);
     }
 
     private void removeEvernoteFacet(final UpdateInfo updateInfo, Class<? extends EvernoteFacet> clazz, final String guid) {
