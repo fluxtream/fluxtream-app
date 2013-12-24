@@ -60,7 +60,13 @@ public class JPAFacetDao implements FacetDao {
         if (!apiKey.getConnector().hasFacets()) return facets;
         Class<? extends AbstractFacet> facetClass = getFacetClass(apiKey.getConnector(), objectType);
         final String facetName = getEntityName(facetClass);
-        String queryString = "SELECT facet FROM " + facetName + " facet WHERE facet.apiKeyId=:apiKeyId AND facet.date IN :dates";
+        StringBuilder additionalWhereClause = new StringBuilder();
+        if (objectType.visibleClause()!=null) additionalWhereClause.append(" AND ").append(objectType.visibleClause()).append(" ");
+        String queryString = new StringBuilder("SELECT facet FROM ")
+                .append(facetName)
+                .append(" facet WHERE facet.apiKeyId=:apiKeyId AND facet.date IN :dates")
+                .append(additionalWhereClause)
+                .toString();
         final TypedQuery<? extends AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
         query.setParameter("apiKeyId", apiKey.getId());
         query.setParameter("dates", dates);
@@ -78,7 +84,13 @@ public class JPAFacetDao implements FacetDao {
         if (!apiKey.getConnector().hasFacets()) return facets;
         Class<? extends AbstractRepeatableFacet> facetClass = (Class<? extends AbstractRepeatableFacet>)getFacetClass(apiKey.getConnector(), objectType);
         final String facetName = getEntityName(facetClass);
-        String queryString = "SELECT facet FROM " + facetName + " facet WHERE facet.apiKeyId=:apiKeyId AND NOT(facet.endDate<:startDate) AND NOT(facet.startDate>:endDate)";
+        StringBuilder additionalWhereClause = new StringBuilder();
+        if (objectType.visibleClause()!=null) additionalWhereClause.append(" AND ").append(objectType.visibleClause()).append(" ");
+        String queryString = new StringBuilder("SELECT facet FROM ")
+                .append(facetName)
+                .append(" facet WHERE facet.apiKeyId=:apiKeyId AND NOT(facet.endDate<:startDate) AND NOT(facet.startDate>:endDate)")
+                .append(additionalWhereClause)
+                .toString();
         final TypedQuery<? extends AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
         query.setParameter("apiKeyId", apiKey.getId());
         final DateTime time = TimeUtils.dateFormatterUTC.parseDateTime(startDateString);
@@ -128,9 +140,15 @@ public class JPAFacetDao implements FacetDao {
             if (!apiKey.getConnector().hasFacets()) return new ArrayList<AbstractFacet>();
             Class<? extends AbstractFacet> facetClass = getFacetClass(apiKey.getConnector(), objectType);
             final String facetName = getEntityName(facetClass);
-            String additionalWhereClause = (tagFilter == null) ? "" : " AND (" + tagFilter.getWhereClause() + ")";
-            if (objectType.isMixedType()) additionalWhereClause += " AND facet.allDayEvent=false ";
-            String queryString = "SELECT facet FROM " + facetName  + " facet WHERE facet.apiKeyId=? AND facet.end>=? AND facet.start<=?" + additionalWhereClause;
+            StringBuilder additionalWhereClause = new StringBuilder();
+            if (tagFilter != null) additionalWhereClause.append(" AND (").append(tagFilter.getWhereClause()).append(")");
+            if (objectType.isMixedType()) additionalWhereClause.append(" AND facet.allDayEvent=false ");
+            if (objectType.visibleClause()!=null) additionalWhereClause.append(" AND ").append(objectType.visibleClause()).append(" ");
+            String queryString = new StringBuilder("SELECT facet FROM ")
+                    .append(facetName)
+                    .append(" facet WHERE facet.apiKeyId=? AND facet.end>=? AND facet.start<=?")
+                    .append(additionalWhereClause)
+                    .toString();
             final TypedQuery<AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
             query.setParameter(1, apiKey.getId());
             query.setParameter(2, timeInterval.getStart());

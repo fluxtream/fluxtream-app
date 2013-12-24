@@ -25,4 +25,6 @@ public @interface ObjectTypeSpec {
     public boolean isMixedType() default false;
     // is this a user-facing facet or just data that's necessary to maintain state in the context of API synchronization
     public boolean clientFacet() default true;
+    public String visibleClause() default "";
+
 }

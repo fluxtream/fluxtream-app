@@ -182,6 +182,7 @@ public class Connector {
         objectType.isDateBased = ots.isDateBased();
         objectType.isMixedType = ots.isMixedType();
         objectType.isClientFacet = ots.clientFacet();
+        objectType.visibleClause = ots.visibleClause().equals("")?null:ots.visibleClause();
         if (ots.extractor() != null && ots.extractor()!=AbstractFacetExtractor.class) {
             connector.addObjectTypeExtractorClass(
                     objectType.value, ots.extractor(),

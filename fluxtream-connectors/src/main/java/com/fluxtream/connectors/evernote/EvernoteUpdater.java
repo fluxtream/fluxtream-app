@@ -327,6 +327,8 @@ public class EvernoteUpdater extends AbstractUpdater {
                 }
                 if (freshlyRetrievedNote.isSetDeleted())
                     facet.deleted = freshlyRetrievedNote.getDeleted();
+                else if (!freshlyRetrievedNote.isSetDeleted()&&facet.deleted!=null)
+                    facet.deleted = null;
                 if (freshlyRetrievedNote.isSetNotebookGuid())
                     facet.notebookGuid = freshlyRetrievedNote.getNotebookGuid();
                 if (freshlyRetrievedNote.isSetActive())

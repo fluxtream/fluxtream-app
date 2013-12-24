@@ -10,7 +10,7 @@ import com.fluxtream.connectors.annotations.ObjectTypeSpec;
  * Time: 16:45
  */
 @Entity(name="Facet_EvernoteNote")
-@ObjectTypeSpec(name = "note", value = 4, prettyname = "Note")
+@ObjectTypeSpec(name = "note", value = 4, prettyname = "Note", visibleClause = "facet.deleted IS NULL")
 public  class EvernoteNoteFacet extends EvernoteFacet {
 
     public byte[] contentHash;

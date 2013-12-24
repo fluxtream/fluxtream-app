@@ -15,6 +15,7 @@ public class ObjectType {
     boolean isDateBased;
     boolean isMixedType;
     boolean isClientFacet;
+    String visibleClause;
 
 	private static Map<Connector,List<ObjectType>> connectorObjectTypes = new Hashtable<Connector,List<ObjectType>>();
 	
@@ -23,8 +24,8 @@ public class ObjectType {
 	private static Map<Connector,Map<Integer,ObjectType>> connectorObjectTypeValues = new Hashtable<Connector,Map<Integer,ObjectType>>();
 	
 	private static Map<String, ObjectType> customObjectTypes = new Hashtable<String, ObjectType>();
-	
-	/**
+
+    /**
 	 * "Custom" objectTypes are there to compute a value (hashCode())
 	 * for special API calls. We use it for counting those calls so we
 	 * don't confuse them with the usual API calls that retrieve data.
@@ -125,6 +126,10 @@ public class ObjectType {
 	public String prettyname() {
 		return prettyname;
 	}
+
+    public String visibleClause() {
+        return visibleClause;
+    }
 
     @Override
     public boolean equals(final Object o) {
