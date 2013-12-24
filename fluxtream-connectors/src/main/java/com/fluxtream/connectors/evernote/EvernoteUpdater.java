@@ -124,7 +124,7 @@ public class EvernoteUpdater extends AbstractUpdater {
                 lastUpdateCount = Integer.valueOf(lastUpdateCountAtt);
 
             // retrieve sync chunks at once
-            LinkedList<SyncChunk> chunks = getSyncChunks(noteStore, lastUpdateCount);
+            LinkedList<SyncChunk> chunks = getSyncChunks(noteStore, lastUpdateCount, fullSync);
 
             createOrUpdateTags(updateInfo, chunks);
             createOrUpdateNotebooks(updateInfo, chunks);
@@ -243,13 +243,13 @@ public class EvernoteUpdater extends AbstractUpdater {
         }
     }
 
-    private LinkedList<SyncChunk> getSyncChunks(final NoteStoreClient noteStore, final int lastUpdateCount) throws EDAMUserException, EDAMSystemException, TException {
+    private LinkedList<SyncChunk> getSyncChunks(final NoteStoreClient noteStore, final int lastUpdateCount, final boolean fullSync) throws EDAMUserException, EDAMSystemException, TException {
         LinkedList<SyncChunk> chunks = new LinkedList<SyncChunk>();
-        SyncChunk chunk = noteStore.getSyncChunk(lastUpdateCount, MAX_ENTRIES, true);
+        SyncChunk chunk = noteStore.getSyncChunk(lastUpdateCount, MAX_ENTRIES, fullSync);
         if (chunk!=null) {
             chunks.add(chunk);
             while (chunk.getChunkHighUSN()<chunk.getUpdateCount()) {
-                chunk = noteStore.getSyncChunk(chunk.getChunkHighUSN(), MAX_ENTRIES, true);
+                chunk = noteStore.getSyncChunk(chunk.getChunkHighUSN(), MAX_ENTRIES, fullSync);
                 if (chunk!=null)
                     chunks.add(chunk);
             }
@@ -304,6 +304,9 @@ public class EvernoteUpdater extends AbstractUpdater {
                 if (freshlyRetrievedNote.isSetContent()) {
                     facet.content = freshlyRetrievedNote.getContent();
                     final long then = System.currentTimeMillis();
+                    // WARNING!! The first time this gets call, a lengthy DTD processing operation
+                    // needs to happen which can take a long while (~1min) - after that the conversion
+                    // from enml to xhtml is very fast
                     final String htmlContent = processor.noteToHTMLString(freshlyRetrievedNote, mapHashtoURL);
                     final long now = System.currentTimeMillis();
                     System.out.println("converting enml note took " + (now-then) + " ms");
@@ -494,7 +497,10 @@ public class EvernoteUpdater extends AbstractUpdater {
     }
 
     private void removeEvernoteFacet(final UpdateInfo updateInfo, Class<? extends EvernoteFacet> clazz, final String guid) {
-        jpaDaoService.execute(String.format("DELETE FROM %s facet WHERE " + "facet.apiKeyId=%s AND facet.guid='%s'", JPAUtils.getEntityName(clazz), updateInfo.apiKey.getId(), guid));
+        jpaDaoService.execute(String.format("DELETE FROM %s facet WHERE facet.apiKeyId=%s AND facet.guid='%s'",
+                                            JPAUtils.getEntityName(clazz),
+                                            updateInfo.apiKey.getId(),
+                                            guid));
     }
 
     private void createOrUpdateNotebook(final UpdateInfo updateInfo, final Notebook notebook) throws Exception {
