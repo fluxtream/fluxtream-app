@@ -140,10 +140,17 @@ public class BodyTrackHelper {
             String line;
             String result = "";
 
+            boolean first = true;
 
             while((line=input.readLine()) != null) { //output all console output from the execution
                 if (showOutput)
                     System.out.println("BTDataStore: " + line);
+                if (first){
+                    first = false;
+                }
+                else{
+                    result += "\n";
+                }
                 result += line;
             }
             int exitValue = pr.waitFor();
@@ -156,6 +163,36 @@ public class BodyTrackHelper {
                 System.out.println("BTDataStore: datastore execution failed!");
             throw new RuntimeException("Datastore execution failed");
         }
+    }
+
+
+    //start and end are optional
+    public String exportToCSV(final Long guestId, final Collection<String> channelNames, final Long start, final Long end){
+        try{
+            if (guestId == null)
+                throw new IllegalArgumentException();
+            if (channelNames == null || channelNames.size() == 0)
+                throw new IllegalArgumentException();
+
+            ArrayList<String> params = new ArrayList<String>();
+            params.add("--csv");
+            params.add("" + guestId);
+            params.addAll(channelNames);
+            if (start != null){
+                params.add("--start");
+                params.add("" + start);
+            }
+            if (end != null){
+                params.add("--end");
+                params.add("" + end);
+            }
+            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("export",params.toArray(new String[]{}));
+            return dataStoreExecutionResult.getResponse();
+        }
+        catch (Exception e){
+            return null;
+        }
+
     }
 
     public BodyTrackUploadResult uploadToBodyTrack(final Long guestId,
