@@ -322,6 +322,7 @@ define(
                 zIndex++;
                 dialog.css("zIndex",zIndex);
             }
+            return dialog;
         }
 
         App.makeModal = makeModal;
