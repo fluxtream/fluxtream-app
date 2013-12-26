@@ -753,3 +753,40 @@ canvas {
 .channelHideYAxis ._timeline_yaxistd{
     opacity:0;
 }
+
+
+
+
+/*
+The following isn't that graceful but it forces the navigation buttons to not act all wonky with some resolutions
+*/
+.flx-channel-navigation .btn{
+    padding-left: 0;
+    padding-right:0;
+    padding-top:5px;
+    padding-bottom:5px;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+
+._timeline_zoom{
+    position: absolute;
+    left: 0;
+    width: 80px;
+
+}
+
+._timeline_zoom .btn{
+    width: 50%;
+}
+
+._timeline_goto{
+    position: absolute;
+    right: 5px;
+    width: 140px;
+}
+
+._timeline_goto .btn{
+    width: 25%;
+}
