@@ -210,6 +210,8 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         $("#" + grapher.grapherId + "_timeline_new_zoomOut_button").click(function(event) { event.preventDefault(); grapher.zoomTime("out"); });
         $("#" + grapher.grapherId + "_timeline_new_zoomIn_button").click(function(event) { event.preventDefault(); grapher.zoomTime("in"); });
 
+        $("#" + grapher.grapherId + "_timeline_export_to_csv").click(function(event){event.preventDefault(); grapher.exportToCSV();});
+
         // Configure the photo dialog
         $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog'](
             {
@@ -580,6 +582,65 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         });
     }
 
+    Grapher.prototype.exportToCSV = function(){
+        var exportChannelMap = {};
+        for (var element in this.channelsMap){
+            var channel = this.channelsMap[element];
+            if (channel.type == null){//this signifies a data channel (aka we can export it!)
+                exportChannelMap[channel.device_name + "." + channel.channel_name] = true;
+            }
+        }
+        var channelsArray = [];
+        for (var element in exportChannelMap){
+            channelsArray.push(element);
+        }
+
+        var start = Math.floor(this.dateAxis.getMin());
+        var end = Math.ceil(this.dateAxis.getMax());
+
+        App.loadMustacheTemplate("core/grapher/timelineTemplates.html","timelineExportModal",function(template){
+            var modal = App.makeModal(template.render());
+            var request = $.ajax("/api/bodytrack/exportCSV/" + App.getUID(),{
+                type: "GET",
+                data: {
+                    channels: JSON.stringify(channelsArray),
+                    start: start,
+                    end: end
+                },
+                success:function(result){
+                    var dataUri = "data:text/csv;charset=utf-8," + encodeURIComponent(result.data);
+                    var DownloadBtn = $("<a class='btn' href='" + dataUri + "' download='data.csv'>Download</a>");
+                    $(".modal-body").text("Your data is ready!");
+                    $(".modal-body").append("<br>");
+                    $(".modal-body").append(DownloadBtn);
+                },
+                error:function(){
+                    modal.find(".modal-body").text("Something went wrong...");
+                }
+
+            });
+
+            modal.on("hidden",function(){
+                request.abort();
+            })
+        });
+
+    }
+
+    Grapher.prototype.updateExportToCSVState = function(){
+        var count = 0;
+        for (var element in this.channelsMap){
+            var channel = this.channelsMap[element];
+            if (channel.type == null){//this signifies a data channel (aka we can export it!)
+                count++;
+                break;
+            }
+
+        }
+        $("#" + this.grapherId + "_timeline_export_to_csv").toggleClass('disabled',count == 0);
+
+    }
+
     // Save view then load saved view
     Grapher.prototype.saveView = function(name) {
         updateViewData(this);
@@ -717,6 +778,9 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             $("#" + channelElementId).remove();
             delete this.channelsMap[channelElementId];
         }
+
+        this.updateExportToCSVState();
+
     }
 
     Grapher.prototype.hasChannel = function(channelName){
@@ -940,6 +1004,8 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             grapher.plotsMap[channelElementId] = plot;
             grapher.plotContainersMap[channelElementId] = plotContainer;
             grapher.plotContainers.push(plotContainer);
+
+            grapher.updateExportToCSVState();
 
             // Gear button
             $("#" + channelElementId + "_btnGear").unbind("click").click(function(event) {
