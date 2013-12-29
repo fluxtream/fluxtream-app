@@ -75,11 +75,11 @@ public class LastFmController {
         }
         catch (UnexpectedHttpResponseCodeException e) {
             e.printStackTrace();
-            notificationsService.addNotification(AuthHelper.getGuestId(), Notification.Type.ERROR,
-                                                 String.format("Oops, we couldn't link your LastFM account (reason: '%s', http code: %s)" +
-                                                               "<br>Please contact your administrator.",
-                                                               e.getHttpResponseMessage(),
-                                                               e.getHttpResponseCode()));
+            notificationsService.addNamedNotification(AuthHelper.getGuestId(), Notification.Type.ERROR, Connector.getConnector("lastfm").statusNotificationName(),
+                                                      String.format("Oops, we couldn't link your LastFM account (reason: '%s', http code: %s)" +
+                                                                    "<br>Please contact your administrator.",
+                                                                    e.getHttpResponseMessage(),
+                                                                    e.getHttpResponseCode()));
             return "redirect:/app";
         }
 
@@ -96,6 +96,7 @@ public class LastFmController {
         } else
             apiKey = guestService.createApiKey(guest.getId(), connector);
 
+        guestService.populateApiKey(apiKey.getId());
 		guestService.setApiKeyAttribute(apiKey, "sessionKey", sessionKey);
 		guestService.setApiKeyAttribute(apiKey,  "username", username);
 

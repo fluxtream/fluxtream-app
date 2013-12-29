@@ -148,14 +148,13 @@ class UpdateWorker implements Runnable {
 			UpdateInfo updateInfo = UpdateInfo.pushTriggeredUpdateInfo(apiKey,
 					task.objectTypes, task.jsonParams);
 			UpdateResult updateResult = updater.updateData(updateInfo);
-			handleUpdateResult(apiKey, updateInfo, updateResult);
+			handleUpdateResult(updateInfo, updateResult);
 		} catch (Throwable e) {
 			String stackTrace = stackTrace(e);
 			logger.warn("module=updateQueue component=worker action=pushTriggeredUpdate " +
                         "message=\"Unexpected Exception\" " +
                         "guestId=" + task.guestId + " objectType=" + task.objectTypes +
                         " stackTrace=<![CDATA[" + stackTrace + "]]>");
-			retry(apiKey, new UpdateWorkerTask.AuditTrailEntry(new Date(), "unexpected exception", "retry", stackTrace));
 		}
 	}
 
@@ -166,7 +165,7 @@ class UpdateWorker implements Runnable {
                          + ". Your data is now being retrieved. "
                          + "It may take a little while until it becomes visible.";
         notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.INFO,
-                                                  apiKey.getConnector().getName() + ".status", message);
+                                                  apiKey.getConnector().statusNotificationName(), message);
         // TODO: check if this connector type is enabled and supportsSync before calling update.
         // If it is disabled and/or does not support sync, don't try to update it.
         logger.info("module=updateQueue component=worker action=updateDataHistory " +
@@ -174,7 +173,7 @@ class UpdateWorker implements Runnable {
         UpdateInfo updateInfo = UpdateInfo.initialHistoryUpdateInfo(apiKey,
                 task.objectTypes);
         UpdateResult updateResult = updater.updateDataHistory(updateInfo);
-        handleUpdateResult(apiKey, updateInfo, updateResult);
+        handleUpdateResult(updateInfo, updateResult);
 	}
 
     private void updateData(final ApiKey apiKey, final AbstractUpdater updater) {
@@ -184,11 +183,11 @@ class UpdateWorker implements Runnable {
                     " connector=" + apiKey.getConnector().getName() + " guestId=" + apiKey.getGuestId());
         UpdateInfo updateInfo = UpdateInfo.IncrementalUpdateInfo(apiKey, task.objectTypes);
         UpdateResult result = updater.updateData(updateInfo);
-        handleUpdateResult(apiKey, updateInfo, result);
+        handleUpdateResult(updateInfo, result);
     }
 
-	private void handleUpdateResult(ApiKey apiKey, final UpdateInfo updateInfo, UpdateResult updateResult) {
-        guestService.setApiKeyToSynching(apiKey.getId(), false);
+	private void handleUpdateResult(final UpdateInfo updateInfo, UpdateResult updateResult) {
+        guestService.setApiKeyToSynching(updateInfo.apiKey.getId(), false);
 		switch (updateResult.getType()) {
 		case DUPLICATE_UPDATE:
 			duplicateUpdate();
@@ -196,16 +195,23 @@ class UpdateWorker implements Runnable {
 		case HAS_REACHED_RATE_LIMIT:
             final UpdateWorkerTask.AuditTrailEntry rateLimit = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "long reschedule");
             rateLimit.stackTrace = updateResult.stackTrace;
-			rescheduleAccordingToQuotaSpecifications(apiKey, rateLimit);
+			rescheduleAccordingToQuotaSpecifications(updateInfo, rateLimit);
 			break;
 		case UPDATE_SUCCEEDED:
-            if (updateInfo.getUpdateType()== UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE)
-                notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.INFO,
-                                                          apiKey.getConnector().getName() + ".status",
-                                                          "<i class=\"icon-ok\" style=\"margin-right:7px\"/>Your " + apiKey.getConnector().getPrettyName() + " data was successfully imported.  " +
-                                                          "See <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a> dialog for details."
-                );
-			success(apiKey);
+            // Check for existing status notification
+            long guestId=updateInfo.apiKey.getGuestId();
+            String statusName = updateInfo.apiKey.getConnector().statusNotificationName();
+            Notification notification = notificationsService.getNamedNotification(guestId,statusName);
+            if (updateInfo.getUpdateType()== UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE ||
+                (notification!=null && notification.deleted==false)) {
+                // This is either an initial history update or there's an existing visible status notification.
+                // Update the notification to show the update succeeded.
+                notificationsService.addNamedNotification(guestId, Notification.Type.INFO,
+                                                          statusName,
+                                                          "<i class=\"icon-ok\" style=\"margin-right:7px\"/>Your " + updateInfo.apiKey.getConnector().getPrettyName() + " data was successfully imported.  " +
+                                                          "See <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a> dialog for details.");
+            }
+			success(updateInfo.apiKey);
 			break;
 		case UPDATE_FAILED:
         case UPDATE_FAILED_PERMANENTLY:
@@ -213,34 +219,35 @@ class UpdateWorker implements Runnable {
             failed.stackTrace = updateResult.stackTrace;
             connectorUpdateService.addAuditTrail(task.getId(), failed);
             final UpdateWorkerTask.AuditTrailEntry retry = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "retry");
+            retry.stackTrace = updateResult.stackTrace;
             // Consider this a transient failure and retry if the failure type was not permanent
             // and the current status of the connector instance is not already STATUS_PERMANENT_FAILURE.
             //
             if(updateResult.getType()==UpdateResult.ResultType.UPDATE_FAILED &&
-               apiKey.getStatus()!=ApiKey.Status.STATUS_PERMANENT_FAILURE) {
-                retry(apiKey, retry);
+               updateInfo.apiKey.getStatus()!=ApiKey.Status.STATUS_PERMANENT_FAILURE) {
+                retry(updateInfo, retry);
             }
             else {
                 // This was a permanent failure, so we should set status to permanent failure and
                 // we should not retry
-                abort(apiKey,failed);
+                abort(updateInfo.apiKey,failed);
             }
             if (updateInfo.getUpdateType()== UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE)
-                notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.ERROR,
-                                                          apiKey.getConnector().getName() + ".status",
-                                                          "<i class=\"icon-remove-sign\" style=\"color:red;margin-right:7px\"/>There was a problem while importing your " + apiKey.getConnector().getPrettyName() + " data. We will try again later.  " +
+                notificationsService.addNamedNotification(updateInfo.apiKey.getGuestId(), Notification.Type.ERROR,
+                                                          updateInfo.apiKey.getConnector().statusNotificationName(),
+                                                          "<i class=\"icon-remove-sign\" style=\"color:red;margin-right:7px\"/>There was a problem while importing your " + updateInfo.apiKey.getConnector().getPrettyName() + " data. We will try again later.  " +
                                                           "See <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a> dialog for details."
                 );
 			break;
 		case NO_RESULT:
-			abort(apiKey,null);
+			abort(updateInfo.apiKey,null);
 			break;
 		}
 	}
 
-    private void rescheduleAccordingToQuotaSpecifications(final ApiKey apiKey, final UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
-        longReschedule(apiKey, auditTrailEntry);
-        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_OVER_RATE_LIMIT, auditTrailEntry.stackTrace);
+    private void rescheduleAccordingToQuotaSpecifications(final UpdateInfo updateInfo, final UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
+        longReschedule(updateInfo, auditTrailEntry);
+        guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_OVER_RATE_LIMIT, auditTrailEntry.stackTrace);
     }
 
     private void duplicateUpdate() {
@@ -268,7 +275,7 @@ class UpdateWorker implements Runnable {
 		connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.FAILED);
 	}
 
-	private void retry(ApiKey apiKey, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
+	private void retry(UpdateInfo updateInfo, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
 		StringBuilder stringBuilder = new StringBuilder("module=updateQueue component=worker action=retry")
                 .append(" guestId=").append(task.getGuestId())
                 .append(" connector=").append(task.connectorName)
@@ -281,28 +288,33 @@ class UpdateWorker implements Runnable {
 		logger.info(stringBuilder.toString());
 		int maxRetries = 0;
 		try {
-			maxRetries = getMaxRetries(apiKey.getConnector());
+			maxRetries = getMaxRetries(updateInfo.apiKey.getConnector());
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
 		if (task.retries < maxRetries) {
             auditTrailEntry.nextAction = "short reschedule";
-            shortReschedule(apiKey, auditTrailEntry);
+            shortReschedule(updateInfo.apiKey, auditTrailEntry);
 		} else {
             auditTrailEntry.nextAction = "long reschedule";
- 			longReschedule(apiKey, auditTrailEntry);
+ 			longReschedule(updateInfo, auditTrailEntry);
 		}
 	}
 
-	private void longReschedule(ApiKey apiKey, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
+	private void longReschedule(UpdateInfo updateInfo, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
 		StringBuilder stringBuilder = new StringBuilder("module=updateQueue component=worker action=longReschedule")
                 .append(" guestId=").append(task.getGuestId())
                 .append(" connector=").append(task.connectorName)
                 .append(" objectType=").append(task.objectTypes);
 		logger.info(stringBuilder.toString());
-        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_TRANSIENT_FAILURE, auditTrailEntry.stackTrace);
+        guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_TRANSIENT_FAILURE, auditTrailEntry.stackTrace);
 		// re-schedule when we are below rate limit again
-		connectorUpdateService.reScheduleUpdateTask(task.getId(), System.currentTimeMillis() + getLongRetryDelay(apiKey.getConnector()),
+        Long resetTime = updateInfo.getSafeResetTime();
+        if (resetTime==null) {
+            final int longRetryDelay = getLongRetryDelay(updateInfo.apiKey.getConnector());
+            resetTime = System.currentTimeMillis() + longRetryDelay;
+        }
+        connectorUpdateService.reScheduleUpdateTask(task.getId(), resetTime,
                                                     false, auditTrailEntry);
 	}
 

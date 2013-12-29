@@ -690,13 +690,13 @@
                 {{#hasActivities}}
                 <span class="flx-description"><a href="javascript:void(0);" onclick="App.expandCollapse(this);" class="expandcollapse">activities&nbsp;<i class="icon-expand-alt"></i></a></span>
                 {{/hasActivities}}
-                {{#activities}}
                 <div class="flx-finedetails flx-collapsed">
+                    {{#activities}}
                     <div class="flx-data">{{activity}}{{#distance}} ({{distance}}){{/distance}}</div>
                     <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
                     {{#steps}}{{steps}} steps{{/steps}}
+                    {{/activities}}
                 </div>
-                {{/activities}}
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
         </div>

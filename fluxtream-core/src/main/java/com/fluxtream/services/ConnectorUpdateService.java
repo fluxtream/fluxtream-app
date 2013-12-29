@@ -32,7 +32,10 @@ public interface ConnectorUpdateService {
      * @param force force an update (sync now)
      * @return A list containing data about what was scheduled
      */
-    public List<ScheduleResult> updateConnectorObjectType(ApiKey apiKey, int objectTypes, boolean force);
+    public List<ScheduleResult> updateConnectorObjectType(ApiKey apiKey,
+                                                          int objectTypes,
+                                                          boolean force,
+                                                          boolean historyUpdate);
 
     public List<ScheduleResult> updateAllConnectors(long guestId, boolean force);
 
@@ -106,6 +109,8 @@ public interface ConnectorUpdateService {
     List<UpdateWorkerTask> getAllSynchingUpdateWorkerTasks();
 
     List<UpdateWorkerTask> getAllScheduledUpdateWorkerTasks();
+
+    List<UpdateWorkerTask> getScheduledUpdateWorkerTasksForConnectorNameBeforeTime(final String connectorName, long beforeTime);
 
     List<UpdateWorkerTask> getUpdateWorkerTasks(ApiKey apiKey, int objectTypes, int max);
 }

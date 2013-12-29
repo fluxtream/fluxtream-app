@@ -9,8 +9,10 @@ import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
+import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Notification;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
@@ -21,6 +23,8 @@ import com.fluxtream.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
 import org.scribe.builder.ServiceBuilder;
 import org.scribe.builder.api.WithingsApi;
 import org.scribe.model.OAuthRequest;
@@ -66,11 +70,13 @@ public class WithingsUpdater extends AbstractUpdater {
 
         // get user info and find out first seen date
         if (guestService.getApiKeyAttribute(updateInfo.apiKey, WithingsOAuthConnectorController.HAS_UPGRADED_TO_OAUTH)==null) {
-            notificationsService.addNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
-                                                 "Heads Up. This server has recently been upgraded to a version that supports<br>" +
-                                                 "oauth with the Withings API. Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
-                                                 "scroll to the Withings connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
-            return;
+            notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(), "Heads Up. This server has recently been upgraded to a version that supports<br>" +
+                                                                                                                                                "oauth with the Withings API. Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                                                                                                                "scroll to the Withings connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+            // Record permanent failure since this connector won't work again until
+            // it is reauthenticated
+            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
+            throw new UpdateFailedException("requires token reauthorization",true);
         }
 
         final String userid = guestService.getApiKeyAttribute(updateInfo.apiKey, "userid");
@@ -99,11 +105,13 @@ public class WithingsUpdater extends AbstractUpdater {
         final long enddate = System.currentTimeMillis() / 1000;
 
         if (guestService.getApiKeyAttribute(updateInfo.apiKey, WithingsOAuthConnectorController.HAS_UPGRADED_TO_OAUTH)==null) {
-            notificationsService.addNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
-                                                 "Heads Up. This server has recently been upgraded to a version that supports<br>" +
-                                                 "oauth with the Withings API. Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
-                                                 "scroll to the Withings connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
-            return;
+            notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(), "Heads Up. This server has recently been upgraded to a version that supports<br>" +
+                                                                                                                                                "oauth with the Withings API. Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                                                                                                                "scroll to the Withings connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+            // Record permanent failure since this connector won't work again until
+            // it is reauthenticated
+            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
+            throw new UpdateFailedException("requires token reauthorization",true);
         }
 
         // do v1 API call
@@ -179,11 +187,11 @@ public class WithingsUpdater extends AbstractUpdater {
         if (facets.size()==0) return 0;
         return facets.get(0).start + 1000;
     }
-    public OAuthService getOAuthService() {
+    public OAuthService getOAuthService(final ApiKey apiKey) {
         return new ServiceBuilder()
                 .provider(WithingsApi.class)
-                .apiKey(env.get("withingsConsumerKey"))
-                .apiSecret(env.get("withingsConsumerSecret"))
+                .apiKey(guestService.getApiKeyAttribute(apiKey, "withingsConsumerKey"))
+                .apiSecret(guestService.getApiKeyAttribute(apiKey, "withingsConsumerSecret"))
                 .signatureType(SignatureType.QueryString)
                 .callback(env.get("homeBaseUrl") + "withings/upgradeToken")
                 .build();
@@ -198,13 +206,14 @@ public class WithingsUpdater extends AbstractUpdater {
                 request.addQuerystringParameter(parameterName,
                                                 parameters.get(parameterName));
             }
-            OAuthService service = getOAuthService();
+            OAuthService service = getOAuthService(updateInfo.apiKey);
             final String accessToken = guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken");
             final Token token = new Token(accessToken, guestService.getApiKeyAttribute(updateInfo.apiKey, "tokenSecret"));
             service.signRequest(token, request);
             Response response = request.send();
-            if (response.getCode()!=200)
-                throw new UnexpectedHttpResponseCodeException(response.getCode(), response.getBody());
+            final int httpResponseCode = response.getCode();
+            if (httpResponseCode!=200)
+                throw new UnexpectedHttpResponseCodeException(httpResponseCode, response.getBody());
             String json = response.getBody();
             JSONObject jsonObject = JSONObject.fromObject(json);
             if (jsonObject.getInt("status")!=0)
@@ -214,6 +223,7 @@ public class WithingsUpdater extends AbstractUpdater {
                 storeMeasurements(updateInfo, json, apiVersion);
         } catch (UnexpectedHttpResponseCodeException e) {
             countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url, Utils.stackTrace(e), e.getHttpResponseCode(), e.getHttpResponseMessage());
+            throw e;
         }
     }
 
@@ -342,10 +352,22 @@ public class WithingsUpdater extends AbstractUpdater {
                     facet = new WithingsActivityFacet(updateInfo.apiKey.getId());
                 extractCommonFacetData(facet, updateInfo);
                 facet.date = date;
+
+                final DateTime dateTime = TimeUtils.dateFormatterUTC.parseDateTime(facet.date);
+
+                // returns the starting midnight for the date
+                facet.start = dateTime.getMillis();
+                facet.end = dateTime.getMillis()+ DateTimeConstants.MILLIS_PER_DAY-1;
+
+                facet.startTimeStorage = facet.date + "T00:00:00.000";
+                facet.endTimeStorage = facet.date + "T23:59:59.999";
+
                 if (activityData.has("timezone"))
                     facet.timezone = activityData.getString("timezone");
                 if (activityData.has("steps"))
                     facet.steps = activityData.getInt("steps");
+                if (activityData.has("distance"))
+                    facet.distance = (float) activityData.getDouble("distance");
                 if (activityData.has("calories"))
                    facet.calories = (float) activityData.getDouble("calories");
                 if (activityData.has("elevation"))

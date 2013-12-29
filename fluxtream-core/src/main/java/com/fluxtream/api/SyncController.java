@@ -90,8 +90,8 @@ public class SyncController {
         try {
             final long guestId = AuthHelper.getGuestId();
             final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
-            final List<ScheduleResult> scheduleResults = connectorUpdateService.updateConnectorObjectType(apiKey, objectTypes,
-                                                                                                force);
+            final List<ScheduleResult> scheduleResults = connectorUpdateService.updateConnectorObjectType(
+                    apiKey, objectTypes, force, false);
             StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
             statusModel.payload = scheduleResults;
             return gson.toJson(scheduleResults);

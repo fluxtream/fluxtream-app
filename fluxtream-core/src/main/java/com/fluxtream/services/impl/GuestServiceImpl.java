@@ -161,19 +161,23 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
     @Override
     @Transactional(readOnly=false)
     public ApiKey createApiKey(final long guestId, final Connector connector) {
-        ConnectorInfo connectorInfo = null;
-
-        try {
-            connectorInfo = systemService.getConnectorInfo(connector.getName());
-        } catch (Throwable e) {
-            // Ignore this type of connector
-        }
-        if (connectorInfo == null || !connectorInfo.enabled)
-            throw new RuntimeException("This connector is not enabled!");
         ApiKey apiKey = new ApiKey();
         apiKey.setGuestId(guestId);
         apiKey.setConnector(connector);
         em.persist(apiKey);
+        populateApiKey(apiKey.getId());
+        return apiKey;
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void populateApiKey(final long apiKeyId) {
+        ConnectorInfo connectorInfo = null;
+        ApiKey apiKey = getApiKey(apiKeyId);
+        try { connectorInfo = systemService.getConnectorInfo(apiKey.getConnector().getName());
+        } catch (Throwable e) {}
+        if (connectorInfo == null || !connectorInfo.enabled)
+            throw new RuntimeException("This connector is not enabled!");
         final String[] apiKeyAttributesKeys = connectorInfo.getApiKeyAttributesKeys();
         if(apiKeyAttributesKeys!=null) {
             for (String key : apiKeyAttributesKeys) {
@@ -182,7 +186,6 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
                 setApiKeyAttribute(apiKey, key, env.get(key));
             }
         }
-        return apiKey;
     }
 
     @Override

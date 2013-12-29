@@ -26,6 +26,10 @@
                             <table>
                                 <tbody>
                                     <tr>
+                                        <td style="width:120px"><label>Your username</label></td>
+                                        <td><span class="input uneditable-input" id="username-uneditable"></span></td>
+                                    </tr>
+                                    <tr>
                                         <td><label for="guest_firstname">First name</label></td>
                                         <td><input type="text" name="guest_firstname" id="guest_firstname"></td>
                                     </tr>
@@ -222,6 +226,39 @@
             <button class="btn btn-primary disabled" onclick="if(!$(this).hasClass('disabled')) { App.sharingDialog.addCoach($('#findUserField').val());}"
                     id="shareMyDataButton">Add Buddy</button>
             <button class="btn" onclick="$('#findUserModal').modal('hide');">Close</button>
+        </div>
+    </div>
+</template>
+<template id="privacyPolicyDialog">
+    <div id="privacyPolicyModal" class="modal modal-reading hide in">
+        <div class="modal-header">
+            <a class="close" data-dismiss="modal">&times;</a>
+            <h3>Privacy Policy</h3>
+        </div>
+        <div class="modal-body">
+            <iframe src="/{{release}}/html/privacyPolicy.html">
+
+            </iframe>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" onclick="$('#privacyPolicyModal').modal('hide');">Close</button>
+        </div>
+    </div>
+</template>
+<template id="quickStartDialog">
+    <div id="quickStartModal" class="modal modal-reading hide in">
+        <div class="modal-header">
+            <a class="close" data-dismiss="modal">&times;</a>
+            <h3>Quick Start Guide</h3>
+        </div>
+        <div class="modal-body">
+            <iframe src="/{{release}}/html/QuickStartGuide.pdf">
+
+            </iframe>
+        </div>
+        <div class="modal-footer">
+            <a class="btn" href="/{{release}}/html/QuickStartGuide.pdf" target="_blank">Download <i class="icon-large icon-download"></i></a>
+            <button class="btn" onclick="$('#quickStartModal').modal('hide');">Close</button>
         </div>
     </div>
 </template>

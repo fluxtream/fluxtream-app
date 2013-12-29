@@ -100,8 +100,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
         // some connectors (e.g. the fitbit) need to decide what objectTypes to update by themselves;
         // for those, we pass 0 for the objectType parameter, which will be overridden by the connector's updater
-        final boolean historyUpdateCompleted = isHistoryUpdateCompleted(apiKey);
         if (apiKey.getConnector().isAutonomous()) {
+            final boolean historyUpdateCompleted = isHistoryUpdateCompleted(apiKey, 0);
             scheduleObjectTypeUpdate(apiKey, 0, scheduleResults, historyUpdateCompleted
                                                                              ? UpdateType.INCREMENTAL_UPDATE
                                                                              : UpdateType.INITIAL_HISTORY_UPDATE);
@@ -121,6 +121,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
                 return scheduleResults;
             }
             for (int objectTypes : objectTypeValues) {
+                final boolean historyUpdateCompleted = isHistoryUpdateCompleted(apiKey, objectTypes);
                 scheduleObjectTypeUpdate(apiKey, objectTypes, scheduleResults, historyUpdateCompleted
                                                                                            ? UpdateType.INCREMENTAL_UPDATE
                                                                                            : UpdateType.INITIAL_HISTORY_UPDATE);
@@ -135,25 +136,28 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         return scheduleResults;
     }
 
-    private boolean isHistoryUpdateCompleted(ApiKey apiKey) {
-        if (apiKey.getConnector().isAutonomous())
-            return isHistoryUpdateCompleted(apiKey, 0);
-        final int[] connectorObjectTypeValues = apiKey.getConnector().objectTypeValues();
-        for (int connectorObjectTypeValue : connectorObjectTypeValues)
-            if (!isHistoryUpdateCompleted(apiKey, connectorObjectTypeValue))
-                return false;
-        return true;
+    @Override
+    public boolean isHistoryUpdateCompleted(final ApiKey apiKey,
+                                            int objectTypes) {
+        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.completed", Status.DONE, UpdateType.INITIAL_HISTORY_UPDATE, objectTypes, apiKey.getId());
+        return updateWorkerTasks.size() > 0;
     }
 
     @Override
-    public List<ScheduleResult> updateConnectorObjectType(ApiKey apiKey, int objectTypes, boolean force) {
+    public List<ScheduleResult> updateConnectorObjectType(ApiKey apiKey,
+                                                          int objectTypes,
+                                                          boolean force,
+                                                          boolean historyUpdate) {
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
         getUpdateWorkerTask(apiKey, objectTypes);
         // if forcing an update (sync now), we actually want to flush the update requests
         // that have stacked up in the queue
         if (force)
-            flushUpdateWorkerTasks(apiKey, objectTypes, false);
-        scheduleObjectTypeUpdate(apiKey, objectTypes, scheduleResults, UpdateType.INCREMENTAL_UPDATE);
+            flushUpdateWorkerTasks(apiKey, objectTypes, historyUpdate);
+        UpdateType updateType = isHistoryUpdateCompleted(apiKey, objectTypes)
+                ? UpdateType.INCREMENTAL_UPDATE
+                : UpdateType.INITIAL_HISTORY_UPDATE;
+        scheduleObjectTypeUpdate(apiKey, objectTypes, scheduleResults, updateType);
         return scheduleResults;
     }
 
@@ -190,11 +194,13 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     @Override
     @Transactional(readOnly=false)
     public void cleanupStaleData() {
-        long oneWeekAgo = System.currentTimeMillis() - (DateTimeConstants.MILLIS_PER_DAY*7);
-        final Query cleanupUpdateWorkerTasks = em.createNativeQuery(String.format("DELETE FROM UpdateWorkerTask WHERE not(status=2 AND updateType=2) and timeScheduled<%s", oneWeekAgo));
+        // Keeping one week seems to lead to api/connectors/installed being too slow as of December 2013.
+        // Reduce to two days
+        long twoDaysAgo = System.currentTimeMillis() - (DateTimeConstants.MILLIS_PER_DAY*2);
+        final Query cleanupUpdateWorkerTasks = em.createNativeQuery(String.format("DELETE FROM UpdateWorkerTask WHERE not(status=2 AND updateType=2) and timeScheduled<%s", twoDaysAgo));
         final int updateWorkerTasksDeleted = cleanupUpdateWorkerTasks.executeUpdate();
         System.out.println("deleted " + updateWorkerTasksDeleted + " UpdateWorkerTasks");
-        final Query cleanupApiUpdates = em.createNativeQuery(String.format("DELETE FROM ApiUpdates WHERE ts<%s", oneWeekAgo));
+        final Query cleanupApiUpdates = em.createNativeQuery(String.format("DELETE FROM ApiUpdates WHERE ts<%s", twoDaysAgo));
         final int apiUpdatesDeleted = cleanupApiUpdates.executeUpdate();
         System.out.println("deleted " + apiUpdatesDeleted + " ApiUpdates");
     }
@@ -263,8 +269,9 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
             return null;
         }
 
-        // Set the audit trail according to what just happened
-        updt.addAuditTrailEntry(auditTrailEntry);
+        // Set the audit trail according to what just happened if a non-null auditTrailEntry is provided
+        if(auditTrailEntry!=null)
+            updt.addAuditTrailEntry(auditTrailEntry);
 
         // Spawn a duplicate entry in the UpdateWorker table to record this failure and the reason for it
         if (!incrementRetries) {
@@ -424,13 +431,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     }
 
     @Override
-    public boolean isHistoryUpdateCompleted(final ApiKey apiKey,
-                                            int objectTypes) {
-        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.completed", Status.DONE, UpdateType.INITIAL_HISTORY_UPDATE, objectTypes, apiKey.getId());
-        return updateWorkerTasks.size() > 0;
-    }
-
-    @Override
     @Transactional(readOnly = false)
     public void addApiNotification(Connector connector, long guestId, String content) {
         ApiNotification notification = new ApiNotification();
@@ -520,6 +520,16 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     }
 
     @Override
+    public List<UpdateWorkerTask> getScheduledUpdateWorkerTasksForConnectorNameBeforeTime(final String connectorName, long beforeTime) {
+        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class,
+                                                                                  "updateWorkerTasks.byStatus.andName",
+                                                                                  Status.SCHEDULED,
+                                                                                  connectorName,
+                                                                                  beforeTime);
+        return updateWorkerTasks;
+    }
+
+    @Override
     public List<UpdateWorkerTask> getScheduledOrInProgressUpdateTasks(final ApiKey apiKey) {
         // Get the tasks that are currently scheduled or in progress and either have the active
         List<UpdateWorkerTask> updateWorkerTask = JPAUtils.find(em, UpdateWorkerTask.class,
@@ -596,8 +606,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     /**
      * delete pending tasks for a guest's connector
      * @param apiKey The apiKey for which we want to update facets
-     * @param wipeOutHistory wether to delete everything including the initial history update that
-     *                       we use to track wether we need to everything from scratch or just do so
+     * @param wipeOutHistory whether to delete everything including the initial history update that
+     *                       we use to track whether we need to everything from scratch or just do so
      *                       incrementally
      */
     @Transactional(readOnly = false)
@@ -623,21 +633,30 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     /**
      * delete pending tasks for a guest's connector
      * @param apiKey The apiKey for which we want to update a specific facet/object type
-     * @param wipeOutHistory wether to delete everything including the initial history update that
-     *                       we use to track wether we need to everything from scratch or just do so
+     * @param wipeOutHistory whether to delete everything including the initial history update that
+     *                       we use to track whether we need to everything from scratch or just do so
      *                       incrementally
      */
     @Transactional(readOnly = false)
     @Override
     public void flushUpdateWorkerTasks(final ApiKey apiKey, int objectTypes, boolean wipeOutHistory) {
-        if (!wipeOutHistory)
-            JPAUtils.execute(em, "updateWorkerTasks.delete.byApiAndObjectType",
+        if (!wipeOutHistory) {
+            // Here we want to leave the completed history updates but get rid of the scheduled
+            // items for this apiKey.  That translates into deleting items with status=0.
+            JPAUtils.execute(em, "updateWorkerTasks.delete.scheduledByApiAndObjectType",
                              apiKey.getId(),
-                             objectTypes,
-                             UpdateType.INITIAL_HISTORY_UPDATE);
-        else
-            JPAUtils.execute(em, "updateWorkerTasks.deleteAll.byApiAndObjectType", apiKey.getId(),
                              objectTypes);
+        }
+        else {
+            // Here we want to delete all update worker tasks relating to this
+            // apiKey other than the ones that are currently in progress.
+            // This happens asynchronously after connector deletion and
+            // is executed by ApiDataCleanupWorker, or while servicing a request to
+            // reset a connector.
+            JPAUtils.execute(em, "updateWorkerTasks.delete.scheduledAndHistoryByApiAndObjectType",
+                             apiKey.getId(),
+                             objectTypes);
+        }
     }
 
     @Override

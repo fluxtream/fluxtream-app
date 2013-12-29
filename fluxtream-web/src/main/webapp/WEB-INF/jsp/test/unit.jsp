@@ -1,7 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
 <head>
-    <title>Fluxtream - Personal Analytics | Unit Tests</title>
+    <title>Fluxtream</title>
     <!-- jasmine CSS/JS -->
     <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/static/jasmine/lib/jasmine-1.3.0/jasmine.css">
     <script src="${pageContext.request.contextPath}/static/jasmine/lib/jasmine-1.3.0/jasmine.js"></script>

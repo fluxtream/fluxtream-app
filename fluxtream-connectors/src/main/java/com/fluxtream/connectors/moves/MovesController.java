@@ -19,6 +19,7 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.HttpUtils;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -56,8 +57,11 @@ public class MovesController {
         if (!validRedirectUrl.startsWith(ControllerSupport.getLocationBase(request, env))) {
             final long guestId = AuthHelper.getGuestId();
             final String validRedirectBase = getBaseURL(validRedirectUrl);
-            notificationsService.addNotification(guestId, Notification.Type.WARNING, "Adding a Moves connector only works when logged in through " + validRedirectBase +
-            ".  You are logged in through " + ControllerSupport.getLocationBase(request, env) + ".<br>Please re-login via the supported URL or inform your Fluxtream administrator that the moves.validRedirectURL setting does not match your needs.");
+            notificationsService.addNamedNotification(guestId, Notification.Type.WARNING, Connector.getConnector("moves").statusNotificationName(),
+                                                      "Adding a Moves connector only works when logged in through " + validRedirectBase +
+                                                      ".  You are logged in through " + ControllerSupport.getLocationBase(request, env) +
+                                                      ".<br>Please re-login via the supported URL or inform your Fluxtream administrator " +
+                                                      "that the moves.validRedirectURL setting does not match your needs.");
             return "redirect:/app";
         }
 
@@ -67,8 +71,9 @@ public class MovesController {
                                                "response_type=code&client_id=%s&" +
                                                "scope=activity location",
                                                redirectUri, env.get("moves.client.id"));
-        if (request.getParameter("apiKeyId")!=null)
-            approvalPageUrl += "&state=" + request.getParameter("apiKeyId");
+        final String apiKeyIdParameter = request.getParameter("apiKeyId");
+        if (apiKeyIdParameter !=null && !StringUtils.isEmpty(apiKeyIdParameter))
+            approvalPageUrl += "&state=" + apiKeyIdParameter;
 
         return "redirect:" + approvalPageUrl;
     }
@@ -98,10 +103,11 @@ public class MovesController {
     public String swapToken(HttpServletRequest request) throws Exception {
         final String errorMessage = request.getParameter("error");
         final Guest guest = AuthHelper.getGuest();
+        Connector connector = Connector.getConnector("moves");
         if (errorMessage!=null) {
-            notificationsService.addNotification(guest.getId(),
-                                                 Notification.Type.ERROR,
-                                                 "There was an error while setting you up with the moves service: " + errorMessage);
+            notificationsService.addNamedNotification(guest.getId(),
+                                                      Notification.Type.ERROR, connector.statusNotificationName(),
+                                                      "There was an error while setting you up with the moves service: " + errorMessage);
             return "redirect:/app";
         }
         final String code = request.getParameter("code");
@@ -118,9 +124,10 @@ public class MovesController {
 
         if (token.has("error")) {
             String errorCode = token.getString("error");
-            notificationsService.addNotification(guest.getId(),
-                                                 Notification.Type.ERROR,
-                                                 errorCode);
+            notificationsService.addNamedNotification(guest.getId(),
+                                                      Notification.Type.ERROR,
+                                                      connector.statusNotificationName(),
+                                                      errorCode);
             // NOTE: In the future if we implement renew for the Moves connector
             // we will potentially need to mark the connector as permanently failed.
             // The way to do this is to get hold of the existing apiKey and do:
@@ -134,13 +141,15 @@ public class MovesController {
         // ApiKeyAttributes with all of the keys fro oauth.properties needed for
         // subsequent update of this connector instance.
         ApiKey apiKey;
-        if (request.getParameter("state")!=null) {
-            long apiKeyId = Long.valueOf(request.getParameter("state"));
+        final String stateParameter = request.getParameter("state");
+        if (stateParameter !=null&&!StringUtils.isEmpty(stateParameter)) {
+            long apiKeyId = Long.valueOf(stateParameter);
             apiKey = guestService.getApiKey(apiKeyId);
         } else {
             apiKey = guestService.createApiKey(guest.getId(), Connector.getConnector("moves"));
         }
 
+        guestService.populateApiKey(apiKey.getId());
         guestService.setApiKeyAttribute(apiKey,
                                         "accessToken", token.getString("access_token"));
         guestService.setApiKeyAttribute(apiKey,
@@ -151,7 +160,7 @@ public class MovesController {
         // Record that this connector is now up
         guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null);
 
-        if (request.getParameter("state")!=null)
+        if (stateParameter !=null&&!StringUtils.isEmpty(stateParameter))
             return "redirect:/app/tokenRenewed/moves";
         else
             return "redirect:/app/from/moves";
@@ -170,6 +179,7 @@ public class MovesController {
         // and should therefore refrain from swapping tokens lest we
         // invalidate an existing token instance
         String disableTokenSwap = env.get("disableTokenSwap");
+        Connector connector = Connector.getConnector("moves");
         if(disableTokenSwap!=null && disableTokenSwap.equals("true")) {
             String msg = "**** Skipping refreshToken for moves connector instance because disableTokenSwap is set on this server";
                                             ;
@@ -179,11 +189,11 @@ public class MovesController {
             System.out.println(msg);
 
             // Notify the user that the tokens need to be manually renewed
-            notificationsService.addNotification(apiKey.getGuestId(), Notification.Type.WARNING,
-                                                 "Heads Up. This server cannot automatically refresh your Moves authentication tokens.<br>" +
-                                                 "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
-                                                 "scroll to the Moves connector, delete the connector, and re-add<br>" +
-                                                 "<p>We apologize for the inconvenience</p>");
+            notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.WARNING, connector.statusNotificationName(),
+                                                      "Heads Up. This server cannot automatically refresh your Moves authentication tokens.<br>" +
+                                                      "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                      "scroll to the Moves connector, delete the connector, and re-add<br>" +
+                                                      "<p>We apologize for the inconvenience</p>");
 
             // Record permanent failure since this connector won't work again until
             // it is reauthenticated
@@ -210,11 +220,11 @@ public class MovesController {
             guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null);
         } catch (Exception e) {
             // Notify the user that the tokens need to be manually renewed
-            notificationsService.addNotification(apiKey.getGuestId(), Notification.Type.WARNING,
-                                                 "Heads Up. We failed in our attempt to automatically refresh your Moves authentication tokens.<br>" +
-                                                 "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
-                                                 "scroll to the Moves connector, delete the connector, and re-add<br>" +
-                                                 "<p>We apologize for the inconvenience</p>");
+            notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.WARNING, connector.statusNotificationName(),
+                                                      "Heads Up. We failed in our attempt to automatically refresh your Moves authentication tokens.<br>" +
+                                                      "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                      "scroll to the Moves connector, delete the connector, and re-add<br>" +
+                                                      "<p>We apologize for the inconvenience</p>");
 
             // Record permanent update failure since this connector is never
             // going to succeed

@@ -152,3 +152,8 @@ function createAccount() {
     })
 }
 
+function showLightbox(index) {
+    $(".modal-backdrop").remove();
+    $("#screenshots-lightbox").modal("show");
+    var carousel = $('#myCarousel').carousel(index-1);
+}

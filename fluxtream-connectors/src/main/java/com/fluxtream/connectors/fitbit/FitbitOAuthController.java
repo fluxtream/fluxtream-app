@@ -103,6 +103,7 @@ public class FitbitOAuthController {
         } else
             apiKey = guestService.createApiKey(guest.getId(), connector());
 
+        guestService.populateApiKey(apiKey.getId());
 		guestService.setApiKeyAttribute(apiKey,
 				"accessToken", consumer.getToken());
 		guestService.setApiKeyAttribute(apiKey,

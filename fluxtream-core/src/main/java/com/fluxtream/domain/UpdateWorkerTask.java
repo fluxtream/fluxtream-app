@@ -22,26 +22,31 @@ import org.hibernate.annotations.Index;
 		query = "DELETE FROM UpdateWorkerTask updt " +
                 "WHERE updt.apiKeyId=? " +
                 "AND updt.status!=?"),
-     @NamedQuery( name = "updateWorkerTasks.delete.scheduledByApi",
+    @NamedQuery( name = "updateWorkerTasks.delete.scheduledByApi",
    		query = "DELETE FROM UpdateWorkerTask updt " +
                    "WHERE updt.apiKeyId=? " +
                    "AND updt.status=0"),
+    @NamedQuery( name = "updateWorkerTasks.delete.scheduledByApiAndObjectType",
+                  query = "DELETE FROM UpdateWorkerTask updt " +
+                          "WHERE updt.apiKeyId= (?1) " +
+                          "AND updt.status=0 " +
+                          "AND updt.objectTypes= (?2)"),
+    @NamedQuery( name = "updateWorkerTasks.delete.scheduledAndHistoryByApiAndObjectType",
+                 query = "DELETE FROM UpdateWorkerTask updt " +
+                         "WHERE updt.apiKeyId= (?1) " +
+                         "AND (updt.status=0 OR updt.updateType=2) " +
+                         "AND updt.objectTypes= (?2)"),
     @NamedQuery( name = "updateWorkerTasks.deleteAll.byApi",
                  query = "DELETE FROM UpdateWorkerTask updt " +
                          "WHERE updt.apiKeyId=?"),
-    @NamedQuery( name = "updateWorkerTasks.deleteAll.byApiAndObjectType",
-                 query = "DELETE FROM UpdateWorkerTask updt " +
-                         "WHERE updt.apiKeyId=? " +
-                         "AND updt.objectTypes=?"),
-    @NamedQuery( name = "updateWorkerTasks.delete.byApiAndObjectType",
-		query = "DELETE FROM UpdateWorkerTask updt " +
-                "WHERE updt.apiKeyId=? " +
-                "AND updt.objectTypes=?" +
-                "AND updt.updateType!=?"),
 	@NamedQuery( name = "updateWorkerTasks.byStatus",
 		query = "SELECT updt FROM UpdateWorkerTask updt " +
                 "WHERE updt.status=?1 " +
                 "AND updt.timeScheduled<?2"),
+    @NamedQuery( name = "updateWorkerTasks.byStatus.andName",
+   		query = "SELECT updt FROM UpdateWorkerTask updt " +
+                   "WHERE updt.status=?1 AND connectorName=?2 " +
+                   "AND updt.timeScheduled<?3"),
     @NamedQuery( name = "updateWorkerTasks.all.synching",
                  query = "SELECT updt FROM UpdateWorkerTask updt " +
                          "WHERE updt.status=1 AND updt.serverUUID IN (?1)"),

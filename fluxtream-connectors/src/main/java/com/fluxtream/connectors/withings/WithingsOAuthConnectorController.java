@@ -104,8 +104,18 @@ public class WithingsOAuthConnectorController {
             final String apiKeyIdString = (String) request.getSession().getAttribute(WITHINGS_RENEWTOKEN_APIKEYID);
             long apiKeyId = Long.valueOf(apiKeyIdString);
             apiKey = guestService.getApiKey(apiKeyId);
-        } else
+        } else {
             apiKey = guestService.createApiKey(guest.getId(), connector);
+        }
+
+        // We need to store the consumer ID and secret with the
+        // apiKeyAttributes in either the case of original creation of the key
+        // or token renewal.  createApiKey actually handles the former case, but
+        // not the latter.  Do it in all cases here.
+        guestService.setApiKeyAttribute(apiKey, "withingsConsumerKey",
+                                        env.get("withingsConsumerKey"));
+        guestService.setApiKeyAttribute(apiKey, "withingsConsumerSecret",
+                                        env.get("withingsConsumerSecret"));
 
         guestService.setApiKeyAttribute(apiKey,
                                         "accessToken", consumer.getToken());

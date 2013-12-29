@@ -2,7 +2,7 @@
 <web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
-    <display-name>Fluxtream | Personal Analytics</display-name>
+    <display-name>Fluxtream</display-name>
     <mime-mapping>
         <extension>ico</extension>
         <mime-type>image/vnd.microsoft.icon</mime-type>
@@ -120,6 +120,10 @@
     <servlet-mapping>
         <servlet-name>default</servlet-name>
         <url-pattern>/channel.html</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>/html/privacyPolicy.html</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>default</servlet-name>

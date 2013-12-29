@@ -39,8 +39,10 @@
     <% } %>
 </h3>
 
-<h4>Force Update</h4>
-
+<h4>Force Update <small> - the type of update (history vs incremental) will depend on the type and
+    status of the last update of that facet type</small>
+</h4>
+<div>
 <% if (!apiKey.getConnector().isAutonomous()) {
      for (Integer objectTypes : connectorObjectTypes) { %>
          <a class="btn btn-primary" href="/admin/<%=guest.getId()%>/<%=apiKey.getId()%>/<%=objectTypes%>/refresh">Update <%=ObjectType.getObjectTypes(apiKey.getConnector(), objectTypes)%> facets Now!</a>
@@ -48,6 +50,19 @@
    } else { %>
 <a class="btn btn-primary" href="/admin/<%=guest.getId()%>/<%=apiKey.getId()%>/0/refresh">Update Now!</a>
 <% } %>
+</div>
+
+<h4>Force History Update</h4>
+<div>
+    <% if (!apiKey.getConnector().isAutonomous()) {
+        for (Integer objectTypes : connectorObjectTypes) { %>
+    <a class="btn btn-primary" href="/admin/<%=guest.getId()%>/<%=apiKey.getId()%>/<%=objectTypes%>/historyUpdate">Redo History Update of <%=ObjectType.getObjectTypes(apiKey.getConnector(), objectTypes)%> facets Now!</a>
+    <%   }
+    } else { %>
+    <a class="btn btn-primary" href="/admin/<%=guest.getId()%>/<%=apiKey.getId()%>/0/historyUpdate">Redo History Update Now!</a>
+    <% } %>
+</div>
+
 
 <% if ((Boolean)connectorInstanceModel.get("errors")&&StringUtils.isNotEmpty(errors)) {
 %>

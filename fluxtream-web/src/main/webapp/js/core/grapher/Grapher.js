@@ -9,6 +9,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         this.plotsMap = {}; // maps DOM element ID to grapher widget
         this.grapherId = new Date().getTime() + "-" + Math.round(Math.random()*10000000);
         this.plotContainers = [];    // array of plot containers
+        this.currentTooltip = null; //holds a reference to the current tooltip object
         var grapher = this;
         for (var param in options)
             grapher[param] = options[param];
@@ -47,7 +48,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
     var hasUnsavedChanges    = false; // used by unsaved changes dialog handler
     var loadedViewStr        = "";    // JSON string of loaded view
     var addPaneChannelsState = [];    // add channels pane channel visibility
-    var CHANNEL_PADDING      = 3;     // Pixels between plot and drag area
+    var CHANNEL_PADDING      = 0;     // Pixels between plot and drag area
 
     var connectorEnabled;
 
@@ -676,10 +677,12 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         if (area.css("display") === "none") {
             $("#" + this.grapherId + "_timeline_add_channels_btn").addClass("active");
             area.show();
+            $("#" + this.grapherId + "_timeline_dateAxisLabelRegion").addClass("channelAreaShowing");
             TOOLS.resizeElementHeight($("#" + this.grapherId + "_timeline_addChannelsArea #_timeline_sources_list"));
         }
         else {
             $("#"  + this.grapherId + "_timeline_add_channels_btn").removeClass("active");
+            $("#" + this.grapherId + "_timeline_dateAxisLabelRegion").removeClass("channelAreaShowing");
             area.hide();
         }
 
@@ -804,7 +807,9 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                 "channelElementId" : channelElementId,
                 "yAxisElementId"   : yAxisElementId,
                 "showDeleteBtn"    : grapher.showDeleteBtn,
-                "grapherId"        : grapher.grapherId
+                "grapherId"        : grapher.grapherId,
+                "channelType"      : channel["type"] == null ? "CONTINUOUS" : channel["type"].toUpperCase(),
+                "hideYAxis"        : false
             };
 
             // Render template
@@ -825,18 +830,31 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             var yMin = channel.min;
             var yMax = channel.max;
             var yDiff = yMax - yMin;
-            var padding = 0.5;
-            if(yDiff < 1e-10) {
+            var padding;
+            if (channel["type"] == "timespan"){
+                padding = 0;
+            }
+            else if(yDiff < 1e-10) {
                 padding = 0.5;
             } else {
                 padding = 0.1 * yDiff;
             }
+
 
             if (dontPad) padding = 0;
 
             var yAxis = new NumberAxis(yAxisElementId, "vertical", {
                 "min" : yMin - padding,
                 "max" : yMax + padding
+            });
+
+            var oldMin = yMin - padding;
+            var oldMax = yMax + padding;
+            yAxis.addAxisChangeListener(function(event){
+                if ((oldMin != event.min || oldMax != event.max) && grapher.currentTooltip != null)//this is to avoid processing on events where the axis bounds didn't change
+                    grapher.currentTooltip.remove();
+                oldMin = event.min;
+                oldMax = event.max;
             });
 
             // Now that yAxis is initialized, if this is a new view,
@@ -1572,6 +1590,11 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
 
                 // Finally, trigger a call updatePhotoSeriesPlotChannelConfig() so that the grapher properly represents the config settings
                 $("#" + channelElementId + "-photo-tags-matching-strategy").change();
+            } else if (plot instanceof TimespanSeriesPlot){
+                yAxis.setMaxRange(0,1);
+                $("#" + channelElementId + " #" + channelElementId + "_btnShowAllY").click(function(event){
+                    yAxis.setRange(0,1);
+                });
             }
 
             // Force initial resize
@@ -1697,7 +1720,13 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             });
             grapher.cursorString = null;
             grapher.prevCursorPos = null;
+            var currentMin = view["v2"]["x_axis"]["min"];
+            var currentMax = view["v2"]["x_axis"]["max"];
             grapher.dateAxis.addAxisChangeListener(function(event) {
+                if ((currentMin != event.min || currentMax != event.max) && grapher.currentTooltip != null)//this is to avoid processing on events where the axis bounds didn't change
+                    grapher.currentTooltip.remove();
+                currentMin = event.min;
+                currentMax = event.max;
                 if (event.cursorPosition != grapher.prevCursorPos){
                     grapher.prevCursorPos = event.cursorPosition;
                     grapher.cursorString = event.cursorPositionString;
@@ -2193,7 +2222,11 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
 
                             }
 
-                            Tooltip.createTooltip(mainContentContainer,positionRelativeToMainContentArea,ListUtils.buildList(facets,cities),sourceInfo.info.color);
+                            grapher.currentTooltip = Tooltip.createTooltip(mainContentContainer,positionRelativeToMainContentArea,ListUtils.buildList(facets,cities),sourceInfo.info.color);
+                            grapher.currentTooltip.onRemove = function(){
+                                if (grapher.currentTooltip == this)
+                                    grapher.currentTooltip = null;
+                            }
                         }
                     });
                 }
@@ -2238,6 +2271,8 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                 var photoCache = createPhotoDialogCache(channel['device_name'], channel['channel_name'], channelFilterTags, matchingStrategy, channel);
 
                 var createPhotoDialog = function(compoundPhotoId, timestamp, completionCallback) {
+
+                    grapher.setTimeCursorPosition(timestamp);
 
                     console.log("createPhotoDialog is called: " + compoundPhotoId + ", " + timestamp + ", " + completionCallback);
 
@@ -2299,8 +2334,8 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                                           typeof previousPhotoMetadata['photoId'] !== 'undefined';
                     if (isPreviousPhoto) {
                         $("#_timeline_photo_dialog_previous_button").show().click(function() {
-                            createPhotoDialog(previousPhotoMetadata['photoId'],
-                                previousPhotoMetadata['timestamp']);
+                            var timestamp = previousPhotoMetadata.isLocalTimeType ? grapher.dateAxis.localTimeToUTC(previousPhotoMetadata.timestamp) : previousPhotoMetadata.timestamp;
+                            createPhotoDialog(previousPhotoMetadata['photoId'],timestamp);
                         });
                     }
 
@@ -2309,8 +2344,8 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                                       typeof nextPhotoMetadata['photoId'] !== 'undefined';
                     if (isNextPhoto) {
                         $("#_timeline_photo_dialog_next_button").show().click(function() {
-                            createPhotoDialog(nextPhotoMetadata['photoId'],
-                                nextPhotoMetadata['timestamp']);
+                            var timestamp = nextPhotoMetadata.isLocalTimeType ? grapher.dateAxis.localTimeToUTC(nextPhotoMetadata.timestamp) : nextPhotoMetadata.timestamp;
+                            createPhotoDialog(nextPhotoMetadata['photoId'],timestamp);
                         });
                     }
 

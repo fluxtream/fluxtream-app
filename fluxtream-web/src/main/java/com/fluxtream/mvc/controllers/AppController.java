@@ -66,7 +66,11 @@ public class AppController {
     ErrorController errorController;
 
     @RequestMapping(value = { "", "/", "/welcome" })
-    public ModelAndView index(HttpServletRequest request) {
+    public ModelAndView index(HttpServletRequest request,
+                              HttpServletResponse response) {
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
+        response.setHeader("Pragma", "no-cache"); // HTTP 1.0.
+        response.setDateHeader("Expires", 0);
         Authentication auth = SecurityContextHolder.getContext()
                 .getAuthentication();
         if (auth != null && auth.isAuthenticated())
@@ -92,7 +96,8 @@ public class AppController {
         String intercomScriptPath = request.getSession().getServletContext().getRealPath("/WEB-INF/jsp/intercom.jsp");
         File intercomScriptFile = new File(intercomScriptPath);
         final boolean fileExists = intercomScriptFile.exists();
-        return fileExists;
+        final boolean hasApiKey = env.get("intercomApiKey")!=null;
+        return fileExists&&hasApiKey;
     }
 
     private boolean hasTracker(HttpServletRequest request) {
@@ -143,14 +148,21 @@ public class AppController {
         return mav;
     }
 
-    public ModelAndView home(HttpServletRequest request) {
+    public ModelAndView home(HttpServletRequest request,
+                             HttpServletResponse response) {
 		logger.info("action=loggedIn");
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
+        response.setHeader("Pragma", "no-cache"); // HTTP 1.0.
+        response.setDateHeader("Expires", 0);
 
 		long guestId = AuthHelper.getGuestId();
 
 		ModelAndView mav = new ModelAndView("redirect:main");
         mav.addObject("tracker", hasTracker(request));
-        mav.addObject("intercom", hasIntercom(request));
+        final boolean hasIntercom = hasIntercom(request);
+        mav.addObject("intercom", hasIntercom);
+        if (hasIntercom)
+            mav.addObject("intercomApiKey", env.get("intercomApiKey"));
 		if (request.getSession(false) == null)
 			return mav;
 
@@ -206,7 +218,7 @@ public class AppController {
             final String redirectUrl = savedRequest.getRedirectUrl();
             return new ModelAndView(redirectUrl);
         }
-        return home(request);
+        return home(request, response);
     }
 
     @RequestMapping(value = "/app/tokenRenewed/{connectorName}")
@@ -231,7 +243,7 @@ public class AppController {
     public String welcomeBack(String connectorName, String message) {
         long guestId = AuthHelper.getGuestId();
         final Connector connector = Connector.getConnector(connectorName);
-        notificationsService.addNamedNotification(guestId, Type.INFO, connectorName + ".status", message);
+        notificationsService.addNamedNotification(guestId, Type.INFO, connector.statusNotificationName(), message);
         ApiKey apiKey = guestService.getApiKey(guestId, connector);
         connectorUpdateService.updateConnector(apiKey, true);
         return "redirect:/app";

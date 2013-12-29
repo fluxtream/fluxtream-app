@@ -11,6 +11,7 @@ import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.OAuth2Helper;
+import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.Notification;
@@ -62,8 +63,31 @@ public class GoogleOAuth2Controller {
     public String renewToken(@PathVariable("apiKeyId") String apiKeyId, HttpServletRequest request) throws IOException, ServletException {
         request.getSession().setAttribute(APIKEYID_ATTRIBUTE, apiKeyId);
         final ApiKey apiKey = guestService.getApiKey(Long.valueOf(apiKeyId));
-        final String refreshTokenRemoveURL = guestService.getApiKeyAttribute(apiKey,"refreshTokenRemoveURL");
-        oAuth2Helper.revokeRefreshToken(apiKey.getGuestId(), apiKey.getConnector(), refreshTokenRemoveURL);
+
+        // Check if the stored client ID matches the one in our properties file, and only in that
+        // case try to revoke.  TODO: in that case skip next two lines
+        String propertiesClientId = env.get("google.client.id");
+        String storedClientId = guestService.getApiKeyAttribute(apiKey,"google.client.id");
+
+        if(propertiesClientId !=null && storedClientId!=null && propertiesClientId.equals(storedClientId)) {
+            // Renewing token for the same server, do revoke attempt first
+            final String refreshTokenRemoveURL = guestService.getApiKeyAttribute(apiKey,"refreshTokenRemoveURL");
+            oAuth2Helper.revokeRefreshToken(apiKey.getGuestId(), apiKey.getConnector(), refreshTokenRemoveURL);
+
+            String msg="Called revokeRefreshToken with refreshTokenRemoveURL='" + refreshTokenRemoveURL + "'";
+            StringBuilder sb = new StringBuilder("module=GoogleOauth2Controller component=renewToken action=renewToken apiKeyId=" + apiKeyId)
+                    .append(" guestId=").append(apiKey.getGuestId())
+                    .append(" message=\"").append(msg).append("\"");
+            logger.info(sb.toString());
+        }
+        else {
+            String msg="Skipped revokeRefreshToken, stored and properties google.client.id do not match (" + storedClientId + " vs " + propertiesClientId + ")" ;
+                        StringBuilder sb = new StringBuilder("module=GoogleOauth2Controller component=renewToken action=renewToken apiKeyId=" + apiKeyId)
+                                .append(" guestId=").append(apiKey.getGuestId())
+                                .append(" message=\"").append(msg).append("\"");
+                        logger.info(sb.toString());
+        }
+        // Continue on to ask user for authorization whether or not you did a revoke
         return getToken(request);
     }
 
@@ -98,30 +122,29 @@ public class GoogleOAuth2Controller {
 		params.put("redirect_uri", redirectUri);
 		params.put("grant_type", "authorization_code");
 
-		String fetched = HttpUtils.fetch(swapTokenUrl, params);
-		
-		JSONObject token = JSONObject.fromObject(fetched);
-		
 		String scope = (String) request.getSession().getAttribute("oauth2Scope");
 		Connector scopedApi = systemService.getApiFromGoogleScope(scope);
 		
 		Guest guest = AuthHelper.getGuest();
 
-        if (!token.has("refresh_token")) {
-            String message = (new StringBuilder("<p>We couldn't get your oauth2 refresh token.  "))
-                    .append("Something went wrong.</p>")
-                    .append("<p>You'll have to surf to your ")
-                    .append("<a target='_new'  href='https://accounts.google.com/b/0/IssuedAuthSubTokens'>token mgmt page at Google</a> ")
-                    .append("and hit \"Revoke Access\" next to \"fluxtream — ").append(getGooglePrettyName(scopedApi)).append("\"</p>")
-		.append("<p>Then please, head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a> ")
-		.append("and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)</p>")
-                    .append("<p>We apologize for the inconvenience</p>").toString();
-            notificationsService.addNotification(guest.getId(),
-                                                 Notification.Type.ERROR,
-                                                 message);
-            return new ModelAndView("redirect:/app");
-        }
-        final String refresh_token = token.getString("refresh_token");
+      // Get the google branding info.  Default to fluxtream if not set, but can override in
+      // oauth.properties by setting the default google.client.brandName parameter
+      String brandName = env.get("google.client.brandName");
+      if(brandName == null) {
+         // Not set in oauth.properties file, default to "Fluxtream"
+         brandName="Fluxtream";
+      }
+
+      // Try to renew the token.  On failure leave token=null
+      JSONObject token = null;
+
+      try {
+         String fetched = HttpUtils.fetch(swapTokenUrl, params);
+         token = JSONObject.fromObject(fetched);
+      } catch(Throwable e) {
+         token = null;
+      }
+
         ApiKey apiKey;
         final boolean isRenewToken = request.getSession().getAttribute(APIKEYID_ATTRIBUTE) != null;
         if (isRenewToken) {
@@ -133,18 +156,60 @@ public class GoogleOAuth2Controller {
                 String errorMessage = "no apiKey with id '%s'... It looks like you are trying to renew the tokens of a non-existing Connector (/ApiKey)";
                 return errorController.handleError(500, errorMessage, stackTrace);
             }
-            // remove oauth1 keys if upgrading from previous connector version
-            if (guestService.getApiKeyAttribute(apiKey, "googleConsumerKey")!=null)
+
+            if (token == null || !token.has("refresh_token")) {
+                String message = (new StringBuilder("<p>We couldn't get your oauth2 refresh token.  "))
+                        .append("Something went wrong.</p>")
+                        .append("<p>You'll have to surf to your ")
+                        .append("<a target='_new'  href='https://accounts.google.com/b/0/IssuedAuthSubTokens'>token mgmt page at Google</a> ")
+                        .append("and hit \"Revoke Access\" next to \"").append(brandName).append(" — ").append(getGooglePrettyName(scopedApi)).append("\"</p>")
+    		              .append("<p>Then please, head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a> ")
+    		              .append("and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)</p>")
+                        .append("<p>We apologize for the inconvenience</p>").toString();
+
+                notificationsService.addNamedNotification(guest.getId(),
+                                                     Notification.Type.ERROR,
+                                                     apiKey.getConnector().statusNotificationName(),
+                                                     message);
+                // Record permanent failure since this connector won't work again until
+                // it is reauthenticated
+                guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
+                return new ModelAndView("redirect:/app");
+            }
+
+            // Remove oauth1 keys if upgrading from previous connector version.
+            // Remember whether or not we're upgrading from previous connector version.
+            // If so, do a full history update.  Otherwise don't force a full
+            // history update and allow the update to be whatever it normally would be
+            boolean upgradeFromOauth1 = false;
+
+            if (guestService.getApiKeyAttribute(apiKey, "googleConsumerKey")!=null) {
                 guestService.removeApiKeyAttribute(apiKey.getId(), "googleConsumerKey");
-            if (guestService.getApiKeyAttribute(apiKey, "googleConsumerSecret")!=null)
+                upgradeFromOauth1 = true;
+            }
+            if (guestService.getApiKeyAttribute(apiKey, "googleConsumerSecret")!=null) {
                 guestService.removeApiKeyAttribute(apiKey.getId(), "googleConsumerSecret");
+                upgradeFromOauth1 = true;
+            }
 
-            // now reset the connector to force a full reimport on google calendar
-            if (apiKey.getConnector().getName().equals("google_calendar"))
-               connectorUpdateService.flushUpdateWorkerTasks(apiKey, true);
+            // If upgradeFromOauth1 reset the connector to force a full reimport on google calendar,
+            // otherwise just do a normal update
+            if (apiKey.getConnector().getName().equals("google_calendar")) {
+                connectorUpdateService.flushUpdateWorkerTasks(apiKey, upgradeFromOauth1);
+            }
 
-        } else
+        } else {
             apiKey = guestService.createApiKey(guest.getId(), scopedApi);
+        }
+
+        // We need to store google.client.id and google.client.secret with the
+        // apiKeyAttributes in either the case of original creation of the key
+        // or token renewal.  createApiKey actually handles the former case, but
+        // not the latter.  Do it in all cases here.
+        guestService.setApiKeyAttribute(apiKey, "google.client.id", env.get("google.client.id"));
+        guestService.setApiKeyAttribute(apiKey, "google.client.secret", env.get("google.client.secret"));
+
+        final String refresh_token = token.getString("refresh_token");
 
         guestService.setApiKeyAttribute(apiKey,
 				"accessToken", token.getString("access_token"));
@@ -157,6 +222,11 @@ public class GoogleOAuth2Controller {
                                         "refreshTokenRemoveURL",
                                         "https://accounts.google.com/o/oauth2/revoke?token="
                                         + encodedRefreshToken);
+
+        // Record this connector as having status up
+        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null);
+        // Schedule an update for this connector
+        connectorUpdateService.updateConnector(apiKey, false);
 
         if (isRenewToken) {
             request.getSession().removeAttribute(APIKEYID_ATTRIBUTE);

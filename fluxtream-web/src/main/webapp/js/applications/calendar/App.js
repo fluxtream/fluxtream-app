@@ -90,9 +90,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
            type: "GET",
            data: params,
            success: function(response) {
-               Calendar.dateAxisCursorPosition = null;
                Calendar.timeRange.start = response.start;
                Calendar.timeRange.end = response.end;
+               if (Calendar.dateAxisCursorPosition * 1000 < Calendar.timeRange.start || Calendar.dateAxisCursorPosition * 1000 > Calendar.timeRange.end)
+                   Calendar.dateAxisCursorPosition = null;
                updateTimespan(response.currentTimespanLabel,params);
                Calendar.timeRange.updated = true;
                Calendar.navigateState(Calendar.currentTabName + "/" + response.state);
@@ -162,9 +163,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             type: "GET",
             data: {state: state.tabState},
             success: function(response) {
-                Calendar.dateAxisCursorPosition = null;
                 Calendar.timeRange.start = response.start;
                 Calendar.timeRange.end = response.end;
+                if (Calendar.dateAxisCursorPosition * 1000 < Calendar.timeRange.start || Calendar.dateAxisCursorPosition * 1000 > Calendar.timeRange.end)
+                    Calendar.dateAxisCursorPosition = null;
                 updateTimespan(response.currentTimespanLabel,state.tabState);
                 Calendar.timeRange.updated = true;
                 stopLoading(doneLoadingId);
@@ -193,6 +195,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         startLoading();
         if (typeof state == "string")
             state = Calendar.parseState(state);
+
+        //if we're showing a specific facet, we should make sure our state will hold the facet!
+        if (this.params != null && this.params.facetToShow != null){
+            var facet = this.params.facetToShow;
+            state = Calendar.toState(state.tabName, state.timeUnit,new Date(facet.end == null ? facet.start : (facet.start + facet.end) / 2));
+            Calendar.connectorEnabled[state.tabName][this.params.facetToShow.type.split("-")[0]] = true;
+        }
+
         if (Calendar.timespanState !== state.tabState) {
             // NOTE: when loading a URL like /app/calendar/date/2012-12-25 directly,
             // the FlxState routes invoke renderState() directly instead of going
@@ -810,7 +820,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function switchToAppForFacet(appname,tabname,facet){
-
         App.renderApp(appname,tabname + (appname === "calendar" ? "/" + getTabState() : ""),{facetToShow:facet});
     }
 
@@ -1243,6 +1252,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         var sunsetM = Calendar.weather.solarInfo.sunset%60;
         if (sunriseM<10) sunriseM = "0" + sunriseM;
         if (sunsetM<10) sunsetM = "0" + sunsetM;
+        if (sunsetH>12)sunsetH-=12;
         return "<span class=\"ephemeris\"><span title='Sunrise'><i class=\"flx-pict-sun\">&nbsp;</i><span>" + sunriseH + ":" + sunriseM + " am"+
                "</span></span>&nbsp;<span title='Sunset'><i class=\"flx-pict-moon\">&nbsp;</i><span>" + sunsetH + ":" + sunsetM + " pm</span></span></span>";
     }

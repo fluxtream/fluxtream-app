@@ -112,7 +112,7 @@ Date.prototype.format = function (mask, utc) {
 
 define(
     [ "core/FlxState", "Addresses", "ManageConnectors", "AddConnectors", "ConnectorConfig", "Settings", "SharingDialog",
-      "libs/jquery.form", "libs/jquery.jeditable.mini" ],
+      "libs/jquery.form", "libs/jquery.jeditable.mini", "libs/jquery.timeago" ],
     function(FlxState, Addresses, ManageConnectors, AddConnectors, ConnectorConfig, Settings,
         SharingDialog ) {
 
@@ -785,7 +785,7 @@ define(
                 $("#connectorsDropdownToggle").popover({
                     container: "body",
                     placement: "bottom",
-                    title: "Click here to add your first Connector!",
+                    title: "Click menu above to add your first Connector!",
                     content: "Connectors let Fluxtream link up your data",
                     animation: true
                 });
@@ -920,7 +920,19 @@ define(
             return [r,theta];
         }
 
+        App.quickStart = function() {
+            App.loadMustacheTemplate("settingsTemplates.html","quickStartDialog",function(template){
+                var html = template.render({release : window.FLX_RELEASE_NUMBER});
+                App.makeModal(html);
+            });
+        }
 
+        App.privacyPolicy = function() {
+            App.loadMustacheTemplate("settingsTemplates.html","privacyPolicyDialog",function(template){
+                var html = template.render({release : window.FLX_RELEASE_NUMBER});
+                App.makeModal(html);
+            });
+        }
 
         App.getUsername = getUsername;
         App.getUID = getUID;

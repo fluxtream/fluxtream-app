@@ -91,4 +91,6 @@ public interface GuestService {
     public void setAutoLoginToken(long guestId, String s);
 
     public boolean checkPassword(long guestId, String currentPassword);
+
+    void populateApiKey(long apiKeyId);
 }
