@@ -292,6 +292,7 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
                     });
             });
 
+        $("#photoDialog").html(App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_loading_template").render({}));
         $("#photoDialog")['dialog']("option", "position", 'center');
         $("#photoDialog")['dialog']('open');
     }
