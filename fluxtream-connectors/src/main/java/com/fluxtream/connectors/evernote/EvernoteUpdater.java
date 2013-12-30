@@ -1,14 +1,16 @@
 package com.fluxtream.connectors.evernote;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.ServletContext;
 import com.evernote.auth.EvernoteAuth;
 import com.evernote.auth.EvernoteService;
 import com.evernote.clients.ClientFactory;
@@ -38,7 +40,11 @@ import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.utils.JPAUtils;
 import com.syncthemall.enml4j.ENMLProcessor;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.tika.mime.MimeType;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -52,6 +58,10 @@ import org.springframework.stereotype.Component;
                                                             EvernoteResourceFacet.class})
 public class EvernoteUpdater extends AbstractUpdater {
 
+    public static final String MAIN_APPENDIX = "main";
+    public static final String RECOGNITION_APPENDIX = "recognition";
+    public static final String ALTERNATE_APPENDIX = "alternate";
+
     FlxLogger logger = FlxLogger.getLogger(EvernoteUpdater.class);
 
     private static final int MAX_ENTRIES = 200;
@@ -63,6 +73,9 @@ public class EvernoteUpdater extends AbstractUpdater {
 
     @Autowired
     MetadataService metadataService;
+
+    @Autowired
+    private ServletContext servletContext;
 
     ENMLProcessor processor = new ENMLProcessor();
     static {
@@ -162,10 +175,39 @@ public class EvernoteUpdater extends AbstractUpdater {
                 expungedNoteGuids.addAll(chunkExpungedNotes);
         }
         for (String expungedNoteGuid : expungedNoteGuids) {
-            removeEvernoteFacet(updateInfo, EvernoteNoteFacet.class, expungedNoteGuid);
-            jpaDaoService.execute(String.format("DELETE FROM %s facet WHERE facet.apiKeyId=%s AND facet.noteGuid='%s'",
-                                                JPAUtils.getEntityName(EvernoteResourceFacet.class),
-                                                updateInfo.apiKey.getId(), expungedNoteGuid));
+            removeNote(updateInfo, expungedNoteGuid);
+        }
+    }
+
+    /**
+     * Delete a note, its associated resources and their dependent files from permanent storage
+     * @param updateInfo
+     * @param noteGuid
+     */
+    private void removeNote(final UpdateInfo updateInfo, final String noteGuid) {
+        // first remove the note itself
+        removeEvernoteFacet(updateInfo, EvernoteNoteFacet.class, noteGuid);
+        // now retrieve the info needed to figure out what its associated resources and their dependent files are
+        final List resourceInfos = jpaDaoService.executeNativeQuery(String.format("SELECT guid, mime FROM %s facet WHERE facet.apiKeyId=(?1) AND facet.noteGuid=(?2)",
+                                                                                  JPAUtils.getEntityName(EvernoteResourceFacet.class)),
+                                                                    updateInfo.apiKey.getId(), noteGuid);
+        final String connectorDataLocation = env.get("connectorData.location");
+        for (Object infos : resourceInfos) {
+            Object[] guidAndMime = (Object[]) infos;
+            String guid = (String)guidAndMime[0];
+            String mime = (String)guidAndMime[1];
+            // remove the resource from the database first
+            removeEvernoteFacet(updateInfo, EvernoteResourceFacet.class, guid);
+            // now retrieve the associated data files and delete them if they exist
+            final File resourceDataFile = getResourceFile(updateInfo.apiKey.getId(), guid, MAIN_APPENDIX, mime, connectorDataLocation);
+            final File resourceAlternateDataFile = getResourceFile(updateInfo.apiKey.getId(), guid, ALTERNATE_APPENDIX, mime, connectorDataLocation);
+            final File resourceRecognitionDataFile = getResourceFile(updateInfo.apiKey.getId(), guid, RECOGNITION_APPENDIX, mime, connectorDataLocation);
+            if (resourceDataFile.exists())
+                resourceDataFile.delete();
+            if (resourceAlternateDataFile.exists())
+                resourceAlternateDataFile.delete();
+            if (resourceRecognitionDataFile.exists())
+                resourceRecognitionDataFile.delete();
         }
     }
 
@@ -396,8 +438,8 @@ public class EvernoteUpdater extends AbstractUpdater {
                 }
                 if (resource.isSetAlternateData()) {
                     Data alternateData = resource.getAlternateData();
-                    if (alternateData.isSetBody())
-                        facet.alternateDataBody = alternateData.getBody();
+                    if (alternateData.isSetBody()&&resource.isSetGuid())
+                        saveDataBodyAsFile(updateInfo, resource.getGuid(), ALTERNATE_APPENDIX, alternateData.getBody(), resource.getMime());
                     if (alternateData.isSetBodyHash())
                         facet.alternateDataBodyHash = alternateData.getBodyHash();
                     if (alternateData.isSetSize())
@@ -432,13 +474,13 @@ public class EvernoteUpdater extends AbstractUpdater {
                     }
                 }
                 if (resource.isSetData()) {
-                    Data Data = resource.getData();
-                    if (Data.isSetBody())
-                        facet.dataBody = Data.getBody();
-                    if (Data.isSetBodyHash())
-                        facet.dataBodyHash = Data.getBodyHash();
-                    if (Data.isSetSize())
-                        facet.dataSize = Data.getSize();
+                    Data data = resource.getData();
+                    if (data.isSetBody()&&resource.isSetGuid())
+                        saveDataBodyAsFile(updateInfo, resource.getGuid(), MAIN_APPENDIX, data.getBody(), resource.getMime());
+                    if (data.isSetBodyHash())
+                        facet.dataBodyHash = data.getBodyHash();
+                    if (data.isSetSize())
+                        facet.dataSize = data.getSize();
                 }
                 if (resource.isSetHeight())
                     facet.height = resource.getHeight();
@@ -448,8 +490,8 @@ public class EvernoteUpdater extends AbstractUpdater {
                     facet.noteGuid = resource.getNoteGuid();
                 if (resource.isSetRecognition()) {
                     Data recognitionData = resource.getRecognition();
-                    if (recognitionData.isSetBody())
-                        facet.recognitionDataBody = recognitionData.getBody();
+                    if (recognitionData.isSetBody()&&resource.isSetGuid())
+                        saveDataBodyAsFile(updateInfo, resource.getGuid(), RECOGNITION_APPENDIX, recognitionData.getBody(), null);
                     if (recognitionData.isSetBodyHash())
                         facet.recognitionDataBodyHash = recognitionData.getBodyHash();
                     if (recognitionData.isSetSize())
@@ -463,6 +505,53 @@ public class EvernoteUpdater extends AbstractUpdater {
             }
         };
         apiDataService.createOrReadModifyWrite(EvernoteResourceFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
+    }
+
+    private void saveDataBodyAsFile(final UpdateInfo updateInfo, final String guid, final String appendix, final byte[] body, final String mimeType) throws IOException {
+        final String connectorDataLocation = env.get("connectorData.location");
+        if (connectorDataLocation==null)
+            throw new RuntimeException("No connectorData.location property was specified (local.properties)");
+        File file = getResourceFile(updateInfo.apiKey.getId(), guid, appendix, mimeType, connectorDataLocation);
+        file.getParentFile().mkdirs();
+        FileOutputStream fileoutput = new FileOutputStream(file);
+        IOUtils.copy(new ByteArrayInputStream(body), fileoutput);
+        fileoutput.close();
+    }
+
+    /**
+     *
+     * @param apiKeyId
+     * @param guid
+     * @param appendix
+     * @param mimeType
+     * @param connectorDataLocation
+     * @return
+     */
+    public static File getResourceFile(final long apiKeyId, final String guid, final String appendix, final String mimeType, final String connectorDataLocation) {
+        String extension = getFileExtension(mimeType);
+        if (appendix.equals(RECOGNITION_APPENDIX))
+            extension = ".xml";
+        return new File(new StringBuilder(connectorDataLocation).append(File.separator)
+                                     .append("evernote")
+                                     .append(File.separator)
+                                     .append(apiKeyId)
+                                     .append(File.separator)
+                                     .append(guid)
+                                     .append(appendix.equals(MAIN_APPENDIX)?"":"_")
+                                     .append(appendix.equals(MAIN_APPENDIX)?"":appendix)
+                                     .append(extension).toString());
+    }
+
+    private static String getFileExtension(String mimeType) {
+        if (StringUtils.isEmpty(mimeType)) return "";
+        MimeTypes allTypes = MimeTypes.getDefaultMimeTypes();
+        try {
+            MimeType type = allTypes.forName(mimeType);
+            return type.getExtension();
+        }
+        catch (MimeTypeException e) {
+            return "";
+        }
     }
 
     private void addGuestLocation(final UpdateInfo updateInfo, final Double latitude, final Double longitude, final Double altitude, final Long timestamp) {
@@ -527,8 +616,23 @@ public class EvernoteUpdater extends AbstractUpdater {
     }
 
     private void removeNotebook(final UpdateInfo updateInfo, final String guid) {
+        // remove the notebook itself
         removeEvernoteFacet(updateInfo, EvernoteNotebookFacet.class, guid);
-        jpaDaoService.execute(String.format("DELETE FROM %s facet WHERE " + "facet.apiKeyId=%s AND facet.notebookGuid='%s'", JPAUtils.getEntityName(EvernoteNoteFacet.class), updateInfo.apiKey.getId(), guid));
+        // now retrieve the guids of all the notes it contains so we can wipe them out along
+        // with the resources they reference
+        // Note: it is possible that these notes are part of the expunged notes list in
+        // the SyncChunk already, so this might be unnecessary
+        final List noteGuids = jpaDaoService.executeNativeQuery(
+                String.format("SELECT guid FROM %s facet WHERE facet.apiKeyId=(?1) AND facet.notebookGuid=(?2)",
+                              JPAUtils.getEntityName(EvernoteNoteFacet.class)),
+                updateInfo.apiKey.getId(), guid);
+        for (Object noteGuid : noteGuids) {
+            // not sure if we are getting back an array of objects or just a string, let's test for both
+            if (noteGuid instanceof String)
+                removeNote(updateInfo, (String) noteGuid);
+            else if (noteGuid instanceof Object[])
+                removeNote(updateInfo, (String) ((Object[])noteGuid)[0]);
+        }
     }
 
     private void createOrUpdateTag(final UpdateInfo updateInfo, final Tag tag) throws Exception {

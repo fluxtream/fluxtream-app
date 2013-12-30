@@ -3,6 +3,7 @@ package com.fluxtream.connectors.evernote;
 import javax.persistence.MappedSuperclass;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.AbstractFacet;
+import org.hibernate.annotations.Index;
 
 /**
  * User: candide
@@ -12,6 +13,7 @@ import com.fluxtream.domain.AbstractFacet;
 @MappedSuperclass
 public abstract class EvernoteFacet extends AbstractFacet {
 
+    @Index(name="guid")
     public String guid;
     public Integer USN;
 

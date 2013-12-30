@@ -1,8 +1,8 @@
 package com.fluxtream.connectors.evernote;
 
 import javax.persistence.Entity;
-import javax.persistence.Lob;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
+import org.hibernate.annotations.Index;
 
 /**
  * User: candide
@@ -13,20 +13,15 @@ import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 @ObjectTypeSpec(name = "resource", value = 16, prettyname = "Resource", clientFacet = false)
 public class EvernoteResourceFacet extends EvernoteFacet {
 
+    @Index(name="noteGuid")
     public String noteGuid;
 
-    @Lob
-    public byte[] dataBody;
     public Integer dataSize;
     public byte[] dataBodyHash;
 
-    @Lob
-    public byte[] alternateDataBody;
     public Integer alternateDataSize;
     public byte[] alternateDataBodyHash;
 
-    @Lob
-    public byte[] recognitionDataBody;
     public Integer recognitionDataSize;
     public byte[] recognitionDataBodyHash;
 

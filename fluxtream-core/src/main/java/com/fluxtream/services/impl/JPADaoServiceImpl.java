@@ -97,8 +97,10 @@ public class JPADaoServiceImpl implements JPADaoService {
     public List executeNativeQuery(final String s, Object... params) {
         final Query query = em.createNativeQuery(s);
         int i=1;
-        for (Object param : params)
-            query.setParameter(i++, param);
+        for (Object param : params) {
+            query.setParameter(i, param);
+            i++;
+        }
         return query.getResultList();
     }
 

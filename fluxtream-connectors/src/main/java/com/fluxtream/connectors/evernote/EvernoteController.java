@@ -1,6 +1,9 @@
 package com.fluxtream.connectors.evernote;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -9,12 +12,14 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.fluxtream.Configuration;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.JPADaoService;
+import com.google.api.client.util.IOUtils;
 import net.coobird.thumbnailator.Thumbnailator;
 import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
@@ -39,6 +44,8 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 @RequestMapping(value = "/evernote")
 public class EvernoteController {
+
+    FlxLogger logger = FlxLogger.getLogger(EvernoteController.class);
 
     public static final String EVERNOTE_SANDBOX_KEY = "evernote.sandbox";
     private static final String EVERNOTE_SERVICE = "evernoteService";
@@ -90,7 +97,6 @@ public class EvernoteController {
         Token accessToken = service.getAccessToken(requestToken, verifier);
 
         final String token = accessToken.getToken();
-        final String secret = accessToken.getSecret();
 
         Guest guest = AuthHelper.getGuest();
 
@@ -127,11 +133,28 @@ public class EvernoteController {
     @RequestMapping(value="/res/{guid}")
     public void getResource(@PathVariable("guid") String guid,
                             HttpServletResponse response) throws IOException {
-        final Query nativeQuery = em.createNativeQuery(String.format("SELECT mime, dataBody, width FROM Facet_EvernoteResource WHERE guid='%s'", guid));
+        final Query nativeQuery = em.createNativeQuery(String.format("SELECT apiKeyId, mime, width FROM Facet_EvernoteResource WHERE guid='%s'", guid));
         final Object[] singleResult = (Object[])nativeQuery.getSingleResult();
-        final String mimeType = (String)singleResult[0];
+        if (singleResult==null){
+            logger.warn("no Facet_EvernoteResource row found for guid=" + guid);
+            response.sendError(404);
+            return;
+        }
+        final String mimeType = (String)singleResult[1];
         response.setContentType(mimeType);
-        byte[] resourceData = (byte[])singleResult[1];
+        long apiKeyId = (Long) singleResult[0];
+        final String connectorDataLocation = env.get("connectorData.location");
+        if (connectorDataLocation==null)
+            throw new RuntimeException("No connectorData.location property was specified (local.properties)");
+        File resourceFile = EvernoteUpdater.getResourceFile(apiKeyId, guid, EvernoteUpdater.MAIN_APPENDIX, mimeType, connectorDataLocation);
+        if (!resourceFile.exists()) {
+            logger.warn("resource file was not found for guid=" + guid);
+            response.sendError(404);
+            return;
+        }
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        IOUtils.copy(new FileInputStream(resourceFile), baos);
+        byte[] resourceData = baos.toByteArray();
         if (mimeType.indexOf("image")!=-1) {
             short width = (Short) singleResult[2];
             if (width>MAX_WIDTH) {
@@ -146,7 +169,7 @@ public class EvernoteController {
 
     @RequestMapping(value="/content/{guid}")
     public ModelAndView getContent(@PathVariable("guid") String guid,
-                            HttpServletResponse response) throws IOException{
+                            HttpServletResponse response) throws IOException {
         ModelAndView mav = new ModelAndView("connectors/evernote/content");
         final Query nativeQuery = em.createNativeQuery(String.format("SELECT htmlContent FROM Facet_EvernoteNote WHERE guid='%s'", guid));
         String content = (String)nativeQuery.getSingleResult();
