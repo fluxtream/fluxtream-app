@@ -142,7 +142,7 @@ public class EvernoteController {
         }
         final String mimeType = (String)singleResult[1];
         response.setContentType(mimeType);
-        long apiKeyId = (Long) singleResult[0];
+        long apiKeyId = ((Number)singleResult[0]).longValue();
         final String connectorDataLocation = env.get("connectorData.location");
         if (connectorDataLocation==null)
             throw new RuntimeException("No connectorData.location property was specified (local.properties)");
