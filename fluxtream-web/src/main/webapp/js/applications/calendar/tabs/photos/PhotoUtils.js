@@ -323,40 +323,40 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
         $("#photoDialog").html(photoDialogHtml);
 
         var updateGoToNeighborOnSaveWidgets = function() {
-            var isEnabled = $("#_timeline_photo_dialog_save_should_goto_neighbor").is(':checked');
-            var direction = TOOLS.parseInt($("#_timeline_photo_dialog_save_should_goto_neighbor_choice").val(),0);
+            var isEnabled = $("#photoDialog #_timeline_photo_dialog_save_should_goto_neighbor").is(':checked');
+            var direction = TOOLS.parseInt($("#photoDialog #_timeline_photo_dialog_save_should_goto_neighbor_choice").val(),0);
             PREFS.set("photo_dialog.goto_neighbor_on_save.enabled", isEnabled);
             PREFS.set("photo_dialog.goto_neighbor_on_save.direction", direction);
 
             if (isEnabled) {
-                $("#_timeline_photo_dialog_save_should_goto_neighbor_choice").removeAttr("disabled");
-                $("#_timeline_photo_dialog_save_preferences label").css("color", "#000000");
+                $("#photoDialog #_timeline_photo_dialog_save_should_goto_neighbor_choice").removeAttr("disabled");
+                $("#photoDialog #_timeline_photo_dialog_save_preferences label").css("color", "#000000");
                 if (direction < 0) {
-                    $("#_timeline_photo_dialog_save_button").html("Save &amp; Previous");
+                    $("#photoDialog #_timeline_photo_dialog_save_button").html("Save &amp; Previous");
                 } else {
-                    $("#_timeline_photo_dialog_save_button").html("Save &amp; Next");
+                    $("#photoDialog #_timeline_photo_dialog_save_button").html("Save &amp; Next");
                 }
             } else {
-                $("#_timeline_photo_dialog_save_should_goto_neighbor_choice").attr("disabled", "disabled");
-                $("#_timeline_photo_dialog_save_preferences label").css("color", "#aaaaaa");
-                $("#_timeline_photo_dialog_save_button").text("Save");
+                $("#photoDialog #_timeline_photo_dialog_save_should_goto_neighbor_choice").attr("disabled", "disabled");
+                $("#photoDialog #_timeline_photo_dialog_save_preferences label").css("color", "#aaaaaa");
+                $("#photoDialog #_timeline_photo_dialog_save_button").text("Save");
             }
         };
 
         // set the widgets for the Save button behavior based on saved prefs
         var goToNeighborOnSaveEnabled = !!PREFS.get("photo_dialog.goto_neighbor_on_save.enabled", false);
         var goToNeighborOnSaveDirection = TOOLS.parseInt(PREFS.get("photo_dialog.goto_neighbor_on_save.direction", 0), 0);
-        $("#_timeline_photo_dialog_save_should_goto_neighbor").prop("checked", goToNeighborOnSaveEnabled);
-        $("#_timeline_photo_dialog_save_should_goto_neighbor").change(updateGoToNeighborOnSaveWidgets);
-        $("#_timeline_photo_dialog_save_should_goto_neighbor_choice").val(goToNeighborOnSaveDirection == 0 ? 1 : goToNeighborOnSaveDirection);
-        $("#_timeline_photo_dialog_save_should_goto_neighbor_choice").change(updateGoToNeighborOnSaveWidgets);
+        $("#photoDialog #_timeline_photo_dialog_save_should_goto_neighbor").prop("checked", goToNeighborOnSaveEnabled);
+        $("#photoDialog #_timeline_photo_dialog_save_should_goto_neighbor").change(updateGoToNeighborOnSaveWidgets);
+        $("#photoDialog #_timeline_photo_dialog_save_should_goto_neighbor_choice").val(goToNeighborOnSaveDirection == 0 ? 1 : goToNeighborOnSaveDirection);
+        $("#photoDialog #_timeline_photo_dialog_save_should_goto_neighbor_choice").change(updateGoToNeighborOnSaveWidgets);
 
         // display Loading status message
-        $("#_timeline_photo_dialog_form_status").text("Loading...").show();
+        $("#photoDialog #_timeline_photo_dialog_form_status").text("Loading...").show();
 
         // set previous and next buttons initially hidden
-        $("#_timeline_photo_dialog_previous_button").hide();
-        $("#_timeline_photo_dialog_next_button").hide();
+        $("#photoDialog #_timeline_photo_dialog_previous_button").hide();
+        $("#photoDialog #_timeline_photo_dialog_next_button").hide();
 
         // Fetch the metadata for the preceding, following, and current photos from the cache.
         var previousPhotoMetadata = photoCache.getPreviousPhotoMetadata(compoundPhotoId);
@@ -365,7 +365,7 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
                               typeof previousPhotoMetadata !== 'undefined' &&
                               typeof previousPhotoMetadata['photoId'] !== 'undefined';
         if (isPreviousPhoto) {
-            $("#_timeline_photo_dialog_previous_button").show().click(function() {
+            $("#photoDialog #_timeline_photo_dialog_previous_button").show().click(function() {
                 createPhotoDialog(previousPhotoMetadata['photoId'],
                     previousPhotoMetadata['timestamp']);
             });
@@ -375,7 +375,7 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
                           typeof nextPhotoMetadata !== 'undefined' &&
                           typeof nextPhotoMetadata['photoId'] !== 'undefined';
         if (isNextPhoto) {
-            $("#_timeline_photo_dialog_next_button").show().click(function() {
+            $("#photoDialog #_timeline_photo_dialog_next_button").show().click(function() {
                 createPhotoDialog(nextPhotoMetadata['photoId'],
                     nextPhotoMetadata['timestamp']);
             });
@@ -392,10 +392,10 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
         }
 
         // add click handler for photo to allow viewing of high-res version
-        $("#_timeline_photo_dialog_image").click(function() {
+        $("#photoDialog #_timeline_photo_dialog_image").click(function() {
             var theImage = $(this);
-            var formContainer = $("#_timeline_photo_dialog_form_container");
-            if ($("#_timeline_photo_dialog_form_container").is(":visible")) {
+            var formContainer = $("#photoDialog #_timeline_photo_dialog_form_container");
+            if ($("#photoDialog #_timeline_photo_dialog_form_container").is(":visible")) {
                 // fade out the form and show the hi-res version of the image
                 formContainer.fadeOut(100, function() {
                     var imageAspectRatio = theImage.width() / theImage.height();
@@ -418,7 +418,7 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
                     }
                     theImage.removeClass("_timeline_photo_dialog_image_orientation_1");
                     theImage.addClass(highResOrientationCssClass);
-                    $("._timeline_photo_dialog_photo_table").width(Math.max(imageHeight,imageWidth)).height(imageHeight);
+                    $("#photoDialog ._timeline_photo_dialog_photo_table").width(Math.max(imageHeight,imageWidth)).height(imageHeight);
                     centerPhotoDialog();
                 });
             } else {
@@ -443,7 +443,7 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
                     }
                     theImage.css("max-width", "300").css("max-height", "300");
 
-                    $("._timeline_photo_dialog_photo_table").width(300).height(300);
+                    $("#photoDialog ._timeline_photo_dialog_photo_table").width(300).height(300);
                     centerPhotoDialog(grapher);
                     theImage.removeClass(highResOrientationCssClass);
                     theImage.addClass("_timeline_photo_dialog_image_orientation_1");
@@ -455,7 +455,7 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
 
             var isDirty = function() {
                 // first check the comment, since it's easy and cheap
-                if ($("#_timeline_photo_dialog_comment").val() != comment) {
+                if ($("#photoDialog #_timeline_photo_dialog_comment").val() != comment) {
                     return true;
                 }
 
@@ -480,20 +480,20 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
             var setEnabledStateOfRevertAndSaveButtons = function() {
                 if (isDirty()) {
                     //$("#_timeline_photo_dialog_save_button").removeAttr("disabled");
-                    $("#_timeline_photo_dialog_revert_button").removeAttr("disabled");
+                    $("#photoDialog #_timeline_photo_dialog_revert_button").removeAttr("disabled");
                 } else {
                     //$("#_timeline_photo_dialog_save_button").attr("disabled", "disabled");
-                    $("#_timeline_photo_dialog_revert_button").attr("disabled", "disabled");
+                    $("#photoDialog #_timeline_photo_dialog_revert_button").attr("disabled", "disabled");
                 }
             };
 
             // build the form for the metadata editor
             var photoMetadataForm = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_form_template").render({});
-            $("#_timeline_photo_dialog_form").html(photoMetadataForm);
+            $("#photoDialog #_timeline_photo_dialog_form").html(photoMetadataForm);
 
             // fill in the timestamp
             if (typeof photoMetadata['timestampString'] === 'undefined') {
-                $("#_timeline_photo_dialog_timestamp").html("&nbsp;");
+                $("#photoDialog #_timeline_photo_dialog_timestamp").html("&nbsp;");
             } else {
                 var photoTimestamp = new Date(photoMetadata['timestampString']);
                 var photoTimestampStr = null;
@@ -513,37 +513,37 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
                 else {
                     photoTimestampStr = photoTimestamp.toString();
                 }
-                $("#_timeline_photo_dialog_timestamp").text(photoTimestampStr);
+                $("#photoDialog #_timeline_photo_dialog_timestamp").text(photoTimestampStr);
             }
 
             // fill in the comment, if any
             if (typeof comment === 'undefined' || comment == null) {
-                $("#_timeline_photo_dialog_comment").val('');
+                $("#photoDialog #_timeline_photo_dialog_comment").val('');
             } else {
-                $("#_timeline_photo_dialog_comment").val(comment);
+                $("#photoDialog #_timeline_photo_dialog_comment").val(comment);
             }
 
             // Set up focus and blur event handlers for the comment field, to toggle
             // close on ESC for the photo dialog.  We don't want the ESC key to close
             // the dialog when the user is editing the comment.
-            $("#_timeline_photo_dialog_comment").focus(function() {
+            $("#photoDialog #_timeline_photo_dialog_comment").focus(function() {
                 $("#photoDialog")['dialog']("option", "closeOnEscape", false);
             });
-            $("#_timeline_photo_dialog_comment").blur(function() {
+            $("#photoDialog #_timeline_photo_dialog_comment").blur(function() {
                 $("#photoDialog")['dialog']("option", "closeOnEscape", true);
             });
-            $("#_timeline_photo_dialog_comment").keyup(setEnabledStateOfRevertAndSaveButtons);
+            $("#photoDialog #_timeline_photo_dialog_comment").keyup(setEnabledStateOfRevertAndSaveButtons);
 
             // add the tags, if any
             if ($.isArray(tags) && tags.length > 0) {
                 $.each(tags,
                     function(index, value) {
                         var tagHtml =App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_tags_editor_tag_template").render({"value" : value});
-                        $("#_timeline_photo_dialog_tags_editor").append(tagHtml);
+                        $("#photoDialog #_timeline_photo_dialog_tags_editor").append(tagHtml);
                     });
             } else {
                 var tagHtml = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_tags_editor_tag_template").render({"value" : ""});
-                $("#_timeline_photo_dialog_tags_editor").append(tagHtml);
+                $("#photoDialog #_timeline_photo_dialog_tags_editor").append(tagHtml);
             }
 
             // construct the tag editor
@@ -571,51 +571,51 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
                     breakEditLinkTitle : 'Undo changes'
                 }
             };
-            $('#_timeline_photo_dialog_tags_editor input.tag').tagedit(tagEditorOptions);
-            $('#_timeline_photo_dialog_tags_editor').bind('tagsChanged', setEnabledStateOfRevertAndSaveButtons);
-            $('#_timeline_photo_dialog_tags_editor').bind('receivedFocus', function() {
+            $('#photoDialog #_timeline_photo_dialog_tags_editor input.tag').tagedit(tagEditorOptions);
+            $('#photoDialog #_timeline_photo_dialog_tags_editor').bind('tagsChanged', setEnabledStateOfRevertAndSaveButtons);
+            $('#photoDialog #_timeline_photo_dialog_tags_editor').bind('receivedFocus', function() {
                 $("#photoDialog")['dialog']("option", "closeOnEscape", false);
             });
-            $('#_timeline_photo_dialog_tags_editor').bind('tabToNextElement', function(event) {
+            $('#photoDialog #_timeline_photo_dialog_tags_editor').bind('tabToNextElement', function(event) {
                 $("#photoDialog")['dialog']("option", "closeOnEscape", true);
 
-                $("#_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_forward").focus();
+                $("#photoDialog #_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_forward").focus();
                 return false;
             });
-            $('#_timeline_photo_dialog_tags_editor').bind('tabToPreviousElement', function(event) {
+            $('#photoDialog #_timeline_photo_dialog_tags_editor').bind('tabToPreviousElement', function(event) {
                 $("#photoDialog")['dialog']("option", "closeOnEscape", true);
 
-                $("#_timeline_photo_dialog_comment").select().focus();
+                $("#photoDialog #_timeline_photo_dialog_comment").select().focus();
                 return false;
             });
 
             // set form buttons to initially disabled
             //$("#_timeline_photo_dialog_save_button").attr("disabled", "disabled");
-            $("#_timeline_photo_dialog_revert_button").attr("disabled", "disabled");
+            $("#photoDialog #_timeline_photo_dialog_revert_button").attr("disabled", "disabled");
 
             // configure the Revert button
-            $("#_timeline_photo_dialog_revert_button").click(function() {
-                $("#_timeline_photo_dialog_form").hide();
-                $("#_timeline_photo_dialog_form_status").text("Loading...").show();
+            $("#photoDialog #_timeline_photo_dialog_revert_button").click(function() {
+                $("#photoDialog #_timeline_photo_dialog_form").hide();
+                $("#photoDialog #_timeline_photo_dialog_form_status").text("Loading...").show();
 
                 // recreate the comment and tag form
                 createCommentAndTagForm(comment, tags);
-                $("#_timeline_photo_dialog_form_status").hide();
-                $("#_timeline_photo_dialog_form").show();
+                $("#photoDialog #_timeline_photo_dialog_form_status").hide();
+                $("#photoDialog #_timeline_photo_dialog_form").show();
 
                 // focus on the comment
-                $("#_timeline_photo_dialog_comment").select().focus();
+                $("#photoDialog #_timeline_photo_dialog_comment").select().focus();
             });
 
             // configure the Save button
-            $("#_timeline_photo_dialog_save_button").click(function() {
+            $("#photoDialog #_timeline_photo_dialog_save_button").click(function() {
 
                 // set form buttons to disabled while saving
                 //$("#_timeline_photo_dialog_save_button").attr("disabled", "disabled");
-                $("#_timeline_photo_dialog_revert_button").attr("disabled", "disabled");
+                $("#photoDialog #_timeline_photo_dialog_revert_button").attr("disabled", "disabled");
 
-                $("#_timeline_photo_dialog_form").hide();
-                $("#_timeline_photo_dialog_form_status").text("Saving...").show();
+                $("#photoDialog #_timeline_photo_dialog_form").hide();
+                $("#photoDialog #_timeline_photo_dialog_form_status").text("Saving...").show();
 
                 var compoundPhotoIdComponents = compoundPhotoId.split(".");
 
@@ -625,7 +625,7 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
                     url      : "/api/bodytrack/metadata/" + App.getUID() + "/" + compoundPhotoIdComponents[0] + "." + compoundPhotoIdComponents[1] + "/" + compoundPhotoIdComponents[2] + "/set",
                     data     : {
                         "tags"    : getUserSelectedTags().join(','),
-                        "comment" : $("#_timeline_photo_dialog_comment").val()
+                        "comment" : $("#photoDialog #_timeline_photo_dialog_comment").val()
                     },
                     dataType : "json",
                     success  : function(savedData, textStatus, jqXHR) {
@@ -638,7 +638,7 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
                             });
                             TAG_MANAGER.refreshTagCache(function() {
 
-                                $("#_timeline_photo_dialog_form_status")
+                                $("#photoDialog #_timeline_photo_dialog_form_status")
                                     .text("Saved.")
                                     .delay(250)
                                     .fadeOut(500, function() {
@@ -648,9 +648,9 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
 
                                         // now determine what action to take upon save
                                         if (goToNeighborOnSaveEnabled && isPreviousPhoto && goToNeighborOnSaveDirection < 0) {
-                                            $("#_timeline_photo_dialog_previous_button").click();
+                                            $("#photoDialog #_timeline_photo_dialog_previous_button").click();
                                         } else if (goToNeighborOnSaveEnabled && isNextPhoto && goToNeighborOnSaveDirection > 0) {
-                                            $("#_timeline_photo_dialog_next_button").click();
+                                            $("#photoDialog #_timeline_photo_dialog_next_button").click();
                                         } else {
                                             // recreate the comment and tag form
                                             createCommentAndTagForm(savedData['payload']['comment'], savedData['payload']['tags']);
@@ -664,12 +664,12 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
                             });
                         } else {
                             console.log("Unexpected response when saving comment and tags for photo [" + compoundPhotoId + "]:  savedData=[" + savedData + "] textStatus=[" + textStatus + "]");
-                            $("#_timeline_photo_dialog_form_status").text("Saved failed.").show();
+                            $("#photoDialog #_timeline_photo_dialog_form_status").text("Saved failed.").show();
                         }
                     },
                     error    : function(jqXHR, textStatus, errorThrown) {
                         console.log("Failed to save comment and tags for photo [" + compoundPhotoId + "]:  textStatus=[" + textStatus + "] errorThrown=[" + errorThrown + "]");
-                        $("#_timeline_photo_dialog_form_status").text("Saved failed.").show();
+                        $("#photoDialog #_timeline_photo_dialog_form_status").text("Saved failed.").show();
                     }
                 });
             });
@@ -677,86 +677,86 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
             updateGoToNeighborOnSaveWidgets();
 
             // set up tabbing and focus handling
-            $("#_timeline_photo_dialog_form #tagedit-input").attr("tabindex", 102);
-            $("#_timeline_photo_dialog_tabhelper_pre_proxy_backward").focus(function() {
-                if ($("#_timeline_photo_dialog_save_should_goto_neighbor_choice").is(":enabled")) {
-                    $("#_timeline_photo_dialog_save_should_goto_neighbor_choice").focus();
+            $("#photoDialog #_timeline_photo_dialog_form #tagedit-input").attr("tabindex", 102);
+            $("#photoDialog #_timeline_photo_dialog_tabhelper_pre_proxy_backward").focus(function() {
+                if ($("#photoDialog #_timeline_photo_dialog_save_should_goto_neighbor_choice").is(":enabled")) {
+                    $("#photoDialog #_timeline_photo_dialog_save_should_goto_neighbor_choice").focus();
                 } else {
-                    $("#_timeline_photo_dialog_save_should_goto_neighbor").focus();
+                    $("#photoDialog #_timeline_photo_dialog_save_should_goto_neighbor").focus();
                 }
                 return false;
             });
-            $("#_timeline_photo_dialog_previous_button").focus(function() {
+            $("#photoDialog #_timeline_photo_dialog_previous_button").focus(function() {
                 $(this).css("background-position", "0 -38px");
             }).blur(function() {
                     $(this).css("background-position", "0 0");
                 });
-            $("#_timeline_photo_dialog_next_button").focus(function() {
+            $("#photoDialog #_timeline_photo_dialog_next_button").focus(function() {
                 $(this).css("background-position", "0 -38px");
             }).blur(function() {
                     $(this).css("background-position", "0 0");
                 });
-            $("#_timeline_photo_dialog_comment_tabhelper_pre_proxy_forward").focus(function() {
+            $("#photoDialog #_timeline_photo_dialog_comment_tabhelper_pre_proxy_forward").focus(function() {
                 $("#_timeline_photo_dialog_comment").focus().select();
                 return false;
             });
-            $("#_timeline_photo_dialog_comment_tabhelper_pre_proxy_backward").focus(function() {
+            $("#photoDialog #_timeline_photo_dialog_comment_tabhelper_pre_proxy_backward").focus(function() {
                 if (isNextPhoto) {
-                    $("#_timeline_photo_dialog_next_button").focus();
+                    $("#photoDialog #_timeline_photo_dialog_next_button").focus();
                 } else if (isPreviousPhoto) {
-                    $("#_timeline_photo_dialog_previous_button").focus();
+                    $("#photoDialog #_timeline_photo_dialog_previous_button").focus();
                 } else {
-                    $("#_timeline_photo_dialog_tabhelper_pre_proxy_backward").focus();
+                    $("#photoDialog #_timeline_photo_dialog_tabhelper_pre_proxy_backward").focus();
                 }
                 return false;
             });
-            $("#_timeline_photo_dialog_comment").focus(function() {
+            $("#photoDialog #_timeline_photo_dialog_comment").focus(function() {
                 return false;
             });
-            $("#_timeline_photo_dialog_tags_editor_tabhelper_pre_proxy_forward").focus(function() {
-                $("#_timeline_photo_dialog_tags_editor ul").click();
+            $("#photoDialog #_timeline_photo_dialog_tags_editor_tabhelper_pre_proxy_forward").focus(function() {
+                $("#photoDialog #_timeline_photo_dialog_tags_editor ul").click();
             });
-            $("#_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_forward").focus(function() {
-                if ($("#_timeline_photo_dialog_save_button").is(":disabled")) {
-                    $("#_timeline_photo_dialog_save_should_goto_neighbor").focus();
+            $("#photoDialog #_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_forward").focus(function() {
+                if ($("#photoDialog #_timeline_photo_dialog_save_button").is(":disabled")) {
+                    $("#photoDialog #_timeline_photo_dialog_save_should_goto_neighbor").focus();
                 } else {
-                    $("#_timeline_photo_dialog_save_button").focus();
+                    $("#photoDialog #_timeline_photo_dialog_save_button").focus();
                 }
                 return false;
             });
-            $("#_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_backward").focus(function() {
+            $("#photoDialog #_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_backward").focus(function() {
                 $("#_timeline_photo_dialog_tags_editor ul").click();
             });
-            $("#_timeline_photo_dialog_revert_button").focus(function() {
+            $("#photoDialog #_timeline_photo_dialog_revert_button").focus(function() {
                 $(this).css("color", "#18B054");
             }).blur(function() {
                     $(this).css("color", "#000000");
                 });
-            $("#_timeline_photo_dialog_save_button").focus(function(event) {
+            $("#photoDialog #_timeline_photo_dialog_save_button").focus(function(event) {
                 $(this).css("color", "#18B054");
             }).blur(function(event) {
                     $(this).css("color", "#000000");
                 });
-            $("#_timeline_photo_dialog_post_proxy_forward").focus(function() {
+            $("#photoDialog #_timeline_photo_dialog_post_proxy_forward").focus(function() {
                 if (isPreviousPhoto) {
-                    $("#_timeline_photo_dialog_previous_button").focus();
+                    $("#photoDialog #_timeline_photo_dialog_previous_button").focus();
                 } else if (isNextPhoto) {
-                    $("#_timeline_photo_dialog_next_button").focus();
+                    $("#photoDialog #_timeline_photo_dialog_next_button").focus();
                 } else {
-                    $("#_timeline_photo_dialog_comment").focus().select();
+                    $("#photoDialog #_timeline_photo_dialog_comment").focus().select();
                 }
                 return false;
             });
 
             // set focus on the comment input, and select all the text
-            $("#_timeline_photo_dialog_comment").select().focus();
+            $("#photoDialog #_timeline_photo_dialog_comment").select().focus();
 
         };
 
         // create the comment and tag form, hide the status area, and show the form
         createCommentAndTagForm(photoMetadata['comment'], photoMetadata['tags']);
-        $("#_timeline_photo_dialog_form_status").hide();
-        $("#_timeline_photo_dialog_form").show();
+        $("#photoDialog #_timeline_photo_dialog_form_status").hide();
+        $("#photoDialog #_timeline_photo_dialog_form").show();
 
         // Finally, call the completion callback, if any
         if (typeof completionCallback === 'function') {
