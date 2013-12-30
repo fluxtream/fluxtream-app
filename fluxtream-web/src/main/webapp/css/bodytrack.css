@@ -760,7 +760,7 @@ canvas {
 /*
 The following isn't that graceful but it forces the navigation buttons to not act all wonky with some resolutions
 */
-.flx-channel-navigation .btn{
+._timeline_dateAxisAndChannelsArea .flx-channel-navigation .btn{
     padding-left: 0;
     padding-right:0;
     padding-top:5px;
@@ -770,23 +770,23 @@ The following isn't that graceful but it forces the navigation buttons to not ac
     -webkit-box-sizing: border-box;
 }
 
-._timeline_zoom{
+._timeline_dateAxisAndChannelsArea ._timeline_zoom{
     position: absolute;
     left: 0;
     width: 80px;
 
 }
 
-._timeline_zoom .btn{
+._timeline_dateAxisAndChannelsArea ._timeline_zoom .btn{
     width: 50%;
 }
 
-._timeline_goto{
+._timeline_dateAxisAndChannelsArea ._timeline_goto{
     position: absolute;
     right: 5px;
     width: 140px;
 }
 
-._timeline_goto .btn{
+._timeline_dateAxisAndChannelsArea ._timeline_goto .btn{
     width: 25%;
 }
