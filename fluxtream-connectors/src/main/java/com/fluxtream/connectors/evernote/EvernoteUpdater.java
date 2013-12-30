@@ -284,7 +284,6 @@ public class EvernoteUpdater extends AbstractUpdater {
                     facet.USN<note.getUpdateSequenceNum()){
                 }
                 Note freshlyRetrievedNote = noteStore.getNote(note.getGuid(), true, true, true, true);
-                writeToDisk(freshlyRetrievedNote);
                 facet.timeUpdated = System.currentTimeMillis();
                 if (freshlyRetrievedNote.isSetUpdateSequenceNum())
                     facet.USN = freshlyRetrievedNote.getUpdateSequenceNum();
@@ -300,7 +299,6 @@ public class EvernoteUpdater extends AbstractUpdater {
                         mapHashtoURL.put(resource.getGuid(), webResourcePath);
                     }
                 }
-                writeResourcesToDisk(freshlyRetrievedNote, mapHashtoURL);
                 if (freshlyRetrievedNote.isSetContent()) {
                     facet.content = freshlyRetrievedNote.getContent();
                     final long then = System.currentTimeMillis();
@@ -382,20 +380,6 @@ public class EvernoteUpdater extends AbstractUpdater {
         };
         // we could use the resulting value (facet) from this call if we needed to do further processing on it (e.g. passing it on to the datastore)
         apiDataService.createOrReadModifyWrite(EvernoteNoteFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
-    }
-
-    private void writeResourcesToDisk(final Note freshlyRetrievedNote, final Map<String, String> mapHashtoURL) throws IOException {
-        FileOutputStream fileoutput = new FileOutputStream("/Users/candide/Desktop/" + freshlyRetrievedNote.getGuid() + ".resources");
-        ObjectOutputStream oos = new ObjectOutputStream(fileoutput);
-        oos.writeObject(mapHashtoURL);
-        fileoutput.close();
-    }
-
-    private void writeToDisk(final Note freshlyRetrievedNote) throws IOException {
-        FileOutputStream fileoutput = new FileOutputStream("/Users/candide/Desktop/" + freshlyRetrievedNote.getGuid() + ".enml");
-        ObjectOutputStream oos = new ObjectOutputStream(fileoutput);
-        oos.writeObject(freshlyRetrievedNote);
-        fileoutput.close();
     }
 
     private void createOrUpdateResource(final UpdateInfo updateInfo, final Resource resource) throws Exception {
