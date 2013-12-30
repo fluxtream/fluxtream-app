@@ -266,6 +266,18 @@ define(["core/grapher/BTCore", "core/grapher/Grapher"],function(BTCore, Grapher)
         handleKeyEvent(event);
     });
 
+    function getUserSelectedTags() {
+        var tags = [];
+        $.each($("#_timeline_photo_dialog_tags_editor .tagedit-listelement-old input"),
+            function(index, inputElement) {
+                var val = inputElement['value'];
+                if (typeof val === 'string' && val != '') {
+                    tags[tags.length] = val;
+                }
+            });
+        return tags;
+    };
+
     function showPhotoDialog(deviceName, channelName, id, timestamp) {
         console.log(deviceName + "/" + channelName + "/" + id + "/" + timestamp);
         photoCache = Grapher.createPhotoDialogCache(deviceName, channelName, [], "any");
