@@ -21,6 +21,7 @@
             </ul>
         </div>
       <a href="#" class="btn disabled" id="{{grapherId}}_timeline_add_channels_btn">Add Channels</a>
+        <a href="javascript:void(0)" class="btn disabled" id="{{grapherId}}_timeline_export_to_csv">Export Data to CSV</a>
     </span>
             <div id="{{grapherId}}_timeline_view_dialog"></div>
 
@@ -33,12 +34,12 @@
                                 <td>
                                     <div id="{{grapherId}}_timeline_gotozoom" class="_timeline_gotozoom" style="width: 230px; padding-left: 5px;">
                                         <div class="flx-channel-navigation">
-                                            <div class="btn-toolbar" style="overflow: hidden; white-space: nowrap;">
-                                                <div class="btn-group">
+                                            <div class="btn-toolbar" style="position:relative">
+                                                <div class="btn-group _timeline_zoom">
                                                     <a id="{{grapherId}}_timeline_new_zoomIn_button" href="#" class="btn"> <i class="icon-zoom-in"></i> </a>
                                                     <a id="{{grapherId}}_timeline_new_zoomOut_button" href="#" class="btn"> <i class="icon-zoom-out"></i> </a>
                                                 </div>
-                                                <div class="btn-group">
+                                                <div class="btn-group _timeline_goto">
                                                     <a id="{{grapherId}}_timeline_new_gotoBeginning_button" href="#" class="btn"> <i class="icon-fast-backward"></i> </a>
                                                     <a id="{{grapherId}}_timeline_new_gotoBack_button" href="#" class="btn"> <i class="icon-step-backward"></i> </a>
                                                     <a id="{{grapherId}}_timeline_new_gotoForward_button" href="#" class="btn"> <i class="icon-step-forward"></i> </a>
@@ -509,3 +510,17 @@
 </template>
 
 <template id="_timeline_channel_tab_filter_template"><span class="_timeline_channelFilter_label">{{matchingString}}</span> {{value}}</template>
+<template id="timelineExportModal">
+    <div id="timelineExportModal" class="modal hide fade">
+        <div class="modal-header">
+            <a class="close" data-dismiss="modal">&times;</a>
+            <h3>Your Data is Exporting</h3>
+        </div>
+        <div class="modal-body">
+            Your data is exporting and will be available shortly...
+        </div>
+        <div class="modal-footer">
+            <button class="btn" onclick="$('#timelineExportModal').modal('hide');">Cancel</button>
+        </div>
+    </div>
+</template>

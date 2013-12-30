@@ -16,6 +16,7 @@ import com.fluxtream.Configuration;
 import com.fluxtream.api.gson.UpdateInfoSerializer;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.auth.CoachRevokedException;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.bodytrackResponders.AbstractBodytrackResponder;
@@ -25,10 +26,12 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiKeyAttribute;
 import com.fluxtream.domain.ApiUpdate;
+import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.ApiDataService;
+import com.fluxtream.services.CoachingService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SettingsService;
@@ -424,6 +427,17 @@ public class ConnectorStore {
         Guest guest = AuthHelper.getGuest();
         if(guest==null)
             return "[]";
+
+        CoachingBuddy coachee;
+        try {
+            coachee = AuthHelper.getCoachee();
+        } catch (CoachRevokedException e) {
+            return gson.toJson(new StatusModel(false, "Sorry, permission to access this data has been revoked. Please reload your browser window"));
+        }
+        if (coachee!=null) {
+            guest = guestService.getGuestById(coachee.guestId);
+        }
+
         String [] objectTypeNameParts = objectTypeName.split("-");
         ApiKey apiKey = guestService.getApiKeys(guest.getId(),Connector.getConnector(objectTypeNameParts[0])).get(0);
         Connector connector = apiKey.getConnector();

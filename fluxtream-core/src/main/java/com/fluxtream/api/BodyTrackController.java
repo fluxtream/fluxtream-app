@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
+import java.util.Arrays;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
@@ -113,6 +114,41 @@ public class BodyTrackController {
 
     @Autowired
     BeanFactory beanFactory;
+
+    private class CSVResponse{
+        String data;
+    }
+
+    @GET
+    @Path("/exportCSV/{UID}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String exportCSV(@QueryParam("channels") String channels,@QueryParam("start") Long start, @QueryParam("end") Long end, @PathParam("UID") Long uid){
+        try{
+            long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+
+            if (!accessAllowed && coachee==null) {
+                uid = null;
+            }
+
+            if (uid == null) {
+                return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
+            }
+
+            String[] channelArray = gson.fromJson(channels,String[].class);
+
+            CSVResponse response = new CSVResponse();
+
+            response.data = bodyTrackHelper.exportToCSV(uid,Arrays.asList(channelArray),start,end);
+
+            return gson.toJson(response);
+
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failure!"));
+        }
+    }
 
 
     @POST
