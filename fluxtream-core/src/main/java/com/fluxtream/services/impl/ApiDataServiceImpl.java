@@ -1,5 +1,7 @@
 package com.fluxtream.services.impl;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,7 @@ import com.fluxtream.services.SettingsService;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONObject;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.BeanFactory;
@@ -280,7 +283,24 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 					+ userProfileClass.getName());
 			deleteProfileQuery.executeUpdate();
 		}
-	}
+        // remove directory <connectorData.location>/<connectorName>/<apiKeyId>
+        final String connectorDataLocation = env.get("connectorData.location");
+        // let's not assume that everyone has set this value
+        if (connectorDataLocation!=null) {
+            if (apiKey.getConnector()!=null&&apiKey.getConnector().getName()!=null) {
+                final String connectorName = apiKey.getConnector().getName();
+                File dataDir = new File(connectorDataLocation+File.separator+connectorName+File.separator+apiKey.getId());
+                if (dataDir.exists()) {
+                    try {
+                        FileUtils.deleteDirectory(dataDir);
+                    }
+                    catch (IOException e) {
+                        logger.warn("Couldn't delete connector data directory at [" + dataDir.getAbsolutePath() + "]");
+                    }
+                }
+            }
+        }
+    }
 
     @Override
     public List<AbstractFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType,
