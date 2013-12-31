@@ -177,11 +177,14 @@ public class EvernoteController {
         IOUtils.copy(new FileInputStream(resourceFile), response.getOutputStream());
     }
 
-    @RequestMapping(value="/content/{guid}")
-    public ModelAndView getContent(@PathVariable("guid") String guid,
+    @RequestMapping(value="/content/{apiKeyId}/{guid}")
+    public ModelAndView getContent(@PathVariable("apiKeyId") String apiKeyId,
+                                   @PathVariable("guid") String guid,
                             HttpServletResponse response) throws IOException {
         ModelAndView mav = new ModelAndView("connectors/evernote/content");
-        final Query nativeQuery = em.createNativeQuery(String.format("SELECT htmlContent FROM Facet_EvernoteNote WHERE guid='%s'", guid));
+        final Query nativeQuery = em.createNativeQuery(String.format("SELECT htmlContent FROM Facet_EvernoteNote WHERE apiKeyId=%s AND guid='%s'",
+                                                                     apiKeyId,
+                                                                     guid));
         String content = (String)nativeQuery.getSingleResult();
         content = adjustImageSizeAttributes(content);
         response.setContentType("text/html; charset=utf-8");
@@ -190,6 +193,12 @@ public class EvernoteController {
         return mav;
     }
 
+    /**
+     * Parse the html string, detect img tags' width/height attribute and adapt them
+     * to our max allowed width
+     * @param html a note's html content
+     * @return
+     */
     private String adjustImageSizeAttributes(String html) {
         Document doc = Jsoup.parse(html);
         Elements e = doc.getElementsByTag("img");
