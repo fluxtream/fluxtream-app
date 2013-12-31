@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.ServletContext;
 import com.evernote.auth.EvernoteAuth;
 import com.evernote.auth.EvernoteService;
 import com.evernote.clients.ClientFactory;
@@ -74,10 +73,8 @@ public class EvernoteUpdater extends AbstractUpdater {
     @Autowired
     MetadataService metadataService;
 
-    @Autowired
-    private ServletContext servletContext;
-
     ENMLProcessor processor = new ENMLProcessor();
+
     static {
         System.setProperty("javax.xml.stream.XMLInputFactory", "com.ctc.wstx.stax.WstxInputFactory");
         System.setProperty("javax.xml.stream.XMLOutputFactory", "com.ctc.wstx.stax.WstxOutputFactory");
