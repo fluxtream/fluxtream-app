@@ -1,7 +1,5 @@
 package com.fluxtream.connectors.evernote;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -130,19 +128,27 @@ public class EvernoteController {
         return env.get("evernoteConsumerSecret");
     }
 
-    @RequestMapping(value="/res/{guid}")
-    public void getResource(@PathVariable("guid") String guid,
+    @RequestMapping(value="/res/{apiKeyId}/{guid}")
+    public void getResource(@PathVariable("apiKeyId") long apiKeyId,
+                            @PathVariable("guid") String guid,
                             HttpServletResponse response) throws IOException {
-        final Query nativeQuery = em.createNativeQuery(String.format("SELECT apiKeyId, mime, width FROM Facet_EvernoteResource WHERE guid='%s'", guid));
+        // we want to reduce the size of images that are too big to be transported over http in a timely manner,
+        // so here we ask the db for the mime type of the requested resource and its width so that,
+        // if we are dealing with an image, we know if we need to make it smaller
+        final Query nativeQuery = em.createNativeQuery(String.format("SELECT mime, width FROM Facet_EvernoteResource WHERE apiKeyId=%s AND guid='%s'",
+                                                                     apiKeyId, guid));
         final Object[] singleResult = (Object[])nativeQuery.getSingleResult();
         if (singleResult==null){
             logger.warn("no Facet_EvernoteResource row found for guid=" + guid);
             response.sendError(404);
             return;
         }
-        final String mimeType = (String)singleResult[1];
+
+        // use the resource's mimetype to set the Content-Type of the response
+        final String mimeType = (String)singleResult[0];
         response.setContentType(mimeType);
-        long apiKeyId = ((Number)singleResult[0]).longValue();
+
+        // retrieve the main data file associated with this resource
         final String connectorDataLocation = env.get("connectorData.location");
         if (connectorDataLocation==null)
             throw new RuntimeException("No connectorData.location property was specified (local.properties)");
@@ -152,19 +158,23 @@ public class EvernoteController {
             response.sendError(404);
             return;
         }
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        IOUtils.copy(new FileInputStream(resourceFile), baos);
-        byte[] resourceData = baos.toByteArray();
+
+        // if it's an image, maybe reduce its size
         if (mimeType.indexOf("image")!=-1) {
-            short width = (Short) singleResult[2];
+            short width = (Short) singleResult[1];
+            // if the width of the image is larger than our max, then use Thumbnailator
+            // to make it smaller and directly stream the result
+            // TODO: cache the resulting image
             if (width>MAX_WIDTH) {
-                Thumbnailator.createThumbnail(new ByteArrayInputStream(resourceData),
+                Thumbnailator.createThumbnail(new FileInputStream(resourceFile),
                                               response.getOutputStream(), MAX_WIDTH,
                                               Integer.MAX_VALUE);
                 return;
             }
         }
-        response.getOutputStream().write(resourceData, 0, resourceData.length);
+
+        // stream the file's contents directly in the response
+        IOUtils.copy(new FileInputStream(resourceFile), response.getOutputStream());
     }
 
     @RequestMapping(value="/content/{guid}")

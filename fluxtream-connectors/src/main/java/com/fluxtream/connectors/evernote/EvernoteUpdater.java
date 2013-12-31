@@ -337,7 +337,10 @@ public class EvernoteUpdater extends AbstractUpdater {
                 if (freshlyRetrievedNote.isSetResources()) {
                     for (Resource resource : freshlyRetrievedNote.getResources()) {
                         createOrUpdateResource(updateInfo, resource);
-                        String webResourcePath = new StringBuilder("/evernote/res/").append(resource.getGuid()).toString();
+                        String webResourcePath = new StringBuilder("/evernote/res/")
+                                .append(updateInfo.apiKey.getId())
+                                .append("/")
+                                .append(resource.getGuid()).toString();
                         mapHashtoURL.put(resource.getGuid(), webResourcePath);
                     }
                 }
