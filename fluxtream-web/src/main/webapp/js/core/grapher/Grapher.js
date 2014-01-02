@@ -587,7 +587,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         for (var element in this.channelsMap){
             var channel = this.channelsMap[element];
             if (channel.type == null){//this signifies a data channel (aka we can export it!)
-                exportChannelMap[channel.device_name + "." + channel.channel_name] = true;
+                exportChannelMap[channel.device_name + "." + channel.channel_name] = element;
             }
         }
         var channelsArray = [];
@@ -598,9 +598,34 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         var start = Math.floor(this.dateAxis.getMin());
         var end = Math.ceil(this.dateAxis.getMax());
 
+        var grapher = this;
+
         App.loadMustacheTemplate("core/grapher/timelineTemplates.html","timelineExportModal",function(template){
-            var modal = App.makeModal(template.render());
-            var request = $.ajax("/api/bodytrack/exportCSV/" + App.getUID(),{
+            var modalContents = {
+                channels:[],
+                downloadLink: "/api/bodytrack/exportCSV/" + App.getUID() + "/data.csv?channels=" + encodeURIComponent(JSON.stringify(channelsArray)) + "&start=" + start + "&end=" + end
+            };
+            for (var i = 0, li = channelsArray.length; i < li; i++){
+                modalContents.channels.push({
+                    name: channelsArray[i].replace(".","-"),
+                    className: "channel" + i,
+                    count: "..."
+                });
+            }
+            var modal = App.makeModal(template.render(modalContents));
+            var li = channelsArray.length;
+            function calculateNext(i){
+                if (i == li)
+                    return;
+                grapher.plotsMap[exportChannelMap[channelsArray[i]]].getStatistics(start,end,null,function(stats){
+                    modal.find(".channelCount.channel" + i).text(stats.count);
+                    calculateNext(i+1);
+                });
+            }
+            calculateNext(0);
+
+
+            /*var request = $.ajax("/api/bodytrack/exportCSV/" + App.getUID(),{
                 type: "GET",
                 data: {
                     channels: JSON.stringify(channelsArray),
@@ -622,7 +647,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
 
             modal.on("hidden",function(){
                 request.abort();
-            })
+            }) */
         });
 
     }

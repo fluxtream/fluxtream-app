@@ -514,10 +514,25 @@
     <div id="timelineExportModal" class="modal hide fade">
         <div class="modal-header">
             <a class="close" data-dismiss="modal">&times;</a>
-            <h3>Your Data is Exporting</h3>
+            <h3>Export Your Data to CSV</h3>
         </div>
         <div class="modal-body">
-            Your data is exporting and will be available shortly...
+            The following data will be exported:
+            <table class="table">
+                <thead>
+                    <th>Channel</th>
+                    <th>Datapoint Estimate</th>
+                </thead>
+                <tbody>
+                    {{#channels}}
+                    <tr>
+                        <td class="channelName {{className}}">{{name}}</td>
+                        <td class="channelCount {{className}}">{{count}}</td>
+                    </tr>
+                    {{/channels}}
+                </tbody>
+            </table>
+            <a class="btn" href="{{downloadLink}}" download="data.csv">Download Data</a>
         </div>
         <div class="modal-footer">
             <button class="btn" onclick="$('#timelineExportModal').modal('hide');">Cancel</button>
