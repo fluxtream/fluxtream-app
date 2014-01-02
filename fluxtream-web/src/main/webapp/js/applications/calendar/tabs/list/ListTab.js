@@ -173,8 +173,6 @@ define(["core/Tab", "applications/calendar/tabs/list/ListUtils"], function(Tab, 
 
         list.empty().append(ListUtils.buildList(facetsToShow,dgst.getConsensusCitiesList()));
 
-
-
     }
 
     function paginationClickCallback(event){

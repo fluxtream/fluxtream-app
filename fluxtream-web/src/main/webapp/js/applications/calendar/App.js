@@ -1,6 +1,7 @@
 define(["core/Application", "core/FlxState", "applications/calendar/Builder", "libs/bootstrap-datepicker",
-        "ConnectorConfig", "core/DateUtils", "core/StringUtils"],
-       function(Application, FlxState, Builder, Datepicker, ConnectorConfig, DateUtils, StringUtils) {
+        "ConnectorConfig", "core/DateUtils", "core/StringUtils", "applications/calendar/tabs/photos/PhotoUtils"],
+       function(Application, FlxState, Builder, Datepicker, ConnectorConfig, DateUtils, StringUtils,
+           PhotoUtils) {
 
 	var Calendar = new Application("calendar", "Candide Kemmler", "icon-calendar", "Calendar App");
 
@@ -1370,6 +1371,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
         $(viewBtnIds[state.timeUnit]).addClass("active");
     }
+
+
+    Calendar.showPhotoDialog = function(deviceName, channelName, uid, timestamp) {
+       PhotoUtils.showPhotoDialog(deviceName, channelName, uid, timestamp);
+    };
+
 
     Calendar.fbShare = function(ogLink) {
         window.open(
