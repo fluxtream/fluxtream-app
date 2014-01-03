@@ -25,6 +25,7 @@ public class EvernotePhotoFacetVO extends AbstractPhotoFacetVO<EvernotePhotoFace
     public Map<Integer, String> thumbnailUrls = new HashMap<Integer, String>();
     public SortedMap<Integer, Dimension> thumbnailSizes = new TreeMap<Integer, Dimension>();
     public String thumbnailUrl;
+    public String photoUrl;
     public float[] position;
 
     @Override
@@ -42,6 +43,7 @@ public class EvernotePhotoFacetVO extends AbstractPhotoFacetVO<EvernotePhotoFace
         String homeBaseUrl = settings.config.get("homeBaseUrl");
         final String thumbnailUrl = String.format("%severnote/res/%s/%s@w=150", homeBaseUrl, facet.apiKeyId, facet.guid);
         this.thumbnailUrl = thumbnailUrl;
+        this.photoUrl = String.format("%severnote/res/%s/%s", homeBaseUrl, facet.apiKeyId, facet.guid);
         thumbnailUrls.put(i, thumbnailUrl);
         thumbnailSizes.put(i, new Dimension(150, 150));
         i++;

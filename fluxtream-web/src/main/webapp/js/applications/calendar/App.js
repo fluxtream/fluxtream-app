@@ -331,6 +331,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             switch (facet.type){
                 case "picasa-photo":
                 case "flickr-photo":
+                case "evernote-photo":
                 case "fluxtream_capture-photo":
                     facet.hasImage = true;
                     break;
@@ -473,6 +474,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             Calendar.processFacets(digest.cachedData[connectorId]);
             digest.cachedData[connectorId].hasImages = false;
             switch (connectorId){
+                case "evernote-photo":
                 case "picasa-photo":
                 case "flickr-photo":
                 case "fluxtream_capture-photo":
