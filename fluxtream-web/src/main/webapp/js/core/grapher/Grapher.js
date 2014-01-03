@@ -1,4 +1,4 @@
-define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core/Tooltip"], function(BTCore,ListUtils,Tooltip) {
+define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core/Tooltip","applications/calendar/tabs/photos/PhotoUtils"], function(BTCore,ListUtils,Tooltip,PhotoUtils) {
 
     var Grapher = function(parentElement, options) {
         if (options == null) options = {};
@@ -209,6 +209,8 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         $("#" + grapher.grapherId + "_timeline_new_gotoEnd_button").click(function(event) { event.preventDefault(); grapher.gotoTime("end"); });
         $("#" + grapher.grapherId + "_timeline_new_zoomOut_button").click(function(event) { event.preventDefault(); grapher.zoomTime("out"); });
         $("#" + grapher.grapherId + "_timeline_new_zoomIn_button").click(function(event) { event.preventDefault(); grapher.zoomTime("in"); });
+
+        $("#" + grapher.grapherId + "_timeline_export_to_csv").click(function(event){event.preventDefault(); grapher.exportToCSV();});
 
         // Configure the photo dialog
         $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog'](
@@ -580,6 +582,90 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         });
     }
 
+    Grapher.prototype.exportToCSV = function(){
+        var exportChannelMap = {};
+        for (var element in this.channelsMap){
+            var channel = this.channelsMap[element];
+            if (channel.type == null){//this signifies a data channel (aka we can export it!)
+                exportChannelMap[channel.device_name + "." + channel.channel_name] = element;
+            }
+        }
+        var channelsArray = [];
+        for (var element in exportChannelMap){
+            channelsArray.push(element);
+        }
+
+        var start = Math.floor(this.dateAxis.getMin());
+        var end = Math.ceil(this.dateAxis.getMax());
+
+        var grapher = this;
+
+        App.loadMustacheTemplate("core/grapher/timelineTemplates.html","timelineExportModal",function(template){
+            var modalContents = {
+                channels:[],
+                downloadLink: "/api/bodytrack/exportCSV/" + App.getUID() + "/data.csv?channels=" + encodeURIComponent(JSON.stringify(channelsArray)) + "&start=" + start + "&end=" + end
+            };
+            for (var i = 0, li = channelsArray.length; i < li; i++){
+                modalContents.channels.push({
+                    name: channelsArray[i].replace(".","-"),
+                    className: "channel" + i,
+                    count: "..."
+                });
+            }
+            var modal = App.makeModal(template.render(modalContents));
+            var li = channelsArray.length;
+            function calculateNext(i){
+                if (i == li)
+                    return;
+                grapher.plotsMap[exportChannelMap[channelsArray[i]]].getStatistics(start,end,null,function(stats){
+                    modal.find(".channelCount.channel" + i).text(stats.count);
+                    calculateNext(i+1);
+                });
+            }
+            calculateNext(0);
+
+
+            /*var request = $.ajax("/api/bodytrack/exportCSV/" + App.getUID(),{
+                type: "GET",
+                data: {
+                    channels: JSON.stringify(channelsArray),
+                    start: start,
+                    end: end
+                },
+                success:function(result){
+                    var dataUri = "data:text/csv;charset=utf-8," + encodeURIComponent(result.data);
+                    var DownloadBtn = $("<a class='btn' href='" + dataUri + "' download='data.csv'>Download</a>");
+                    $(".modal-body").text("Your data is ready!");
+                    $(".modal-body").append("<br>");
+                    $(".modal-body").append(DownloadBtn);
+                },
+                error:function(){
+                    modal.find(".modal-body").text("Something went wrong...");
+                }
+
+            });
+
+            modal.on("hidden",function(){
+                request.abort();
+            }) */
+        });
+
+    }
+
+    Grapher.prototype.updateExportToCSVState = function(){
+        var count = 0;
+        for (var element in this.channelsMap){
+            var channel = this.channelsMap[element];
+            if (channel.type == null){//this signifies a data channel (aka we can export it!)
+                count++;
+                break;
+            }
+
+        }
+        $("#" + this.grapherId + "_timeline_export_to_csv").toggleClass('disabled',count == 0);
+
+    }
+
     // Save view then load saved view
     Grapher.prototype.saveView = function(name) {
         updateViewData(this);
@@ -717,6 +803,9 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             $("#" + channelElementId).remove();
             delete this.channelsMap[channelElementId];
         }
+
+        this.updateExportToCSVState();
+
     }
 
     Grapher.prototype.hasChannel = function(channelName){
@@ -782,7 +871,6 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             if (channel == null)
                 return;
             var channel = grapher.sourcesMap[channel.id];
-            console.log(channel);
         }
 
         App.loadMustacheTemplate("core/grapher/timelineTemplates.html","channelTemplate",function(template){
@@ -940,6 +1028,8 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             grapher.plotsMap[channelElementId] = plot;
             grapher.plotContainersMap[channelElementId] = plotContainer;
             grapher.plotContainers.push(plotContainer);
+
+            grapher.updateExportToCSVState();
 
             // Gear button
             $("#" + channelElementId + "_btnGear").unbind("click").click(function(event) {
@@ -1899,267 +1989,6 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         return true;
     }
 
-    function createPhotoDialogCache(channel, channelFilterTags, matchingStrategy) {
-        var cache = {
-            photos                             : [],
-            photosByCompoundId                 : {}, // maps CONNECTOR_NAME.OBJECT_TYPE_NAME.PHOTO_ID to an index in the photos array
-            isLoadingPreceding                 : false,
-            isLoadingFollowing                 : false,
-            NUM_PHOTOS_TO_FETCH                : 20,
-            DISTANCE_FROM_END_TO_TRIGGER_FETCH : 10,
-            __loadNeighboringPhotoMetadata     : function(compoundPhotoId,
-                                                          currentPhotoTimestamp,
-                                                          tagsFilterArray,
-                                                          matchingStrategy,
-                                                          shouldLoadPreviousNeighbor, // flag which determines whether the previous or following neighbor will be loaded
-                                                          callbacks) {
-                // First extract the numeric portion of the compound photo id.  The compound photo id is
-                // of the form CONNECTOR_NAME.OBJECT_TYPE_NAME.PHOTO_ID, so we simply split on periods and
-                // take index 2.
-                var numericPortionOfPhotoId = compoundPhotoId.split(".")[2];
-                numericPortionOfPhotoId = TOOLS.parseInt(numericPortionOfPhotoId, -1);
-                if (numericPortionOfPhotoId >= 0) {
-                    if (typeof callbacks === 'undefined') {
-                        callbacks = {};
-                    }
-                    var successCallback = callbacks['success'];
-                    var errorCallback = callbacks['error'];
-                    var completeCallback = callbacks['complete'];
-
-                    shouldLoadPreviousNeighbor = !!shouldLoadPreviousNeighbor;
-
-                    var url = "/api/bodytrack/photos/" + App.getUID() + "/" + channel['device_name'] + "." + channel['channel_name'] + "/" + currentPhotoTimestamp + "/" + cache.NUM_PHOTOS_TO_FETCH;
-                    var urlParams = {
-                        "isBefore" : shouldLoadPreviousNeighbor
-                    };
-
-                    urlParams["tags"] = tagsFilterArray.join(",");
-                    urlParams["tag-match"] = matchingStrategy;
-
-                    TOOLS.loadJson(url, urlParams, {
-                        "success"  : function(photos) {
-                            if ($.isArray(photos)) {
-                                if (typeof successCallback === 'function') {
-                                    var photosMetadata = [];
-                                    $.each(photos, function(index, photo) {
-                                        photosMetadata[index] = {
-                                            "photoId"          : photo['id'],
-                                            "comment"          : photo['comment'],
-                                            "tags"             : photo['tags'],
-                                            "timestamp"        : photo['end_d'],
-                                            "timestampString"  : photo['end'],
-                                            "url"              : photo['url'],
-                                            "thumbnails"       : photo['thumbnails'],
-                                            "orientation"      : photo['orientation'],
-                                            "channel_name"     : photo['channel_name'],
-                                            "dev_nickname"     : photo['dev_nickname'],
-                                            "object_type_name" : photo['object_type_name'],
-                                            "timeType"         : photo['time_type'],
-                                            "isLocalTimeType"  : (photo['time_type'] == "local")
-                                        };
-                                    });
-
-                                    // mark the last photo as the end if we got fewer photos than we wanted
-                                    if (photos.length < cache.NUM_PHOTOS_TO_FETCH) {
-                                        console.log("PhotoDialogCache.__loadNeighboringPhotoMetadata(): Requested ["+cache.NUM_PHOTOS_TO_FETCH+"] photos, but only got ["+photos.length+"].  Marking the last photo as the end to prevent spurious fetches.");
-                                        if (photosMetadata.length >= 1) {
-                                            photosMetadata[photosMetadata.length-1]['isEndingPhoto'] = true;
-                                        }
-                                    }
-
-                                    successCallback(photosMetadata);
-                                }
-                            } else if (typeof errorCallback == 'function') {
-                                errorCallback("loadNeighboringPhotoMetadata(): Returned data is not an array");
-                            }
-                        },
-                        "error"    : errorCallback,
-                        "complete" : completeCallback
-                    });
-                }
-            }, __loadPreceding                 : function(compoundPhotoId, timestamp, successCallback) {
-                if (cache.isLoadingPreceding) {
-                    console.log("PhotoDialogCache.__loadPreceding(): doing nothing since we're already loading");
-                } else {
-                    cache.isLoadingPreceding = true;
-                    cache.__loadNeighboringPhotoMetadata(compoundPhotoId,
-                        timestamp,
-                        channelFilterTags,
-                        matchingStrategy,
-                        true,
-                        {
-                            "success" : successCallback,
-                            "complete": function() {
-                                cache.isLoadingPreceding = false;
-                            }
-                        });
-                }
-            },
-            __loadFollowing                    : function(compoundPhotoId, timestamp, successCallback) {
-                if (cache.isLoadingFollowing) {
-                    console.log("PhotoDialogCache.__loadFollowing(): doing nothing since we're already loading");
-                } else {
-                    cache.isLoadingFollowing = true;
-                    cache.__loadNeighboringPhotoMetadata(compoundPhotoId,
-                        timestamp,
-                        channelFilterTags,
-                        matchingStrategy,
-                        false,
-                        {
-                            "success" : successCallback,
-                            "complete": function() {
-                                cache.isLoadingFollowing = false;
-                            }
-                        });
-                }
-            },
-            initialize                         : function(compoundPhotoId, timestamp, callback) {
-                //console.log("PhotoDialogCache.initialize()------------------------------------------");
-
-                // To build up the initial cache, fetch the photos BEFORE this photo, then the photos AFTER it.
-                cache.__loadPreceding(compoundPhotoId,
-                    timestamp,
-                    function(precedingPhotosMetadata) {
-                        cache.__loadFollowing(compoundPhotoId,
-                            timestamp,
-                            function(followingPhotosMetadata) {
-
-                                // Iterate over the photos in the precedingPhotosMetadata and followingPhotosMetadata
-                                // arrays, and build up the cache.photos array and the cache.photosByCompoundId map.  
-                                // Note that, under some conditions, one (or more?) photos might appear in both of the 
-                                // source arrays.  To filter them out, we check the cache.photosByCompoundId map 
-                                // for existence before insertion.
-                                cache.photos = [];
-                                var insertPhoto = function(i, photo) {
-                                    if (typeof cache.photosByCompoundId[photo['photoId']] === 'undefined') {
-                                        var index = cache.photos.length;
-                                        cache.photosByCompoundId[photo['photoId']] = index;
-                                        cache.photos[index] = photo;
-                                    }
-                                };
-                                $.each(precedingPhotosMetadata, insertPhoto);
-                                $.each(followingPhotosMetadata, insertPhoto);
-
-                                // now that the cache is created, we can call the callback
-                                if (typeof callback === 'function') {
-                                    callback();
-                                }
-                            })
-                    });
-            },
-
-            __getPhotoMetadata : function(compoundPhotoId, offset) {
-                if (compoundPhotoId in cache.photosByCompoundId) {
-                    var indexOfRequestedPhoto = cache.photosByCompoundId[compoundPhotoId] + offset;
-                    if (indexOfRequestedPhoto >= 0 && indexOfRequestedPhoto < cache.photos.length) {
-                        return cache.photos[indexOfRequestedPhoto];
-                    }
-                }
-                return null;
-            },
-
-            getPreviousPhotoMetadata : function(compoundPhotoId) {
-                var photo = cache.__getPhotoMetadata(compoundPhotoId, -1);
-
-                if (photo != null) {
-                    // Check how close we are to the beginning of the array.  If it's within __DISTANCE_FROM_END_TO_TRIGGER_FETCH,
-                    // then spawn an asyncrhonous job to fetch more photos
-                    var distance = cache.photosByCompoundId[compoundPhotoId];
-                    if (distance < cache.DISTANCE_FROM_END_TO_TRIGGER_FETCH) {
-                        var endingPhoto = cache.photos[0];
-                        if ('isEndingPhoto' in endingPhoto) {
-                            console.log("PhotoDialogCache.getPreviousPhotoMetadata(): No need to fetch more photos since we've already loaded up to the end [" + endingPhoto['photoId'] + "]");
-                        } else {
-                            console.log("PhotoDialogCache.getPreviousPhotoMetadata(): Fetching more photos preceding id ["+endingPhoto['photoId']+"]");
-                            cache.__loadPreceding(endingPhoto['photoId'],
-                                endingPhoto['timestamp'],
-                                function(photosMetadata) {
-                                    console.log("PhotoDialogCache.getPreviousPhotoMetadata(): Fetched ["+photosMetadata.length+"] more previous photos.");
-
-                                    // make sure that the cache didn't change while we were doing the fetch
-                                    if (endingPhoto['photoId'] == cache.photos[0]['photoId']) {
-                                        // create a new photos array for the cache
-                                        var newPhotos = photosMetadata.slice(1).reverse().concat(cache.photos);
-                                        var newphotosByCompoundId = {};
-
-                                        // now recreate the map which maps photo ID to photo array element index
-                                        $.each(newPhotos, function(index, photo) {
-                                            newphotosByCompoundId[photo['photoId']] = index;
-                                        });
-
-                                        // update the cache's array and map
-                                        cache.photos = newPhotos;
-                                        cache.photosByCompoundId = newphotosByCompoundId;
-                                    } else {
-                                        console.log("PhotoDialogCache.getPreviousPhotoMetadata(): cache has changed, won't update");
-                                    }
-                                });
-                        }
-                    }
-                }
-
-                return photo;
-            },
-
-            getNextPhotoMetadata : function(compoundPhotoId) {
-                var photo = cache.__getPhotoMetadata(compoundPhotoId, 1);
-
-                if (photo != null) {
-                    // Check how close we are to the beginning of the array.  If it's within __DISTANCE_FROM_END_TO_TRIGGER_FETCH,
-                    // then spawn an asyncrhonous job to fetch more photos
-                    var distance = cache.photos.length - 1 - cache.photosByCompoundId[compoundPhotoId];
-                    if (distance < cache.DISTANCE_FROM_END_TO_TRIGGER_FETCH) {
-                        var endingPhoto = cache.photos[cache.photos.length - 1];
-                        if ('isEndingPhoto' in endingPhoto) {
-                            console.log("PhotoDialogCache.getNextPhotoMetadata(): No need to fetch more photos since we've already loaded up to the end [" + endingPhoto['photoId'] + "]");
-                        } else {
-                            console.log("PhotoDialogCache.getNextPhotoMetadata(): Fetching more photos following id ["+endingPhoto['photoId']+"]");
-                            cache.__loadFollowing(endingPhoto['photoId'],
-                                endingPhoto['timestamp'],
-                                function(photosMetadata) {
-                                    console.log("PhotoDialogCache.getNextPhotoMetadata(): Fetched ["+photosMetadata.length+"] more following photos.");
-
-                                    // make sure that the cache didn't change while we were doing the fetch
-                                    if (endingPhoto['photoId'] == cache.photos[cache.photos.length - 1]['photoId']) {
-                                        // create a new photos array for the cache
-                                        var newPhotos = cache.photos.concat(photosMetadata.slice(1));
-                                        var newphotosByCompoundId = {};
-
-                                        // now recreate the map which maps photo ID to photo array element index
-                                        $.each(newPhotos, function(index, photo) {
-                                            newphotosByCompoundId[photo['photoId']] = index;
-                                        });
-
-                                        // update the cache's array and map
-                                        cache.photos = newPhotos;
-                                        cache.photosByCompoundId = newphotosByCompoundId;
-                                    } else {
-                                        console.log("PhotoDialogCache.getNextPhotoMetadata(): cache has changed, won't update");
-                                    }
-                                });
-                        }
-                    }
-                }
-
-                return photo;
-            },
-
-            getPhotoMetadata : function(compoundPhotoId) {
-                return cache.__getPhotoMetadata(compoundPhotoId, 0);
-            },
-
-            update : function(compoundPhotoId, newData) {
-                console.log("In UPDATE photoId=[" + compoundPhotoId + "] newData = [" + JSON.stringify(newData) + "]")
-                if (compoundPhotoId in cache.photosByCompoundId) {
-                    var index = cache.photosByCompoundId[compoundPhotoId];
-                    cache.photos[index]["comment"] = newData['comment'];
-                    cache.photos[index]["tags"] = newData['tags'];
-                }
-            }
-        };
-        return cache;
-    }
-
     function dataPointListener(grapher, pointObj, sourceInfo) {
         if (pointObj) {
             App.loadMustacheTemplate("core/grapher/timelineTemplates.html","dataPointValueLabel",function (template){
@@ -2233,22 +2062,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
     function photoDataPointListener(grapher, channel, channelElementId) {
         return function(pointObj, sourceInfo) {
             if (pointObj && sourceInfo && sourceInfo['info']) {
-
-                // returns the array of tags currently selected for this photo
-                var getUserSelectedTags = function() {
-                    var tags = [];
-                    $.each($("#_timeline_photo_dialog_tags_editor .tagedit-listelement-old input"),
-                        function(index, inputElement) {
-                            var val = inputElement['value'];
-                            if (typeof val === 'string' && val != '') {
-                                tags[tags.length] = val;
-                            }
-                        });
-                    return tags;
-                };
-
-                // returns the array of tags selected for this channel's filter
-                var getTagFilterForChannel = function() {
+                function getTagFilterForChannel() {
                     var tags = [];
                     $.each($("#" + channelElementId + "-photo-tags-filter .tagedit-listelement-old input"),
                         function(index, inputElement) {
@@ -2259,487 +2073,20 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                         });
                     return tags;
                 };
-                // get the channel's current settings for tag filtering
-                var matchingStrategy = $("#" + channelElementId + "-photo-tags-matching-strategy").val();
-                var channelFilterTags = getTagFilterForChannel();
 
-                // create the photo cache
-                var photoCache = createPhotoDialogCache(channel, channelFilterTags, matchingStrategy);
 
-                var createPhotoDialog = function(compoundPhotoId, timestamp, completionCallback) {
+                var parts = sourceInfo.info.imageId.split(".");
 
-                    grapher.setTimeCursorPosition(timestamp);
-
-                    var photoMetadata = photoCache.getPhotoMetadata(compoundPhotoId);
-                    var thumbnails = photoMetadata['thumbnails'];
-                    // This assumes the thumbnails are ordered from smallest to largest.  Might be better to eventually search for the largest.
-                    var mediumResImageUrl = (thumbnails != null && thumbnails.length > 0) ? thumbnails[thumbnails.length - 1]['url'] : photoMetadata['url'];
-                    var highResImageUrl = photoMetadata['url'];
-                    var photoOrientation = photoMetadata['orientation'];
-                    if (typeof photoOrientation === 'undefined' || photoOrientation == null) {
-                        photoOrientation = 1;
-                    }
-                    var highResOrientationCssClass = "_timeline_photo_dialog_image_orientation_" + photoOrientation;
-                    var photoDialogTemplate = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_template");
-                    var photoDialogHtml = photoDialogTemplate.render({"photoUrl" : mediumResImageUrl});
-                    $("#" + grapher.grapherId + "_timeline_photo_dialog").html(photoDialogHtml);
-
-                    var updateGoToNeighborOnSaveWidgets = function() {
-                        var isEnabled = $("#_timeline_photo_dialog_save_should_goto_neighbor").is(':checked');
-                        var direction = TOOLS.parseInt($("#_timeline_photo_dialog_save_should_goto_neighbor_choice").val(),0);
-                        PREFS.set("photo_dialog.goto_neighbor_on_save.enabled", isEnabled);
-                        PREFS.set("photo_dialog.goto_neighbor_on_save.direction", direction);
-
-                        if (isEnabled) {
-                            $("#_timeline_photo_dialog_save_should_goto_neighbor_choice").removeAttr("disabled");
-                            $("#_timeline_photo_dialog_save_preferences label").css("color", "#000000");
-                            if (direction < 0) {
-                                $("#_timeline_photo_dialog_save_button").html("Save &amp; Previous");
-                            } else {
-                                $("#_timeline_photo_dialog_save_button").html("Save &amp; Next");
-                            }
-                        } else {
-                            $("#_timeline_photo_dialog_save_should_goto_neighbor_choice").attr("disabled", "disabled");
-                            $("#_timeline_photo_dialog_save_preferences label").css("color", "#aaaaaa");
-                            $("#_timeline_photo_dialog_save_button").text("Save");
-                        }
-                    };
-
-                    // set the widgets for the Save button behavior based on saved prefs
-                    var goToNeighborOnSaveEnabled = !!PREFS.get("photo_dialog.goto_neighbor_on_save.enabled", false);
-                    var goToNeighborOnSaveDirection = TOOLS.parseInt(PREFS.get("photo_dialog.goto_neighbor_on_save.direction", 0), 0);
-                    $("#_timeline_photo_dialog_save_should_goto_neighbor").prop("checked", goToNeighborOnSaveEnabled);
-                    $("#_timeline_photo_dialog_save_should_goto_neighbor").change(updateGoToNeighborOnSaveWidgets);
-                    $("#_timeline_photo_dialog_save_should_goto_neighbor_choice").val(goToNeighborOnSaveDirection == 0 ? 1 : goToNeighborOnSaveDirection);
-                    $("#_timeline_photo_dialog_save_should_goto_neighbor_choice").change(updateGoToNeighborOnSaveWidgets);
-
-                    // display Loading status message
-                    $("#_timeline_photo_dialog_form_status").text("Loading...").show();
-
-                    // set previous and next buttons initially hidden
-                    $("#_timeline_photo_dialog_previous_button").hide();
-                    $("#_timeline_photo_dialog_next_button").hide();
-
-                    // Fetch the metadata for the preceding, following, and current photos from the cache.
-                    var previousPhotoMetadata = photoCache.getPreviousPhotoMetadata(compoundPhotoId);
-                    var nextPhotoMetadata = photoCache.getNextPhotoMetadata(compoundPhotoId);
-                    var isPreviousPhoto = previousPhotoMetadata != null &&
-                                          typeof previousPhotoMetadata !== 'undefined' &&
-                                          typeof previousPhotoMetadata['photoId'] !== 'undefined';
-                    if (isPreviousPhoto) {
-                        $("#_timeline_photo_dialog_previous_button").show().click(function() {
-                            var timestamp = previousPhotoMetadata.isLocalTimeType ? grapher.dateAxis.localTimeToUTC(previousPhotoMetadata.timestamp) : previousPhotoMetadata.timestamp;
-                            createPhotoDialog(previousPhotoMetadata['photoId'],timestamp);
-                        });
+                PhotoUtils.showPhotoDialog(parts[0],parts[1],parts[2],pointObj.date * 1000,{
+                    grapher: grapher,
+                    channelFilters: getTagFilterForChannel(),
+                    filteringStrategy: $("#" + channelElementId + "-photo-tags-matching-strategy").val(),
+                    photoChange: function(metadata,timestamp){
+                        grapher.setTimeCursorPosition(timestamp);
                     }
 
-                    var isNextPhoto = nextPhotoMetadata != null &&
-                                      typeof nextPhotoMetadata !== 'undefined' &&
-                                      typeof nextPhotoMetadata['photoId'] !== 'undefined';
-                    if (isNextPhoto) {
-                        $("#_timeline_photo_dialog_next_button").show().click(function() {
-                            var timestamp = nextPhotoMetadata.isLocalTimeType ? grapher.dateAxis.localTimeToUTC(nextPhotoMetadata.timestamp) : nextPhotoMetadata.timestamp;
-                            createPhotoDialog(nextPhotoMetadata['photoId'],timestamp);
-                        });
-                    }
-
-                    // treat undefined or null comment as an empty comment
-                    if (typeof photoMetadata['comment'] === 'undefined' || photoMetadata['comment'] == null) {
-                        photoMetadata['comment'] = '';
-                    }
-
-                    // treat undefined or null tags as an empty array
-                    if (typeof photoMetadata['tags'] === 'undefined' || photoMetadata['tags'] == null) {
-                        photoMetadata['tags'] = [];
-                    }
-
-                    // add click handler for photo to allow viewing of high-res version
-                    $("#_timeline_photo_dialog_image").click(function() {
-                        var theImage = $(this);
-                        var formContainer = $("#_timeline_photo_dialog_form_container");
-                        if ($("#_timeline_photo_dialog_form_container").is(":visible")) {
-                            // fade out the form and show the hi-res version of the image
-                            formContainer.fadeOut(100, function() {
-                                var imageAspectRatio = theImage.width() / theImage.height();
-                                var imageHeight = $("body").height() - 60;
-                                var imageWidth = imageAspectRatio * imageHeight;
-
-                                // make sure the image isn't too wide now
-                                if (imageWidth > $("body").width()) {
-                                    imageWidth = $("body").width() - 100;
-                                    imageHeight = imageWidth / imageAspectRatio;
-                                }
-
-                                theImage.attr("src",highResImageUrl);
-                                if (photoOrientation <= 4) {
-                                    theImage.width(imageWidth).height(imageHeight);
-                                    theImage.css("max-width", imageWidth).css("max-height", imageHeight);
-                                } else {
-                                    theImage.width(imageHeight).height(imageWidth);
-                                    theImage.css("max-width", imageHeight).css("max-height", imageWidth);
-                                }
-                                theImage.removeClass("_timeline_photo_dialog_image_orientation_1");
-                                theImage.addClass(highResOrientationCssClass);
-                                $("._timeline_photo_dialog_photo_table").width(Math.max(imageHeight,imageWidth)).height(imageHeight);
-                                centerPhotoDialog(grapher);
-                            });
-                        } else {
-                            // fade the form back in and show the medium-res version of the image
-                            formContainer.fadeIn(100, function() {
-
-                                theImage.attr("src", mediumResImageUrl);
-
-                                var originalWidth = theImage.width();
-                                var originalHeight = theImage.height();
-                                var imageHeight = 300;
-                                var imageWidth = 300;
-                                var imageAspectRatio = (photoOrientation <= 4 ) ? originalWidth / originalHeight : originalHeight / originalWidth;
-                                if (imageAspectRatio > 1) {
-                                    imageHeight = Math.round(imageWidth / imageAspectRatio);
-                                } else {
-                                    imageWidth = imageAspectRatio * imageHeight;
-                                }
-
-                                if (originalWidth != 0 && originalHeight != 0 && !isNaN(imageWidth) && !isNaN(imageHeight)) {
-                                    theImage.width(imageWidth).height(imageHeight);
-                                }
-                                theImage.css("max-width", "300").css("max-height", "300");
-
-                                $("._timeline_photo_dialog_photo_table").width(300).height(300);
-                                centerPhotoDialog(grapher);
-                                theImage.removeClass(highResOrientationCssClass);
-                                theImage.addClass("_timeline_photo_dialog_image_orientation_1");
-                            });
-                        }
-                    });
-
-                    var createCommentAndTagForm = function(comment, tags) {
-
-                        var isDirty = function() {
-                            // first check the comment, since it's easy and cheap
-                            if ($("#_timeline_photo_dialog_comment").val() != comment) {
-                                return true;
-                            }
-
-                            // if the comment isn't dirty, then check the tags
-                            var newTags = getUserSelectedTags();
-
-                            // start by checking the length
-                            if (newTags.length != tags.length) {
-                                return true;
-                            }
-
-                            // now compare individual tags
-                            for (var i = 0; i < newTags.length; i++) {
-                                if (newTags[i] != tags[i]) {
-                                    return true;
-                                }
-                            }
-
-                            return false;
-                        };
-
-                        var setEnabledStateOfRevertAndSaveButtons = function() {
-                            if (isDirty()) {
-                                //$("#_timeline_photo_dialog_save_button").removeAttr("disabled");
-                                $("#_timeline_photo_dialog_revert_button").removeAttr("disabled");
-                            } else {
-                                //$("#_timeline_photo_dialog_save_button").attr("disabled", "disabled");
-                                $("#_timeline_photo_dialog_revert_button").attr("disabled", "disabled");
-                            }
-                        };
-
-                        // build the form for the metadata editor
-                        var photoMetadataForm = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_form_template").render({});
-                        $("#_timeline_photo_dialog_form").html(photoMetadataForm);
-
-                        // fill in the timestamp
-                        if (typeof photoMetadata['timestampString'] === 'undefined') {
-                            $("#_timeline_photo_dialog_timestamp").html("&nbsp;");
-                        } else {
-                            var photoTimestamp = new Date(photoMetadata['timestampString']);
-                            var photoTimestampStr = null;
-                            if (photoMetadata['isLocalTimeType']) {
-                                // if local time type, then get the timezone offset (in minutes), convert
-                                // it to millis, and add to the time to get the correct time
-                                photoTimestamp = new Date(photoTimestamp.getTime() + photoTimestamp.getTimezoneOffset() * 60000);
-
-                                // format the date without the timezone
-                                photoTimestampStr = photoTimestamp.toDateString() + " " +
-                                                    (photoTimestamp.getHours() < 10 ? "0" : "") + photoTimestamp.getHours() +
-                                                    ":" +
-                                                    (photoTimestamp.getMinutes() < 10 ? "0" : "") + photoTimestamp.getMinutes() +
-                                                    ":" +
-                                                    (photoTimestamp.getSeconds() < 10 ? "0" : "") + photoTimestamp.getSeconds();
-                            }
-                            else {
-                                photoTimestampStr = photoTimestamp.toString();
-                            }
-                            $("#_timeline_photo_dialog_timestamp").text(photoTimestampStr);
-                        }
-
-                        // fill in the comment, if any
-                        if (typeof comment === 'undefined' || comment == null) {
-                            $("#_timeline_photo_dialog_comment").val('');
-                        } else {
-                            $("#_timeline_photo_dialog_comment").val(comment);
-                        }
-
-                        // Set up focus and blur event handlers for the comment field, to toggle
-                        // close on ESC for the photo dialog.  We don't want the ESC key to close
-                        // the dialog when the user is editing the comment.
-                        $("#_timeline_photo_dialog_comment").focus(function() {
-                            $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog']("option", "closeOnEscape", false);
-                        });
-                        $("#_timeline_photo_dialog_comment").blur(function() {
-                            $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog']("option", "closeOnEscape", true);
-                        });
-                        $("#_timeline_photo_dialog_comment").keyup(setEnabledStateOfRevertAndSaveButtons);
-
-                        // add the tags, if any
-                        if ($.isArray(tags) && tags.length > 0) {
-                            $.each(tags,
-                                function(index, value) {
-                                    var tagHtml =App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_tags_editor_tag_template").render({"value" : value});
-                                    $("#_timeline_photo_dialog_tags_editor").append(tagHtml);
-                                });
-                        } else {
-                            var tagHtml = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_tags_editor_tag_template").render({"value" : ""});
-                            $("#_timeline_photo_dialog_tags_editor").append(tagHtml);
-                        }
-
-                        // construct the tag editor
-                        var tagEditorOptions = {
-                            autocompleteOptions : {
-                                "minLength" : 0, // TODO: make this 1 or 2 if the list of tags is huge
-                                "delay"     : 0,
-                                "autoFocus" : false,
-                                source      : function(request, response) {
-                                    var tagsToExclude = getUserSelectedTags();
-                                    var cachedTagsData = TAG_MANAGER.getCachedTagsForTagEditor(tagsToExclude);
-                                    return response($.ui.autocomplete.filter(cachedTagsData, request.term));
-                                }
-                            },
-                            // return, comma, space, period, semicolon
-                            breakKeyCodes       : [ 13, 44, 32, 59 ],
-                            additionalListClass : '_timeline_photo_tags_input',
-                            animSpeed           : 100,
-                            allowAdd            : true,
-                            allowEdit           : true,
-                            allowDelete         : false,
-                            texts               : {
-                                removeLinkTitle    : 'Remove this tag from the list',
-                                saveEditLinkTitle  : 'Save changes',
-                                breakEditLinkTitle : 'Undo changes'
-                            }
-                        };
-                        $('#_timeline_photo_dialog_tags_editor input.tag').tagedit(tagEditorOptions);
-                        $('#_timeline_photo_dialog_tags_editor').bind('tagsChanged', setEnabledStateOfRevertAndSaveButtons);
-                        $('#_timeline_photo_dialog_tags_editor').bind('receivedFocus', function() {
-                            $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog']("option", "closeOnEscape", false);
-                        });
-                        $('#_timeline_photo_dialog_tags_editor').bind('tabToNextElement', function(event) {
-                            $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog']("option", "closeOnEscape", true);
-
-                            $("#_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_forward").focus();
-                            return false;
-                        });
-                        $('#_timeline_photo_dialog_tags_editor').bind('tabToPreviousElement', function(event) {
-                            $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog']("option", "closeOnEscape", true);
-
-                            $("#_timeline_photo_dialog_comment").select().focus();
-                            return false;
-                        });
-
-                        // set form buttons to initially disabled
-                        //$("#_timeline_photo_dialog_save_button").attr("disabled", "disabled");
-                        $("#_timeline_photo_dialog_revert_button").attr("disabled", "disabled");
-
-                        // configure the Revert button
-                        $("#_timeline_photo_dialog_revert_button").click(function() {
-                            $("#_timeline_photo_dialog_form").hide();
-                            $("#_timeline_photo_dialog_form_status").text("Loading...").show();
-
-                            // recreate the comment and tag form
-                            createCommentAndTagForm(comment, tags);
-                            $("#_timeline_photo_dialog_form_status").hide();
-                            $("#_timeline_photo_dialog_form").show();
-
-                            // focus on the comment
-                            $("#_timeline_photo_dialog_comment").select().focus();
-                        });
-
-                        // configure the Save button
-                        $("#_timeline_photo_dialog_save_button").click(function() {
-
-                            // set form buttons to disabled while saving
-                            //$("#_timeline_photo_dialog_save_button").attr("disabled", "disabled");
-                            $("#_timeline_photo_dialog_revert_button").attr("disabled", "disabled");
-
-                            $("#_timeline_photo_dialog_form").hide();
-                            $("#_timeline_photo_dialog_form_status").text("Saving...").show();
-
-                            var compoundPhotoIdComponents = compoundPhotoId.split(".");
-
-                            $.ajax({
-                                cache    : false,
-                                type     : "POST",
-                                url      : "/api/bodytrack/metadata/" + App.getUID() + "/" + compoundPhotoIdComponents[0] + "." + compoundPhotoIdComponents[1] + "/" + compoundPhotoIdComponents[2] + "/set",
-                                data     : {
-                                    "tags"    : getUserSelectedTags().join(','),
-                                    "comment" : $("#_timeline_photo_dialog_comment").val()
-                                },
-                                dataType : "json",
-                                success  : function(savedData, textStatus, jqXHR) {
-                                    if (typeof savedData === 'object') {
-                                        console.log("Successfully saved comment and tags for photo [" + compoundPhotoId + "]");
-                                        console.log(savedData);
-                                        photoCache.update(compoundPhotoId, {
-                                            "comment": savedData['payload']['comment'],
-                                            "tags": savedData['payload']['tags']
-                                        });
-                                        TAG_MANAGER.refreshTagCache(function() {
-
-                                            $("#_timeline_photo_dialog_form_status")
-                                                .text("Saved.")
-                                                .delay(250)
-                                                .fadeOut(500, function() {
-                                                    // read the desired direction from the prefs
-                                                    goToNeighborOnSaveEnabled = !!PREFS.get("photo_dialog.goto_neighbor_on_save.enabled", false);
-                                                    goToNeighborOnSaveDirection = TOOLS.parseInt(PREFS.get("photo_dialog.goto_neighbor_on_save.direction", 0), 0);
-
-                                                    // now determine what action to take upon save
-                                                    if (goToNeighborOnSaveEnabled && isPreviousPhoto && goToNeighborOnSaveDirection < 0) {
-                                                        $("#_timeline_photo_dialog_previous_button").click();
-                                                    } else if (goToNeighborOnSaveEnabled && isNextPhoto && goToNeighborOnSaveDirection > 0) {
-                                                        $("#_timeline_photo_dialog_next_button").click();
-                                                    } else {
-                                                        // recreate the comment and tag form
-                                                        createCommentAndTagForm(savedData['payload']['comment'], savedData['payload']['tags']);
-
-                                                        $("#_timeline_photo_dialog_form").show();
-
-                                                        // focus on the comment
-                                                        $("#_timeline_photo_dialog_comment").select().focus();
-                                                    }
-                                                });
-                                        });
-                                    } else {
-                                        console.log("Unexpected response when saving comment and tags for photo [" + compoundPhotoId + "]:  savedData=[" + savedData + "] textStatus=[" + textStatus + "]");
-                                        $("#_timeline_photo_dialog_form_status").text("Saved failed.").show();
-                                    }
-                                },
-                                error    : function(jqXHR, textStatus, errorThrown) {
-                                    console.log("Failed to save comment and tags for photo [" + compoundPhotoId + "]:  textStatus=[" + textStatus + "] errorThrown=[" + errorThrown + "]");
-                                    $("#_timeline_photo_dialog_form_status").text("Saved failed.").show();
-                                }
-                            });
-                        });
-
-                        updateGoToNeighborOnSaveWidgets();
-
-                        // set up tabbing and focus handling
-                        $("#_timeline_photo_dialog_form #tagedit-input").attr("tabindex", 102);
-                        $("#_timeline_photo_dialog_tabhelper_pre_proxy_backward").focus(function() {
-                            if ($("#_timeline_photo_dialog_save_should_goto_neighbor_choice").is(":enabled")) {
-                                $("#_timeline_photo_dialog_save_should_goto_neighbor_choice").focus();
-                            } else {
-                                $("#_timeline_photo_dialog_save_should_goto_neighbor").focus();
-                            }
-                            return false;
-                        });
-                        $("#_timeline_photo_dialog_previous_button").focus(function() {
-                            $(this).css("background-position", "0 -38px");
-                        }).blur(function() {
-                                $(this).css("background-position", "0 0");
-                            });
-                        $("#_timeline_photo_dialog_next_button").focus(function() {
-                            $(this).css("background-position", "0 -38px");
-                        }).blur(function() {
-                                $(this).css("background-position", "0 0");
-                            });
-                        $("#_timeline_photo_dialog_comment_tabhelper_pre_proxy_forward").focus(function() {
-                            $("#_timeline_photo_dialog_comment").focus().select();
-                            return false;
-                        });
-                        $("#_timeline_photo_dialog_comment_tabhelper_pre_proxy_backward").focus(function() {
-                            if (isNextPhoto) {
-                                $("#_timeline_photo_dialog_next_button").focus();
-                            } else if (isPreviousPhoto) {
-                                $("#_timeline_photo_dialog_previous_button").focus();
-                            } else {
-                                $("#_timeline_photo_dialog_tabhelper_pre_proxy_backward").focus();
-                            }
-                            return false;
-                        });
-                        $("#_timeline_photo_dialog_comment").focus(function() {
-                            return false;
-                        });
-                        $("#_timeline_photo_dialog_tags_editor_tabhelper_pre_proxy_forward").focus(function() {
-                            $("#_timeline_photo_dialog_tags_editor ul").click();
-                        });
-                        $("#_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_forward").focus(function() {
-                            if ($("#_timeline_photo_dialog_save_button").is(":disabled")) {
-                                $("#_timeline_photo_dialog_save_should_goto_neighbor").focus();
-                            } else {
-                                $("#_timeline_photo_dialog_save_button").focus();
-                            }
-                            return false;
-                        });
-                        $("#_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_backward").focus(function() {
-                            $("#_timeline_photo_dialog_tags_editor ul").click();
-                        });
-                        $("#_timeline_photo_dialog_revert_button").focus(function() {
-                            $(this).css("color", "#18B054");
-                        }).blur(function() {
-                                $(this).css("color", "#000000");
-                            });
-                        $("#_timeline_photo_dialog_save_button").focus(function(event) {
-                            $(this).css("color", "#18B054");
-                        }).blur(function(event) {
-                                $(this).css("color", "#000000");
-                            });
-                        $("#_timeline_photo_dialog_post_proxy_forward").focus(function() {
-                            if (isPreviousPhoto) {
-                                $("#_timeline_photo_dialog_previous_button").focus();
-                            } else if (isNextPhoto) {
-                                $("#_timeline_photo_dialog_next_button").focus();
-                            } else {
-                                $("#_timeline_photo_dialog_comment").focus().select();
-                            }
-                            return false;
-                        });
-
-                        // set focus on the comment input, and select all the text
-                        $("#_timeline_photo_dialog_comment").select().focus();
-
-                    };
-
-                    // create the comment and tag form, hide the status area, and show the form
-                    createCommentAndTagForm(photoMetadata['comment'], photoMetadata['tags']);
-                    $("#_timeline_photo_dialog_form_status").hide();
-                    $("#_timeline_photo_dialog_form").show();
-
-                    // Finally, call the completion callback, if any
-                    if (typeof completionCallback === 'function') {
-                        completionCallback();
-                    }
-                };
-
-                // initialize the photo cache--when it's done preloading then open the photo dialog
-                photoCache.initialize(sourceInfo['info']['imageId'],
-                    pointObj['date'],
-                    function() {
-                        createPhotoDialog(sourceInfo['info']['imageId'],
-                            pointObj['date'],
-                            function() {
-                                centerPhotoDialog(grapher);
-                            });
-                    });
-
-                // Open the dialog
-                $("#" + grapher.grapherId + "_timeline_photo_dialog").html(App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_loading_template").render({}));
-                $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog']('open');
+                });
+                return;
             }
         };
     }

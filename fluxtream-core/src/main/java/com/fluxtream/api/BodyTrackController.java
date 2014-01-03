@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
+import java.util.Arrays;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
@@ -73,6 +75,10 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Path("/bodytrack")
 @Component("RESTBodytrackController")
@@ -113,6 +119,40 @@ public class BodyTrackController {
 
     @Autowired
     BeanFactory beanFactory;
+
+    @GET
+    @Path("/exportCSV/{UID}/data.csv")
+    public void exportCSV(@QueryParam("channels") String channels,@QueryParam("start") Long start, @QueryParam("end") Long end, @PathParam("UID") Long uid, @Context HttpServletResponse response){
+        try{
+            long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = checkForPermissionAccess(uid);
+            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+
+            if (!accessAllowed && coachee==null) {
+                uid = null;
+            }
+
+            if (uid == null) {
+                throw new Exception();
+            }
+
+            response.setContentType("text/csv");
+
+            String[] channelArray = gson.fromJson(channels,String[].class);
+
+            bodyTrackHelper.exportToCSV(uid,Arrays.asList(channelArray),start,end,response.getOutputStream());
+            response.flushBuffer();
+
+        }
+        catch (Exception e){
+            try{
+                response.sendError(500);
+            } catch(Exception e2){
+                System.err.print("failed to send error response");
+                e2.printStackTrace();
+            }
+        }
+    }
 
 
     @POST

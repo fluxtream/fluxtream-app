@@ -3,7 +3,9 @@ package com.fluxtream.services.impl;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -93,7 +95,7 @@ public class BodyTrackHelper {
     Gson gson = new GsonBuilder().registerTypeAdapter(ChannelBounds.class, new ChannelBoundsDeserializer()).create();
     static FlxLogger logger = FlxLogger.getLogger(BodyTrackHelper.class);
 
-    private DataStoreExecutionResult executeDataStore(String commandName, Object[] parameters){
+    private int executeDataStore(String commandName, Object[] parameters,OutputStream out){
         try{
             Runtime rt = Runtime.getRuntime();
 	    String launchCommand = env.targetEnvironmentProps.getString("btdatastore.exec.location") + "/" + commandName + " " +
@@ -138,24 +140,74 @@ public class BodyTrackHelper {
             BufferedReader input = new BufferedReader(new InputStreamReader(pr.getInputStream()));
 
             String line;
-            String result = "";
 
+            boolean first = true;
 
             while((line=input.readLine()) != null) { //output all console output from the execution
                 if (showOutput)
                     System.out.println("BTDataStore: " + line);
-                result += line;
+                if (first){
+                    first = false;
+                }
+                else{
+                    out.write("\n".getBytes());
+                }
+                out.write(line.getBytes());
             }
             int exitValue = pr.waitFor();
             if (showOutput)
                 System.out.println("BTDataStore: exited with code " + exitValue);
-            return new DataStoreExecutionResult(exitValue, result);
+            return exitValue;
         }
         catch (Exception e){
             if (showOutput)
                 System.out.println("BTDataStore: datastore execution failed!");
             throw new RuntimeException("Datastore execution failed");
         }
+    }
+
+    private DataStoreExecutionResult executeDataStore(String commandName, Object[] parameters){
+        final StringBuilder responseBuilder = new StringBuilder();
+        int result = executeDataStore(commandName,parameters,new OutputStream(){
+
+            @Override
+            public void write(final int b) throws IOException {
+                responseBuilder.append((char) b);
+            }
+        });
+        return new DataStoreExecutionResult(result,responseBuilder.toString());
+
+    }
+
+
+    //start and end are optional
+    public int exportToCSV(final Long guestId, final Collection<String> channelNames, final Long start, final Long end, final OutputStream out){
+        try{
+            if (guestId == null)
+                throw new IllegalArgumentException();
+            if (channelNames == null || channelNames.size() == 0)
+                throw new IllegalArgumentException();
+
+            ArrayList<String> params = new ArrayList<String>();
+            params.add("--csv");
+            params.add("" + guestId);
+            params.addAll(channelNames);
+            if (start != null){
+                params.add("--start");
+                params.add("" + start);
+            }
+            if (end != null){
+                params.add("--end");
+                params.add("" + end);
+            }
+            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("export",params.toArray(new String[]{}));
+            out.write(dataStoreExecutionResult.getResponse().getBytes());
+            return dataStoreExecutionResult.getStatusCode();
+        }
+        catch (Exception e){
+            return -1;
+        }
+
     }
 
     public BodyTrackUploadResult uploadToBodyTrack(final Long guestId,

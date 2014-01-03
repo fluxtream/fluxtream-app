@@ -7,7 +7,7 @@ define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher
     var pointLoad = null;
     var currentPointLoad = null;
     var cursorPositionToSet = null;
-    var channelToAdd = null;
+    var channelsToAdd = [];
 
     grapherTab.render = function(params){
         if (params.rebuildURL){
@@ -20,7 +20,21 @@ define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher
             return;
         }
         if (params.facetToShow != null){
-            cursorPositionToSet = (params.facetToShow.start + (params.facetToShow.end != null ? params.facetToShow.end : params.facetToShow.start)) / 2;
+            //NOTE: finding the right channels to load is done via a hack! TODO: implement this more ellegantly
+            var connectorName = params.facetToShow.type.split("-")[0];
+            var selectedConnectors = App.apps.calendar.digest.selectedConnectors;
+
+            for (var i = 0, li = selectedConnectors.length; i < li; i++){
+                if (selectedConnectors[i].connectorName == connectorName){
+                    for (var j = 0, lj = selectedConnectors[i].channelNames.length; j < lj; j++){
+                        channelsToAdd.push(selectedConnectors[i].channelNames[j]);
+                    }
+                    break;
+                }
+            }
+
+            //have to divide by 1000 because times for the grapher are specified in seconds and times for the rest of fluxtream are specified in milliseconds
+            cursorPositionToSet = (params.facetToShow.start + (params.facetToShow.end != null ? params.facetToShow.end : params.facetToShow.start)) / 2 / 1000;
         }
         tbounds = params.tbounds;
         this.getTemplate("text!applications/bodytrack/tabs/grapher/grapher.html", "grapher", function() {
@@ -62,16 +76,24 @@ define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher
     }
 
     function onSourceLoad(){
-        if (channelToAdd != null)
-            if (!grapher.hasChannel(channelToAdd))
-                grapher.addChannel(channelToAdd);
+        //add all queued channels
+        for (var i = 0, li = channelsToAdd.length; i < li; i++){
+            if (!grapher.hasChannel(channelsToAdd[i]))
+                grapher.addChannel(channelsToAdd[i]);
+        }
+
         if (tbounds != null)
             grapher.setRange(tbounds.start/1000,tbounds.end/1000);
         if (cursorPositionToSet != null){
+            var range = grapher.getRange();
+            range = range.max - range.min;
             grapher.setTimeCursorPosition(cursorPositionToSet);
+            grapher.setRange(cursorPositionToSet - range / 2, cursorPositionToSet + range/2);
         }
-        if (channelToAdd != null)
-            grapher.doCursorClick(channelToAdd);
+        for (var i = 0, li = channelsToAdd.length; i < li; i++){
+            grapher.doCursorClick(channelsToAdd[i]);
+        }
+        channelsToAdd = [];
         onPointLoad();
     }
 

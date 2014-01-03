@@ -535,7 +535,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             App.apps.calendar.rebindDetailsControls(ttpdiv,dgst.cachedData);
 
             ttpdiv.find(".flx-photo").click(function(event){
-                PhotoUtils.showCarouselHTML(photoCarouselHTML,$(event.delegateTarget).attr("photoId"));
+                var dTarget = $(event.delegateTarget);
+                //PhotoUtils.showCarouselHTML(photoCarouselHTML,dTarget.attr("photoId"));
+                PhotoUtils.showPhotoDialog(dTarget.attr("data-deviceName"), dTarget.attr("data-channelName"),
+                                           dTarget.attr("data-id"), dTarget.attr("data-timestamp"));
             });
 
         });
