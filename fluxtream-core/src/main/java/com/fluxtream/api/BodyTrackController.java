@@ -121,8 +121,8 @@ public class BodyTrackController {
     BeanFactory beanFactory;
 
     @GET
-    @Path("/exportCSV/{UID}/data.csv")
-    public void exportCSV(@QueryParam("channels") String channels,@QueryParam("start") Long start, @QueryParam("end") Long end, @PathParam("UID") Long uid, @Context HttpServletResponse response){
+    @Path("/exportCSV/{UID}/fluxtream-export-from-{start}-to-{end}.csv")
+    public void exportCSV(@QueryParam("channels") String channels,@PathParam("start") Long start, @PathParam("end") Long end, @PathParam("UID") Long uid, @Context HttpServletResponse response){
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
@@ -152,6 +152,24 @@ public class BodyTrackController {
                 e2.printStackTrace();
             }
         }
+    }
+
+    @GET
+    @Path("/exportCSV/{UID}/fluxtream-export-from-{start}.csv")
+    public void exportCSVStartOnly(@QueryParam("channels") String channels,@PathParam("start") Long start, @PathParam("UID") Long uid, @Context HttpServletResponse response){
+        exportCSV(channels,start,null,uid,response);
+    }
+
+    @GET
+    @Path("/exportCSV/{UID}/fluxtream-export-to-{end}.csv")
+    public void exportCSVEndOnly(@QueryParam("channels") String channels,@PathParam("end") Long end, @PathParam("UID") Long uid, @Context HttpServletResponse response){
+        exportCSV(channels,null,end,uid,response);
+    }
+
+    @GET
+    @Path("/exportCSV/{UID}/fluxtream-export.csv")
+    public void exportCSVNoParams(@QueryParam("channels") String channels, @PathParam("UID") Long uid, @Context HttpServletResponse response){
+        exportCSV(channels,null,null,uid,response);
     }
 
 

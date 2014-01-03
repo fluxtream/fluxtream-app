@@ -978,6 +978,7 @@ public class BodyTrackHelper {
         public String fillColor;
         public Double top;
         public Double bottom;
+        public String iconURL;
     }
 
     public static class MainTimespanStyle{

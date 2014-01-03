@@ -21,7 +21,7 @@
             </ul>
         </div>
       <a href="#" class="btn disabled" id="{{grapherId}}_timeline_add_channels_btn">Add Channels</a>
-        <a href="javascript:void(0)" class="btn disabled" id="{{grapherId}}_timeline_export_to_csv">Export Data to CSV</a>
+        <a href="javascript:void(0)" class="btn" id="{{grapherId}}_timeline_export_to_csv">Export Data to CSV</a>
     </span>
             <div id="{{grapherId}}_timeline_view_dialog"></div>
 
@@ -516,22 +516,27 @@
             <h3>Export Your Data to CSV</h3>
         </div>
         <div class="modal-body">
-            The following data will be exported:
-            <table class="table">
-                <thead>
-                    <th>Channel</th>
-                    <th>Datapoint Estimate</th>
-                </thead>
-                <tbody>
-                    {{#channels}}
-                    <tr>
-                        <td class="channelName {{className}}">{{name}}</td>
-                        <td class="channelCount {{className}}">{{count}}</td>
-                    </tr>
-                    {{/channels}}
-                </tbody>
-            </table>
-            <a class="btn" href="{{downloadLink}}" download="data.csv">Download Data</a>
+            {{^noChannels}}
+                The following data will be exported:
+                <table class="table">
+                    <thead>
+                        <th>Channel</th>
+                        <th>Datapoint Estimate</th>
+                    </thead>
+                    <tbody>
+                        {{#channels}}
+                        <tr>
+                            <td class="channelName {{className}}">{{name}}</td>
+                            <td class="channelCount {{className}}">{{count}}</td>
+                        </tr>
+                        {{/channels}}
+                    </tbody>
+                </table>
+                <a class="btn" href="{{downloadLink}}" download="{{filename}}">Download Data</a>
+            {{/noChannels}}
+            {{#noChannels}}
+            We're sorry but none of the channels you presently have selected are exportable.
+            {{/noChannels}}
         </div>
         <div class="modal-footer">
             <button class="btn" onclick="$('#timelineExportModal').modal('hide');">Cancel</button>
