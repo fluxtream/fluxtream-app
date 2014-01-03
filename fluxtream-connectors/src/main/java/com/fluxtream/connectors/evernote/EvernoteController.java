@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.fluxtream.Configuration;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.auth.CoachRevokedException;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
@@ -131,7 +132,7 @@ public class EvernoteController {
     @RequestMapping(value="/res/{apiKeyId}/{guid}")
     public void getResource(@PathVariable("apiKeyId") long apiKeyId,
                             @PathVariable("guid") String guid,
-                            HttpServletResponse response) throws IOException {
+                            HttpServletResponse response) throws IOException, CoachRevokedException {
         // we want to reduce the size of images that are too big to be transported over http in a timely manner,
         // so here we ask the db for the mime type of the requested resource and its width so that,
         // if we are dealing with an image, we know if we need to make it smaller
@@ -149,10 +150,11 @@ public class EvernoteController {
         response.setContentType(mimeType);
 
         // retrieve the main data file associated with this resource
-        final String connectorDataLocation = env.get("connectorData.location");
-        if (connectorDataLocation==null)
-            throw new RuntimeException("No connectorData.location property was specified (local.properties)");
-        File resourceFile = EvernoteUpdater.getResourceFile(apiKeyId, guid, EvernoteUpdater.MAIN_APPENDIX, mimeType, connectorDataLocation);
+        final String devKvsLocation = env.get("btdatastore.db.location");
+        if (devKvsLocation==null)
+            throw new RuntimeException("No btdatastore.db.location property was specified (local.properties)");
+        File resourceFile = EvernoteUpdater.getResourceFile(AuthHelper.getVieweeId(), apiKeyId,
+                                                            guid, EvernoteUpdater.MAIN_APPENDIX, mimeType, devKvsLocation);
         if (!resourceFile.exists()) {
             logger.warn("resource file was not found for guid=" + guid);
             response.sendError(404);

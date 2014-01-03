@@ -28,6 +28,7 @@ import com.evernote.edam.type.ResourceAttributes;
 import com.evernote.edam.type.Tag;
 import com.evernote.thrift.TException;
 import com.fluxtream.aspects.FlxLogger;
+import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
@@ -188,7 +189,7 @@ public class EvernoteUpdater extends AbstractUpdater {
         final List resourceInfos = jpaDaoService.executeNativeQuery(String.format("SELECT guid, mime FROM %s facet WHERE facet.apiKeyId=(?1) AND facet.noteGuid=(?2)",
                                                                                   JPAUtils.getEntityName(EvernoteResourceFacet.class)),
                                                                     updateInfo.apiKey.getId(), noteGuid);
-        final String connectorDataLocation = env.get("connectorData.location");
+        final String devKvsLocation = env.get("btdatastore.db.location");
         for (Object infos : resourceInfos) {
             Object[] guidAndMime = (Object[]) infos;
             String guid = (String)guidAndMime[0];
@@ -196,9 +197,9 @@ public class EvernoteUpdater extends AbstractUpdater {
             // remove the resource from the database first
             removeEvernoteFacet(updateInfo, EvernoteResourceFacet.class, guid);
             // now retrieve the associated data files and delete them if they exist
-            final File resourceDataFile = getResourceFile(updateInfo.apiKey.getId(), guid, MAIN_APPENDIX, mime, connectorDataLocation);
-            final File resourceAlternateDataFile = getResourceFile(updateInfo.apiKey.getId(), guid, ALTERNATE_APPENDIX, mime, connectorDataLocation);
-            final File resourceRecognitionDataFile = getResourceFile(updateInfo.apiKey.getId(), guid, RECOGNITION_APPENDIX, mime, connectorDataLocation);
+            final File resourceDataFile = getResourceFile(updateInfo.getGuestId(), updateInfo.apiKey.getId(), guid, MAIN_APPENDIX, mime, devKvsLocation);
+            final File resourceAlternateDataFile = getResourceFile(updateInfo.getGuestId(), updateInfo.apiKey.getId(), guid, ALTERNATE_APPENDIX, mime, devKvsLocation);
+            final File resourceRecognitionDataFile = getResourceFile(updateInfo.getGuestId(), updateInfo.apiKey.getId(), guid, RECOGNITION_APPENDIX, mime, devKvsLocation);
             if (resourceDataFile.exists())
                 resourceDataFile.delete();
             if (resourceAlternateDataFile.exists())
@@ -508,10 +509,8 @@ public class EvernoteUpdater extends AbstractUpdater {
     }
 
     private void saveDataBodyAsFile(final UpdateInfo updateInfo, final String guid, final String appendix, final byte[] body, final String mimeType) throws IOException {
-        final String connectorDataLocation = env.get("connectorData.location");
-        if (connectorDataLocation==null)
-            throw new RuntimeException("No connectorData.location property was specified (local.properties)");
-        File file = getResourceFile(updateInfo.apiKey.getId(), guid, appendix, mimeType, connectorDataLocation);
+        final String devKvsLocation = env.get("btdatastore.db.location");
+        File file = getResourceFile(updateInfo.getGuestId(), updateInfo.apiKey.getId(), guid, appendix, mimeType, devKvsLocation);
         file.getParentFile().mkdirs();
         FileOutputStream fileoutput = new FileOutputStream(file);
         IOUtils.copy(new ByteArrayInputStream(body), fileoutput);
@@ -524,22 +523,26 @@ public class EvernoteUpdater extends AbstractUpdater {
      * @param guid
      * @param appendix
      * @param mimeType
-     * @param connectorDataLocation
+     * @param devKvsLocation
      * @return
      */
-    public static File getResourceFile(final long apiKeyId, final String guid, final String appendix, final String mimeType, final String connectorDataLocation) {
+    public static File getResourceFile(final long guestId, final long apiKeyId,
+                                       final String guid, final String appendix,
+                                       final String mimeType, final String devKvsLocation) {
         String extension = getFileExtension(mimeType);
         if (appendix.equals(RECOGNITION_APPENDIX))
             extension = ".xml";
-        return new File(new StringBuilder(connectorDataLocation).append(File.separator)
-                                     .append("evernote")
-                                     .append(File.separator)
-                                     .append(apiKeyId)
-                                     .append(File.separator)
-                                     .append(guid)
-                                     .append(appendix.equals(MAIN_APPENDIX)?"":"_")
-                                     .append(appendix.equals(MAIN_APPENDIX)?"":appendix)
-                                     .append(extension).toString());
+        return new File(new StringBuilder(devKvsLocation).append(File.separator)
+                                .append(guestId)
+                                .append(File.separator)
+                                .append(Connector.getConnector("evernote").prettyName())
+                                .append(File.separator)
+                                .append(apiKeyId)
+                                .append(File.separator)
+                                .append(guid)
+                                .append(appendix.equals(MAIN_APPENDIX) ? "" : "_")
+                                .append(appendix.equals(MAIN_APPENDIX) ? "" : appendix)
+                                .append(extension).toString());
     }
 
     private static String getFileExtension(String mimeType) {

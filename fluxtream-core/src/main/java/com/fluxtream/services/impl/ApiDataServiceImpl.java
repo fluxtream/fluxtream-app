@@ -284,12 +284,16 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 			deleteProfileQuery.executeUpdate();
 		}
         // remove directory <connectorData.location>/<connectorName>/<apiKeyId>
-        final String connectorDataLocation = env.get("connectorData.location");
+        final String devKvsLocation = env.get("btdatastore.db.location");
         // let's not assume that everyone has set this value
-        if (connectorDataLocation!=null) {
+        if (devKvsLocation!=null) {
             if (apiKey.getConnector()!=null&&apiKey.getConnector().getName()!=null) {
-                final String connectorName = apiKey.getConnector().getName();
-                File dataDir = new File(connectorDataLocation+File.separator+connectorName+File.separator+apiKey.getId());
+                final String connectorName = apiKey.getConnector().getPrettyName();
+                StringBuilder path = new StringBuilder(devKvsLocation)
+                        .append(File.separator).append(apiKey.getGuestId())
+                        .append(File.separator).append(connectorName)
+                        .append(File.separator).append(apiKey.getId());
+                File dataDir = new File(path.toString());
                 if (dataDir.exists()) {
                     try {
                         FileUtils.deleteDirectory(dataDir);
