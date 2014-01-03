@@ -1,6 +1,7 @@
 package com.fluxtream.connectors.evernote;
 
 import java.awt.Dimension;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -72,6 +73,10 @@ public class EvernotePhotoFacetVO extends AbstractPhotoFacetVO<EvernotePhotoFace
 
     @Override
     public List<DimensionModel> getThumbnailSizes() {
-        return null;
+        List<DimensionModel> dimensions = new ArrayList<DimensionModel>();
+        for (Dimension dimension : thumbnailSizes.values()) {
+            dimensions.add(new DimensionModel(dimension.width, dimension.height));
+        }
+        return dimensions;
     }
 }
