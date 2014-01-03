@@ -603,7 +603,9 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         App.loadMustacheTemplate("core/grapher/timelineTemplates.html","timelineExportModal",function(template){
             var modalContents = {
                 channels:[],
-                downloadLink: "/api/bodytrack/exportCSV/" + App.getUID() + "/data.csv?channels=" + encodeURIComponent(JSON.stringify(channelsArray)) + "&start=" + start + "&end=" + end
+                downloadLink: "/api/bodytrack/exportCSV/" + App.getUID() + "/fluxtream-export-from-" + start + "-to-" + end + ".csv?channels=" + encodeURIComponent(JSON.stringify(channelsArray)),
+                filename: "fluxtream-export-from-" + start + "-to-" + end + ".csv",
+                noChannels: channelsArray.length == 0
             };
             for (var i = 0, li = channelsArray.length; i < li; i++){
                 modalContents.channels.push({
@@ -649,20 +651,6 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                 request.abort();
             }) */
         });
-
-    }
-
-    Grapher.prototype.updateExportToCSVState = function(){
-        var count = 0;
-        for (var element in this.channelsMap){
-            var channel = this.channelsMap[element];
-            if (channel.type == null){//this signifies a data channel (aka we can export it!)
-                count++;
-                break;
-            }
-
-        }
-        $("#" + this.grapherId + "_timeline_export_to_csv").toggleClass('disabled',count == 0);
 
     }
 
@@ -803,8 +791,6 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             $("#" + channelElementId).remove();
             delete this.channelsMap[channelElementId];
         }
-
-        this.updateExportToCSVState();
 
     }
 
@@ -1028,8 +1014,6 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             grapher.plotsMap[channelElementId] = plot;
             grapher.plotContainersMap[channelElementId] = plotContainer;
             grapher.plotContainers.push(plotContainer);
-
-            grapher.updateExportToCSVState();
 
             // Gear button
             $("#" + channelElementId + "_btnGear").unbind("click").click(function(event) {
