@@ -3,6 +3,7 @@ package com.fluxtream.connectors.evernote;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.StringTokenizer;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
@@ -50,7 +51,7 @@ public class EvernoteController {
     private static final String EVERNOTE_SERVICE = "evernoteService";
     private static final String EVERNOTE_REQUEST_TOKEN = "evernoteRequestToken";
     private static final String EVERNOTE_RENEWTOKEN_APIKEYID = "evernote.renewtoken.apiKeyId";
-    private static final short MAX_WIDTH = 600;
+    private static final short DEFAULT_MAX_WIDTH = 600;
 
     @Autowired
     Configuration env;
@@ -129,10 +130,21 @@ public class EvernoteController {
         return env.get("evernoteConsumerSecret");
     }
 
+
     @RequestMapping(value="/res/{apiKeyId}/{guid}")
     public void getResource(@PathVariable("apiKeyId") long apiKeyId,
-                            @PathVariable("guid") String guid,
+                            @PathVariable("guid") String rawGuid,
                             HttpServletResponse response) throws IOException, CoachRevokedException {
+        String guid = rawGuid;
+        Integer maxWidth = null;
+        if (rawGuid.indexOf("@")!=-1) {
+            guid = rawGuid.substring(0, rawGuid.indexOf("@"));
+            String formatSpecs = rawGuid.substring(guid.length());
+            StringTokenizer st = new StringTokenizer(formatSpecs, "=");
+            st.nextToken();
+            String w = st.nextToken();
+            maxWidth = Integer.valueOf(w);
+        }
         // we want to reduce the size of images that are too big to be transported over http in a timely manner,
         // so here we ask the db for the mime type of the requested resource and its width so that,
         // if we are dealing with an image, we know if we need to make it smaller
@@ -167,9 +179,10 @@ public class EvernoteController {
             // if the width of the image is larger than our max, then use Thumbnailator
             // to make it smaller and directly stream the result
             // TODO: cache the resulting image
-            if (width>MAX_WIDTH) {
+            int specifiedWidth = maxWidth!=null?maxWidth:DEFAULT_MAX_WIDTH;
+            if (width>specifiedWidth) {
                 Thumbnailator.createThumbnail(new FileInputStream(resourceFile),
-                                              response.getOutputStream(), MAX_WIDTH,
+                                              response.getOutputStream(), specifiedWidth,
                                               Integer.MAX_VALUE);
                 return;
             }
@@ -206,13 +219,13 @@ public class EvernoteController {
         Elements e = doc.getElementsByTag("img");
         for (Element element : e) {
             final String width = element.attr("width");
-            if (StringUtils.isNotEmpty(width)&&Integer.valueOf(width)>MAX_WIDTH) {
-                element.attr("width", String.valueOf(MAX_WIDTH));
+            if (StringUtils.isNotEmpty(width)&&Integer.valueOf(width)> DEFAULT_MAX_WIDTH) {
+                element.attr("width", String.valueOf(DEFAULT_MAX_WIDTH));
                 final String height = element.attr("height");
                 if (StringUtils.isNotEmpty(height)) {
                     float w = Float.valueOf(width);
                     float h = Float.valueOf(height);
-                    float r = Float.valueOf(MAX_WIDTH)/w;
+                    float r = Float.valueOf(DEFAULT_MAX_WIDTH)/w;
                     element.attr("height", String.valueOf((int)(h*r)));
                 }
             }

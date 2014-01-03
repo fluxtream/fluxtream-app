@@ -30,6 +30,41 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     map: true,
                     gps: false,
                     clock: ClockConfig.AT_HOME_CATEGORY
+                },
+                photo:{
+                    list:false,
+                    photos: true,
+                    map: false,
+                    gps: false,
+                    clock: ClockConfig.SOCIAL_CATEGORY
+                },
+                notebook:{
+                    list:false,
+                    photos: false,
+                    map: false,
+                    gps: false,
+                    clock: null
+                },
+                resource:{
+                    list:false,
+                    photos: false,
+                    map: false,
+                    gps: false,
+                    clock: null
+                },
+                tag:{
+                    list:false,
+                    photos: false,
+                    map: false,
+                    gps: false,
+                    clock: null
+                },
+                location:{
+                    list:false,
+                    photos: false,
+                    map: true,
+                    gps: true,
+                    clock: true
                 }
             }
         },

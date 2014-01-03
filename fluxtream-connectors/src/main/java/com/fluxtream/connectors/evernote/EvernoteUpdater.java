@@ -55,7 +55,8 @@ import org.springframework.stereotype.Component;
 @Component
 @Updater(prettyName = "Evernote", value = 17, objectTypes ={LocationFacet.class, EvernoteNoteFacet.class,
                                                             EvernoteTagFacet.class, EvernoteNotebookFacet.class,
-                                                            EvernoteResourceFacet.class})
+                                                            EvernoteResourceFacet.class, EvernotePhotoFacet.class},
+         defaultChannels = {"Evernote.photo"})
 public class EvernoteUpdater extends AbstractUpdater {
 
     public static final String MAIN_APPENDIX = "main";
@@ -196,6 +197,8 @@ public class EvernoteUpdater extends AbstractUpdater {
             String mime = (String)guidAndMime[1];
             // remove the resource from the database first
             removeEvernoteFacet(updateInfo, EvernoteResourceFacet.class, guid);
+            // if the resource is a photo, remove the associated photo facet
+            removeEvernoteFacet(updateInfo, EvernotePhotoFacet.class, guid);
             // now retrieve the associated data files and delete them if they exist
             final File resourceDataFile = getResourceFile(updateInfo.getGuestId(), updateInfo.apiKey.getId(), guid, MAIN_APPENDIX, mime, devKvsLocation);
             final File resourceAlternateDataFile = getResourceFile(updateInfo.getGuestId(), updateInfo.apiKey.getId(), guid, ALTERNATE_APPENDIX, mime, devKvsLocation);
@@ -332,9 +335,23 @@ public class EvernoteUpdater extends AbstractUpdater {
                 if (freshlyRetrievedNote.isSetContentLength())
                     facet.contentLength = freshlyRetrievedNote.getContentLength();
                 Map<String, String> mapHashtoURL = new HashMap<String, String>();
+                if (freshlyRetrievedNote.isSetCreated()) {
+                    facet.created = freshlyRetrievedNote.getCreated();
+                    facet.start = facet.created;
+                    facet.end = facet.created;
+                }
+                if (freshlyRetrievedNote.isSetUpdated()) {
+                    facet.updated = freshlyRetrievedNote.getUpdated();
+                    facet.start = facet.updated;
+                    facet.end = facet.updated;
+                }
                 if (freshlyRetrievedNote.isSetResources()) {
                     for (Resource resource : freshlyRetrievedNote.getResources()) {
                         createOrUpdateResource(updateInfo, resource);
+                        // save the resource a second time as a photo -
+                        // the facet will hold a reference to the original resource facet
+                        if (resource.isSetAttributes()&&resource.getAttributes().isSetCameraMake())
+                            createOrUpdatePhoto(updateInfo, resource, facet.start);
                         String webResourcePath = new StringBuilder("/evernote/res/")
                                 .append(updateInfo.apiKey.getId())
                                 .append("/")
@@ -359,16 +376,6 @@ public class EvernoteUpdater extends AbstractUpdater {
 
                 if (freshlyRetrievedNote.isSetTitle())
                     facet.title = freshlyRetrievedNote.getTitle();
-                if (freshlyRetrievedNote.isSetCreated()) {
-                    facet.created = freshlyRetrievedNote.getCreated();
-                    facet.start = facet.created;
-                    facet.end = facet.created;
-                }
-                if (freshlyRetrievedNote.isSetUpdated()) {
-                    facet.updated = freshlyRetrievedNote.getUpdated();
-                    facet.start = facet.updated;
-                    facet.end = facet.updated;
-                }
                 if (freshlyRetrievedNote.isSetDeleted())
                     facet.deleted = freshlyRetrievedNote.getDeleted();
                 else if (!freshlyRetrievedNote.isSetDeleted()&&facet.deleted!=null)
@@ -423,6 +430,36 @@ public class EvernoteUpdater extends AbstractUpdater {
         };
         // we could use the resulting value (facet) from this call if we needed to do further processing on it (e.g. passing it on to the datastore)
         apiDataService.createOrReadModifyWrite(EvernoteNoteFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
+    }
+
+    private void createOrUpdatePhoto(final UpdateInfo updateInfo, final Resource resource, final long start) throws Exception {
+        final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery(
+                "e.apiKeyId=? AND e.guid=?",
+                updateInfo.apiKey.getId(), resource.getGuid());
+        final ApiDataService.FacetModifier<EvernotePhotoFacet> facetModifier = new ApiDataService.FacetModifier<EvernotePhotoFacet>() {
+            @Override
+            public EvernotePhotoFacet createOrModify(EvernotePhotoFacet facet, final Long apiKeyId) throws Exception {
+                if (facet == null) {
+                    facet = new EvernotePhotoFacet(updateInfo.apiKey.getId());
+                    extractCommonFacetData(facet, updateInfo);
+                    facet.guid = resource.getGuid();
+                }
+                facet.start = start;
+                facet.end = start;
+                final List<EvernoteResourceFacet> resourceFacets =
+                        jpaDaoService.executeQueryWithLimit(String.format("SELECT facet from %s facet WHERE facet.apiKeyId=? AND facet.guid=?",
+                                                                          JPAUtils.getEntityName(EvernoteResourceFacet.class)),
+                                                            1, EvernoteResourceFacet.class, apiKeyId, resource.getGuid());
+                // in theory this list should always be non-empty but we don't want to risk crashing at this point
+                if (resourceFacets.size()>0)
+                    facet.resourceFacet = resourceFacets.get(0);
+                else
+                    return null;
+                // now all the useful information i s in the resource facet, really
+                return facet;
+            }
+        };
+        apiDataService.createOrReadModifyWrite(EvernotePhotoFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
     }
 
     private void createOrUpdateResource(final UpdateInfo updateInfo, final Resource resource) throws Exception {
