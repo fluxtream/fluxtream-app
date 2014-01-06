@@ -15,6 +15,7 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.mvc.models.TimespanModel;
+import com.fluxtream.services.impl.BodyTrackHelper;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -42,7 +43,10 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
                 List<AbstractFacet> facets = getFacetsInTimespan(timeInterval,apiKey,objectType);
                 for (AbstractFacet facet : facets){
                     MovesPlaceFacet place = (MovesPlaceFacet) facet;
-                    items.add(new TimespanModel(place.start,place.end,"place",objectTypeName));
+                    BodyTrackHelper.TimespanStyle style = new BodyTrackHelper.TimespanStyle();
+                    style.iconURL = "/moves/place/" + place.apiKeyId + "/" + place.getId();
+                    final TimespanModel placeTimespanModel = new TimespanModel(place.start, place.end, "place", objectTypeName,style);
+                    items.add(placeTimespanModel);
                 }
             }
         }

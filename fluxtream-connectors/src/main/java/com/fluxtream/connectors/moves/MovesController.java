@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
@@ -15,7 +17,10 @@ import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.Notification;
+import com.fluxtream.domain.metadata.FoursquareVenue;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.JPADaoService;
+import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.HttpUtils;
 import net.sf.json.JSONObject;
@@ -23,6 +28,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 
@@ -32,7 +38,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * Time: 16:49
  */
 @Controller
-@RequestMapping(value = "/moves/oauth2")
+@RequestMapping(value = "/moves")
 public class MovesController {
 
     @Autowired
@@ -42,12 +48,18 @@ public class MovesController {
     NotificationsService notificationsService;
 
     @Autowired
+    MetadataService metadataService;
+
+    @Autowired
     GuestService guestService;
+
+    @Autowired
+    JPADaoService jpaDaoService;
 
     static final Logger logger = Logger.getLogger(MovesController.class);
 
 
-    @RequestMapping(value = "/token")
+    @RequestMapping(value = "/oauth2/token")
     public String getToken(HttpServletRequest request) throws IOException, ServletException {
 
         String redirectUri = getRedirectUri();
@@ -99,7 +111,8 @@ public class MovesController {
         return env.get("homeBaseUrl") + "moves/oauth2/swapToken";
     }
 
-    @RequestMapping(value="swapToken")
+
+    @RequestMapping(value = "/oauth2/swapToken")
     public String swapToken(HttpServletRequest request) throws Exception {
         final String errorMessage = request.getParameter("error");
         final Guest guest = AuthHelper.getGuest();
@@ -244,6 +257,25 @@ public class MovesController {
         guestService.setApiKeyAttribute(apiKey,
                                         "tokenExpires", String.valueOf(tokenExpires));
 
+    }
+
+    @RequestMapping(value = "/place/{apiKeyId}/{id}")
+    public void getMovesPlaceIcon(@PathVariable("apiKeyId") long apiKeyId,
+                                  @PathVariable("id") long id,
+                                  HttpServletResponse response) throws IOException {
+        List l = jpaDaoService.executeNativeQuery("SELECT type, foursquareId FROM Facet_MovesPlace WHERE apiKeyId=(?1) AND id=(?2)", apiKeyId, id);
+        if (l==null||l.size()==0)
+            response.sendError(404);
+        final Object[] singleResult = (Object[])l.get(0);
+        String type = (String) singleResult[0];
+        if (type.equals("foursquare")) {
+            String foursquareId = (String) singleResult[1];
+            final FoursquareVenue foursquareVenue = metadataService.getFoursquareVenue(foursquareId);
+            response.sendRedirect(foursquareVenue.categoryIconUrlPrefix + "bg_32" + foursquareVenue.categoryIconUrlSuffix);
+        } else {
+            String homeBaseUrl = env.get("homeBaseUrl");
+            response.sendRedirect(homeBaseUrl+"/images/moves/" + type + ".png");
+        }
     }
 
 
