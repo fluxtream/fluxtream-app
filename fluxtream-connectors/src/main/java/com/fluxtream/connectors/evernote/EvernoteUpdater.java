@@ -361,14 +361,16 @@ public class EvernoteUpdater extends AbstractUpdater {
                 }
                 if (freshlyRetrievedNote.isSetContent()) {
                     facet.content = freshlyRetrievedNote.getContent();
-                    final long then = System.currentTimeMillis();
                     // WARNING!! The first time this gets call, a lengthy DTD processing operation
                     // needs to happen which can take a long while (~1min) - after that the conversion
                     // from enml to xhtml is very fast
-                    final String htmlContent = processor.noteToHTMLString(freshlyRetrievedNote, mapHashtoURL);
-                    final long now = System.currentTimeMillis();
-                    System.out.println("converting enml note took " + (now-then) + " ms");
-                    facet.htmlContent = htmlContent;
+                    try {
+                        final String htmlContent = processor.noteToHTMLString(freshlyRetrievedNote, mapHashtoURL);
+                        facet.htmlContent = htmlContent;
+                    } catch (Throwable t) {
+                        logger.warn("error parsing enml note: " + t.getMessage());
+                        facet.htmlContent = "Sorry, there was an error parsing this note (" + t.getMessage() +")";
+                    }
                 }
                 facet.clearTags();
                 if (freshlyRetrievedNote.isSetTagNames())
