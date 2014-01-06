@@ -1373,7 +1373,7 @@ define(["applications/calendar/tabs/map/MapConfig",
                 zoom : zoom,
                 center: center,
                 scrollwheel : true,
-                streetViewControl : false,
+                streetViewControl : true,
                 mapTypeId : google.maps.MapTypeId.ROADMAP
             };
             if (hideControls){
