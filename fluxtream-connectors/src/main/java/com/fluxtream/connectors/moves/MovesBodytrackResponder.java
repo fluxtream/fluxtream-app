@@ -34,7 +34,10 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
                 for (AbstractFacet facet : facets){
                     MovesMoveFacet moveFacet = (MovesMoveFacet) facet;
                     for (MovesActivity activity : moveFacet.getActivities()){
-                        items.add(new TimespanModel(activity.start,activity.end,activity.activity,objectTypeName));
+                        BodyTrackHelper.TimespanStyle style = new BodyTrackHelper.TimespanStyle();
+                        style.iconURL = "/images/moves/" + toIconName(activity.activity) + ".png";
+                        final TimespanModel moveTimespanModel = new TimespanModel(activity.start, activity.end, activity.activity, objectTypeName, style);
+                        items.add(moveTimespanModel);
                     }
                 }
 
@@ -51,6 +54,17 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
             }
         }
         return items;
+    }
+
+    private String toIconName(final String activity) {
+        if (activity.equalsIgnoreCase("wlk"))
+            return "walking";
+        else if (activity.equalsIgnoreCase("cyc"))
+            return "cycling";
+        else if (activity.equalsIgnoreCase("run"))
+            return "running";
+        else
+            return "transport";
     }
 
     @Override
