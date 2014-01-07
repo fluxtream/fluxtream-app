@@ -1,6 +1,6 @@
 define(["core/grapher/BTCore",
-        "settings/google_calendar"],function(BodyTrack,
-        GoogleCalendarSettingsHandler) {
+        "settings/google_calendar", "settings/evernote"],function(BodyTrack,
+        GoogleCalendarSettingsHandler, EvernoteSettingsHandler) {
 
     var connectors;
 
@@ -8,7 +8,8 @@ define(["core/grapher/BTCore",
      * list settings handlers here in order for them to be able to be looked up by connectorName
      */
     var settingsHandlers = {
-        "google_calendar" : GoogleCalendarSettingsHandler
+        "google_calendar" : GoogleCalendarSettingsHandler,
+        "evernote" : EvernoteSettingsHandler
     };
 
     function show(){

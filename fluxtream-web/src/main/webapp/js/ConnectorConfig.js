@@ -18,6 +18,8 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             facets: {}
         },
         evernote:{
+            hasGeneralSettings: true,
+            hasTimelineSettings: true,
             color: "rgb(130, 182, 82)",
             mapicon: {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/evernote.png",

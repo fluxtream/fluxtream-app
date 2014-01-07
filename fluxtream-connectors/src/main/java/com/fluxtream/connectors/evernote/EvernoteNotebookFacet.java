@@ -1,6 +1,8 @@
 package com.fluxtream.connectors.evernote;
 
 import javax.persistence.Entity;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import com.evernote.edam.type.Publishing;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 
@@ -11,6 +13,9 @@ import com.fluxtream.connectors.annotations.ObjectTypeSpec;
  */
 @Entity(name="Facet_EvernoteNotebook")
 @ObjectTypeSpec(name = "notebook", value = 2, prettyname = "Notebook", clientFacet = false)
+@NamedQueries({
+      @NamedQuery(name = "evernote.notebooks.byApiKeyId", query = "SELECT facet FROM Facet_EvernoteNotebook facet WHERE facet.apiKeyId=?")
+})
 public class EvernoteNotebookFacet extends EvernoteFacet {
 
     public String name;

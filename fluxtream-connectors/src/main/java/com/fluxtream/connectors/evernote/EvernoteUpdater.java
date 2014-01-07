@@ -31,13 +31,18 @@ import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.location.LocationFacet;
-import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.AuthExpiredException;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
+import com.fluxtream.connectors.updaters.SettingsAwareAbstractUpdater;
+import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.ChannelMapping;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.MetadataService;
+import com.fluxtream.services.SettingsService;
+import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.JPAUtils;
 import com.syncthemall.enml4j.ENMLProcessor;
 import org.apache.commons.io.IOUtils;
@@ -56,12 +61,13 @@ import org.springframework.stereotype.Component;
 @Updater(prettyName = "Evernote", value = 17, objectTypes ={LocationFacet.class, EvernoteNoteFacet.class,
                                                             EvernoteTagFacet.class, EvernoteNotebookFacet.class,
                                                             EvernoteResourceFacet.class, EvernotePhotoFacet.class},
-         defaultChannels = {"Evernote.photo"})
-public class EvernoteUpdater extends AbstractUpdater {
+         defaultChannels = {"Evernote.photo"}, settings = EvernoteConnectorSettings.class)
+public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
 
     public static final String MAIN_APPENDIX = "main";
     public static final String RECOGNITION_APPENDIX = "recognition";
     public static final String ALTERNATE_APPENDIX = "alternate";
+    public static final String EVERNOTE_DEFAULT_BGCOLOR = "#82B652";
 
     FlxLogger logger = FlxLogger.getLogger(EvernoteUpdater.class);
 
@@ -70,10 +76,16 @@ public class EvernoteUpdater extends AbstractUpdater {
     private static final String LAST_SYNC_TIME = "evernoteLastSyncTime";
 
     @Autowired
+    BodyTrackHelper bodyTrackHelper;
+
+    @Autowired
     JPADaoService jpaDaoService;
 
     @Autowired
     MetadataService metadataService;
+
+    @Autowired
+    SettingsService settingsService;
 
     ENMLProcessor processor = new ENMLProcessor();
 
@@ -116,6 +128,109 @@ public class EvernoteUpdater extends AbstractUpdater {
             return;
         else
             performSync(updateInfo, noteStore, false);
+    }
+
+    @Override
+    public void connectorSettingsChanged(final long apiKeyId, final Object settings) {
+        final EvernoteConnectorSettings connectorSettings = (EvernoteConnectorSettings)settings;
+        final ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        setChannelMapping(apiKey, connectorSettings.notebooks);
+    }
+
+    @Override
+    public Object createOrRefreshSettings(final ApiKey apiKey) throws UpdateFailedException {
+        EvernoteConnectorSettings settings = (EvernoteConnectorSettings)apiKey.getSettings();
+        if (settings==null)
+            settings = new EvernoteConnectorSettings();
+        refreshSettings(apiKey, settings);
+        return settings;
+    }
+
+    private void refreshSettings(final ApiKey apiKey, final EvernoteConnectorSettings settings)
+            throws UpdateFailedException {
+        // get notebooks, add new configs for new notebooks...
+        final List<EvernoteNotebookFacet> notebooks = jpaDaoService.find("evernote.notebooks.byApiKeyId", EvernoteNotebookFacet.class, apiKey.getId());
+        there: for (EvernoteNotebookFacet notebook : notebooks) {
+            for (NotebookConfig notebookConfig : settings.notebooks) {
+                if (notebookConfig.guid.equals(notebook.guid))
+                    continue there;
+            }
+            NotebookConfig config = new NotebookConfig();
+            config.guid = notebook.guid;
+            config.name = notebook.name;
+            config.isDefault = notebook.defaultNotebook==null?false:notebook.defaultNotebook;
+            config.backgroundColor = EVERNOTE_DEFAULT_BGCOLOR;
+            settings.addNotebookConfig(config);
+        }
+        // and remove configs for deleted notebooks - leave others untouched
+        List<NotebookConfig> configsToDelete = new ArrayList<NotebookConfig>();
+        there: for (NotebookConfig notebookConfig : settings.notebooks) {
+            for (EvernoteNotebookFacet notebook : notebooks) {
+                if (notebookConfig.guid.equals(notebook.guid))
+                    continue there;
+            }
+            configsToDelete.add(notebookConfig);
+        }
+        for (NotebookConfig notebookConfig : configsToDelete) {
+            final NotebookConfig toDelete = settings.getNotebook(notebookConfig.guid);
+            settings.notebooks.remove(toDelete);
+        }
+    }
+
+
+    private void setChannelMapping(ApiKey apiKey, final List<NotebookConfig> notebookConfigs) {
+        bodyTrackHelper.deleteChannelMappings(apiKey);
+        ChannelMapping mapping = new ChannelMapping();
+        mapping.deviceName = "evernote";
+        mapping.channelName = "notes";
+        mapping.timeType = ChannelMapping.TimeType.gmt;
+        mapping.channelType = ChannelMapping.ChannelType.timespan;
+        mapping.guestId = apiKey.getGuestId();
+        mapping.apiKeyId = apiKey.getId();
+        bodyTrackHelper.persistChannelMapping(mapping);
+
+        BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
+        channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
+        channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
+        channelStyle.timespanStyles.defaultStyle.fillColor = EVERNOTE_DEFAULT_BGCOLOR;
+        channelStyle.timespanStyles.defaultStyle.borderColor = EVERNOTE_DEFAULT_BGCOLOR;
+        channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
+        channelStyle.timespanStyles.defaultStyle.top = 1.0;
+        channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
+        channelStyle.timespanStyles.values = new HashMap();
+
+        EvernoteConnectorSettings connectorSettings = null;
+        try {
+            connectorSettings =
+                    (EvernoteConnectorSettings)settingsService.getConnectorSettings(apiKey.getId(), false);
+        } catch (UpdateFailedException e) { }
+        int n = notebookConfigs.size();
+        if (connectorSettings!=null) {
+            n = 0;
+            for (NotebookConfig calendar : connectorSettings.notebooks) {
+                if (!calendar.hidden)
+                    n++;
+            }
+        }
+        double rowHeight = 1.f/(n *2+1);
+        int i=0;
+        for (NotebookConfig config: notebookConfigs) {
+            if (connectorSettings!=null && config.hidden)
+                continue;
+
+            BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
+
+            final int rowsFromTop = (i+1) * 2 - 1;
+
+            stylePart.top = (double)rowsFromTop*rowHeight-(rowHeight*0.25);
+            stylePart.bottom = stylePart.top+rowHeight+(rowHeight*0.25);
+            stylePart.fillColor = config.backgroundColor;
+            stylePart.borderColor = config.backgroundColor;
+            channelStyle.timespanStyles.values.put(config.guid, stylePart);
+            i++;
+        }
+
+        bodyTrackHelper.setDefaultStyle(apiKey.getGuestId(), "evernote", "notes", channelStyle);
     }
 
     private NoteStoreClient getNoteStoreClient(final UpdateInfo updateInfo) throws EDAMUserException, EDAMSystemException, TException {
@@ -345,6 +460,8 @@ public class EvernoteUpdater extends AbstractUpdater {
                     facet.start = facet.updated;
                     facet.end = facet.updated;
                 }
+                if (freshlyRetrievedNote.isSetNotebookGuid())
+                    facet.notebookGuid = freshlyRetrievedNote.getNotebookGuid();
                 if (freshlyRetrievedNote.isSetResources()) {
                     for (Resource resource : freshlyRetrievedNote.getResources()) {
                         createOrUpdateResource(updateInfo, resource);
@@ -382,8 +499,6 @@ public class EvernoteUpdater extends AbstractUpdater {
                     facet.deleted = freshlyRetrievedNote.getDeleted();
                 else if (!freshlyRetrievedNote.isSetDeleted()&&facet.deleted!=null)
                     facet.deleted = null;
-                if (freshlyRetrievedNote.isSetNotebookGuid())
-                    facet.notebookGuid = freshlyRetrievedNote.getNotebookGuid();
                 if (freshlyRetrievedNote.isSetActive())
                     facet.active = freshlyRetrievedNote.isActive();
 
@@ -612,10 +727,7 @@ public class EvernoteUpdater extends AbstractUpdater {
     }
 
     private void removeEvernoteFacet(final UpdateInfo updateInfo, Class<? extends EvernoteFacet> clazz, final String guid) {
-        jpaDaoService.execute(String.format("DELETE FROM %s facet WHERE facet.apiKeyId=%s AND facet.guid='%s'",
-                                            JPAUtils.getEntityName(clazz),
-                                            updateInfo.apiKey.getId(),
-                                            guid));
+        jpaDaoService.execute(String.format("DELETE FROM %s facet WHERE facet.apiKeyId=%s AND facet.guid='%s'", JPAUtils.getEntityName(clazz), updateInfo.apiKey.getId(), guid));
     }
 
     private void createOrUpdateNotebook(final UpdateInfo updateInfo, final Notebook notebook) throws Exception {
@@ -700,5 +812,4 @@ public class EvernoteUpdater extends AbstractUpdater {
         // we could use the resulting value (facet) from this call if we needed to do further processing on it (e.g. passing it on to the datastore)
         apiDataService.createOrReadModifyWrite(EvernoteTagFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
     }
-
 }

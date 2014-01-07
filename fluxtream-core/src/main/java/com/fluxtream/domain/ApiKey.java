@@ -79,7 +79,12 @@ public class ApiKey extends AbstractEntity {
     }
 
     public Object getSettings() {
-        return SerializationUtils.deserialize(settingsStorage);
+        try {
+            return SerializationUtils.deserialize(settingsStorage);
+        } catch (Throwable e) {
+            // let's be robust against class changes
+            return null;
+        }
     }
 
     public void setAttribute(ApiKeyAttribute attr) {

@@ -1,7 +1,6 @@
 package com.fluxtream.connectors.updaters;
 
 import com.fluxtream.domain.ApiKey;
-import com.fluxtream.connectors.updaters.UpdateFailedException;
 
 /**
  * User: candide
@@ -11,5 +10,6 @@ import com.fluxtream.connectors.updaters.UpdateFailedException;
 public abstract class SettingsAwareAbstractUpdater extends AbstractUpdater {
 
     public abstract Object createOrRefreshSettings(ApiKey apiKey) throws UpdateFailedException;
+    public abstract void connectorSettingsChanged(final long apiKeyId, final Object settings);
 
 }
