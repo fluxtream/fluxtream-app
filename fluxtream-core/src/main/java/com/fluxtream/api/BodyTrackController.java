@@ -3,6 +3,7 @@ package com.fluxtream.api;
 import java.lang.reflect.Type;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -10,7 +11,6 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
-import java.util.Arrays;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -75,10 +75,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @Path("/bodytrack")
 @Component("RESTBodytrackController")
@@ -699,7 +695,8 @@ public class BodyTrackController {
 
             for (ApiKey key : keys){
                 Connector connector = key.getConnector();
-                if (connector.getName().equals(connectorName)){
+                if (connector.getName().equals(connectorName)||
+                    connector.getPrettyName().equals(connectorName)){
                     api = key;
                     break;
                 }

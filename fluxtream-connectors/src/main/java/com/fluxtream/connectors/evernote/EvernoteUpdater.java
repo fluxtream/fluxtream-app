@@ -61,7 +61,8 @@ import org.springframework.stereotype.Component;
 @Updater(prettyName = "Evernote", value = 17, objectTypes ={LocationFacet.class, EvernoteNoteFacet.class,
                                                             EvernoteTagFacet.class, EvernoteNotebookFacet.class,
                                                             EvernoteResourceFacet.class, EvernotePhotoFacet.class},
-         defaultChannels = {"Evernote.photo"}, settings = EvernoteConnectorSettings.class)
+         settings = EvernoteConnectorSettings.class, bodytrackResponder = EvernoteBodytrackResponder.class,
+         defaultChannels = {"Evernote.photo", "Evernote.note"})
 public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
 
     public static final String MAIN_APPENDIX = "main";
@@ -181,8 +182,8 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
     private void setChannelMapping(ApiKey apiKey, final List<NotebookConfig> notebookConfigs) {
         bodyTrackHelper.deleteChannelMappings(apiKey);
         ChannelMapping mapping = new ChannelMapping();
-        mapping.deviceName = "evernote";
-        mapping.channelName = "notes";
+        mapping.deviceName = "Evernote";
+        mapping.channelName = "note";
         mapping.timeType = ChannelMapping.TimeType.gmt;
         mapping.channelType = ChannelMapping.ChannelType.timespan;
         mapping.guestId = apiKey.getGuestId();
@@ -230,7 +231,7 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
             i++;
         }
 
-        bodyTrackHelper.setDefaultStyle(apiKey.getGuestId(), "evernote", "notes", channelStyle);
+        bodyTrackHelper.setDefaultStyle(apiKey.getGuestId(), "Evernote", "note", channelStyle);
     }
 
     private NoteStoreClient getNoteStoreClient(final UpdateInfo updateInfo) throws EDAMUserException, EDAMSystemException, TException {

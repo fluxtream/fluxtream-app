@@ -21,6 +21,36 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             hasGeneralSettings: true,
             hasTimelineSettings: true,
             color: "rgb(130, 182, 82)",
+            applySettings: function(facet, connectorSettings) {
+                if (typeof(connectorSettings)=="undefined")
+                    console.log("warning: no connector settings");
+                else if (typeof(facet.apiKeyId)=="undefined")
+                    console.log("warning: no apiKeyId associated with this facet: " + facet.type);
+                else if (typeof(connectorSettings[facet.apiKeyId])=="undefined")
+                    console.log("warning: no connector settings are associated with apiKeyId " + facet.apiKeyId);
+                else {
+                    var settings = connectorSettings[facet.apiKeyId];
+                    if (typeof(settings)!="undefined") {
+                        for (var i=0; i<settings.notebooks.length; i++) {
+                            if (settings.notebooks[i].id==facet.notebookGuid) {
+                                var notebookSettings = settings.calendars[i];
+                                facet.color = notebookSettings.backgroundColor;
+                            }
+                        }
+                    }
+                }
+            },
+            isFilteredOut: function(facet, connectorSettings) {
+                var settings = connectorSettings[facet.apiKeyId];
+                if (typeof(settings)!="undefined") {
+                    for (var i=0; i<settings.notebooks.length; i++) {
+                        if (settings.notebooks[i].guid==facet.notebookGuid&&settings.notebooks[i].hidden) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            },
             mapicon: {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/evernote.png",
                 size: new google.maps.Size(32,37)

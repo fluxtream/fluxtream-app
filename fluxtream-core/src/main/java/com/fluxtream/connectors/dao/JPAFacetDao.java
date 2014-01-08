@@ -163,7 +163,7 @@ public class JPAFacetDao implements FacetDao {
         List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         for (ObjectType type : objectTypes) {
             if (!type.isClientFacet())
-                return new ArrayList<AbstractFacet>();
+                continue;
             facets.addAll(getFacetsBetween(apiKey, type, timeInterval, tagFilter));
         }
         return facets;
