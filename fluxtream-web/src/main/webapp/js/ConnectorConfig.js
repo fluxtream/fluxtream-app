@@ -68,7 +68,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     photos: true,
                     map: false,
                     gps: false,
-                    clock: ClockConfig.SOCIAL_CATEGORY
+                    clock: null
                 },
                 notebook:{
                     list:false,
