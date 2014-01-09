@@ -25,6 +25,7 @@ CREATE TABLE `Facet_EvernoteNote` (
   `deleted` bigint(20) DEFAULT NULL,
   `htmlContent` longtext,
   `lastEditedBy` longtext,
+  `tagGuidsStorage` longtext,
   `lastEditorId` int(11) DEFAULT NULL,
   `latitude` double DEFAULT NULL,
   `longitude` double DEFAULT NULL,

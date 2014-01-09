@@ -1,6 +1,9 @@
 package com.fluxtream.connectors.evernote;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
@@ -21,6 +24,7 @@ public class EvernoteNoteFacetVO extends AbstractInstantFacetVO<EvernoteNoteFace
     public String guid;
     public String notebookGuid;
     public long apiKeyId;
+    public List<String> tagGuids;
 
     @JsonRawValue
     public String resources;
@@ -38,5 +42,6 @@ public class EvernoteNoteFacetVO extends AbstractInstantFacetVO<EvernoteNoteFace
             content = facet.htmlContent;
         }
         title = facet.title;
+        tagGuids = new ArrayList<String>(Arrays.asList(facet.getTagGuids()));
     }
 }

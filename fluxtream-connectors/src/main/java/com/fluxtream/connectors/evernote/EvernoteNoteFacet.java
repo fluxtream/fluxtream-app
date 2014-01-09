@@ -1,8 +1,10 @@
 package com.fluxtream.connectors.evernote;
 
+import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * User: candide
@@ -56,6 +58,8 @@ public  class EvernoteNoteFacet extends EvernoteFacet {
     public String sourceURL;
     public Long subjectDate;
 
+    @Lob
+    public String tagGuidsStorage;
 
     public EvernoteNoteFacet() {
         super();
@@ -63,6 +67,14 @@ public  class EvernoteNoteFacet extends EvernoteFacet {
 
     public EvernoteNoteFacet(long apiKeyId) {
         super(apiKeyId);
+    }
+
+    public String[] getTagGuids() {
+        return StringUtils.split(tagGuidsStorage, ",");
+    }
+
+    public void setTagGuids(List<String> guids) {
+        tagGuidsStorage = StringUtils.join(guids, ",");
     }
 
     @Override

@@ -176,6 +176,12 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
             final NotebookConfig toDelete = settings.getNotebook(notebookConfig.guid);
             settings.notebooks.remove(toDelete);
         }
+        // retrieve tags and store tag guid -> tag name map in the settings
+        final List<EvernoteTagFacet> tags = jpaDaoService.find("evernote.tags.byApiKeyId", EvernoteTagFacet.class, apiKey.getId());
+        Map<String,String> tagsMap = new HashMap<String,String>();
+        for (EvernoteTagFacet tag : tags)
+            tagsMap.put(tag.guid, tag.name);
+        settings.tags = tagsMap;
     }
 
 
@@ -491,9 +497,14 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
                     }
                 }
                 facet.clearTags();
-                if (freshlyRetrievedNote.isSetTagNames())
-                    facet.addTags(StringUtils.join(freshlyRetrievedNote.getTagNames(), ","), ',');
-
+                if (freshlyRetrievedNote.isSetTagNames()) {
+                    final List<String> tagNames = freshlyRetrievedNote.getTagNames();
+                    facet.addTags(StringUtils.join(tagNames, ","), ',');
+                }
+                if (freshlyRetrievedNote.isSetTagGuids()) {
+                    final List<String> tagGuids = freshlyRetrievedNote.getTagGuids();
+                    facet.setTagGuids(tagGuids);
+                }
                 if (freshlyRetrievedNote.isSetTitle())
                     facet.title = freshlyRetrievedNote.getTitle();
                 if (freshlyRetrievedNote.isSetDeleted())

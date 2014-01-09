@@ -32,9 +32,17 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     var settings = connectorSettings[facet.apiKeyId];
                     if (typeof(settings)!="undefined") {
                         for (var i=0; i<settings.notebooks.length; i++) {
-                            if (settings.notebooks[i].id==facet.notebookGuid) {
-                                var notebookSettings = settings.calendars[i];
+                            if (settings.notebooks[i].guid==facet.notebookGuid) {
+                                var notebookSettings = settings.notebooks[i];
                                 facet.color = notebookSettings.backgroundColor;
+                                facet.notebook = notebookSettings.name;
+                            }
+                        }
+                        if (facet.tagGuids!=null && facet.tagGuids.length>0) {
+                            facet.evernoteTags = [];
+                            for (var i=0; i<facet.tagGuids.length;i++) {
+                                var evernoteTag = settings.tags[facet.tagGuids[i]];
+                                facet.evernoteTags.push(evernoteTag);
                             }
                         }
                     }

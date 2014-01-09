@@ -3,6 +3,7 @@ package com.fluxtream.connectors.evernote;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * User: candide
@@ -12,6 +13,7 @@ import java.util.List;
 public class EvernoteConnectorSettings implements Serializable {
 
     public List<NotebookConfig> notebooks = new ArrayList<NotebookConfig>();
+    public Map<String,String> tags;
 
     void addNotebookConfig(NotebookConfig config){
         notebooks.add(config);
@@ -24,4 +26,5 @@ public class EvernoteConnectorSettings implements Serializable {
         }
         return null;
     }
+
 }

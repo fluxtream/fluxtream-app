@@ -483,6 +483,10 @@
                 <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data evernote-note">
                     <strong>{{{title}}}</strong>
+                    <div style="margin-bottom: 4px;margin-top: 2px">
+                        <span class="evernoteNotebook" style="background-color:{{color}}"><i class="icon icon-book"/>&nbsp;{{notebook}}</span>
+                        {{#evernoteTags}}<span class="evernoteTag"><i class="icon icon-tag"/>&nbsp;{{.}}</span>{{/evernoteTags}}
+                    </div>
                     <iframe id="iframe-{{guid}}" src="/evernote/content/{{apiKeyId}}/{{guid}}"></iframe>
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
