@@ -511,6 +511,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     switch (connectorId){
                         case "picasa-photo":
                         case "flickr-photo":
+                        case "evernote-photo":
                         case "fluxtream_capture-photo":
                             facet.hasImage = true;
                             break;

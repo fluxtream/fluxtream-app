@@ -46,9 +46,9 @@ public class EvernoteBodytrackResponder extends AbstractBodytrackResponder {
         List<AbstractFacet> facets = getFacetsInTimespan(timeInterval, apiKey, ObjectType.getObjectType(Connector.getConnector("evernote"), "note"));
 
         // The start and end times of track facets are the same.  Assume that the
-        // start time is correct and arbitrarily draw a box that's 3 mins or
-        // 1/256 of the tile width, whichever is larger.
-        long duration = Math.max((endMillis-startMillis)/256L, 180000L);
+        // start time is correct and arbitrarily draw a box that's 6 mins or
+        // 1/127 of the tile width, whichever is larger.
+        long duration = Math.max((endMillis-startMillis)/127L, 360000L);
 
 
         for (AbstractFacet facet : facets){
