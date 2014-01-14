@@ -1,5 +1,6 @@
 package com.fluxtream.api;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
@@ -21,6 +22,7 @@ import com.fluxtream.domain.metadata.FoursquareVenue;
 import com.fluxtream.domain.metadata.VisitedCity;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.mvc.models.VisitedCityModel;
+import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.utils.TimeUtils;
 import com.google.gson.Gson;
@@ -43,6 +45,9 @@ public class MetadataController {
 
     @Autowired
     MetadataService metadataService;
+
+    @Autowired
+    GuestService guestService;
 
     @Autowired
     Configuration env;
@@ -102,6 +107,20 @@ public class MetadataController {
         Response.ResponseBuilder builder = Response.ok(foursquareVenue);
         builder.cacheControl(cc);
         return builder.build();
+    }
+
+    @GET
+    @Path(value = "/checkIn/{ipAddress}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public StatusModel checkIn(@PathParam("ipAddress") String ipAddress){
+        final long guestId = AuthHelper.getGuestId();
+        try {
+            guestService.checkIn(guestId, ipAddress);
+            return new StatusModel(true, "Guest successfully checked in");
+        }
+        catch (IOException e) {
+            return new StatusModel(false, "Unexpected error while checking in: " + e.getMessage());
+        }
     }
 
     @GET
