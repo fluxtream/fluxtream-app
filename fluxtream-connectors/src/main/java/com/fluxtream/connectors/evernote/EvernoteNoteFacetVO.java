@@ -8,7 +8,6 @@ import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
 import com.fluxtream.domain.GuestSettings;
-import org.codehaus.jackson.annotate.JsonRawValue;
 import org.joda.time.format.ISODateTimeFormat;
 
 /**
@@ -26,9 +25,6 @@ public class EvernoteNoteFacetVO extends AbstractInstantFacetVO<EvernoteNoteFace
     public long apiKeyId;
     public List<String> tagGuids;
 
-    @JsonRawValue
-    public String resources;
-
     @Override
     protected void fromFacet(final EvernoteNoteFacet facet, final TimeInterval timeInterval, final GuestSettings settings)
             throws OutsideTimeBoundariesException {
@@ -42,6 +38,7 @@ public class EvernoteNoteFacetVO extends AbstractInstantFacetVO<EvernoteNoteFace
             content = facet.htmlContent;
         }
         title = facet.title;
-        tagGuids = new ArrayList<String>(Arrays.asList(facet.getTagGuids()));
+        if (facet.getTagGuids()!=null)
+            tagGuids = new ArrayList<String>(Arrays.asList(facet.getTagGuids()));
     }
 }

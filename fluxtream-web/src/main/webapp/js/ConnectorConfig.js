@@ -104,7 +104,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     photos: false,
                     map: true,
                     gps: true,
-                    clock: true
+                    clock: null
                 }
             }
         },

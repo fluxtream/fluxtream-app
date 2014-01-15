@@ -332,6 +332,15 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
             if (resourceRecognitionDataFile.exists())
                 resourceRecognitionDataFile.delete();
         }
+        removeLocationFacets(updateInfo.apiKey.getId(), noteGuid);
+    }
+
+    private void removeLocationFacets(final long apiKeyId, final String noteGuid) {
+        final int locationsDeleted =
+                jpaDaoService.execute(String.format("DELETE FROM %s facet WHERE facet.apiKeyId=? AND facet.uri=?",
+                                                    JPAUtils.getEntityName(LocationFacet.class)),
+                                      apiKeyId, noteGuid);
+        System.out.println(locationsDeleted + " note locations were deleted");
     }
 
     private void processExpungedNotebooks(final UpdateInfo updateInfo, final LinkedList<SyncChunk> chunks) {
@@ -485,7 +494,7 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
                 }
                 if (freshlyRetrievedNote.isSetContent()) {
                     facet.content = freshlyRetrievedNote.getContent();
-                    // WARNING!! The first time this gets call, a lengthy DTD processing operation
+                    // WARNING!! The first time this gets called, a lengthy DTD processing operation
                     // needs to happen which can take a long while (~1min) - after that the conversion
                     // from enml to xhtml is very fast
                     try {
@@ -507,10 +516,7 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
                 }
                 if (freshlyRetrievedNote.isSetTitle())
                     facet.title = freshlyRetrievedNote.getTitle();
-                if (freshlyRetrievedNote.isSetDeleted())
-                    facet.deleted = freshlyRetrievedNote.getDeleted();
-                else if (!freshlyRetrievedNote.isSetDeleted()&&facet.deleted!=null)
-                    facet.deleted = null;
+
                 if (freshlyRetrievedNote.isSetActive())
                     facet.active = freshlyRetrievedNote.isActive();
 
@@ -551,14 +557,39 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
                     if (attributes.isSetSubjectDate())
                         facet.subjectDate = attributes.getSubjectDate();
                     if (attributes.isSetLatitude()&&attributes.isSetLongitude()&&freshlyRetrievedNote.isSetCreated()){
-                        addGuestLocation(updateInfo, facet.latitude, facet.longitude, facet.altitude, facet.created);
+                        addGuestLocation(updateInfo, facet.latitude, facet.longitude, facet.altitude, facet.created, facet.guid);
                     }
+                }
+
+                if (freshlyRetrievedNote.isSetDeleted()) {
+                    facet.deleted = freshlyRetrievedNote.getDeleted();
+                    // if the note was deleted:
+                    // remove locations that were attached to this note and its associated resources
+                    if (freshlyRetrievedNote.isSetGuid())
+                        removeLocationFacets(updateInfo.apiKey.getId(), freshlyRetrievedNote.getGuid());
+                } else if (!freshlyRetrievedNote.isSetDeleted()&&facet.deleted!=null) {
+                    facet.deleted = null;
+                    // this means that this note was restored from trash and we need to restore
+                    // its associated resources' locations
+                    if (freshlyRetrievedNote.isSetGuid())
+                        restoreNoteResourceLocations(updateInfo, freshlyRetrievedNote.getGuid());
                 }
                 return facet;
             }
         };
         // we could use the resulting value (facet) from this call if we needed to do further processing on it (e.g. passing it on to the datastore)
         apiDataService.createOrReadModifyWrite(EvernoteNoteFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
+    }
+
+    private void restoreNoteResourceLocations(final UpdateInfo updateInfo, final String noteGuid) {
+        final List<EvernoteResourceFacet> evernoteResourceFacets =
+                jpaDaoService.find("evernote.resources.byApiKeyIdAndNoteGuid", EvernoteResourceFacet.class, updateInfo.apiKey.getId(), noteGuid);
+        for (EvernoteResourceFacet evernoteResourceFacet : evernoteResourceFacets) {
+            if (evernoteResourceFacet.latitude!=null && evernoteResourceFacet.longitude!=null) {
+                addGuestLocation(updateInfo, evernoteResourceFacet.latitude, evernoteResourceFacet.longitude,
+                                 evernoteResourceFacet.altitude, evernoteResourceFacet.start, noteGuid);
+            }
+        }
     }
 
     private void createOrUpdatePhoto(final UpdateInfo updateInfo, final Resource resource, final long start) throws Exception {
@@ -636,8 +667,11 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
                         facet.timestamp = resourceAttributes.getTimestamp();
                     if (resourceAttributes.isSetTimestamp() &&
                         resourceAttributes.isSetLongitude() &&
-                        resourceAttributes.isSetLatitude()){
-                        addGuestLocation(updateInfo, facet.latitude, facet.longitude, facet.altitude, facet.timestamp);
+                        resourceAttributes.isSetLatitude()&&
+                        resource.isSetNoteGuid()){
+                        // resource locations are associated with their parent note's guid
+                        addGuestLocation(updateInfo, facet.latitude, facet.longitude, facet.altitude,
+                                         facet.timestamp, resource.getNoteGuid());
                     }
                 }
                 if (resource.isSetData()) {
@@ -723,7 +757,8 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
         }
     }
 
-    private void addGuestLocation(final UpdateInfo updateInfo, final Double latitude, final Double longitude, final Double altitude, final Long timestamp) {
+    private void addGuestLocation(final UpdateInfo updateInfo, final Double latitude, final Double longitude,
+                                  final Double altitude, final Long timestamp, final String noteGuid) {
         LocationFacet locationFacet = new LocationFacet(updateInfo.apiKey.getId());
         locationFacet.latitude = latitude.floatValue();
         locationFacet.longitude = longitude.floatValue();
@@ -735,6 +770,7 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
         locationFacet.source = LocationFacet.Source.EVERNOTE;
         locationFacet.apiKeyId = updateInfo.apiKey.getId();
         locationFacet.api = connector().value();
+        locationFacet.uri = noteGuid;
         apiDataService.addGuestLocation(updateInfo.getGuestId(), locationFacet);
     }
 

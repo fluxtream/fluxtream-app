@@ -15,7 +15,7 @@ public interface JPADaoService {
     @SuppressWarnings("unused")
 	public long countFacets(Connector connector, long guestId);
 
-    public int execute(String jpql);
+    public int execute(String jpql, Object... params);
 
     public void persist(Object o);
 

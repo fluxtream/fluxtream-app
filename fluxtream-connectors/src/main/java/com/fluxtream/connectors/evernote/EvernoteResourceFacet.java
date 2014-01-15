@@ -1,6 +1,8 @@
 package com.fluxtream.connectors.evernote;
 
 import javax.persistence.Entity;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import org.hibernate.annotations.Index;
 
@@ -11,6 +13,9 @@ import org.hibernate.annotations.Index;
  */
 @Entity(name="Facet_EvernoteResource")
 @ObjectTypeSpec(name = "resource", value = 16, prettyname = "Resource", clientFacet = false)
+@NamedQueries({
+      @NamedQuery(name = "evernote.resources.byApiKeyIdAndNoteGuid", query = "SELECT facet FROM Facet_EvernoteResource facet WHERE facet.apiKeyId=? AND facet.noteGuid=?")
+})
 public class EvernoteResourceFacet extends EvernoteFacet {
 
     @Index(name="noteGuid")
