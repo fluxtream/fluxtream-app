@@ -592,7 +592,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         return true;
     }
 
-
+   /**
+    * Inspects whats in the digest and sets the state of the filter buttons accordingly
+    * @param digest
+    */
     function processDigest(digest){
         $.each(Builder.getConnectorNames(), function(i, connectorName) {
             var buttonLink = Builder.getConnectorButton(connectorName),
