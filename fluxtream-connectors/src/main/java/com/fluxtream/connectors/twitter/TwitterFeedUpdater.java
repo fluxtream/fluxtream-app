@@ -50,7 +50,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 	}
 
 	public void getScreenName(ApiKey apiKey, OAuthConsumer consumer) throws Exception {
-		HttpGet request = new HttpGet("http://api.twitter.com/1.1/account/verify_credentials.json");
+		HttpGet request = new HttpGet("https://api.twitter.com/1.1/account/verify_credentials.json");
 		consumer.sign(request);
 		HttpClient client = env.getHttpClient();
 		HttpResponse response = client.execute(request);
@@ -349,7 +349,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 	private int getStatuses(UpdateInfo updateInfo, String screen_name, long max_id, long since_id, OAuthConsumer consumer) throws Exception {
         checkRateLimitInfo(updateInfo, STATUSES_USER_TIMELINE);
 		long then = System.currentTimeMillis();
-		String requestUrl = "http://api.twitter.com/1.1/statuses/user_timeline.json?" +
+		String requestUrl = "https://api.twitter.com/1.1/statuses/user_timeline.json?" +
 				"screen_name=" + screen_name + "&exclude_replies=t&count=200";
 		if (max_id!=-1)
 			requestUrl+="&max_id=" + max_id;
@@ -441,7 +441,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
     private int getReceivedDirectMessages(UpdateInfo updateInfo, long max_id, long since_id, OAuthConsumer consumer) throws Exception {
         checkRateLimitInfo(updateInfo, DIRECT_MESSAGES);
 		long then = System.currentTimeMillis();
-		String requestUrl = "http://api.twitter.com/1.1/direct_messages.json?count=200";
+		String requestUrl = "https://api.twitter.com/1.1/direct_messages.json?count=200";
 		if (max_id!=-1)
 			requestUrl+="&max_id=" + max_id;
 		else if (since_id!=-1)
@@ -478,7 +478,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 	private int getSentDirectMessages(UpdateInfo updateInfo, long max_id, long since_id, OAuthConsumer consumer) throws Exception {
         checkRateLimitInfo(updateInfo, DIRECT_MESSAGES_SENT);
 		long then = System.currentTimeMillis();
-		String requestUrl = "http://api.twitter.com/1.1/direct_messages/sent.json?count=200";
+		String requestUrl = "https://api.twitter.com/1.1/direct_messages/sent.json?count=200";
 		if (max_id!=-1)
 			requestUrl+="&max_id=" + max_id;
 		else if (since_id!=-1)
@@ -512,7 +512,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 	private int getMentions(UpdateInfo updateInfo, long max_id, long since_id, OAuthConsumer consumer) throws Exception {
         checkRateLimitInfo(updateInfo, STATUSES_MENTIONS_TIMELINE);
 		long then = System.currentTimeMillis();
-		String requestUrl = "http://api.twitter.com/1.1/statuses/mentions_timeline.json?count=200";
+		String requestUrl = "https://api.twitter.com/1.1/statuses/mentions_timeline.json?count=200";
 		if (max_id!=-1)
 			requestUrl+="&max_id=" + max_id;
 		else if (since_id!=-1)
