@@ -600,14 +600,24 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             button.hide();
         });
         $.each(digest.selectedConnectors, function(i, connector) {
+            var connectorConfig = App.getConnectorConfig(connector.connectorName);
             var connected = _.some(connector.facetTypes, function(facetType) {
-                return digest.cachedData[facetType] != null;
+                var hasTypedFacets = digest.cachedData[facetType] != null;
+                var objectType = facetType.split("-")[1];
+                if(Calendar.currentTab.name==="photos")
+                    hasTypedFacets = hasTypedFacets && objectType.indexOf("photo")!=-1;
+                console.log(facetType + " -> " + hasTypedFacets);
+                return hasTypedFacets;
             });
+
+            var configFilterLabel = connectorConfig.filterLabel,
+                filterLabel = configFilterLabel || connector.prettyName;
+
             var buttonLink = Builder.getConnectorButton(connector.connectorName),
                 button = buttonLink.parent();
             buttonLink
                 .toggleClass("flx-disconnected", !connected)
-                .text(connector.prettyName);
+                .text(filterLabel);
             if (connected) {
                 buttonLink.css("border-bottom-color",App.getConnectorConfig(connector.connectorName).color);
             }

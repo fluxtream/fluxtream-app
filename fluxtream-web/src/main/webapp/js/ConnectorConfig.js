@@ -532,7 +532,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         fluxtream_capture:{
             hasTimelineSettings: true,
             device_name:"FluxtreamCapture",
-            filterLabel: "FluxtreamCap",
+            filterLabel: "Fluxtream",
             color: "rgb(204, 204, 204)",
             facets: {
                 photo:{

@@ -311,9 +311,6 @@ define(["core/grapher/BTCore"],function(BTCore){
 
         var createPhotoDialog = function(compoundPhotoId, timestamp, completionCallback) {
 
-            console.log("photoCache");
-            console.log(photoCache);
-
             var photoMetadata = photoCache.getPhotoMetadata(compoundPhotoId);
             optionalArguments.photoChange(photoMetadata,timestamp);
             var thumbnails = photoMetadata['thumbnails'];
