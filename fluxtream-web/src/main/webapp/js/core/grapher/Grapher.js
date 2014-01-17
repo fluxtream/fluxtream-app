@@ -625,6 +625,23 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                 });
             }
             calculateNext(0);
+            if (li>0) {
+                modal.on("shown", function() {
+                    document.activeElement.blur()
+                    // If there are some channels, the btn-primary is the download button.
+                    // Focus on it so ENTER will download the file
+                    modal.find(".btn-primary").focus();
+                });
+            }
+            else {
+                modal.on("shown", function() {
+                    document.activeElement.blur()
+                    // If there are no channels, the only btn is the cancel button.
+                    // Focus on it so ENTER will cancel the dialog
+                    modal.find(".btn").focus();
+                });
+            }
+
 
 
             /*var request = $.ajax("/api/bodytrack/exportCSV/" + App.getUID(),{
