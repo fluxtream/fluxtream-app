@@ -1,23 +1,25 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"%><%@ page import="java.util.ArrayList"
-%><%@ page import="java.util.Arrays"
 %><%@ page import="java.util.List"
+%><%@ page import="java.util.Map"
 %>
-<%@ page import="java.util.Map" %>
+<%@ page import="java.util.Set" %>
 <%@ page import="com.fluxtream.connectors.Connector" %>
 <%@ page import="com.fluxtream.connectors.ObjectType" %>
 <%@ page import="com.fluxtream.domain.ApiKey" %>
 <%@ page import="com.fluxtream.domain.ApiUpdate" %>
 <%@ page import="com.fluxtream.domain.Guest" %>
 <%@ page import="com.fluxtream.domain.UpdateWorkerTask" %>
-<%@ page import="org.joda.time.format.DateTimeFormat" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="org.joda.time.format.DateTimeFormat" %>
 <%
     Guest guest = (Guest)request.getAttribute("guest");
     Map<String,Object> connectorInstanceModel = (Map<String,Object>) request.getAttribute("connectorInstanceModel");
     List<ApiUpdate> lastUpdates = (List<ApiUpdate>) request.getAttribute("lastUpdates");
     List<UpdateWorkerTask> scheduledTasks = (List<UpdateWorkerTask>)request.getAttribute("scheduledTasks");
     ApiKey apiKey = (ApiKey)request.getAttribute("apiKey");
+    Map<String,String> attributes = (Map<String,String>)request.getAttribute("attributes");
+    List<String> liveServerUUIDs = (List<String>) request.getAttribute("liveServerUUIDs");
     final int[] values = apiKey.getConnector().objectTypeValues();
     final List<Integer> connectorObjectTypes = new ArrayList<Integer>();
     for (int value : values)
@@ -34,10 +36,11 @@
     <span class="label label-info" style="vertical-align:middle">over limit</span>
     <% } else { %>
     <span class="label label-success" style="vertical-align:middle">up</span>
-    <% } if (!connectorInstanceModel.get("status").equals("STATUS_PERMANENT_FAILURE")) {%>
+    <% } if (!connectorInstanceModel.get("status").equals("STAOtwTUS_PERMANENT_FAILURE")) {%>
     <a class="btn btn-link" style="vertical-align: bottom" href="/admin/<%=apiKey.getGuestId()%>/<%=apiKey.getId()%>/setToPermanentFail">Set to permanent fail</a>
     <% } %>
 </h3>
+
 
 <h4>Force Update <small> - the type of update (history vs incremental) will depend on the type and
     status of the last update of that facet type</small>
@@ -76,9 +79,11 @@
 <table class="table">
     <thead>
     <tr>
+        <th>ID</th>
         <th>Time</th>
         <th>Object Types</th>
         <th>Status</th>
+        <th>Server UUID</th>
     </tr>
     </thead>
     <tbody>
@@ -109,11 +114,24 @@
                 status = "thumbs-down";
                 color = "black";
         };
+        // set the color of the serverUUID to red if it's null or not a live server, green if it's a live
+        // server and black if it's unassigned
+        String serverUUIDColor;
+        if (task.serverUUID==null)
+            serverUUIDColor = "red";
+        else if (task.serverUUID.equals("unassigned"))
+            serverUUIDColor = "black";
+        else if (liveServerUUIDs.contains(task.serverUUID))
+            serverUUIDColor = "green";
+        else
+            serverUUIDColor = "red";
     %>
     <tr>
-        <td style="width:200px;vertical-align: middle"><%=time%></td>
+        <td style="width:30px;vertical-align: middle"><%=task.getId()%></td>
+        <td style="width:100px;vertical-align: middle"><%=time%></td>
         <td style="width:200px;vertical-align: middle"><%=objectTypes!=null&&objectTypes.size()>0?objectTypes:"N/A"%></td>
         <td style="width:30px;vertical-align: middle; color:<%=color%>" title="<%=task.auditTrail%>"><i class="icon-<%=status%>"></i></td>
+        <td style="width:30px;vertical-align: middle; color:<%=serverUUIDColor%>"><%=task.serverUUID%></td>
     </tr>
     <% } %>
     </tbody>

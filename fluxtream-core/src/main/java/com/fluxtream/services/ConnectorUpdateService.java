@@ -88,7 +88,9 @@ public interface ConnectorUpdateService {
 
     public Collection<UpdateWorkerTask> getUpdatingUpdateTasks(ApiKey apiKey);
 
-	public void flushUpdateWorkerTasks(ApiKey apiKey, boolean wipeOutHistory);
+    List<String> getLiveServerUUIDs();
+
+    public void flushUpdateWorkerTasks(ApiKey apiKey, boolean wipeOutHistory);
 
     public void flushUpdateWorkerTasks(ApiKey apiKey, int objectTypes, boolean wipeOutHistory);
 

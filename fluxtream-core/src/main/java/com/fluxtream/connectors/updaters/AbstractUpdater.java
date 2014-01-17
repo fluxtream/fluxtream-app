@@ -6,12 +6,10 @@ import com.fluxtream.connectors.ApiClientSupport;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.dao.FacetDao;
-import com.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ApiKeyAttribute;
-import com.fluxtream.domain.ApiUpdate;
 import com.fluxtream.domain.Notification;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.BodyTrackStorageService;
@@ -180,9 +178,6 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 
 	public final UpdateResult updateData(UpdateInfo updateInfo) {
 		UpdateResult updateResult;
-        if (updateInfo.getUpdateType() == UpdateType.TIME_INTERVAL_UPDATE)
-            apiDataService.eraseApiData(updateInfo.apiKey, updateInfo.objectTypes,
-                    updateInfo.getTimeInterval());
         try {
             updateConnectorData(updateInfo);
             updateResult = UpdateResult.successResult();
