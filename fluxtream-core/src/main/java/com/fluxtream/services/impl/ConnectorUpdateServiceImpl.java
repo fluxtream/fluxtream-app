@@ -283,6 +283,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
             failed.status = Status.FAILED;
             failed.guestId = updt.guestId;
             failed.timeScheduled = updt.timeScheduled;
+            failed.serverUUID = updt.serverUUID;
             updt.retries = 0;
             em.persist(failed);
         } else
@@ -581,7 +582,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         return list;
     }
 
-    private List<String> getLiveServerUUIDs() {
+    @Override
+    public List<String> getLiveServerUUIDs() {
         List<String> list = new ArrayList<String>();
         list.add(SERVER_UUID);
         return list;

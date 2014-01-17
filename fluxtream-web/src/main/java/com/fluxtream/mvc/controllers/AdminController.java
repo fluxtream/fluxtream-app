@@ -18,12 +18,14 @@ import com.fluxtream.domain.UpdateWorkerTask;
 import com.fluxtream.mvc.models.admin.ConnectorInstanceModelFactory;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.SystemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
@@ -49,20 +51,33 @@ public class AdminController {
     @Autowired
     SystemService systemService;
 
+    @Autowired
+    JPADaoService jpaDaoService;
+
     @Secured({ "ROLE_ADMIN" })
     @RequestMapping(value = { "/admin" })
-    public ModelAndView admin(HttpServletResponse response) throws Exception {
+    public ModelAndView admin(HttpServletResponse response,
+                              @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+                              @RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize) throws Exception {
         response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
         response.setHeader("Pragma", "no-cache"); // HTTP 1.0.
         response.setDateHeader("Expires", 0);
-        final ModelAndView mav = getAdminModel();
+        ModelAndView mav = new ModelAndView("admin/index");
+
+        long totalGuests = jpaDaoService.executeNativeQuery("SELECT count(*) from Guest");
+        final int offset = (page - 1) * pageSize;
+        final List<Guest> allGuests = jpaDaoService.executeQueryWithLimitAndOffset("SELECT guest FROM Guest guest", pageSize, offset, Guest.class);
+        // get scheduled updateWorkerTasks for the current subset of users
+        final List<UpdateWorkerTask> tasks = connectorUpdateService.getAllScheduledUpdateWorkerTasks();
+
+        mav.addObject("allGuests", allGuests);
+        mav.addObject("release", env.get("release"));
         final List<ConnectorInfo> connectors = systemService.getConnectors();
         mav.addObject("subview", "connectorHealthDashboard");
         mav.addObject("connectors", connectors);
-        final List<Guest> allGuests = (List<Guest>)mav.getModel().get("allGuests");
         List<Map.Entry<Guest,List<List<ApiKey>>>> rows = new ArrayList<Map.Entry<Guest,List<List<ApiKey>>>>();
         ValueHolder synching = getSynchingUpdateWorkerTasks();
-        final List<UpdateWorkerTask> tasks = connectorUpdateService.getAllScheduledUpdateWorkerTasks();
+
         long consumerTriggerRepeatInterval = Long.valueOf(env.get("consumer.trigger.repeatInterval"));
         ValueHolder due = getDueUpdateWorkerWorkerTasks(tasks, consumerTriggerRepeatInterval);
         ValueHolder overdue = getOverdueUpdateWorkerWorkerTasks(tasks, consumerTriggerRepeatInterval);
@@ -76,6 +91,11 @@ public class AdminController {
             final Map.Entry<Guest, List<List<ApiKey>>> guestListEntry = new AbstractMap.SimpleEntry<Guest, List<List<ApiKey>>>(guest, guestApiKeys);
             rows.add(guestListEntry);
         }
+        mav.addObject("totalGuests", totalGuests);
+        mav.addObject("fromGuest", offset);
+        mav.addObject("toGuest", offset + allGuests.size());
+        mav.addObject("page", page);
+        mav.addObject("pageSize", pageSize);
         mav.addObject("synching", synching);
         mav.addObject("tasksDue", due);
         mav.addObject("tasksOverdue", overdue);
@@ -179,6 +199,7 @@ public class AdminController {
         mav.addObject("apiKey", apiKey);
         mav.addObject("connectorInstanceModel", connectorInstanceModel);
         mav.addObject("lastUpdates", lastUpdates);
+        mav.addObject("liveServerUUIDs", connectorUpdateService.getLiveServerUUIDs());
         List<UpdateWorkerTask> scheduledTasks = getScheduledTasks(apiKey);
         mav.addObject("scheduledTasks", scheduledTasks);
         return mav;
