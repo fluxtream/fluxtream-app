@@ -2,7 +2,14 @@
         %><%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %><%@ page import="java.util.List"
         %><%@ page import="com.fluxtream.domain.ConnectorInfo"
         %><%
-    final List<ConnectorInfo> connectors = (List<ConnectorInfo>) request.getAttribute("connectors");%>
+    final List<ConnectorInfo> connectors = (List<ConnectorInfo>) request.getAttribute("connectors");
+    final int fromGuest = (Integer)request.getAttribute("fromGuest");
+    final int toGuest = (Integer)request.getAttribute("toGuest");
+    final long totalGuests = (Long)request.getAttribute("totalGuests");
+    final int pageSize = (Integer)request.getAttribute("pageSize");
+    final int currentPage = (Integer)request.getAttribute("page");
+    final long lastPage = totalGuests%pageSize==0 ? totalGuests/pageSize : totalGuests/pageSize+1;
+%>
 
 <h3>Connector Health Dashboard</h3>
 
@@ -28,11 +35,28 @@
     }
 
 </style>
+
+
+<div style="float:left">
+    Showing guests ${fromGuest} to ${toGuest} from a total of ${totalGuests}
+    <%if(fromGuest-pageSize>=0) { %> &nbsp;<a href="/admin?page=<%=currentPage-1%>&pageSize=<%=pageSize%>">Previous</a><% } %>
+    <%if(toGuest<totalGuests) { %>&nbsp;<a href="/admin?page=<%=currentPage+1%>&pageSize=<%=pageSize%>">Next</a><% } %>
+    &nbsp;<a href="/admin?page=1&pageSize=<%=pageSize%>">First</a>
+    &nbsp;<a href="/admin?page=<%=lastPage%>&pageSize=<%=pageSize%>">Last</a>
+</div>
+<div style="float:right">
+<label style="display:inline;vertical-align:middle; margin-right:5px" for="pageSizeSelect">Page Size:</label><select id="pageSizeSelect" style="width: 60px" onchange="window.location='/admin?page=1&pageSize='+this.value">
+    <option<%if(pageSize==20){%> selected<%}%>>20</option>
+    <option<%if(pageSize==50){%> selected<%}%>>50</option>
+    <option<%if(pageSize==100){%> selected<%}%>>100</option>
+    <option<%if(pageSize==200){%> selected<%}%>>200</option>
+</select></div>
+
 <table class="table table-bordered" id="header-fixed"></table>
 
 <table class="table table-bordered" id="dashboardTable">
     <thead>
-        <th class="guestName-column">Guest Name</th>
+        <th class="guestName-column">Guest name</th>
         <c:forEach var="connectorInfo" items="${connectors}">
         <th class="apiKeyStatus">${connectorInfo.name}</th>
         </c:forEach>
