@@ -133,6 +133,7 @@ public class UpdateWorkerTask extends AbstractEntity {
     @Index(name="timeScheduled_index")
 	public long timeScheduled;
 
+    // The STALLED status should no longer be used
 	public static enum Status { SCHEDULED, IN_PROGRESS, DONE, FAILED, STALLED}
 
     @Index(name="updateType_index")
