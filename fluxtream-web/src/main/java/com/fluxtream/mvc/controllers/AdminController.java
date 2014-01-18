@@ -57,7 +57,7 @@ public class AdminController {
     @Secured({ "ROLE_ADMIN" })
     @RequestMapping(value = { "/admin" })
     public ModelAndView admin(HttpServletResponse response,
-                              @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+                              @RequestParam(value = "page", required = false, defaultValue = "1") int page,
                               @RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize) throws Exception {
         response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
         response.setHeader("Pragma", "no-cache"); // HTTP 1.0.
@@ -65,6 +65,19 @@ public class AdminController {
         ModelAndView mav = new ModelAndView("admin/index");
 
         long totalGuests = jpaDaoService.executeNativeQuery("SELECT count(*) from Guest");
+
+        // If pageSize is too small, set to default of 20
+        if(pageSize<=0)
+            pageSize = 20;
+
+        // Limit range of page to be >=1 and <= lastPage)
+        int lastPage = ((int)totalGuests)%pageSize==0 ? ((int)totalGuests)/pageSize : ((int)totalGuests)/pageSize+1;
+        if(page<1)
+            page=1;
+        else if(page>lastPage)
+            page=lastPage;
+
+
         final int offset = (page - 1) * pageSize;
         final List<Guest> allGuests = jpaDaoService.executeQueryWithLimitAndOffset("SELECT guest FROM Guest guest", pageSize, offset, Guest.class);
         // get scheduled updateWorkerTasks for the current subset of users
