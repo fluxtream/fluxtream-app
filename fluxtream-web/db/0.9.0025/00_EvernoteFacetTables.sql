@@ -191,4 +191,4 @@ CREATE TABLE `Facet_EvernotePhoto` (
   KEY `apiKey` (`apiKeyId`),
   KEY `timeUpdated_index` (`timeUpdated`),
   CONSTRAINT `FK3645693AFCFC4763` FOREIGN KEY (`resourceFacet_id`) REFERENCES `Facet_EvernoteResource` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
