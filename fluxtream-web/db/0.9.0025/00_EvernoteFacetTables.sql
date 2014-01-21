@@ -162,3 +162,33 @@ CREATE TABLE `Facet_EvernoteResource` (
   KEY `apiKey` (`apiKeyId`),
   KEY `timeUpdated_index` (`timeUpdated`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `Facet_EvernotePhoto` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `api` int(11) NOT NULL,
+  `apiKeyId` bigint(20) DEFAULT NULL,
+  `comment` longtext,
+  `end` bigint(20) NOT NULL,
+  `fullTextDescription` longtext,
+  `guestId` bigint(20) NOT NULL,
+  `isEmpty` char(1) NOT NULL,
+  `objectType` int(11) NOT NULL,
+  `start` bigint(20) NOT NULL,
+  `tags` longtext,
+  `timeUpdated` bigint(20) NOT NULL,
+  `USN` int(11) DEFAULT NULL,
+  `guid` varchar(255) DEFAULT NULL,
+  `resourceFacet_id` bigint(20) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `FK3645693AFCFC4763` (`resourceFacet_id`),
+  KEY `guid` (`guid`),
+  KEY `isEmpty_index` (`isEmpty`),
+  KEY `end_index` (`end`),
+  KEY `start_index` (`start`),
+  KEY `api_index` (`api`),
+  KEY `objectType_index` (`objectType`),
+  KEY `guestId_index` (`guestId`),
+  KEY `apiKey` (`apiKeyId`),
+  KEY `timeUpdated_index` (`timeUpdated`),
+  CONSTRAINT `FK3645693AFCFC4763` FOREIGN KEY (`resourceFacet_id`) REFERENCES `Facet_EvernoteResource` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1
