@@ -149,7 +149,7 @@ define(["core/Tab",
             $("#photo-" + data[i].id).click({i:data[i].id,facet:data[i]},function(event){
                 //PhotoUtils.showCarouselHTML(carouselHTML,event.data.i);
                 var photoFacet = event.data.facet;
-                PhotoUtils.showPhotoDialog(photoFacet.deviceName, photoFacet.channelName, photoFacet.UID, photoFacet.start);
+                PhotoUtils.showPhotoDialog(photoFacet.deviceName, photoFacet.channelName, photoFacet.UID, photoFacet.start,{minTime:digest.tbounds.start,maxTime:digest.tbounds.end});
             });
         }
         //var groups = $(".thumbnailGroup");

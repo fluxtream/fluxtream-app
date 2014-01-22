@@ -814,8 +814,16 @@ define(["core/grapher/BTCore"],function(BTCore){
                                 if ($.isArray(photos)) {
                                     if (typeof successCallback === 'function') {
                                         var photosMetadata = [];
-                                        $.each(photos, function(index, photo) {
-                                            photosMetadata[index] = {
+                                        for (var i = 0, li = photos.length; i < li; i++) {
+                                            var photo = photos[i];
+                                            if ((optionalArguments.minTime != null && photo.end_d * 1000 < optionalArguments.minTime) ||
+                                                (optionalArguments.maxTime != null && photo.end_d * 1000 > optionalArguments.maxTime)){
+                                                photos.splice(i,1);
+                                                i--;
+                                                li--;
+                                                continue;
+                                            }
+                                            photosMetadata[i] = {
                                                 "photoId"          : photo['id'],
                                                 "comment"          : photo['comment'],
                                                 "tags"             : photo['tags'],
@@ -830,8 +838,7 @@ define(["core/grapher/BTCore"],function(BTCore){
                                                 "timeType"         : photo['time_type'],
                                                 "isLocalTimeType"  : (photo['time_type'] == "local")
                                             };
-                                        });
-
+                                        }
                                         // mark the last photo as the end if we got fewer photos than we wanted
                                         if (photos.length < cache.NUM_PHOTOS_TO_FETCH) {
                                             console.log("PhotoDialogCache.__loadNeighboringPhotoMetadata(): Requested ["+cache.NUM_PHOTOS_TO_FETCH+"] photos, but only got ["+photos.length+"].  Marking the last photo as the end to prevent spurious fetches.");
@@ -956,7 +963,13 @@ define(["core/grapher/BTCore"],function(BTCore){
                                         // make sure that the cache didn't change while we were doing the fetch
                                         if (endingPhoto['photoId'] == cache.photos[0]['photoId']) {
                                             // create a new photos array for the cache
-                                            var newPhotos = photosMetadata.slice(1).reverse().concat(cache.photos);
+                                            var newPhotos = cache.photos.slice(0);
+                                            $.each(photosMetadata.reverse(),function(index,photo){
+                                                if (cache.photosByCompoundId[photo.photoId] == null){
+                                                    newPhotos.unshift(photo);
+                                                }
+                                            });
+
                                             var newphotosByCompoundId = {};
 
                                             // now recreate the map which maps photo ID to photo array element index
@@ -999,7 +1012,13 @@ define(["core/grapher/BTCore"],function(BTCore){
                                         // make sure that the cache didn't change while we were doing the fetch
                                         if (endingPhoto['photoId'] == cache.photos[cache.photos.length - 1]['photoId']) {
                                             // create a new photos array for the cache
-                                            var newPhotos = cache.photos.concat(photosMetadata.slice(1));
+                                            var newPhotos = cache.photos.slice(0);
+                                            $.each(photosMetadata,function(index,photo){
+                                                if (cache.photosByCompoundId[photo.photoId] == null){
+                                                    newPhotos.push(photo);
+                                                }
+                                            });
+
                                             var newphotosByCompoundId = {};
 
                                             // now recreate the map which maps photo ID to photo array element index
