@@ -374,8 +374,7 @@ define(["core/grapher/BTCore"],function(BTCore){
                                   typeof previousPhotoMetadata['photoId'] !== 'undefined';
             if (isPreviousPhoto) {
                 $("#photoDialog #_timeline_photo_dialog_previous_button").show().click(function() {
-                    var timestamp = optionalArguments.grapher != null && previousPhotoMetadata.isLocalTimeType ? optionalArguments.grapher.dateAxis.localTimeToUTC(previousPhotoMetadata.timestamp) : previousPhotoMetadata.timestamp;
-                    createPhotoDialog(previousPhotoMetadata['photoId'],timestamp);
+                    createPhotoDialog(previousPhotoMetadata['photoId'],previousPhotoMetadata.photoTimestamp);
                 });
             }
 
@@ -384,8 +383,7 @@ define(["core/grapher/BTCore"],function(BTCore){
                               typeof nextPhotoMetadata['photoId'] !== 'undefined';
             if (isNextPhoto) {
                 $("#photoDialog #_timeline_photo_dialog_next_button").show().click(function() {
-                    var timestamp = optionalArguments.grapher != null && nextPhotoMetadata.isLocalTimeType ? optionalArguments.grapher.dateAxis.localTimeToUTC(nextPhotoMetadata.timestamp) : nextPhotoMetadata.timestamp;
-                    createPhotoDialog(nextPhotoMetadata['photoId'],timestamp);
+                    createPhotoDialog(nextPhotoMetadata['photoId'],nextPhotoMetadata.photoTimestamp);
                 });
             }
 
@@ -503,32 +501,14 @@ define(["core/grapher/BTCore"],function(BTCore){
                 if (typeof photoMetadata['timestampString'] === 'undefined') {
                     $("#photoDialog #_timeline_photo_dialog_timestamp").html("&nbsp;");
                 } else {
-                    var photoTimestamp = new Date(photoMetadata['timestampString']);
-                    var photoTimestampStr = null;
-                    if (photoMetadata['isLocalTimeType']) {
-                        // if local time type, then get the timezone offset (in minutes), convert
-                        // it to millis, and add to the time to get the correct time
-                        photoTimestamp = new Date(photoTimestamp.getTime() + photoTimestamp.getTimezoneOffset() * 60000);
-
-                        // format the date without the timezone
-                        photoTimestampStr = photoTimestamp.toDateString() + " " +
-                                            (photoTimestamp.getHours() < 10 ? "0" : "") + photoTimestamp.getHours() +
-                                            ":" +
-                                            (photoTimestamp.getMinutes() < 10 ? "0" : "") + photoTimestamp.getMinutes() +
-                                            ":" +
-                                            (photoTimestamp.getSeconds() < 10 ? "0" : "") + photoTimestamp.getSeconds();
-                    }
-                    else {
-                        photoTimestampStr = photoTimestamp.toString();
-                    }
-                    $("#photoDialog #_timeline_photo_dialog_timestamp").text(photoTimestampStr);
+                    $("#photoDialog #_timeline_photo_dialog_timestamp").text(photoMetadata.photoTimestampStr);
                     //TODO: figure out if this is a reliable way of doing things
                     //for this call we create a fake facet that has all the necessary elements to function in the show in x function
                     var typeParts = photoMetadata.photoId.split(".");
                     typeParts[0] = typeParts[0].toLowerCase();
                     App.apps.calendar.bindShowOnXDropDown($("#photoDialog #_timeline_photo_dialog_timestamp"),{
                         type:typeParts.slice(0,2).join("-"),
-                        start: photoTimestamp.getTime(),
+                        start: photoMetadata.photoTimestamp * 1000,
                         id: typeParts[2]
                     },function(){
                         $("#photoDialog")['dialog']('close');
@@ -835,20 +815,42 @@ define(["core/grapher/BTCore"],function(BTCore){
                                                 li--;
                                                 continue;
                                             }
+
+                                            var photoTimestamp = new Date(photo.end);
+                                            var photoTimestampStr = null;
+                                            if (photo.time_type == "local") {
+                                                // if local time type, then get the timezone offset (in minutes), convert
+                                                // it to millis, and add to the time to get the correct time
+                                                photoTimestamp = new Date(photoTimestamp.getTime() + photoTimestamp.getTimezoneOffset() * 60000);
+
+                                                // format the date without the timezone
+                                                photoTimestampStr = photoTimestamp.toDateString() + " " +
+                                                                    (photoTimestamp.getHours() < 10 ? "0" : "") + photoTimestamp.getHours() +
+                                                                    ":" +
+                                                                    (photoTimestamp.getMinutes() < 10 ? "0" : "") + photoTimestamp.getMinutes() +
+                                                                    ":" +
+                                                                    (photoTimestamp.getSeconds() < 10 ? "0" : "") + photoTimestamp.getSeconds();
+                                            }
+                                            else {
+                                                photoTimestampStr = photoTimestamp.toString();
+                                            }
+
                                             photosMetadata[i] = {
-                                                "photoId"          : photo['id'],
-                                                "comment"          : photo['comment'],
-                                                "tags"             : photo['tags'],
-                                                "timestamp"        : photo['end_d'],
-                                                "timestampString"  : photo['end'],
-                                                "url"              : photo['url'],
-                                                "thumbnails"       : photo['thumbnails'],
-                                                "orientation"      : photo['orientation'],
-                                                "channel_name"     : photo['channel_name'],
-                                                "dev_nickname"     : photo['dev_nickname'],
-                                                "object_type_name" : photo['object_type_name'],
-                                                "timeType"         : photo['time_type'],
-                                                "isLocalTimeType"  : (photo['time_type'] == "local")
+                                                "photoId"           : photo['id'],
+                                                "comment"           : photo['comment'],
+                                                "tags"              : photo['tags'],
+                                                "timestamp"         : photo['end_d'],
+                                                "timestampString"   : photo['end'],
+                                                "url"               : photo['url'],
+                                                "thumbnails"        : photo['thumbnails'],
+                                                "orientation"       : photo['orientation'],
+                                                "channel_name"      : photo['channel_name'],
+                                                "dev_nickname"      : photo['dev_nickname'],
+                                                "object_type_name"  : photo['object_type_name'],
+                                                "timeType"          : photo['time_type'],
+                                                "isLocalTimeType"   : (photo['time_type'] == "local"),
+                                                "photoTimestamp"    : photoTimestamp.getTime() / 1000,  //adjusted for timezone
+                                                "photoTimestampStr" : photoTimestampStr                 //adjusted for timezone
                                             };
                                         }
                                         // mark the last photo as the end if we got fewer photos than we wanted
