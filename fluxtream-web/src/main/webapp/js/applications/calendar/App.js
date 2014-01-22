@@ -840,42 +840,15 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     var activePopup = null;
 
-    Calendar.rebindDetailsControls = function(details,facetList){
-        function getFacet(facetType,facetId){
-            try{
-                for (var i = 0, li = facetList.length; i < li; i++){
-                    if (facetList[i].type === facetType && facetList[i].id === facetId)
-                        return facetList[i];
-                }
-                var facets = facetList[facetType];
-                for (var i = 0, li = facets.length; i < li; i++){
-                    if (facets[i].id === facetId)
-                        return facets[i];
-                }
-            } catch (e){}
-            console.warn("Couldn't find " + facetType + " with id " + facetId);
-            return null;
-        }
-
-        details.find(".facet-edit a").unbind("click").click(function(event){
-            var facetType = $(event.delegateTarget).parent().parent().attr("facettype");
-            var facetId = parseInt($(event.delegateTarget).parent().parent().attr("itemid"));
-            Calendar.commentEdit(event,getFacet(facetType,facetId));
-            return false;
-        });
-        details.find(".timedropdown").unbind('click').click(function(event){
-            var element;
-            for (element = $(event.delegateTarget); !element.hasClass("facetDetails"); element = element.parent());
-
-            var facet = getFacet(element.attr("facettype"),parseInt(element.attr('itemid')));
-
+    Calendar.bindShowOnXDropDown = function(jqElement,facet,onShowInX){
+        jqElement.off("click.showOnXDropDown").on("click.showOnXDropDown",function(event){
             var popup = $('<ul id="menu1" class="dropdown-menu">' +
-                              '<li><a class="clockLink" notthide="true" href="javascript:void(0)">Show in Clock</a></li>' +
-            '<li><a class="mapLink" href="javascript:void(0)">Show on Map</a></li>' +
-                '<li><a class="listLink" href="javascript:void(0)">Show in List</a></li>' +
-            '<li><a class="timelineLink" href="javascript:void(0)">Show on Timeline</a></li>' +
-                '<li><a class="bodytrackLink" href="javascript:void(0)">Show in Bodytrack</a></li>' +
-            '</ul>');
+                          '<li><a class="clockLink" notthide="true" href="javascript:void(0)">Show in Clock</a></li>' +
+                          '<li><a class="mapLink" href="javascript:void(0)">Show on Map</a></li>' +
+                          '<li><a class="listLink" href="javascript:void(0)">Show in List</a></li>' +
+                          '<li><a class="timelineLink" href="javascript:void(0)">Show on Timeline</a></li>' +
+                          '<li><a class="bodytrackLink" href="javascript:void(0)">Show in Bodytrack</a></li>' +
+                          '</ul>');
 
             var config = App.getFacetConfig(facet.type);
             if (!config.map || (App.activeApp.name === "calendar" && Calendar.currentTabName === "map")){
@@ -906,18 +879,28 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
             popup.find(".mapLink").unbind('click').click(function(event){
                 switchToAppForFacet("calendar","map",facet);
+                if (onShowInX != null)
+                    onShowInX();
             });
             popup.find(".clockLink").unbind('click').click(function(event){
                 switchToAppForFacet("calendar","clock",facet);
+                if (onShowInX != null)
+                    onShowInX();
             });
             popup.find(".listLink").unbind('click').click(function(event){
                 switchToAppForFacet("calendar","list",facet);
+                if (onShowInX != null)
+                    onShowInX();
             });
             popup.find(".timelineLink").unbind('click').click(function(event){
                 switchToAppForFacet("calendar","timeline",facet);
+                if (onShowInX != null)
+                    onShowInX();
             });
             popup.find(".bodytrackLink").unbind('click').click(function(event){
                 switchToAppForFacet("bodytrack","grapher",facet);
+                if (onShowInX != null)
+                    onShowInX();
             });
 
             if (activePopup != null)
@@ -926,6 +909,36 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             activePopup = popup;
             return false;
         });
+    }
+
+    Calendar.rebindDetailsControls = function(details,facetList){
+        function getFacet(facetType,facetId){
+            try{
+                for (var i = 0, li = facetList.length; i < li; i++){
+                    if (facetList[i].type === facetType && facetList[i].id === facetId)
+                        return facetList[i];
+                }
+                var facets = facetList[facetType];
+                for (var i = 0, li = facets.length; i < li; i++){
+                    if (facets[i].id === facetId)
+                        return facets[i];
+                }
+            } catch (e){}
+            console.warn("Couldn't find " + facetType + " with id " + facetId);
+            return null;
+        }
+
+        details.find(".facet-edit a").unbind("click").click(function(event){
+            var facetType = $(event.delegateTarget).parent().parent().attr("facettype");
+            var facetId = parseInt($(event.delegateTarget).parent().parent().attr("itemid"));
+            Calendar.commentEdit(event,getFacet(facetType,facetId));
+            return false;
+        });
+        var element;
+        for (element = details.find(".timedropdown"); !element.hasClass("facetDetails"); element = element.parent());
+
+        var facet = getFacet(element.attr("facettype"),parseInt(element.attr('itemid')));
+        Calendar.bindShowOnXDropDown(details.find(".timedropdown"),facet);
     }
 
    $("body").mousedown(function(event){

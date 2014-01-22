@@ -484,23 +484,26 @@
 </template>
 
 <template id="_timeline_photo_dialog_form_template">
-  <div style="width:1px; height:1px">
-    <img id="_timeline_photo_dialog_comment_tabhelper_pre_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="98"/>
-    <img id="_timeline_photo_dialog_comment_tabhelper_pre_proxy_backward" src="/images/clear.gif" width="1" height="1" tabindex="99"/>
-  </div>
-  <div id="_timeline_photo_dialog_timestamp" style="font-size:8pt"></div>
+    <div style="width:1px; height:1px">
+        <img id="_timeline_photo_dialog_comment_tabhelper_pre_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="98"/>
+        <img id="_timeline_photo_dialog_comment_tabhelper_pre_proxy_backward" src="/images/clear.gif" width="1" height="1" tabindex="99"/>
+    </div>
+    <div>
+        <a id="_timeline_photo_dialog_timestamp" style="font-size:8pt" href="javascript:void(0);"></a>
+    </div>
     <textarea rows="2" id="_timeline_photo_dialog_comment" tabindex="100" style="width:290px"></textarea>
     <div style="width:1px;height:1px;">
-      <img id="_timeline_photo_dialog_tags_editor_tabhelper_pre_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="101"/>
+        <img id="_timeline_photo_dialog_tags_editor_tabhelper_pre_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="101"/>
     </div>
-    <form id="_timeline_photo_dialog_tags_editor" action="" method="post" onsubmit="return false;"></form>
+    <form id="_timeline_photo_dialog_tags_editor" action="" method="post" onsubmit="return false;">
+    </form>
     <form id="_timeline_photo_dialog_form_buttons" action="" method="post" onsubmit="return false;" style="text-align:right">
-      <div style="width:1px; height:1px">
-        <img id="_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="103"/>
-        <img id="_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_backward" src="/images/clear.gif" width="1" height="1" tabindex="104"/>
-      </div>
-      <button id="_timeline_photo_dialog_revert_button" tabindex="106">Revert</button>
-      <button id="_timeline_photo_dialog_save_button" tabindex="105">Save</button>
+        <div style="width:1px; height:1px">
+            <img id="_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="103"/>
+            <img id="_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_backward" src="/images/clear.gif" width="1" height="1" tabindex="104"/>
+        </div>
+        <button id="_timeline_photo_dialog_revert_button" tabindex="106">Revert</button>
+        <button id="_timeline_photo_dialog_save_button" tabindex="105">Save</button>
     </form>
 </template>
 

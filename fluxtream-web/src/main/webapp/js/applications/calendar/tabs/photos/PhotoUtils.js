@@ -522,6 +522,17 @@ define(["core/grapher/BTCore"],function(BTCore){
                         photoTimestampStr = photoTimestamp.toString();
                     }
                     $("#photoDialog #_timeline_photo_dialog_timestamp").text(photoTimestampStr);
+                    //TODO: figure out if this is a reliable way of doing things
+                    //for this call we create a fake facet that has all the necessary elements to function in the show in x function
+                    var typeParts = photoMetadata.photoId.split(".");
+                    typeParts[0] = typeParts[0].toLowerCase();
+                    App.apps.calendar.bindShowOnXDropDown($("#photoDialog #_timeline_photo_dialog_timestamp"),{
+                        type:typeParts.slice(0,2).join("-"),
+                        start: photoTimestamp.getTime(),
+                        id: typeParts[2]
+                    },function(){
+                        $("#photoDialog")['dialog']('close');
+                    });
                 }
 
                 // fill in the comment, if any
