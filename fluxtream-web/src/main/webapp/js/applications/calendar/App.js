@@ -1373,8 +1373,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
 
-    Calendar.showPhotoDialog = function(deviceName, channelName, uid, timestamp) {
-       PhotoUtils.showPhotoDialog(deviceName, channelName, uid, timestamp);
+    Calendar.showPhotoDialog = function(deviceName, channelName, uid, timestamp,optionalArguments) {
+       PhotoUtils.showPhotoDialog(deviceName, channelName, uid, timestamp,optionalArguments);
     };
 
 
