@@ -45,11 +45,14 @@
     &nbsp;<a href="/admin?page=<%=lastPage%>&pageSize=<%=pageSize%>">Last</a>
 </div>
 <div style="float:right">
-<label style="display:inline;vertical-align:middle; margin-right:5px" for="pageSizeSelect">Page Size:</label><select id="pageSizeSelect" style="width: 60px" onchange="window.location='/admin?page=1&pageSize='+this.value">
+<label style="display:inline;vertical-align:middle; margin-right:5px" for="pageSizeSelect">Page Size:</label><select id="pageSizeSelect" style="width: 70px" onchange="window.location='/admin?page=1&pageSize='+this.value">
     <option<%if(pageSize==20){%> selected<%}%>>20</option>
     <option<%if(pageSize==50){%> selected<%}%>>50</option>
     <option<%if(pageSize==100){%> selected<%}%>>100</option>
     <option<%if(pageSize==200){%> selected<%}%>>200</option>
+    <option<%if(pageSize==400){%> selected<%}%>>400</option>
+    <option<%if(pageSize==1000){%> selected<%}%>>1000</option>
+    <option<%if(pageSize==2000){%> selected<%}%>>2000</option>
 </select></div>
 
 <table class="table table-bordered" id="header-fixed"></table>
