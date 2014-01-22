@@ -314,6 +314,7 @@ define(["core/grapher/BTCore"],function(BTCore){
             console.log("photoCache");
             console.log(photoCache);
 
+
             var photoMetadata = photoCache.getPhotoMetadata(compoundPhotoId);
             optionalArguments.photoChange(photoMetadata,timestamp);
             var thumbnails = photoMetadata['thumbnails'];
@@ -451,7 +452,7 @@ define(["core/grapher/BTCore"],function(BTCore){
                         theImage.css("max-width", "300").css("max-height", "300");
 
                         $("#photoDialog ._timeline_photo_dialog_photo_table").width(300).height(300);
-                        centerPhotoDialog(grapher);
+                        centerPhotoDialog();
                         theImage.removeClass(highResOrientationCssClass);
                         theImage.addClass("_timeline_photo_dialog_image_orientation_1");
                     });
@@ -534,7 +535,7 @@ define(["core/grapher/BTCore"],function(BTCore){
                 // close on ESC for the photo dialog.  We don't want the ESC key to close
                 // the dialog when the user is editing the comment.
                 $("#photoDialog #_timeline_photo_dialog_comment").focus(function() {
-                    $("#photoDialog")['dialog']("option", "closeOnEscape", false);
+                    $("#photoDialog")['dialog']("option", "closeOnEscape", true);
                 });
                 $("#photoDialog #_timeline_photo_dialog_comment").blur(function() {
                     $("#photoDialog")['dialog']("option", "closeOnEscape", true);
@@ -581,7 +582,7 @@ define(["core/grapher/BTCore"],function(BTCore){
                 $('#photoDialog #_timeline_photo_dialog_tags_editor input.tag').tagedit(tagEditorOptions);
                 $('#photoDialog #_timeline_photo_dialog_tags_editor').bind('tagsChanged', setEnabledStateOfRevertAndSaveButtons);
                 $('#photoDialog #_timeline_photo_dialog_tags_editor').bind('receivedFocus', function() {
-                    $("#photoDialog")['dialog']("option", "closeOnEscape", false);
+                    $("#photoDialog")['dialog']("option", "closeOnEscape", true);
                 });
                 $('#photoDialog #_timeline_photo_dialog_tags_editor').bind('tabToNextElement', function(event) {
                     $("#photoDialog")['dialog']("option", "closeOnEscape", true);
