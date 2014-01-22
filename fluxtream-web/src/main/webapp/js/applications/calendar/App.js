@@ -196,11 +196,17 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         if (typeof state == "string")
             state = Calendar.parseState(state);
 
+        var connectorToggleName;
+        var sendConnectorToggled = false;
+
         //if we're showing a specific facet, we should make sure our state will hold the facet!
         if (this.params != null && this.params.facetToShow != null){
             var facet = this.params.facetToShow;
             state = Calendar.toState(state.tabName, state.timeUnit,new Date(facet.end == null ? facet.start : (facet.start + facet.end) / 2));
-            Calendar.connectorEnabled[state.tabName][this.params.facetToShow.type.split("-")[0]] = true;
+
+            connectorToggleName = this.params.facetToShow.type.split("-")[0];
+            sendConnectorToggled = Calendar.connectorEnabled[state.tabName][connectorToggleName] == false;
+            Calendar.connectorEnabled[state.tabName][connectorToggleName] = true;
         }
 
         if (Calendar.timespanState !== state.tabState) {
@@ -226,6 +232,15 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             updateDisplays(state);
             updateDatepicker(state);
             fetchCalendar(state);
+        }
+        if (sendConnectorToggled){
+            for (var i = 0, li = Calendar.digest.selectedConnectors.length; i < li; i++){
+                if (Calendar.digest.selectedConnectors[i].connectorName == connectorToggleName){
+                    Calendar.currentTab.connectorToggled(connectorToggleName,Calendar.digest.selectedConnectors[i].facetTypes,true);
+                    break;
+                }
+            }
+
         }
         // Next time the page loads, won't accidentally believe that the timespan in the
         // title and calendar bar has already been initialized
