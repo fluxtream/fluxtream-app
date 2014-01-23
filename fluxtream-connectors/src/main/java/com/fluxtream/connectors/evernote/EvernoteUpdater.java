@@ -317,10 +317,10 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
             Object[] guidAndMime = (Object[]) infos;
             String guid = (String)guidAndMime[0];
             String mime = (String)guidAndMime[1];
-            // remove the resource from the database first
-            removeEvernoteFacet(updateInfo, EvernoteResourceFacet.class, guid);
-            // if the resource is a photo, remove the associated photo facet
+            // if the resource is a photo, remove its associated photo facet
             removeEvernoteFacet(updateInfo, EvernotePhotoFacet.class, guid);
+            // remove the resource from the database
+            removeEvernoteFacet(updateInfo, EvernoteResourceFacet.class, guid);
             // now retrieve the associated data files and delete them if they exist
             final File resourceDataFile = getResourceFile(updateInfo.getGuestId(), updateInfo.apiKey.getId(), guid, MAIN_APPENDIX, mime, devKvsLocation);
             final File resourceAlternateDataFile = getResourceFile(updateInfo.getGuestId(), updateInfo.apiKey.getId(), guid, ALTERNATE_APPENDIX, mime, devKvsLocation);
@@ -380,6 +380,7 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
             if (!expungedTagGuids.contains(tag.getGuid()))
                 createOrUpdateTag(updateInfo, tag);
         }
+        createOrRefreshSettings(updateInfo.apiKey);
     }
 
     private void createOrUpdateNotebooks(final UpdateInfo updateInfo, final LinkedList<SyncChunk> chunks) throws Exception {
@@ -397,6 +398,7 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
             if (!expungedNotebookGuids.contains(notebook.getGuid()))
                 createOrUpdateNotebook(updateInfo, notebook);
         }
+        createOrRefreshSettings(updateInfo.apiKey);
     }
 
     private void createOrUpdateNotes(final UpdateInfo updateInfo, final LinkedList<SyncChunk> chunks,
@@ -453,126 +455,129 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
                     extractCommonFacetData(facet, updateInfo);
                     facet.guid = note.getGuid();
                 }
-                if ((facet.contentHash==null||!Arrays.equals(facet.contentHash, note.getContentHash())||
-                    facet.contentLength!=note.getContentLength())||
-                    facet.USN<note.getUpdateSequenceNum()){
-                }
-                Note freshlyRetrievedNote = noteStore.getNote(note.getGuid(), true, true, true, true);
-                facet.timeUpdated = System.currentTimeMillis();
-                if (freshlyRetrievedNote.isSetUpdateSequenceNum())
-                    facet.USN = freshlyRetrievedNote.getUpdateSequenceNum();
-                if (freshlyRetrievedNote.isSetContentHash())
-                    facet.contentHash = freshlyRetrievedNote.getContentHash();
-                if (freshlyRetrievedNote.isSetContentLength())
-                    facet.contentLength = freshlyRetrievedNote.getContentLength();
-                Map<String, String> mapHashtoURL = new HashMap<String, String>();
-                if (freshlyRetrievedNote.isSetCreated()) {
-                    facet.created = freshlyRetrievedNote.getCreated();
-                    facet.start = facet.created;
-                    facet.end = facet.created;
-                }
-                if (freshlyRetrievedNote.isSetUpdated()) {
-                    facet.updated = freshlyRetrievedNote.getUpdated();
-                    facet.start = facet.updated;
-                    facet.end = facet.updated;
-                }
-                if (freshlyRetrievedNote.isSetNotebookGuid())
-                    facet.notebookGuid = freshlyRetrievedNote.getNotebookGuid();
-                if (freshlyRetrievedNote.isSetResources()) {
-                    for (Resource resource : freshlyRetrievedNote.getResources()) {
-                        createOrUpdateResource(updateInfo, resource);
-                        // save the resource a second time as a photo -
-                        // the facet will hold a reference to the original resource facet
-                        if (resource.isSetAttributes()&&resource.getAttributes().isSetCameraMake())
-                            createOrUpdatePhoto(updateInfo, resource, facet.start);
-                        String webResourcePath = new StringBuilder("/evernote/res/")
-                                .append(updateInfo.apiKey.getId())
-                                .append("/")
-                                .append(resource.getGuid()).toString();
-                        mapHashtoURL.put(resource.getGuid(), webResourcePath);
+                if (   facet.USN==null
+                    || facet.USN<note.getUpdateSequenceNum()
+                    || facet.contentHash==null
+                    || !Arrays.equals(facet.contentHash, note.getContentHash())
+                    || facet.contentLength!=note.getContentLength())
+                {
+                    Note freshlyRetrievedNote = noteStore.getNote(note.getGuid(), true, true, true, true);
+                    facet.timeUpdated = System.currentTimeMillis();
+                    if (freshlyRetrievedNote.isSetUpdateSequenceNum())
+                        facet.USN = freshlyRetrievedNote.getUpdateSequenceNum();
+                    if (freshlyRetrievedNote.isSetContentHash())
+                        facet.contentHash = freshlyRetrievedNote.getContentHash();
+                    if (freshlyRetrievedNote.isSetContentLength())
+                        facet.contentLength = freshlyRetrievedNote.getContentLength();
+                    Map<String, String> mapHashtoURL = new HashMap<String, String>();
+                    if (freshlyRetrievedNote.isSetCreated()) {
+                        facet.created = freshlyRetrievedNote.getCreated();
+                        facet.start = facet.created;
+                        facet.end = facet.created;
                     }
-                }
-                if (freshlyRetrievedNote.isSetContent()) {
-                    facet.content = freshlyRetrievedNote.getContent();
-                    // WARNING!! The first time this gets called, a lengthy DTD processing operation
-                    // needs to happen which can take a long while (~1min) - after that the conversion
-                    // from enml to xhtml is very fast
-                    try {
-                        final String htmlContent = processor.noteToHTMLString(freshlyRetrievedNote, mapHashtoURL);
-                        facet.htmlContent = htmlContent;
-                    } catch (Throwable t) {
-                        logger.warn("error parsing enml note: " + t.getMessage());
-                        facet.htmlContent = "Sorry, there was an error parsing this note (" + t.getMessage() +")";
+                    if (freshlyRetrievedNote.isSetUpdated()) {
+                        facet.updated = freshlyRetrievedNote.getUpdated();
+                        facet.start = facet.updated;
+                        facet.end = facet.updated;
                     }
-                }
-                facet.clearTags();
-                if (freshlyRetrievedNote.isSetTagNames()) {
-                    final List<String> tagNames = freshlyRetrievedNote.getTagNames();
-                    facet.addTags(StringUtils.join(tagNames, ","), ',');
-                }
-                if (freshlyRetrievedNote.isSetTagGuids()) {
-                    final List<String> tagGuids = freshlyRetrievedNote.getTagGuids();
-                    facet.setTagGuids(tagGuids);
-                }
-                if (freshlyRetrievedNote.isSetTitle())
-                    facet.title = freshlyRetrievedNote.getTitle();
-
-                if (freshlyRetrievedNote.isSetActive())
-                    facet.active = freshlyRetrievedNote.isActive();
-
-                if (freshlyRetrievedNote.isSetAttributes()) {
-                    final NoteAttributes attributes = freshlyRetrievedNote.getAttributes();
-                    if (attributes.isSetAltitude())
-                        facet.altitude = attributes.getAltitude();
-                    if (attributes.isSetAuthor())
-                        facet.author = attributes.getAuthor();
-                    if (attributes.isSetContentClass())
-                        facet.contentClass = attributes.getContentClass();
-                    if (attributes.isSetCreatorId())
-                        facet.creatorId = attributes.getCreatorId();
-                    if (attributes.isSetLastEditedBy())
-                        facet.lastEditedBy = attributes.getLastEditedBy();
-                    if (attributes.isSetLastEditorId())
-                        facet.lastEditorId = attributes.getLastEditorId();
-                    if (attributes.isSetLatitude())
-                        facet.latitude = attributes.getLatitude();
-                    if (attributes.isSetLongitude())
-                        facet.longitude = attributes.getLongitude();
-                    if (attributes.isSetPlaceName())
-                        facet.placeName = attributes.getPlaceName();
-                    if (attributes.isSetReminderDoneTime())
-                        facet.reminderDoneTime = attributes.getReminderDoneTime();
-                    if (attributes.isSetReminderOrder())
-                        facet.reminderOrder = attributes.getReminderOrder();
-                    if (attributes.isSetReminderTime())
-                        facet.reminderTime = attributes.getReminderTime();
-                    if (attributes.isSetShareDate())
-                        facet.shareDate = attributes.getShareDate();
-                    if (attributes.isSetSource())
-                        facet.source = attributes.getSource();
-                    if (attributes.isSetSourceApplication())
-                        facet.sourceApplication = attributes.getSourceApplication();
-                    if (attributes.isSetSourceURL())
-                        facet.sourceURL = attributes.getSourceURL();
-                    if (attributes.isSetSubjectDate())
-                        facet.subjectDate = attributes.getSubjectDate();
-                    if (attributes.isSetLatitude()&&attributes.isSetLongitude()&&freshlyRetrievedNote.isSetCreated()){
-                        addGuestLocation(updateInfo, facet.latitude, facet.longitude, facet.altitude, facet.created, facet.guid);
+                    if (freshlyRetrievedNote.isSetNotebookGuid())
+                        facet.notebookGuid = freshlyRetrievedNote.getNotebookGuid();
+                    if (freshlyRetrievedNote.isSetResources()) {
+                        for (Resource resource : freshlyRetrievedNote.getResources()) {
+                            createOrUpdateResource(updateInfo, resource);
+                            // save the resource a second time as a photo -
+                            // the facet will hold a reference to the original resource facet
+                            if (resource.isSetAttributes()&&resource.getAttributes().isSetCameraMake())
+                                createOrUpdatePhoto(updateInfo, resource, facet.start);
+                            String webResourcePath = new StringBuilder("/evernote/res/")
+                                    .append(updateInfo.apiKey.getId())
+                                    .append("/")
+                                    .append(resource.getGuid()).toString();
+                            mapHashtoURL.put(resource.getGuid(), webResourcePath);
+                        }
                     }
-                }
+                    if (freshlyRetrievedNote.isSetContent()) {
+                        facet.content = freshlyRetrievedNote.getContent();
+                        // WARNING!! The first time this gets called, a lengthy DTD processing operation
+                        // needs to happen which can take a long while (~1min) - after that the conversion
+                        // from enml to xhtml is very fast
+                        try {
+                            final String htmlContent = processor.noteToHTMLString(freshlyRetrievedNote, mapHashtoURL);
+                            facet.htmlContent = htmlContent;
+                        } catch (Throwable t) {
+                            logger.warn("error parsing enml note: " + t.getMessage());
+                            facet.htmlContent = "Sorry, there was an error parsing this note (" + t.getMessage() +")";
+                        }
+                    }
+                    facet.clearTags();
+                    if (freshlyRetrievedNote.isSetTagNames()) {
+                        final List<String> tagNames = freshlyRetrievedNote.getTagNames();
+                        facet.addTags(StringUtils.join(tagNames, ","), ',');
+                    }
+                    if (freshlyRetrievedNote.isSetTagGuids()) {
+                        final List<String> tagGuids = freshlyRetrievedNote.getTagGuids();
+                        facet.setTagGuids(tagGuids);
+                    }
+                    if (freshlyRetrievedNote.isSetTitle())
+                        facet.title = freshlyRetrievedNote.getTitle();
 
-                if (freshlyRetrievedNote.isSetDeleted()) {
-                    facet.deleted = freshlyRetrievedNote.getDeleted();
-                    // if the note was deleted:
-                    // remove locations that were attached to this note and its associated resources
-                    if (freshlyRetrievedNote.isSetGuid())
-                        removeLocationFacets(updateInfo.apiKey.getId(), freshlyRetrievedNote.getGuid());
-                } else if (!freshlyRetrievedNote.isSetDeleted()&&facet.deleted!=null) {
-                    facet.deleted = null;
-                    // this means that this note was restored from trash and we need to restore
-                    // its associated resources' locations
-                    if (freshlyRetrievedNote.isSetGuid())
-                        restoreNoteResourceLocations(updateInfo, freshlyRetrievedNote.getGuid());
+                    if (freshlyRetrievedNote.isSetActive())
+                        facet.active = freshlyRetrievedNote.isActive();
+
+                    if (freshlyRetrievedNote.isSetAttributes()) {
+                        final NoteAttributes attributes = freshlyRetrievedNote.getAttributes();
+                        if (attributes.isSetAltitude())
+                            facet.altitude = attributes.getAltitude();
+                        if (attributes.isSetAuthor())
+                            facet.author = attributes.getAuthor();
+                        if (attributes.isSetContentClass())
+                            facet.contentClass = attributes.getContentClass();
+                        if (attributes.isSetCreatorId())
+                            facet.creatorId = attributes.getCreatorId();
+                        if (attributes.isSetLastEditedBy())
+                            facet.lastEditedBy = attributes.getLastEditedBy();
+                        if (attributes.isSetLastEditorId())
+                            facet.lastEditorId = attributes.getLastEditorId();
+                        if (attributes.isSetLatitude())
+                            facet.latitude = attributes.getLatitude();
+                        if (attributes.isSetLongitude())
+                            facet.longitude = attributes.getLongitude();
+                        if (attributes.isSetPlaceName())
+                            facet.placeName = attributes.getPlaceName();
+                        if (attributes.isSetReminderDoneTime())
+                            facet.reminderDoneTime = attributes.getReminderDoneTime();
+                        if (attributes.isSetReminderOrder())
+                            facet.reminderOrder = attributes.getReminderOrder();
+                        if (attributes.isSetReminderTime())
+                            facet.reminderTime = attributes.getReminderTime();
+                        if (attributes.isSetShareDate())
+                            facet.shareDate = attributes.getShareDate();
+                        if (attributes.isSetSource())
+                            facet.source = attributes.getSource();
+                        if (attributes.isSetSourceApplication())
+                            facet.sourceApplication = attributes.getSourceApplication();
+                        if (attributes.isSetSourceURL())
+                            facet.sourceURL = attributes.getSourceURL();
+                        if (attributes.isSetSubjectDate())
+                            facet.subjectDate = attributes.getSubjectDate();
+                        if (attributes.isSetLatitude()&&attributes.isSetLongitude()&&freshlyRetrievedNote.isSetCreated()){
+                            addGuestLocation(updateInfo, facet.latitude, facet.longitude, facet.altitude, facet.created, facet.guid);
+                        }
+                    }
+
+                    if (freshlyRetrievedNote.isSetDeleted()) {
+                        facet.deleted = freshlyRetrievedNote.getDeleted();
+                        // if the note was deleted:
+                        // remove locations that were attached to this note and its associated resources
+                        if (freshlyRetrievedNote.isSetGuid())
+                            removeLocationFacets(updateInfo.apiKey.getId(), freshlyRetrievedNote.getGuid());
+                    } else if (!freshlyRetrievedNote.isSetDeleted()&&facet.deleted!=null) {
+                        facet.deleted = null;
+                        // this means that this note was restored from trash and we need to restore
+                        // its associated resources' locations
+                        if (freshlyRetrievedNote.isSetGuid())
+                            restoreNoteResourceLocations(updateInfo, freshlyRetrievedNote.getGuid());
+                    }
                 }
                 return facet;
             }
@@ -634,74 +639,76 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
                     extractCommonFacetData(facet, updateInfo);
                     facet.guid = resource.getGuid();
                 }
-                if (resource.isSetAlternateData()) {
-                    Data alternateData = resource.getAlternateData();
-                    if (alternateData.isSetBody()&&resource.isSetGuid())
-                        saveDataBodyAsFile(updateInfo, resource.getGuid(), ALTERNATE_APPENDIX, alternateData.getBody(), resource.getMime());
-                    if (alternateData.isSetBodyHash())
-                        facet.alternateDataBodyHash = alternateData.getBodyHash();
-                    if (alternateData.isSetSize())
-                        facet.alternateDataSize = alternateData.getSize();
-                }
-                if (resource.isSetAttributes()) {
-                    final ResourceAttributes resourceAttributes = resource.getAttributes();
-                    if (resourceAttributes.isSetAltitude())
-                        facet.altitude = resourceAttributes.getAltitude();
-                    if (resourceAttributes.isSetAttachment())
-                        facet.isAttachment = resourceAttributes.isAttachment();
-                    if (resourceAttributes.isSetCameraMake())
-                        facet.cameraMake = resourceAttributes.getCameraMake();
-                    if (resourceAttributes.isSetCameraModel())
-                        facet.cameraModel = resourceAttributes.getCameraModel();
-                    if (resourceAttributes.isSetFileName())
-                        facet.fileName = resourceAttributes.getFileName();
-                    if (resourceAttributes.isSetLatitude())
-                        facet.latitude = resourceAttributes.getLatitude();
-                    if (resourceAttributes.isSetLongitude())
-                        facet.longitude = resourceAttributes.getLongitude();
-                    if (resourceAttributes.isSetRecoType())
-                        facet.recoType = resourceAttributes.getRecoType();
-                    if (resourceAttributes.isSetSourceURL())
-                        facet.sourceURL = resourceAttributes.getSourceURL();
-                    if (resourceAttributes.isSetTimestamp())
-                        facet.timestamp = resourceAttributes.getTimestamp();
-                    if (resourceAttributes.isSetTimestamp() &&
-                        resourceAttributes.isSetLongitude() &&
-                        resourceAttributes.isSetLatitude()&&
-                        resource.isSetNoteGuid()){
-                        // resource locations are associated with their parent note's guid
-                        addGuestLocation(updateInfo, facet.latitude, facet.longitude, facet.altitude,
-                                         facet.timestamp, resource.getNoteGuid());
+                if (facet.USN==null||facet.USN<resource.getUpdateSequenceNum()) {
+                    if (resource.isSetAlternateData()) {
+                        Data alternateData = resource.getAlternateData();
+                        if (alternateData.isSetBody()&&resource.isSetGuid())
+                            saveDataBodyAsFile(updateInfo, resource.getGuid(), ALTERNATE_APPENDIX, alternateData.getBody(), resource.getMime());
+                        if (alternateData.isSetBodyHash())
+                            facet.alternateDataBodyHash = alternateData.getBodyHash();
+                        if (alternateData.isSetSize())
+                            facet.alternateDataSize = alternateData.getSize();
                     }
+                    if (resource.isSetAttributes()) {
+                        final ResourceAttributes resourceAttributes = resource.getAttributes();
+                        if (resourceAttributes.isSetAltitude())
+                            facet.altitude = resourceAttributes.getAltitude();
+                        if (resourceAttributes.isSetAttachment())
+                            facet.isAttachment = resourceAttributes.isAttachment();
+                        if (resourceAttributes.isSetCameraMake())
+                            facet.cameraMake = resourceAttributes.getCameraMake();
+                        if (resourceAttributes.isSetCameraModel())
+                            facet.cameraModel = resourceAttributes.getCameraModel();
+                        if (resourceAttributes.isSetFileName())
+                            facet.fileName = resourceAttributes.getFileName();
+                        if (resourceAttributes.isSetLatitude())
+                            facet.latitude = resourceAttributes.getLatitude();
+                        if (resourceAttributes.isSetLongitude())
+                            facet.longitude = resourceAttributes.getLongitude();
+                        if (resourceAttributes.isSetRecoType())
+                            facet.recoType = resourceAttributes.getRecoType();
+                        if (resourceAttributes.isSetSourceURL())
+                            facet.sourceURL = resourceAttributes.getSourceURL();
+                        if (resourceAttributes.isSetTimestamp())
+                            facet.timestamp = resourceAttributes.getTimestamp();
+                        if (resourceAttributes.isSetTimestamp() &&
+                            resourceAttributes.isSetLongitude() &&
+                            resourceAttributes.isSetLatitude()&&
+                            resource.isSetNoteGuid()){
+                            // resource locations are associated with their parent note's guid
+                            addGuestLocation(updateInfo, facet.latitude, facet.longitude, facet.altitude,
+                                             facet.timestamp, resource.getNoteGuid());
+                        }
+                    }
+                    if (resource.isSetData()) {
+                        Data data = resource.getData();
+                        if (data.isSetBody()&&resource.isSetGuid())
+                            saveDataBodyAsFile(updateInfo, resource.getGuid(), MAIN_APPENDIX, data.getBody(), resource.getMime());
+                        if (data.isSetBodyHash())
+                            facet.dataBodyHash = data.getBodyHash();
+                        if (data.isSetSize())
+                            facet.dataSize = data.getSize();
+                    }
+                    if (resource.isSetHeight())
+                        facet.height = resource.getHeight();
+                    if (resource.isSetMime())
+                        facet.mime = resource.getMime();
+                    if (resource.isSetNoteGuid())
+                        facet.noteGuid = resource.getNoteGuid();
+                    if (resource.isSetRecognition()) {
+                        Data recognitionData = resource.getRecognition();
+                        if (recognitionData.isSetBody()&&resource.isSetGuid())
+                            saveDataBodyAsFile(updateInfo, resource.getGuid(), RECOGNITION_APPENDIX, recognitionData.getBody(), null);
+                        if (recognitionData.isSetBodyHash())
+                            facet.recognitionDataBodyHash = recognitionData.getBodyHash();
+                        if (recognitionData.isSetSize())
+                            facet.recognitionDataSize = recognitionData.getSize();
+                    }
+                    if (resource.isSetUpdateSequenceNum())
+                        facet.USN = resource.getUpdateSequenceNum();
+                    if (resource.isSetWidth())
+                        facet.width = resource.getWidth();
                 }
-                if (resource.isSetData()) {
-                    Data data = resource.getData();
-                    if (data.isSetBody()&&resource.isSetGuid())
-                        saveDataBodyAsFile(updateInfo, resource.getGuid(), MAIN_APPENDIX, data.getBody(), resource.getMime());
-                    if (data.isSetBodyHash())
-                        facet.dataBodyHash = data.getBodyHash();
-                    if (data.isSetSize())
-                        facet.dataSize = data.getSize();
-                }
-                if (resource.isSetHeight())
-                    facet.height = resource.getHeight();
-                if (resource.isSetMime())
-                    facet.mime = resource.getMime();
-                if (resource.isSetNoteGuid())
-                    facet.noteGuid = resource.getNoteGuid();
-                if (resource.isSetRecognition()) {
-                    Data recognitionData = resource.getRecognition();
-                    if (recognitionData.isSetBody()&&resource.isSetGuid())
-                        saveDataBodyAsFile(updateInfo, resource.getGuid(), RECOGNITION_APPENDIX, recognitionData.getBody(), null);
-                    if (recognitionData.isSetBodyHash())
-                        facet.recognitionDataBodyHash = recognitionData.getBodyHash();
-                    if (recognitionData.isSetSize())
-                        facet.recognitionDataSize = recognitionData.getSize();
-                }
-                if (resource.isSetUpdateSequenceNum())
-                    facet.USN = resource.getUpdateSequenceNum();
-                if (resource.isSetWidth())
-                    facet.width = resource.getWidth();
                 return facet;
             }
         };

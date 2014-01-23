@@ -19,7 +19,6 @@
     List<UpdateWorkerTask> scheduledTasks = (List<UpdateWorkerTask>)request.getAttribute("scheduledTasks");
     ApiKey apiKey = (ApiKey)request.getAttribute("apiKey");
     Map<String,String> attributes = (Map<String,String>)request.getAttribute("attributes");
-    Map<String,String> attributes = (Map<String,String>)request.getAttribute("attributes");
     List<String> liveServerUUIDs = (List<String>) request.getAttribute("liveServerUUIDs");
     final int[] values = apiKey.getConnector().objectTypeValues();
     final List<Integer> connectorObjectTypes = new ArrayList<Integer>();

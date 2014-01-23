@@ -32,11 +32,9 @@ class UpdateWorker implements Runnable {
 
 	FlxLogger logger = FlxLogger.getLogger(UpdateWorker.class);
 
-    @Qualifier("connectorUpdateServiceImpl")
     @Autowired
 	ConnectorUpdateService connectorUpdateService;
 
-    @Qualifier("apiDataServiceImpl")
     @Autowired
 	ApiDataService apiDataService;
 
@@ -160,6 +158,7 @@ class UpdateWorker implements Runnable {
 
 	private void updateDataHistory(ApiKey apiKey,
 			AbstractUpdater updater) {
+        // TODO: this message should not be displayed when this is called over and over as a result of rate limitations...
         String message = "<img class=\"loading-animation\" src=\"/static/img/loading.gif\"/>You have successfully added a new connector: "
                          + apiKey.getConnector().prettyName()
                          + ". Your data is now being retrieved. "
@@ -189,6 +188,8 @@ class UpdateWorker implements Runnable {
 	private void handleUpdateResult(final UpdateInfo updateInfo, UpdateResult updateResult) {
         guestService.setApiKeyToSynching(updateInfo.apiKey.getId(), false);
         final Connector connector = updateInfo.apiKey.getConnector();
+        String statusName = updateInfo.apiKey.getConnector().statusNotificationName();
+        long guestId=updateInfo.apiKey.getGuestId();
         switch (updateResult.getType()) {
 		case DUPLICATE_UPDATE:
 			duplicateUpdate();
@@ -206,12 +207,13 @@ class UpdateWorker implements Runnable {
 		case HAS_REACHED_RATE_LIMIT:
             final UpdateWorkerTask.AuditTrailEntry rateLimit = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "long reschedule");
             rateLimit.stackTrace = updateResult.stackTrace;
+            notificationsService.addNamedNotification(guestId, Notification.Type.INFO,
+                                                      statusName,
+                                                      "<i class=\"icon-time\" style=\"margin-right:7px\"/>Import of your " + updateInfo.apiKey.getConnector().getPrettyName() + " is delayed due to API rate limitations. Please, be patient.");
 			rescheduleAccordingToQuotaSpecifications(updateInfo, rateLimit);
 			break;
 		case UPDATE_SUCCEEDED:
             // Check for existing status notification
-            long guestId=updateInfo.apiKey.getGuestId();
-            String statusName = updateInfo.apiKey.getConnector().statusNotificationName();
             Notification notification = notificationsService.getNamedNotification(guestId,statusName);
             if (updateInfo.getUpdateType()== UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE ||
                 (notification!=null && notification.deleted==false)) {
