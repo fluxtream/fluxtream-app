@@ -75,13 +75,20 @@ define([],function(){
         if (list.children().length == 0)
             list.append("Sorry, no data to show.");
         var photos = list.find(".flx-photo");
+        var minPhotoTime = 1e300;
+        var maxPhotoTime = -1e300;
+
+        function handlePhotoClick(event){
+            var dTarget = $(event.delegateTarget);
+            //PhotoUtils.showCarouselHTML(PhotoUtils.getCarouselHTML(App.apps.calendar.digest),dTarget.attr("photoId"));
+            App.apps.calendar.showPhotoDialog(dTarget.attr("data-deviceName"), dTarget.attr("data-channelName"),
+                dTarget.attr("data-id"), dTarget.attr("data-timestamp"),{minTime:minPhotoTime,maxTime:maxPhotoTime});
+        }
+
         for (var i = 0; i < photos.length; i++){
-            $(photos[i]).click(function(event){
-                var dTarget = $(event.delegateTarget);
-                //PhotoUtils.showCarouselHTML(PhotoUtils.getCarouselHTML(App.apps.calendar.digest),dTarget.attr("photoId"));
-                App.apps.calendar.showPhotoDialog(dTarget.attr("data-deviceName"), dTarget.attr("data-channelName"),
-                    dTarget.attr("data-id"), dTarget.attr("data-timestamp"));
-            });
+            minPhotoTime = Math.min(minPhotoTime,parseInt($(photos[i]).attr("data-timestamp")));
+            maxPhotoTime = Math.max(maxPhotoTime,parseInt($(photos[i]).attr("data-timestamp")));
+            $(photos[i]).click(handlePhotoClick);
         }
         return list.children();
     }

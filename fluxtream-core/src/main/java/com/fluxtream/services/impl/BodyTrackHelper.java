@@ -367,6 +367,12 @@ public class BodyTrackHelper {
 
             final List<ChannelMapping> channelMappings = getChannelMappings(guestId);
             for (ChannelMapping mapping : channelMappings){
+                ApiKey api = guestService.getApiKey(mapping.apiKeyId);
+                // This is to prevent a rare condition when working, under development, on a branch that
+                // doesn't yet support a connector that is supported on another branch and resulted
+                // in data being populated in the database which is going to cause a crash here
+                if (api.getConnector()==null)
+                    continue;
                 Source source = response.hasSource(mapping.deviceName);
                 if (source == null){
                     source = new Source();
@@ -394,7 +400,6 @@ public class BodyTrackHelper {
                     channel.style = userStyle;
 
                 if (mapping.apiKeyId != null){
-                    ApiKey api = guestService.getApiKey(mapping.apiKeyId);
                     final AbstractBodytrackResponder bodytrackResponder = api.getConnector().getBodytrackResponder(beanFactory);
                     AbstractBodytrackResponder.Bounds bounds = bodytrackResponder.getBounds(mapping);
                     channel.min_time = bounds.min_time;
@@ -420,6 +425,7 @@ public class BodyTrackHelper {
             return jsonResponse;
         }
         catch(Exception e){
+            e.printStackTrace();
             StringBuilder sb = new StringBuilder("module=bodytrackHelper component=listSources action=listSources")
                     .append(" guestId=")
                     .append(guestId)
