@@ -538,7 +538,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 var dTarget = $(event.delegateTarget);
                 //PhotoUtils.showCarouselHTML(photoCarouselHTML,dTarget.attr("photoId"));
                 PhotoUtils.showPhotoDialog(dTarget.attr("data-deviceName"), dTarget.attr("data-channelName"),
-                                           dTarget.attr("data-id"), dTarget.attr("data-timestamp"));
+                                           dTarget.attr("data-id"), dTarget.attr("data-timestamp"),{minTime:dgst.tbounds.start,maxTime:dgst.tbounds.end});
             });
 
         });

@@ -311,6 +311,9 @@ define(["core/grapher/BTCore"],function(BTCore){
 
         var createPhotoDialog = function(compoundPhotoId, timestamp, completionCallback) {
 
+            console.log("photoCache");
+            console.log(photoCache);
+
             var photoMetadata = photoCache.getPhotoMetadata(compoundPhotoId);
             optionalArguments.photoChange(photoMetadata,timestamp);
             var thumbnails = photoMetadata['thumbnails'];
@@ -370,8 +373,7 @@ define(["core/grapher/BTCore"],function(BTCore){
                                   typeof previousPhotoMetadata['photoId'] !== 'undefined';
             if (isPreviousPhoto) {
                 $("#photoDialog #_timeline_photo_dialog_previous_button").show().click(function() {
-                    var timestamp = optionalArguments.grapher != null && previousPhotoMetadata.isLocalTimeType ? optionalArguments.grapher.dateAxis.localTimeToUTC(previousPhotoMetadata.timestamp) : previousPhotoMetadata.timestamp;
-                    createPhotoDialog(previousPhotoMetadata['photoId'],timestamp);
+                    createPhotoDialog(previousPhotoMetadata['photoId'],previousPhotoMetadata.photoTimestamp);
                 });
             }
 
@@ -380,8 +382,7 @@ define(["core/grapher/BTCore"],function(BTCore){
                               typeof nextPhotoMetadata['photoId'] !== 'undefined';
             if (isNextPhoto) {
                 $("#photoDialog #_timeline_photo_dialog_next_button").show().click(function() {
-                    var timestamp = optionalArguments.grapher != null && nextPhotoMetadata.isLocalTimeType ? optionalArguments.grapher.dateAxis.localTimeToUTC(nextPhotoMetadata.timestamp) : nextPhotoMetadata.timestamp;
-                    createPhotoDialog(nextPhotoMetadata['photoId'],timestamp);
+                    createPhotoDialog(nextPhotoMetadata['photoId'],nextPhotoMetadata.photoTimestamp);
                 });
             }
 
@@ -448,7 +449,7 @@ define(["core/grapher/BTCore"],function(BTCore){
                         theImage.css("max-width", "300").css("max-height", "300");
 
                         $("#photoDialog ._timeline_photo_dialog_photo_table").width(300).height(300);
-                        centerPhotoDialog(grapher);
+                        centerPhotoDialog();
                         theImage.removeClass(highResOrientationCssClass);
                         theImage.addClass("_timeline_photo_dialog_image_orientation_1");
                     });
@@ -499,25 +500,18 @@ define(["core/grapher/BTCore"],function(BTCore){
                 if (typeof photoMetadata['timestampString'] === 'undefined') {
                     $("#photoDialog #_timeline_photo_dialog_timestamp").html("&nbsp;");
                 } else {
-                    var photoTimestamp = new Date(photoMetadata['timestampString']);
-                    var photoTimestampStr = null;
-                    if (photoMetadata['isLocalTimeType']) {
-                        // if local time type, then get the timezone offset (in minutes), convert
-                        // it to millis, and add to the time to get the correct time
-                        photoTimestamp = new Date(photoTimestamp.getTime() + photoTimestamp.getTimezoneOffset() * 60000);
-
-                        // format the date without the timezone
-                        photoTimestampStr = photoTimestamp.toDateString() + " " +
-                                            (photoTimestamp.getHours() < 10 ? "0" : "") + photoTimestamp.getHours() +
-                                            ":" +
-                                            (photoTimestamp.getMinutes() < 10 ? "0" : "") + photoTimestamp.getMinutes() +
-                                            ":" +
-                                            (photoTimestamp.getSeconds() < 10 ? "0" : "") + photoTimestamp.getSeconds();
-                    }
-                    else {
-                        photoTimestampStr = photoTimestamp.toString();
-                    }
-                    $("#photoDialog #_timeline_photo_dialog_timestamp").text(photoTimestampStr);
+                    $("#photoDialog #_timeline_photo_dialog_timestamp").text(photoMetadata.photoTimestampStr);
+                    //TODO: figure out if this is a reliable way of doing things
+                    //for this call we create a fake facet that has all the necessary elements to function in the show in x function
+                    var typeParts = photoMetadata.photoId.split(".");
+                    typeParts[0] = typeParts[0].toLowerCase();
+                    App.apps.calendar.bindShowOnXDropDown($("#photoDialog #_timeline_photo_dialog_timestamp"),{
+                        type:typeParts.slice(0,2).join("-"),
+                        start: photoMetadata.photoTimestamp * 1000,
+                        id: typeParts[2]
+                    },function(){
+                        $("#photoDialog")['dialog']('close');
+                    });
                 }
 
                 // fill in the comment, if any
@@ -531,7 +525,7 @@ define(["core/grapher/BTCore"],function(BTCore){
                 // close on ESC for the photo dialog.  We don't want the ESC key to close
                 // the dialog when the user is editing the comment.
                 $("#photoDialog #_timeline_photo_dialog_comment").focus(function() {
-                    $("#photoDialog")['dialog']("option", "closeOnEscape", false);
+                    $("#photoDialog")['dialog']("option", "closeOnEscape", true);
                 });
                 $("#photoDialog #_timeline_photo_dialog_comment").blur(function() {
                     $("#photoDialog")['dialog']("option", "closeOnEscape", true);
@@ -578,7 +572,7 @@ define(["core/grapher/BTCore"],function(BTCore){
                 $('#photoDialog #_timeline_photo_dialog_tags_editor input.tag').tagedit(tagEditorOptions);
                 $('#photoDialog #_timeline_photo_dialog_tags_editor').bind('tagsChanged', setEnabledStateOfRevertAndSaveButtons);
                 $('#photoDialog #_timeline_photo_dialog_tags_editor').bind('receivedFocus', function() {
-                    $("#photoDialog")['dialog']("option", "closeOnEscape", false);
+                    $("#photoDialog")['dialog']("option", "closeOnEscape", true);
                 });
                 $('#photoDialog #_timeline_photo_dialog_tags_editor').bind('tabToNextElement', function(event) {
                     $("#photoDialog")['dialog']("option", "closeOnEscape", true);
@@ -811,24 +805,53 @@ define(["core/grapher/BTCore"],function(BTCore){
                                 if ($.isArray(photos)) {
                                     if (typeof successCallback === 'function') {
                                         var photosMetadata = [];
-                                        $.each(photos, function(index, photo) {
-                                            photosMetadata[index] = {
-                                                "photoId"          : photo['id'],
-                                                "comment"          : photo['comment'],
-                                                "tags"             : photo['tags'],
-                                                "timestamp"        : photo['end_d'],
-                                                "timestampString"  : photo['end'],
-                                                "url"              : photo['url'],
-                                                "thumbnails"       : photo['thumbnails'],
-                                                "orientation"      : photo['orientation'],
-                                                "channel_name"     : photo['channel_name'],
-                                                "dev_nickname"     : photo['dev_nickname'],
-                                                "object_type_name" : photo['object_type_name'],
-                                                "timeType"         : photo['time_type'],
-                                                "isLocalTimeType"  : (photo['time_type'] == "local")
-                                            };
-                                        });
+                                        for (var i = 0, li = photos.length; i < li; i++) {
+                                            var photo = photos[i];
+                                            if ((optionalArguments.minTime != null && photo.end_d * 1000 < optionalArguments.minTime) ||
+                                                (optionalArguments.maxTime != null && photo.end_d * 1000 > optionalArguments.maxTime)){
+                                                photos.splice(i,1);
+                                                i--;
+                                                li--;
+                                                continue;
+                                            }
 
+                                            var photoTimestamp = new Date(photo.end);
+                                            var photoTimestampStr = null;
+                                            if (photo.time_type == "local") {
+                                                // if local time type, then get the timezone offset (in minutes), convert
+                                                // it to millis, and add to the time to get the correct time
+                                                photoTimestamp = new Date(photoTimestamp.getTime() + photoTimestamp.getTimezoneOffset() * 60000);
+
+                                                // format the date without the timezone
+                                                photoTimestampStr = photoTimestamp.toDateString() + " " +
+                                                                    (photoTimestamp.getHours() < 10 ? "0" : "") + photoTimestamp.getHours() +
+                                                                    ":" +
+                                                                    (photoTimestamp.getMinutes() < 10 ? "0" : "") + photoTimestamp.getMinutes() +
+                                                                    ":" +
+                                                                    (photoTimestamp.getSeconds() < 10 ? "0" : "") + photoTimestamp.getSeconds();
+                                            }
+                                            else {
+                                                photoTimestampStr = photoTimestamp.toString();
+                                            }
+
+                                            photosMetadata[i] = {
+                                                "photoId"           : photo['id'],
+                                                "comment"           : photo['comment'],
+                                                "tags"              : photo['tags'],
+                                                "timestamp"         : photo['end_d'],
+                                                "timestampString"   : photo['end'],
+                                                "url"               : photo['url'],
+                                                "thumbnails"        : photo['thumbnails'],
+                                                "orientation"       : photo['orientation'],
+                                                "channel_name"      : photo['channel_name'],
+                                                "dev_nickname"      : photo['dev_nickname'],
+                                                "object_type_name"  : photo['object_type_name'],
+                                                "timeType"          : photo['time_type'],
+                                                "isLocalTimeType"   : (photo['time_type'] == "local"),
+                                                "photoTimestamp"    : photoTimestamp.getTime() / 1000,  //adjusted for timezone
+                                                "photoTimestampStr" : photoTimestampStr                 //adjusted for timezone
+                                            };
+                                        }
                                         // mark the last photo as the end if we got fewer photos than we wanted
                                         if (photos.length < cache.NUM_PHOTOS_TO_FETCH) {
                                             console.log("PhotoDialogCache.__loadNeighboringPhotoMetadata(): Requested ["+cache.NUM_PHOTOS_TO_FETCH+"] photos, but only got ["+photos.length+"].  Marking the last photo as the end to prevent spurious fetches.");
@@ -953,7 +976,13 @@ define(["core/grapher/BTCore"],function(BTCore){
                                         // make sure that the cache didn't change while we were doing the fetch
                                         if (endingPhoto['photoId'] == cache.photos[0]['photoId']) {
                                             // create a new photos array for the cache
-                                            var newPhotos = photosMetadata.slice(1).reverse().concat(cache.photos);
+                                            var newPhotos = cache.photos.slice(0);
+                                            $.each(photosMetadata.reverse(),function(index,photo){
+                                                if (cache.photosByCompoundId[photo.photoId] == null){
+                                                    newPhotos.unshift(photo);
+                                                }
+                                            });
+
                                             var newphotosByCompoundId = {};
 
                                             // now recreate the map which maps photo ID to photo array element index
@@ -996,7 +1025,13 @@ define(["core/grapher/BTCore"],function(BTCore){
                                         // make sure that the cache didn't change while we were doing the fetch
                                         if (endingPhoto['photoId'] == cache.photos[cache.photos.length - 1]['photoId']) {
                                             // create a new photos array for the cache
-                                            var newPhotos = cache.photos.concat(photosMetadata.slice(1));
+                                            var newPhotos = cache.photos.slice(0);
+                                            $.each(photosMetadata,function(index,photo){
+                                                if (cache.photosByCompoundId[photo.photoId] == null){
+                                                    newPhotos.push(photo);
+                                                }
+                                            });
+
                                             var newphotosByCompoundId = {};
 
                                             // now recreate the map which maps photo ID to photo array element index

@@ -2079,7 +2079,6 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                 var parts = sourceInfo.info.imageId.split(".");
 
                 PhotoUtils.showPhotoDialog(parts[0],parts[1],parts[2],pointObj.date * 1000,{
-                    grapher: grapher,
                     channelFilters: getTagFilterForChannel(),
                     filteringStrategy: $("#" + channelElementId + "-photo-tags-matching-strategy").val(),
                     photoChange: function(metadata,timestamp){
