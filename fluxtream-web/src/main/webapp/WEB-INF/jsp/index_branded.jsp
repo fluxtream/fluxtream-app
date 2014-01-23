@@ -74,6 +74,7 @@
                         <div class="register_txt">
                             It's free!
                         </div><button style="cursor:pointer" id="registerShow" class="register_btn">Register</button>
+                        <a style="color:white; text-align:left; margin-top: 15px; font-size: 20px" href="http://blog.fluxtream.org" style="cursor:pointer" class="btn btn-link">Visit our blog</a>
                     </td>
                 </tr>
             </table>

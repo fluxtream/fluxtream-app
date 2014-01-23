@@ -21,6 +21,7 @@ public interface ConnectorUpdateService {
      * @return A list containing data about what was scheduled
      */
     public List<ScheduleResult> updateConnector(ApiKey apiKey, boolean force);
+    public List<ScheduleResult> updateConnector(ApiKey apiKey, boolean force, long updateTime);
 
     /**
      * Schedules an updated for on ObjectType of the given connector for the given user
@@ -33,11 +34,17 @@ public interface ConnectorUpdateService {
      * @return A list containing data about what was scheduled
      */
     public List<ScheduleResult> updateConnectorObjectType(ApiKey apiKey,
+                                                              int objectTypes,
+                                                              boolean force,
+                                                              boolean historyUpdate);
+    public List<ScheduleResult> updateConnectorObjectType(ApiKey apiKey,
                                                           int objectTypes,
                                                           boolean force,
-                                                          boolean historyUpdate);
+                                                          boolean historyUpdate,
+                                                          long updateTime);
 
     public List<ScheduleResult> updateAllConnectors(long guestId, boolean force);
+    public List<ScheduleResult> updateAllConnectors(final long guestId, boolean force, long updateTime);
 
     public List<ApiUpdate> getUpdates(ApiKey apiKey, int pageSize, int page);
 
@@ -80,15 +87,15 @@ public interface ConnectorUpdateService {
 
     /**
      * Returns a list of all scheduled updates for the connector for the given user
-     * NOTE: If a tasks has been running for over 10 hours, this method will set that
-     * tasks status to UpdateWorkerTask.Status.STALLED and will still return that result
      * @return a list of scheduled tasks
      */
 	public List<UpdateWorkerTask> getScheduledOrInProgressUpdateTasks(ApiKey apiKey);
 
     public Collection<UpdateWorkerTask> getUpdatingUpdateTasks(ApiKey apiKey);
 
-	public void flushUpdateWorkerTasks(ApiKey apiKey, boolean wipeOutHistory);
+    List<String> getLiveServerUUIDs();
+
+    public void flushUpdateWorkerTasks(ApiKey apiKey, boolean wipeOutHistory);
 
     public void flushUpdateWorkerTasks(ApiKey apiKey, int objectTypes, boolean wipeOutHistory);
 

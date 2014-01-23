@@ -89,6 +89,11 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
      */
     @Override
     public List<ScheduleResult> updateConnector(final ApiKey apiKey, boolean force) {
+        return updateConnector(apiKey, force, System.currentTimeMillis());
+    }
+
+    @Override
+    public List<ScheduleResult> updateConnector(final ApiKey apiKey, boolean force, long updateTime) {
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
         // TODO: check if this connector type is enabled and supportsSync before calling update.
         // If it is disabled and/or does not support sync, don't try to update it.
@@ -104,7 +109,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
             final boolean historyUpdateCompleted = isHistoryUpdateCompleted(apiKey, 0);
             scheduleObjectTypeUpdate(apiKey, 0, scheduleResults, historyUpdateCompleted
                                                                              ? UpdateType.INCREMENTAL_UPDATE
-                                                                             : UpdateType.INITIAL_HISTORY_UPDATE);
+                                                                             : UpdateType.INITIAL_HISTORY_UPDATE,
+                                     updateTime);
         } else {
             int[] objectTypeValues = apiKey.getConnector().objectTypeValues();
             ConnectorInfo connectorInfo = null;
@@ -124,14 +130,30 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
                 final boolean historyUpdateCompleted = isHistoryUpdateCompleted(apiKey, objectTypes);
                 scheduleObjectTypeUpdate(apiKey, objectTypes, scheduleResults, historyUpdateCompleted
                                                                                            ? UpdateType.INCREMENTAL_UPDATE
-                                                                                           : UpdateType.INITIAL_HISTORY_UPDATE);
+                                                                                           : UpdateType.INITIAL_HISTORY_UPDATE,
+                                         updateTime);
             }
         }
         long guestId=0;
         if(apiKey !=null) {
             guestId = apiKey.getGuestId();
         }
-        System.out.println("updateConnector: guestId=" + guestId + ", apiKey=" + apiKey);
+
+        // Give feedback about result
+        int schedNum=0;
+        int skipNum=0;
+        for (ScheduleResult result : scheduleResults) {
+            if(result.type == ScheduleResult.ResultType.SCHEDULED_UPDATE_IMMEDIATE ||
+               result.type == ScheduleResult.ResultType.SCHEDULED_UPDATE_DEFERRED) {
+                schedNum+=1;
+            }
+            else if(result.type == ScheduleResult.ResultType.ALREADY_SCHEDULED) {
+                skipNum+=1;
+            }
+        }
+        System.out.println("updateConnector: guestId=" + guestId +
+                           ", updateTime=" + updateTime + ", sched/skip=" + schedNum +
+                           "/" + skipNum + ", apiKey=" + apiKey);
 
         return scheduleResults;
     }
@@ -145,9 +167,19 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
     @Override
     public List<ScheduleResult> updateConnectorObjectType(ApiKey apiKey,
+                                                              int objectTypes,
+                                                              boolean force,
+                                                              boolean historyUpdate) {
+        return updateConnectorObjectType(apiKey, objectTypes, force, historyUpdate, System.currentTimeMillis());
+
+    }
+
+    @Override
+    public List<ScheduleResult> updateConnectorObjectType(ApiKey apiKey,
                                                           int objectTypes,
                                                           boolean force,
-                                                          boolean historyUpdate) {
+                                                          boolean historyUpdate,
+                                                          long updateTime) {
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
         getUpdateWorkerTask(apiKey, objectTypes);
         // if forcing an update (sync now), we actually want to flush the update requests
@@ -157,7 +189,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         UpdateType updateType = isHistoryUpdateCompleted(apiKey, objectTypes)
                 ? UpdateType.INCREMENTAL_UPDATE
                 : UpdateType.INITIAL_HISTORY_UPDATE;
-        scheduleObjectTypeUpdate(apiKey, objectTypes, scheduleResults, updateType);
+        scheduleObjectTypeUpdate(apiKey, objectTypes, scheduleResults, updateType, updateTime);
         return scheduleResults;
     }
 
@@ -171,7 +203,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
      */
     private void scheduleObjectTypeUpdate(final ApiKey apiKey, int objectTypes,
                                           List<ScheduleResult> scheduleResults,
-                                          UpdateType updateType) {
+                                          UpdateType updateType, long timeScheduled) {
         ConnectorInfo connectorInfo = null;
         try {
             connectorInfo = systemService.getConnectorInfo(apiKey.getConnector().getName());
@@ -186,7 +218,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         if (updateWorkerTask != null)
             scheduleResults.add(new ScheduleResult(apiKey.getId(), apiKey.getConnector().getName(), objectTypes, ScheduleResult.ResultType.ALREADY_SCHEDULED, updateWorkerTask.timeScheduled));
         else {
-            final ScheduleResult scheduleResult = scheduleUpdate(apiKey, objectTypes, updateType, System.currentTimeMillis());
+            final ScheduleResult scheduleResult = scheduleUpdate(apiKey, objectTypes, updateType, timeScheduled);
             scheduleResults.add(scheduleResult);
         }
     }
@@ -224,11 +256,19 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     /**
      * Calls updateConnector(...) for all of a guest's connector
      * @param guestId
-     * @return a list of objects that describe worker tasks that have been either modified or added
+     * @param force if true then delete all pending updates for the connectors, otherwise respect
+     *              any pending updates and return ALREADY_SCHEDULED if present
+     * @param updateTime (optional) if present schedule the connector updates to occur at the
+     *                   specified time.  If not present then schedule the updates to occur immediately
+     * * @return a list of objects that describe worker tasks that have been either modified or added
      * to the update queue
      */
     @Override
     public List<ScheduleResult> updateAllConnectors(final long guestId, boolean force) {
+        return updateAllConnectors(guestId, force, System.currentTimeMillis());
+    }
+    @Override
+    public List<ScheduleResult> updateAllConnectors(final long guestId, boolean force, long updateTime) {
         List<ScheduleResult> scheduleResults = new ArrayList<ScheduleResult>();
         final List<ApiKey> connectors = guestService.getApiKeys(guestId);
         for (ApiKey key : connectors) {
@@ -239,7 +279,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
                     final ConnectorInfo connectorInfo = systemService.getConnectorInfo(key.getConnector().getName());
                     // Make sure that this connector type supports sync and is enabled in this Fluxtream instance
                     if (connectorInfo.supportsSync && connectorInfo.enabled && key.getStatus() != ApiKey.Status.STATUS_PERMANENT_FAILURE) {
-                        List<ScheduleResult> updateRes = updateConnector(key, force);
+                        List<ScheduleResult> updateRes = updateConnector(key, force, updateTime);
                         scheduleResults.addAll(updateRes);
                     }
                 }
@@ -283,6 +323,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
             failed.status = Status.FAILED;
             failed.guestId = updt.guestId;
             failed.timeScheduled = updt.timeScheduled;
+            failed.serverUUID = updt.serverUUID;
             updt.retries = 0;
             em.persist(failed);
         } else
@@ -498,11 +539,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
                                                                 getLiveServerUUIDs(),
                                                                 objectTypes,
                                                                 apiKey.getId());
-        if (updateWorkerTask!=null&&hasStalled(updateWorkerTask)) {
-            updateWorkerTask.status = Status.STALLED;
-            em.merge(updateWorkerTask);
-            return null;
-        }
         return updateWorkerTask;
     }
 
@@ -536,13 +572,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
                                                                 "updateWorkerTasks.isScheduledOrInProgress",
                                                                 getLiveServerUUIDs(),
                                                                 apiKey.getId());
-        for (UpdateWorkerTask workerTask : updateWorkerTask) {
-            if (hasStalled(workerTask)) {
-                workerTask.status = Status.STALLED;
-                em.merge(workerTask);
-            }
-        }
-        return updateWorkerTask;
+         return updateWorkerTask;
     }
 
     @Override
@@ -553,22 +583,14 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         HashMap<Integer, UpdateWorkerTask> seen = new HashMap<Integer, UpdateWorkerTask>();
         for(UpdateWorkerTask task : tasks)
         {
-            if(hasStalled(task))
+            if(seen.containsKey(task.objectTypes))
             {
-                task.status = Status.STALLED;
-                em.merge(task);
+                if(seen.get(task.objectTypes).timeScheduled < task.timeScheduled)
+                    seen.put(task.objectTypes, task);
             }
             else
             {
-                if(seen.containsKey(task.objectTypes))
-                {
-                    if(seen.get(task.objectTypes).timeScheduled < task.timeScheduled)
-                        seen.put(task.objectTypes, task);
-                }
-                else
-                {
-                    seen.put(task.objectTypes, task);
-                }
+                seen.put(task.objectTypes, task);
             }
         }
         return seen.values();
@@ -581,14 +603,11 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         return list;
     }
 
-    private List<String> getLiveServerUUIDs() {
+    @Override
+    public List<String> getLiveServerUUIDs() {
         List<String> list = new ArrayList<String>();
         list.add(SERVER_UUID);
         return list;
-    }
-
-    private boolean hasStalled(UpdateWorkerTask updateWorkerTask) {
-        return System.currentTimeMillis()-updateWorkerTask.timeScheduled>3600000;
     }
 
     /**
