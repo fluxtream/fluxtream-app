@@ -190,6 +190,7 @@ class UpdateWorker implements Runnable {
         final Connector connector = updateInfo.apiKey.getConnector();
         String statusName = updateInfo.apiKey.getConnector().statusNotificationName();
         long guestId=updateInfo.apiKey.getGuestId();
+        Notification notification = null;
         switch (updateResult.getType()) {
 		case DUPLICATE_UPDATE:
 			duplicateUpdate();
@@ -207,16 +208,19 @@ class UpdateWorker implements Runnable {
 		case HAS_REACHED_RATE_LIMIT:
             final UpdateWorkerTask.AuditTrailEntry rateLimit = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "long reschedule");
             rateLimit.stackTrace = updateResult.stackTrace;
-            notificationsService.addNamedNotification(guestId, Notification.Type.INFO,
-                                                      statusName,
-                                                      "<i class=\"icon-time\" style=\"margin-right:7px\"/>Import of your " + updateInfo.apiKey.getConnector().getPrettyName() + " is delayed due to API rate limitations. Please, be patient.");
+            // do this only if a notification is visible for that connector at this time
+            notification = notificationsService.getNamedNotification(guestId,statusName);
+            if (notification!=null && notification.deleted==false) {
+                notificationsService.addNamedNotification(guestId, Notification.Type.INFO,
+                                                          statusName,
+                                                          "<i class=\"icon-time\" style=\"margin-right:7px\"/>Import of your " + updateInfo.apiKey.getConnector().getPrettyName() + " data is delayed due to API rate limitations. Please, be patient.");
+            }
 			rescheduleAccordingToQuotaSpecifications(updateInfo, rateLimit);
 			break;
 		case UPDATE_SUCCEEDED:
             // Check for existing status notification
-            Notification notification = notificationsService.getNamedNotification(guestId,statusName);
-            if (updateInfo.getUpdateType()== UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE ||
-                (notification!=null && notification.deleted==false)) {
+            notification = notificationsService.getNamedNotification(guestId,statusName);
+            if (notification!=null && notification.deleted==false) {
                 // This is either an initial history update or there's an existing visible status notification.
                 // Update the notification to show the update succeeded.
                 notificationsService.addNamedNotification(guestId, Notification.Type.INFO,
@@ -224,12 +228,6 @@ class UpdateWorker implements Runnable {
                                                           "<i class=\"icon-ok\" style=\"margin-right:7px\"/>Your " + updateInfo.apiKey.getConnector().getPrettyName() + " data was successfully imported.  " +
                                                           "See <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a> dialog for details.");
             }
-            if (updateInfo.getUpdateType()== UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE)
-                notificationsService.addNamedNotification(updateInfo.apiKey.getGuestId(), Notification.Type.INFO,
-                                                          connector.statusNotificationName(),
-                                                          "<i class=\"icon-ok\" style=\"margin-right:7px\"/>Your " + connector.getPrettyName() + " data was successfully imported.  " +
-                                                          "See <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a> dialog for details."
-                );
 			success(updateInfo.apiKey);
 			break;
 		case UPDATE_FAILED:
