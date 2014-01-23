@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
-import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.Lob;
 import javax.persistence.MappedSuperclass;
@@ -18,6 +17,7 @@ import javax.persistence.Query;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
+import com.fluxtream.utils.JPAUtils;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 import org.hibernate.search.annotations.Field;
@@ -215,11 +215,11 @@ public abstract class AbstractFacet extends AbstractEntity {
     }
 
     public static AbstractFacet getOldestFacet(EntityManager em, ApiKey apiKey, ObjectType objType) {
-        return getOldestOrLatestFacet(em, apiKey, objType, "asc");
+        return getOldestOrLatestFacet(em, apiKey, objType, "ASC");
     }
 
     public static AbstractFacet getLatestFacet(EntityManager em, ApiKey apiKey, ObjectType objType){
-        return getOldestOrLatestFacet(em, apiKey, objType, "desc");
+        return getOldestOrLatestFacet(em, apiKey, objType, "DESC");
     }
 
     private static AbstractFacet getOldestOrLatestFacet(EntityManager em, ApiKey apiKey, ObjectType objType, String sortOrder) {
@@ -230,15 +230,14 @@ public abstract class AbstractFacet extends AbstractEntity {
         else {
             facetClass = apiKey.getConnector().facetClass();
         }
-        Entity entity = (Entity)facetClass.getAnnotation(Entity.class);
-        Query query = em.createQuery("select facet from " + entity.name()
-                                     + " facet where facet.guestId = "
-                                     + apiKey.getGuestId() + " order by facet.end "
-                                     + sortOrder + " limit 1");
+        final String entityName = JPAUtils.getEntityName(facetClass);
+        String queryString = String.format("SELECT * FROM (SELECT id FROM %s WHERE apiKeyId=?) ids JOIN %s USING (id) ORDER BY end %s", entityName, entityName, sortOrder);
+        Query query = em.createNativeQuery(queryString, facetClass);
+        query.setParameter(1, apiKey.getId());
         query.setMaxResults(1);
-        final List resultList = query.getResultList();
+        final List<? extends AbstractFacet> resultList = query.getResultList();
         if (resultList != null && resultList.size() > 0) {
-            return (AbstractFacet)resultList.get(0);
+            return resultList.get(0);
         }
         return null;
     }
@@ -266,16 +265,15 @@ public abstract class AbstractFacet extends AbstractEntity {
                                                       Integer desiredCount,
                                                       @Nullable final TagFilter tagFilter) {
         final Class facetClass = getFacetClass(apiKey, objType);
-        final Entity entity = (Entity)facetClass.getAnnotation(Entity.class);
+        final String entityName = JPAUtils.getEntityName(facetClass);
         final String additionalWhereClause = (tagFilter == null) ? "" : " AND (" + tagFilter.getWhereClause() + ")";
-        final String queryStr = "select facet from " + entity.name()
-                                + " facet where facet.guestId = " + apiKey.getGuestId()
-                                + " and facet.start <= " + timeInMillis
-                                + additionalWhereClause
-                                + " order by facet.start desc limit " + desiredCount;
-        final Query query = em.createQuery(queryStr);
+        String queryString = String.format("SELECT * FROM (SELECT id FROM %s WHERE apiKeyId=?) ids JOIN %s USING (id) WHERE start <=? %s ORDER BY start DESC",
+                                           entityName, entityName, additionalWhereClause);
+        final Query query = em.createNativeQuery(queryString, facetClass);
+        query.setParameter(1, apiKey.getId());
+        query.setParameter(2, timeInMillis);
         query.setMaxResults(desiredCount);
-        return (List<AbstractFacet>)query.getResultList();
+        return query.getResultList();
     }
 
     public static List<AbstractFacet> getFacetsAfter(EntityManager em,
@@ -285,14 +283,13 @@ public abstract class AbstractFacet extends AbstractEntity {
                                                      Integer desiredCount,
                                                      @Nullable final TagFilter tagFilter){
         final Class facetClass = getFacetClass(apiKey, objType);
-        final Entity entity = (Entity)facetClass.getAnnotation(Entity.class);
+        final String entityName = JPAUtils.getEntityName(facetClass);
         final String additionalWhereClause = (tagFilter == null) ? "" : " AND (" + tagFilter.getWhereClause() + ")";
-        final String queryStr = "select facet from " + entity.name()
-                                + " facet where facet.guestId = " + apiKey.getGuestId()
-                                + " and facet.start >= " + timeInMillis
-                                + additionalWhereClause
-                                + " order by facet.start asc limit " + desiredCount;
-        final Query query = em.createQuery(queryStr);
+        String queryString = String.format("SELECT * FROM (SELECT id FROM %s WHERE apiKeyId=?) ids JOIN %s USING (id) WHERE start >=? %s ORDER BY start DESC",
+                                           entityName, entityName, additionalWhereClause);
+        final Query query = em.createNativeQuery(queryString, facetClass);
+        query.setParameter(1, apiKey.getId());
+        query.setParameter(2, timeInMillis);
         query.setMaxResults(desiredCount);
         return (List<AbstractFacet>)query.getResultList();
     }

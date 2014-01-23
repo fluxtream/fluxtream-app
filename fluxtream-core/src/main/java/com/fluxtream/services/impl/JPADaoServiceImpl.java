@@ -52,6 +52,20 @@ public class JPADaoServiceImpl implements JPADaoService {
     }
 
     @Override
+    public <T> List<T> executeQueryWithLimitAndOffset(final String queryString, final int limit, final int offset, final Class<T> clazz, Object... params) {
+        TypedQuery<T> query = em.createQuery(queryString, clazz);
+        int i=1;
+        if (params!=null) {
+            for (Object param : params) {
+                query.setParameter(i++, param);
+            }
+        }
+        query.setMaxResults(limit);
+        query.setFirstResult(offset);
+        return query.getResultList();
+    }
+
+    @Override
 	public long countFacets(Connector connector, long guestId) {
 		if (!connector.hasFacets()) return 0;
 		ObjectType[] objectTypes = connector.objectTypes();

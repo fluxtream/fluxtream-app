@@ -96,13 +96,6 @@ public class UpdateInfo implements Cloneable {
 		return updateType;
 	}
 
-	public static final UpdateInfo noopUpdateInfo(ApiKey apiKey, int objectTypes) {
-		UpdateInfo updateInfo = new UpdateInfo(apiKey);
-		updateInfo.updateType = UpdateType.NOOP_UPDATE;
-		updateInfo.objectTypes = objectTypes;
-		return updateInfo;
-	}
-	
 	public static final UpdateInfo initialHistoryUpdateInfo(ApiKey apiKey, int objectTypes) {
 		UpdateInfo updateInfo = new UpdateInfo(apiKey);
 		updateInfo.updateType = UpdateType.INITIAL_HISTORY_UPDATE;
@@ -118,15 +111,7 @@ public class UpdateInfo implements Cloneable {
 			updateInfo.jsonParams = jsonParams[0];
 		return updateInfo;
 	}
-	
-	public static final UpdateInfo refreshTimeIntervalUpdateInfo(ApiKey apiKey, int objectTypes, TimeInterval timeInterval) {
-		UpdateInfo updateInfo = new UpdateInfo(apiKey);
-		updateInfo.updateType = UpdateType.TIME_INTERVAL_UPDATE;
-		updateInfo.timeInterval = timeInterval;
-		updateInfo.objectTypes = objectTypes;
-		return updateInfo;
-	}
-	
+
 	public static final UpdateInfo IncrementalUpdateInfo(ApiKey apiKey, int objectTypes) {
 		UpdateInfo updateInfo = new UpdateInfo(apiKey);
 		updateInfo.updateType = UpdateType.INCREMENTAL_UPDATE;
