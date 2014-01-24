@@ -127,6 +127,18 @@ define(
             // start loading all applications
             checkScreenDensity();
             loadApps();
+
+            bindGlobalEventHandlers();
+        }
+
+        function bindGlobalEventHandlers(){
+            $("body").on("keyup.gloablAppEventHandler",function(event){
+                if (event.keyCode == 27){
+                    event.preventDefault();
+                    App.modals[0].modal("hide");//close the top most modal dialog
+                }
+            })
+
         }
 
         function checkScreenDensity() {
@@ -303,15 +315,25 @@ define(
             Settings.show();
         };
 
+        App.modals = [];
+
         function makeModal(html) {
             var dialog = $(html);
+            App.modals.unshift(dialog);
             dialog.addClass("modal");
             dialog.addClass("hide");
             $("body").append(dialog);
             dialog.modal();
-            dialog.on("hidden",function(event){
+            dialog.on("hidden.cleanupListener",function(event){
                 event.stopImmediatePropagation();
                 dialog.remove();
+                var index = App.modals.indexOf(dialog);
+                if (index == -1){
+                    console.warn("couldn't find dialog in modal list");
+                }
+                else{
+                    App.modals.splice(index,1);
+                }
             });
             var backdrops = $(".modal-backdrop");
             if (backdrops.length > 1){
