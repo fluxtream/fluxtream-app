@@ -9,7 +9,6 @@ import com.fluxtream.TimeUnit;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.bodytrackResponders.AbstractBodytrackResponder;
-import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
@@ -34,13 +33,7 @@ public class EvernoteBodytrackResponder extends AbstractBodytrackResponder {
     public List<TimespanModel> getTimespans(final long startMillis, final long endMillis,
                                             final ApiKey apiKey, final String channelName) {
         List<TimespanModel> items = new ArrayList<TimespanModel>();
-        EvernoteConnectorSettings connectorSettings = null;
-        try {
-            connectorSettings = (EvernoteConnectorSettings)settingsService.getConnectorSettings(apiKey.getId(), false);
-        }
-        catch (UpdateFailedException e) {
-            e.printStackTrace();
-        }
+        EvernoteConnectorSettings connectorSettings = (EvernoteConnectorSettings)settingsService.getConnectorSettings(apiKey.getId());
         final TimeInterval timeInterval = new SimpleTimeInterval(startMillis, endMillis, TimeUnit.ARBITRARY, TimeZone.getTimeZone("UTC"));
         String objectTypeName = "Evernote-note";
         List<AbstractFacet> facets = getFacetsInTimespan(timeInterval, apiKey, ObjectType.getObjectType(Connector.getConnector("evernote"), "note"));

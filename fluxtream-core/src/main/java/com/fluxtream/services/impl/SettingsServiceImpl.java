@@ -139,19 +139,20 @@ public class SettingsServiceImpl implements SettingsService {
         return filterState == null ? "{}" : filterState.stateJSON;
     }
 
+    /**
+     * Returns the serialized settings for a connector instance or new settings of the right
+     * type if none have been already persisted and a non-default Settings class is specified in
+     * the connector's Updater (annotation)
+     * @param apiKeyId
+     * @return
+     * @throws UpdateFailedException
+     */
     @Override
     @Transactional(readOnly = false)
-    public Object getConnectorSettings(final long apiKeyId, final boolean refresh) throws UpdateFailedException {
+    public Object getConnectorSettings(final long apiKeyId) {
         ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        Object settings = apiKey.getSettings();
         final Class<? extends AbstractUpdater> updaterClass = apiKey.getConnector().getUpdaterClass();
-        Object settings;
-        if (refresh && SettingsAwareAbstractUpdater.class.isAssignableFrom(updaterClass)) {
-            SettingsAwareAbstractUpdater updater = (SettingsAwareAbstractUpdater)beanFactory.getBean(updaterClass);
-            settings = updater.createOrRefreshSettings(apiKey);
-            apiKey.setSettings(settings);
-            em.persist(apiKey);
-        } else
-            settings = apiKey.getSettings();
         final Class<?> settingsClass = updaterClass.getAnnotation(Updater.class).settings();
         if (settings==null&& settingsClass != Updater.EmptySettings.class){
             try {
@@ -165,6 +166,15 @@ public class SettingsServiceImpl implements SettingsService {
             }
         }
         return settings;
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void persistConnectorSettings(final long apiKeyId, final Object settings, final Object defaultSettings) {
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        apiKey.setSettings(settings);
+        apiKey.setDefaultSettings(defaultSettings);
+        em.persist(apiKey);
     }
 
     @Override
@@ -190,11 +200,35 @@ public class SettingsServiceImpl implements SettingsService {
         }
     }
 
+    /**
+     * Reset connector settings to the defaults if they have been specified, or a new instance of
+     * the settings class for this connector, if one exists
+     * @param apiKeyId
+     */
     @Override
     @Transactional(readOnly=false)
     public void resetConnectorSettings(final long apiKeyId) {
         ApiKey apiKey = guestService.getApiKey(apiKeyId);
-        apiKey.setSettings(null);
+        final Class<? extends AbstractUpdater> updaterClass = apiKey.getConnector().getUpdaterClass();
+        Object defaultSettings = apiKey.getDefaultSettings();
+        if (defaultSettings!=null)
+            apiKey.setSettings(defaultSettings);
+        else {
+            final Class<?> settingsClass = updaterClass.getAnnotation(Updater.class).settings();
+            if (settingsClass != Updater.EmptySettings.class){
+                try {
+                    defaultSettings = settingsClass.newInstance();
+                    apiKey.setSettings(defaultSettings);
+                }
+                catch (Exception e) {
+                    throw new RuntimeException("Could not instantiate default settings for connector " + apiKey.getConnector().getName());
+                }
+            }
+        }
+        if (SettingsAwareAbstractUpdater.class.isAssignableFrom(updaterClass)) {
+            final AbstractUpdater updater = beanFactory.getBean(apiKey.getConnector().getUpdaterClass());
+            ((SettingsAwareAbstractUpdater)updater).connectorSettingsChanged(apiKeyId, defaultSettings);
+        }
         em.persist(apiKey);
     }
 

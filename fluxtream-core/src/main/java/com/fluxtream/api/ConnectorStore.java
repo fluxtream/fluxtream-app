@@ -110,7 +110,7 @@ public class ConnectorStore {
         final long guestId = AuthHelper.getGuestId();
         if (apiKey.getGuestId()!=guestId)
             throw new RuntimeException("attempt to retrieve ApiKey from another guest!");
-        final Object settings = settingsService.getConnectorSettings(apiKey.getId(), true);
+        final Object settings = settingsService.getConnectorSettings(apiKey.getId());
         String json = mapper.writeValueAsString(settings);
         return json;
     }

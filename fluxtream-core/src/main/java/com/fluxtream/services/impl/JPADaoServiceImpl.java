@@ -123,17 +123,4 @@ public class JPADaoServiceImpl implements JPADaoService {
         return query.getResultList();
     }
 
-    @Override
-	@Transactional(readOnly=false)
-	public void persist(Object o) {
-		em.persist(o);
-	}
-
-	@Override
-	@Transactional(readOnly=false)
-	public void remove(Class<?> clazz, long id) {
-		Object o = em.find(clazz, id);
-		em.remove(o);
-	}
-
 }

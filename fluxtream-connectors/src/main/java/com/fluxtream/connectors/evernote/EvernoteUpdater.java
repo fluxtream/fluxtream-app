@@ -139,18 +139,13 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
     }
 
     @Override
-    public Object createOrRefreshSettings(final ApiKey apiKey) throws UpdateFailedException {
-        EvernoteConnectorSettings settings = (EvernoteConnectorSettings)apiKey.getSettings();
-        if (settings==null)
-            settings = new EvernoteConnectorSettings();
-        refreshSettings(apiKey, settings);
-        return settings;
-    }
-
-    private void refreshSettings(final ApiKey apiKey, final EvernoteConnectorSettings settings)
-            throws UpdateFailedException {
+    public Object syncConnectorSettings(final UpdateInfo updateInfo, Object s) {
+        EvernoteConnectorSettings settings = s ==null
+                                           ? new EvernoteConnectorSettings()
+                                           : (EvernoteConnectorSettings) s;
         // get notebooks, add new configs for new notebooks...
-        final List<EvernoteNotebookFacet> notebooks = jpaDaoService.find("evernote.notebooks.byApiKeyId", EvernoteNotebookFacet.class, apiKey.getId());
+        final List<EvernoteNotebookFacet> notebooks = jpaDaoService.find("evernote.notebooks.byApiKeyId",
+                                                                         EvernoteNotebookFacet.class, updateInfo.apiKey.getId());
         there: for (EvernoteNotebookFacet notebook : notebooks) {
             for (NotebookConfig notebookConfig : settings.notebooks) {
                 if (notebookConfig.guid.equals(notebook.guid))
@@ -177,13 +172,15 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
             settings.notebooks.remove(toDelete);
         }
         // retrieve tags and store tag guid -> tag name map in the settings
-        final List<EvernoteTagFacet> tags = jpaDaoService.find("evernote.tags.byApiKeyId", EvernoteTagFacet.class, apiKey.getId());
+        final List<EvernoteTagFacet> tags = jpaDaoService.find("evernote.tags.byApiKeyId",
+                                                               EvernoteTagFacet.class, updateInfo.apiKey.getId());
         Map<String,String> tagsMap = new HashMap<String,String>();
         for (EvernoteTagFacet tag : tags)
             tagsMap.put(tag.guid, tag.name);
         settings.tags = tagsMap;
-    }
 
+        return settings;
+    }
 
     private void setChannelMapping(ApiKey apiKey, final List<NotebookConfig> notebookConfigs) {
         bodyTrackHelper.deleteChannelMappings(apiKey);
@@ -206,11 +203,8 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
         channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
         channelStyle.timespanStyles.values = new HashMap();
 
-        EvernoteConnectorSettings connectorSettings = null;
-        try {
-            connectorSettings =
-                    (EvernoteConnectorSettings)settingsService.getConnectorSettings(apiKey.getId(), false);
-        } catch (UpdateFailedException e) { }
+        EvernoteConnectorSettings connectorSettings =
+                (EvernoteConnectorSettings)settingsService.getConnectorSettings(apiKey.getId());
         int n = notebookConfigs.size();
         if (connectorSettings!=null) {
             n = 0;
@@ -380,7 +374,6 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
             if (!expungedTagGuids.contains(tag.getGuid()))
                 createOrUpdateTag(updateInfo, tag);
         }
-        createOrRefreshSettings(updateInfo.apiKey);
     }
 
     private void createOrUpdateNotebooks(final UpdateInfo updateInfo, final LinkedList<SyncChunk> chunks) throws Exception {
@@ -398,7 +391,6 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
             if (!expungedNotebookGuids.contains(notebook.getGuid()))
                 createOrUpdateNotebook(updateInfo, notebook);
         }
-        createOrRefreshSettings(updateInfo.apiKey);
     }
 
     private void createOrUpdateNotes(final UpdateInfo updateInfo, final LinkedList<SyncChunk> chunks,

@@ -66,6 +66,9 @@ public class ApiKey extends AbstractEntity {
     @Lob
     private byte[] settingsStorage;
 
+    @Lob
+    private byte[] defaultSettingsStorage;
+
 	public void setGuestId(long guestId) {
 		this.guestId = guestId;
 	}
@@ -78,9 +81,22 @@ public class ApiKey extends AbstractEntity {
         settingsStorage = SerializationUtils.serialize(o);
     }
 
+    public void setDefaultSettings(Object o) {
+        defaultSettingsStorage = SerializationUtils.serialize(o);
+    }
+
     public Object getSettings() {
         try {
             return SerializationUtils.deserialize(settingsStorage);
+        } catch (Throwable e) {
+            // let's be robust against class changes
+            return null;
+        }
+    }
+
+    public Object getDefaultSettings() {
+        try {
+            return SerializationUtils.deserialize(defaultSettingsStorage);
         } catch (Throwable e) {
             // let's be robust against class changes
             return null;

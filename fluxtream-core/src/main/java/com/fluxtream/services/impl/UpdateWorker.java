@@ -5,6 +5,7 @@ import com.fluxtream.Configuration;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
+import com.fluxtream.connectors.updaters.SettingsAwareAbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.connectors.updaters.UpdateResult;
 import com.fluxtream.domain.ApiKey;
@@ -16,11 +17,11 @@ import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.NotificationsService;
+import com.fluxtream.services.SettingsService;
 import com.fluxtream.services.SystemService;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -46,6 +47,9 @@ class UpdateWorker implements Runnable {
 
     @Autowired
     NotificationsService notificationsService;
+
+    @Autowired
+    SettingsService settingsService;
 
 	@Autowired
 	Configuration env;
@@ -172,6 +176,13 @@ class UpdateWorker implements Runnable {
         UpdateInfo updateInfo = UpdateInfo.initialHistoryUpdateInfo(apiKey,
                 task.objectTypes);
         UpdateResult updateResult = updater.updateDataHistory(updateInfo);
+        if (updateResult.getType()== UpdateResult.ResultType.UPDATE_SUCCEEDED
+                && updater instanceof SettingsAwareAbstractUpdater) {
+            final SettingsAwareAbstractUpdater settingsAwareUpdater = (SettingsAwareAbstractUpdater)updater;
+            final Object synchedSettings = settingsAwareUpdater.syncConnectorSettings(updateInfo, settingsService.getConnectorSettings(updateInfo.apiKey.getId()));
+            final Object defaultSettings = settingsAwareUpdater.syncConnectorSettings(updateInfo, null);
+            settingsService.persistConnectorSettings(apiKey.getId(), synchedSettings, defaultSettings);
+        }
         handleUpdateResult(updateInfo, updateResult);
 	}
 
@@ -182,6 +193,13 @@ class UpdateWorker implements Runnable {
                     " connector=" + apiKey.getConnector().getName() + " guestId=" + apiKey.getGuestId());
         UpdateInfo updateInfo = UpdateInfo.IncrementalUpdateInfo(apiKey, task.objectTypes);
         UpdateResult result = updater.updateData(updateInfo);
+        if (result.getType()== UpdateResult.ResultType.UPDATE_SUCCEEDED
+            && updater instanceof SettingsAwareAbstractUpdater) {
+            final SettingsAwareAbstractUpdater settingsAwareUpdater = (SettingsAwareAbstractUpdater)updater;
+            final Object synchedSettings = settingsAwareUpdater.syncConnectorSettings(updateInfo, settingsService.getConnectorSettings(updateInfo.apiKey.getId()));
+            final Object defaultSettings = settingsAwareUpdater.syncConnectorSettings(updateInfo, null);
+            settingsService.persistConnectorSettings(apiKey.getId(), synchedSettings, defaultSettings);
+        }
         handleUpdateResult(updateInfo, result);
     }
 

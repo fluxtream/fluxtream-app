@@ -17,10 +17,6 @@ public interface JPADaoService {
 
     public int execute(String jpql, Object... params);
 
-    public void persist(Object o);
-
-	public void remove(Class<?> clazz, long id);
-
     <T> List<T>  executeQueryWithLimit(String queryString, int i, Class<T> clazz, Object... params);
 
     <T> List<T>  executeQueryWithLimitAndOffset(String queryString, int i, int offset, Class<T> clazz, Object... params);
