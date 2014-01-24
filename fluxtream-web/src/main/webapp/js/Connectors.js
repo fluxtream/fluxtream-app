@@ -128,7 +128,7 @@ define(function() {
 	function submitSmsBackupFolderNames() {
 		var smsFolderName = $("input#smsBackup-smsFolderName").val(),
 		callLogFolderName = $("input#smsBackup-callLogFolderName").val();
-		$.ajax({
+        $.ajax({
 			url:"/smsBackup/setFolderNames",
 			type: "POST",
 			data: {smsFolderName: smsFolderName, callLogFolderName: callLogFolderName},
@@ -142,7 +142,8 @@ define(function() {
 	function submitSmsBackupUsernameAndPassword() {
 		var username = $("input#smsBackup-username").val(),
 			password = $("input#smsBackup-password").val();
-		$.ajax({
+        $(".addConnectorsMain input, .addConnectorsMain button").attr("disabled","disabled");
+        $.ajax({
 			url:"/smsBackup/check",
 			type: "POST",
 			data: {username: username, password: password},
