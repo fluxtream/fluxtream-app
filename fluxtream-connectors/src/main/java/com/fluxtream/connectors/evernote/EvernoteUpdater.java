@@ -34,7 +34,6 @@ import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.AuthExpiredException;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.SettingsAwareAbstractUpdater;
-import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ChannelMapping;
@@ -62,7 +61,8 @@ import org.springframework.stereotype.Component;
                                                             EvernoteTagFacet.class, EvernoteNotebookFacet.class,
                                                             EvernoteResourceFacet.class, EvernotePhotoFacet.class},
          settings = EvernoteConnectorSettings.class, bodytrackResponder = EvernoteBodytrackResponder.class,
-         defaultChannels = {"Evernote.photo", "Evernote.note"})
+         defaultChannels = {"Evernote.photo", "Evernote.note"},
+         deleteOrder={1, 2, 4, 8, 32, 16})
 public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
 
     public static final String MAIN_APPENDIX = "main";
@@ -351,9 +351,9 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
     private void processExpungedTags(final UpdateInfo updateInfo, final LinkedList<SyncChunk> chunks) {
         List<String> expungedTagGuids = new ArrayList<String>();
         for (SyncChunk chunk : chunks) {
-            final List<String> chunkExpungedNotes = chunk.getExpungedNotes();
-            if (chunkExpungedNotes!=null)
-                expungedTagGuids.addAll(chunkExpungedNotes);
+            final List<String> chunkExpungedTags = chunk.getExpungedTags();
+            if (chunkExpungedTags!=null)
+                expungedTagGuids.addAll(chunkExpungedTags);
         }
         for (String expungedTagGuid : expungedTagGuids)
             removeEvernoteFacet(updateInfo, EvernoteTagFacet.class, expungedTagGuid);

@@ -15,6 +15,7 @@ import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.velocity.util.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.BeanFactory;
@@ -58,6 +59,8 @@ public class Connector {
         objectType.name = "comment";
         ObjectType.addObjectType(objectType.name, flxConnector, objectType);
     }
+
+    private int[] deleteOrder;
 
     public String toString() {
         String string = "{name:" + name;
@@ -127,6 +130,7 @@ public class Connector {
                 .updateStrategyType();
         connector.hasFacets = updaterAnnotation.hasFacets();
         connector.name = connectorName;
+        connector.deleteOrder = updaterAnnotation.deleteOrder();
         // set connectors' object types
         Class<? extends AbstractFacet>[] facetTypes = updaterAnnotation
                 .objectTypes();
@@ -348,6 +352,14 @@ public class Connector {
 
     public String prettyName() {
         return prettyName;
+    }
+
+    public int[] getDeleteOrder() {
+        return deleteOrder;
+    }
+
+    public boolean hasDeleteOrder() {
+        return !ArrayUtils.isEquals(deleteOrder, new int[]{-1});
     }
 
     public ObjectType[] getObjectTypesForValue(int value) {

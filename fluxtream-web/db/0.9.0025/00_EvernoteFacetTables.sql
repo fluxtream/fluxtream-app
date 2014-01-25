@@ -85,7 +85,7 @@ CREATE TABLE `Facet_EvernoteNotebook` (
   KEY `guestId_index` (`guestId`),
   KEY `apiKey` (`apiKeyId`),
   KEY `timeUpdated_index` (`timeUpdated`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `Facet_EvernoteTag` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
@@ -113,7 +113,7 @@ CREATE TABLE `Facet_EvernoteTag` (
   KEY `guestId_index` (`guestId`),
   KEY `apiKey` (`apiKeyId`),
   KEY `timeUpdated_index` (`timeUpdated`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `Facet_EvernoteResource` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
@@ -161,7 +161,7 @@ CREATE TABLE `Facet_EvernoteResource` (
   KEY `guestId_index` (`guestId`),
   KEY `apiKey` (`apiKeyId`),
   KEY `timeUpdated_index` (`timeUpdated`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `Facet_EvernotePhoto` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
@@ -189,6 +189,5 @@ CREATE TABLE `Facet_EvernotePhoto` (
   KEY `objectType_index` (`objectType`),
   KEY `guestId_index` (`guestId`),
   KEY `apiKey` (`apiKeyId`),
-  KEY `timeUpdated_index` (`timeUpdated`),
-  CONSTRAINT `FK3645693AFCFC4763` FOREIGN KEY (`resourceFacet_id`) REFERENCES `Facet_EvernoteResource` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `timeUpdated_index` (`timeUpdated`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

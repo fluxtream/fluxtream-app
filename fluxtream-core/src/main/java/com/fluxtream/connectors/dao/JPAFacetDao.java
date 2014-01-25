@@ -43,7 +43,6 @@ public class JPAFacetDao implements FacetDao {
     @Autowired
 	GuestService guestService;
 
-    @Qualifier("connectorUpdateServiceImpl")
     @Autowired
 	ConnectorUpdateService connectorUpdateService;
 
@@ -330,9 +329,18 @@ public class JPAFacetDao implements FacetDao {
 
     @Override
 	public void deleteAllFacets(ApiKey apiKey) {
-        final ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
-        for (ObjectType objectType : objectTypes) {
-            deleteAllFacets(apiKey, objectType);
+        final Connector connector = apiKey.getConnector();
+        if (connector.hasDeleteOrder()){
+            final int[] deleteOrder = connector.getDeleteOrder();
+            for (int ot : deleteOrder) {
+                ObjectType objectType = ObjectType.getObjectType(connector, ot);
+                deleteAllFacets(apiKey, objectType);
+            }
+        } else {
+            final ObjectType[] objectTypes = connector.objectTypes();
+            for (ObjectType objectType : objectTypes) {
+                deleteAllFacets(apiKey, objectType);
+            }
         }
 	}
 

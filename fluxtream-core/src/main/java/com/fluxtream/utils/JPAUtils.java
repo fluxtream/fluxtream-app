@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Query;
 import com.fluxtream.domain.AbstractFacet;
 
@@ -28,6 +29,7 @@ public class JPAUtils {
         for (Field field : fields) {
             if (field.getAnnotation(OneToMany.class)!=null||
                 field.getAnnotation(ManyToMany.class)!=null||
+                field.getAnnotation(OneToOne.class)!=null||
                 field.getAnnotation(ElementCollection.class)!=null)
                 return true;
         }

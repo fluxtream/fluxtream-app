@@ -1,5 +1,6 @@
 package com.fluxtream.connectors.evernote;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
@@ -22,7 +23,7 @@ public class EvernotePhotoFacet extends EvernoteFacet {
 
     public EvernotePhotoFacet(final long apiKeyId) {super(apiKeyId);}
 
-    @OneToOne(fetch= FetchType.EAGER, targetEntity=EvernoteResourceFacet.class)
+    @OneToOne(fetch= FetchType.EAGER, targetEntity=EvernoteResourceFacet.class, cascade=CascadeType.ALL)
     public EvernoteResourceFacet resourceFacet;
 
 }
