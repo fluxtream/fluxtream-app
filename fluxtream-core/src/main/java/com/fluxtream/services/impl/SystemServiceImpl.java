@@ -101,9 +101,9 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         String release = env.get("release");
 
         final String jawboneUp = "Jawbone UP";
-        String[] jawboneUpKeys = checkKeysExist(jawboneUp, Arrays.asList("jawboneUp.client.id", "jawboneUp.client.secret"));
+        String[] jawboneUpKeys = checkKeysExist(jawboneUp, Arrays.asList("jawboneUp.client.id", "jawboneUp.client.secret", "jawboneUp.validRedirectURL"));
         final ConnectorInfo jawboneUpConnectorInfo = new ConnectorInfo(jawboneUp,
-                                                                      "/" + release + "/images/connectors/connector-up.jpg",
+                                                                      "/" + release + "/images/connectors/connector-up.png",
                                                                       res.getString("up"),
                                                                       "/up/token",
                                                                       Connector.getConnector("up"), order++, jawboneUpKeys!=null,
