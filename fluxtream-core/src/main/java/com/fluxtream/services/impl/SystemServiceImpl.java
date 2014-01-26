@@ -100,6 +100,18 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         int order = 0;
         String release = env.get("release");
 
+        final String jawboneUp = "Jawbone UP";
+        String[] jawboneUpKeys = checkKeysExist(jawboneUp, Arrays.asList("jawboneUp.client.id", "jawboneUp.client.secret"));
+        final ConnectorInfo jawboneUpConnectorInfo = new ConnectorInfo(jawboneUp,
+                                                                      "/" + release + "/images/connectors/connector-up.jpg",
+                                                                      res.getString("up"),
+                                                                      "/up/token",
+                                                                      Connector.getConnector("up"), order++, jawboneUpKeys!=null,
+                                                                      false, true, jawboneUpKeys);
+        jawboneUpConnectorInfo.supportsRenewTokens = true;
+        jawboneUpConnectorInfo.renewTokensUrlTemplate = "up/token?apiKeyId=%s";
+        em.persist(jawboneUpConnectorInfo);
+
         final String evernote = "Evernote";
         String[] evernoteKeys = checkKeysExist(evernote, Arrays.asList("evernoteConsumerKey", "evernoteConsumerSecret", "evernote.sandbox"));
         final ConnectorInfo evernoteConnectorInfo = new ConnectorInfo(evernote,
