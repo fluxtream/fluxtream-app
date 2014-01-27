@@ -950,11 +950,13 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             Calendar.commentEdit(event,getFacet(facetType,facetId));
             return false;
         });
-        var element;
-        for (element = details.find(".timedropdown"); !element.hasClass("facetDetails"); element = element.parent());
+        var element = details.find(".timedropdown");
+        if (element.length>0) {
+            for (; !element.hasClass("facetDetails"); element = element.parent());
 
-        var facet = getFacet(element.attr("facettype"),parseInt(element.attr('itemid')));
-        Calendar.bindShowOnXDropDown(details.find(".timedropdown"),facet);
+            var facet = getFacet(element.attr("facettype"),parseInt(element.attr('itemid')));
+            Calendar.bindShowOnXDropDown(details.find(".timedropdown"),facet);
+        }
     }
 
    $("body").mousedown(function(event){
