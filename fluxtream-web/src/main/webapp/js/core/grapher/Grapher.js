@@ -2080,6 +2080,11 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                     filteringStrategy: $("#" + channelElementId + "-photo-tags-matching-strategy").val(),
                     photoChange: function(metadata,timestamp){
                         grapher.setTimeCursorPosition(timestamp);
+                        var curRange = grapher.getRange();
+                        if (timestamp < curRange.min || timestamp > curRange.max){
+                            var factor = (curRange.max - curRange.min) / 2;
+                            grapher.setRange(timestamp - factor,timestamp + factor);
+                        }
                     }
 
                 });
