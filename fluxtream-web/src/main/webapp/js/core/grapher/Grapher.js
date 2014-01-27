@@ -603,70 +603,67 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         App.loadMustacheTemplate("core/grapher/timelineTemplates.html","timelineExportModal",function(template){
             var modalContents = {
                 channels:[],
-                downloadLink: "/api/bodytrack/exportCSV/" + App.getUID() + "/fluxtream-export-from-" + start + "-to-" + end + ".csv?channels=" + encodeURIComponent(JSON.stringify(channelsArray)),
+                downloadLink: "javascript:void(0);",
                 filename: "fluxtream-export-from-" + start + "-to-" + end + ".csv",
                 noChannels: channelsArray.length == 0
             };
-            for (var i = 0, li = channelsArray.length; i < li; i++){
-                modalContents.channels.push({
-                    name: channelsArray[i].replace(".","-"),
-                    className: "channel" + i,
-                    count: "..."
-                });
-            }
             var modal = App.makeModal(template.render(modalContents));
+            modal.find(".dataDownloadLink").click(function(event){
+                if ($(event.delegateTarget).hasClass("disabled")){
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+            })
             var li = channelsArray.length;
             function calculateNext(i){
-                if (i == li)
+                if (i == li){
+                    App.loadMustacheTemplate("core/grapher/timelineTemplates.html","timelineExportContent",function(contentTemplate){
+                        var downloadLink = "/api/bodytrack/exportCSV/" + App.getUID() + "/fluxtream-export-from-" + start + "-to-" + end + ".csv?channels=" + encodeURIComponent(JSON.stringify(channelsArray));
+                        //update contents and download link and enable the download button
+                        modal.find(".dataDownloadLink").attr("href",downloadLink)
+                            .removeClass("disabled");
+                        modal.find(".modal-body").html(contentTemplate.render(modalContents));
+
+                        //this will focus on the appropriate button for the enter key to work
+                        if (modal.hasClass("in")){
+                            if (li > 0){
+                                modal.find(".dataDownloadLink").focus();
+                            }
+                            else{
+                                modal.find(".dataDownloadLink").remove();
+                                modal.find("#cancel").focus();
+                            }
+                        }
+                        else{
+                            modal.on("shown",function(){
+                                if (li > 0){
+                                    modal.find(".dataDownloadLink").focus();
+                                }
+                                else{
+                                    modal.find(".dataDownloadLink").remove();
+                                    modal.find("#cancel").focus();
+                                }
+                            })
+                        }
+                    })
                     return;
+                }
                 grapher.plotsMap[exportChannelMap[channelsArray[i]]].getStatistics(start,end,null,function(stats){
+                    console.log(stats);
+                    modalContents.channels.push({name: channelsArray[i],
+                        count: stats.count});
                     modal.find(".channelCount.channel" + i).text(stats.count);
+                    for (var sideChannel in stats.sideChannelCounts){
+                        modalContents.channels.push({
+                            name: channelsArray[i] + "._" + sideChannel,
+                            count: stats.sideChannelCounts[sideChannel]
+                        });
+                        channelsArray.push(channelsArray[i] + "._" + sideChannel);
+                    }
                     calculateNext(i+1);
                 });
             }
             calculateNext(0);
-            if (li>0) {
-                modal.on("shown", function() {
-                    document.activeElement.blur()
-                    // If there are some channels, the btn-primary is the download button.
-                    // Focus on it so ENTER will download the file
-                    modal.find(".btn-primary").focus();
-                });
-            }
-            else {
-                modal.on("shown", function() {
-                    document.activeElement.blur()
-                    // If there are no channels, the only btn is the cancel button.
-                    // Focus on it so ENTER will cancel the dialog
-                    modal.find(".btn").focus();
-                });
-            }
-
-
-
-            /*var request = $.ajax("/api/bodytrack/exportCSV/" + App.getUID(),{
-                type: "GET",
-                data: {
-                    channels: JSON.stringify(channelsArray),
-                    start: start,
-                    end: end
-                },
-                success:function(result){
-                    var dataUri = "data:text/csv;charset=utf-8," + encodeURIComponent(result.data);
-                    var DownloadBtn = $("<a class='btn' href='" + dataUri + "' download='data.csv'>Download</a>");
-                    $(".modal-body").text("Your data is ready!");
-                    $(".modal-body").append("<br>");
-                    $(".modal-body").append(DownloadBtn);
-                },
-                error:function(){
-                    modal.find(".modal-body").text("Something went wrong...");
-                }
-
-            });
-
-            modal.on("hidden",function(){
-                request.abort();
-            }) */
         });
 
     }
