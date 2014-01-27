@@ -397,8 +397,13 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 		query.setParameter(2, facet.start);
 		query.setParameter(3, facet.end);
         query.setParameter(4, facet.apiKeyId);
-		@SuppressWarnings("rawtypes")
-		List existing = query.getResultList();
+        List existing = null;
+        try {
+            existing = query.getResultList();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+
 		if (existing.size()>0) {
 			logDuplicateFacet(facet);
 			return null;

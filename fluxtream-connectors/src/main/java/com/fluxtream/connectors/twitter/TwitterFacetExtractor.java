@@ -3,19 +3,17 @@ package com.fluxtream.connectors.twitter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
+import com.fluxtream.ApiData;
+import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-
+import org.apache.commons.lang.StringEscapeUtils;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Component;
-
-import com.fluxtream.ApiData;
-import com.fluxtream.connectors.ObjectType;
-import com.fluxtream.domain.AbstractFacet;
-import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 
 @Component
 public class TwitterFacetExtractor extends AbstractFacetExtractor {
@@ -40,7 +38,7 @@ public class TwitterFacetExtractor extends AbstractFacetExtractor {
 					super.extractCommonFacetData(tweetFacet, apiData);
 		
 					long createdAtTime = parseDate(twitterItem.getString("created_at"));
-					tweetFacet.text = twitterItem.getString("text");
+					tweetFacet.text = StringEscapeUtils.unescapeHtml(twitterItem.getString("text"));
 					tweetFacet.start = createdAtTime;
 					tweetFacet.end = createdAtTime;
 					tweetFacet.time = createdAtTime;
@@ -57,7 +55,7 @@ public class TwitterFacetExtractor extends AbstractFacetExtractor {
 					super.extractCommonFacetData(twitterMentionFacet, apiData);
 
                     long createdAtTime = parseDate(twitterItem.getString("created_at"));
-					twitterMentionFacet.text = twitterItem.getString("text");
+					twitterMentionFacet.text =  StringEscapeUtils.unescapeHtml(twitterItem.getString("text"));
 					twitterMentionFacet.start = createdAtTime;
 					twitterMentionFacet.end = createdAtTime;
 					twitterMentionFacet.time = createdAtTime;
@@ -75,7 +73,7 @@ public class TwitterFacetExtractor extends AbstractFacetExtractor {
 					super.extractCommonFacetData(twitterDirectMessageFacet, apiData);
 					
 					long createdAtTime = parseDate(twitterItem.getString("created_at"));
-					twitterDirectMessageFacet.text = twitterItem.getString("text");
+					twitterDirectMessageFacet.text = StringEscapeUtils.unescapeHtml(twitterItem.getString("text"));
 					twitterDirectMessageFacet.start = createdAtTime;
 					twitterDirectMessageFacet.end = createdAtTime;
 					twitterDirectMessageFacet.time = createdAtTime;
