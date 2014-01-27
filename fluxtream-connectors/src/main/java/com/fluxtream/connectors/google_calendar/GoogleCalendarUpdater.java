@@ -364,10 +364,12 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
                 facet.transparency = event.getTransparency();
                 facet.visibility = event.getVisibility();
                 facet.setRecurrence(event.getRecurrence());
-                final String recurringEventIdHash = hash(event.getRecurringEventId());
-                facet.recurringEventId = event.getRecurringEventId().length()>250
-                                       ? recurringEventIdHash
-                                       : event.getRecurringEventId();
+                if (event.getRecurringEventId()!=null) {
+                    final String recurringEventIdHash = hash(event.getRecurringEventId());
+                    facet.recurringEventId = event.getRecurringEventId().length()>250
+                                           ? recurringEventIdHash
+                                           : event.getRecurringEventId();
+                }
                 facet.sequence = event.getSequence();
                 facet.setUpdated(event.getUpdated());
                 return facet;
