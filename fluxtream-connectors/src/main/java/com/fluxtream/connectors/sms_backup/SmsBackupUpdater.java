@@ -7,12 +7,14 @@ import java.util.concurrent.ConcurrentMap;
 import javax.mail.Address;
 import javax.mail.FetchProfile;
 import javax.mail.Folder;
+import javax.mail.FolderNotFoundException;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Store;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.search.SentDateTerm;
+import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.Updater;
@@ -21,6 +23,7 @@ import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ChannelMapping;
+import com.fluxtream.domain.Notification;
 import com.fluxtream.services.ApiDataService.FacetModifier;
 import com.fluxtream.services.ApiDataService.FacetQuery;
 import com.fluxtream.services.GuestService;
@@ -365,7 +368,13 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			countSuccessfulApiCall(updateInfo.apiKey,
 					smsObjectType.value(), then, query);
 			return;
-		} catch (Exception ex) {
+		} catch (FolderNotFoundException ex){
+            notificationsService.addNotification(updateInfo.getGuestId(),
+                                                      Notification.Type.ERROR,
+                                                      "The SMS folder configured for SMS Backup, \"" + smsFolderName + "\", does not exist.");
+            throw ex;
+        }
+        catch (Exception ex) {
             ex.printStackTrace();
 			reportFailedApiCall(updateInfo.apiKey, smsObjectType.value(),
 					then, query, Utils.stackTrace(ex), ex.getMessage());
@@ -397,7 +406,13 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			countSuccessfulApiCall(updateInfo.apiKey,
 					callLogObjectType.value(), then, query);
 			return;
-		} catch (Exception ex) {
+		} catch (FolderNotFoundException ex){
+            notificationsService.addNotification(updateInfo.getGuestId(),
+                                                      Notification.Type.ERROR,
+                                                      "The call log folder configured for SMS Backup, \"" + callLogFolderName + "\", does not exist.");
+            throw ex;
+        }
+        catch (Exception ex) {
             ex.printStackTrace();
 			reportFailedApiCall(updateInfo.apiKey,
 					callLogObjectType.value(), then, query, Utils.stackTrace(ex),

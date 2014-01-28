@@ -88,6 +88,8 @@ public class RetinaController {
 
     private boolean isRetinaClient(final HttpServletRequest request) {
         final Cookie[] cookies = request.getCookies();
+        if (cookies==null)
+            return false;
         for(int i=0; i<cookies.length; i++) {
             Cookie cookie = cookies[i];
             if ("retina".equals(cookie.getName()))
