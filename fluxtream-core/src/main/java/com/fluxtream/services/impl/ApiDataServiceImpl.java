@@ -54,6 +54,7 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -713,7 +714,7 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
     }
 
     @Override
-    @Transactional(readOnly = false)
+    @Transactional(readOnly = false, isolation = Isolation.READ_UNCOMMITTED)
     public void cleanupStaleData() throws Exception {
         ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(
                 false);

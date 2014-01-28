@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -224,7 +225,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     }
 
     @Override
-    @Transactional(readOnly=false)
+    @Transactional(readOnly=false, isolation= Isolation.READ_UNCOMMITTED)
     public void cleanupStaleData() {
         // Keeping one week seems to lead to api/connectors/installed being too slow as of December 2013.
         // Reduce to two days
@@ -525,20 +526,13 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
     @Override
     public List<UpdateWorkerTask> getUpdateWorkerTasks(final ApiKey apiKey, int objectTypes, int max) {
-        final List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.findWithLimit(em, UpdateWorkerTask.class,
-                                                                                "updateWorkerTasks.withObjectTypes", 0,
-                                                                                max, objectTypes, apiKey.getId(),
-                                                                                getLiveServerUUIDs());
+        final List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.findWithLimit(em, UpdateWorkerTask.class, "updateWorkerTasks.withObjectTypes", 0, max, objectTypes, apiKey.getId(), getLiveServerUUIDs());
         return updateWorkerTasks;
     }
 
     @Override
     public UpdateWorkerTask getUpdateWorkerTask(final ApiKey apiKey, int objectTypes) {
-        UpdateWorkerTask updateWorkerTask = JPAUtils.findUnique(em,
-                                                                UpdateWorkerTask.class, "updateWorkerTasks.withObjectTypes.isScheduled",
-                                                                getLiveServerUUIDs(),
-                                                                objectTypes,
-                                                                apiKey.getId());
+        UpdateWorkerTask updateWorkerTask = JPAUtils.findUnique(em, UpdateWorkerTask.class, "updateWorkerTasks.withObjectTypes.isScheduled", getLiveServerUUIDs(), objectTypes, apiKey.getId());
         return updateWorkerTask;
     }
 
