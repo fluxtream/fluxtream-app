@@ -7,6 +7,7 @@ import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.utils.SecurityUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 
 public class TwitterDirectMessageFacetVO extends AbstractInstantFacetVO<TwitterDirectMessageFacet> {
 
@@ -23,7 +24,7 @@ public class TwitterDirectMessageFacetVO extends AbstractInstantFacetVO<TwitterD
 		if (SecurityUtils.isDemoUser())
 			this.description = "***demo - text content hidden***";
 		else
-			this.description = facet.text;
+			this.description = StringEscapeUtils.escapeHtml(facet.text);
 		if (facet.sent==1) {
 			this.profileImageUrl = facet.recipientProfileImageUrl;
 			this.userName = facet.recipientName;

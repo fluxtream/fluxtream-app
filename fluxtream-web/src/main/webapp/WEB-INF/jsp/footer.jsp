@@ -5,11 +5,9 @@
 		<hr/>
 		<small class="flx-credits">
             <span title="<%=release%>">Fluxtream 1.0</span> <br> &copy; 2011<%=until %> The BodyTrack Team @ CMU CREATE Lab &amp; Candide Kemmler
-<!--            <div><a href="https://twitter.com/fluxtream" class="twitter-follow-button" data-show-count="false" data-lang="en">Follow @fluxtream</a></div> -->
+            <div><a href="https://twitter.com/fluxtream" target="_blank"><img src="/<%=release%>/images/twitter_follow_button.png"></a></div>
         </small>
 	</div>
-
-    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
 
 	<div class="feedback-call">
 	   <div class="anne">

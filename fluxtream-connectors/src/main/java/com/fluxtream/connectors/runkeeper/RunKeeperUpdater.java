@@ -18,6 +18,7 @@ import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.log4j.Logger;
 import org.codehaus.plexus.util.ExceptionUtils;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
@@ -39,6 +40,8 @@ import org.springframework.stereotype.Component;
 @Updater(prettyName = "RunKeeper", value = 35, updateStrategyType = Connector.UpdateStrategyType.INCREMENTAL,
          objectTypes = {LocationFacet.class, RunKeeperFitnessActivityFacet.class}, defaultChannels = {"runkeeper.totalCalories"})
 public class RunKeeperUpdater  extends AbstractUpdater {
+
+    Logger logger = Logger.getLogger(RunKeeperUpdater.class);
 
     final String DEFAULT_ENDPOINT= "https://api.runkeeper.com";
 
@@ -164,104 +167,111 @@ public class RunKeeperUpdater  extends AbstractUpdater {
                                                                                    updateInfo.apiKey.getId(), uri);
         final ApiDataService.FacetModifier<RunKeeperFitnessActivityFacet> facetModifier = new ApiDataService.FacetModifier<RunKeeperFitnessActivityFacet>() {
             @Override
-            public RunKeeperFitnessActivityFacet createOrModify(RunKeeperFitnessActivityFacet facet, final Long apiKeyId) {
-                if (facet==null) {
-                    facet = new RunKeeperFitnessActivityFacet(updateInfo.apiKey.getId());
-                    facet.uri = uri;
-                    facet.api = updateInfo.apiKey.getConnector().value();
-                    facet.guestId = updateInfo.apiKey.getGuestId();
-                    facet.timeUpdated = System.currentTimeMillis();
-                }
-                boolean startTimeSet = false;
-                if (jsonObject.has("path")) {
-                    final JSONArray path = jsonObject.getJSONArray("path");
-                    List<LocationFacet> locationFacets = new ArrayList<LocationFacet>();
-                    for (int i=0; i<path.size(); i++) {
-                        JSONObject pathElement = path.getJSONObject(i);
-                        LocationFacet locationFacet = new LocationFacet(updateInfo.apiKey.getId());
-                        locationFacet.latitude = (float) pathElement.getDouble("latitude");
-                        locationFacet.longitude = (float) pathElement.getDouble("longitude");
-                        if (!startTimeSet) {
-                            // we need to know the user's location in order to figure out
-                            // his timezone
-                            final String start_time = jsonObject.getString("start_time");
-                            System.out.println("runkeeper activity start time: " + start_time + " (should be ascending), guestId=" + updateInfo.getGuestId());
-                            final TimeZone timeZone = metadataService.getTimeZone(locationFacet.latitude, locationFacet.longitude);
-                            facet.start = timeFormatter.withZone(DateTimeZone.forTimeZone(timeZone)).parseMillis(start_time);
-                            facet.timeZone = timeZone.getID();
-                            final int duration = jsonObject.getInt("duration");
-                            facet.end = facet.start + duration*1000;
-                            facet.duration = duration;
-                            startTimeSet = true;
+            public RunKeeperFitnessActivityFacet createOrModify(RunKeeperFitnessActivityFacet origFacet, final Long apiKeyId) {
+                try {
+                    RunKeeperFitnessActivityFacet facet = origFacet;
+                    if (facet==null) {
+                        facet = new RunKeeperFitnessActivityFacet(updateInfo.apiKey.getId());
+                        facet.uri = uri;
+                        facet.api = updateInfo.apiKey.getConnector().value();
+                        facet.guestId = updateInfo.apiKey.getGuestId();
+                        facet.timeUpdated = System.currentTimeMillis();
+                    }
+                    boolean startTimeSet = false;
+                    if (jsonObject.has("path")) {
+                        final JSONArray path = jsonObject.getJSONArray("path");
+                        List<LocationFacet> locationFacets = new ArrayList<LocationFacet>();
+                        for (int i=0; i<path.size(); i++) {
+                            JSONObject pathElement = path.getJSONObject(i);
+                            LocationFacet locationFacet = new LocationFacet(updateInfo.apiKey.getId());
+                            locationFacet.latitude = (float) pathElement.getDouble("latitude");
+                            locationFacet.longitude = (float) pathElement.getDouble("longitude");
+                            if (!startTimeSet) {
+                                // we need to know the user's location in order to figure out
+                                // his timezone
+                                final String start_time = jsonObject.getString("start_time");
+                                System.out.println("runkeeper activity start time: " + start_time + " (should be ascending), guestId=" + updateInfo.getGuestId());
+                                final TimeZone timeZone = metadataService.getTimeZone(locationFacet.latitude, locationFacet.longitude);
+                                facet.start = timeFormatter.withZone(DateTimeZone.forTimeZone(timeZone)).parseMillis(start_time);
+                                facet.timeZone = timeZone.getID();
+                                final int duration = jsonObject.getInt("duration");
+                                facet.end = facet.start + duration*1000;
+                                facet.duration = duration;
+                                startTimeSet = true;
+                            }
+                            locationFacet.altitude = (int) pathElement.getDouble("altitude");
+                            final long millisIncrement = (long)(pathElement.getDouble("timestamp") * 1000d);
+                            locationFacet.timestampMs = facet.start + millisIncrement;
+                            locationFacet.start = locationFacet.timestampMs;
+                            locationFacet.end = locationFacet.timestampMs;
+                            locationFacet.source = LocationFacet.Source.RUNKEEPER;
+                            locationFacet.apiKeyId = updateInfo.apiKey.getId();
+                            locationFacet.api = Connector.getConnector("runkeeper").value();
+                            locationFacet.uri = uri;
+
+                            locationFacets.add(locationFacet);
                         }
-                        locationFacet.altitude = (int) pathElement.getDouble("altitude");
-                        final long millisIncrement = (long)(pathElement.getDouble("timestamp") * 1000d);
-                        locationFacet.timestampMs = facet.start + millisIncrement;
-                        locationFacet.start = locationFacet.timestampMs;
-                        locationFacet.end = locationFacet.timestampMs;
-                        locationFacet.source = LocationFacet.Source.RUNKEEPER;
-                        locationFacet.apiKeyId = updateInfo.apiKey.getId();
-                        locationFacet.api = Connector.getConnector("runkeeper").value();
-                        locationFacet.uri = uri;
-
-                        locationFacets.add(locationFacet);
+                        apiDataService.addGuestLocations(updateInfo.getGuestId(), locationFacets);
+                    } else {
+                        //TODO: abort elegantly if we don't have gps data as we are unable to figure out time
+                        //in this case
+                        return null;
                     }
-                    apiDataService.addGuestLocations(updateInfo.getGuestId(), locationFacets);
-                } else {
-                    //TODO: abort elegantly if we don't have gps data as we are unable to figure out time
-                    //in this case
-                    return null;
-                }
 
-                facet.userID = jsonObject.getString("userID");
-                facet.duration = jsonObject.getInt("duration");
-                facet.type = jsonObject.getString("type");
-                facet.equipment = jsonObject.getString("equipment");
-                facet.total_distance = jsonObject.getDouble("total_distance");
-                facet.is_live = jsonObject.getBoolean("is_live");
-                facet.comments = jsonObject.getString("comments");
-                facet.uri = uri;
-                if (jsonObject.has("total_climb"))
-                    facet.total_climb = jsonObject.getDouble("total_climb");
+                    facet.userID = jsonObject.getString("userID");
+                    facet.duration = jsonObject.getInt("duration");
+                    facet.type = jsonObject.getString("type");
+                    facet.equipment = jsonObject.getString("equipment");
+                    facet.total_distance = jsonObject.getDouble("total_distance");
+                    facet.is_live = jsonObject.getBoolean("is_live");
+                    facet.comments = jsonObject.getString("comments");
+                    facet.uri = uri;
+                    if (jsonObject.has("total_climb"))
+                        facet.total_climb = jsonObject.getDouble("total_climb");
 
-                if (jsonObject.has("heart_rate")) {
-                    final JSONArray heartRateArray = jsonObject.getJSONArray("heart_rate");
-                    double totalHeartRate = 0d;
-                    double totalTime = 0d;
-                    double lastTimestamp = 0d;
-                    for (int i=0; i<heartRateArray.size(); i++) {
-                        JSONObject record = heartRateArray.getJSONObject(i);
-                        double timestamp = record.getDouble("timestamp");
-                        final double lap = timestamp - lastTimestamp;
-                        totalHeartRate += record.getInt("heart_rate") * lap;
-                        lastTimestamp = timestamp;
-                        totalTime += lap;
+                    if (jsonObject.has("heart_rate")) {
+                        final JSONArray heartRateArray = jsonObject.getJSONArray("heart_rate");
+                        double totalHeartRate = 0d;
+                        double totalTime = 0d;
+                        double lastTimestamp = 0d;
+                        for (int i=0; i<heartRateArray.size(); i++) {
+                            JSONObject record = heartRateArray.getJSONObject(i);
+                            double timestamp = record.getDouble("timestamp");
+                            final double lap = timestamp - lastTimestamp;
+                            totalHeartRate += record.getInt("heart_rate") * lap;
+                            lastTimestamp = timestamp;
+                            totalTime += lap;
+                        }
+                        facet.averageHeartRate = (int) (totalHeartRate/totalTime);
+                        facet.heartRateStorage = heartRateArray.toString();
                     }
-                    facet.averageHeartRate = (int) (totalHeartRate/totalTime);
-                    facet.heartRateStorage = heartRateArray.toString();
-                }
-                if (jsonObject.has("calories")) {
-                    final JSONArray caloriesArray = jsonObject.getJSONArray("calories");
-                    for (int i=0; i<caloriesArray.size(); i++) {
-                        JSONObject record = caloriesArray.getJSONObject(i);
-                        facet.totalCalories += record.getDouble("calories");
+                    if (jsonObject.has("calories")) {
+                        final JSONArray caloriesArray = jsonObject.getJSONArray("calories");
+                        for (int i=0; i<caloriesArray.size(); i++) {
+                            JSONObject record = caloriesArray.getJSONObject(i);
+                            facet.totalCalories += record.getDouble("calories");
+                        }
+                        facet.caloriesStorage = caloriesArray.toString();
                     }
-                    facet.caloriesStorage = caloriesArray.toString();
+                    if (jsonObject.has("total_calories"))
+                        facet.totalCalories = jsonObject.getDouble("total_calories");
+                    if (jsonObject.has("distance")) {
+                        final JSONArray distanceArray = jsonObject.getJSONArray("distance");
+                        facet.distanceStorage = distanceArray.toString();
+                    }
+                    return facet;
+                } catch (Throwable t) {
+                    logger.warn("could not import a Runkeeper Activity record: " + t.getMessage());
+                    return origFacet;
                 }
-                if (jsonObject.has("total_calories"))
-                    facet.totalCalories = jsonObject.getDouble("total_calories");
-                if (jsonObject.has("distance")) {
-                    final JSONArray distanceArray = jsonObject.getJSONArray("distance");
-                    facet.distanceStorage = distanceArray.toString();
-                }
-                return facet;
             }
         };
         final RunKeeperFitnessActivityFacet newFacet = apiDataService.createOrReadModifyWrite(RunKeeperFitnessActivityFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
-        List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
-        newFacets.add(newFacet);
-        bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
-
+        if (newFacet!=null) {
+            List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
+            newFacets.add(newFacet);
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
+        }
     }
 
     /**

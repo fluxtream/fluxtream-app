@@ -46,8 +46,6 @@ public class MovesPlaceFacet extends MovesFacet  {
 
     @Override
     protected void makeFullTextIndexable() {
-        if (name!=null)
-            fullTextDescription = name;
     }
 
     @Override
