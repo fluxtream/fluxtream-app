@@ -5,7 +5,7 @@ define(["core/grapher/BTCore"],function(BTCore){
     var TAG_MANAGER = BTCore.TAG_MANAGER;
     var photoCache;
 
-    App.loadMustacheTemplate("core/grapher/timelineTemplates.html",
+    App.loadMustacheTemplate("applications/calendar/tabs/photos/photosTemplate.html",
         "_timeline_photo_dialog_template",
         function(template) {
             var html = template.render({"photoUrl" : ""});
@@ -45,7 +45,7 @@ define(["core/grapher/BTCore"],function(BTCore){
                     });
             });
 
-        $("#photoDialog").html(App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_loading_template").render({}));
+        $("#photoDialog").html(App.fetchCompiledMustacheTemplate("applications/calendar/tabs/photos/photosTemplate.html","_timeline_photo_dialog_loading_template").render({}));
         $("#photoDialog")['dialog']("option", "position", 'center');
         $("#photoDialog")['dialog']('open');
 
@@ -83,7 +83,7 @@ define(["core/grapher/BTCore"],function(BTCore){
                 photoOrientation = 1;
             }
             var highResOrientationCssClass = "_timeline_photo_dialog_image_orientation_" + photoOrientation;
-            var photoDialogTemplate = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_template");
+            var photoDialogTemplate = App.fetchCompiledMustacheTemplate("applications/calendar/tabs/photos/photosTemplate.html","_timeline_photo_dialog_template");
             var photoDialogHtml = photoDialogTemplate.render({"photoUrl" : mediumResImageUrl});
             $("#photoDialog").html(photoDialogHtml);
 
@@ -251,7 +251,7 @@ define(["core/grapher/BTCore"],function(BTCore){
                 };
 
                 // build the form for the metadata editor
-                var photoMetadataForm = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_form_template").render({});
+                var photoMetadataForm = App.fetchCompiledMustacheTemplate("applications/calendar/tabs/photos/photosTemplate.html","_timeline_photo_dialog_form_template").render({});
                 $("#photoDialog #_timeline_photo_dialog_form").html(photoMetadataForm);
 
                 // fill in the timestamp
@@ -294,11 +294,11 @@ define(["core/grapher/BTCore"],function(BTCore){
                 if ($.isArray(tags) && tags.length > 0) {
                     $.each(tags,
                         function(index, value) {
-                            var tagHtml =App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_tags_editor_tag_template").render({"value" : value});
+                            var tagHtml =App.fetchCompiledMustacheTemplate("applications/calendar/tabs/photos/photosTemplate.html","_timeline_photo_dialog_tags_editor_tag_template").render({"value" : value});
                             $("#photoDialog #_timeline_photo_dialog_tags_editor").append(tagHtml);
                         });
                 } else {
-                    var tagHtml = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_tags_editor_tag_template").render({"value" : ""});
+                    var tagHtml = App.fetchCompiledMustacheTemplate("applications/calendar/tabs/photos/photosTemplate.html","_timeline_photo_dialog_tags_editor_tag_template").render({"value" : ""});
                     $("#photoDialog #_timeline_photo_dialog_tags_editor").append(tagHtml);
                 }
 
