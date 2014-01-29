@@ -7,6 +7,7 @@ import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
+import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ChannelMapping;
@@ -376,6 +377,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
             final String reasonPhrase = response.getStatusLine().getReasonPhrase();
             countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, reasonPhrase,
                                statusCode, reasonPhrase);
+            if (statusCode==401)
+                throw new UpdateFailedException("This auth token is not valid anymore", true);
             throw new UnexpectedHttpResponseCodeException(statusCode, reasonPhrase);
 		}
 	}
@@ -471,6 +474,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 			countFailedApiCall(updateInfo.apiKey,
 					updateInfo.objectTypes, then, requestUrl, reasonPhrase,
                     statusCode, reasonPhrase);
+            if (statusCode==401)
+                throw new UpdateFailedException("This auth token is not valid anymore", true);
             throw new UnexpectedHttpResponseCodeException(statusCode, reasonPhrase);
 		}
 	}
@@ -505,6 +510,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
             final String reasonPhrase = response.getStatusLine().getReasonPhrase();
             countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, reasonPhrase,
                                statusCode, reasonPhrase);
+            if (statusCode==401)
+                throw new UpdateFailedException("This auth token is not valid anymore", true);
             throw new UnexpectedHttpResponseCodeException(statusCode, reasonPhrase);
 		}
 	}
@@ -539,6 +546,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
             countFailedApiCall(updateInfo.apiKey,
                                updateInfo.objectTypes, then, requestUrl, reasonPhrase,
                                statusCode, reasonPhrase);
+            if (statusCode==401)
+                throw new UpdateFailedException("This auth token is not valid anymore", true);
             throw new UnexpectedHttpResponseCodeException(statusCode, reasonPhrase);
 		}
 	}
