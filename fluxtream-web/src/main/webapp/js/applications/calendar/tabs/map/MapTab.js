@@ -8,7 +8,6 @@ define(["core/Tab",
     var preserveView = false;
 
     var lastTimestamp = null;
-    var photoCarouselHTML;
 
     var itemToShow = null;
 
@@ -61,7 +60,6 @@ define(["core/Tab",
             map.infoWindowShown = function(){
                 $("#the_map").find(".flx-photo").click(function(event){
                     var dTarget = $(event.delegateTarget);
-                    //PhotoUtils.showCarouselHTML(photoCarouselHTML,dTarget.attr("photoId"));
                     PhotoUtils.showPhotoDialog(dTarget.attr("data-deviceName"), dTarget.attr("data-channelName"),
                         dTarget.attr("data-id"), dTarget.attr("data-timestamp"),{minTime:digestData.tbounds.start,maxTime:digestData.tbounds.end});
                 });
@@ -114,7 +112,6 @@ define(["core/Tab",
 
                         });
                     });
-                    photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
                 },
                 error: function(status) {
                     Calendar.handleError(status.message);
