@@ -103,3 +103,29 @@
     </div>
     </div>
 </template>
+
+<template id="photoModal">
+    <div id="photoModal" class="modal hide fade">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h3 id="myModalLabel">Edit Photo Tags and Comments</h3>
+        </div>
+        <div id="photoDialog" class="modal-body" style="text-align:center">
+        </div>
+    </div>
+</template>
+
+<template id="fullScreenPhotoView">
+    <div id="photoViewContainer" class="modal">
+        <a id="closePhotoViewer" href="javascript:void(0);">&times;</a>
+        <div class="photoHolder">
+            <img class="photo" src="{{photoUrl}}">
+        </div>
+        <div class="carousel-inner">
+            <div class="item active" style="overflow:none;">
+                <img onload="$(window).resize();" orientation="{{orientation}}" transformations="{{transformations}}" style="display:inline-block; max-height:100%; transform:{{transformations}}; -ms-transform:{{transformations}}; -webkit-transform:{{transformations}}; -o-transform:{{transformations}}" src="{{photoUrl}}">
+            </div>
+        </div>
+    </div>
+
+</template>
