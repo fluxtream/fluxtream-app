@@ -413,7 +413,6 @@
 }
 
 ._timeline_photo_dialog_loading_table {
-    display:inline-block;
     min-width: 300px;
     min-height: 300px;
     width: 300px;
@@ -423,14 +422,12 @@
 }
 
 ._timeline_photo_dialog_table {
-    display:inline-block;
     min-width: 300px;
     min-height: 300px;
     height: auto;
 }
 
 ._timeline_photo_dialog_photo_table {
-    display:inline-block;
     min-width: 300px;
     min-height: 300px;
     width: 300px;
