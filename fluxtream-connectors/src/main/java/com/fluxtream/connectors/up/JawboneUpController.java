@@ -64,7 +64,7 @@ public class JawboneUpController {
         String approvalPageUrl = String.format("https://jawbone.com/auth/oauth2/auth?" +
                                                "redirect_uri=%s&" +
                                                "response_type=code&client_id=%s&" +
-                                               "scope=basic_read location_read friends_read mood_read move_read sleep_read cardiac_read generic_event_read",
+                                               "scope=basic_read location_read move_read sleep_read",
                                                redirectUri, env.get("jawboneUp.client.id"));
         final String apiKeyIdParameter = request.getParameter("apiKeyId");
         if (apiKeyIdParameter !=null && !StringUtils.isEmpty(apiKeyIdParameter))
