@@ -1,5 +1,6 @@
 package com.fluxtream.services.impl;
 
+import java.io.Serializable;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -188,6 +189,11 @@ public class SettingsServiceImpl implements SettingsService {
             logger.warn(sb.append(" message=\"unexpected exception when saving connector settings for connector \"" + apiKey.getConnector().getName()));
             return;
         }
+    }
+
+    @Override
+    public void saveConnectorSettings(final long apiKeyId, final Serializable settings){
+        saveConnectorSettings(apiKeyId, gson.toJson(settings));
     }
 
     @Override

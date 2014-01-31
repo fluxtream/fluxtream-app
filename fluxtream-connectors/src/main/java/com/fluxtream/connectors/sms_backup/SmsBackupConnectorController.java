@@ -9,6 +9,7 @@ import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.SettingsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +27,9 @@ public class SmsBackupConnectorController {
 
 	@Autowired
 	ConnectorUpdateService connectorUpdateService;
+
+    @Autowired
+    SettingsService settingsService;
 
 	@RequestMapping(value = "/enterCredentials")
 	public ModelAndView signin(HttpServletRequest request) {
@@ -78,6 +82,9 @@ public class SmsBackupConnectorController {
 		List<String> required = new ArrayList<String>();
 		smsFolderName = smsFolderName.trim();
 		callLogFolderName = callLogFolderName.trim();
+
+
+
 		request.setAttribute("smsFolderName", smsFolderName);
 		request.setAttribute("callLogFolderName", callLogFolderName);
 		if (smsFolderName.equals(""))
@@ -99,6 +106,12 @@ public class SmsBackupConnectorController {
         guestService.setApiKeyAttribute(apiKey, "password", (String)request.getSession().getAttribute(SMS_BACKUP_PASSWORD));
         request.getSession().removeAttribute(SMS_BACKUP_USERNAME);
         request.getSession().removeAttribute(SMS_BACKUP_PASSWORD);
+
+        /*SmsBackupSettings settings = new SmsBackupSettings();
+        settings.callLogFolderName = callLogFolderName;
+        settings.smsFolderName = smsFolderName;
+
+        settingsService.saveConnectorSettings(apiKey.getId(),settings); */
 		guestService.setApiKeyAttribute(apiKey, "smsFolderName",
 				smsFolderName);
 		guestService.setApiKeyAttribute(apiKey, "callLogFolderName",
