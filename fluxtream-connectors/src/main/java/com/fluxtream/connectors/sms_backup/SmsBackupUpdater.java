@@ -20,6 +20,7 @@ import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
+import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ChannelMapping;
@@ -355,11 +356,18 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			Store store = getStore(email, password);
 			Folder folder = store.getDefaultFolder();
 			if (folder == null)
-				throw new Exception("No default folder");
+				throw new FolderNotFoundException();
 			folder = folder.getFolder(smsFolderName);
 			if (folder == null)
-				throw new Exception("No Sms Log");
+				throw new FolderNotFoundException();
 			Message[] msgs = getMessagesInFolderSinceDate(folder, date);
+
+            //if we get to this point then we were able to access the folder and should delete our error notification
+            Notification errorNotification = notificationsService.getNamedNotification(updateInfo.getGuestId(), connector().getName() + ".callLogFolderError");
+            if (errorNotification != null && !errorNotification.deleted){
+                notificationsService.deleteNotification(updateInfo.getGuestId(),errorNotification.getId());
+            }
+
 			for (Message message : msgs) {
                 date = message.getReceivedDate();
                 flushEntry(updateInfo, email, message, SmsEntryFacet.class);
@@ -369,10 +377,10 @@ public class SmsBackupUpdater extends AbstractUpdater {
 					smsObjectType.value(), then, query);
 			return;
 		} catch (FolderNotFoundException ex){
-            notificationsService.addNotification(updateInfo.getGuestId(),
-                                                      Notification.Type.ERROR,
+            notificationsService.addNamedNotification(updateInfo.getGuestId(),
+                                                      Notification.Type.ERROR, connector().getName() + ".callLogFolderError",
                                                       "The SMS folder configured for SMS Backup, \"" + smsFolderName + "\", does not exist.");
-            throw ex;
+            throw new UpdateFailedException("Couldn't open SMS folder.",false);
         }
         catch (Exception ex) {
             ex.printStackTrace();
@@ -393,11 +401,18 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			Store store = getStore(email, password);
 			Folder folder = store.getDefaultFolder();
 			if (folder == null)
-				throw new Exception("No default folder");
+				throw new FolderNotFoundException();
 			folder = folder.getFolder(callLogFolderName);
 			if (folder == null)
-				throw new Exception("No Call Log");
+				throw new FolderNotFoundException();
 			Message[] msgs = getMessagesInFolderSinceDate(folder, date);
+
+            //if we get to this point then we were able to access the folder and should delete our error notification
+            Notification errorNotification = notificationsService.getNamedNotification(updateInfo.getGuestId(), connector().getName() + ".smsFolderError");
+            if (errorNotification != null && !errorNotification.deleted){
+                notificationsService.deleteNotification(updateInfo.getGuestId(),errorNotification.getId());
+            }
+
 			for (Message message : msgs) {
                 date = message.getReceivedDate();
                 flushEntry(updateInfo, email, message, CallLogEntryFacet.class);
@@ -407,10 +422,8 @@ public class SmsBackupUpdater extends AbstractUpdater {
 					callLogObjectType.value(), then, query);
 			return;
 		} catch (FolderNotFoundException ex){
-            notificationsService.addNotification(updateInfo.getGuestId(),
-                                                      Notification.Type.ERROR,
-                                                      "The call log folder configured for SMS Backup, \"" + callLogFolderName + "\", does not exist.");
-            throw ex;
+            notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.ERROR, connector().getName() + ".smsFolderError", "The call log folder configured for SMS Backup, \"" + callLogFolderName + "\", does not exist.");
+            throw new UpdateFailedException("Couldn't open SMS folder.",false);
         }
         catch (Exception ex) {
             ex.printStackTrace();
