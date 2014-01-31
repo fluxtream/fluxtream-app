@@ -80,7 +80,6 @@ define([],function(){
 
         function handlePhotoClick(event){
             var dTarget = $(event.delegateTarget);
-            //PhotoUtils.showCarouselHTML(PhotoUtils.getCarouselHTML(App.apps.calendar.digest),dTarget.attr("photoId"));
             App.apps.calendar.showPhotoDialog(dTarget.attr("data-deviceName"), dTarget.attr("data-channelName"),
                 dTarget.attr("data-id"), dTarget.attr("data-timestamp"),{minTime:minPhotoTime,maxTime:maxPhotoTime});
         }

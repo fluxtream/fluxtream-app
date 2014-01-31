@@ -133,7 +133,7 @@ define(
 
         function bindGlobalEventHandlers(){
             $("body").on("keyup.gloablAppEventHandler",function(event){
-                if (event.keyCode == 27){
+                if (event.keyCode == 27 && App.modals.length > 0){
                     event.preventDefault();
                     App.modals[0].modal("hide");//close the top most modal dialog
                 }

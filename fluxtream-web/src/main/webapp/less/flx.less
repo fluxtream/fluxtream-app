@@ -1049,7 +1049,20 @@ a.enabled {
   right:0;
   bottom:0;
   background:black;
-  z-index:10000000;
+  width:auto;
+  height:auto;
+  border:none;
+  margin-left:0px;
+  -webkit-border-radius: 0px;
+  -moz-border-radius: 0px;
+  border-radius: 0px;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+  -webkit-background-clip: content-box;
+  -moz-background-clip: content-box;
+  background-clip: content-box;
+  outline: none;
 
   #closePhotoViewer{
     position: absolute;
@@ -1183,6 +1196,19 @@ i.mainmenu-icon {
     width:960px;
     margin-left:-480px;
   }
+}
+
+#photoModal{
+  height:700px;
+  margin-top:-350px;
+  width:370px;
+  margin-left:-185px;
+  .modal-body{
+    max-height:650px;
+  }
+}
+#photoModal.fade.in{
+  top:50%;
 }
 
 .manageConnectors .modal-body .content{

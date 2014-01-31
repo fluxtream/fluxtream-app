@@ -876,6 +876,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             popup.css("top",offset.top + target.height());
             popup.css("left",offset.left);
             popup.css("display","inline-block");
+            popup.css("zIndex",target.zIndex() + 1);
 
             popup.find(".mapLink").unbind('click').click(function(event){
                 switchToAppForFacet("calendar","map",facet);

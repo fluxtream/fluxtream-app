@@ -21,7 +21,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     var tooltipTemplate;
 
 
-    var photoCarouselHTML;
     var lastTimestamp = null;
 
     var setTabParam;
@@ -129,7 +128,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 			updateDataDisplay(digest.cachedData[objectTypeName], objectTypeName, digest);
 		}
 
-        photoCarouselHTML = PhotoUtils.getCarouselHTML(digest);
         var hasData = $(paper.canvas).find(".facet").length != 0;
         $("#clockTab .noDataOverlay").css("display", hasData ? "none" : "block");
 	}
@@ -536,7 +534,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
             ttpdiv.find(".flx-photo").click(function(event){
                 var dTarget = $(event.delegateTarget);
-                //PhotoUtils.showCarouselHTML(photoCarouselHTML,dTarget.attr("photoId"));
                 PhotoUtils.showPhotoDialog(dTarget.attr("data-deviceName"), dTarget.attr("data-channelName"),
                                            dTarget.attr("data-id"), dTarget.attr("data-timestamp"),{minTime:dgst.tbounds.start,maxTime:dgst.tbounds.end});
             });
