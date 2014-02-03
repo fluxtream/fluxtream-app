@@ -1,5 +1,6 @@
 package com.fluxtream.connectors.up;
 
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.CollectionTable;
 import javax.persistence.ElementCollection;
@@ -62,5 +63,11 @@ public class JawboneUpMovesFacet extends AbstractFacet {
 
     @Override
     protected void makeFullTextIndexable() {
+    }
+
+    public void addHourlyTotals(JawboneUpMovesHourlyTotals totals) {
+        if (hourlyTotals==null)
+            hourlyTotals = new ArrayList<JawboneUpMovesHourlyTotals>();
+        hourlyTotals.add(totals);
     }
 }

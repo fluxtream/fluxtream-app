@@ -2,17 +2,19 @@ package com.fluxtream.connectors.up;
 
 import java.util.ArrayList;
 import java.util.List;
-import com.fluxtream.connectors.Connector;
+import java.util.Set;
+import java.util.TimeZone;
+import java.util.TreeSet;
+import com.fluxtream.TimezoneMap;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.location.LocationFacet;
-import com.fluxtream.connectors.runkeeper.RunKeeperFitnessActivityFacet;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
-import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.MetadataService;
+import com.fluxtream.utils.TimespanSegment;
 import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -23,6 +25,8 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.log4j.Logger;
+import org.joda.time.DateTimeConstants;
+import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,55 +72,38 @@ public class JawboneUpUpdater extends AbstractUpdater {
             movesLastSyncTime = Long.valueOf(movesLastSyncTimeAtt);
         if (sleepLastSyncTimeAtt!=null)
             sleepLastSyncTime = Long.valueOf(sleepLastSyncTimeAtt);
-        updateMovesSince(updateInfo, movesLastSyncTime, getLastMoveStartTime(updateInfo));
-        updateSleepSince(updateInfo, sleepLastSyncTime, getLastSleepStartTime(updateInfo));
+        updateMovesSince(updateInfo, movesLastSyncTime);
+        updateSleepSince(updateInfo, sleepLastSyncTime);
     }
 
     private long getBeginningOfTime() {
         return ISODateTimeFormat.basicDate().withZoneUTC().parseMillis("20100101");
     }
 
-    private long getLastSleepStartTime(final UpdateInfo updateInfo) {
-        final String latestSleep = guestService.getApiKeyAttribute(updateInfo.apiKey, SLEEP_LAST_START_TIME);
-        if (latestSleep!=null)
-            return Long.valueOf(latestSleep);
-        else return getBeginningOfTime();
-    }
-
-    private long getLastMoveStartTime(final UpdateInfo updateInfo) {
-        final String latestMoves = guestService.getApiKeyAttribute(updateInfo.apiKey, MOVES_LAST_START_TIME);
-        if (latestMoves!=null)
-            return Long.valueOf(latestMoves);
-        else return getBeginningOfTime();
-    }
-
-    private void updateMovesSince(final UpdateInfo updateInfo, long lastSyncTime, long lastMovesStartTime) throws Exception {
+    private void updateMovesSince(final UpdateInfo updateInfo, long lastSyncTime) throws Exception {
         final HttpClient client = env.getHttpClient();
         try {
             // get moves since lastSyncTime
-            final String movesJson = callJawboneAPI(updateInfo, "https://jawbone.com/nudge/api/v.1.0/users/@me/moves?start_time=" + (lastMovesStartTime / 1000));
+            String url = getBeginningOfTime()==lastSyncTime
+                       ? "https://jawbone.com/nudge/api/v.1.0/users/@me/moves?start_time=" + lastSyncTime/1000
+                       : "https://jawbone.com/nudge/api/v.1.0/users/@me/moves?start_time=" + getBeginningOfTime()/1000 + "&updated_after=" + lastSyncTime/1000;
+            final String movesJson = callJawboneAPI(updateInfo, url);
             createOrUpdateMovesFacets(updateInfo, movesJson);
-            // get moves updated since lastSyncTime
-            final long updated_after = lastSyncTime / 1000;
-            final String updatedMovesJson = callJawboneAPI(updateInfo, "https://jawbone.com/nudge/api/v.1.0/users/@me/moves?updated_after=" + updated_after);
-            guestService.setApiKeyAttribute(updateInfo.apiKey, MOVES_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
-            createOrUpdateMovesFacets(updateInfo, updatedMovesJson);
         }
         finally {
             client.getConnectionManager().shutdown();
         }
     }
 
-    private void updateSleepSince(final UpdateInfo updateInfo, final long lastSyncTime, final long lastSleepStartTime) throws Exception {
+    private void updateSleepSince(final UpdateInfo updateInfo, final long lastSyncTime) throws Exception {
         final HttpClient client = env.getHttpClient();
         try {
             // get moves since lastSyncTime
-            final String movesJson = callJawboneAPI(updateInfo, "https://jawbone.com/nudge/api/v.1.0/users/@me/sleeps?start_time=" + (lastSleepStartTime / 1000));
-            createOrUpdateSleepFacets(updateInfo, movesJson);
-            // get moves updated since lastSyncTime
-            final String updatedMovesJson = callJawboneAPI(updateInfo, "https://jawbone.com/nudge/api/v.1.0/users/@me/sleeps?updated_after=" + (lastSyncTime /1000));
-            guestService.setApiKeyAttribute(updateInfo.apiKey, SLEEP_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
-            createOrUpdateSleepFacets(updateInfo, updatedMovesJson);
+            String url = getBeginningOfTime()==lastSyncTime
+                         ? "https://jawbone.com/nudge/api/v.1.0/users/@me/moves?start_time=" + lastSyncTime/1000
+                         : "https://jawbone.com/nudge/api/v.1.0/users/@me/moves?start_time=" + getBeginningOfTime()/1000 + "&updated_after=" + lastSyncTime/1000;
+            final String sleepsJson = callJawboneAPI(updateInfo, url);
+            createOrUpdateSleepFacets(updateInfo, sleepsJson);
         }
         finally {
             client.getConnectionManager().shutdown();
@@ -147,62 +134,91 @@ public class JawboneUpUpdater extends AbstractUpdater {
                         facet.xid = xid;
                         extractCommonFacetData(facet, updateInfo);
                     }
-                    if (jsonObject.has("title"))
-                        facet.title = jsonObject.getString("title");
                     facet.time_created = jsonObject.getLong("time_created");
                     facet.time_completed = jsonObject.getLong("time_completed");
                     facet.time_updated = jsonObject.getLong("time_updated");
-                    facet.tz = jsonObject.getString("tz");
-                    facet.tzs = jsonObject.getJSONArray("tzs").toString();
-                    String dateString = jsonObject.getString("date");
-                    final LocalDate localDate = ISODateTimeFormat.basicDate().withZoneUTC().parseLocalDate(dateString);
-                    facet.date = ISODateTimeFormat.date().withZoneUTC().print(localDate);
+
+                    if (jsonObject.has("title"))
+                        facet.title = jsonObject.getString("title");
                     if (jsonObject.has("snapshot_image"))
                         facet.snapshot_image = jsonObject.getString("snapshot_image");
-                    if (jsonObject.has("distance"))
-                        facet.distance = jsonObject.getInt("distance");
-                    if (jsonObject.has("km"))
-                        facet.km = jsonObject.getDouble("km");
-                    if (jsonObject.has("steps"))
-                        facet.steps = jsonObject.getInt("steps");
-                    if (jsonObject.has("active_time"))
-                        facet.active_time = jsonObject.getInt("active_time");
-                    if (jsonObject.has("longest_active"))
-                        facet.longest_active = jsonObject.getInt("longest_active");
-                    if (jsonObject.has("inactive_time"))
-                        facet.inactive_time = jsonObject.getInt("inactive_time");
-                    if (jsonObject.has("longest_idle"))
-                        facet.longest_idle = jsonObject.getInt("longest_idle");
-                    if (jsonObject.has("calories"))
-                        facet.calories = jsonObject.getDouble("calories");
-                    if (jsonObject.has("bmr_day"))
-                        facet.bmr_day = jsonObject.getDouble("bmr_day");
-                    if (jsonObject.has("bg_calories"))
-                        facet.bg_calories = jsonObject.getDouble("bg_calories");
-                    if (jsonObject.has("wo_calories"))
-                        facet.wo_calories = jsonObject.getDouble("wo_calories");
-                    if (jsonObject.has("wo_time"))
-                        facet.wo_time = jsonObject.getInt("wo_time");
-                    if (jsonObject.has("wo_active_time"))
-                        facet.wo_active_time = jsonObject.getInt("wo_active_time");
-                    if (jsonObject.has("wo_count"))
-                        facet.wo_count = jsonObject.getInt("wo_count");
-                    if (jsonObject.has("wo_longest"))
-                        facet.wo_longest = jsonObject.getInt("wo_longest");
 
-                    if (jsonObject.has("hourly_totals")) {
-                        final JSONArray hourlyTotals = jsonObject.getJSONArray("hourly_totals");
-                        List<LocationFacet> locationFacets = new ArrayList<LocationFacet>();
-                        for (int i=0; i<hourlyTotals.size(); i++) {
-                            JSONObject hourlyTotal = hourlyTotals.getJSONObject(i);
-                            System.out.println(hourlyTotal.toString());
+                    String dateString = jsonObject.getString("date");
+
+                    JSONObject details = jsonObject.getJSONObject("details");
+                    facet.tz = details.getString("tz");
+                    facet.tzs = details.getJSONArray("tzs").toString();
+                    TimeZone defaultTimeZone = TimeZone.getTimeZone(facet.tz);
+                    TimezoneMap tzMap = getTimeZoneMap(facet.tzs);
+
+                    System.out.println(facet.tzs);
+
+                    final LocalDate localDate = ISODateTimeFormat.basicDate().withZoneUTC().parseLocalDate(dateString);
+                    facet.date = ISODateTimeFormat.date().withZoneUTC().print(localDate);
+                    if (details.has("distance"))
+                        facet.distance = details.getInt("distance");
+                    if (details.has("km"))
+                        facet.km = details.getDouble("km");
+                    if (details.has("steps"))
+                        facet.steps = details.getInt("steps");
+                    if (details.has("active_time"))
+                        facet.active_time = details.getInt("active_time");
+                    if (details.has("longest_active"))
+                        facet.longest_active = details.getInt("longest_active");
+                    if (details.has("inactive_time"))
+                        facet.inactive_time = details.getInt("inactive_time");
+                    if (details.has("longest_idle"))
+                        facet.longest_idle = details.getInt("longest_idle");
+                    if (details.has("calories"))
+                        facet.calories = details.getDouble("calories");
+                    if (details.has("bmr"))
+                        facet.bmr = details.getDouble("bmr");
+                    if (details.has("bmr_day"))
+                        facet.bmr_day = details.getDouble("bmr_day");
+                    if (details.has("bg_calories"))
+                        facet.bg_calories = details.getDouble("bg_calories");
+                    if (details.has("wo_calories"))
+                        facet.wo_calories = details.getDouble("wo_calories");
+                    if (details.has("wo_time"))
+                        facet.wo_time = details.getInt("wo_time");
+                    if (details.has("wo_active_time"))
+                        facet.wo_active_time = details.getInt("wo_active_time");
+                    if (details.has("wo_count"))
+                        facet.wo_count = details.getInt("wo_count");
+                    if (details.has("wo_longest"))
+                        facet.wo_longest = details.getInt("wo_longest");
+
+                    if (details.has("hourly_totals")) {
+                        final JSONObject hourlyTotals = details.getJSONObject("hourly_totals");
+                        JSONArray names = hourlyTotals.names();
+                        for (int i=0; i<names.size(); i++) {
+                            String hour_of_day = names.getString(i);
+                            long start = getTimeOfDay(hour_of_day, tzMap, defaultTimeZone);
+                            JawboneUpMovesHourlyTotals totals = new JawboneUpMovesHourlyTotals();
+                            totals.start = start;
+                            JSONObject totalsJson = hourlyTotals.getJSONObject(hour_of_day);
+                            if (totalsJson.has("distance"))
+                                totals.distance = totalsJson.getInt("distance");
+                            if (totalsJson.has("calories"))
+                                totals.calories = totalsJson.getDouble("calories");
+                            if (totalsJson.has("steps"))
+                                totals.steps = totalsJson.getInt("steps");
+                            if (totalsJson.has("active_time"))
+                                totals.active_time = totalsJson.getInt("active_time");
+                            if (totalsJson.has("inactive_time"))
+                                totals.inactive_time = totalsJson.getInt("inactive_time");
+                            if (totalsJson.has("longest_active_time"))
+                                totals.longest_active_time = totalsJson.getInt("longest_active_time");
+                            if (totalsJson.has("longest_idle_time"))
+                                totals.longest_idle_time = totalsJson.getInt("longest_idle_time");
+                            facet.addHourlyTotals(totals);
                         }
-                        apiDataService.addGuestLocations(updateInfo.getGuestId(), locationFacets);
                     }
 
                     return facet;
                 } catch (Throwable t) {
                     logger.warn("could not import a Jawbone UP moves record: " + t.getMessage());
+                    t.printStackTrace();
                     return origFacet;
                 }
             }
@@ -215,12 +231,49 @@ public class JawboneUpUpdater extends AbstractUpdater {
         //}
     }
 
+    private long getTimeOfDay(final String hour_of_day, final TimezoneMap tzMap, final TimeZone defaultTimeZone) {
+        final String dateString = hour_of_day.substring(0, 8);
+        final int millis_since_midnight_offset = Integer.valueOf(hour_of_day.substring(8))*DateTimeConstants.MILLIS_PER_HOUR;
+        final TreeSet<TimespanSegment<DateTimeZone>> spans = tzMap.spans;
+        for (TimespanSegment<DateTimeZone> span : spans) {
+            long day_gmt = ISODateTimeFormat.basicDate().withZone(span.getValue()).parseDateTime(dateString).getMillis();
+            long possibleTime = day_gmt + millis_since_midnight_offset;
+            if (span.getStart()<possibleTime&&span.getEnd()>possibleTime)
+                return possibleTime;
+        }
+        long day_gmt = ISODateTimeFormat.basicDate().withZone(DateTimeZone.forTimeZone(defaultTimeZone)).parseDateTime(dateString).getMillis();
+        return day_gmt + millis_since_midnight_offset;
+    }
+
+    TimezoneMap getTimeZoneMap(final String tzs) {
+        TimezoneMap map = new TimezoneMap();
+        if (tzs==null) return map;
+        JSONArray timezoneArray = JSONArray.fromObject(tzs);
+        for (int i=0; i<timezoneArray.size(); i++) {
+            JSONArray timezoneInfo = timezoneArray.getJSONArray(i);
+            long start = timezoneInfo.getLong(0)*1000;
+            // allow some padding for the last element in the map
+            long end = start + DateTimeConstants.MILLIS_PER_DAY;
+            if (timezoneArray.size()>=i+2)
+                end = timezoneArray.getJSONArray(i+1).getLong(0)*1000;
+            String ID = timezoneInfo.getString(1);
+            map.add(start, end, DateTimeZone.forID(ID));
+        }
+        //add some padding for the first element in the map
+        if (map.spans.size()>0) {
+            final TimespanSegment<DateTimeZone> first = map.spans.first();
+            first.setStart(first.getStart()-DateTimeConstants.MILLIS_PER_DAY);
+        }
+        return map;
+    }
+
     private void createOrUpdateSleepFacets(final UpdateInfo updateInfo, final String movesJson) {
 
     }
 
     private String callJawboneAPI(final UpdateInfo updateInfo, final String url) throws Exception {
         final HttpClient client = env.getHttpClient();
+        final long then = System.currentTimeMillis();
         try {
             HttpGet get = new HttpGet(url);
             get.setHeader("Authorization", "Bearer " + updateInfo.getContext("accessToken"));
@@ -229,6 +282,7 @@ public class JawboneUpUpdater extends AbstractUpdater {
             if (statusCode == HttpStatus.SC_OK) {
                 ResponseHandler<String> responseHandler = new BasicResponseHandler();
                 String content = responseHandler.handleResponse(response);
+                countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url);
                 return content;
             } else {
                 handleErrors(statusCode, response, "Could not update Jawbone Up Moves Data");

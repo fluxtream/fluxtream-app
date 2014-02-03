@@ -10,6 +10,16 @@ import javax.persistence.Embeddable;
 @Embeddable
 public class JawboneUpMovesHourlyTotals {
 
-    public long ts;
+    public long start;
+
+    public Integer distance;
+    public Double calories;
+    public Integer steps;
+    public Integer active_time;
+    public Integer inactive_time;
+    public Integer longest_active_time;
+    public Integer longest_idle_time;
+
+    public JawboneUpMovesHourlyTotals() {}
 
 }
