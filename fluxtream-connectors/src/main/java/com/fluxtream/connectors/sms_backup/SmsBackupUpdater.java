@@ -463,7 +463,11 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 		ObjectType smsObjectType = ObjectType.getObjectType(connector(), "sms");
 		String smsFolderName = getSettingsOrPortLegacySettings(updateInfo.apiKey).smsFolderName;
 		try {
-			Store store = getStore(updateInfo.apiKey);
+            Store store;
+            if (email == null || password == null)
+			    store = getStore(updateInfo.apiKey);
+            else
+                store = getStore(email,password);
 			Folder folder = store.getDefaultFolder();
 			if (folder == null  || !folder.exists())
 				throw new FolderNotFoundException();
@@ -508,7 +512,11 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 				"call_log");
 		String callLogFolderName = getSettingsOrPortLegacySettings(updateInfo.apiKey).callLogFolderName;
 		try {
-			Store store = getStore(updateInfo.apiKey);
+            Store store;
+            if (email == null || password == null)
+                store = getStore(updateInfo.apiKey);
+            else
+                store = getStore(email,password);
 			Folder folder = store.getDefaultFolder();
 			if (folder == null || !folder.exists())
 				throw new FolderNotFoundException();
