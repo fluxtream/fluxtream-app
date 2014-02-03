@@ -518,7 +518,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             }
             for (var i = 0; i < digest.cachedData[connectorId].length; i++){
                 var facet = digest.cachedData[connectorId][i];
-                if (hasGeneralSettings)
+                if (hasGeneralSettings && config.applySettings != null)
                     config.applySettings(facet, digest.settings.connectorSettings);
                 if (digest.cachedData[connectorId].hasImages){
                     switch (connectorId){
