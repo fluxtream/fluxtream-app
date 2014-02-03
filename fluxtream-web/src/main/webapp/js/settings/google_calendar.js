@@ -2,7 +2,7 @@ define(["core/ConnectorSettingsHandler"], function(ConnectorSettingsHandler) {
 
     var GoogleCalendarSettingsHandler = new ConnectorSettingsHandler("google_calendar");
 
-    GoogleCalendarSettingsHandler.bindSettings = function(settings, apiKeyId) {
+    GoogleCalendarSettingsHandler.bindSettings = function(container,settings, apiKeyId) {
         var calendars = settings.calendars;
         var setCalendarChecked = GoogleCalendarSettingsHandler.setCalendarChecked;
         var saveSettings = GoogleCalendarSettingsHandler.saveSettings;

@@ -331,6 +331,24 @@
         <div class="alert alert-info"><strong>Heads up!</strong> For changes to be reflected in the timeline, you will have to reload the page.<br>Sorry about that!</div>
     </div>
 </template>
+<template id="sms_backup-settings">
+    <form class="form-horizontal" action="javascript:void(0);">
+        {{#settings}}
+        <div class="form-group">
+            <label class="col-sm-2 control-label" for="callLogFolderName">
+                Call log folder name:&nbsp;
+            </label>
+            <input id="callLogFolderName" type="text" value="{{callLogFolderName}}">
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label" for="smsFolderName">
+                SMS folder name:&nbsp;
+            </label>
+            <input id="smsFolderName" type="text" value="{{smsFolderName}}">
+        </div>
+        {{/settings}}
+    </form>
+</template>
 <template id="uploadDialog">
     <div id="uploadModal" class="modal hide fade">
         <div class="modal-header">

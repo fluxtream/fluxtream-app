@@ -1,5 +1,6 @@
 package com.fluxtream.services;
 
+import java.io.Serializable;
 import java.util.List;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.UpdateFailedException;
@@ -68,6 +69,8 @@ public interface SettingsService {
     public Object getConnectorSettings(long apiKeyId, boolean refresh) throws UpdateFailedException;
 
     public void saveConnectorSettings(long apiKeyId, String json);
+
+    public void saveConnectorSettings(long apiKeyId, Serializable settings);
 
     public void resetConnectorSettings(long apiKeyId);
 
