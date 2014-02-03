@@ -464,7 +464,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 		String smsFolderName = getSettingsOrPortLegacySettings(updateInfo.apiKey).smsFolderName;
 		try {
             Store store;
-            if (email == null || password == null)
+            if (guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken") != null)
 			    store = getStore(updateInfo.apiKey);
             else
                 store = getStore(email,password);
@@ -513,7 +513,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 		String callLogFolderName = getSettingsOrPortLegacySettings(updateInfo.apiKey).callLogFolderName;
 		try {
             Store store;
-            if (email == null || password == null)
+            if (guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken") != null)
                 store = getStore(updateInfo.apiKey);
             else
                 store = getStore(email,password);

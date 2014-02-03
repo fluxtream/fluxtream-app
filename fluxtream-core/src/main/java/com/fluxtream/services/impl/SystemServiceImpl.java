@@ -243,7 +243,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
                                                         Connector.getConnector("sms_backup"), order++, true,
                                                         false,true,null);
         SMSBackupInfo.supportsRenewTokens = true;
-        SMSBackupInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://www.googleapis.com/auth/userinfo.email%20https://mail.google.com/";
+        SMSBackupInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://www.googleapis.com/auth/userinfo.email%%20https://mail.google.com/";
         em.persist(SMSBackupInfo);
 	}
 
