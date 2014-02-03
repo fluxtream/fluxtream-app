@@ -192,6 +192,7 @@ public class SettingsServiceImpl implements SettingsService {
     }
 
     @Override
+    @Transactional(readOnly=false)
     public void saveConnectorSettings(final long apiKeyId, final Serializable settings){
         saveConnectorSettings(apiKeyId, gson.toJson(settings));
     }

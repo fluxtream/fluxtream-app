@@ -472,10 +472,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 
     @Override
     public Object createOrRefreshSettings(final ApiKey apiKey) throws UpdateFailedException {
-        SmsBackupSettings settings = (SmsBackupSettings)apiKey.getSettings();
-        if (settings==null)
-            settings = new SmsBackupSettings();
-        return settings;
+        return getSettingsOrPortLegacySettings(apiKey);
     }
 
     private SmsBackupSettings getSettingsOrPortLegacySettings(final ApiKey apiKey){

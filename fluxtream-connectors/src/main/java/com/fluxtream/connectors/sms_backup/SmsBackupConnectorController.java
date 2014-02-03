@@ -107,16 +107,13 @@ public class SmsBackupConnectorController {
         request.getSession().removeAttribute(SMS_BACKUP_USERNAME);
         request.getSession().removeAttribute(SMS_BACKUP_PASSWORD);
 
-        /*SmsBackupSettings settings = new SmsBackupSettings();
+        SmsBackupSettings settings = new SmsBackupSettings();
         settings.callLogFolderName = callLogFolderName;
         settings.smsFolderName = smsFolderName;
+        settingsService.saveConnectorSettings(apiKey.getId(),settings);
 
-        settingsService.saveConnectorSettings(apiKey.getId(),settings); */
-		guestService.setApiKeyAttribute(apiKey, "smsFolderName",
-				smsFolderName);
-		guestService.setApiKeyAttribute(apiKey, "callLogFolderName",
-				callLogFolderName);
-		connectorUpdateService.updateConnector(apiKey,false);
+
+		connectorUpdateService.updateConnector(apiKey, false);
 		return mav;
 	}
 }
