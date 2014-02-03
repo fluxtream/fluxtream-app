@@ -356,7 +356,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 		long then = System.currentTimeMillis();
 		String query = "(incremental sms log retrieval)";
 		ObjectType smsObjectType = ObjectType.getObjectType(connector(), "sms");
-		String smsFolderName = getSettingsOrPortLegacySettings(updateInfo.apiKey).callLogFolderName;
+		String smsFolderName = getSettingsOrPortLegacySettings(updateInfo.apiKey).smsFolderName;
 		try {
 			Store store = getStore(email, password);
 			Folder folder = store.getDefaultFolder();
