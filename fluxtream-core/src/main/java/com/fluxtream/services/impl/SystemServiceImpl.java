@@ -235,13 +235,13 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         runkeeperConnectorInfo.supportsRenewTokens = true;
         runkeeperConnectorInfo.renewTokensUrlTemplate = "runkeeper/token?apiKeyId=%s";
         em.persist(runkeeperConnectorInfo);
-        checkKeysExist("SMS Backup", Arrays.asList("google.client.id", "google.client.secret"));
+        String[] smsBackupKeys = checkKeysExist("SMS Backup", Arrays.asList("google.client.id", "google.client.secret"));
         ConnectorInfo SMSBackupInfo = new ConnectorInfo("SMS Backup",
                                                         "/" + release + "/images/connectors/connector-sms_backup.jpg",
                                                         res.getString("sms_backup"),
                                                         "/google/oauth2/token?scope=https://www.googleapis.com/auth/userinfo.email%20https://mail.google.com/",
                                                         Connector.getConnector("sms_backup"), order++, true,
-                                                        false,true,null);
+                                                        false,true,smsBackupKeys);
         SMSBackupInfo.supportsRenewTokens = true;
         SMSBackupInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://www.googleapis.com/auth/userinfo.email%%20https://mail.google.com/";
         em.persist(SMSBackupInfo);
