@@ -384,7 +384,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 		} catch (MessagingException ex){
             notificationsService.addNamedNotification(updateInfo.getGuestId(),
                                                       Notification.Type.ERROR, connector().getName() + ".smsFolderError",
-                                                      "The SMS folder configured for SMS Backup, \"" + smsFolderName + "\", does not exist.");
+                                                      "The SMS folder configured for SMS Backup, \"" + smsFolderName + "\", does not exist. Either change it in your connector settings or check if SMS Backup is set to use this folder.");
             throw new UpdateFailedException("Couldn't open SMS folder.",false);
         }
         catch (Exception ex) {
@@ -428,7 +428,8 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 			return;
 		}
         catch (MessagingException ex){
-            notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.ERROR, connector().getName() + ".callLogFolderError", "The call log folder configured for SMS Backup, \"" + callLogFolderName + "\", does not exist.");
+            notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.ERROR, connector().getName() + ".callLogFolderError",
+                                  "The call log folder configured for SMS Backup, \"" + callLogFolderName + "\", does not exist. Either change it in your connector settings or check if SMS Backup is set to use this folder.");
             throw new UpdateFailedException("Couldn't open Call Log folder.",false);
         }
         catch (Exception ex) {
