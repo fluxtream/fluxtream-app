@@ -399,8 +399,8 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
         Store store = null;
 
         try{
-            if (stores.get(emailAddress) != null) {
-                store = stores.get(emailAddress);
+            if (stores.get(emailAddress + "-oauth2") != null) {
+                store = stores.get(emailAddress + "-oauth2");
                 if (!store.isConnected())
                     store.connect();
                 boolean stillAlive = true;
@@ -416,12 +416,12 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
             }
         }
         catch (Exception e){
-            stores.remove(emailAddress);
+            stores.remove(emailAddress + "-oauth2");
         }
 
         try{
             store = MailUtils.getGmailImapStoreViaSASL(emailAddress, accessToken);
-            stores.put(emailAddress, store);
+            stores.put(emailAddress + "-oauth2", store);
             return store;
         } catch(Exception e){
             throw new UpdateFailedException("Failed to connect to gmail!",e,false);
@@ -436,8 +436,8 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 			stores = new ConcurrentLinkedHashMap.Builder<String, Store>()
 					.maximumWeightedCapacity(100).build();
 		Store store = null;
-		if (stores.get(email) != null) {
-			store = stores.get(email);
+		if (stores.get(email + "-basicAuth") != null) {
+			store = stores.get(email + "-basicAuth");
 			if (!store.isConnected())
 				store.connect();
 			boolean stillAlive = true;
@@ -452,7 +452,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
                 store.close();
 		}
 		store = MailUtils.getGmailImapStore(email, password);
-		stores.put(email, store);
+		stores.put(email + "-basicAuth", store);
 		return store;
 	}
 
