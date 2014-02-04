@@ -5,7 +5,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
-
+import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
 
 public class ObjectType {
@@ -180,5 +180,14 @@ public class ObjectType {
         return isMixedType;
     }
 
-
+    public static int getObjectTypeValue(final Class<? extends AbstractFacet> facetClass) {
+        try {
+            final ObjectTypeSpec annotation = facetClass.getAnnotation(ObjectTypeSpec.class);
+            final int value = annotation.value();
+            return value;
+        } catch (Throwable t) {
+            final String message = "Could not get Facet ObjectType value for " + facetClass.getName();
+            throw new RuntimeException(message);
+        }
+    }
 }

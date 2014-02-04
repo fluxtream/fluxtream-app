@@ -51,7 +51,7 @@ CREATE TABLE `Facet_EvernoteNote` (
   KEY `guestId_index` (`guestId`),
   KEY `apiKey` (`apiKeyId`),
   KEY `timeUpdated_index` (`timeUpdated`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `Facet_EvernoteNotebook` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,

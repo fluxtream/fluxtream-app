@@ -18,7 +18,7 @@
         var confirmed = confirm("Are you sure?");
         if (confirmed) {
             $.ajax({
-                url: "/api/admin/apiKeys/" + apiKeyId + "/" + attributeKey,
+                url: "/api/admin/apiKeys/" + apiKeyId + "?attributeKey=" + encodeURIComponent(attributeKey),
                 type: "DELETE",
                 success: function(){
                     location.reload();

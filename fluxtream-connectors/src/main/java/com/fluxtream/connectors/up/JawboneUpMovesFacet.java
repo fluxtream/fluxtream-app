@@ -7,10 +7,12 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
+import org.hibernate.annotations.Index;
 
 /**
  * User: candide
@@ -21,14 +23,17 @@ import com.fluxtream.domain.AbstractFacet;
 @NamedQueries({
       @NamedQuery(name = "up.moves.latest", query = "SELECT facet FROM Facet_JawboneUpMoves facet WHERE facet.apiKeyId=? ORDER BY facet.start DESC LIMIT 1")
 })
-@ObjectTypeSpec(name = "moves", value = 2, prettyname = "Moves")
+@ObjectTypeSpec(name = "moves", value = 2, prettyname = "Moves", isDateBased = true)
 public class JawboneUpMovesFacet extends AbstractFacet {
 
+    @Index(name="xid")
     public String xid;
-    public String title;
     public long time_created;
     public long time_updated;
     public long time_completed;
+    public String title;
+
+    @Index(name="date")
     public String date;
     public String snapshot_image;
     public int distance;
@@ -50,13 +55,15 @@ public class JawboneUpMovesFacet extends AbstractFacet {
     public String tz;
     public String tzs;
 
-
     @ElementCollection(fetch= FetchType.EAGER)
     @CollectionTable(
             name = "JawboneUpMovesHourlyTotals",
             joinColumns = @JoinColumn(name="MovesRecordID")
     )
     public List<JawboneUpMovesHourlyTotals> hourlyTotals;
+
+    @Lob
+    public String intensityStorage;
 
     public JawboneUpMovesFacet(){super();}
     public JawboneUpMovesFacet(long apiKeyId){super(apiKeyId);}

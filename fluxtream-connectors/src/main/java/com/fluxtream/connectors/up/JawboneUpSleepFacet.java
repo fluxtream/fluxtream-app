@@ -1,15 +1,12 @@
 package com.fluxtream.connectors.up;
 
-import java.util.List;
-import javax.persistence.CollectionTable;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
+import org.hibernate.annotations.Index;
 
 /**
  * User: candide
@@ -20,17 +17,19 @@ import com.fluxtream.domain.AbstractFacet;
 @NamedQueries({
       @NamedQuery(name = "up.sleep.latest", query = "SELECT facet FROM Facet_JawboneUpSleep facet WHERE facet.apiKeyId=? ORDER BY facet.start DESC LIMIT 1")
 })
-@ObjectTypeSpec(name = "sleep", value = 4, prettyname = "Sleep")
+@ObjectTypeSpec(name = "sleep", value = 4, prettyname = "Sleep", isDateBased = true)
 public class JawboneUpSleepFacet extends AbstractFacet {
 
+    @Index(name="xid")
     public String xid;
-    public String title;
-    public int sub_type;
     public long time_created;
     public long time_completed;
+    public String title;
+
+    @Index(name="date")
     public String date;
     public double place_lat;
-    public double place_long;
+    public double place_lon;
     public int place_acc;
     public String place_name;
     public String snapshot_image;
@@ -46,12 +45,8 @@ public class JawboneUpSleepFacet extends AbstractFacet {
     public int quality;
     public String tz;
 
-    @ElementCollection(fetch= FetchType.EAGER)
-    @CollectionTable(
-            name = "JawboneUpSleepPhase",
-            joinColumns = @JoinColumn(name="SleepRecordID")
-    )
-    public List<JawboneUpMovesHourlyTotals> hourlyTotals;
+    @Lob
+    public String phasesStorage;
 
     public JawboneUpSleepFacet(){}
     public JawboneUpSleepFacet(long apiKeyId){super(apiKeyId);}

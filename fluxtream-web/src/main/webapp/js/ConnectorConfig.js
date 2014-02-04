@@ -108,6 +108,39 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                 }
             }
         },
+        up:{
+            hasTimelineSettings: true,
+            device_name: "JawboneUP",
+            color: "#000",
+            mapicon: {
+                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/aed-2.png",
+                size: new google.maps.Size(32,37)
+            },
+            mapshadow: null,
+            facets:{
+                moves:{
+                    list: true,
+                    photos: false,
+                    map: false,
+                    gps: false,
+                    clock: null
+                },
+                sleep:{
+                    list: true,
+                    photos: false,
+                    map: false,
+                    gps: false,
+                    clock: ClockConfig.BODY_CATEGORY
+                },
+                location:{
+                    list:false,
+                    photos: false,
+                    map: true,
+                    gps: true,
+                    clock: null
+                }
+            }
+        },
         fitbit:{
             hasTimelineSettings: true,
             device_name: "Fitbit",

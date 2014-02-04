@@ -214,6 +214,34 @@
         </div>
     </div>
 </template>
+<template id="up-sleep">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon up"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <!--<div class="flx-data">-->
+                    <!--<div>-->
+                        <!--<span class="flx-text">{{#endTime}}{{hours}}:{{minutes}}{{/endTime}} <span class="flx-dataLabel">{{ampm}}</span></span>-->
+                        <!--<span class="flx-dataLabel">You slept</span>-->
+                        <!--<span class="flx-text bold">{{minutesAsleep.hours}}</span>-->
+                        <!--<span class="flx-text">hours</span>-->
+                        <!--<span class="flx-text bold">{{minutesAsleep.minutes}}</span>-->
+                        <!--<span class="flx-text">min</span>-->
+                    <!--</div>-->
+                    <!--<span class="flx-dataLabel">Bed time</span>-->
+                    <!--<span class="flx-text">{{#startTime}}{{hours}}:{{minutes}}{{/startTime}} <span class="flx-dataLabel">{{ampm}}</span></span>-->
+                    <!--<span class="flx-dataLabel">Awake</span>-->
+                    <!--<span class="flx-text">{{minutesAwake.hours}} hours {{minutesAwake.minutes}} minutes</span>-->
+                <!--</div>-->
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
 <template id="fitbit-sleep">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon fitbit-sleep"></span>
@@ -778,6 +806,52 @@
                         <img src="{{photo42}}" style="max-height:42px;">
                     </span>
                     <span class="flx-description">{{description}}</span>
+                </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
+<template id="up-moves">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon up"></span>
+        <div class="facetDetails">
+            <span class="flx-text">{{#facets}}</span>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div class="flx-data">
+                    <span class="flx-steps">
+                        <span class="flx-dataLabel">You walked</span>
+                        <span class="flx-text">{{_steps}}</span>
+                        <span class="flx-dataLabel">steps</span>
+                    </span>
+                </div>
+                <div class="flx-data">
+                    <span class="flx-calories">
+                        <span class="flx-dataLabel">You burned</span>
+                        <span class="flx-text">{{_calories}}</span>
+                        <span class="flx-dataLabel">kcal</span>
+                    </span>
+                </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
+<template id="up-location">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon up"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
+                <div class="flx-data">
+                    <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
