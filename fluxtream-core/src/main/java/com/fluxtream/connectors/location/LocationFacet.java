@@ -1,16 +1,11 @@
 package com.fluxtream.connectors.location;
 
 import java.io.Serializable;
-import java.util.List;
 import javax.persistence.Entity;
-import javax.persistence.EntityManager;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.Query;
-import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
-import com.fluxtream.domain.ApiKey;
 import com.google.api.client.util.Key;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
@@ -106,48 +101,6 @@ public class LocationFacet extends AbstractFacet implements Comparable<LocationF
 	public int compareTo(LocationFacet o1) {
 		return (o1.timestampMs > timestampMs)?-1:1;
 	}
-
-    public static AbstractFacet getLatestFacet(EntityManager em, ApiKey apiKey, ObjectType objType){
-        Source source = null;
-        final String connectorName = apiKey.getConnector().getName();
-        if (connectorName.equals("google_latitude"))
-            source = Source.GOOGLE_LATITUDE;
-        else if (connectorName.equals("moves"))
-            source = Source.MOVES;
-        else if (connectorName.equals("runkeeper"))
-            source = Source.RUNKEEPER;
-        return getOldestOrLatestFacet(em, apiKey, objType, source, "desc");
-    }
-
-    private static AbstractFacet getOldestOrLatestFacet(EntityManager em, ApiKey apiKey, ObjectType objType, final Source source, String sortOrder) {
-        Class facetClass;
-        if (objType != null) {
-            facetClass = objType.facetClass();
-        }
-        else {
-            facetClass = apiKey.getConnector().facetClass();
-        }
-        Entity entity = (Entity)facetClass.getAnnotation(Entity.class);
-        Query query;
-        if (source!=null)
-            query = em.createQuery("select facet from " + entity.name()
-                         + " facet where facet.guestId = "
-                         + apiKey.getGuestId() + " and facet.source="
-                         + source.ordinal() + " order by facet.end "
-                         + sortOrder + " limit 1");
-        else
-            query = em.createQuery("select facet from " + entity.name()
-                                   + " facet where facet.guestId = "
-                                   + apiKey.getGuestId() + " order by facet.end "
-                                   + sortOrder + " limit 1");
-        query.setMaxResults(1);
-        final List resultList = query.getResultList();
-        if (resultList != null && resultList.size() > 0) {
-            return (AbstractFacet)resultList.get(0);
-        }
-        return null;
-    }
-
 
     @Override
 	protected void makeFullTextIndexable() { }
