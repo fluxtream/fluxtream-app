@@ -44,7 +44,7 @@ public class JawboneUpMovesFacetVO extends AbstractFacetVO<JawboneUpMovesFacet> 
         this.inactive_time = facet.inactive_time;
         this.longest_active = facet.longest_active;
         this.longest_idle = facet.longest_idle;
-        this.calories = facet.calories;
+        this.calories = round(facet.calories, 2);
         this.bmr_day = facet.bmr_day;
         this.bmr = facet.bmr;
         this.bg_calories = facet.bg_calories;

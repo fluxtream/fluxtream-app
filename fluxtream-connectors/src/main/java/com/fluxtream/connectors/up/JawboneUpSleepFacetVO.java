@@ -3,7 +3,11 @@ package com.fluxtream.connectors.up;
 import com.fluxtream.OutsideTimeBoundariesException;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
+import com.fluxtream.connectors.vos.TimeOfDayVO;
 import com.fluxtream.domain.GuestSettings;
+import com.fluxtream.mvc.models.DurationModel;
+import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDateTime;
 
 /**
  * User: candide
@@ -29,6 +33,12 @@ public class JawboneUpSleepFacetVO extends AbstractFacetVO<JawboneUpSleepFacet> 
     public int awake;
     public int duration;
     public int quality;
+    public DurationModel timeSleeping;
+    public DurationModel timeAwake;
+    public TimeOfDayVO startTime;
+    public TimeOfDayVO timeAsleep;
+    public TimeOfDayVO wakeUpTime;
+    public TimeOfDayVO endTime;
 
     @Override
     protected void fromFacet(final JawboneUpSleepFacet facet, final TimeInterval timeInterval, final GuestSettings settings) throws OutsideTimeBoundariesException {
@@ -49,6 +59,21 @@ public class JawboneUpSleepFacetVO extends AbstractFacetVO<JawboneUpSleepFacet> 
         this.awake = facet.awake;
         this.duration = facet.duration;
         this.quality = facet.quality;
+
+        LocalDateTime localStartTime = new LocalDateTime(facet.start, DateTimeZone.forID(facet.tz));
+        startTime = new TimeOfDayVO(localStartTime.getHourOfDay()*60+localStartTime.getMinuteOfHour(), true);
+
+        LocalDateTime localTimeAsleep= new LocalDateTime(asleep_time*1000, DateTimeZone.forID(facet.tz));
+        timeAsleep = new TimeOfDayVO(localTimeAsleep.getHourOfDay()*60+localTimeAsleep.getMinuteOfHour(), true);
+
+        LocalDateTime localTimeAwake= new LocalDateTime(awake_time*1000, DateTimeZone.forID(facet.tz));
+        wakeUpTime = new TimeOfDayVO(localTimeAwake.getHourOfDay()*60+localTimeAwake.getMinuteOfHour(), true);
+
+        LocalDateTime localEndTime = new LocalDateTime(facet.end, DateTimeZone.forID(facet.tz));
+        endTime = new TimeOfDayVO(localEndTime.getHourOfDay()*60+localEndTime.getMinuteOfHour(), true);
+
+        timeSleeping = new DurationModel(duration);
+        timeAwake = new DurationModel(awake);
     }
 
 }

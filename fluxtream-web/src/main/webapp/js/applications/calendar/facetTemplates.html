@@ -222,20 +222,39 @@
             <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
                 <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <!--<div class="flx-data">-->
-                    <!--<div>-->
-                        <!--<span class="flx-text">{{#endTime}}{{hours}}:{{minutes}}{{/endTime}} <span class="flx-dataLabel">{{ampm}}</span></span>-->
-                        <!--<span class="flx-dataLabel">You slept</span>-->
-                        <!--<span class="flx-text bold">{{minutesAsleep.hours}}</span>-->
-                        <!--<span class="flx-text">hours</span>-->
-                        <!--<span class="flx-text bold">{{minutesAsleep.minutes}}</span>-->
-                        <!--<span class="flx-text">min</span>-->
-                    <!--</div>-->
-                    <!--<span class="flx-dataLabel">Bed time</span>-->
-                    <!--<span class="flx-text">{{#startTime}}{{hours}}:{{minutes}}{{/startTime}} <span class="flx-dataLabel">{{ampm}}</span></span>-->
-                    <!--<span class="flx-dataLabel">Awake</span>-->
-                    <!--<span class="flx-text">{{minutesAwake.hours}} hours {{minutesAwake.minutes}} minutes</span>-->
-                <!--</div>-->
+                <div class="flx-data">
+                    <div>
+                        <div>
+                            <span class="flx-dataLabel">Bed Time</span>
+                            <span class="flx-text">{{#startTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{/startTime}}</span>
+                        </div>
+                        <div>
+                            <span class="flx-dataLabel">Time Asleep</span>
+                            <span class="flx-text">{{#timeAsleep}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{/timeAsleep}} </span>
+                        </div>
+                        <div>
+                            <span class="flx-dataLabel">Sleeping </span>
+                            <span class="flx-text bold">{{timeSleeping.hours}}</span><span class="flx-text"> hours</span>
+                            <span class="flx-text bold">{{timeSleeping.minutes}}</span><span class="flx-text"> min</span>
+                        </div>
+                        <div>
+                            <span class="flx-dataLabel">Awake during </span>
+                            <span class="flx-text bold">{{timeAwake.hours}}</span><span class="flx-text"> hours</span>
+                            <span class="flx-text bold">{{timeAwake.minutes}}</span><span class="flx-text"> min</span>
+                        </div>
+                        <div>
+                            <span class="flx-dataLabel">Woke Up </span>
+                            <span class="flx-text">{{#wakeUpTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{/wakeUpTime}} </span>
+                        </div>
+                        <div>
+                            <span class="flx-dataLabel">Out of bed </span>
+                            <span class="flx-text">{{#endTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flx-data">
+                    <img src="https://jawbone.com{{snapshot_image}}" style="height:75px; width:300px">
+                </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
@@ -834,6 +853,9 @@
                         <span class="flx-text">{{_calories}}</span>
                         <span class="flx-dataLabel">kcal</span>
                     </span>
+                </div>
+                <div class="flx-data">
+                    <img src="https://jawbone.com{{snapshot_image}}" style="height:75px; width:300px">
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>

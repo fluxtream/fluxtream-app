@@ -22,7 +22,7 @@ public class FitbitTrackerActivityFacetVO extends AbstractLocalTimeInstantFacetV
 		steps = facet.steps;
 		caloriesOut = facet.caloriesOut;
 		activeScore = facet.activeScore;
-		MET = round(activeScore*0.01f+1);
+		MET = round(activeScore*0.01f+1, 2);
 		if (facet.caloriesJson!=null) {
 			this.caloriesPerMinute = new ArrayList<FitbitCaloriesVO>();
 			
@@ -47,8 +47,4 @@ public class FitbitTrackerActivityFacetVO extends AbstractLocalTimeInstantFacetV
 		}
 	}
 	
-	float round(float v) {
-		return (float) Math.round(v * 100) / 100;
-	}
-
 }
