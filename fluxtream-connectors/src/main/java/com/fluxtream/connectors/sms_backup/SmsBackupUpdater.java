@@ -20,6 +20,8 @@ import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
+import com.fluxtream.connectors.updaters.SettingsAwareAbstractUpdater;
+import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ChannelMapping;
@@ -27,6 +29,7 @@ import com.fluxtream.domain.Notification;
 import com.fluxtream.services.ApiDataService.FacetModifier;
 import com.fluxtream.services.ApiDataService.FacetQuery;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.SettingsService;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.services.impl.BodyTrackHelper.ChannelStyle;
 import com.fluxtream.services.impl.BodyTrackHelper.MainTimespanStyle;
@@ -41,12 +44,15 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Updater(prettyName = "SMS Backup", value = 6, objectTypes = {
-		CallLogEntryFacet.class, SmsEntryFacet.class },
+		CallLogEntryFacet.class, SmsEntryFacet.class }, settings=SmsBackupSettings.class,
          defaultChannels = {"sms_backup.call_log"})
-public class SmsBackupUpdater extends AbstractUpdater {
+public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 
     @Autowired
     BodyTrackHelper bodyTrackHelper;
+
+    @Autowired
+    SettingsService settingsService;
 
 	// basic cache for email connections
 	static ConcurrentMap<String, Store> stores;
@@ -350,16 +356,23 @@ public class SmsBackupUpdater extends AbstractUpdater {
 		long then = System.currentTimeMillis();
 		String query = "(incremental sms log retrieval)";
 		ObjectType smsObjectType = ObjectType.getObjectType(connector(), "sms");
-		String smsFolderName = guestService.getApiKeyAttribute(updateInfo.apiKey, "smsFolderName");
+		String smsFolderName = getSettingsOrPortLegacySettings(updateInfo.apiKey).smsFolderName;
 		try {
 			Store store = getStore(email, password);
 			Folder folder = store.getDefaultFolder();
-			if (folder == null)
-				throw new Exception("No default folder");
+			if (folder == null  || !folder.exists())
+				throw new FolderNotFoundException();
 			folder = folder.getFolder(smsFolderName);
-			if (folder == null)
-				throw new Exception("No Sms Log");
+			if (folder == null  || !folder.exists())
+				throw new FolderNotFoundException();
 			Message[] msgs = getMessagesInFolderSinceDate(folder, date);
+
+            //if we get to this point then we were able to access the folder and should delete our error notification
+            Notification errorNotification = notificationsService.getNamedNotification(updateInfo.getGuestId(), connector().getName() + ".smsFolderError");
+            if (errorNotification != null && !errorNotification.deleted){
+                notificationsService.deleteNotification(updateInfo.getGuestId(),errorNotification.getId());
+            }
+
 			for (Message message : msgs) {
                 date = message.getReceivedDate();
                 flushEntry(updateInfo, email, message, SmsEntryFacet.class);
@@ -368,11 +381,11 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			countSuccessfulApiCall(updateInfo.apiKey,
 					smsObjectType.value(), then, query);
 			return;
-		} catch (FolderNotFoundException ex){
-            notificationsService.addNotification(updateInfo.getGuestId(),
-                                                      Notification.Type.ERROR,
-                                                      "The SMS folder configured for SMS Backup, \"" + smsFolderName + "\", does not exist.");
-            throw ex;
+		} catch (MessagingException ex){
+            notificationsService.addNamedNotification(updateInfo.getGuestId(),
+                                                      Notification.Type.ERROR, connector().getName() + ".smsFolderError",
+                                                      "The SMS folder configured for SMS Backup, \"" + smsFolderName + "\", does not exist. Either change it in your connector settings or check if SMS Backup is set to use this folder.");
+            throw new UpdateFailedException("Couldn't open SMS folder.",false);
         }
         catch (Exception ex) {
             ex.printStackTrace();
@@ -388,16 +401,23 @@ public class SmsBackupUpdater extends AbstractUpdater {
 		String query = "(incremental call log retrieval)";
 		ObjectType callLogObjectType = ObjectType.getObjectType(connector(),
 				"call_log");
-		String callLogFolderName = guestService.getApiKeyAttribute(updateInfo.apiKey, "callLogFolderName");
+		String callLogFolderName = getSettingsOrPortLegacySettings(updateInfo.apiKey).callLogFolderName;
 		try {
 			Store store = getStore(email, password);
 			Folder folder = store.getDefaultFolder();
-			if (folder == null)
-				throw new Exception("No default folder");
+			if (folder == null || !folder.exists())
+				throw new FolderNotFoundException();
 			folder = folder.getFolder(callLogFolderName);
-			if (folder == null)
-				throw new Exception("No Call Log");
+			if (folder == null || !folder.exists())
+				throw new FolderNotFoundException();
 			Message[] msgs = getMessagesInFolderSinceDate(folder, date);
+
+            //if we get to this point then we were able to access the folder and should delete our error notification
+            Notification errorNotification = notificationsService.getNamedNotification(updateInfo.getGuestId(), connector().getName() + ".callLogFolderError");
+            if (errorNotification != null && !errorNotification.deleted){
+                notificationsService.deleteNotification(updateInfo.getGuestId(),errorNotification.getId());
+            }
+
 			for (Message message : msgs) {
                 date = message.getReceivedDate();
                 flushEntry(updateInfo, email, message, CallLogEntryFacet.class);
@@ -406,11 +426,11 @@ public class SmsBackupUpdater extends AbstractUpdater {
 			countSuccessfulApiCall(updateInfo.apiKey,
 					callLogObjectType.value(), then, query);
 			return;
-		} catch (FolderNotFoundException ex){
-            notificationsService.addNotification(updateInfo.getGuestId(),
-                                                      Notification.Type.ERROR,
-                                                      "The call log folder configured for SMS Backup, \"" + callLogFolderName + "\", does not exist.");
-            throw ex;
+		}
+        catch (MessagingException ex){
+            notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.ERROR, connector().getName() + ".callLogFolderError",
+                                  "The call log folder configured for SMS Backup, \"" + callLogFolderName + "\", does not exist. Either change it in your connector settings or check if SMS Backup is set to use this folder.");
+            throw new UpdateFailedException("Couldn't open Call Log folder.",false);
         }
         catch (Exception ex) {
             ex.printStackTrace();
@@ -451,4 +471,44 @@ public class SmsBackupUpdater extends AbstractUpdater {
 		return msgs;
 	}
 
+    @Override
+    public Object createOrRefreshSettings(final ApiKey apiKey) throws UpdateFailedException {
+        return getSettingsOrPortLegacySettings(apiKey);
+    }
+
+    private SmsBackupSettings getSettingsOrPortLegacySettings(final ApiKey apiKey){
+        SmsBackupSettings settings = (SmsBackupSettings)apiKey.getSettings();
+        boolean persistSettings = false;
+        if (settings == null){
+            settings = new SmsBackupSettings();
+            persistSettings = true;
+        }
+
+        if (settings.smsFolderName == null){
+            String oldSmsFolder = guestService.getApiKeyAttribute(apiKey,"smsFolderName");
+            if (oldSmsFolder != null){
+                settings.smsFolderName = oldSmsFolder;
+                guestService.removeApiKeyAttribute(apiKey.getId(),"smsFolderName");
+            }
+            else{
+                settings.smsFolderName = "";
+            }
+            persistSettings = true;
+        }
+        if (settings.callLogFolderName == null){
+            String oldCallLogFolder = guestService.getApiKeyAttribute(apiKey,"callLogFolderName");
+            if (oldCallLogFolder != null){
+                settings.callLogFolderName = oldCallLogFolder;
+                guestService.removeApiKeyAttribute(apiKey.getId(),"callLogFolderName");
+            }
+            else{
+                settings.callLogFolderName = "";
+            }
+            persistSettings = true;
+        }
+        if (persistSettings){
+            settingsService.saveConnectorSettings(apiKey.getId(),settings);
+        }
+        return settings;
+    }
 }
