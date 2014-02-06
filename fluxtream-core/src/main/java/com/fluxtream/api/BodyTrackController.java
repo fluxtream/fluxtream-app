@@ -58,6 +58,10 @@ import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.ConnectorUtils;
 import com.fluxtream.utils.HashUtils;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.Expose;
 import com.google.gson.reflect.TypeToken;
@@ -222,9 +226,31 @@ public class BodyTrackController {
         try{
             long uid = AuthHelper.getGuestId();
             Type channelsType =  new TypeToken<Collection<String>>(){}.getType();
-            Type dataType = new TypeToken<List<List<Long>>>(){}.getType();
 
-            final BodyTrackHelper.BodyTrackUploadResult uploadResult = bodyTrackHelper.uploadToBodyTrack(uid, deviceNickname, (Collection<String>)gson.fromJson(channels, channelsType), (List<List<Object>>)gson.fromJson(data, dataType));
+            List<List<Object>> parsedData = new ArrayList<List<Object>>();
+
+            //Gson doesn't seem to be able to handle arrays with mixed types nicely
+            //This will parse through the array, we don't need much error checking because we want this to fail if the data is malformed
+            JsonElement element = new JsonParser().parse(data);
+
+            for (JsonElement e : element.getAsJsonArray()){
+                List<Object> currentList = new ArrayList<Object>();
+                parsedData.add(currentList);
+                for (JsonElement dataPoint : e.getAsJsonArray()){
+                    JsonPrimitive primitive = dataPoint.getAsJsonPrimitive();
+                    if (primitive.isBoolean()){
+                        currentList.add(primitive.getAsBoolean());
+                    }
+                    else if (primitive.isString()){
+                        currentList.add(primitive.getAsString());
+                    }
+                    else{
+                        currentList.add(primitive.getAsDouble());
+                    }
+                }
+            }
+
+            final BodyTrackHelper.BodyTrackUploadResult uploadResult = bodyTrackHelper.uploadToBodyTrack(uid, deviceNickname, (Collection<String>)gson.fromJson(channels, channelsType), parsedData);
             status = createStatusModelFromBodyTrackUploadResult(uploadResult);
         }
         catch (Exception e){

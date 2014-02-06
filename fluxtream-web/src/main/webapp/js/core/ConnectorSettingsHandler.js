@@ -5,11 +5,11 @@ define(function() {
     }
 
     function loadSettings(apiKeyId, connector, template) {
-        var bindSettingsOverride = this.bindSettings;
         var handler = this;
         $.ajax({
             url: "/api/connectors/settings/"+apiKeyId,
             success: function(settings) {
+                console.log("blah");
                 var settingsHtml = template.render({
                     connectorName:connector.connectorName,
                     name:connector.name,
@@ -18,13 +18,16 @@ define(function() {
                 var $connectorSettingsTab = $("#connectorSettingsTab");
                 $connectorSettingsTab.empty();
                 $connectorSettingsTab.append(settingsHtml);
-                bindSettingsOverride(settings, apiKeyId);
+                handler.bindSettings($connectorSettingsTab,settings, apiKeyId);
                 var $resetSettingsButton = $("#resetSettingsButton");
                 $resetSettingsButton.unbind("click");
                 $resetSettingsButton.click(function() {
                     console.log("click!");
                     resetSettings(handler, apiKeyId, connector, template);
                 });
+            },
+            error: function(){
+                console.error("blahblahblah!")
             }
         });
     };
@@ -42,7 +45,7 @@ define(function() {
     }
 
     function bindSettings(settings, apiKeyId) {
-        console.log("ConnectorSettingsHandler.bindSettings: not yet implemented!")
+        console.warn("ConnectorSettingsHandler.bindSettings: not yet implemented!")
     }
 
     ConnectorSettingsHandler.prototype.bindSettings = bindSettings;

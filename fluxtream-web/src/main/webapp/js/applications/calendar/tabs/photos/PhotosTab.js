@@ -92,7 +92,6 @@ define(["core/Tab",
             showNoPhotos();
             return;
         }
-        var carouselHTML = PhotoUtils.getCarouselHTML(digest);
         var currentGroup = [];
         var currentDate = null;
         var facetCity = null;
@@ -147,7 +146,6 @@ define(["core/Tab",
         }
         for (var i = 0; i < data.length; i++){
             $("#photo-" + data[i].id).click({i:data[i].id,facet:data[i]},function(event){
-                //PhotoUtils.showCarouselHTML(carouselHTML,event.data.i);
                 var photoFacet = event.data.facet;
                 PhotoUtils.showPhotoDialog(photoFacet.deviceName, photoFacet.channelName, photoFacet.UID, photoFacet.start,{minTime:digest.tbounds.start,maxTime:digest.tbounds.end});
             });
@@ -223,7 +221,7 @@ define(["core/Tab",
         if ($("#photoTab").parent().hasClass("active"))
             onScroll($(window).scrollTop() + $("#selectedConnectors").height());
         else
-            onScroll(-100);;
+            onScroll(-100);
     });
 
     var photosTab = new Tab("calendar", "photos", "Candide Kemmler", "icon-camera", true);

@@ -1,5 +1,6 @@
 package com.fluxtream.services;
 
+import java.io.Serializable;
 import java.util.List;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.GuestAddress;
@@ -71,6 +72,8 @@ public interface SettingsService {
     void persistConnectorSettings(long apiKeyId, Object settings, Object defaultSettings);
 
     public void saveConnectorSettings(long apiKeyId, String json);
+
+    public void saveConnectorSettings(long apiKeyId, Serializable settings);
 
     public void resetConnectorSettings(long apiKeyId);
 

@@ -1,6 +1,6 @@
 define(["core/grapher/BTCore",
-        "settings/google_calendar", "settings/evernote"],function(BodyTrack,
-        GoogleCalendarSettingsHandler, EvernoteSettingsHandler) {
+        "settings/google_calendar", "settings/evernote", "settings/sms_backup"],function(BodyTrack,
+        GoogleCalendarSettingsHandler, EvernoteSettingsHandler, SmsBackupSettingsHandler) {
 
     var connectors;
 
@@ -9,7 +9,10 @@ define(["core/grapher/BTCore",
      */
     var settingsHandlers = {
         "google_calendar" : GoogleCalendarSettingsHandler,
-        "evernote" : EvernoteSettingsHandler
+        "evernote" : EvernoteSettingsHandler,
+        "sms_backup" : SmsBackupSettingsHandler
+        "google_calendar" : GoogleCalendarSettingsHandler,
+        "sms_backup": SmsBackupSettingsHandler
     };
 
     function show(){
