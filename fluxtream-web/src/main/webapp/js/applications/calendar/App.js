@@ -520,7 +520,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             }
             for (var i = 0; i < digest.cachedData[connectorId].length; i++){
                 var facet = digest.cachedData[connectorId][i];
-                if (hasGeneralSettings)
+                if (hasGeneralSettings && config.applySettings != null)
                     config.applySettings(facet, digest.settings.connectorSettings);
                 if (digest.cachedData[connectorId].hasImages){
                     switch (connectorId){
@@ -892,6 +892,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             popup.css("top",offset.top + target.height());
             popup.css("left",offset.left);
             popup.css("display","inline-block");
+            popup.css("zIndex",target.zIndex() + 1);
 
             popup.find(".mapLink").unbind('click').click(function(event){
                 switchToAppForFacet("calendar","map",facet);

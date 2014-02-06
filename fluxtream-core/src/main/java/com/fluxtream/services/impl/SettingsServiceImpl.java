@@ -1,5 +1,6 @@
 package com.fluxtream.services.impl;
 
+import java.io.Serializable;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -205,6 +206,12 @@ public class SettingsServiceImpl implements SettingsService {
      * the settings class for this connector, if one exists
      * @param apiKeyId
      */
+    @Override
+    @Transactional(readOnly=false)
+    public void saveConnectorSettings(final long apiKeyId, final Serializable settings){
+        saveConnectorSettings(apiKeyId, gson.toJson(settings));
+    }
+
     @Override
     @Transactional(readOnly=false)
     public void resetConnectorSettings(final long apiKeyId) {
