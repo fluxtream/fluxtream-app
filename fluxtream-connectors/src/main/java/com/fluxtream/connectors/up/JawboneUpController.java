@@ -1,5 +1,7 @@
 package com.fluxtream.connectors.up;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -7,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
@@ -18,10 +21,12 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.HttpUtils;
 import net.sf.json.JSONObject;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTimeConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
@@ -159,6 +164,27 @@ public class JawboneUpController {
             return "redirect:/app/tokenRenewed/up";
         else
             return "redirect:/app/from/up";
+    }
+
+    @RequestMapping(value="/snapshot_image/{guestId}/{apiKeyId}/**")
+    public void getSnapshotImage(@PathVariable("guestId") long guestId,
+                                 @PathVariable("apiKeyId") long apiKeyId,
+                                 HttpServletRequest request,
+                                 HttpServletResponse response) throws IOException {
+        final String requestURI = request.getRequestURI();
+        final String prefix = new StringBuilder("/up/snapshot_image/").append(guestId).append("/").append(apiKeyId).append("/").toString();
+        final String snapshotImagePath = requestURI.substring(prefix.length());
+        System.out.println("requestURI: " + requestURI);
+        final String devKvsLocation = env.get("btdatastore.db.location");
+        File f = new File(new StringBuilder(devKvsLocation).append(File.separator)
+                                  .append(guestId)
+                                  .append(File.separator)
+                                  .append(Connector.getConnector("up").prettyName())
+                                  .append(File.separator)
+                                  .append(apiKeyId)
+                                  .append(File.separator)
+                                  .append(snapshotImagePath).toString());
+        IOUtils.copy(new FileInputStream(f), response.getOutputStream());
     }
 
 }

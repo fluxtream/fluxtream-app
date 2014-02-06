@@ -48,7 +48,8 @@ public class JawboneUpSleepFacetVO extends AbstractFacetVO<JawboneUpSleepFacet> 
         this.place_lat = facet.place_lat;
         this.place_lon = facet.place_lon;
         this.place_name = facet.place_name;
-        this.snapshot_image = facet.snapshot_image;
+        this.snapshot_image = String.format("%sup/snapshot_image/%s/%s%s", settings.config.get("homeBaseUrl"),
+                                            facet.guestId, facet.apiKeyId, facet.snapshot_image);
         this.smart_alarm_fire = facet.smart_alarm_fire;
         this.awake_time = facet.awake_time;
         this.asleep_time = facet.asleep_time;

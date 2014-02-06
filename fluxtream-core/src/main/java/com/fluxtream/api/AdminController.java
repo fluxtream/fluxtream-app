@@ -287,11 +287,11 @@ public class AdminController {
     }
 
     @DELETE
-    @Path("/apiKeys/{apiKeyId}?attributeKey={attributeKey}")
+    @Path("/apiKeys/{apiKeyId}/attribute/delete")
     @Secured({ "ROLE_ADMIN" })
     @Produces({MediaType.APPLICATION_JSON})
     public StatusModel deleteApiKeyAttribute(@PathParam("apiKeyId") long apiKeyId,
-                                             @PathParam("attributeKey") String attributeKey) throws IOException {
+                                             @QueryParam("attributeKey") String attributeKey) throws IOException {
         attributeKey = URLDecoder.decode(attributeKey, "UTF-8");
         guestService.removeApiKeyAttribute(apiKeyId, attributeKey);
         return new StatusModel(true, "attribute was deleted");

@@ -1,5 +1,9 @@
 package com.fluxtream.connectors.up;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.TimeZone;
 import java.util.TreeSet;
 import com.fluxtream.TimezoneMap;
@@ -16,6 +20,7 @@ import com.fluxtream.utils.TimespanSegment;
 import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -29,6 +34,8 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,6 +58,10 @@ public class JawboneUpUpdater extends AbstractUpdater {
 
     @Autowired
     MetadataService metadataService;
+
+    @Autowired
+    @Qualifier("AsyncWorker")
+    ThreadPoolTaskExecutor executor;
 
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
@@ -131,8 +142,10 @@ public class JawboneUpUpdater extends AbstractUpdater {
 
                     if (jsonObject.has("title"))
                         facet.title = jsonObject.getString("title");
-                    if (jsonObject.has("snapshot_image"))
+                    if (jsonObject.has("snapshot_image")) {
                         facet.snapshot_image = jsonObject.getString("snapshot_image");
+                        cacheImage(updateInfo, facet.snapshot_image);
+                    }
 
                     String dateString = jsonObject.getString("date");
 
@@ -243,6 +256,44 @@ public class JawboneUpUpdater extends AbstractUpdater {
         return day_gmt + millis_since_midnight_offset;
     }
 
+    /**
+     * Retrieve the snapshot_image and cache it in the user's resources directory
+     * @param updateInfo
+     * @param uri
+     */
+    private void cacheImage(final UpdateInfo updateInfo, final String uri) {
+        final String devKvsLocation = env.get("btdatastore.db.location");
+        executor.execute(new Runnable() {
+            public void run() {
+                try {
+                    String url = "https://jawbone.com" + uri;
+
+                    HttpClient client = env.getHttpClient();
+                    HttpGet request = new HttpGet(url);
+                    HttpResponse response = null;
+                        response = client.execute(request);
+
+                    BufferedInputStream rd = new BufferedInputStream(
+                            response.getEntity().getContent());
+
+                    File f = new File(new StringBuilder(devKvsLocation).append(File.separator)
+                                              .append(updateInfo.getGuestId())
+                                              .append(File.separator)
+                                              .append(connector().prettyName())
+                                              .append(File.separator)
+                                              .append(updateInfo.apiKey.getId())
+                                              .append(uri).toString());
+                    f.getParentFile().mkdirs();
+
+                    IOUtils.copy(rd, new FileOutputStream(f));
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
     TimezoneMap getTimeZoneMap(final String tzs) {
         TimezoneMap map = new TimezoneMap();
         if (tzs==null) return map;
@@ -321,8 +372,10 @@ public class JawboneUpUpdater extends AbstractUpdater {
 
                     if (jsonObject.has("title"))
                         facet.title = jsonObject.getString("title");
-                    if (jsonObject.has("snapshot_image"))
+                    if (jsonObject.has("snapshot_image")) {
                         facet.snapshot_image = jsonObject.getString("snapshot_image");
+                        cacheImage(updateInfo, facet.snapshot_image);
+                    }
 
                     if (jsonObject.has("place_lat") && jsonObject.has("place_lon")) {
                         String place_lat = jsonObject.getString("place_lat");
