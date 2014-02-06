@@ -231,7 +231,7 @@ public abstract class AbstractFacet extends AbstractEntity {
             facetClass = apiKey.getConnector().facetClass();
         }
         final String entityName = JPAUtils.getEntityName(facetClass);
-        String queryString = String.format("SELECT * FROM (SELECT id FROM %s WHERE apiKeyId=?) ids JOIN %s USING (id) ORDER BY end %s", entityName, entityName, sortOrder);
+        String queryString = String.format("SELECT * FROM %s USE INDEX (apiKey) WHERE apiKeyId=? ORDER BY end %s", entityName, sortOrder);
         Query query = em.createNativeQuery(queryString, facetClass);
         query.setParameter(1, apiKey.getId());
         query.setMaxResults(1);
@@ -267,8 +267,8 @@ public abstract class AbstractFacet extends AbstractEntity {
         final Class facetClass = getFacetClass(apiKey, objType);
         final String entityName = JPAUtils.getEntityName(facetClass);
         final String additionalWhereClause = (tagFilter == null) ? "" : " AND (" + tagFilter.getWhereClause() + ")";
-        String queryString = String.format("SELECT * FROM (SELECT id FROM %s WHERE apiKeyId=?) ids JOIN %s USING (id) WHERE start <=? %s ORDER BY start DESC",
-                                           entityName, entityName, additionalWhereClause);
+        String queryString = String.format("SELECT * FROM %s USE INDEX (apiKey) WHERE apiKeyId=? AND start <=? %s ORDER BY start DESC",
+                                           entityName, additionalWhereClause);
         final Query query = em.createNativeQuery(queryString, facetClass);
         query.setParameter(1, apiKey.getId());
         query.setParameter(2, timeInMillis);
@@ -285,8 +285,8 @@ public abstract class AbstractFacet extends AbstractEntity {
         final Class facetClass = getFacetClass(apiKey, objType);
         final String entityName = JPAUtils.getEntityName(facetClass);
         final String additionalWhereClause = (tagFilter == null) ? "" : " AND (" + tagFilter.getWhereClause() + ")";
-        String queryString = String.format("SELECT * FROM (SELECT id FROM %s WHERE apiKeyId=?) ids JOIN %s USING (id) WHERE start >=? %s ORDER BY start DESC",
-                                           entityName, entityName, additionalWhereClause);
+        String queryString = String.format("SELECT * FROM %s USE INDEX (apiKey) WHERE apiKeyId=? AND start >=? %s ORDER BY start DESC",
+                                           entityName, additionalWhereClause);
         final Query query = em.createNativeQuery(queryString, facetClass);
         query.setParameter(1, apiKey.getId());
         query.setParameter(2, timeInMillis);
