@@ -4,6 +4,9 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.TreeSet;
 import com.fluxtream.TimezoneMap;
@@ -44,14 +47,30 @@ import org.springframework.stereotype.Component;
  * Time: 09:56
  */
 @Component
-@Updater(prettyName = "Jawbone Up", value = 1999, objectTypes = {LocationFacet.class,
-                                                                 JawboneUpMovesFacet.class, JawboneUpSleepFacet.class})
+@Updater(prettyName = "Jawbone Up", value = 1999, objectTypes = {LocationFacet.class, JawboneUpMovesFacet.class,
+                                                                 JawboneUpSleepFacet.class, JawboneUpMealFacet.class,
+                                                                 JawboneUpServingFacet.class, JawboneUpWorkoutFacet.class},
+         defaultChannels = {"Jawbone Up.serving", "Jawbone Up.moves", "Jawbone Up.sleep"})
 public class JawboneUpUpdater extends AbstractUpdater {
 
     Logger logger = Logger.getLogger(JawboneUpUpdater.class);
 
+    static final Map<Integer,String> endpointDict = new java.util.Hashtable<Integer,String>();
+    static {
+        endpointDict.put(ObjectType.getObjectTypeValue(JawboneUpMovesFacet.class),
+                         "https://jawbone.com/nudge/api/v.1.0/users/@me/moves");
+        endpointDict.put(ObjectType.getObjectTypeValue(JawboneUpSleepFacet.class),
+                         "https://jawbone.com/nudge/api/v.1.0/users/@me/sleeps");
+        endpointDict.put(ObjectType.getObjectTypeValue(JawboneUpMealFacet.class),
+                         "https://jawbone.com/nudge/api/v.1.0/users/@me/meals");
+        endpointDict.put(ObjectType.getObjectTypeValue(JawboneUpWorkoutFacet.class),
+                         "https://jawbone.com/nudge/api/v.1.0/users/@me/workouts");
+    }
+
     private static final String MOVES_LAST_SYNC_TIME = "lastSyncTime/moves";
     private static final String SLEEPS_LAST_SYNC_TIME = "lastSyncTime/sleeps";
+    private static final String MEALS_LAST_SYNC_TIME = "lastSyncTime/meals";
+    private static final String WORKOUTS_LAST_SYNC_TIME = "lastSyncTime/workouts";
 
     @Autowired
     JPADaoService jpaDaoService;
@@ -71,49 +90,36 @@ public class JawboneUpUpdater extends AbstractUpdater {
     @Override
     protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
         updateInfo.setContext("accessToken", guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken"));
-        long beginningOfTime = getBeginningOfTime();
-        Long movesLastSyncTime = beginningOfTime;
-        Long sleepLastSyncTime = beginningOfTime;
-        final String movesLastSyncTimeAtt = guestService.getApiKeyAttribute(updateInfo.apiKey, MOVES_LAST_SYNC_TIME);
-        final String sleepLastSyncTimeAtt = guestService.getApiKeyAttribute(updateInfo.apiKey, SLEEPS_LAST_SYNC_TIME);
-        if (movesLastSyncTimeAtt !=null)
-            movesLastSyncTime = Long.valueOf(movesLastSyncTimeAtt);
-        if (sleepLastSyncTimeAtt!=null)
-            sleepLastSyncTime = Long.valueOf(sleepLastSyncTimeAtt);
-        updateMovesSince(updateInfo, movesLastSyncTime);
+        updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, MOVES_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpMovesFacet.class));
         guestService.setApiKeyAttribute(updateInfo.apiKey, MOVES_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
-        updateSleepSince(updateInfo, sleepLastSyncTime);
+        updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, SLEEPS_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpSleepFacet.class));
         guestService.setApiKeyAttribute(updateInfo.apiKey, SLEEPS_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
+        updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, MEALS_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpSleepFacet.class));
+        guestService.setApiKeyAttribute(updateInfo.apiKey, MEALS_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
+    }
+
+    private long getLastSyncTime(final UpdateInfo updateInfo, final String lastSyncTimeAttKey) {
+        long lastSyncTime = getBeginningOfTime();
+        final String lastSyncTimeAtt = guestService.getApiKeyAttribute(updateInfo.apiKey, lastSyncTimeAttKey);
+        if (lastSyncTimeAtt!=null)
+            lastSyncTime = Long.valueOf(lastSyncTimeAtt);
+        return lastSyncTime;
     }
 
     private long getBeginningOfTime() {
         return ISODateTimeFormat.basicDate().withZoneUTC().parseMillis("20100101");
     }
 
-    private void updateMovesSince(final UpdateInfo updateInfo, long lastSyncTime) throws Exception {
+    private void updateJawboneUpDataSince(final UpdateInfo updateInfo, long lastSyncTime, int objectTypeValue) throws Exception {
         final HttpClient client = env.getHttpClient();
         try {
             // get moves since lastSyncTime
+            String endpoint = endpointDict.get(objectTypeValue);
             String url = getBeginningOfTime()==lastSyncTime
-                       ? "https://jawbone.com/nudge/api/v.1.0/users/@me/moves?start_time=" + getBeginningOfTime()/1000
-                       : "https://jawbone.com/nudge/api/v.1.0/users/@me/moves?start_time=" + getBeginningOfTime()/1000 + "&updated_after=" + lastSyncTime/1000;
+                         ? endpoint + "?start_time=" + getBeginningOfTime()/1000
+                         : endpoint + "?start_time=" + getBeginningOfTime()/1000 + "&updated_after=" + lastSyncTime/1000;
             final String movesJson = callJawboneAPI(updateInfo, url);
-            createOrUpdateFacets(updateInfo, movesJson, ObjectType.getObjectTypeValue(JawboneUpMovesFacet.class));
-        }
-        finally {
-            client.getConnectionManager().shutdown();
-        }
-    }
-
-    private void updateSleepSince(final UpdateInfo updateInfo, final long lastSyncTime) throws Exception {
-        final HttpClient client = env.getHttpClient();
-        try {
-            // get moves since lastSyncTime
-            String url = getBeginningOfTime()==lastSyncTime
-                         ? "https://jawbone.com/nudge/api/v.1.0/users/@me/sleeps?start_time=" + getBeginningOfTime()/1000
-                         : "https://jawbone.com/nudge/api/v.1.0/users/@me/sleeps?start_time=" + getBeginningOfTime()/1000 + "&updated_after=" + lastSyncTime/1000;
-            final String sleepsJson = callJawboneAPI(updateInfo, url);
-            createOrUpdateFacets(updateInfo, sleepsJson, ObjectType.getObjectTypeValue(JawboneUpSleepFacet.class));
+            createOrUpdateFacets(updateInfo, movesJson, objectTypeValue);
         }
         finally {
             client.getConnectionManager().shutdown();
@@ -326,6 +332,10 @@ public class JawboneUpUpdater extends AbstractUpdater {
                 createOrUpdateSleepFacet(json, updateInfo);
             else if (objectTypeValue==ObjectType.getObjectTypeValue(JawboneUpMovesFacet.class))
                 createOrUpdateMovesFacet(json, updateInfo);
+            else if (objectTypeValue==ObjectType.getObjectTypeValue(JawboneUpMealFacet.class))
+                createOrUpdateMealFacet(json, updateInfo);
+            else if (objectTypeValue==ObjectType.getObjectTypeValue(JawboneUpWorkoutFacet.class))
+                createOrUpdateWorkoutFacet(json, updateInfo);
         }
         if (data.has("links")) {
             JSONObject links = data.getJSONObject("links");
@@ -378,31 +388,9 @@ public class JawboneUpUpdater extends AbstractUpdater {
                     }
 
                     if (jsonObject.has("place_lat") && jsonObject.has("place_lon")) {
-                        String place_lat = jsonObject.getString("place_lat");
-                        String place_lon = jsonObject.getString("place_lon");
-                        if (StringUtils.isNotEmpty(place_lat)&&StringUtils.isNotEmpty(place_lon)) {
-                            facet.place_lat = jsonObject.getDouble("place_lat");
-                            facet.place_lon = jsonObject.getDouble("place_lon");
-                            facet.place_name = jsonObject.getString("place_name");
-
-                            LocationFacet locationFacet = new LocationFacet(updateInfo.apiKey.getId());
-
-                            if (jsonObject.has("place_acc")) {
-                                locationFacet.accuracy = jsonObject.getInt("place_acc");
-                                facet.place_acc = jsonObject.getInt("place_acc");
-                            } else
-                                locationFacet.accuracy = -1;
-
-                            locationFacet.latitude = (float) jsonObject.getDouble("place_lat");
-                            locationFacet.longitude = (float) jsonObject.getDouble("place_lon");
-                            locationFacet.timestampMs = facet.start;
-                            locationFacet.start = locationFacet.timestampMs;
-                            locationFacet.end = locationFacet.timestampMs;
-                            locationFacet.source = LocationFacet.Source.JAWBONE_UP;
-                            locationFacet.apiKeyId = updateInfo.apiKey.getId();
-                            locationFacet.api = connector().value();
-                            locationFacet.uri = xid;
-                            apiDataService.addGuestLocation(updateInfo.getGuestId(), locationFacet);
+                        if (StringUtils.isNotEmpty(jsonObject.getString("place_lat"))&&
+                            StringUtils.isNotEmpty(jsonObject.getString("place_lon"))) {
+                            extractGPSData(facet, jsonObject, updateInfo, xid);
                         }
                     }
 
@@ -438,7 +426,7 @@ public class JawboneUpUpdater extends AbstractUpdater {
 
                     return facet;
                 } catch (Throwable t) {
-                    logger.warn("could not import a Jawbone UP moves record: " + t.getMessage());
+                    logger.warn("could not import a Jawbone UP sleep record: " + t.getMessage());
                     t.printStackTrace();
                     return origFacet;
                 }
@@ -452,6 +440,182 @@ public class JawboneUpUpdater extends AbstractUpdater {
         //}
     }
 
+    private void extractGPSData(final JawboneUpGeoFacet facet, final JSONObject jsonObject, final UpdateInfo updateInfo, final String xid) {
+        facet.place_lat = jsonObject.getDouble("place_lat");
+        facet.place_lon = jsonObject.getDouble("place_lon");
+        facet.place_name = jsonObject.getString("place_name");
+        if (jsonObject.has("place_acc"))
+            facet.place_acc = jsonObject.getInt("place_acc");
+
+        LocationFacet locationFacet = new LocationFacet(updateInfo.apiKey.getId());
+
+        if (jsonObject.has("place_acc")) {
+            locationFacet.accuracy = jsonObject.getInt("place_acc");
+            facet.place_acc = jsonObject.getInt("place_acc");
+        } else
+            locationFacet.accuracy = -1;
+
+        locationFacet.latitude = (float) jsonObject.getDouble("place_lat");
+        locationFacet.longitude = (float) jsonObject.getDouble("place_lon");
+        locationFacet.timestampMs = facet.start;
+        locationFacet.start = locationFacet.timestampMs;
+        locationFacet.end = locationFacet.timestampMs;
+        locationFacet.source = LocationFacet.Source.JAWBONE_UP;
+        locationFacet.apiKeyId = updateInfo.apiKey.getId();
+        locationFacet.api = connector().value();
+        locationFacet.uri = xid;
+        apiDataService.addGuestLocation(updateInfo.getGuestId(), locationFacet);
+    }
+
+    private void createOrUpdateMealFacet(final JSONObject jsonObject, final UpdateInfo updateInfo) throws Exception {
+
+        final String xid = jsonObject.getString("xid");
+        final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.xid=?",
+                                                                                   updateInfo.apiKey.getId(), xid);
+        final ApiDataService.FacetModifier<JawboneUpMealFacet> facetModifier = new ApiDataService.FacetModifier<JawboneUpMealFacet>() {
+            @Override
+            public JawboneUpMealFacet createOrModify(JawboneUpMealFacet origFacet, final Long apiKeyId) {
+                try {
+                    JawboneUpMealFacet facet = origFacet;
+                    if (facet==null) {
+                        facet = new JawboneUpMealFacet(updateInfo.apiKey.getId());
+                        facet.xid = xid;
+                        extractCommonFacetData(facet, updateInfo);
+                    }
+                    facet.time_created = jsonObject.getLong("time_created");
+                    facet.time_completed = jsonObject.getLong("time_completed");
+                    facet.start = facet.time_created*1000;
+                    facet.end = facet.time_completed*1000;
+
+                    JSONObject details = jsonObject.getJSONObject("details");
+                    String dateString = jsonObject.getString("date");
+                    final LocalDate localDate = ISODateTimeFormat.basicDate().withZoneUTC().parseLocalDate(dateString);
+                    facet.date = ISODateTimeFormat.date().withZoneUTC().print(localDate);
+                    facet.tz = details.getString("tz");
+
+                    facet.mealDetails = details.toString();
+
+                    if (jsonObject.has("place_lat") && jsonObject.has("place_lon")) {
+                        if (StringUtils.isNotEmpty(jsonObject.getString("place_lat"))&&
+                            StringUtils.isNotEmpty(jsonObject.getString("place_lon"))) {
+                            extractGPSData(facet, jsonObject, updateInfo, xid);
+                        }
+                    }
+
+                    // now fetch the servings for this meal...
+                    final String servingsJSONStr = callJawboneAPI(updateInfo, "https://jawbone.com/nudge/api/v.1.0/meals/" + xid);
+                    JSONObject servingsJSON = JSONObject.fromObject(servingsJSONStr);
+                    // we are only interested in the serving items
+                    JSONObject data = servingsJSON.getJSONObject("data");
+                    JSONArray items = data.getJSONArray("items");
+                    List<JawboneUpServingFacet> servingFacets = new ArrayList<JawboneUpServingFacet>();
+                    for (int i=0; i<items.size(); i++) {
+                        JSONObject servingJSON = items.getJSONObject(i);
+                        final JawboneUpServingFacet servingFacet = createOrUpdateServingFacet(servingJSON, updateInfo);
+                        servingFacets.add(servingFacet);
+                    }
+                    return facet;
+                } catch (Throwable t) {
+                    logger.warn("could not import a Jawbone UP meal record: " + t.getMessage());
+                    t.printStackTrace();
+                    return origFacet;
+                }
+            }
+        };
+
+        final JawboneUpMealFacet newFacet = apiDataService.createOrReadModifyWrite(JawboneUpMealFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
+        //if (newFacet!=null) {
+        //    List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
+        //    newFacets.add(newFacet);
+        //    bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
+        //}
+    }
+
+    private JawboneUpServingFacet createOrUpdateServingFacet(final JSONObject jsonObject, final UpdateInfo updateInfo) throws Exception {
+
+        final String xid = jsonObject.getString("xid");
+        final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.xid=?",
+                                                                                   updateInfo.apiKey.getId(), xid);
+        final ApiDataService.FacetModifier<JawboneUpServingFacet> facetModifier = new ApiDataService.FacetModifier<JawboneUpServingFacet>() {
+            @Override
+            public JawboneUpServingFacet createOrModify(JawboneUpServingFacet origFacet, final Long apiKeyId) {
+                try {
+                    JawboneUpServingFacet facet = origFacet;
+                    if (facet==null) {
+                        facet = new JawboneUpServingFacet(updateInfo.apiKey.getId());
+                        facet.xid = xid;
+                        extractCommonFacetData(facet, updateInfo);
+                    }
+                    facet.time_created = jsonObject.getLong("time_created");
+                    facet.time_completed = jsonObject.getLong("time_completed");
+                    facet.start = facet.time_created*1000;
+                    facet.end = facet.time_completed*1000;
+                    return facet;
+                } catch (Throwable t) {
+                    logger.warn("could not import a Jawbone UP meal record: " + t.getMessage());
+                    t.printStackTrace();
+                    return origFacet;
+                }
+            }
+        };
+        final JawboneUpServingFacet newFacet = apiDataService.createOrReadModifyWrite(JawboneUpServingFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
+        //if (newFacet!=null) {
+        //    List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
+        //    newFacets.add(newFacet);
+        //    bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
+        //}
+        return newFacet;
+    }
+
+
+    private void createOrUpdateWorkoutFacet(final JSONObject jsonObject, final UpdateInfo updateInfo) throws Exception {
+
+        final String xid = jsonObject.getString("xid");
+        final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.xid=?",
+                                                                                   updateInfo.apiKey.getId(), xid);
+        final ApiDataService.FacetModifier<JawboneUpWorkoutFacet> facetModifier = new ApiDataService.FacetModifier<JawboneUpWorkoutFacet>() {
+            @Override
+            public JawboneUpWorkoutFacet createOrModify(JawboneUpWorkoutFacet origFacet, final Long apiKeyId) {
+                try {
+                    JawboneUpWorkoutFacet facet = origFacet;
+                    if (facet==null) {
+                        facet = new JawboneUpWorkoutFacet(updateInfo.apiKey.getId());
+                        facet.xid = xid;
+                        extractCommonFacetData(facet, updateInfo);
+                    }
+                    facet.time_created = jsonObject.getLong("time_created");
+                    facet.time_completed = jsonObject.getLong("time_completed");
+                    facet.start = facet.time_created*1000;
+                    facet.end = facet.time_completed*1000;
+
+                    JSONObject details = jsonObject.getJSONObject("details");
+                    String dateString = jsonObject.getString("date");
+                    final LocalDate localDate = ISODateTimeFormat.basicDate().withZoneUTC().parseLocalDate(dateString);
+                    facet.date = ISODateTimeFormat.date().withZoneUTC().print(localDate);
+                    facet.tz = details.getString("tz");
+
+                    if (jsonObject.has("place_lat") && jsonObject.has("place_lon")) {
+                        if (StringUtils.isNotEmpty(jsonObject.getString("place_lat"))&&
+                            StringUtils.isNotEmpty(jsonObject.getString("place_lon"))) {
+                            extractGPSData(facet, jsonObject, updateInfo, xid);
+                        }
+                    }
+
+                    return facet;
+                } catch (Throwable t) {
+                    logger.warn("could not import a Jawbone UP workout record: " + t.getMessage());
+                    t.printStackTrace();
+                    return origFacet;
+                }
+            }
+        };
+        final JawboneUpWorkoutFacet newFacet = apiDataService.createOrReadModifyWrite(JawboneUpWorkoutFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
+        //if (newFacet!=null) {
+        //    List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
+        //    newFacets.add(newFacet);
+        //    bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
+        //}
+    }
 
     private String callJawboneAPI(final UpdateInfo updateInfo, final String url) throws Exception {
         final HttpClient client = env.getHttpClient();

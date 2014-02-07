@@ -11,8 +11,6 @@ import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
-import com.fluxtream.domain.AbstractFacet;
-import org.hibernate.annotations.Index;
 
 /**
  * User: candide
@@ -24,17 +22,11 @@ import org.hibernate.annotations.Index;
       @NamedQuery(name = "up.moves.latest", query = "SELECT facet FROM Facet_JawboneUpMoves facet WHERE facet.apiKeyId=? ORDER BY facet.start DESC LIMIT 1")
 })
 @ObjectTypeSpec(name = "moves", value = 2, prettyname = "Moves", isDateBased = true)
-public class JawboneUpMovesFacet extends AbstractFacet {
+public class JawboneUpMovesFacet extends JawboneUpFacet {
 
-    @Index(name="xid")
-    public String xid;
-    public long time_created;
     public long time_updated;
-    public long time_completed;
     public String title;
 
-    @Index(name="date")
-    public String date;
     public String snapshot_image;
     public int distance;
     public double km;
@@ -52,7 +44,6 @@ public class JawboneUpMovesFacet extends AbstractFacet {
     public int wo_active_time;
     public int wo_count;
     public int wo_longest;
-    public String tz;
     public String tzs;
 
     @ElementCollection(fetch= FetchType.EAGER)
