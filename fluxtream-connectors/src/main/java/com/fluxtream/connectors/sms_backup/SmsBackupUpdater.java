@@ -619,6 +619,14 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
             }
             persistSettings = true;
         }
+        if (settings.smsFolderName.equals("")){
+            settings.smsFolderName = "SMS";
+            persistSettings = true;
+        }
+        if (settings.callLogFolderName.equals("")){
+            settings.callLogFolderName = "Call log";
+            persistSettings = true;
+        }
         if (persistSettings){
             settingsService.saveConnectorSettings(apiKey.getId(),settings);
         }
