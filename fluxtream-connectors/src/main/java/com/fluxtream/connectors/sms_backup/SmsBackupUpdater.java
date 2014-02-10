@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 import javax.mail.Address;
+import javax.mail.BodyPart;
 import javax.mail.FetchProfile;
 import javax.mail.Folder;
 import javax.mail.FolderNotFoundException;
@@ -13,6 +14,7 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Store;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.search.SentDateTerm;
 import com.fluxtream.connectors.Connector;
@@ -44,6 +46,7 @@ import com.google.api.services.plus.Plus;
 import com.google.api.services.plus.model.Person;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import com.ibm.icu.util.StringTokenizer;
+import com.sun.mail.util.BASE64DecoderStream;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -62,6 +65,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 
 	// basic cache for email connections
 	static ConcurrentMap<String, Store> stores;
+    static ConcurrentMap<ApiKey, String> emailMap;
 
 	public SmsBackupUpdater() {
 		super();
@@ -227,8 +231,28 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
                                                                if (content instanceof String)
                                                                    facet.message = (String) message.getContent();
                                                                else if (content instanceof MimeMultipart) {//TODO: this is an MMS and needs to be handled properly
-                                                                   String contentType = ((MimeMultipart) content).getContentType();
-                                                                   facet.message = "message of type " + contentType;
+                                                                   facet.message = "Picture Message";
+                                                                   /*MimeMultipart multipart = (MimeMultipart) content;
+                                                                   int partCount = multipart.getCount();
+                                                                   if (partCount != 1){
+                                                                       throw new Exception("Don't know how to deal with part count of: " + partCount);
+                                                                   }
+                                                                   for (int i = 0; i < partCount; i++){
+                                                                       MimeBodyPart part = (MimeBodyPart) multipart.getBodyPart(i);
+                                                                       String contentType = part.getContentType();
+                                                                       Object partContent = part.getContent();
+                                                                       if (contentType.toLowerCase().startsWith("image")){
+                                                                           byte[] photoContent = IOUtils.toByteArray((BASE64DecoderStream) partContent);
+                                                                           throw new Exception("BLURF!");
+                                                                       }
+                                                                       else{
+                                                                           throw new Exception("Don't know how to deal with content of type: " + contentType);
+
+                                                                       }
+
+
+                                                                   }
+                                                                   throw new Exception("Don't know what to do with multipart!");   */
                                                                }
                                                            }  catch(Exception e){
                                                                e.printStackTrace();
@@ -316,7 +340,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
         }
 	}
 
-    private Store getStore(ApiKey apiKey) throws UpdateFailedException{
+    private GoogleCredential getCredentials(ApiKey apiKey) throws UpdateFailedException{
         HttpTransport httpTransport = new NetHttpTransport();
         JacksonFactory jsonFactory = new JacksonFactory();
         // Get all the attributes for this connector's oauth token from the stored attributes
@@ -370,7 +394,23 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
             throw new UpdateFailedException("refresh token attempt failed", e, true);
         }
 
+        return credential;
+    }
 
+    private String getEmailAddress(ApiKey apiKey) throws UpdateFailedException{
+
+        if (emailMap == null){
+            emailMap = new ConcurrentLinkedHashMap.Builder<ApiKey, String>()
+                    .maximumWeightedCapacity(100).build();
+        }
+
+        if (emailMap.containsKey(apiKey)){
+            return emailMap.get(apiKey);
+        }
+
+        HttpTransport httpTransport = new NetHttpTransport();
+        JacksonFactory jsonFactory = new JacksonFactory();
+        GoogleCredential credential = getCredentials(apiKey);
         String emailAddress = null;
 
         try{
@@ -384,13 +424,23 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
             }
             if (emailAddress == null)
                 throw new Exception("Account email not in email list");
-
+            emailMap.put(apiKey,emailAddress);
+            return emailAddress;
         }
         catch (Exception e){
             throw new UpdateFailedException("Failed to get gmail address!",e,false);
         }
 
-        accessToken = credential.getAccessToken();
+    }
+
+    private Store getStore(ApiKey apiKey) throws UpdateFailedException{
+        String emailAddress = getEmailAddress(apiKey);
+        GoogleCredential credential = getCredentials(apiKey);
+
+
+
+
+        String accessToken = credential.getAccessToken();
 
 
         if (stores == null)
@@ -464,8 +514,10 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 		String smsFolderName = getSettingsOrPortLegacySettings(updateInfo.apiKey).smsFolderName;
 		try {
             Store store;
-            if (guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken") != null)
+            if (guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken") != null){
 			    store = getStore(updateInfo.apiKey);
+                email = getEmailAddress(updateInfo.apiKey);
+            }
             else
                 store = getStore(email,password);
 			Folder folder = store.getDefaultFolder();
@@ -506,6 +558,8 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 
 	void retrieveCallLogSinceDate(UpdateInfo updateInfo,
 			String email, String password, Date date) throws Exception {
+        //if (true)
+        //    throw new Exception("Blah");
 		long then = System.currentTimeMillis();
 		String query = "(incremental call log retrieval)";
 		ObjectType callLogObjectType = ObjectType.getObjectType(connector(),
@@ -513,8 +567,10 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 		String callLogFolderName = getSettingsOrPortLegacySettings(updateInfo.apiKey).callLogFolderName;
 		try {
             Store store;
-            if (guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken") != null)
+            if (guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken") != null){
                 store = getStore(updateInfo.apiKey);
+                email = getEmailAddress(updateInfo.apiKey);
+            }
             else
                 store = getStore(email,password);
 			Folder folder = store.getDefaultFolder();
