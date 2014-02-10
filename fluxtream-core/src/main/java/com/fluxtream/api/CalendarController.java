@@ -9,10 +9,13 @@ import javax.ws.rs.core.MediaType;
 import com.fluxtream.Configuration;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.domain.Guest;
 import com.fluxtream.mvc.models.CalendarModel;
+import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.utils.TimeUtils;
+import com.google.gson.Gson;
 import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -36,6 +39,8 @@ public class CalendarController {
     @Autowired
     MetadataService metadataService;
 
+    Gson gson = new Gson();
+
     @Autowired
     Configuration env;
 
@@ -43,7 +48,13 @@ public class CalendarController {
     @Path(value = "/model")
     @Produces({ MediaType.APPLICATION_JSON } )
     public String getModel(@QueryParam("state") String state) throws IOException {
-        final long guestId = AuthHelper.getGuestId();
+        long guestId;
+        try {
+            Guest guest = AuthHelper.getGuest();
+            guestId = guest.getId();
+        } catch (Throwable e) {
+            return gson.toJson(new StatusModel(false,"Access Denied"));
+        }
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=getModel")
                 .append(" guestId=").append(guestId);
         logger.info(sb.toString());
@@ -56,7 +67,13 @@ public class CalendarController {
     @Produces({ MediaType.APPLICATION_JSON })
     public String setToToday(@QueryParam("timeUnit") String timeUnit,
                              @QueryParam("state") String state) throws IOException {
-        final long guestId = AuthHelper.getGuestId();
+        long guestId;
+        try {
+            Guest guest = AuthHelper.getGuest();
+            guestId = guest.getId();
+        } catch (Throwable e) {
+            return gson.toJson(new StatusModel(false,"Access Denied"));
+        }
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=setToToday")
                 .append(" guestId=").append(guestId)
                 .append(" state=").append(state);
@@ -72,7 +89,13 @@ public class CalendarController {
                           @QueryParam("year") int year,
                           @QueryParam("week") int week)
             throws IOException {
-        final long guestId = AuthHelper.getGuestId();
+        long guestId;
+        try {
+            Guest guest = AuthHelper.getGuest();
+            guestId = guest.getId();
+        } catch (Throwable e) {
+            return gson.toJson(new StatusModel(false,"Access Denied"));
+        }
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=getWeek")
                 .append(" state=").append(state)
                 .append(" guestId=").append(guestId);
@@ -127,7 +150,13 @@ public class CalendarController {
                            @QueryParam("month") int month)
             throws IOException {
         logger.info("action=setMonth year=" + year + " month=" + month);
-        final long guestId = AuthHelper.getGuestId();
+        long guestId;
+        try {
+            Guest guest = AuthHelper.getGuest();
+            guestId = guest.getId();
+        } catch (Throwable e) {
+            return gson.toJson(new StatusModel(false,"Access Denied"));
+        }
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=getMonth")
                 .append(" state=").append(state)
                 .append(" guestId=").append(guestId);
@@ -142,7 +171,13 @@ public class CalendarController {
     public String setYear(@QueryParam("state") String state,
                           @QueryParam("year") int year)
             throws IOException {
-        final long guestId = AuthHelper.getGuestId();
+        long guestId;
+        try {
+            Guest guest = AuthHelper.getGuest();
+            guestId = guest.getId();
+        } catch (Throwable e) {
+            return gson.toJson(new StatusModel(false,"Access Denied"));
+        }
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=getYear")
                 .append(" state=").append(state)
                 .append(" guestId=").append(guestId);
@@ -156,7 +191,13 @@ public class CalendarController {
     @Produces({ MediaType.APPLICATION_JSON })
     public String setDate(@QueryParam("date") String date)
             throws IOException {
-        final long guestId = AuthHelper.getGuestId();
+        long guestId;
+        try {
+            Guest guest = AuthHelper.getGuest();
+            guestId = guest.getId();
+        } catch (Throwable e) {
+            return gson.toJson(new StatusModel(false,"Access Denied"));
+        }
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=setDate")
                 .append(" guestId=").append(guestId)
                 .append(" date=").append(date);
@@ -170,7 +211,13 @@ public class CalendarController {
     @Path(value = "/decrementTimespan")
     @Produces({ MediaType.APPLICATION_JSON })
     public String decrementTimespan(@QueryParam("state") String state) throws IOException {
-        final long guestId = AuthHelper.getGuestId();
+        long guestId;
+        try {
+            Guest guest = AuthHelper.getGuest();
+            guestId = guest.getId();
+        } catch (Throwable e) {
+            return gson.toJson(new StatusModel(false,"Access Denied"));
+        }
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=decrementTimespan")
                 .append(" state=").append(state)
                 .append(" guestId=").append(guestId);
@@ -184,7 +231,13 @@ public class CalendarController {
     @Path(value = "/incrementTimespan")
     @Produces({ MediaType.APPLICATION_JSON })
     public String incrementTimespan(@QueryParam("state") String state) throws IOException {
-        final long guestId = AuthHelper.getGuestId();
+        long guestId;
+        try {
+            Guest guest = AuthHelper.getGuest();
+            guestId = guest.getId();
+        } catch (Throwable e) {
+            return gson.toJson(new StatusModel(false,"Access Denied"));
+        }
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=incrementTimespan")
                 .append(" state=").append(state)
                 .append(" guestId=").append(guestId);
@@ -198,7 +251,13 @@ public class CalendarController {
     @Path(value = "/setDayTimeUnit")
     @Produces({ MediaType.APPLICATION_JSON })
     public String setDayTimeUnit(@QueryParam("state") String state) throws IOException {
-        final long guestId = AuthHelper.getGuestId();
+        long guestId;
+        try {
+            Guest guest = AuthHelper.getGuest();
+            guestId = guest.getId();
+        } catch (Throwable e) {
+            return gson.toJson(new StatusModel(false,"Access Denied"));
+        }
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=setDayTimeUnit")
                 .append(" state=").append(state)
                 .append(" guestId=").append(guestId);
@@ -212,7 +271,13 @@ public class CalendarController {
     @Path(value = "/setWeekTimeUnit")
     @Produces({ MediaType.APPLICATION_JSON })
     public String setWeekTimeUnit(@QueryParam("state") String state) throws IOException {
-        final long guestId = AuthHelper.getGuestId();
+        long guestId;
+        try {
+            Guest guest = AuthHelper.getGuest();
+            guestId = guest.getId();
+        } catch (Throwable e) {
+            return gson.toJson(new StatusModel(false,"Access Denied"));
+        }
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=setWeekTimeUnit")
                 .append(" state=").append(state)
                 .append(" guestId=").append(guestId);
@@ -226,7 +291,13 @@ public class CalendarController {
     @Path(value = "/setMonthTimeUnit")
     @Produces({ MediaType.APPLICATION_JSON })
     public String setMonthTimeUnit(@QueryParam("state") String state) throws IOException {
-        final long guestId = AuthHelper.getGuestId();
+        long guestId;
+        try {
+            Guest guest = AuthHelper.getGuest();
+            guestId = guest.getId();
+        } catch (Throwable e) {
+            return gson.toJson(new StatusModel(false,"Access Denied"));
+        }
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=setMonthTimeUnit")
                 .append(" state=").append(state)
                 .append(" guestId=").append(guestId);
@@ -240,7 +311,13 @@ public class CalendarController {
     @Path(value = "/setYearTimeUnit")
     @Produces({ MediaType.APPLICATION_JSON })
     public String setYearTimeUnit(@QueryParam("state") String state) throws IOException {
-        final long guestId = AuthHelper.getGuestId();
+        long guestId;
+        try {
+            Guest guest = AuthHelper.getGuest();
+            guestId = guest.getId();
+        } catch (Throwable e) {
+            return gson.toJson(new StatusModel(false,"Access Denied"));
+        }
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=setYearTimeUnit")
                 .append(" state=").append(state)
                 .append(" guestId=").append(guestId);
