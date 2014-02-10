@@ -936,7 +936,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             return false;
         });
         var element;
-        for (element = details.find(".timedropdown"); !element.hasClass("facetDetails"); element = element.parent());
+        for (element = details.find(".timedropdown"); element.length > 0 && element[0] != "BODY" && !element.hasClass("facetDetails"); element = element.parent());
 
         var facet = getFacet(element.attr("facettype"),parseInt(element.attr('itemid')));
         Calendar.bindShowOnXDropDown(details.find(".timedropdown"),facet);
