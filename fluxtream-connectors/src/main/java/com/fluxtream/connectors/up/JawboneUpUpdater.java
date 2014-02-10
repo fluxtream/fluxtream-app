@@ -50,7 +50,8 @@ import org.springframework.stereotype.Component;
 @Updater(prettyName = "Jawbone Up", value = 1999, objectTypes = {LocationFacet.class, JawboneUpMovesFacet.class,
                                                                  JawboneUpSleepFacet.class, JawboneUpMealFacet.class,
                                                                  JawboneUpServingFacet.class, JawboneUpWorkoutFacet.class},
-         defaultChannels = {"Jawbone Up.serving", "Jawbone Up.moves", "Jawbone Up.sleep"})
+         defaultChannels = {"Jawbone Up.serving", "Jawbone Up.moves", "Jawbone Up.sleep"},
+         deleteOrder= {1, 2, 4, 8, 32, 16})
 public class JawboneUpUpdater extends AbstractUpdater {
 
     Logger logger = Logger.getLogger(JawboneUpUpdater.class);
@@ -84,18 +85,34 @@ public class JawboneUpUpdater extends AbstractUpdater {
 
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
+        guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), MOVES_LAST_SYNC_TIME);
+        guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), SLEEPS_LAST_SYNC_TIME);
+        guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), MEALS_LAST_SYNC_TIME);
+        guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), WORKOUTS_LAST_SYNC_TIME);
         updateConnectorData(updateInfo);
     }
 
     @Override
     protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
         updateInfo.setContext("accessToken", guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken"));
+
+        logger.info("getting moves for apiKeyId=" + updateInfo.apiKey.getId());
         updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, MOVES_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpMovesFacet.class));
         guestService.setApiKeyAttribute(updateInfo.apiKey, MOVES_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
+
+        logger.info("getting sleeps for apiKeyId=" + updateInfo.apiKey.getId());
         updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, SLEEPS_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpSleepFacet.class));
         guestService.setApiKeyAttribute(updateInfo.apiKey, SLEEPS_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
-        updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, MEALS_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpSleepFacet.class));
+
+        logger.info("getting meals for apiKeyId=" + updateInfo.apiKey.getId());
+        updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, MEALS_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpMealFacet.class));
         guestService.setApiKeyAttribute(updateInfo.apiKey, MEALS_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
+
+        logger.info("getting workouts for apiKeyId=" + updateInfo.apiKey.getId());
+        updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, WORKOUTS_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpWorkoutFacet.class));
+        guestService.setApiKeyAttribute(updateInfo.apiKey, WORKOUTS_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
+
+        // not updating moods because the API doesn't allow getting updated_after values...
     }
 
     private long getLastSyncTime(final UpdateInfo updateInfo, final String lastSyncTimeAttKey) {
@@ -118,8 +135,8 @@ public class JawboneUpUpdater extends AbstractUpdater {
             String url = getBeginningOfTime()==lastSyncTime
                          ? endpoint + "?start_time=" + getBeginningOfTime()/1000
                          : endpoint + "?start_time=" + getBeginningOfTime()/1000 + "&updated_after=" + lastSyncTime/1000;
-            final String movesJson = callJawboneAPI(updateInfo, url);
-            createOrUpdateFacets(updateInfo, movesJson, objectTypeValue);
+            final String upJson = callJawboneAPI(updateInfo, url);
+            createOrUpdateFacets(updateInfo, upJson, objectTypeValue);
         }
         finally {
             client.getConnectionManager().shutdown();
@@ -387,12 +404,7 @@ public class JawboneUpUpdater extends AbstractUpdater {
                         cacheImage(updateInfo, facet.snapshot_image);
                     }
 
-                    if (jsonObject.has("place_lat") && jsonObject.has("place_lon")) {
-                        if (StringUtils.isNotEmpty(jsonObject.getString("place_lat"))&&
-                            StringUtils.isNotEmpty(jsonObject.getString("place_lon"))) {
-                            extractGPSData(facet, jsonObject, updateInfo, xid);
-                        }
-                    }
+                    extractGPSData(facet, jsonObject, updateInfo, xid);
 
                     if (details.has("smart_alarm_fire"))
                         facet.smart_alarm_fire = details.getLong("smart_alarm_fire");
@@ -440,31 +452,59 @@ public class JawboneUpUpdater extends AbstractUpdater {
         //}
     }
 
+    public static void main(final String[] args) {
+        String place_lat_string = "";
+        System.out.println("not blank? " + StringUtils.isNotBlank(place_lat_string));
+        System.out.println("numeric? " + StringUtils.isNumeric(place_lat_string));
+    }
+
     private void extractGPSData(final JawboneUpGeoFacet facet, final JSONObject jsonObject, final UpdateInfo updateInfo, final String xid) {
-        facet.place_lat = jsonObject.getDouble("place_lat");
-        facet.place_lon = jsonObject.getDouble("place_lon");
-        facet.place_name = jsonObject.getString("place_name");
-        if (jsonObject.has("place_acc"))
-            facet.place_acc = jsonObject.getInt("place_acc");
+        if (jsonObject.has("place_lat")&&
+            jsonObject.has("place_lon")&&
+            !(jsonObject.getString("place_lat").equals(""))&&
+            !(jsonObject.getString("place_lon").equals("")))
+        {
+            double place_lat, place_lon;
+            try {
+                place_lat = jsonObject.getDouble("place_lat");
+                place_lon = jsonObject.getDouble("place_lon");
+            } catch (Throwable t) {
+                System.out.println("Couldn't get latitude/longitude from strings: " + jsonObject.getString("place_lat") + "/" + jsonObject.getString("place_lon"));
+                return;
+            }
+            facet.place_lat = place_lat;
+            facet.place_lon = place_lon;
+            if (jsonObject.has("place_name"))
+                facet.place_name = jsonObject.getString("place_name");
 
-        LocationFacet locationFacet = new LocationFacet(updateInfo.apiKey.getId());
+            LocationFacet locationFacet = new LocationFacet(updateInfo.apiKey.getId());
 
-        if (jsonObject.has("place_acc")) {
-            locationFacet.accuracy = jsonObject.getInt("place_acc");
-            facet.place_acc = jsonObject.getInt("place_acc");
-        } else
-            locationFacet.accuracy = -1;
+            if (jsonObject.has("place_acc")&&StringUtils.isNotEmpty("place_acc")) {
+                String placeAccuracy = jsonObject.getString("place_acc");
+                try {
+                    int place_acc = Integer.valueOf(placeAccuracy);
+                    locationFacet.accuracy = jsonObject.getInt("place_acc");
+                    facet.place_acc = place_acc;
+                } catch(Throwable t) {
+                    locationFacet.accuracy = -1;
+                    facet.place_acc = -1;
+                }
+            } else {
+                locationFacet.accuracy = -1;
+                facet.place_acc = -1;
+            }
 
-        locationFacet.latitude = (float) jsonObject.getDouble("place_lat");
-        locationFacet.longitude = (float) jsonObject.getDouble("place_lon");
-        locationFacet.timestampMs = facet.start;
-        locationFacet.start = locationFacet.timestampMs;
-        locationFacet.end = locationFacet.timestampMs;
-        locationFacet.source = LocationFacet.Source.JAWBONE_UP;
-        locationFacet.apiKeyId = updateInfo.apiKey.getId();
-        locationFacet.api = connector().value();
-        locationFacet.uri = xid;
-        apiDataService.addGuestLocation(updateInfo.getGuestId(), locationFacet);
+            locationFacet.latitude = (float) place_lat;
+            locationFacet.longitude = (float) place_lon;
+            locationFacet.timestampMs = facet.start;
+            locationFacet.start = locationFacet.timestampMs;
+            locationFacet.end = locationFacet.timestampMs;
+            locationFacet.source = LocationFacet.Source.JAWBONE_UP;
+            locationFacet.apiKeyId = updateInfo.apiKey.getId();
+            locationFacet.api = connector().value();
+            locationFacet.uri = xid;
+            apiDataService.addGuestLocation(updateInfo.getGuestId(), locationFacet);
+        }
     }
 
     private void createOrUpdateMealFacet(final JSONObject jsonObject, final UpdateInfo updateInfo) throws Exception {
@@ -483,6 +523,7 @@ public class JawboneUpUpdater extends AbstractUpdater {
                         extractCommonFacetData(facet, updateInfo);
                     }
                     facet.time_created = jsonObject.getLong("time_created");
+                    facet.time_updated = jsonObject.getLong("time_updated");
                     facet.time_completed = jsonObject.getLong("time_completed");
                     facet.start = facet.time_created*1000;
                     facet.end = facet.time_completed*1000;
@@ -495,25 +536,23 @@ public class JawboneUpUpdater extends AbstractUpdater {
 
                     facet.mealDetails = details.toString();
 
-                    if (jsonObject.has("place_lat") && jsonObject.has("place_lon")) {
-                        if (StringUtils.isNotEmpty(jsonObject.getString("place_lat"))&&
-                            StringUtils.isNotEmpty(jsonObject.getString("place_lon"))) {
-                            extractGPSData(facet, jsonObject, updateInfo, xid);
-                        }
-                    }
+                    extractGPSData(facet, jsonObject, updateInfo, xid);
 
                     // now fetch the servings for this meal...
                     final String servingsJSONStr = callJawboneAPI(updateInfo, "https://jawbone.com/nudge/api/v.1.0/meals/" + xid);
                     JSONObject servingsJSON = JSONObject.fromObject(servingsJSONStr);
                     // we are only interested in the serving items
                     JSONObject data = servingsJSON.getJSONObject("data");
-                    JSONArray items = data.getJSONArray("items");
+                    JSONObject itemsObject = data.getJSONObject("items");
+                    JSONArray items = itemsObject.getJSONArray("items");
                     List<JawboneUpServingFacet> servingFacets = new ArrayList<JawboneUpServingFacet>();
                     for (int i=0; i<items.size(); i++) {
                         JSONObject servingJSON = items.getJSONObject(i);
-                        final JawboneUpServingFacet servingFacet = createOrUpdateServingFacet(servingJSON, updateInfo);
+                        // pass in start- and end- times of the parent meal facet
+                        final JawboneUpServingFacet servingFacet = createOrUpdateServingFacet(servingJSON, updateInfo, facet);
                         servingFacets.add(servingFacet);
                     }
+                    facet.servings = servingFacets;
                     return facet;
                 } catch (Throwable t) {
                     logger.warn("could not import a Jawbone UP meal record: " + t.getMessage());
@@ -531,7 +570,7 @@ public class JawboneUpUpdater extends AbstractUpdater {
         //}
     }
 
-    private JawboneUpServingFacet createOrUpdateServingFacet(final JSONObject jsonObject, final UpdateInfo updateInfo) throws Exception {
+    private JawboneUpServingFacet createOrUpdateServingFacet(final JSONObject jsonObject, final UpdateInfo updateInfo, final JawboneUpMealFacet meal) throws Exception {
 
         final String xid = jsonObject.getString("xid");
         final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.xid=?",
@@ -546,10 +585,14 @@ public class JawboneUpUpdater extends AbstractUpdater {
                         facet.xid = xid;
                         extractCommonFacetData(facet, updateInfo);
                     }
-                    facet.time_created = jsonObject.getLong("time_created");
-                    facet.time_completed = jsonObject.getLong("time_completed");
-                    facet.start = facet.time_created*1000;
-                    facet.end = facet.time_completed*1000;
+                    facet.start = meal.start;
+                    facet.end = meal.end;
+                    if (jsonObject.has("image")&&StringUtils.isNotEmpty(jsonObject.getString("image"))) {
+                        facet.image = jsonObject.getString("image");
+                        cacheImage(updateInfo, facet.image);
+                    }
+                    facet.servingDetails = jsonObject.toString();
+                    facet.meal = meal;
                     return facet;
                 } catch (Throwable t) {
                     logger.warn("could not import a Jawbone UP meal record: " + t.getMessage());
@@ -567,7 +610,6 @@ public class JawboneUpUpdater extends AbstractUpdater {
         return newFacet;
     }
 
-
     private void createOrUpdateWorkoutFacet(final JSONObject jsonObject, final UpdateInfo updateInfo) throws Exception {
 
         final String xid = jsonObject.getString("xid");
@@ -584,22 +626,54 @@ public class JawboneUpUpdater extends AbstractUpdater {
                         extractCommonFacetData(facet, updateInfo);
                     }
                     facet.time_created = jsonObject.getLong("time_created");
+                    facet.time_updated = jsonObject.getLong("time_updated");
                     facet.time_completed = jsonObject.getLong("time_completed");
                     facet.start = facet.time_created*1000;
                     facet.end = facet.time_completed*1000;
 
-                    JSONObject details = jsonObject.getJSONObject("details");
                     String dateString = jsonObject.getString("date");
                     final LocalDate localDate = ISODateTimeFormat.basicDate().withZoneUTC().parseLocalDate(dateString);
                     facet.date = ISODateTimeFormat.date().withZoneUTC().print(localDate);
-                    facet.tz = details.getString("tz");
 
-                    if (jsonObject.has("place_lat") && jsonObject.has("place_lon")) {
-                        if (StringUtils.isNotEmpty(jsonObject.getString("place_lat"))&&
-                            StringUtils.isNotEmpty(jsonObject.getString("place_lon"))) {
-                            extractGPSData(facet, jsonObject, updateInfo, xid);
-                        }
+                    JSONObject details = jsonObject.getJSONObject("details");
+                    facet.tz = details.getString("tz");
+                    facet.sub_type = jsonObject.getInt("sub_type");
+                    facet.workoutDetails = details.toString();
+                    if (details.has("steps"))
+                        facet.steps = details.getInt("steps");
+                    if (details.has("time"))
+                        facet.duration = details.getInt("time");
+                    if (details.has("bg_active_time"))
+                        facet.bg_active_time = details.getInt("bg_active_time");
+                    if (details.has("meters"))
+                        facet.meters = details.getDouble("meters");
+                    if (details.has("km"))
+                        facet.km = details.getDouble("km");
+                    if (details.has("intensity"))
+                        facet.intensity = details.getInt("intensity");
+                    if (details.has("calories"))
+                        facet.calories = details.getDouble("calories");
+                    if (details.has("bmr"))
+                        facet.bmr = details.getDouble("bmr");
+                    if (details.has("bg_calories"))
+                        facet.bg_calories = details.getDouble("bg_calories");
+                    if (details.has("bmr_calories"))
+                        facet.bmr_calories = details.getDouble("bmr_calories");
+
+                    if (jsonObject.has("image")&&!jsonObject.getString("image").equals("")) {
+                        facet.image = jsonObject.getString("image");
+                        cacheImage(updateInfo, facet.image);
                     }
+                    if (jsonObject.has("image")&&!jsonObject.getString("snapshot_image").equals("")) {
+                        facet.snapshot_image = jsonObject.getString("snapshot_image");
+                        cacheImage(updateInfo, facet.snapshot_image);
+                    }
+                    if (jsonObject.has("route")&&!jsonObject.getString("route").equals("")) {
+                        facet.route = jsonObject.getString("route");
+                        cacheImage(updateInfo, facet.route);
+                    }
+
+                    extractGPSData(facet, jsonObject, updateInfo, xid);
 
                     return facet;
                 } catch (Throwable t) {

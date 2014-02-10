@@ -24,7 +24,6 @@ import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 @ObjectTypeSpec(name = "moves", value = 2, prettyname = "Moves", isDateBased = true)
 public class JawboneUpMovesFacet extends JawboneUpFacet {
 
-    public long time_updated;
     public String title;
 
     public String snapshot_image;

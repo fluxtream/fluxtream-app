@@ -1,6 +1,10 @@
 package com.fluxtream.connectors.up;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.connectors.location.LocationFacet;
 
@@ -9,12 +13,21 @@ import com.fluxtream.connectors.location.LocationFacet;
  * Date: 07/02/14
  * Time: 13:40
  */
-@Entity(name="Facet_JawboneUpServingPhoto")
-@ObjectTypeSpec(name = "servingPhoto", value = 32, isImageType=true, prettyname = "Serving Photos", locationFacetSource = LocationFacet.Source.JAWBONE_UP)
+@Entity(name="Facet_JawboneUpServing")
+@ObjectTypeSpec(name = "serving", value = 32, isImageType=true, prettyname = "Serving", locationFacetSource = LocationFacet.Source.JAWBONE_UP)
 public class JawboneUpServingFacet extends JawboneUpFacet {
+
+    public String image;
+
+    @Lob
+    public String servingDetails;
 
     @Override
     protected void makeFullTextIndexable() {}
+
+
+    @ManyToOne(fetch= FetchType.EAGER, cascade= CascadeType.ALL)
+    public JawboneUpMealFacet meal;
 
     public JawboneUpServingFacet(){super();}
     public JawboneUpServingFacet(long apiKeyId){super(apiKeyId);}

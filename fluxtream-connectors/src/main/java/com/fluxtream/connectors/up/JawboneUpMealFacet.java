@@ -19,12 +19,6 @@ public class JawboneUpMealFacet extends JawboneUpGeoFacet {
 
     public String title;
 
-    public double place_lat;
-    public double place_lon;
-    public int place_acc;
-    public String place_name;
-    public String tz;
-
     @Lob
     public String mealDetails;
 
@@ -34,7 +28,7 @@ public class JawboneUpMealFacet extends JawboneUpGeoFacet {
     public JawboneUpMealFacet(){super();}
     public JawboneUpMealFacet(long apiKeyId){super(apiKeyId);}
 
-    @OneToMany(orphanRemoval = true, fetch= FetchType.EAGER, cascade= CascadeType.ALL)
+    @OneToMany(mappedBy = "meal", orphanRemoval = true, fetch= FetchType.EAGER, cascade= CascadeType.ALL)
     List<JawboneUpServingFacet> servings;
 
 }

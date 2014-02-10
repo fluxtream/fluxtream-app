@@ -15,8 +15,9 @@ public abstract class JawboneUpFacet extends AbstractFacet {
 
     @Index(name="xid")
     public String xid;
-    public long time_created;
-    public long time_completed;
+    public Long time_created;
+    public Long time_updated;
+    public Long time_completed;
 
     @Index(name="date")
     public String date;
