@@ -89,7 +89,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
            url: url,
            type: "GET",
            data: params,
+           dataType: "JSON",
            success: function(response) {
+               if (response.result == "KO"){//signifies error was returned
+                   handleError("You aren't logged in!")();
+                   return;
+               }
                Calendar.timeRange.start = response.start;
                Calendar.timeRange.end = response.end;
                if (Calendar.dateAxisCursorPosition * 1000 < Calendar.timeRange.start || Calendar.dateAxisCursorPosition * 1000 > Calendar.timeRange.end)
@@ -162,7 +167,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             async: false,
             type: "GET",
             data: {state: state.tabState},
+            dataType: "JSON",
             success: function(response) {
+                if (response.result == "KO"){//signifies error was returned
+                    handleError("You aren't logged in!")();
+                    return;
+                }
                 Calendar.timeRange.start = response.start;
                 Calendar.timeRange.end = response.end;
                 if (Calendar.dateAxisCursorPosition * 1000 < Calendar.timeRange.start || Calendar.dateAxisCursorPosition * 1000 > Calendar.timeRange.end)
