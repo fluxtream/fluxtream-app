@@ -47,10 +47,10 @@ import org.springframework.stereotype.Component;
  * Time: 09:56
  */
 @Component
-@Updater(prettyName = "Jawbone Up", value = 1999, objectTypes = {LocationFacet.class, JawboneUpMovesFacet.class,
+@Updater(prettyName = "Jawbone_Up", value = 1999, objectTypes = {LocationFacet.class, JawboneUpMovesFacet.class,
                                                                  JawboneUpSleepFacet.class, JawboneUpMealFacet.class,
                                                                  JawboneUpServingFacet.class, JawboneUpWorkoutFacet.class},
-         defaultChannels = {"Jawbone Up.serving", "Jawbone Up.moves", "Jawbone Up.sleep"},
+         defaultChannels = {"Jawbone_Up.serving", "Jawbone_Up.moves", "Jawbone_Up.sleep"},
          deleteOrder= {1, 2, 4, 8, 32, 16})
 public class JawboneUpUpdater extends AbstractUpdater {
 

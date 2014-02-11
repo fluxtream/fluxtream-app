@@ -30,7 +30,7 @@ public class JawboneUpServingFacetVO extends AbstractPhotoFacetVO<JawboneUpServi
 
     @Override
     protected void fromFacet(final JawboneUpServingFacet facet, final TimeInterval timeInterval, final GuestSettings settings) throws OutsideTimeBoundariesException {
-        deviceName = "Jawbone UP";
+        deviceName = "Jawbone_UP";
         channelName = "photo";
         UID = facet.getId();
         start = facet.start;
