@@ -20,6 +20,7 @@ import com.fluxtream.domain.Notification;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.HttpUtils;
+import net.coobird.thumbnailator.Thumbnailator;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -171,10 +172,13 @@ public class JawboneUpController {
                                  @PathVariable("apiKeyId") long apiKeyId,
                                  HttpServletRequest request,
                                  HttpServletResponse response) throws IOException {
+        final String widthParameter = request.getParameter("w");
+        Integer width = null;
+        if (widthParameter!=null)
+            width = Integer.valueOf(widthParameter);
         final String requestURI = request.getRequestURI();
         final String prefix = new StringBuilder("/up/img/").append(guestId).append("/").append(apiKeyId).append("/").toString();
         final String snapshotImagePath = requestURI.substring(prefix.length());
-        System.out.println("requestURI: " + requestURI);
         final String devKvsLocation = env.get("btdatastore.db.location");
         File f = new File(new StringBuilder(devKvsLocation).append(File.separator)
                                   .append(guestId)
@@ -184,7 +188,10 @@ public class JawboneUpController {
                                   .append(apiKeyId)
                                   .append(File.separator)
                                   .append(snapshotImagePath).toString());
-        IOUtils.copy(new FileInputStream(f), response.getOutputStream());
+        if (width!=null)
+            Thumbnailator.createThumbnail(new FileInputStream(f), response.getOutputStream(), width, Integer.MAX_VALUE);
+        else
+            IOUtils.copy(new FileInputStream(f), response.getOutputStream());
     }
 
 }

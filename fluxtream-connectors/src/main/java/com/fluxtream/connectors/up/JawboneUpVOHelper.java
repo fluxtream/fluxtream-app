@@ -16,7 +16,7 @@ public abstract class JawboneUpVOHelper {
     }
 
     static String getImageURL(String uri, AbstractFacet facet, Configuration env, int width) {
-        return String.format("%sup/img/%s/%s%s@w="+width, env.get("homeBaseUrl"),
+        return String.format("%sup/img/%s/%s%s?w="+width, env.get("homeBaseUrl"),
                              facet.guestId, facet.apiKeyId, uri);
     }
 

@@ -40,7 +40,6 @@ public class JawboneUpServingFacetVO extends AbstractPhotoFacetVO<JawboneUpServi
 
         int i = 0;
 
-        String homeBaseUrl = settings.config.get("homeBaseUrl");
         final String thumbnailUrl = JawboneUpVOHelper.getImageURL(facet.image, facet, settings.config);
         this.thumbnailUrl = thumbnailUrl;
         this.photoUrl = JawboneUpVOHelper.getImageURL(facet.image, facet, settings.config, 150);
@@ -48,8 +47,6 @@ public class JawboneUpServingFacetVO extends AbstractPhotoFacetVO<JawboneUpServi
         thumbnailSizes.put(i, new Dimension(150, 150));
         i++;
 
-        // hereafter, flickr documentation specifies a number of pixels *on longest side* - since we don't have the
-        // original image's dimension, we just specify a square of that number
         for (Integer width : new Integer[]{75, 100, 240, 320, 500, 640, 800, 1024}) {
             thumbnailUrls.put(i, JawboneUpVOHelper.getImageURL(facet.image, facet, settings.config, width));
             thumbnailSizes.put(i, new Dimension(width, width));
