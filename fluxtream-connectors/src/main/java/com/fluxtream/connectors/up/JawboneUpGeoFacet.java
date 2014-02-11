@@ -11,9 +11,9 @@ import com.fluxtream.connectors.Connector;
 @MappedSuperclass
 public abstract class JawboneUpGeoFacet extends JawboneUpFacet {
 
-    public double place_lat;
-    public double place_lon;
-    public int place_acc;
+    public Double place_lat;
+    public Double place_lon;
+    public Integer place_acc;
     public String place_name;
 
     public JawboneUpGeoFacet() {

@@ -69,7 +69,7 @@ public class JawboneUpController {
         String approvalPageUrl = String.format("https://jawbone.com/auth/oauth2/auth?" +
                                                "redirect_uri=%s&" +
                                                "response_type=code&client_id=%s&" +
-                                               "scope=basic_read meal_read mood_read location_read move_read sleep_read",
+                                               "scope=basic_read meal_read location_read move_read sleep_read",
                                                redirectUri, env.get("jawboneUp.client.id"));
         final String apiKeyIdParameter = request.getParameter("apiKeyId");
         if (apiKeyIdParameter !=null && !StringUtils.isEmpty(apiKeyIdParameter))
@@ -166,13 +166,13 @@ public class JawboneUpController {
             return "redirect:/app/from/up";
     }
 
-    @RequestMapping(value="/snapshot_image/{guestId}/{apiKeyId}/**")
+    @RequestMapping(value="/img/{guestId}/{apiKeyId}/**")
     public void getSnapshotImage(@PathVariable("guestId") long guestId,
                                  @PathVariable("apiKeyId") long apiKeyId,
                                  HttpServletRequest request,
                                  HttpServletResponse response) throws IOException {
         final String requestURI = request.getRequestURI();
-        final String prefix = new StringBuilder("/up/snapshot_image/").append(guestId).append("/").append(apiKeyId).append("/").toString();
+        final String prefix = new StringBuilder("/up/img/").append(guestId).append("/").append(apiKeyId).append("/").toString();
         final String snapshotImagePath = requestURI.substring(prefix.length());
         System.out.println("requestURI: " + requestURI);
         final String devKvsLocation = env.get("btdatastore.db.location");

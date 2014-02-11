@@ -585,6 +585,8 @@ public class JawboneUpUpdater extends AbstractUpdater {
                         facet.xid = xid;
                         extractCommonFacetData(facet, updateInfo);
                     }
+                    facet.date = meal.date;
+                    facet.tz = meal.tz;
                     facet.start = meal.start;
                     facet.end = meal.end;
                     if (jsonObject.has("image")&&StringUtils.isNotEmpty(jsonObject.getString("image"))) {

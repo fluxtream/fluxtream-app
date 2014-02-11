@@ -36,8 +36,7 @@ public class JawboneUpMovesFacetVO extends AbstractFacetVO<JawboneUpMovesFacet> 
     protected void fromFacet(final JawboneUpMovesFacet facet, final TimeInterval timeInterval, final GuestSettings settings) throws OutsideTimeBoundariesException {
         this.title = facet.title;
         this.date = facet.date;
-        this.snapshot_image = String.format("%sup/snapshot_image/%s/%s%s", settings.config.get("homeBaseUrl"),
-                                            facet.guestId, facet.apiKeyId, facet.snapshot_image);
+        this.snapshot_image = JawboneUpVOHelper.getImageURL(facet.snapshot_image, facet, settings.config);
         this.distance = facet.distance;
         this.km = facet.km;
         this.steps = facet.steps;

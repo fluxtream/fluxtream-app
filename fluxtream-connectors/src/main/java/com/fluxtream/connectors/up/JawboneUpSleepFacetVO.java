@@ -18,9 +18,9 @@ public class JawboneUpSleepFacetVO extends AbstractFacetVO<JawboneUpSleepFacet> 
 
     public String title;
     public String date;
-    public double place_lat;
-    public double place_lon;
-    public int place_acc;
+    public Double place_lat;
+    public Double place_lon;
+    public Integer place_acc;
     public String place_name;
     public String snapshot_image;
     public long smart_alarm_fire;
@@ -48,8 +48,7 @@ public class JawboneUpSleepFacetVO extends AbstractFacetVO<JawboneUpSleepFacet> 
         this.place_lat = facet.place_lat;
         this.place_lon = facet.place_lon;
         this.place_name = facet.place_name;
-        this.snapshot_image = String.format("%sup/snapshot_image/%s/%s%s", settings.config.get("homeBaseUrl"),
-                                            facet.guestId, facet.apiKeyId, facet.snapshot_image);
+        this.snapshot_image = JawboneUpVOHelper.getImageURL(facet.snapshot_image, facet, settings.config);
         this.smart_alarm_fire = facet.smart_alarm_fire;
         this.awake_time = facet.awake_time;
         this.asleep_time = facet.asleep_time;

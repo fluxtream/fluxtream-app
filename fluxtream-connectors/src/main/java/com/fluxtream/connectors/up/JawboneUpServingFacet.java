@@ -14,7 +14,8 @@ import com.fluxtream.connectors.location.LocationFacet;
  * Time: 13:40
  */
 @Entity(name="Facet_JawboneUpServing")
-@ObjectTypeSpec(name = "serving", value = 32, isImageType=true, prettyname = "Serving", locationFacetSource = LocationFacet.Source.JAWBONE_UP)
+@ObjectTypeSpec(name = "serving", value = 32, isImageType=true, prettyname = "Serving",
+                isDateBased = true, locationFacetSource = LocationFacet.Source.JAWBONE_UP)
 public class JawboneUpServingFacet extends JawboneUpFacet {
 
     public String image;

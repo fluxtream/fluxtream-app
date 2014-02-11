@@ -118,6 +118,13 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             },
             mapshadow: null,
             facets:{
+                meal:{
+                    list: true,
+                    photos: false,
+                    map: false,
+                    gps: false,
+                    clock: ClockConfig.BODY_CATEGORY
+                },
                 moves:{
                     list: true,
                     photos: false,
@@ -128,6 +135,13 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                 sleep:{
                     list: true,
                     photos: false,
+                    map: true,
+                    gps: false,
+                    clock: ClockConfig.BODY_CATEGORY
+                },
+                workout:{
+                    list: true,
+                    photos: false,
                     map: false,
                     gps: false,
                     clock: ClockConfig.BODY_CATEGORY
@@ -135,6 +149,13 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                 location:{
                     list:false,
                     photos: false,
+                    map: true,
+                    gps: true,
+                    clock: null
+                },
+                serving:{
+                    list:false,
+                    photos: true,
                     map: true,
                     gps: true,
                     clock: null
