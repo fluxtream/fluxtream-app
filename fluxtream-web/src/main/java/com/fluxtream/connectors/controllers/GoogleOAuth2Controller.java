@@ -103,7 +103,8 @@ public class GoogleOAuth2Controller {
 			"&redirect_uri=" + redirectUri +
 			"&scope=" + scope +
 			"&response_type=code&" +
-            "access_type=offline";
+            "access_type=offline&" +
+            "approval_prompt=force";
 		
 		return "redirect:" + authorizeUrl;
 	}
