@@ -142,7 +142,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                 workout:{
                     list: true,
                     photos: false,
-                    map: false,
+                    map: true,
                     gps: false,
                     clock: ClockConfig.BODY_CATEGORY
                 },
@@ -156,8 +156,8 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                 serving:{
                     list:false,
                     photos: true,
-                    map: true,
-                    gps: true,
+                    map: false,
+                    gps: false,
                     clock: null
                 }
             }

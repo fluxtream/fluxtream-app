@@ -21,6 +21,8 @@ public class JawboneUpMealFacetVO extends AbstractFacetVO<JawboneUpMealFacet> {
     public String title;
     public TimeOfDayVO startTime;
     public TimeOfDayVO endTime;
+    public int startMinute, endMinute;
+    public long start, end;
 
     @JsonRawValue
     public String servings;
@@ -29,11 +31,16 @@ public class JawboneUpMealFacetVO extends AbstractFacetVO<JawboneUpMealFacet> {
     protected void fromFacet(final JawboneUpMealFacet facet, final TimeInterval timeInterval, final GuestSettings settings) throws OutsideTimeBoundariesException {
         this.title = facet.title;
         this.date = facet.date;
+        this.start = facet.start;
+        this.end = facet.end;
+
         LocalDateTime localStartTime = new LocalDateTime(facet.start, DateTimeZone.forID(facet.tz));
-        startTime = new TimeOfDayVO(localStartTime.getHourOfDay()*60+localStartTime.getMinuteOfHour(), true);
+        startMinute = localStartTime.getHourOfDay() * 60 + localStartTime.getMinuteOfHour();
+        startTime = new TimeOfDayVO(startMinute, true);
 
         LocalDateTime localEndTime = new LocalDateTime(facet.end, DateTimeZone.forID(facet.tz));
-        endTime = new TimeOfDayVO(localEndTime.getHourOfDay()*60+localEndTime.getMinuteOfHour(), true);
+        endMinute = localEndTime.getHourOfDay() * 60 + localEndTime.getMinuteOfHour();
+        endTime = new TimeOfDayVO(endMinute, true);
 
         JSONArray servingsArray = new JSONArray();
         for (JawboneUpServingFacet serving : facet.servings) {

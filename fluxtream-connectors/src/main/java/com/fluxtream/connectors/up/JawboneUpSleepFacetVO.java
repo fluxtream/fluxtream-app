@@ -39,11 +39,16 @@ public class JawboneUpSleepFacetVO extends AbstractFacetVO<JawboneUpSleepFacet> 
     public TimeOfDayVO timeAsleep;
     public TimeOfDayVO wakeUpTime;
     public TimeOfDayVO endTime;
+    public int startMinute, endMinute;
+    public long start;
+    public long end;
 
     @Override
     protected void fromFacet(final JawboneUpSleepFacet facet, final TimeInterval timeInterval, final GuestSettings settings) throws OutsideTimeBoundariesException {
         this.title = facet.title;
         this.date = facet.date;
+        this.start = facet.start;
+        this.end = facet.end;
         this.place_acc = facet.place_acc;
         this.place_lat = facet.place_lat;
         this.place_lon = facet.place_lon;
@@ -61,7 +66,8 @@ public class JawboneUpSleepFacetVO extends AbstractFacetVO<JawboneUpSleepFacet> 
         this.quality = facet.quality;
 
         LocalDateTime localStartTime = new LocalDateTime(facet.start, DateTimeZone.forID(facet.tz));
-        startTime = new TimeOfDayVO(localStartTime.getHourOfDay()*60+localStartTime.getMinuteOfHour(), true);
+        startMinute = localStartTime.getHourOfDay() * 60 + localStartTime.getMinuteOfHour();
+        startTime = new TimeOfDayVO(startMinute, true);
 
         LocalDateTime localTimeAsleep= new LocalDateTime(asleep_time*1000, DateTimeZone.forID(facet.tz));
         timeAsleep = new TimeOfDayVO(localTimeAsleep.getHourOfDay()*60+localTimeAsleep.getMinuteOfHour(), true);
@@ -70,7 +76,8 @@ public class JawboneUpSleepFacetVO extends AbstractFacetVO<JawboneUpSleepFacet> 
         wakeUpTime = new TimeOfDayVO(localTimeAwake.getHourOfDay()*60+localTimeAwake.getMinuteOfHour(), true);
 
         LocalDateTime localEndTime = new LocalDateTime(facet.end, DateTimeZone.forID(facet.tz));
-        endTime = new TimeOfDayVO(localEndTime.getHourOfDay()*60+localEndTime.getMinuteOfHour(), true);
+        endMinute = localEndTime.getHourOfDay() * 60 + localEndTime.getMinuteOfHour();
+        endTime = new TimeOfDayVO(endMinute, true);
 
         timeSleeping = new DurationModel(duration);
         timeAwake = new DurationModel(awake);

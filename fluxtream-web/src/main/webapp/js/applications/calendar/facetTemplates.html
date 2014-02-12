@@ -835,6 +835,43 @@
         </div>
     </div>
 </template>
+<template id="up-meal">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon up"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                {{#servings}}
+                    <div class="flx-data">
+                        <span class="flx-dataLabel">Name</span>
+                        <span class="flx-text">{{name}}</span>
+                    </div>
+                    <div class="flx-data">
+                        <img src="{{image}}">
+                    </div>
+                {{/servings}}
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
+<template id="up-workout">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon up"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
 <template id="up-moves">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon up"></span>
