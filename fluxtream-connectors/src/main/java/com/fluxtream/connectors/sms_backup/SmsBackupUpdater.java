@@ -443,35 +443,9 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
         String accessToken = credential.getAccessToken();
 
 
-        if (stores == null)
-            stores = new ConcurrentLinkedHashMap.Builder<String, Store>()
-                    .maximumWeightedCapacity(100).build();
-        Store store = null;
 
         try{
-            if (stores.get(emailAddress + "-oauth2") != null) {
-                store = stores.get(emailAddress + "-oauth2");
-                if (!store.isConnected())
-                    store.connect();
-                boolean stillAlive = true;
-                try {
-                    store.getDefaultFolder();
-                } catch (Exception e) {
-                    stillAlive = false;
-                }
-                if (stillAlive)
-                    return store;
-                else
-                    store.close();
-            }
-        }
-        catch (Exception e){
-            stores.remove(emailAddress + "-oauth2");
-        }
-
-        try{
-            store = MailUtils.getGmailImapStoreViaSASL(emailAddress, accessToken);
-            stores.put(emailAddress + "-oauth2", store);
+            Store store = MailUtils.getGmailImapStoreViaSASL(emailAddress, accessToken);
             return store;
         } catch(Exception e){
             throw new UpdateFailedException("Failed to connect to gmail!",e,false);
@@ -610,33 +584,12 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 		}
 	}
 
-	private Message[] getMessagesInFolder(Folder folder) throws Exception {
-		if (!folder.isOpen())
-			folder.open(Folder.READ_ONLY);
-		Message[] msgs = folder.getMessages();
-
-		FetchProfile fp = new FetchProfile();
-		fp.add(FetchProfile.Item.ENVELOPE);
-		fp.add(FetchProfile.Item.CONTENT_INFO);
-		fp.add("Content");
-
-		folder.fetch(msgs, fp);
-		return msgs;
-	}
-
 	private Message[] getMessagesInFolderSinceDate(Folder folder, Date date)
 			throws Exception {
 		if (!folder.isOpen())
 			folder.open(Folder.READ_ONLY);
 		SentDateTerm term = new SentDateTerm(SentDateTerm.GT, date);
 		Message[] msgs = folder.search(term);
-
-		FetchProfile fp = new FetchProfile();
-		fp.add(FetchProfile.Item.ENVELOPE);
-		fp.add(FetchProfile.Item.CONTENT_INFO);
-		fp.add("Content");
-
-		folder.fetch(msgs, fp);
 		return msgs;
 	}
 
