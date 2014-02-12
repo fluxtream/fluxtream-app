@@ -16,6 +16,7 @@ import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.MetadataService;
@@ -47,10 +48,10 @@ import org.springframework.stereotype.Component;
  * Time: 09:56
  */
 @Component
-@Updater(prettyName = "Jawbone_Up", value = 1999, objectTypes = {LocationFacet.class, JawboneUpMovesFacet.class,
+@Updater(prettyName = "Jawbone_UP", value = 1999, objectTypes = {LocationFacet.class, JawboneUpMovesFacet.class,
                                                                  JawboneUpSleepFacet.class, JawboneUpMealFacet.class,
                                                                  JawboneUpServingFacet.class, JawboneUpWorkoutFacet.class},
-         defaultChannels = {"Jawbone_Up.serving", "Jawbone_Up.moves", "Jawbone_Up.sleep"},
+         defaultChannels = {"Jawbone_UP.serving", "Jawbone_UP.movesIntensity", "Jawbone_UP.sleepPhases"},
          deleteOrder= {1, 2, 4, 8, 32, 16})
 public class JawboneUpUpdater extends AbstractUpdater {
 
@@ -258,11 +259,11 @@ public class JawboneUpUpdater extends AbstractUpdater {
             }
         };
         final JawboneUpMovesFacet newFacet = apiDataService.createOrReadModifyWrite(JawboneUpMovesFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
-        //if (newFacet!=null) {
-        //    List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
-        //    newFacets.add(newFacet);
-        //    bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
-        //}
+        if (newFacet!=null) {
+            List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
+            newFacets.add(newFacet);
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
+        }
     }
 
     private long getTimeOfDay(final String hour_of_day, final TimezoneMap tzMap, final TimeZone defaultTimeZone) {
@@ -445,11 +446,11 @@ public class JawboneUpUpdater extends AbstractUpdater {
             }
         };
         final JawboneUpSleepFacet newFacet = apiDataService.createOrReadModifyWrite(JawboneUpSleepFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
-        //if (newFacet!=null) {
-        //    List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
-        //    newFacets.add(newFacet);
-        //    bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
-        //}
+        if (newFacet!=null) {
+            List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
+            newFacets.add(newFacet);
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
+        }
     }
 
     public static void main(final String[] args) {
@@ -561,13 +562,6 @@ public class JawboneUpUpdater extends AbstractUpdater {
                 }
             }
         };
-
-        final JawboneUpMealFacet newFacet = apiDataService.createOrReadModifyWrite(JawboneUpMealFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
-        //if (newFacet!=null) {
-        //    List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
-        //    newFacets.add(newFacet);
-        //    bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
-        //}
     }
 
     private JawboneUpServingFacet createOrUpdateServingFacet(final JSONObject jsonObject, final UpdateInfo updateInfo, final JawboneUpMealFacet meal) throws Exception {
@@ -604,11 +598,6 @@ public class JawboneUpUpdater extends AbstractUpdater {
             }
         };
         final JawboneUpServingFacet newFacet = apiDataService.createOrReadModifyWrite(JawboneUpServingFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
-        //if (newFacet!=null) {
-        //    List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
-        //    newFacets.add(newFacet);
-        //    bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
-        //}
         return newFacet;
     }
 
@@ -685,12 +674,6 @@ public class JawboneUpUpdater extends AbstractUpdater {
                 }
             }
         };
-        final JawboneUpWorkoutFacet newFacet = apiDataService.createOrReadModifyWrite(JawboneUpWorkoutFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
-        //if (newFacet!=null) {
-        //    List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
-        //    newFacets.add(newFacet);
-        //    bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
-        //}
     }
 
     private String callJawboneAPI(final UpdateInfo updateInfo, final String url) throws Exception {
