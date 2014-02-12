@@ -232,9 +232,10 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
                                                                    facet.message = (String) message.getContent();
                                                                else if (content instanceof MimeMultipart) {//TODO: this is an MMS and needs to be handled properly
                                                                    facet.message = "Picture Message";
-                                                                   /*MimeMultipart multipart = (MimeMultipart) content;
+                                                                   MimeMultipart multipart = (MimeMultipart) content;
                                                                    int partCount = multipart.getCount();
                                                                    if (partCount != 1){
+
                                                                        throw new Exception("Don't know how to deal with part count of: " + partCount);
                                                                    }
                                                                    for (int i = 0; i < partCount; i++){
@@ -252,7 +253,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 
 
                                                                    }
-                                                                   throw new Exception("Don't know what to do with multipart!");   */
+                                                                   throw new Exception("Don't know what to do with multipart!");
                                                                }
                                                            }  catch(Exception e){
                                                                e.printStackTrace();
