@@ -49,6 +49,12 @@ public class SmsEntryFacet extends AbstractFacet implements Serializable {
 	public Date dateReceived;
 	transient public int startMinute;
 
+    public Boolean hasAttachment;
+    public String attachmentName;
+    public String attachmentMimeType;
+
+
+
 	public String toString() {
 		String s = "Sms ";
 		switch(smsType) {

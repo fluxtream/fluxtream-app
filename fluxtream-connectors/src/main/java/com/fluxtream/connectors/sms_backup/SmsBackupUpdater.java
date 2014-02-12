@@ -1,5 +1,7 @@
 package com.fluxtream.connectors.sms_backup;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Date;
@@ -17,13 +19,16 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.search.SentDateTerm;
+import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.Updater;
+import com.fluxtream.connectors.fluxtream_capture.FluxtreamCapturePhotoStore;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.SettingsAwareAbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ChannelMapping;
 import com.fluxtream.domain.Notification;
@@ -62,6 +67,9 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 
     @Autowired
     SettingsService settingsService;
+
+    @Autowired
+    Configuration env;
 
 	// basic cache for email connections
 	static ConcurrentMap<String, Store> stores;
@@ -154,10 +162,10 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
     }
 
 
-	private void flushEntry(final UpdateInfo updateInfo, final String username, final Message message, Class type) throws Exception {
+	private AbstractFacet flushEntry(final UpdateInfo updateInfo, final String username, final Message message, Class type) throws Exception {
         final String emailId = message.getHeader("Message-ID")[0] + message.getHeader("X-smssync-id")[0];
         if (type == SmsEntryFacet.class){
-            apiDataService.createOrReadModifyWrite(SmsEntryFacet.class,
+            return apiDataService.createOrReadModifyWrite(SmsEntryFacet.class,
                                                    new FacetQuery(
                                                            "e.apiKeyId = ? AND e.emailId = ?",
                                                            updateInfo.apiKey.getId(),
@@ -228,32 +236,40 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
                                                                facet.start = facet.dateReceived.getTime();
                                                                facet.end = facet.start;
                                                                Object content = message.getContent();
+                                                               facet.hasAttachment = false;
                                                                if (content instanceof String)
                                                                    facet.message = (String) message.getContent();
                                                                else if (content instanceof MimeMultipart) {//TODO: this is an MMS and needs to be handled properly
-                                                                   facet.message = "Picture Message";
+                                                                   facet.message = "";
                                                                    MimeMultipart multipart = (MimeMultipart) content;
                                                                    int partCount = multipart.getCount();
-                                                                   if (partCount != 1){
-
-                                                                       throw new Exception("Don't know how to deal with part count of: " + partCount);
-                                                                   }
                                                                    for (int i = 0; i < partCount; i++){
                                                                        MimeBodyPart part = (MimeBodyPart) multipart.getBodyPart(i);
-                                                                       String contentType = part.getContentType();
+                                                                       String contentType = part.getContentType().split(";")[0].toLowerCase();
                                                                        Object partContent = part.getContent();
-                                                                       if (contentType.toLowerCase().startsWith("image")){
-                                                                           byte[] photoContent = IOUtils.toByteArray((BASE64DecoderStream) partContent);
-                                                                           throw new Exception("BLURF!");
+                                                                       if (contentType.startsWith("image")){
+                                                                           if (facet.hasAttachment){
+                                                                               throw new Exception("Can't handle multiple attachments");
+                                                                           }
+                                                                           facet.hasAttachment = true;
+                                                                           facet.attachmentMimeType = contentType;
+                                                                           facet.attachmentName = (emailId + i).replaceAll("\\W+","");
+                                                                           File attachmentFile = getAttachmentFile(updateInfo.getGuestId(),updateInfo.apiKey.getId(),facet.attachmentName);
+                                                                           attachmentFile.getParentFile().mkdirs();
+                                                                           FileOutputStream fileoutput = new FileOutputStream(attachmentFile);
+                                                                           IOUtils.copy((BASE64DecoderStream) partContent, fileoutput);
+                                                                           fileoutput.close();
+                                                                       }
+                                                                       else if (contentType.startsWith("text")){
+                                                                            if (!facet.message.equals("")){
+                                                                                throw new Exception("Multiple text parts existed!");
+                                                                            }
+                                                                           facet.message = (String) partContent;
                                                                        }
                                                                        else{
-                                                                           throw new Exception("Don't know how to deal with content of type: " + contentType);
-
+                                                                           throw new Exception("Unsupported attachment type: " + contentType);
                                                                        }
-
-
                                                                    }
-                                                                   throw new Exception("Don't know what to do with multipart!");
                                                                }
                                                            }  catch(Exception e){
                                                                e.printStackTrace();
@@ -265,7 +281,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 
         }
         else if (type == CallLogEntryFacet.class){
-            apiDataService.createOrReadModifyWrite(CallLogEntryFacet.class,
+            return apiDataService.createOrReadModifyWrite(CallLogEntryFacet.class,
                                                    new FacetQuery(
                                                            "e.apiKeyId = ? AND e.emailId = ?",
                                                            updateInfo.apiKey.getId(),
@@ -339,7 +355,23 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
                                                    }, updateInfo.apiKey.getId());
 
         }
+        else{
+            return null;
+        }
 	}
+
+    public File getAttachmentFile(long guestId, long apiKeyId, String attachmentName) throws Exception{
+
+        String kvsLocation = env.targetEnvironmentProps.getString("btdatastore.db.location");
+        if (kvsLocation == null){
+            throw new Exception("btdatastore.db.location not configured");
+        }
+
+        return new File(kvsLocation + File.separator + guestId + File.separator
+                             + Connector.getConnector("sms_backup").prettyName() + File.separator
+                             + apiKeyId + File.separator + attachmentName);
+
+    }
 
     private GoogleCredential getCredentials(ApiKey apiKey) throws UpdateFailedException{
         HttpTransport httpTransport = new NetHttpTransport();
@@ -511,8 +543,10 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 
 			for (Message message : msgs) {
                 date = message.getReceivedDate();
-                flushEntry(updateInfo, email, message, SmsEntryFacet.class);
-                updateStartDate(updateInfo,smsObjectType,date);
+                if (flushEntry(updateInfo, email, message, SmsEntryFacet.class) == null){
+                    throw new Exception("Could not persist SMS message");
+                }
+                updateStartDate(updateInfo, smsObjectType, date);
 			}
 			countSuccessfulApiCall(updateInfo.apiKey,
 					smsObjectType.value(), then, query);
@@ -564,7 +598,9 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 
 			for (Message message : msgs) {
                 date = message.getReceivedDate();
-                flushEntry(updateInfo, email, message, CallLogEntryFacet.class);
+                if (flushEntry(updateInfo, email, message, SmsEntryFacet.class) == null){
+                    throw new Exception("Could not persist Call log");
+                }
                 updateStartDate(updateInfo,callLogObjectType,date);
 			}
 			countSuccessfulApiCall(updateInfo.apiKey,
