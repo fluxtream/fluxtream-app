@@ -152,8 +152,6 @@ define(function() {
 	}
 	
 	Connectors.chooseWithingsUser = chooseWithingsUser;
-	Connectors.submitSmsBackupUsernameAndPassword = submitSmsBackupUsernameAndPassword;
-	Connectors.submitSmsBackupFolderNames = submitSmsBackupFolderNames;
 	Connectors.submitWithingsUsernameAndPassword = submitWithingsUsernameAndPassword;
 	Connectors.submitZeoCredentials = submitZeoCredentials;
 	Connectors.submitToodledoCredentials = submitToodledoCredentials;
