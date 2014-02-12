@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -17,9 +18,11 @@ import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.ChannelMapping;
 import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.MetadataService;
+import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.TimespanSegment;
 import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONArray;
@@ -84,6 +87,9 @@ public class JawboneUpUpdater extends AbstractUpdater {
     @Qualifier("AsyncWorker")
     ThreadPoolTaskExecutor executor;
 
+    @Autowired
+    BodyTrackHelper bodyTrackHelper;
+
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
         guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), MOVES_LAST_SYNC_TIME);
@@ -91,10 +97,59 @@ public class JawboneUpUpdater extends AbstractUpdater {
         guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), MEALS_LAST_SYNC_TIME);
         guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), WORKOUTS_LAST_SYNC_TIME);
         updateConnectorData(updateInfo);
+        setChannelMapping(updateInfo);
+    }
+
+    private void setChannelMapping(final UpdateInfo updateInfo) {
+        List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey);
+        if (mappings.size() == 0){
+            ChannelMapping mapping = new ChannelMapping();
+            mapping.deviceName = "Jawbone_UP";
+            mapping.channelName = "sleepPhases";
+            mapping.timeType = ChannelMapping.TimeType.gmt;
+            mapping.channelType = ChannelMapping.ChannelType.timespan;
+            mapping.guestId = updateInfo.getGuestId();
+            mapping.apiKeyId = updateInfo.apiKey.getId();
+            bodyTrackHelper.persistChannelMapping(mapping);
+
+            BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
+            channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
+            channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
+            channelStyle.timespanStyles.defaultStyle.fillColor = "#e9e9e9";
+            channelStyle.timespanStyles.defaultStyle.borderColor = "#c9c9c9";
+            channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
+            channelStyle.timespanStyles.defaultStyle.top = 0.0;
+            channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
+            channelStyle.timespanStyles.values = new HashMap();
+
+            BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
+            stylePart.top = 0.10;
+            stylePart.bottom = 1.;
+            stylePart.fillColor = "#1196ef";
+            stylePart.borderColor = "#1196ef";
+            channelStyle.timespanStyles.values.put("deep",stylePart);
+
+            stylePart = new BodyTrackHelper.TimespanStyle();
+            stylePart.top = 0.40;
+            stylePart.bottom = 1.0;
+            stylePart.fillColor = "#00d2ff";
+            stylePart.borderColor = "#00d2ff";
+            channelStyle.timespanStyles.values.put("light",stylePart);
+
+            stylePart = new BodyTrackHelper.TimespanStyle();
+            stylePart.top = 0.70;
+            stylePart.bottom = 1.0;
+            stylePart.fillColor = "#f87d04";
+            stylePart.borderColor = "#f87d04";
+            channelStyle.timespanStyles.values.put("wake",stylePart);
+
+            bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(), "Jawbone_UP", "sleepPhases", channelStyle);
+        }
     }
 
     @Override
     protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
+        setChannelMapping(updateInfo);
         updateInfo.setContext("accessToken", guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken"));
 
         logger.info("getting moves for apiKeyId=" + updateInfo.apiKey.getId());
