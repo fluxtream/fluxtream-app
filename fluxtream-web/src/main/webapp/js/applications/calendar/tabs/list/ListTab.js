@@ -27,12 +27,12 @@ define(["core/Tab", "applications/calendar/tabs/list/ListUtils"], function(Tab, 
         setTabParam = params.setTabParam;
         this.getTemplate("text!applications/calendar/tabs/list/list.html", "list", function() {
             //TODO: implement comment refreshing algorithm so the entire list tab doesn't have to be refreshed every time
-           /* if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){        //disabled for now to force refreshing of comments
-                params.doneLoading();
-                return;
-            }
-            else   */
-                lastTimestamp = params.digest.generationTimestamp;
+            /* if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){        //disabled for now to force refreshing of comments
+             params.doneLoading();
+             return;
+             }
+             else   */
+            lastTimestamp = params.digest.generationTimestamp;
             setup(params.digest,params.connectorEnabled,0,params.doneLoading);
         });
     }
@@ -88,23 +88,39 @@ define(["core/Tab", "applications/calendar/tabs/list/ListUtils"], function(Tab, 
                     var itemCity = App.getFacetCity(item.facet, digest.getConsensusCitiesList());
                     if (itemCity==null)
                         continue;
-                    for (var j = 0; j <= items.length; j++){
-                        if (j == items.length){
-                            items[j] = item;
-                            break;
+                    var min = 0;
+                    var max = items.length - 1;
+                    if (max == -1){
+                        items.push(item);
+                    }
+                    else{
+                        var facetCity = App.getFacetCity(items[min].facet, digest.getConsensusCitiesList());
+                        if (items[min].facet.start + facetCity.tzOffset > item.facet.start + itemCity.tzOffset)
+                            items.unshift(item);
+                        else{
+                            facetCity =  App.getFacetCity(items[max].facet, digest.getConsensusCitiesList());
+                            if (items[max].facet.start + facetCity.tzOffset < item.facet.start + itemCity.tzOffset)
+                                items.push(item);
+                            else{
+                                while ((max - min) > 1){
+                                    var mid = (max + min) >> 1;
+                                    facetCity = App.getFacetCity(items[mid].facet,digest.getConsensusCitiesList());
+                                    if (items[mid].facet.start + facetCity.tzOffset < item.facet.start + itemCity.tzOffset)
+                                        min = mid;
+                                    else if (items[mid].facet.start + facetCity.tzOffset > item.facet.start + itemCity.tzOffset)
+                                        max = mid;
+                                    else{
+                                        max = mid;
+                                        min = mid - 1;
+                                    }
+                                }
+                                items.splice(min,0,item)
+                            }
                         }
-                        var facetCity = App.getFacetCity(items[j].facet, digest.getConsensusCitiesList());
-                        if (facetCity==null)
-                            continue there;
-                        if (items[j].facet.start + facetCity.tzOffset > item.facet.start + itemCity.tzOffset || item.facet.start + itemCity.tzOffset == null){
-                            items.splice(j,0,item);
-                            break;
-                        }
-
                     }
                     if (itemGroups[item.facet.type] == null)
                         itemGroups[item.facet.type] = [];
-                    itemGroups[item.facet.type][itemGroups[item.facet.type].length] = item;
+                    itemGroups[item.facet.type].push(item)
                 }
             }
 
@@ -162,13 +178,13 @@ define(["core/Tab", "applications/calendar/tabs/list/ListUtils"], function(Tab, 
         var facetsToShow = [];
 
         for (var i = 0; i < items.length; i++){
-           var item = items[i];
-           if (item.visible){
-               visibleCount++;
-               if (visibleCount > currentPage * maxPerPage && visibleCount <= (currentPage + 1) * maxPerPage){
-                   facetsToShow.push(item.facet);
-               }
-           }
+            var item = items[i];
+            if (item.visible){
+                visibleCount++;
+                if (visibleCount > currentPage * maxPerPage && visibleCount <= (currentPage + 1) * maxPerPage){
+                    facetsToShow.push(item.facet);
+                }
+            }
         }
 
         list.empty().append(ListUtils.buildList(facetsToShow,dgst.getConsensusCitiesList()));
@@ -272,12 +288,12 @@ define(["core/Tab", "applications/calendar/tabs/list/ListUtils"], function(Tab, 
     });
 
     /*$(window).resize(function(){
-        $(window).scroll();
-    });*/
+     $(window).scroll();
+     });*/
 
     listTab.render = render;
     listTab.connectorToggled = connectorToggled;
     listTab.connectorDisplayable = connectorDisplayable;
     return listTab;
-	
+
 });
