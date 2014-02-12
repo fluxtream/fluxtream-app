@@ -1,10 +1,12 @@
 package com.fluxtream.connectors.sms_backup;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 import javax.mail.Address;
+import javax.mail.BodyPart;
 import javax.mail.FetchProfile;
 import javax.mail.Folder;
 import javax.mail.FolderNotFoundException;
@@ -12,13 +14,12 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Store;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.search.SentDateTerm;
-import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.Updater;
-import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.SettingsAwareAbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateFailedException;
@@ -36,8 +37,16 @@ import com.fluxtream.services.impl.BodyTrackHelper.MainTimespanStyle;
 import com.fluxtream.services.impl.BodyTrackHelper.TimespanStyle;
 import com.fluxtream.utils.MailUtils;
 import com.fluxtream.utils.Utils;
+import com.google.api.client.auth.oauth2.TokenResponseException;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson.JacksonFactory;
+import com.google.api.services.plus.Plus;
+import com.google.api.services.plus.model.Person;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import com.ibm.icu.util.StringTokenizer;
+import com.sun.mail.util.BASE64DecoderStream;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -56,6 +65,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 
 	// basic cache for email connections
 	static ConcurrentMap<String, Store> stores;
+    static ConcurrentMap<ApiKey, String> emailMap;
 
 	public SmsBackupUpdater() {
 		super();
@@ -221,8 +231,28 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
                                                                if (content instanceof String)
                                                                    facet.message = (String) message.getContent();
                                                                else if (content instanceof MimeMultipart) {//TODO: this is an MMS and needs to be handled properly
-                                                                   String contentType = ((MimeMultipart) content).getContentType();
-                                                                   facet.message = "message of type " + contentType;
+                                                                   facet.message = "Picture Message";
+                                                                   /*MimeMultipart multipart = (MimeMultipart) content;
+                                                                   int partCount = multipart.getCount();
+                                                                   if (partCount != 1){
+                                                                       throw new Exception("Don't know how to deal with part count of: " + partCount);
+                                                                   }
+                                                                   for (int i = 0; i < partCount; i++){
+                                                                       MimeBodyPart part = (MimeBodyPart) multipart.getBodyPart(i);
+                                                                       String contentType = part.getContentType();
+                                                                       Object partContent = part.getContent();
+                                                                       if (contentType.toLowerCase().startsWith("image")){
+                                                                           byte[] photoContent = IOUtils.toByteArray((BASE64DecoderStream) partContent);
+                                                                           throw new Exception("BLURF!");
+                                                                       }
+                                                                       else{
+                                                                           throw new Exception("Don't know how to deal with content of type: " + contentType);
+
+                                                                       }
+
+
+                                                                   }
+                                                                   throw new Exception("Don't know what to do with multipart!");   */
                                                                }
                                                            }  catch(Exception e){
                                                                e.printStackTrace();
@@ -310,20 +340,145 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
         }
 	}
 
-	static boolean checkAuthorization(GuestService guestService, Long guestId) {
-		ApiKey apiKey = guestService.getApiKey(guestId,
-				Connector.getConnector("sms_backup"));
-		return apiKey != null;
-	}
+    private GoogleCredential getCredentials(ApiKey apiKey) throws UpdateFailedException{
+        HttpTransport httpTransport = new NetHttpTransport();
+        JacksonFactory jsonFactory = new JacksonFactory();
+        // Get all the attributes for this connector's oauth token from the stored attributes
+        String accessToken = guestService.getApiKeyAttribute(apiKey, "accessToken");
+        final String refreshToken = guestService.getApiKeyAttribute(apiKey, "refreshToken");
+        final String clientId = guestService.getApiKeyAttribute(apiKey, "google.client.id");
+        final String clientSecret = guestService.getApiKeyAttribute(apiKey,"google.client.secret");
+        final GoogleCredential.Builder builder = new GoogleCredential.Builder();
+        builder.setTransport(httpTransport);
+        builder.setJsonFactory(jsonFactory);
+        builder.setClientSecrets(clientId, clientSecret);
+        GoogleCredential credential = builder.build();
+        final Long tokenExpires = Long.valueOf(guestService.getApiKeyAttribute(apiKey, "tokenExpires"));
+        credential.setExpirationTimeMilliseconds(tokenExpires);
+        credential.setAccessToken(accessToken);
+        credential.setRefreshToken(refreshToken);
 
-	boolean testConnection(String email, String password) {
-		try {
-			MailUtils.getGmailImapStore(email, password);
-		} catch (MessagingException e) {
-			return false;
-		}
-		return true;
-	}
+        try {
+            if (tokenExpires<System.currentTimeMillis()) {
+                boolean tokenRefreshed = false;
+
+                // Don't worry about checking if we are running on a mirrored test instance.
+                // Refreshing tokens independently on both the main server and a mirrored instance
+                // seems to work just fine.
+
+                // Try to swap the expired access token for a fresh one.
+                tokenRefreshed = credential.refreshToken();
+
+                if(tokenRefreshed) {
+                    Long newExpireTime = credential.getExpirationTimeMilliseconds();
+                    // Update stored expire time
+                    guestService.setApiKeyAttribute(apiKey, "accessToken", credential.getAccessToken());
+                    guestService.setApiKeyAttribute(apiKey, "tokenExpires", newExpireTime.toString());
+                }
+            }
+        }
+        catch (TokenResponseException e) {
+            // Notify the user that the tokens need to be manually renewed
+            notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
+                                                      "Heads Up. We failed in our attempt to automatically refresh your Google authentication tokens.<br>" +
+                                                      "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                      "scroll to the Google Calendar connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+
+            // Record permanent update failure since this connector is never
+            // going to succeed
+            guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, Utils.stackTrace(e));
+            throw new UpdateFailedException("refresh token attempt permanently failed due to a bad token refresh response", e, true);
+        }
+        catch (IOException e) {
+            // Notify the user that the tokens need to be manually renewed
+            throw new UpdateFailedException("refresh token attempt failed", e, true);
+        }
+
+        return credential;
+    }
+
+    private String getEmailAddress(ApiKey apiKey) throws UpdateFailedException{
+
+        if (emailMap == null){
+            emailMap = new ConcurrentLinkedHashMap.Builder<ApiKey, String>()
+                    .maximumWeightedCapacity(100).build();
+        }
+
+        if (emailMap.containsKey(apiKey)){
+            return emailMap.get(apiKey);
+        }
+
+        HttpTransport httpTransport = new NetHttpTransport();
+        JacksonFactory jsonFactory = new JacksonFactory();
+        GoogleCredential credential = getCredentials(apiKey);
+        String emailAddress = null;
+
+        try{
+            Plus plus = new Plus(httpTransport, jsonFactory, credential);
+            Person mePerson = plus.people().get("me").execute();
+            List<Person.Emails> emails = mePerson.getEmails();
+            for (Person.Emails email : emails){
+                if (email.getType().equals("account")){
+                    emailAddress = email.getValue();
+                }
+            }
+            if (emailAddress == null)
+                throw new Exception("Account email not in email list");
+            emailMap.put(apiKey,emailAddress);
+            return emailAddress;
+        }
+        catch (Exception e){
+            throw new UpdateFailedException("Failed to get gmail address!",e,false);
+        }
+
+    }
+
+    private Store getStore(ApiKey apiKey) throws UpdateFailedException{
+        String emailAddress = getEmailAddress(apiKey);
+        GoogleCredential credential = getCredentials(apiKey);
+
+
+
+
+        String accessToken = credential.getAccessToken();
+
+
+        if (stores == null)
+            stores = new ConcurrentLinkedHashMap.Builder<String, Store>()
+                    .maximumWeightedCapacity(100).build();
+        Store store = null;
+
+        try{
+            if (stores.get(emailAddress + "-oauth2") != null) {
+                store = stores.get(emailAddress + "-oauth2");
+                if (!store.isConnected())
+                    store.connect();
+                boolean stillAlive = true;
+                try {
+                    store.getDefaultFolder();
+                } catch (Exception e) {
+                    stillAlive = false;
+                }
+                if (stillAlive)
+                    return store;
+                else
+                    store.close();
+            }
+        }
+        catch (Exception e){
+            stores.remove(emailAddress + "-oauth2");
+        }
+
+        try{
+            store = MailUtils.getGmailImapStoreViaSASL(emailAddress, accessToken);
+            stores.put(emailAddress + "-oauth2", store);
+            return store;
+        } catch(Exception e){
+            throw new UpdateFailedException("Failed to connect to gmail!",e,false);
+        }
+
+
+    }
 
 	private Store getStore(String email, String password)
 			throws MessagingException {
@@ -331,8 +486,8 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 			stores = new ConcurrentLinkedHashMap.Builder<String, Store>()
 					.maximumWeightedCapacity(100).build();
 		Store store = null;
-		if (stores.get(email) != null) {
-			store = stores.get(email);
+		if (stores.get(email + "-basicAuth") != null) {
+			store = stores.get(email + "-basicAuth");
 			if (!store.isConnected())
 				store.connect();
 			boolean stillAlive = true;
@@ -347,7 +502,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
                 store.close();
 		}
 		store = MailUtils.getGmailImapStore(email, password);
-		stores.put(email, store);
+		stores.put(email + "-basicAuth", store);
 		return store;
 	}
 
@@ -358,7 +513,13 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 		ObjectType smsObjectType = ObjectType.getObjectType(connector(), "sms");
 		String smsFolderName = getSettingsOrPortLegacySettings(updateInfo.apiKey).smsFolderName;
 		try {
-			Store store = getStore(email, password);
+            Store store;
+            if (guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken") != null){
+			    store = getStore(updateInfo.apiKey);
+                email = getEmailAddress(updateInfo.apiKey);
+            }
+            else
+                store = getStore(email,password);
 			Folder folder = store.getDefaultFolder();
 			if (folder == null  || !folder.exists())
 				throw new FolderNotFoundException();
@@ -397,13 +558,21 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 
 	void retrieveCallLogSinceDate(UpdateInfo updateInfo,
 			String email, String password, Date date) throws Exception {
+        //if (true)
+        //    throw new Exception("Blah");
 		long then = System.currentTimeMillis();
 		String query = "(incremental call log retrieval)";
 		ObjectType callLogObjectType = ObjectType.getObjectType(connector(),
 				"call_log");
 		String callLogFolderName = getSettingsOrPortLegacySettings(updateInfo.apiKey).callLogFolderName;
 		try {
-			Store store = getStore(email, password);
+            Store store;
+            if (guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken") != null){
+                store = getStore(updateInfo.apiKey);
+                email = getEmailAddress(updateInfo.apiKey);
+            }
+            else
+                store = getStore(email,password);
 			Folder folder = store.getDefaultFolder();
 			if (folder == null || !folder.exists())
 				throw new FolderNotFoundException();
@@ -504,6 +673,14 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
             else{
                 settings.callLogFolderName = "";
             }
+            persistSettings = true;
+        }
+        if (settings.smsFolderName.equals("")){
+            settings.smsFolderName = "SMS";
+            persistSettings = true;
+        }
+        if (settings.callLogFolderName.equals("")){
+            settings.callLogFolderName = "Call log";
             persistSettings = true;
         }
         if (persistSettings){
