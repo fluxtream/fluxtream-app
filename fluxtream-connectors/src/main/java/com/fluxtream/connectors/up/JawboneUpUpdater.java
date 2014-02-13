@@ -55,7 +55,7 @@ import org.springframework.stereotype.Component;
                                                                  JawboneUpSleepFacet.class, JawboneUpMealFacet.class,
                                                                  JawboneUpServingFacet.class, JawboneUpWorkoutFacet.class},
          defaultChannels = {"Jawbone_UP.serving", "Jawbone_UP.movesIntensity", "Jawbone_UP.sleepPhases"},
-         deleteOrder= {1, 2, 4, 8, 32, 16})
+         deleteOrder= {1, 2, 4, 8, 32, 16}, bodytrackResponder = JawboneUpBodytrackResponder.class)
 public class JawboneUpUpdater extends AbstractUpdater {
 
     Logger logger = Logger.getLogger(JawboneUpUpdater.class);
@@ -102,49 +102,49 @@ public class JawboneUpUpdater extends AbstractUpdater {
 
     private void setChannelMapping(final UpdateInfo updateInfo) {
         List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey);
-        if (mappings.size() == 0){
-            ChannelMapping mapping = new ChannelMapping();
-            mapping.deviceName = "Jawbone_UP";
-            mapping.channelName = "sleepPhases";
-            mapping.timeType = ChannelMapping.TimeType.gmt;
-            mapping.channelType = ChannelMapping.ChannelType.timespan;
-            mapping.guestId = updateInfo.getGuestId();
-            mapping.apiKeyId = updateInfo.apiKey.getId();
-            bodyTrackHelper.persistChannelMapping(mapping);
+        if (mappings.size() != 0)
+            return;
+        ChannelMapping mapping = new ChannelMapping();
+        mapping.deviceName = "Jawbone_UP";
+        mapping.channelName = "sleepPhases";
+        mapping.timeType = ChannelMapping.TimeType.gmt;
+        mapping.channelType = ChannelMapping.ChannelType.timespan;
+        mapping.guestId = updateInfo.apiKey.getGuestId();
+        mapping.apiKeyId = updateInfo.apiKey.getId();
+        bodyTrackHelper.persistChannelMapping(mapping);
 
-            BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
-            channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
-            channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
-            channelStyle.timespanStyles.defaultStyle.fillColor = "#e9e9e9";
-            channelStyle.timespanStyles.defaultStyle.borderColor = "#c9c9c9";
-            channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
-            channelStyle.timespanStyles.defaultStyle.top = 0.0;
-            channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
-            channelStyle.timespanStyles.values = new HashMap();
+        BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
+        channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
+        channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
+        channelStyle.timespanStyles.defaultStyle.fillColor = "#fff";
+        channelStyle.timespanStyles.defaultStyle.borderColor = "#fff";
+        channelStyle.timespanStyles.defaultStyle.borderWidth = 0;
+        channelStyle.timespanStyles.defaultStyle.top = 1.0;
+        channelStyle.timespanStyles.defaultStyle.bottom = 0.0;
+        channelStyle.timespanStyles.values = new HashMap();
 
-            BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
-            stylePart.top = 0.10;
-            stylePart.bottom = 1.;
-            stylePart.fillColor = "#1196ef";
-            stylePart.borderColor = "#1196ef";
-            channelStyle.timespanStyles.values.put("deep",stylePart);
+        BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
+        stylePart.top = 0.9;
+        stylePart.bottom = .0;
+        stylePart.fillColor = "#1196ef";
+        stylePart.borderColor = "#1196ef";
+        channelStyle.timespanStyles.values.put("deep",stylePart);
 
-            stylePart = new BodyTrackHelper.TimespanStyle();
-            stylePart.top = 0.40;
-            stylePart.bottom = 1.0;
-            stylePart.fillColor = "#00d2ff";
-            stylePart.borderColor = "#00d2ff";
-            channelStyle.timespanStyles.values.put("light",stylePart);
+        stylePart = new BodyTrackHelper.TimespanStyle();
+        stylePart.top = 0.6;
+        stylePart.bottom = .0;
+        stylePart.fillColor = "#00d2ff";
+        stylePart.borderColor = "#00d2ff";
+        channelStyle.timespanStyles.values.put("light",stylePart);
 
-            stylePart = new BodyTrackHelper.TimespanStyle();
-            stylePart.top = 0.70;
-            stylePart.bottom = 1.0;
-            stylePart.fillColor = "#f87d04";
-            stylePart.borderColor = "#f87d04";
-            channelStyle.timespanStyles.values.put("wake",stylePart);
+        stylePart = new BodyTrackHelper.TimespanStyle();
+        stylePart.top = 0.1;
+        stylePart.bottom = .0;
+        stylePart.fillColor = "#f87d04";
+        stylePart.borderColor = "#f87d04";
+        channelStyle.timespanStyles.values.put("wake",stylePart);
 
-            bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(), "Jawbone_UP", "sleepPhases", channelStyle);
-        }
+        bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.apiKey.getGuestId(), "Jawbone_UP", "sleepPhases", channelStyle);
     }
 
     @Override

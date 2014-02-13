@@ -14,8 +14,10 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.mvc.models.TimespanModel;
+import com.fluxtream.services.impl.BodyTrackHelper;
 import net.sf.json.JSONArray;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -25,6 +27,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class JawboneUpBodytrackResponder extends AbstractBodytrackResponder {
+
+    @Autowired
+    BodyTrackHelper bodyTrackHelper;
 
     @Override
     public List<TimespanModel> getTimespans(final long startMillis, final long endMillis, final ApiKey apiKey, final String channelName) {
@@ -47,7 +52,7 @@ public class JawboneUpBodytrackResponder extends AbstractBodytrackResponder {
                     JSONArray nextSleepPhase = sleepPhases.getJSONArray(i+1);
                     end = nextSleepPhase.getLong(0);
                 }
-                final TimespanModel moveTimespanModel = new TimespanModel(start*1000, end*1000-1, toPhaseString(phase), "Jawbone_UP-sleep");
+                final TimespanModel moveTimespanModel = new TimespanModel(start*1000, end*1000-1, toPhaseString(phase), "Jawbone_UP-sleepPhases");
                 items.add(moveTimespanModel);
             }
         }
@@ -57,9 +62,9 @@ public class JawboneUpBodytrackResponder extends AbstractBodytrackResponder {
     private String toPhaseString(final int phase) {
         switch(phase) {
             case 1:
-                return "light";
-            case 2:
                 return "wake";
+            case 2:
+                return "light";
             case 3:
                 return "deep";
             default:
