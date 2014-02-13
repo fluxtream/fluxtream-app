@@ -106,7 +106,7 @@ public class JawboneUpUpdater extends AbstractUpdater {
             return;
         ChannelMapping mapping = new ChannelMapping();
         mapping.deviceName = "Jawbone_UP";
-        mapping.channelName = "sleepPhases";
+        mapping.channelName = "sleep";
         mapping.timeType = ChannelMapping.TimeType.gmt;
         mapping.channelType = ChannelMapping.ChannelType.timespan;
         mapping.guestId = updateInfo.apiKey.getGuestId();
@@ -144,7 +144,7 @@ public class JawboneUpUpdater extends AbstractUpdater {
         stylePart.borderColor = "#f87d04";
         channelStyle.timespanStyles.values.put("wake",stylePart);
 
-        bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.apiKey.getGuestId(), "Jawbone_UP", "sleepPhases", channelStyle);
+        bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.apiKey.getGuestId(), "Jawbone_UP", "sleep", channelStyle);
     }
 
     @Override

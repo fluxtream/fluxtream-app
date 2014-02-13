@@ -37,7 +37,8 @@ public class JawboneUpBodytrackResponder extends AbstractBodytrackResponder {
         final TimeInterval timeInterval = new SimpleTimeInterval(startMillis, endMillis, TimeUnit.ARBITRARY, TimeZone.getTimeZone("UTC"));
 
         int sleepObjectTypeValue = ObjectType.getObjectTypeValue(JawboneUpSleepFacet.class);
-        List<AbstractFacet> facets = getFacetsInTimespan(timeInterval, apiKey, ObjectType.getObjectType(Connector.getConnector("up"), sleepObjectTypeValue));
+        final ObjectType sleepObjectType = ObjectType.getObjectType(Connector.getConnector("up"), sleepObjectTypeValue);
+        List<AbstractFacet> facets = getFacetsInTimespan(timeInterval, apiKey, sleepObjectType);
         for (AbstractFacet facet : facets){
             JawboneUpSleepFacet sleepFacet = (JawboneUpSleepFacet) facet;
             if (StringUtils.isEmpty(sleepFacet.phasesStorage))
@@ -52,7 +53,7 @@ public class JawboneUpBodytrackResponder extends AbstractBodytrackResponder {
                     JSONArray nextSleepPhase = sleepPhases.getJSONArray(i+1);
                     end = nextSleepPhase.getLong(0);
                 }
-                final TimespanModel moveTimespanModel = new TimespanModel(start*1000, end*1000-1, toPhaseString(phase), "Jawbone_UP-sleepPhases");
+                final TimespanModel moveTimespanModel = new TimespanModel(start*1000, end*1000-1, toPhaseString(phase), "Jawbone_UP-sleep");
                 items.add(moveTimespanModel);
             }
         }
@@ -73,8 +74,17 @@ public class JawboneUpBodytrackResponder extends AbstractBodytrackResponder {
     }
 
     @Override
-    public List<AbstractFacetVO<AbstractFacet>> getFacetVOs(final GuestSettings guestSettings, final ApiKey apiKey, final String objectTypeName, final long start, final long end, final String value) {
-        return null;
+    public List<AbstractFacetVO<AbstractFacet>> getFacetVOs(final GuestSettings guestSettings, final ApiKey apiKey, final String objectTypeName,
+                                                            final long start, final long end, final String value) {
+
+        TimeInterval timeInterval = metadataService.getArbitraryTimespanMetadata(apiKey.getGuestId(), start, end).getTimeInterval();
+
+        int sleepObjectTypeValue = ObjectType.getObjectTypeValue(JawboneUpSleepFacet.class);
+        final ObjectType sleepObjectType = ObjectType.getObjectType(Connector.getConnector("up"), sleepObjectTypeValue);
+        List<AbstractFacet> facets = getFacetsInTimespan(timeInterval, apiKey, sleepObjectType);
+
+        List<AbstractFacetVO<AbstractFacet>> facetVOsForFacets = getFacetVOsForFacets(facets, timeInterval, guestSettings);
+        return facetVOsForFacets;
     }
 
 }
