@@ -395,8 +395,8 @@ public class JawboneUpUpdater extends AbstractUpdater {
         return map;
     }
 
-    private void createOrUpdateFacets(final UpdateInfo updateInfo, final String sleepsJson, int objectTypeValue) throws Exception {
-        JSONObject jsonObject = JSONObject.fromObject(sleepsJson);
+    private void createOrUpdateFacets(final UpdateInfo updateInfo, final String upJson, int objectTypeValue) throws Exception {
+        JSONObject jsonObject = JSONObject.fromObject(upJson);
         JSONObject data = jsonObject.getJSONObject("data");
         JSONArray items = data.getJSONArray("items");
         for (int i=0; i<items.size(); i++) {
@@ -617,6 +617,7 @@ public class JawboneUpUpdater extends AbstractUpdater {
                 }
             }
         };
+        apiDataService.createOrReadModifyWrite(JawboneUpMealFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
     }
 
     private JawboneUpServingFacet createOrUpdateServingFacet(final JSONObject jsonObject, final UpdateInfo updateInfo, final JawboneUpMealFacet meal) throws Exception {
@@ -729,6 +730,7 @@ public class JawboneUpUpdater extends AbstractUpdater {
                 }
             }
         };
+        apiDataService.createOrReadModifyWrite(JawboneUpWorkoutFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
     }
 
     private String callJawboneAPI(final UpdateInfo updateInfo, final String url) throws Exception {
