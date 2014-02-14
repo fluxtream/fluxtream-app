@@ -163,4 +163,15 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 			throw e;
 		}
 	}
+
+    protected static final float round(float v, int decimals) {
+        float mul = (float)Math.pow(10, decimals);
+        return (float) Math.round(v * mul) / mul;
+    }
+
+    protected static final double round(double v, int decimals) {
+        double mul = Math.pow(10, decimals);
+        return Math.round(v * mul) / mul;
+    }
+
 }

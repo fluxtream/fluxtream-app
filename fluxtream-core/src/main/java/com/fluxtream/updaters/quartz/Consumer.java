@@ -1,7 +1,8 @@
 package com.fluxtream.updaters.quartz;
 
-import com.fluxtream.services.ConnectorUpdateService;
+import com.fluxtream.Configuration;
 import com.fluxtream.aspects.FlxLogger;
+import com.fluxtream.services.ConnectorUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -10,6 +11,9 @@ public class Consumer {
 	
 	@Autowired
 	ConnectorUpdateService connectorUpdateService;
+
+    @Autowired
+    Configuration env;
 	
 	static FlxLogger logger = FlxLogger.getLogger(Consumer.class);
 

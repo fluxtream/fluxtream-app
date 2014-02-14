@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class AbstractFacet extends AbstractEntity {
     private static final FlxLogger LOG_DEBUG = FlxLogger.getLogger("Fluxtream");
 
-    private static final String TAG_DELIMITER = ",";
+    protected static final String TAG_DELIMITER = ",";
 
     public AbstractFacet() {
         this.timeUpdated = System.currentTimeMillis();

@@ -517,7 +517,7 @@ public class CalendarDataStore {
     {
 		for (ApiKey apiKey : userKeys) {
 			Connector connector = apiKey.getConnector();
-            final Object apiKeySettings = settingsService.getConnectorSettings(apiKey.getId(), false);
+            final Object apiKeySettings = settingsService.getConnectorSettings(apiKey.getId());
             if (apiKeySettings!=null)
                 connectorSettings.put(apiKey.getId(), apiKeySettings);
             ObjectType[] objectTypes = connector.objectTypes();

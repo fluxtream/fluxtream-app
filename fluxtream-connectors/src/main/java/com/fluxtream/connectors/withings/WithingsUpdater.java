@@ -227,7 +227,7 @@ public class WithingsUpdater extends AbstractUpdater {
         }
     }
 
-    private void storeMeasurements(final UpdateInfo updateInfo, final String json, final ApiVersion apiVersion) {
+    private void storeMeasurements(final UpdateInfo updateInfo, final String json, final ApiVersion apiVersion) throws Exception {
         JSONObject jsonObject = JSONObject.fromObject(json);
         Object bodyObject = jsonObject.get("body");
         if (bodyObject==null) return;
@@ -251,7 +251,7 @@ public class WithingsUpdater extends AbstractUpdater {
         }
     }
 
-    private void storeV1MeasureGroup(final UpdateInfo updateInfo, final JSONObject measuregrp) {
+    private void storeV1MeasureGroup(final UpdateInfo updateInfo, final JSONObject measuregrp) throws Exception {
         final long date = measuregrp.getLong("date")*1000;
         JSONArray measures = measuregrp.getJSONArray ("measures");
 
@@ -340,7 +340,7 @@ public class WithingsUpdater extends AbstractUpdater {
         }
     }
 
-    private void storeActivityMeasurement(final UpdateInfo updateInfo, final JSONObject activityData) {
+    private void storeActivityMeasurement(final UpdateInfo updateInfo, final JSONObject activityData) throws Exception {
         final String date = activityData.getString("date");
         final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.date=?",
                                                                                    updateInfo.apiKey.getId(), date);

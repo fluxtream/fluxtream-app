@@ -349,6 +349,19 @@
         {{/settings}}
     </form>
 </template>
+<template id="evernote-settings">
+    <div style="height:300px" id="evernoteSettings">
+        <form action="javascript:void(0);">
+            {{#settings}}{{#notebooks}}
+            <label class="checkbox">
+                <input id="notebook-c-{{guid}}" type="color" style="margin-right:10px;width:20px" value="{{backgroundColor}}">
+                <input id="notebook-hcb-{{guid}}" type="checkbox" style="margin-top:8px" {{^hidden}}checked=checked{{/hidden}}  value="{{guid}}"> {{name}}
+            </label>
+            {{/notebooks}}{{/settings}}
+        </form>
+        <div class="alert alert-info"><strong>Heads up!</strong> For changes to be reflected in the timeline, you will have to reload the page.<br>Sorry about that!</div>
+    </div>
+</template>
 <template id="uploadDialog">
     <div id="uploadModal" class="modal hide fade">
         <div class="modal-header">

@@ -215,6 +215,53 @@
         </div>
     </div>
 </template>
+<template id="up-sleep">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon up"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div class="flx-data">
+                    <div>
+                        <div>
+                            <span class="flx-dataLabel">Bed Time</span>
+                            <span class="flx-text">{{#startTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{/startTime}}</span>
+                        </div>
+                        <div>
+                            <span class="flx-dataLabel">Time Asleep</span>
+                            <span class="flx-text">{{#timeAsleep}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{/timeAsleep}} </span>
+                        </div>
+                        <div>
+                            <span class="flx-dataLabel">Sleeping </span>
+                            <span class="flx-text bold">{{timeSleeping.hours}}</span><span class="flx-text"> hours</span>
+                            <span class="flx-text bold">{{timeSleeping.minutes}}</span><span class="flx-text"> min</span>
+                        </div>
+                        <div>
+                            <span class="flx-dataLabel">Awake during </span>
+                            <span class="flx-text bold">{{timeAwake.hours}}</span><span class="flx-text"> hours</span>
+                            <span class="flx-text bold">{{timeAwake.minutes}}</span><span class="flx-text"> min</span>
+                        </div>
+                        <div>
+                            <span class="flx-dataLabel">Woke Up </span>
+                            <span class="flx-text">{{#wakeUpTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{/wakeUpTime}} </span>
+                        </div>
+                        <div>
+                            <span class="flx-dataLabel">Out of bed </span>
+                            <span class="flx-text">{{#endTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flx-data">
+                    <img src="{{snapshot_image}}" style="height:75px; width:300px">
+                </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
 <template id="fitbit-sleep">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon fitbit-sleep"></span>
@@ -294,6 +341,28 @@
 <template id="flickr-photo">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon flickr-photo"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails{{manyFacets}} {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
+                <div class="flx-data">
+                    <span data-deviceName="{{deviceName}}" data-channelName="{{channelName}}"
+                          data-id="{{UID}}" data-timestamp="{{start}}" class="flx-photo" style="display:block; cursor:pointer; float:left; margin:0 10px 0 0">
+                        <img src="{{photo42}}" style="max-height:42px;">
+                    </span>
+                    <span class="flx-description">{{description}}</span>
+                </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
+<template id="evernote-photo">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon evernote-photo"></span>
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails{{manyFacets}} {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
@@ -446,6 +515,29 @@
                 <div class="flx-data">
                     <strong>SMS {{#OUTGOING}}to{{/OUTGOING}}{{#INCOMING}}from{{/INCOMING}} {{personName}} ({{personNumber}})</strong>:<br>
                     {{{message}}}
+                </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
+<template id="evernote-note">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon evernote-note"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
+                <div class="flx-data evernote-note">
+                    <strong>{{{title}}}</strong>
+                    <div style="margin-bottom: 4px;margin-top: 2px">
+                        <span class="evernoteNotebook" style="background-color:{{color}}"><i class="icon icon-book"/>&nbsp;{{notebook}}</span>
+                        {{#evernoteTags}}<span class="evernoteTag"><i class="icon icon-tag"/>&nbsp;{{.}}</span>{{/evernoteTags}}
+                    </div>
+                    <iframe id="iframe-{{guid}}" src="/evernote/content/{{apiKeyId}}/{{guid}}"></iframe>
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
@@ -736,6 +828,110 @@
                         <img src="{{photo42}}" style="max-height:42px;">
                     </span>
                     <span class="flx-description">{{description}}</span>
+                </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
+<template id="up-meal">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon up"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                {{#servings}}
+                    <div class="flx-data">
+                        <span class="flx-dataLabel">Name</span>
+                        <span class="flx-text">{{name}}</span>
+                    </div>
+                    <div class="flx-data">
+                        <img src="{{image}}">
+                    </div>
+                {{/servings}}
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
+<template id="up-workout">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon up"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
+<template id="up-moves">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon up"></span>
+        <div class="facetDetails">
+            <span class="flx-text">{{#facets}}</span>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div class="flx-data">
+                    <span class="flx-steps">
+                        <span class="flx-dataLabel">You walked</span>
+                        <span class="flx-text">{{_steps}}</span>
+                        <span class="flx-dataLabel">steps</span>
+                    </span>
+                </div>
+                <div class="flx-data">
+                    <span class="flx-calories">
+                        <span class="flx-dataLabel">You burned</span>
+                        <span class="flx-text">{{_calories}}</span>
+                        <span class="flx-dataLabel">kcal</span>
+                    </span>
+                </div>
+                <div class="flx-data">
+                    <img src="{{snapshot_image}}" style="height:75px; width:300px">
+                </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
+<template id="up-location">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon up"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
+                <div class="flx-data">
+                    <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
+                </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
+<template id="evernote-location">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon evernote-note{{iconClass}}"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
+                <div class="flx-data">
+                    <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>

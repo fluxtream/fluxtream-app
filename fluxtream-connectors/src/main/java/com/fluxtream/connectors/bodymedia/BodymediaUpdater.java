@@ -296,7 +296,7 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
         timeOfLastCall = System.currentTimeMillis();
     }
 
-    private BodymediaSleepFacet createOrUpdateSleepFacet(final JSONObject day, final UpdateInfo updateInfo, final DateTime d, final TimezoneMap tzMap) {
+    private BodymediaSleepFacet createOrUpdateSleepFacet(final JSONObject day, final UpdateInfo updateInfo, final DateTime d, final TimezoneMap tzMap) throws Exception {
         final DateTime date = formatter.parseDateTime(day.getString("date"));
         final String dateString = TimeUtils.dateFormatter.print(date.getMillis());
         final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.date=?",
@@ -352,7 +352,7 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
         return apiDataService.createOrReadModifyWrite(BodymediaSleepFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
     }
 
-    private BodymediaBurnFacet createOrUpdateBurnFacet(final JSONObject day, final UpdateInfo updateInfo, final DateTime d, final TimezoneMap tzMap) {
+    private BodymediaBurnFacet createOrUpdateBurnFacet(final JSONObject day, final UpdateInfo updateInfo, final DateTime d, final TimezoneMap tzMap) throws Exception {
         final DateTime date = formatter.parseDateTime(day.getString("date"));
         final String dateString = TimeUtils.dateFormatter.print(date.getMillis());
         final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.date=?",
@@ -404,7 +404,7 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
         return apiDataService.createOrReadModifyWrite(BodymediaBurnFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
     }
 
-    private BodymediaStepsFacet createOrUpdateStepsFacet(final JSONObject day, final UpdateInfo updateInfo, final DateTime d, final TimezoneMap tzMap) {
+    private BodymediaStepsFacet createOrUpdateStepsFacet(final JSONObject day, final UpdateInfo updateInfo, final DateTime d, final TimezoneMap tzMap) throws Exception {
         final DateTime date = formatter.parseDateTime(day.getString("date"));
         final String dateString = TimeUtils.dateFormatter.print(date.getMillis());
         final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery("e.apiKeyId=? AND e.date=?",

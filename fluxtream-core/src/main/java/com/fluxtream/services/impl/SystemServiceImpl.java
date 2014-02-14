@@ -102,6 +102,30 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         int order = 0;
         String release = env.get("release");
 
+        final String jawboneUp = "Jawbone UP";
+        String[] jawboneUpKeys = checkKeysExist(jawboneUp, Arrays.asList("jawboneUp.client.id", "jawboneUp.client.secret", "jawboneUp.validRedirectURL"));
+        final ConnectorInfo jawboneUpConnectorInfo = new ConnectorInfo(jawboneUp,
+                                                                      "/" + release + "/images/connectors/connector-up.png",
+                                                                      res.getString("up"),
+                                                                      "/up/token",
+                                                                      Connector.getConnector("up"), order++, jawboneUpKeys!=null,
+                                                                      false, true, jawboneUpKeys);
+        jawboneUpConnectorInfo.supportsRenewTokens = true;
+        jawboneUpConnectorInfo.renewTokensUrlTemplate = "up/token?apiKeyId=%s";
+        em.persist(jawboneUpConnectorInfo);
+
+        final String evernote = "Evernote";
+        String[] evernoteKeys = checkKeysExist(evernote, Arrays.asList("evernoteConsumerKey", "evernoteConsumerSecret", "evernote.sandbox"));
+        final ConnectorInfo evernoteConnectorInfo = new ConnectorInfo(evernote,
+                                                                      "/" + release + "/images/connectors/connector-evernote.jpg",
+                                                                      res.getString("evernote"),
+                                                                      "/evernote/token",
+                                                                      Connector.getConnector("evernote"), order++, evernoteKeys!=null,
+                                                                      false, true, evernoteKeys);
+        evernoteConnectorInfo.supportsRenewTokens = true;
+        evernoteConnectorInfo.renewTokensUrlTemplate = "evernote/token?apiKeyId=%s";
+        em.persist(evernoteConnectorInfo);
+
         final String facebook = "Facebook";
         String[] facebookKeys = checkKeysExist(facebook, Arrays.asList("facebook.appId", "facebook.appSecret"));
         final ConnectorInfo facebookConnectorInfo = new ConnectorInfo(facebook,
