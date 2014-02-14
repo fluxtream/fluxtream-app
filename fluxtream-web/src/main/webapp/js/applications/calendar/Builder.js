@@ -110,15 +110,14 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
     }
 
     function createConnectorButton(App, Calendar, connector) {
-        var configFilterLabel = App.getConnectorConfig(connector.connectorName).filterLabel,
-            filterLabel = configFilterLabel || connector.name;
+        //var configFilterLabel = App.getConnectorConfig(connector.connectorName).filterLabel,
+        //    filterLabel = configFilterLabel || connector.name;
         var button = $('<li/>');
-        var buttonLink = $('<a/>', {
+        $('<a/>', {
             href: "#",
             id: "flx-connector-btn-" + connector.connectorName,
             class: "flx-active"
         }).click(function(event){
-            console.log("filter button clicked");
             event.preventDefault();
             $(document).click(); //needed for click away to work on tooltips in clock tab
             connectorClicked(Calendar, connector);
@@ -284,6 +283,11 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
         updateCurrentTab(digest, Calendar);
 	}
 
+    /**
+     * determines what filter buttons to display in the current tab depending on the ConnectorConfig js
+     * @param digest
+     * @param Calendar
+     */
     function updateCurrentTab(digest, Calendar){
         Calendar.currentTab = tabInterface.getActiveTab();
         if (Calendar.currentTab == null){

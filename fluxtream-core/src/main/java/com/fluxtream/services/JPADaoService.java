@@ -15,11 +15,7 @@ public interface JPADaoService {
     @SuppressWarnings("unused")
 	public long countFacets(Connector connector, long guestId);
 
-    public int execute(String jpql);
-
-    public void persist(Object o);
-
-	public void remove(Class<?> clazz, long id);
+    public int execute(String jpql, Object... params);
 
     <T> List<T>  executeQueryWithLimit(String queryString, int i, Class<T> clazz, Object... params);
 

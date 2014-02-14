@@ -517,7 +517,7 @@ public class CalendarDataStore {
     {
 		for (ApiKey apiKey : userKeys) {
 			Connector connector = apiKey.getConnector();
-            final Object apiKeySettings = settingsService.getConnectorSettings(apiKey.getId(), false);
+            final Object apiKeySettings = settingsService.getConnectorSettings(apiKey.getId());
             if (apiKeySettings!=null)
                 connectorSettings.put(apiKey.getId(), apiKeySettings);
             ObjectType[] objectTypes = connector.objectTypes();
@@ -621,7 +621,7 @@ public class CalendarDataStore {
         final List<String> dateList = timespanMetadata.getDateList();
         final List<AbstractFacetVO<AbstractFacet>> filtered = new ArrayList<AbstractFacetVO<AbstractFacet>>();
         for (AbstractFacetVO<AbstractFacet> vo : vos) {
-            if (dateList.contains(vo.date))
+            if (dateList.contains(vo.date)||(vo.api==1999&&vo.objectType==4))
                 filtered.add(vo);
         }
         return filtered;

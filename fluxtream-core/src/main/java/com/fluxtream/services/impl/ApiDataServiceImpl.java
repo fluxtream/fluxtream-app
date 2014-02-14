@@ -1,5 +1,7 @@
 package com.fluxtream.services.impl;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,7 @@ import com.fluxtream.services.SettingsService;
 import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONObject;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.BeanFactory;
@@ -281,7 +284,28 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 					+ userProfileClass.getName());
 			deleteProfileQuery.executeUpdate();
 		}
-	}
+        // remove directory <connectorData.location>/<connectorName>/<apiKeyId>
+        final String devKvsLocation = env.get("btdatastore.db.location");
+        // let's not assume that everyone has set this value
+        if (devKvsLocation!=null) {
+            if (apiKey.getConnector()!=null&&apiKey.getConnector().getName()!=null) {
+                final String connectorName = apiKey.getConnector().getPrettyName();
+                StringBuilder path = new StringBuilder(devKvsLocation)
+                        .append(File.separator).append(apiKey.getGuestId())
+                        .append(File.separator).append(connectorName)
+                        .append(File.separator).append(apiKey.getId());
+                File dataDir = new File(path.toString());
+                if (dataDir.exists()) {
+                    try {
+                        FileUtils.deleteDirectory(dataDir);
+                    }
+                    catch (IOException e) {
+                        logger.warn("Couldn't delete connector data directory at [" + dataDir.getAbsolutePath() + "]");
+                    }
+                }
+            }
+        }
+    }
 
     @Override
     public List<AbstractFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType,
@@ -471,7 +495,7 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
     @Override
     @Transactional(readOnly = false)
     public <T extends AbstractFacet> T createOrReadModifyWrite (
-            Class<? extends AbstractFacet> facetClass, FacetQuery query, FacetModifier<T> modifier, Long apiKeyId) {
+            Class<? extends AbstractFacet> facetClass, FacetQuery query, FacetModifier<T> modifier, Long apiKeyId) throws Exception {
         //System.out.println("========================================");
         // TODO(rsargent): do we need @Transactional again on class?
 
@@ -498,33 +522,28 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
             logger.info("WARNING: non unique exception here, query: " + qlString);
         }
 
-        try {
-            T modified = modifier.createOrModify(orig, apiKeyId);
-            // createOrModify must return passed argument if it is not null
-            // If the passed argument is null and the attempt to parse the
-            // new data into a valid facet fails, createOrModify may return null.
-            // In that case, just don't try to persist it.
-            assert(orig == null || orig == modified);
-            if(modified == null)
-               return null;
+        T modified = modifier.createOrModify(orig, apiKeyId);
+        // createOrModify must return passed argument if it is not null
+        // If the passed argument is null and the attempt to parse the
+        // new data into a valid facet fails, createOrModify may return null.
+        // In that case, just don't try to persist it.
+        assert(orig == null || orig == modified);
+        if(modified == null)
+           return null;
 
-            //System.out.println("====== after modify, contained?: " + em.contains(modified));
-            if (orig == null) {
-                // Persist the newly-created facet (and its tags, if any)
-                persistExistingFacet(modified);
-                //System.out.println("====== after persist, contained?: " + em.contains(modified));
-            } else {
-                if (modified.hasTags()) {
-                    persistTags(modified);
-                }
+        //System.out.println("====== after modify, contained?: " + em.contains(modified));
+        if (orig == null) {
+            // Persist the newly-created facet (and its tags, if any)
+            persistExistingFacet(modified);
+            //System.out.println("====== after persist, contained?: " + em.contains(modified));
+        } else {
+            if (modified.hasTags()) {
+                persistTags(modified);
             }
-            assert(em.contains(modified));
-            //System.out.println("========================================");
-            return modified;
-        } catch (Throwable t) {
-            t.printStackTrace();
-            throw new RuntimeException("Couldn't createOrModify facet, orig=" + orig + ", facetClass=" + facetClass);
         }
+        assert(em.contains(modified));
+        //System.out.println("========================================");
+        return modified;
     }
 
     // Each user has a set of all tags.  persistTags makes sure this set of all tags includes the tags

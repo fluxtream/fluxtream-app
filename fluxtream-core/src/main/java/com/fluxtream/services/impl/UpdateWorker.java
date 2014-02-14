@@ -5,6 +5,7 @@ import com.fluxtream.Configuration;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
+import com.fluxtream.connectors.updaters.SettingsAwareAbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.connectors.updaters.UpdateResult;
 import com.fluxtream.domain.ApiKey;
@@ -16,11 +17,11 @@ import com.fluxtream.services.ApiDataService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.NotificationsService;
+import com.fluxtream.services.SettingsService;
 import com.fluxtream.services.SystemService;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -32,11 +33,9 @@ class UpdateWorker implements Runnable {
 
 	FlxLogger logger = FlxLogger.getLogger(UpdateWorker.class);
 
-    @Qualifier("connectorUpdateServiceImpl")
     @Autowired
 	ConnectorUpdateService connectorUpdateService;
 
-    @Qualifier("apiDataServiceImpl")
     @Autowired
 	ApiDataService apiDataService;
 
@@ -48,6 +47,9 @@ class UpdateWorker implements Runnable {
 
     @Autowired
     NotificationsService notificationsService;
+
+    @Autowired
+    SettingsService settingsService;
 
 	@Autowired
 	Configuration env;
@@ -160,6 +162,7 @@ class UpdateWorker implements Runnable {
 
 	private void updateDataHistory(ApiKey apiKey,
 			AbstractUpdater updater) {
+        // TODO: this message should not be displayed when this is called over and over as a result of rate limitations...
         String message = "<img class=\"loading-animation\" src=\"/static/img/loading.gif\"/>You have successfully added a new connector: "
                          + apiKey.getConnector().prettyName()
                          + ". Your data is now being retrieved. "
@@ -173,6 +176,13 @@ class UpdateWorker implements Runnable {
         UpdateInfo updateInfo = UpdateInfo.initialHistoryUpdateInfo(apiKey,
                 task.objectTypes);
         UpdateResult updateResult = updater.updateDataHistory(updateInfo);
+        if (updateResult.getType()== UpdateResult.ResultType.UPDATE_SUCCEEDED
+                && updater instanceof SettingsAwareAbstractUpdater) {
+            final SettingsAwareAbstractUpdater settingsAwareUpdater = (SettingsAwareAbstractUpdater)updater;
+            final Object synchedSettings = settingsAwareUpdater.syncConnectorSettings(updateInfo, settingsService.getConnectorSettings(updateInfo.apiKey.getId()));
+            final Object defaultSettings = settingsAwareUpdater.syncConnectorSettings(updateInfo, null);
+            settingsService.persistConnectorSettings(apiKey.getId(), synchedSettings, defaultSettings);
+        }
         handleUpdateResult(updateInfo, updateResult);
 	}
 
@@ -183,27 +193,52 @@ class UpdateWorker implements Runnable {
                     " connector=" + apiKey.getConnector().getName() + " guestId=" + apiKey.getGuestId());
         UpdateInfo updateInfo = UpdateInfo.IncrementalUpdateInfo(apiKey, task.objectTypes);
         UpdateResult result = updater.updateData(updateInfo);
+        if (result.getType()== UpdateResult.ResultType.UPDATE_SUCCEEDED
+            && updater instanceof SettingsAwareAbstractUpdater) {
+            final SettingsAwareAbstractUpdater settingsAwareUpdater = (SettingsAwareAbstractUpdater)updater;
+            final Object synchedSettings = settingsAwareUpdater.syncConnectorSettings(updateInfo, settingsService.getConnectorSettings(updateInfo.apiKey.getId()));
+            final Object defaultSettings = settingsAwareUpdater.syncConnectorSettings(updateInfo, null);
+            settingsService.persistConnectorSettings(apiKey.getId(), synchedSettings, defaultSettings);
+        }
         handleUpdateResult(updateInfo, result);
     }
 
 	private void handleUpdateResult(final UpdateInfo updateInfo, UpdateResult updateResult) {
         guestService.setApiKeyToSynching(updateInfo.apiKey.getId(), false);
-		switch (updateResult.getType()) {
+        final Connector connector = updateInfo.apiKey.getConnector();
+        String statusName = updateInfo.apiKey.getConnector().statusNotificationName();
+        long guestId=updateInfo.apiKey.getGuestId();
+        Notification notification = null;
+        switch (updateResult.getType()) {
 		case DUPLICATE_UPDATE:
 			duplicateUpdate();
 			break;
+        case NEEDS_REAUTH:
+            notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
+                                                      connector.statusNotificationName(),
+                                                      "Heads Up. Your " + connector.prettyName() + " Authorization Token has expired.<br>" +
+                                                      "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                      "scroll to the " + connector.prettyName() + " section, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+            // ideally we would have an ApiKey.Status specifically for this but STATUS_OVER_RATE_LIMIT is good enough
+            // especially with the accompanying message
+            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_OVER_RATE_LIMIT, connector.getName() + " needs re-auth");
+            break;
 		case HAS_REACHED_RATE_LIMIT:
             final UpdateWorkerTask.AuditTrailEntry rateLimit = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "long reschedule");
             rateLimit.stackTrace = updateResult.stackTrace;
+            // do this only if a notification is visible for that connector at this time
+            notification = notificationsService.getNamedNotification(guestId,statusName);
+            if (notification!=null && notification.deleted==false) {
+                notificationsService.addNamedNotification(guestId, Notification.Type.INFO,
+                                                          statusName,
+                                                          "<i class=\"icon-time\" style=\"margin-right:7px\"/>Import of your " + updateInfo.apiKey.getConnector().getPrettyName() + " data is delayed due to API rate limitations. Please, be patient.");
+            }
 			rescheduleAccordingToQuotaSpecifications(updateInfo, rateLimit);
 			break;
 		case UPDATE_SUCCEEDED:
             // Check for existing status notification
-            long guestId=updateInfo.apiKey.getGuestId();
-            String statusName = updateInfo.apiKey.getConnector().statusNotificationName();
-            Notification notification = notificationsService.getNamedNotification(guestId,statusName);
-            if (updateInfo.getUpdateType()== UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE ||
-                (notification!=null && notification.deleted==false)) {
+            notification = notificationsService.getNamedNotification(guestId,statusName);
+            if (notification!=null && notification.deleted==false) {
                 // This is either an initial history update or there's an existing visible status notification.
                 // Update the notification to show the update succeeded.
                 notificationsService.addNamedNotification(guestId, Notification.Type.INFO,
@@ -234,8 +269,8 @@ class UpdateWorker implements Runnable {
             }
             if (updateInfo.getUpdateType()== UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE)
                 notificationsService.addNamedNotification(updateInfo.apiKey.getGuestId(), Notification.Type.ERROR,
-                                                          updateInfo.apiKey.getConnector().statusNotificationName(),
-                                                          "<i class=\"icon-remove-sign\" style=\"color:red;margin-right:7px\"/>There was a problem while importing your " + updateInfo.apiKey.getConnector().getPrettyName() + " data. We will try again later.  " +
+                                                          connector.statusNotificationName(),
+                                                          "<i class=\"icon-remove-sign\" style=\"color:red;margin-right:7px\"/>There was a problem while importing your " + connector.getPrettyName() + " data. We will try again later.  " +
                                                           "See <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a> dialog for details."
                 );
 			break;

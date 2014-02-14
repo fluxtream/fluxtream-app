@@ -617,11 +617,6 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 		return msgs;
 	}
 
-    @Override
-    public Object createOrRefreshSettings(final ApiKey apiKey) throws UpdateFailedException {
-        return getSettingsOrPortLegacySettings(apiKey);
-    }
-
     private SmsBackupSettings getSettingsOrPortLegacySettings(final ApiKey apiKey){
         SmsBackupSettings settings = (SmsBackupSettings)apiKey.getSettings();
         boolean persistSettings = false;
@@ -663,6 +658,15 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
         if (persistSettings){
             settingsService.saveConnectorSettings(apiKey.getId(),settings);
         }
+        return settings;
+    }
+
+    @Override
+    public void connectorSettingsChanged(final long apiKeyId, final Object settings) {
+    }
+
+    @Override
+    public Object syncConnectorSettings(final UpdateInfo updateInfo, final Object settings) {
         return settings;
     }
 }

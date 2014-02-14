@@ -85,4 +85,7 @@ public class TimespanSegment<T> implements Comparable<TimespanSegment>{
         System.out.println(london.getRawOffset()==dublin.getRawOffset());
     }
 
+    public void setStart(final long start) {
+        this.start = start;
+    }
 }

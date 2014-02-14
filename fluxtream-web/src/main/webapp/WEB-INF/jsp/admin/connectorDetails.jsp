@@ -20,12 +20,14 @@
     ApiKey apiKey = (ApiKey)request.getAttribute("apiKey");
     Map<String,String> attributes = (Map<String,String>)request.getAttribute("attributes");
     List<String> liveServerUUIDs = (List<String>) request.getAttribute("liveServerUUIDs");
+
     final int[] values = apiKey.getConnector().objectTypeValues();
     final List<Integer> connectorObjectTypes = new ArrayList<Integer>();
     for (int value : values)
         connectorObjectTypes.add(value);
     String errors = (String) connectorInstanceModel.get("auditTrail");
 %>
+<jsp:include page="editAttributesScript.jsp"></jsp:include>
 
 <h3><%=guest.getGuestName()%>/<%=apiKey.getConnector().prettyName()%>
     <% if (connectorInstanceModel.get("status").equals("STATUS_PERMANENT_FAILURE")) { %>
@@ -40,6 +42,18 @@
     <a class="btn btn-link" style="vertical-align: bottom" href="/admin/<%=apiKey.getGuestId()%>/<%=apiKey.getId()%>/setToPermanentFail">Set to permanent fail</a>
     <% } %>
 </h3>
+
+
+<div class="well">
+    <% Set<Map.Entry<String,String>> attributeEntries = attributes.entrySet();
+        for (Map.Entry<String,String> attributeEntry : attributeEntries) {%>
+    <%=attributeEntry.getKey()%> : <%=attributeEntry.getValue()%>
+    <a onclick="editApiKeyAttributeValue(<%=apiKey.getId()%>, '<%=attributeEntry.getKey()%>', '<%=attributeEntry.getValue()%>')"><i class="icon icon-pencil"></i></a>
+    <a onclick="deleteApiKeyAttributeValue(<%=apiKey.getId()%>, '<%=attributeEntry.getKey()%>')"><i class="icon icon-trash"></i></a>
+    <br>
+    <% } %>
+    <a onclick="addApiKeyAttribute(<%=apiKey.getId()%>)"><i class="icon icon-plus"></i>&nbsp;add attribute</a>
+</div>
 
 
 <h4>Force Update <small> - the type of update (history vs incremental) will depend on the type and

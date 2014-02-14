@@ -38,23 +38,23 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.2.1</version>
                 <executions>
-                    <execution>
-                        <phase>generate-resources</phase>
-                        <id>js</id>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>node</executable>
-                                <arguments>
-                                <argument>r.js</argument>
-                                <argument>-o</argument>
-                                <argument>name=main</argument>
-                                <argument>out=src/main/webapp/js/main-built.js</argument>
-                                <argument>baseUrl=src/main/webapp/js/</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
+                    <!--<execution>-->
+                        <!--<phase>generate-resources</phase>-->
+                        <!--<id>js</id>-->
+                        <!--<goals>-->
+                            <!--<goal>exec</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<executable>node</executable>-->
+                                <!--<arguments>-->
+                                <!--<argument>r.js</argument>-->
+                                <!--<argument>-o</argument>-->
+                                <!--<argument>name=main</argument>-->
+                                <!--<argument>out=src/main/webapp/js/main-built.js</argument>-->
+                                <!--<argument>baseUrl=src/main/webapp/js/</argument>-->
+                            <!--</arguments>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
                     <execution>
                         <phase>generate-resources</phase>
                         <goals>

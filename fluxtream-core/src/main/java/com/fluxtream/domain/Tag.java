@@ -1,6 +1,5 @@
 package com.fluxtream.domain;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.Entity;
@@ -106,6 +105,7 @@ public class Tag extends AbstractEntity {
     }
 
     /**
+     *
      * Parses the given {@link String} of tags, delimited by the given <code>delimiter</code>, and returns them as a
      * {@link Set} of {@link String} objects.  Characters which are considered "illegal" within our system are replaced
      * with an underscore. Characters we consider legal are numbers, letters, space, dash, and underscore.

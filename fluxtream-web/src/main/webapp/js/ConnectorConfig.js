@@ -17,6 +17,151 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             clockOutline: false,
             facets: {}
         },
+        evernote:{
+            hasGeneralSettings: true,
+            hasTimelineSettings: true,
+            color: "rgb(130, 182, 82)",
+            applySettings: function(facet, connectorSettings) {
+                if (typeof(connectorSettings)=="undefined")
+                    console.log("warning: no connector settings");
+                else if (typeof(facet.apiKeyId)=="undefined")
+                    console.log("warning: no apiKeyId associated with this facet: " + facet.type);
+                else if (typeof(connectorSettings[facet.apiKeyId])=="undefined")
+                    console.log("warning: no connector settings are associated with apiKeyId " + facet.apiKeyId);
+                else {
+                    var settings = connectorSettings[facet.apiKeyId];
+                    if (typeof(settings)!="undefined") {
+                        for (var i=0; i<settings.notebooks.length; i++) {
+                            if (settings.notebooks[i].guid==facet.notebookGuid) {
+                                var notebookSettings = settings.notebooks[i];
+                                facet.color = notebookSettings.backgroundColor;
+                                facet.notebook = notebookSettings.name;
+                            }
+                        }
+                        if (facet.tagGuids!=null && facet.tagGuids.length>0) {
+                            facet.evernoteTags = [];
+                            for (var i=0; i<facet.tagGuids.length;i++) {
+                                var evernoteTag = settings.tags[facet.tagGuids[i]];
+                                facet.evernoteTags.push(evernoteTag);
+                            }
+                        }
+                    }
+                }
+            },
+            isFilteredOut: function(facet, connectorSettings) {
+                var settings = connectorSettings[facet.apiKeyId];
+                if (typeof(settings)!="undefined") {
+                    for (var i=0; i<settings.notebooks.length; i++) {
+                        if (settings.notebooks[i].guid==facet.notebookGuid&&settings.notebooks[i].hidden) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            },
+            mapicon: {
+                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/evernote.png",
+                size: new google.maps.Size(32,37)
+            },
+            facets:{
+                note:{
+                    list:true,
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: ClockConfig.AT_HOME_CATEGORY
+                },
+                photo:{
+                    list:false,
+                    photos: true,
+                    map: false,
+                    gps: false,
+                    clock: null
+                },
+                notebook:{
+                    list:false,
+                    photos: false,
+                    map: false,
+                    gps: false,
+                    clock: null
+                },
+                resource:{
+                    list:false,
+                    photos: false,
+                    map: false,
+                    gps: false,
+                    clock: null
+                },
+                tag:{
+                    list:false,
+                    photos: false,
+                    map: false,
+                    gps: false,
+                    clock: null
+                },
+                location:{
+                    list:false,
+                    photos: false,
+                    map: true,
+                    gps: true,
+                    clock: null
+                }
+            }
+        },
+        up:{
+            hasTimelineSettings: true,
+            device_name: "JawboneUP",
+            color: "#000",
+            mapicon: {
+                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/aed-2.png",
+                size: new google.maps.Size(32,37)
+            },
+            mapshadow: null,
+            facets:{
+                meal:{
+                    list: true,
+                    photos: false,
+                    map: false,
+                    gps: false,
+                    clock: ClockConfig.BODY_CATEGORY
+                },
+                moves:{
+                    list: true,
+                    photos: false,
+                    map: false,
+                    gps: false,
+                    clock: null
+                },
+                sleep:{
+                    list: true,
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: ClockConfig.BODY_CATEGORY
+                },
+                workout:{
+                    list: true,
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: ClockConfig.BODY_CATEGORY
+                },
+                location:{
+                    list:false,
+                    photos: false,
+                    map: true,
+                    gps: true,
+                    clock: null
+                },
+                serving:{
+                    list:false,
+                    photos: true,
+                    map: false,
+                    gps: false,
+                    clock: null
+                }
+            }
+        },
         fitbit:{
             hasTimelineSettings: true,
             device_name: "Fitbit",
@@ -442,7 +587,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         fluxtream_capture:{
             hasTimelineSettings: true,
             device_name:"FluxtreamCapture",
-            filterLabel: "FluxtreamCap",
+            filterLabel: "Fluxtream",
             color: "rgb(204, 204, 204)",
             facets: {
                 photo:{
