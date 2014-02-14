@@ -61,6 +61,15 @@ public class Connector {
     }
 
     private int[] deleteOrder;
+    private Class<? extends SharedConnectorFilter> sharedConnectorFilterClass;
+
+    public Class<? extends SharedConnectorFilter> sharedConnectorFilterClass() {
+        return sharedConnectorFilterClass;
+    }
+
+    public boolean supportsFiltering() {
+        return this.sharedConnectorFilterClass != DefaultSharedConnectorFilter.class;
+    }
 
     public String toString() {
         String string = "{name:" + name;
@@ -130,6 +139,7 @@ public class Connector {
                 .updateStrategyType();
         connector.hasFacets = updaterAnnotation.hasFacets();
         connector.name = connectorName;
+        connector.sharedConnectorFilterClass = updaterAnnotation.sharedConnectorFilter();
         connector.deleteOrder = updaterAnnotation.deleteOrder();
         // set connectors' object types
         Class<? extends AbstractFacet>[] facetTypes = updaterAnnotation

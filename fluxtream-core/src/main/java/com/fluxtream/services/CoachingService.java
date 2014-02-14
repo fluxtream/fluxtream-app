@@ -1,6 +1,7 @@
 package com.fluxtream.services;
 
 import java.util.List;
+import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
 
@@ -29,5 +30,7 @@ public interface CoachingService {
     public CoachingBuddy getCoachee(long guestId, String username);
 
     public CoachingBuddy getCoachee(long guestId, long coacheeId);
+
+    public List<AbstractFacet> filterFacets(long vieweeId, long apiKeyId, List<AbstractFacet> facets);
 
 }

@@ -5,6 +5,10 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.SharedConnectorFilter;
+import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.SharedConnector;
@@ -154,4 +158,35 @@ public class CoachingServiceImpl implements CoachingService {
                                                                 coacheeId, guestId);
         return coachingBuddy;
     }
+
+    @Override
+    public List<AbstractFacet> filterFacets(final long vieweeId, final long apiKeyId, final List<AbstractFacet> facets) {
+        final ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        final Connector connector = apiKey.getConnector();
+        if (!connector.supportsFiltering())
+            return facets;
+        else {
+            // retrieve SharedConnector instance;
+            SharedConnector sharedConnector = getSharedConnector(vieweeId, apiKey);
+            if (sharedConnector!=null) {
+                final SharedConnectorFilter sharedConnectorFilter;
+                try {
+                    sharedConnectorFilter = connector.sharedConnectorFilterClass().newInstance();
+                    return sharedConnectorFilter.filterFacets(sharedConnector, facets);
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return facets;
+    }
+
+    private SharedConnector getSharedConnector(final long vieweeId, final ApiKey apiKey) {
+        final SharedConnector sconn = JPAUtils.findUnique(em, SharedConnector.class,
+                                                            "sharedConnector.byConnectorNameAndVieweeId",
+                                                                apiKey.getConnector().getName(), vieweeId);
+        return sconn;
+    }
+
 }

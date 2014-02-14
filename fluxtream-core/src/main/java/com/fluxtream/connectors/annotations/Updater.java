@@ -5,6 +5,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import com.fluxtream.connectors.Connector.UpdateStrategyType;
+import com.fluxtream.connectors.DefaultSharedConnectorFilter;
+import com.fluxtream.connectors.SharedConnectorFilter;
 import com.fluxtream.connectors.bodytrackResponders.AbstractBodytrackResponder;
 import com.fluxtream.connectors.bodytrackResponders.DefaultBodytrackResponder;
 import com.fluxtream.domain.AbstractFacet;
@@ -39,5 +41,7 @@ public @interface Updater {
     public Class<? extends AbstractBodytrackResponder> bodytrackResponder() default DefaultBodytrackResponder.class;
 
     public int[] deleteOrder() default {-1};
+
+    public Class<? extends SharedConnectorFilter> sharedConnectorFilter() default DefaultSharedConnectorFilter.class;
 
 }
