@@ -236,7 +236,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
                                                                facet.start = facet.dateReceived.getTime();
                                                                facet.end = facet.start;
                                                                Object content = message.getContent();
-                                                               facet.hasAttachment = false;
+                                                               facet.hasAttachments = false;
                                                                if (content instanceof String)
                                                                    facet.message = (String) message.getContent();
                                                                else if (content instanceof MimeMultipart) {//TODO: this is an MMS and needs to be handled properly
@@ -247,27 +247,29 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
                                                                        MimeBodyPart part = (MimeBodyPart) multipart.getBodyPart(i);
                                                                        String contentType = part.getContentType().split(";")[0].toLowerCase();
                                                                        Object partContent = part.getContent();
-                                                                       if (contentType.startsWith("image")){
-                                                                           if (facet.hasAttachment){
-                                                                               throw new Exception("Can't handle multiple attachments");
-                                                                           }
-                                                                           facet.hasAttachment = true;
-                                                                           facet.attachmentMimeType = contentType;
-                                                                           facet.attachmentName = (emailId + i).replaceAll("\\W+","");
-                                                                           File attachmentFile = getAttachmentFile(updateInfo.getGuestId(),updateInfo.apiKey.getId(),facet.attachmentName);
-                                                                           attachmentFile.getParentFile().mkdirs();
-                                                                           FileOutputStream fileoutput = new FileOutputStream(attachmentFile);
-                                                                           IOUtils.copy((BASE64DecoderStream) partContent, fileoutput);
-                                                                           fileoutput.close();
-                                                                       }
-                                                                       else if (contentType.startsWith("text")){
+                                                                       if (contentType.startsWith("text")){
                                                                             if (!facet.message.equals("")){
-                                                                                throw new Exception("Multiple text parts existed!");
+                                                                                facet.message += "\n\n";
                                                                             }
                                                                            facet.message = (String) partContent;
                                                                        }
                                                                        else{
-                                                                           throw new Exception("Unsupported attachment type: " + contentType);
+                                                                           if (!facet.hasAttachments){
+                                                                               facet.hasAttachments = true;
+                                                                               facet.attachmentMimeTypes = contentType;
+                                                                               facet.attachmentNames = (emailId + i).replaceAll("\\W+","");
+                                                                           }
+                                                                           else{
+                                                                               facet.attachmentMimeTypes += "," + contentType;
+                                                                               facet.attachmentNames += "," + (emailId + i).replaceAll("\\W+","");
+
+                                                                           }
+
+                                                                           File attachmentFile = getAttachmentFile(updateInfo.getGuestId(),updateInfo.apiKey.getId(),(emailId + i).replaceAll("\\W+",""));
+                                                                           attachmentFile.getParentFile().mkdirs();
+                                                                           FileOutputStream fileoutput = new FileOutputStream(attachmentFile);
+                                                                           IOUtils.copy((BASE64DecoderStream) partContent, fileoutput);
+                                                                           fileoutput.close();
                                                                        }
                                                                    }
                                                                }
