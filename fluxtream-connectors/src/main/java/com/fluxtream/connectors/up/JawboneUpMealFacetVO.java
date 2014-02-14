@@ -43,7 +43,7 @@ public class JawboneUpMealFacetVO extends AbstractFacetVO<JawboneUpMealFacet> {
         endTime = new TimeOfDayVO(endMinute, true);
 
         JSONArray servingsArray = new JSONArray();
-        for (JawboneUpServingFacet serving : facet.servings) {
+        for (JawboneUpServingFacet serving : facet.getServings()) {
             JSONObject servingJSON = JSONObject.fromObject(serving.servingDetails);
             if (servingJSON.has("image")&&!servingJSON.getString("image").equals(""))
                 servingJSON.put("image", JawboneUpVOHelper.getImageURL(servingJSON.getString("image"), facet, settings.config));

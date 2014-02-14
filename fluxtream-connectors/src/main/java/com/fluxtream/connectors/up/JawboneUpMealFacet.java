@@ -1,5 +1,6 @@
 package com.fluxtream.connectors.up;
 
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -29,6 +30,17 @@ public class JawboneUpMealFacet extends JawboneUpGeoFacet {
     public JawboneUpMealFacet(long apiKeyId){super(apiKeyId);}
 
     @OneToMany(mappedBy = "meal", orphanRemoval = true, fetch= FetchType.EAGER, cascade= CascadeType.ALL)
-    List<JawboneUpServingFacet> servings;
+    private List<JawboneUpServingFacet> servings;
+
+    public void setServings(List<JawboneUpServingFacet> aSet) {
+        if (servings==null)
+            servings = new ArrayList<JawboneUpServingFacet>();
+        this.servings.clear();
+        this.servings.addAll(aSet);
+    }
+
+    public List<JawboneUpServingFacet> getServings() {
+        return servings;
+    }
 
 }

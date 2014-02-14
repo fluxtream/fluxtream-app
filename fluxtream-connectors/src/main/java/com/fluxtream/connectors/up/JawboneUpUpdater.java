@@ -54,7 +54,7 @@ import org.springframework.stereotype.Component;
 @Updater(prettyName = "Jawbone_UP", value = 1999, objectTypes = {LocationFacet.class, JawboneUpMovesFacet.class,
                                                                  JawboneUpSleepFacet.class, JawboneUpMealFacet.class,
                                                                  JawboneUpServingFacet.class, JawboneUpWorkoutFacet.class},
-         defaultChannels = {"Jawbone_UP.serving", "Jawbone_UP.movesIntensity", "Jawbone_UP.sleepPhases"},
+         defaultChannels = {"Jawbone_UP.intensity", "Jawbone_UP.sleep"},
          deleteOrder= {1, 2, 4, 8, 32, 16}, bodytrackResponder = JawboneUpBodytrackResponder.class)
 public class JawboneUpUpdater extends AbstractUpdater {
 
@@ -597,7 +597,6 @@ public class JawboneUpUpdater extends AbstractUpdater {
                     // now fetch the servings for this meal...
                     final String servingsJSONStr = callJawboneAPI(updateInfo, "https://jawbone.com/nudge/api/v.1.0/meals/" + xid);
                     JSONObject servingsJSON = JSONObject.fromObject(servingsJSONStr);
-                    // we are only interested in the serving items
                     JSONObject data = servingsJSON.getJSONObject("data");
                     JSONObject itemsObject = data.getJSONObject("items");
                     JSONArray items = itemsObject.getJSONArray("items");
@@ -608,7 +607,7 @@ public class JawboneUpUpdater extends AbstractUpdater {
                         final JawboneUpServingFacet servingFacet = createOrUpdateServingFacet(servingJSON, updateInfo, facet);
                         servingFacets.add(servingFacet);
                     }
-                    facet.servings = servingFacets;
+                    facet.setServings(servingFacets);
                     return facet;
                 } catch (Throwable t) {
                     logger.warn("could not import a Jawbone UP meal record: " + t.getMessage());
