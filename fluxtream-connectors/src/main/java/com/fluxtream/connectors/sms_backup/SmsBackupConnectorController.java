@@ -16,6 +16,7 @@ import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SettingsService;
+import com.fluxtream.utils.ImageUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -34,13 +35,20 @@ public class SmsBackupConnectorController {
     @RequestMapping(value="/attachment/{apiKeyId}/{fileName}")
     public void getAttachment(@PathVariable("apiKeyId") long apiKeyId,
                             @PathVariable("fileName") String fileName,
+                            @RequestParam("s") Integer maxSideLength,
                             HttpServletResponse response) throws IOException, CoachRevokedException {
         File file = SmsBackupUpdater.getAttachmentFile(env.targetEnvironmentProps.getString("btdatastore.db.location"),
                                             AuthHelper.getVieweeId(), apiKeyId,fileName);
         if (!file.exists()){
             response.sendError(404);
         }
-        IOUtils.copy(new FileInputStream(file), response.getOutputStream());
+        if (maxSideLength == null){
+            IOUtils.copy(new FileInputStream(file), response.getOutputStream());
+        }
+        else{     //TODO: make sure we actually have a photo
+            byte[] photoData = IOUtils.toByteArray(new FileInputStream(file));
+            IOUtils.write(ImageUtils.createJpegThumbnail(photoData,maxSideLength).getBytes(),response.getOutputStream());
+        }
 
     }
 
