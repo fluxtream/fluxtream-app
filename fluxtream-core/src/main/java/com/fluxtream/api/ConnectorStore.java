@@ -42,7 +42,10 @@ import com.google.gson.GsonBuilder;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.annotate.JsonAutoDetect;
+import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.BeanFactory;
@@ -70,11 +73,9 @@ public class ConnectorStore {
     @Autowired
     SettingsService settingsService;
 
-    @Qualifier("connectorUpdateServiceImpl")
     @Autowired
     ConnectorUpdateService connectorUpdateService;
 
-    @Qualifier("apiDataServiceImpl")
     @Autowired
     private ApiDataService apiDataService;
 
@@ -91,6 +92,8 @@ public class ConnectorStore {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(UpdateInfo.class, new UpdateInfoSerializer());
         gson = gsonBuilder.create();
+        mapper.setVisibility(JsonMethod.FIELD, JsonAutoDetect.Visibility.ANY);
+        mapper.configure(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS, false);
     }
 
     @POST
