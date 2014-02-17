@@ -7,6 +7,6 @@ import java.io.Serializable;
  */
 public class SmsBackupSettings implements Serializable {
 
-    String callLogFolderName;
-    String smsFolderName;
+    public String callLogFolderName;
+    public String smsFolderName;
 }
