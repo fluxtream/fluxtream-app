@@ -16,7 +16,7 @@ public class NotificationModel {
 		this.type = notification.type.name().toLowerCase();
 		this.id = notification.getId();
         this.repeated = notification.repeated;
-        this.time = ISODateTimeFormat.dateHourMinuteSecond().print(notification.ts);
+        this.time = ISODateTimeFormat.dateHourMinuteSecond().withZoneUTC().print(notification.ts)+"Z";
     }
-	
+
 }

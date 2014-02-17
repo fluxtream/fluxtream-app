@@ -38,4 +38,6 @@ public @interface Updater {
 
     public Class<? extends AbstractBodytrackResponder> bodytrackResponder() default DefaultBodytrackResponder.class;
 
+    public int[] deleteOrder() default {-1};
+
 }

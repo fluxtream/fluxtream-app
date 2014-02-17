@@ -18,5 +18,10 @@
             <artifactId>junit</artifactId>
             <version>4.9</version>
         </dependency>
+        <dependency>
+            <groupId>com.syncthemall</groupId>
+            <artifactId>enml4j</artifactId>
+            <version>0.2.1</version>
+        </dependency>
     </dependencies>
 </project>

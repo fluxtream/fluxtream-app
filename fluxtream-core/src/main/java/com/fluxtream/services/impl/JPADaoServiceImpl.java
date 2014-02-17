@@ -83,8 +83,14 @@ public class JPADaoServiceImpl implements JPADaoService {
 	}
 
     @Override
-    public int execute(final String jpql) {
+    @Transactional(readOnly=false)
+    public int execute(final String jpql, Object... params) {
         Query query = em.createQuery(jpql);
+        int i=1;
+        for (Object param : params) {
+            query.setParameter(i, param);
+            i++;
+        }
         return query.executeUpdate();
     }
 
@@ -110,22 +116,11 @@ public class JPADaoServiceImpl implements JPADaoService {
     public List executeNativeQuery(final String s, Object... params) {
         final Query query = em.createNativeQuery(s);
         int i=1;
-        for (Object param : params)
-            query.setParameter(i++, param);
+        for (Object param : params) {
+            query.setParameter(i, param);
+            i++;
+        }
         return query.getResultList();
     }
-
-    @Override
-	@Transactional(readOnly=false)
-	public void persist(Object o) {
-		em.persist(o);
-	}
-
-	@Override
-	@Transactional(readOnly=false)
-	public void remove(Class<?> clazz, long id) {
-		Object o = em.find(clazz, id);
-		em.remove(o);
-	}
 
 }

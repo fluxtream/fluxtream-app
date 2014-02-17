@@ -178,12 +178,36 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
     }
 
     private void updateStartDate(UpdateInfo updateInfo, ObjectType ot, Date updateProgressTime){
-        updateStartDate(updateInfo,ot,updateProgressTime.getTime());
+        updateStartDate(updateInfo, ot, updateProgressTime.getTime());
     }
 
 
-	private AbstractFacet flushEntry(final UpdateInfo updateInfo, final String username, final Message message, Class type) throws Exception {
-        final String emailId = message.getHeader("Message-ID")[0] + message.getHeader("X-smssync-id")[0];
+	private AbstractFacet flushEntry(final UpdateInfo updateInfo, final String username, final Message message, Class type) throws Exception{
+        final String messageId;
+        final String smsBackupId;
+        final String smsBackupAddress;
+        if (message.getHeader("Message-ID") != null){
+            messageId = message.getHeader("Message-ID")[0];
+        }
+        else if (message.getHeader("X-smssync-date") != null){
+            messageId = message.getHeader("X-smssync-date")[0];
+        }
+        else{
+            messageId = message.getHeader("X-backup2gmail-sms-date")[0];
+        }
+        if (message.getHeader("X-smssync-id") != null){
+            smsBackupId = message.getHeader("X-smssync-id")[0];
+        }
+        else{
+            smsBackupId = message.getHeader("X-backup2gmail-sms-id")[0];
+        }
+        if (message.getHeader("X-smssync-address") != null){
+            smsBackupAddress = message.getHeader("X-smssync-address")[0];
+        }
+        else{
+            smsBackupAddress = message.getHeader("X-backup2gmail-sms-address")[0];
+        }
+        final String emailId = messageId + smsBackupId;
         if (type == SmsEntryFacet.class){
             return apiDataService.createOrReadModifyWrite(SmsEntryFacet.class,
                                                    new FacetQuery(
@@ -227,7 +251,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
                                                                    facet.smsType = SmsEntryFacet.SmsType.OUTGOING;
                                                                    if (recipientsMissing){
                                                                        facet.personName = toAddress;
-                                                                       facet.personNumber = message.getHeader("X-smssync-address")[0];
+                                                                       facet.personNumber = smsBackupAddress;
                                                                    }
                                                                    else if (toAddress.indexOf("unknown.email")!=-1) {
                                                                        facet.personName = recipients[0].getPersonal();
@@ -235,13 +259,13 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
                                                                    }
                                                                    else {
                                                                        facet.personName = recipients[0].getPersonal();
-                                                                       facet.personNumber = message.getHeader("X-smssync-address")[0];
+                                                                       facet.personNumber = smsBackupAddress;
                                                                    }
                                                                }else {
                                                                    facet.smsType = SmsEntryFacet.SmsType.INCOMING;
                                                                    if (senderMissing){
                                                                        facet.personName = fromAddress;
-                                                                       facet.personNumber = message.getHeader("X-smssync-address")[0];
+                                                                       facet.personNumber = smsBackupAddress;
                                                                    }
                                                                    else if (fromAddress.indexOf("unknown.email")!=-1) {
                                                                        facet.personName = senders[0].getPersonal();
@@ -249,7 +273,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
                                                                    }
                                                                    else {
                                                                        facet.personName = senders[0].getPersonal();
-                                                                       facet.personNumber = message.getHeader("X-smssync-address")[0];
+                                                                       facet.personNumber = smsBackupAddress;
                                                                    }
                                                                }
                                                                facet.dateReceived = message.getReceivedDate();
@@ -647,11 +671,6 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 		return msgs;
 	}
 
-    @Override
-    public Object createOrRefreshSettings(final ApiKey apiKey) throws UpdateFailedException {
-        return getSettingsOrPortLegacySettings(apiKey);
-    }
-
     private SmsBackupSettings getSettingsOrPortLegacySettings(final ApiKey apiKey){
         SmsBackupSettings settings = (SmsBackupSettings)apiKey.getSettings();
         boolean persistSettings = false;
@@ -693,6 +712,15 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
         if (persistSettings){
             settingsService.saveConnectorSettings(apiKey.getId(),settings);
         }
+        return settings;
+    }
+
+    @Override
+    public void connectorSettingsChanged(final long apiKeyId, final Object settings) {
+    }
+
+    @Override
+    public Object syncConnectorSettings(final UpdateInfo updateInfo, final Object settings) {
         return settings;
     }
 }

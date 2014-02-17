@@ -43,6 +43,7 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
 
     private static final FlxLogger logger = FlxLogger.getLogger(GoogleCalendarUpdater.class);
     private final String LAST_TIME_WE_CHECKED_FOR_UPDATED_EVENTS_ATT = "lastTimeWeCheckedForUpdatedEvents";
+    private final String REMOTE_CALLENDARS_KEY = "remoteCalendars";
 
     @Autowired
     JPADaoService jpaDaoService;
@@ -118,11 +119,8 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
         channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
         channelStyle.timespanStyles.values = new HashMap();
 
-        GoogleCalendarConnectorSettings connectorSettings = null;
-        try {
-            connectorSettings =
-                    (GoogleCalendarConnectorSettings)settingsService.getConnectorSettings(apiKey.getId(), false);
-        } catch (UpdateFailedException e) { }
+        GoogleCalendarConnectorSettings connectorSettings =
+                (GoogleCalendarConnectorSettings)settingsService.getConnectorSettings(apiKey.getId());
         int n = calendarConfigs.size();
         if (connectorSettings!=null) {
             n = 0;
@@ -156,7 +154,7 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
         Calendar calendar = getCalendar(updateInfo.apiKey);
         String pageToken = null;
         long apiKeyId = updateInfo.apiKey.getId();
-        settingsService.getConnectorSettings(updateInfo.apiKey.getId(), true);
+        settingsService.getConnectorSettings(updateInfo.apiKey.getId());
         List<String> existingCalendarIds = getExistingCalendarIds(apiKeyId);
         List<CalendarListEntry> remoteCalendars = new ArrayList<CalendarListEntry>();
         List<CalendarConfig> configs = new ArrayList<CalendarConfig>();
@@ -182,6 +180,9 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
             pageToken = calendarList.getNextPageToken();
         } while (pageToken != null);
         initChannelMapping(updateInfo.apiKey, configs);
+
+        updateInfo.setContext(REMOTE_CALLENDARS_KEY, remoteCalendars);
+
         for (CalendarListEntry remoteCalendar : remoteCalendars)
             loadCalendarHistory(calendar, remoteCalendar, updateInfo, incremental);
         deleteCalendars(apiKeyId, existingCalendarIds);
@@ -304,13 +305,13 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
         } while (pageToken != null);
     }
 
-    private void storeEvents(final UpdateInfo updateInfo, final CalendarListEntry calendarEntry, final List<Event> eventList) {
+    private void storeEvents(final UpdateInfo updateInfo, final CalendarListEntry calendarEntry, final List<Event> eventList) throws Exception {
         for (final Event event : eventList) {
             createOrUpdateEvent(updateInfo, calendarEntry, event);
         }
     }
 
-    private void createOrUpdateEvent(final UpdateInfo updateInfo, final CalendarListEntry calendarEntry, final Event event) {
+    private void createOrUpdateEvent(final UpdateInfo updateInfo, final CalendarListEntry calendarEntry, final Event event) throws Exception {
         if (event.getStatus().equalsIgnoreCase("cancelled")) {
             System.out.println("event " + event.getSummary() + "/" + event.getDescription() + " was canceled");
             final int deleted = jpaDaoService.execute(String.format("DELETE FROM Facet_GoogleCalendarEvent facet WHERE " +
@@ -380,79 +381,30 @@ public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
     }
 
     @Override
-    public Object createOrRefreshSettings(final ApiKey apiKey) throws UpdateFailedException {
-        GoogleCalendarConnectorSettings settings = (GoogleCalendarConnectorSettings)apiKey.getSettings();
-        if (settings==null)
-            settings = new GoogleCalendarConnectorSettings();
-        refreshSettings(apiKey, settings);
+    public Object syncConnectorSettings(final UpdateInfo updateInfo, Object s) {
+        GoogleCalendarConnectorSettings settings = s == null
+                                                 ? new GoogleCalendarConnectorSettings()
+                                                 : (GoogleCalendarConnectorSettings) s;
+        final List<CalendarListEntry> items = (List<CalendarListEntry>)updateInfo.getContext(REMOTE_CALLENDARS_KEY);
+        final List<CalendarConfig> configs = new ArrayList<CalendarConfig>();
+        for (CalendarListEntry calendarListEntry : items) {
+            final String calendarId = calendarListEntry.getId();
+            CalendarConfig config = settings.getCalendar(calendarId);
+            if (config==null) {
+                config = entry2Config(calendarListEntry);
+                settings.addCalendarConfig(config);
+            } else {
+                config.foregroundColor = calendarListEntry.getForegroundColor();
+                config.backgroundColor = calendarListEntry.getBackgroundColor();
+                config.summary = calendarListEntry.getSummary();
+                config.summaryOverride = calendarListEntry.getSummaryOverride();
+                config.description = calendarListEntry.getDescription();
+                config.primary = calendarListEntry.getPrimary()!=null?calendarListEntry.getPrimary():false;
+            }
+            configs.add(config);
+        }
+        initChannelMapping(updateInfo.apiKey, configs);
         return settings;
-    }
-
-    private void refreshSettings(final ApiKey apiKey, final GoogleCalendarConnectorSettings settings)
-        throws UpdateFailedException {
-        final Calendar calendar = getCalendar(apiKey);
-        final Calendar.CalendarList calendarList = calendar.calendarList();
-        final long then = System.currentTimeMillis();
-        try {
-            final Calendar.CalendarList.List calendarListCall = calendarList.list();
-            final String uriTemplate = calendarListCall.getUriTemplate();
-            CalendarList list = null;
-            try {
-                list = calendarListCall.execute();
-                countSuccessfulApiCall(apiKey, 0xffffff, then, uriTemplate);
-            } catch (com.google.api.client.googleapis.json.GoogleJsonResponseException e) {
-                // Get status code
-                int statusCode = e.getStatusCode();
-                // Check for permanent failure or not
-                boolean errorIsPermanent = false;
-
-                if(statusCode == 401) { // Unauthorized
-                    errorIsPermanent = true;
-                }
-
-                if(errorIsPermanent) {
-                    logger.warn("component=background_updates action=GoogleCalendarUpdater.refreshSettings" +
-                                " connector=" + apiKey.getConnector().getName() + " guestId=" + apiKey.getGuestId() + " status=permanentFailure"+
-                                " error=<![CDATA[" + e.getMessage() + "]]> "
-                    );
-                    // Notify the user that the tokens need to be manually renewed
-                    notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
-                                                              "Heads Up. Your Google Calendar connector has suffered a permanent authentication failure.<br>" +
-                                                              "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
-                                                              "scroll to the Google Calendar connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
-
-                    // Throwing the UpdateFailedException with isPermanent set to true
-                    // will mark this connector as permenently failed
-                }
-                throw new UpdateFailedException("GoogleCalendar refreshSettings failed", e, errorIsPermanent);
-            } catch (Throwable t) {
-                countFailedApiCall(apiKey, 0xffffff, then, uriTemplate, ExceptionUtils.getStackTrace(t),
-                                   calendarListCall.getLastStatusCode(), calendarListCall.getLastStatusMessage());
-                throw new UpdateFailedException("GoogleCalendar refreshSettings failed", t);
-            }
-            final List<CalendarListEntry> items = list.getItems();
-            final List<CalendarConfig> configs = new ArrayList<CalendarConfig>();
-            for (CalendarListEntry calendarListEntry : items) {
-                final String calendarId = calendarListEntry.getId();
-                CalendarConfig config = settings.getCalendar(calendarId);
-                if (config==null) {
-                    config = entry2Config(calendarListEntry);
-                    settings.addCalendarConfig(config);
-                } else {
-                    config.foregroundColor = calendarListEntry.getForegroundColor();
-                    config.backgroundColor = calendarListEntry.getBackgroundColor();
-                    config.summary = calendarListEntry.getSummary();
-                    config.summaryOverride = calendarListEntry.getSummaryOverride();
-                    config.description = calendarListEntry.getDescription();
-                    config.primary = calendarListEntry.getPrimary()!=null?calendarListEntry.getPrimary():false;
-                }
-                configs.add(config);
-            }
-            initChannelMapping(apiKey, configs);
-        }
-        catch (IOException e) {
-            throw new UpdateFailedException("Can't refresh calendar list", e);
-        }
     }
 
     private Calendar getCalendar(final ApiKey apiKey) throws UpdateFailedException {

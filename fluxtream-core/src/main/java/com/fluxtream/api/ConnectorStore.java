@@ -1,5 +1,6 @@
 package com.fluxtream.api;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -31,7 +32,6 @@ import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.mvc.models.StatusModel;
 import com.fluxtream.services.ApiDataService;
-import com.fluxtream.services.CoachingService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SettingsService;
@@ -42,6 +42,10 @@ import com.google.gson.GsonBuilder;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.annotate.JsonAutoDetect;
+import org.codehaus.jackson.annotate.JsonMethod;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.BeanFactory;
@@ -69,11 +73,9 @@ public class ConnectorStore {
     @Autowired
     SettingsService settingsService;
 
-    @Qualifier("connectorUpdateServiceImpl")
     @Autowired
     ConnectorUpdateService connectorUpdateService;
 
-    @Qualifier("apiDataServiceImpl")
     @Autowired
     private ApiDataService apiDataService;
 
@@ -84,11 +86,14 @@ public class ConnectorStore {
     BeanFactory beanFactory;
 
     Gson gson;
+    ObjectMapper mapper = new ObjectMapper();
 
     public ConnectorStore() {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(UpdateInfo.class, new UpdateInfoSerializer());
         gson = gsonBuilder.create();
+        mapper.setVisibility(JsonMethod.FIELD, JsonAutoDetect.Visibility.ANY);
+        mapper.configure(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS, false);
     }
 
     @POST
@@ -103,13 +108,13 @@ public class ConnectorStore {
     @GET
     @Path("/settings/{apiKeyId}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getConnectorSettings(@PathParam("apiKeyId") long apiKeyId) throws UpdateFailedException {
+    public String getConnectorSettings(@PathParam("apiKeyId") long apiKeyId) throws UpdateFailedException, IOException {
         final ApiKey apiKey = guestService.getApiKey(apiKeyId);
         final long guestId = AuthHelper.getGuestId();
         if (apiKey.getGuestId()!=guestId)
             throw new RuntimeException("attempt to retrieve ApiKey from another guest!");
-        final Object settings = settingsService.getConnectorSettings(apiKey.getId(), true);
-        String json = gson.toJson(settings);
+        final Object settings = settingsService.getConnectorSettings(apiKey.getId());
+        String json = mapper.writeValueAsString(settings);
         return json;
     }
 

@@ -43,7 +43,6 @@ public class JPAFacetDao implements FacetDao {
     @Autowired
 	GuestService guestService;
 
-    @Qualifier("connectorUpdateServiceImpl")
     @Autowired
 	ConnectorUpdateService connectorUpdateService;
 
@@ -54,11 +53,19 @@ public class JPAFacetDao implements FacetDao {
 
     @Override
     public List<AbstractFacet> getFacetsByDates(final ApiKey apiKey, ObjectType objectType, List<String> dates) {
+        if (!objectType.isClientFacet())
+            return new ArrayList<AbstractFacet>();
         ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         if (!apiKey.getConnector().hasFacets()) return facets;
         Class<? extends AbstractFacet> facetClass = getFacetClass(apiKey.getConnector(), objectType);
         final String facetName = getEntityName(facetClass);
-        String queryString = "SELECT facet FROM " + facetName + " facet WHERE facet.apiKeyId=:apiKeyId AND facet.date IN :dates";
+        StringBuilder additionalWhereClause = new StringBuilder();
+        if (objectType.visibleClause()!=null) additionalWhereClause.append(" AND ").append(objectType.visibleClause()).append(" ");
+        String queryString = new StringBuilder("SELECT facet FROM ")
+                .append(facetName)
+                .append(" facet WHERE facet.apiKeyId=:apiKeyId AND facet.date IN :dates")
+                .append(additionalWhereClause)
+                .toString();
         final TypedQuery<? extends AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
         query.setParameter("apiKeyId", apiKey.getId());
         query.setParameter("dates", dates);
@@ -70,11 +77,19 @@ public class JPAFacetDao implements FacetDao {
 
     @Override
     public List<AbstractRepeatableFacet> getFacetsBetweenDates(final ApiKey apiKey, final ObjectType objectType, final String startDateString, final String endDateString) {
+        if (!objectType.isClientFacet())
+            return new ArrayList<AbstractRepeatableFacet>();
         ArrayList<AbstractRepeatableFacet> facets = new ArrayList<AbstractRepeatableFacet>();
         if (!apiKey.getConnector().hasFacets()) return facets;
         Class<? extends AbstractRepeatableFacet> facetClass = (Class<? extends AbstractRepeatableFacet>)getFacetClass(apiKey.getConnector(), objectType);
         final String facetName = getEntityName(facetClass);
-        String queryString = "SELECT facet FROM " + facetName + " facet WHERE facet.apiKeyId=:apiKeyId AND NOT(facet.endDate<:startDate) AND NOT(facet.startDate>:endDate)";
+        StringBuilder additionalWhereClause = new StringBuilder();
+        if (objectType.visibleClause()!=null) additionalWhereClause.append(" AND ").append(objectType.visibleClause()).append(" ");
+        String queryString = new StringBuilder("SELECT facet FROM ")
+                .append(facetName)
+                .append(" facet WHERE facet.apiKeyId=:apiKeyId AND NOT(facet.endDate<:startDate) AND NOT(facet.startDate>:endDate)")
+                .append(additionalWhereClause)
+                .toString();
         final TypedQuery<? extends AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
         query.setParameter("apiKeyId", apiKey.getId());
         final DateTime time = TimeUtils.dateFormatterUTC.parseDateTime(startDateString);
@@ -119,12 +134,20 @@ public class JPAFacetDao implements FacetDao {
         if (objectType==null) {
             return getFacetsBetween(apiKey, timeInterval, tagFilter);
         } else {
+            if (!objectType.isClientFacet())
+                return new ArrayList<AbstractFacet>();
             if (!apiKey.getConnector().hasFacets()) return new ArrayList<AbstractFacet>();
             Class<? extends AbstractFacet> facetClass = getFacetClass(apiKey.getConnector(), objectType);
             final String facetName = getEntityName(facetClass);
-            String additionalWhereClause = (tagFilter == null) ? "" : " AND (" + tagFilter.getWhereClause() + ")";
-            if (objectType.isMixedType()) additionalWhereClause += " AND facet.allDayEvent=false ";
-            String queryString = "SELECT facet FROM " + facetName  + " facet WHERE facet.apiKeyId=? AND facet.end>=? AND facet.start<=?" + additionalWhereClause;
+            StringBuilder additionalWhereClause = new StringBuilder();
+            if (tagFilter != null) additionalWhereClause.append(" AND (").append(tagFilter.getWhereClause()).append(")");
+            if (objectType.isMixedType()) additionalWhereClause.append(" AND facet.allDayEvent=false ");
+            if (objectType.visibleClause()!=null) additionalWhereClause.append(" AND ").append(objectType.visibleClause()).append(" ");
+            String queryString = new StringBuilder("SELECT facet FROM ")
+                    .append(facetName)
+                    .append(" facet WHERE facet.apiKeyId=? AND facet.end>=? AND facet.start<=?")
+                    .append(additionalWhereClause)
+                    .toString();
             final TypedQuery<AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
             query.setParameter(1, apiKey.getId());
             query.setParameter(2, timeInterval.getStart());
@@ -138,6 +161,8 @@ public class JPAFacetDao implements FacetDao {
         final ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
         List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         for (ObjectType type : objectTypes) {
+            if (!type.isClientFacet())
+                continue;
             facets.addAll(getFacetsBetween(apiKey, type, timeInterval, tagFilter));
         }
         return facets;
@@ -304,9 +329,18 @@ public class JPAFacetDao implements FacetDao {
 
     @Override
 	public void deleteAllFacets(ApiKey apiKey) {
-        final ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
-        for (ObjectType objectType : objectTypes) {
-            deleteAllFacets(apiKey, objectType);
+        final Connector connector = apiKey.getConnector();
+        if (connector.hasDeleteOrder()){
+            final int[] deleteOrder = connector.getDeleteOrder();
+            for (int ot : deleteOrder) {
+                ObjectType objectType = ObjectType.getObjectType(connector, ot);
+                deleteAllFacets(apiKey, objectType);
+            }
+        } else {
+            final ObjectType[] objectTypes = connector.objectTypes();
+            for (ObjectType objectType : objectTypes) {
+                deleteAllFacets(apiKey, objectType);
+            }
         }
 	}
 

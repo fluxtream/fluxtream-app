@@ -334,20 +334,37 @@
 <template id="sms_backup-settings">
     <form class="form-horizontal" action="javascript:void(0);">
         {{#settings}}
-        <div class="form-group">
-            <label class="col-sm-2 control-label" for="callLogFolderName">
+        <div class="control-group">
+            <label class="control-label" for="callLogFolderName">
                 Call log folder name:&nbsp;
             </label>
-            <input id="callLogFolderName" type="text" value="{{callLogFolderName}}">
+            <div class="controls">
+                <input id="callLogFolderName" type="text" value="{{callLogFolderName}}">
+            </div>
         </div>
-        <div class="form-group">
-            <label class="col-sm-2 control-label" for="smsFolderName">
+        <div class="control-group">
+            <label class="control-label" for="smsFolderName">
                 SMS folder name:&nbsp;
             </label>
-            <input id="smsFolderName" type="text" value="{{smsFolderName}}">
+            <div class="controls">
+                <input id="smsFolderName" type="text" value="{{smsFolderName}}">
+            </div>
         </div>
         {{/settings}}
     </form>
+</template>
+<template id="evernote-settings">
+    <div style="height:300px" id="evernoteSettings">
+        <form action="javascript:void(0);">
+            {{#settings}}{{#notebooks}}
+            <label class="checkbox">
+                <input id="notebook-c-{{guid}}" type="color" style="margin-right:10px;width:20px" value="{{backgroundColor}}">
+                <input id="notebook-hcb-{{guid}}" type="checkbox" style="margin-top:8px" {{^hidden}}checked=checked{{/hidden}}  value="{{guid}}"> {{name}}
+            </label>
+            {{/notebooks}}{{/settings}}
+        </form>
+        <div class="alert alert-info"><strong>Heads up!</strong> For changes to be reflected in the timeline, you will have to reload the page.<br>Sorry about that!</div>
+    </div>
 </template>
 <template id="uploadDialog">
     <div id="uploadModal" class="modal hide fade">
