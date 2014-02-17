@@ -73,8 +73,8 @@ public class BodyTrackHelper {
     @PersistenceContext
     EntityManager em;
 
-    static final boolean verboseOutput = false;
-    static final boolean showOutput = false;
+    static final boolean verboseOutput = true;
+    static final boolean showOutput = true;
 
     @Autowired
     Configuration env;

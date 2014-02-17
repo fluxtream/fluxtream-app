@@ -24,7 +24,7 @@ import com.fluxtream.domain.AbstractFacet;
 
 @SuppressWarnings("serial")
 @Entity(name="Facet_SmsEntry")
-@ObjectTypeSpec(name = "sms", value = 2, parallel=true, prettyname = "Text Messages", extractor=SmsEntryFacetExtractor.class)
+@ObjectTypeSpec(name = "sms", value = 2, parallel=true, isImageType=true, prettyname = "Text Messages", extractor=SmsEntryFacetExtractor.class, photoFacetFinderStrategy=SmsBackupPhotoFacetFinderStrategy.class)
 @NamedQueries({
 		@NamedQuery(name = "sms_backup.sms.byEmailId", query = "SELECT facet FROM Facet_SmsEntry facet WHERE facet.apiKeyId=? AND facet.emailId=?")
 })

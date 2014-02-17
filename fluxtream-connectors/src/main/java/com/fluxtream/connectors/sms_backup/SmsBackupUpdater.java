@@ -93,8 +93,16 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
         for (ObjectType type : updateInfo.objectTypes()){
             Date since = getStartDate(updateInfo, type);
             if (type.name().equals("call_log")){
-                List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey, type.value());
-                if (mappings.size() == 0){
+                List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey);
+                boolean call_logChannelExists = false;
+                boolean photoChannelExists = false;
+                for (ChannelMapping mapping: mappings){
+                    if (mapping.deviceName.equals("sms_backup") && mapping.channelName.equals("call_log"))
+                        call_logChannelExists = true;
+                    if (mapping.deviceName.equals("sms_backup") && mapping.channelName.equals("photo"))
+                        photoChannelExists = true;
+                }
+                if (!call_logChannelExists){
                     ChannelMapping mapping = new ChannelMapping();
                     mapping.deviceName = "sms_backup";
                     mapping.channelName = "call_log";
@@ -116,6 +124,18 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 
                     bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"sms_backup","call_log",channelStyle);
 
+                }
+                if (!photoChannelExists){
+                    ChannelMapping mapping;
+                    mapping = new ChannelMapping();
+                    mapping.deviceName = "sms_backup";
+                    mapping.channelName = "photo";
+                    mapping.timeType = ChannelMapping.TimeType.gmt;
+                    mapping.channelType = ChannelMapping.ChannelType.photo;
+                    mapping.guestId = updateInfo.getGuestId();
+                    mapping.apiKeyId = updateInfo.apiKey.getId();
+                    mapping.objectTypeId = ObjectType.getObjectType(updateInfo.apiKey.getConnector(),"sms").value();
+                    bodyTrackHelper.persistChannelMapping(mapping);
                 }
                 retrieveCallLogSinceDate(updateInfo, email, password, since);
             }
@@ -265,7 +285,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 
                                                                            }
 
-                                                                           File attachmentFile = getAttachmentFile(updateInfo.getGuestId(),updateInfo.apiKey.getId(),(emailId + i).replaceAll("\\W+",""));
+                                                                           File attachmentFile = getAttachmentFile(env.targetEnvironmentProps.getString("btdatastore.db.location"),updateInfo.getGuestId(),updateInfo.apiKey.getId(),(emailId + i).replaceAll("\\W+",""));
                                                                            attachmentFile.getParentFile().mkdirs();
                                                                            FileOutputStream fileoutput = new FileOutputStream(attachmentFile);
                                                                            IOUtils.copy((BASE64DecoderStream) partContent, fileoutput);
@@ -362,15 +382,10 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
         }
 	}
 
-    public File getAttachmentFile(long guestId, long apiKeyId, String attachmentName) throws Exception{
-
-        String kvsLocation = env.targetEnvironmentProps.getString("btdatastore.db.location");
-        if (kvsLocation == null){
-            throw new Exception("btdatastore.db.location not configured");
-        }
+    public static File getAttachmentFile(String kvsLocation, long guestId, long apiKeyId, String attachmentName){
 
         return new File(kvsLocation + File.separator + guestId + File.separator
-                             + Connector.getConnector("sms_backup").prettyName() + File.separator
+                             + "sms_backup" + File.separator
                              + apiKeyId + File.separator + attachmentName);
 
     }
