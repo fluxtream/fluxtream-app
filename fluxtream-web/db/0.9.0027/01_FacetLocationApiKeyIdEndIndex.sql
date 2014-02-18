@@ -1,0 +1,1 @@
+ALTER TABLE Facet_Location ADD INDEX `apiKeyIdEnd` (apiKeyId, end);
