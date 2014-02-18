@@ -733,7 +733,7 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
     }
 
     @Override
-    @Transactional(readOnly = false, isolation = Isolation.READ_UNCOMMITTED)
+    @Transactional(readOnly = false)
     public void cleanupStaleData() throws Exception {
         ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(
                 false);

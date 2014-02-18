@@ -225,7 +225,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     }
 
     @Override
-    @Transactional(readOnly=false, isolation= Isolation.READ_UNCOMMITTED)
+    @Transactional(readOnly=false)
     public void cleanupStaleData() {
         // Keeping one week seems to lead to api/connectors/installed being too slow as of December 2013.
         // Reduce to two days
