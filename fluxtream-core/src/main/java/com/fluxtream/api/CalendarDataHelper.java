@@ -45,10 +45,12 @@ public class CalendarDataHelper {
                                          List<String> dates) {
         List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         try {
-            if (AuthHelper.isViewingGranted(connector.getName(), coachingService))
-                facets = apiDataService.getApiDataFacets(
-                        guestService.getApiKey(AuthHelper.getVieweeId(), connector), objectType,
+            if (AuthHelper.isViewingGranted(connector.getName(), coachingService)) {
+                final ApiKey apiKey = guestService.getApiKey(AuthHelper.getVieweeId(), connector);
+                facets = apiDataService.getApiDataFacets(apiKey, objectType,
                         dates);
+                facets = coachingService.filterFacets(AuthHelper.getGuestId(), apiKey.getId(), facets);
+            }
         } catch (Throwable t) {
             t.printStackTrace();
         }
@@ -59,8 +61,11 @@ public class CalendarDataHelper {
 			ObjectType objectType, AbstractTimespanMetadata timespanMetadata) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 		try {
-            if (AuthHelper.isViewingGranted(connector.getName(), coachingService))
-                facets = apiDataService.getApiDataFacets(guestService.getApiKey(AuthHelper.getVieweeId(), connector), objectType, timespanMetadata.getTimeInterval());
+            if (AuthHelper.isViewingGranted(connector.getName(), coachingService)) {
+                final ApiKey apiKey = guestService.getApiKey(AuthHelper.getVieweeId(), connector);
+                facets = apiDataService.getApiDataFacets(apiKey, objectType, timespanMetadata.getTimeInterval());
+                facets = coachingService.filterFacets(AuthHelper.getGuestId(), apiKey.getId(), facets);
+            }
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
@@ -74,6 +79,7 @@ public class CalendarDataHelper {
                 final ApiKey apiKey = guestService.getApiKey(AuthHelper.getVieweeId(), connector);
                 facets = apiDataService.getApiDataFacets(apiKey, objectType,
                         startDate, endDate);
+                facets = coachingService.filterFacets(AuthHelper.getGuestId(), apiKey.getId(), facets);
             }
         } catch (Throwable t) {
             t.printStackTrace();

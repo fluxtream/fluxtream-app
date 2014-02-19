@@ -62,7 +62,8 @@ import org.springframework.stereotype.Component;
                                                             EvernoteResourceFacet.class, EvernotePhotoFacet.class},
          settings = EvernoteConnectorSettings.class, bodytrackResponder = EvernoteBodytrackResponder.class,
          defaultChannels = {"Evernote.photo", "Evernote.note"},
-         deleteOrder={1, 2, 4, 8, 32, 16})
+         deleteOrder={1, 2, 4, 8, 32, 16},
+         sharedConnectorFilter = EvernoteSharedConnectorFilter.class)
 public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
 
     public static final String MAIN_APPENDIX = "main";

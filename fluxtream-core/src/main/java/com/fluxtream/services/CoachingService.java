@@ -31,6 +31,6 @@ public interface CoachingService {
 
     public CoachingBuddy getCoachee(long guestId, long coacheeId);
 
-    public List<AbstractFacet> filterFacets(long vieweeId, long apiKeyId, List<AbstractFacet> facets);
+    public <T extends AbstractFacet> List<T> filterFacets(long viewerId, long apiKeyId, List<T> facets);
 
 }

@@ -12,6 +12,6 @@ import com.fluxtream.domain.SharedConnector;
 
 public interface SharedConnectorFilter {
 
-    List<AbstractFacet> filterFacets(SharedConnector sharedConnector, List<AbstractFacet> facets);
+    <T extends AbstractFacet> List<T> filterFacets(SharedConnector sharedConnector, List<T> facets);
 
 }

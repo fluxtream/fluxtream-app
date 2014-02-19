@@ -523,6 +523,8 @@ public class CalendarDataStore {
             ObjectType[] objectTypes = connector.objectTypes();
             if (objectTypes != null) {
                 for (ObjectType objectType : objectTypes) {
+                    if (!objectType.isClientFacet())
+                        continue;
                     final TimeUnit timeUnit = timespanMetadata.getTimeInterval().getTimeUnit();
                     if (timeUnit !=TimeUnit.DAY) {
                         if (!locationDataOnly&&objectType!=null&&objectType.getName().equals("location"))

@@ -160,14 +160,16 @@ public class CoachingServiceImpl implements CoachingService {
     }
 
     @Override
-    public List<AbstractFacet> filterFacets(final long vieweeId, final long apiKeyId, final List<AbstractFacet> facets) {
+    public <T extends AbstractFacet> List<T> filterFacets(final long viewerId, final long apiKeyId, final List<T> facets) {
         final ApiKey apiKey = guestService.getApiKey(apiKeyId);
         final Connector connector = apiKey.getConnector();
-        if (!connector.supportsFiltering())
+        final boolean ownFacets = viewerId == apiKey.getGuestId();
+        final boolean supportsFiltering = connector.supportsFiltering();
+        if (ownFacets ||!supportsFiltering)
             return facets;
         else {
             // retrieve SharedConnector instance;
-            SharedConnector sharedConnector = getSharedConnector(vieweeId, apiKey);
+            SharedConnector sharedConnector = getSharedConnector(viewerId, apiKey);
             if (sharedConnector!=null) {
                 final SharedConnectorFilter sharedConnectorFilter;
                 try {
@@ -182,10 +184,10 @@ public class CoachingServiceImpl implements CoachingService {
         return facets;
     }
 
-    private SharedConnector getSharedConnector(final long vieweeId, final ApiKey apiKey) {
+    private SharedConnector getSharedConnector(final long viewerId, final ApiKey apiKey) {
         final SharedConnector sconn = JPAUtils.findUnique(em, SharedConnector.class,
-                                                            "sharedConnector.byConnectorNameAndVieweeId",
-                                                                apiKey.getConnector().getName(), vieweeId);
+                                                            "sharedConnector.byConnectorNameAndViewerId",
+                                                                apiKey.getConnector().getName(), viewerId);
         return sconn;
     }
 

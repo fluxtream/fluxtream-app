@@ -12,7 +12,7 @@ import com.fluxtream.domain.SharedConnector;
 public class DefaultSharedConnectorFilter implements SharedConnectorFilter {
 
     @Override
-    public List<AbstractFacet> filterFacets(final SharedConnector sharedConnector, List<AbstractFacet> facets) {
+    public <T extends AbstractFacet>  List<T> filterFacets(final SharedConnector sharedConnector, List<T> facets) {
         return facets;
     }
 }
