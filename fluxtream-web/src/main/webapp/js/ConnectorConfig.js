@@ -110,7 +110,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
         },
         up:{
             hasTimelineSettings: true,
-            device_name: "JawboneUP",
+            device_name: "Jawbone_UP",
             color: "#000",
             mapicon: {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/aed-2.png",

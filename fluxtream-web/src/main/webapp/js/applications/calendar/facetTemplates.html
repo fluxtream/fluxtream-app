@@ -223,6 +223,7 @@
             <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
                 <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
                     <div>
                         <div>
@@ -849,7 +850,7 @@
                         <span class="flx-text">{{name}}</span>
                     </div>
                     <div class="flx-data">
-                        <img src="{{image}}">
+                        <br><img src="{{image}}">
                     </div>
                 {{/servings}}
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
