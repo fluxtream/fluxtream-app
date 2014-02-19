@@ -636,17 +636,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 var hasTypedFacets = digest.cachedData[facetType] != null;
                 var objectType = facetType.split("-")[1];
                 if(Calendar.currentTab.name==="photos") {
-                    if (hasTypedFacets&&objectType.indexOf("observation")!=-1){
-                        hasTypedFacets = false;
-                        for (var i=0;i<digest.cachedData[facetType].length; i++){
-                            if (typeof(digest.cachedData[facetType][i].photoUrl)!="undefined") {
-                                hasTypedFacets = true;
-                                break;
-                            }
-                        }
-                    } else {
-                        hasTypedFacets = hasTypedFacets && objectType.indexOf("photo")!=-1;
-                    }
+                    hasTypedFacets = hasTypedFacets && digest.cachedData[facetType].hasImages;
                 }
                 return hasTypedFacets;
             });
