@@ -57,13 +57,13 @@ public class SmsBackupPhotoFacetFinderStrategy implements PhotoFacetFinderStrate
     @Override
     public AbstractFacet findOldest(final ApiKey apiKey, final ObjectType objectType) {
         Query query = getQuery(apiKey,objectType,null,null,1,"ORDER BY facet.start ASC",null);
-        return (AbstractFacet) query.getSingleResult();
+        return (AbstractFacet) query.getResultList().get(0);
     }
 
     @Override
     public AbstractFacet findLatest(final ApiKey apiKey, final ObjectType objectType) {
         Query query = getQuery(apiKey,objectType,null,null,1,"ORDER BY facet.start DESC",null);
-        return (AbstractFacet) query.getSingleResult();
+        return (AbstractFacet) query.getResultList().get(0);
     }
 
     private Query getQuery(final ApiKey apiKey, final ObjectType objectType, @Nullable final Long startTime, @Nullable final Long endTime, @Nullable Integer limit, @Nullable String sortStatement, @Nullable final TagFilter tagFilter){
