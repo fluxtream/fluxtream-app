@@ -329,8 +329,8 @@
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
-                    <!--<span class="flx-photo" style="background:url('{{photoUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>-->
-                    <img class="flx-photo" photoId="{{id}}" src="{{photo42}}" style="max-height:42px">
+                    <img data-deviceName="{{deviceName}}" data-channelName="{{channelName}}"
+                         data-id="{{UID}}" data-timestamp="{{start}}" class="flx-photo" photoId="{{id}}" src="{{photo42}}" style="max-height:42px">
                     <span class="flx-description">{{description}}</span>
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
@@ -740,7 +740,8 @@
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
                 <div class="flx-data">
-                    {{#photoUrl}}<img photoId="{{id}}" class="flx-photo" src="{{photo42}}" style="max-height:42px; float:left;  margin:0 10px 0 0; cursor:pointer">{{/photoUrl}}
+                    {{#photoUrl}}<img data-deviceName="{{deviceName}}" data-channelName="{{channelName}}"
+                                      data-id="{{UID}}" data-timestamp="{{start}}" photoId="{{id}}" class="flx-photo" src="{{photo42}}" style="max-height:42px; float:left;  margin:0 10px 0 0; cursor:pointer">{{/photoUrl}}
                     <span class="flx-description">{{name}} {{amount}}</span>
                     <span class="flx-description">{{note}}</span>
                 </div>
