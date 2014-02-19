@@ -639,7 +639,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 
 			for (Message message : msgs) {
                 date = message.getReceivedDate();
-                if (flushEntry(updateInfo, email, message, SmsEntryFacet.class) == null){
+                if (flushEntry(updateInfo, email, message, CallLogEntryFacet.class) == null){
                     throw new Exception("Could not persist Call log");
                 }
                 updateStartDate(updateInfo,callLogObjectType,date);
