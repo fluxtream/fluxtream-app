@@ -409,7 +409,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
     public static File getAttachmentFile(String kvsLocation, long guestId, long apiKeyId, String attachmentName){
 
         return new File(kvsLocation + File.separator + guestId + File.separator
-                             + "sms_backup" + File.separator
+                             + Connector.getConnector("sms_backup").prettyName() + File.separator
                              + apiKeyId + File.separator + attachmentName);
 
     }

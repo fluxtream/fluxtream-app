@@ -50,20 +50,26 @@ public class SmsBackupPhotoFacetFinderStrategy implements PhotoFacetFinderStrate
 
     @Override
     public List<AbstractFacet> findAfter(final ApiKey apiKey, final ObjectType objectType, final long timeInMillis, final int desiredCount, @Nullable final TagFilter tagFilter) {
-        Query query = getQuery(apiKey,objectType,null,timeInMillis,desiredCount,"ORDER BY facet.start ASC",tagFilter);
+        Query query = getQuery(apiKey,objectType,timeInMillis,null,desiredCount,"ORDER BY facet.start ASC",tagFilter);
         return query.getResultList();
     }
 
     @Override
     public AbstractFacet findOldest(final ApiKey apiKey, final ObjectType objectType) {
         Query query = getQuery(apiKey,objectType,null,null,1,"ORDER BY facet.start ASC",null);
-        return (AbstractFacet) query.getResultList().get(0);
+        List facets = query.getResultList();
+        if (facets.isEmpty())
+            return null;
+        return (AbstractFacet) facets.get(0);
     }
 
     @Override
     public AbstractFacet findLatest(final ApiKey apiKey, final ObjectType objectType) {
         Query query = getQuery(apiKey,objectType,null,null,1,"ORDER BY facet.start DESC",null);
-        return (AbstractFacet) query.getResultList().get(0);
+        List facets = query.getResultList();
+        if (facets.isEmpty())
+            return null;
+        return (AbstractFacet) facets.get(0);
     }
 
     private Query getQuery(final ApiKey apiKey, final ObjectType objectType, @Nullable final Long startTime, @Nullable final Long endTime, @Nullable Integer limit, @Nullable String sortStatement, @Nullable final TagFilter tagFilter){

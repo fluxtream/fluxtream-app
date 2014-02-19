@@ -60,8 +60,8 @@ public class SmsEntryFacetVO extends AbstractPhotoFacetVO<SmsEntryFacet> {
             if (photoFiles.size() > 0){
                 photoUrls = photoFiles.toArray(new String[]{});
                 photoUrl = photoUrls[0];
-                deviceName = "sms_backup";
-                channelName = "photo";
+                deviceName = "SMS Backup";
+                channelName = "sms";
                 thumbnailUrls = new HashMap<Integer,String>();
                 thumbnailSizes = new HashMap<Integer,DimensionModel>();
                 for (int i = 0; i < thumbnailSideLengths.length; i++){
