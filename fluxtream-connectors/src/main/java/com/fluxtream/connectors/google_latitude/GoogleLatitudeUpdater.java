@@ -8,6 +8,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector.UpdateStrategyType;
 import com.fluxtream.connectors.FileUploadSupport;
 import com.fluxtream.connectors.annotations.Updater;
@@ -18,14 +19,18 @@ import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Notification;
 import com.fluxtream.services.ApiDataService;
 import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 @Updater(prettyName = "Latitude", value = 2, objectTypes = { LocationFacet.class }, updateStrategyType = UpdateStrategyType.INCREMENTAL)
 public class GoogleLatitudeUpdater extends AbstractUpdater implements FileUploadSupport {
+
+    FlxLogger logger = FlxLogger.getLogger(GoogleLatitudeUpdater.class);
 
     @Autowired
     ApiDataService apiDataService;
@@ -87,7 +92,8 @@ public class GoogleLatitudeUpdater extends AbstractUpdater implements FileUpload
     }
 
     private int parseLocations(final ApiKey apiKey, final InputStream inputStream) throws IOException {
-        JsonFactory jfactory = new JsonFactory();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonFactory jfactory = mapper.getJsonFactory();
         JsonParser jParser = jfactory.createJsonParser(inputStream);
 
         JsonToken token;
@@ -102,14 +108,25 @@ public class GoogleLatitudeUpdater extends AbstractUpdater implements FileUpload
                 parseLocation(apiKey, jParser, locations);
                 if (locations.size()==1000) {
                     nLocations += 1000;
-                    if (apiKey!=null) apiDataService.addGuestLocations(apiKey.getGuestId(), locations);
+                    boolean connectorIsLive = persistLocations(apiKey, locations);
+                    if (!connectorIsLive)
+                        break;
                     locations.clear();
                 }
             }
         }
         nLocations += locations.size();
-        if (apiKey!=null) apiDataService.addGuestLocations(apiKey.getGuestId(), locations);
+        if (apiKey!=null) persistLocations(apiKey, locations);
         return nLocations;
+    }
+
+    private boolean persistLocations(ApiKey apiKey, List<LocationFacet> locations) {
+        if (guestService.getApiKey(apiKey.getId())!=null){
+            apiDataService.addGuestLocations(apiKey.getGuestId(), locations);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private void getToLocationData(final JsonParser jParser) throws IOException {
@@ -122,8 +139,7 @@ public class GoogleLatitudeUpdater extends AbstractUpdater implements FileUpload
         // Get to the first open brace
         while (jParser.nextToken()!=JsonToken.START_OBJECT);
         // Go forward until currentName is set
-        String currentName;
-        while ((currentName=jParser.getCurrentName())==null)
+        while (jParser.getCurrentName()==null)
             jParser.nextToken();
 
         // Go forward until we reach the "locations" array
@@ -137,36 +153,42 @@ public class GoogleLatitudeUpdater extends AbstractUpdater implements FileUpload
             locationFacet.apiKeyId = apiKey.getId();
             locationFacet.guestId = apiKey.getGuestId();
         }
+
         locationFacet.timeUpdated = System.currentTimeMillis();
         locationFacet.source = LocationFacet.Source.GOOGLE_LATITUDE;
 
         do {
             String fieldName = jParser.getCurrentName();
-            jParser.nextToken();
-            if (fieldName.equals("timestampMs")) {
-                long ts = Long.valueOf(jParser.getText());
-                locationFacet.timestampMs = ts;
-                locationFacet.start = ts;
-                locationFacet.end = ts;
-                locationFacet.api = 2;
-            } else if (fieldName.equals("accuracy")) {
-                int accuracy = jParser.getIntValue();
-                locationFacet.accuracy = accuracy;
-            } else if (fieldName.equals("altitude")) {
-                int altitude = jParser.getIntValue();
-                locationFacet.altitude = altitude;
-            } else if (fieldName.equals("heading")) {
-                int heading = jParser.getIntValue();
-                locationFacet.heading = heading;
-            } else if (fieldName.equals("latitudeE7")) {
-                int lat = jParser.getIntValue();
-                locationFacet.latitude = lat/1E7f;
-            } else if (fieldName.equals("longitudeE7")) {
-                int lon = jParser.getIntValue();
-                locationFacet.longitude = lon/1E7f;
-            } else if (fieldName.equals("velocity")) {
-                int speed = jParser.getIntValue();
-                locationFacet.speed = speed;
+            final JsonToken jsonToken = jParser.nextValue();
+            if (jsonToken.isScalarValue()) {
+                if (fieldName.equals("timestampMs")) {
+                    long ts = Long.valueOf(jParser.getText());
+                    locationFacet.timestampMs = ts;
+                    locationFacet.start = ts;
+                    locationFacet.end = ts;
+                    locationFacet.api = 2;
+                } else if (fieldName.equals("accuracy")) {
+                    int accuracy = jParser.getIntValue();
+                    locationFacet.accuracy = accuracy;
+                } else if (fieldName.equals("altitude")) {
+                    int altitude = jParser.getIntValue();
+                    locationFacet.altitude = altitude;
+                } else if (fieldName.equals("heading")) {
+                    int heading = jParser.getIntValue();
+                    locationFacet.heading = heading;
+                } else if (fieldName.equals("latitudeE7")) {
+                    int lat = jParser.getIntValue();
+                    locationFacet.latitude = lat/1E7f;
+                } else if (fieldName.equals("longitudeE7")) {
+                    int lon = jParser.getIntValue();
+                    locationFacet.longitude = lon/1E7f;
+                } else if (fieldName.equals("velocity")) {
+                    int speed = jParser.getIntValue();
+                    locationFacet.speed = speed;
+                }
+            } else {
+                final JsonNode junk = jParser.readValueAsTree();
+                logger.info("we are not interested in this junk: " + junk.toString());
             }
         } while (jParser.nextToken() != JsonToken.END_OBJECT);
         locations.add(locationFacet);

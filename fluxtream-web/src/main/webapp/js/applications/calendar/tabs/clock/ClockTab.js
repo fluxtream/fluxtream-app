@@ -425,10 +425,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             time: App.formatMinuteOfDay(minute)[0],
             ampm: App.formatMinuteOfDay(minute)[1],
             tooltipData:contents.outerHTML(),
-            showBodyTrackLinks: sourceName != null,
+            //showBodyTrackLinks: sourceName != null,
+            showBodyTrackLinks: false,
             showCommentEdit: locationInfo != null
         }));
-        console.log(gpsPos)
         ttpdiv.css("position","absolute");
         ttpdiv.css("zIndex","100");
         var tail = ttpdiv.find(".flx-toolTipTail-" + orientation);

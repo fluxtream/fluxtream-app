@@ -27,6 +27,9 @@ public class LastFmRecentTrackFacetVO extends AbstractInstantFacetVO<LastFmRecen
 		if (facet.imgUrls!=null) {
 			this.imgUrls = facet.imgUrls.split(",");
 		}
+        for (int i=0; i<imgUrls.length; i++) {
+            this.imgUrls[i] = String.format("%slastfm/img?url=%s", settings.config.get("homeBaseUrl"),imgUrls[i]);
+        }
         this.title = facet.name;
 		description = facet.artist + ": " + facet.name;
 	}

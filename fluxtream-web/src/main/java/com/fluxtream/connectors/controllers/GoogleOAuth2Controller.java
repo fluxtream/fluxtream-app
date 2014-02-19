@@ -111,7 +111,20 @@ public class GoogleOAuth2Controller {
 	
 	@RequestMapping(value = "/swapToken")
 	public ModelAndView upgradeToken(HttpServletRequest request) throws IOException, UnexpectedHttpResponseCodeException {
-		
+
+        String scope = (String) request.getSession().getAttribute("oauth2Scope");
+        Connector scopedApi = systemService.getApiFromGoogleScope(scope);
+
+        Guest guest = AuthHelper.getGuest();
+
+        String errorParameter = request.getParameter("error");
+        if (errorParameter!=null) {
+            notificationsService.addNamedNotification(guest.getId(), Notification.Type.WARNING,
+                                                      scopedApi.statusNotificationName(),
+                                                      "There was a problem importing your " + scopedApi.prettyName() + " data: " + errorParameter);
+            return new ModelAndView("redirect:/app/");
+        }
+
 		String swapTokenUrl = "https://accounts.google.com/o/oauth2/token";
 		String code = request.getParameter("code");
 		String redirectUri = ControllerSupport.getLocationBase(request, env) + "google/oauth2/swapToken";
@@ -122,11 +135,6 @@ public class GoogleOAuth2Controller {
 		params.put("client_secret", env.get("google.client.secret"));
 		params.put("redirect_uri", redirectUri);
 		params.put("grant_type", "authorization_code");
-
-		String scope = (String) request.getSession().getAttribute("oauth2Scope");
-		Connector scopedApi = systemService.getApiFromGoogleScope(scope);
-		
-		Guest guest = AuthHelper.getGuest();
 
       // Get the google branding info.  Default to fluxtream if not set, but can override in
       // oauth.properties by setting the default google.client.brandName parameter

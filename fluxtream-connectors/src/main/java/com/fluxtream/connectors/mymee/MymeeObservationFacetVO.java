@@ -29,6 +29,9 @@ public class MymeeObservationFacetVO extends AbstractPhotoFacetVO<MymeeObservati
     protected void fromFacet(final MymeeObservationFacet facet, final TimeInterval timeInterval, final GuestSettings settings)
             throws OutsideTimeBoundariesException {
         startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getTimeZone(facet.start));
+        this.UID = facet.getId();
+        this.deviceName = "Mymee";
+        this.channelName = "observation";
         this.start = facet.start;
         this.mymeeId = facet.mymeeId;
         this.name = facet.name;

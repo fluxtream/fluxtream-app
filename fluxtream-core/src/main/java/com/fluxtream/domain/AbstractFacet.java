@@ -232,6 +232,10 @@ public abstract class AbstractFacet extends AbstractEntity {
         }
         final String entityName = JPAUtils.getEntityName(facetClass);
         String queryString = String.format("SELECT * FROM %s USE INDEX (apiKey) WHERE apiKeyId=? ORDER BY end %s", entityName, sortOrder);
+        // this is a temporary hack before we bite the bullet and add the index on all tables - for now only
+        // the location table is problematic
+        if (entityName.equals("Facet_Location"))
+            queryString = String.format("SELECT * FROM %s USE INDEX (apiKeyIdEnd) WHERE apiKeyId=? ORDER BY end %s", entityName, sortOrder);
         Query query = em.createNativeQuery(queryString, facetClass);
         query.setParameter(1, apiKey.getId());
         query.setMaxResults(1);

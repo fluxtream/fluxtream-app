@@ -53,7 +53,7 @@ public class JawboneUpBodytrackResponder extends AbstractBodytrackResponder {
                     JSONArray nextSleepPhase = sleepPhases.getJSONArray(i+1);
                     end = nextSleepPhase.getLong(0);
                 }
-                final TimespanModel moveTimespanModel = new TimespanModel(start*1000, end*1000-1, toPhaseString(phase), "Jawbone_UP-sleep");
+                final TimespanModel moveTimespanModel = new TimespanModel(start*1000, end*1000-1, toPhaseString(phase), "up-sleep");
                 items.add(moveTimespanModel);
             }
         }

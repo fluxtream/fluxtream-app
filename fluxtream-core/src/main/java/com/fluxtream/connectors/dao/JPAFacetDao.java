@@ -364,6 +364,7 @@ public class JPAFacetDao implements FacetDao {
         }
 	}
 
+    @Transactional(readOnly=false)
     private void deleteVisitedCitiesData(final ApiKey apiKey) {
         final String facetName = getEntityName(VisitedCity.class);
         String stmtString = "DELETE FROM " + facetName + " facet WHERE facet.apiKeyId=?";
@@ -372,6 +373,7 @@ public class JPAFacetDao implements FacetDao {
         query.executeUpdate();
     }
 
+    @Transactional(readOnly=false)
     private void deleteLocationData(final ApiKey apiKey) {
         final String facetName = getEntityName(LocationFacet.class);
         String stmtString = "DELETE FROM " + facetName + " facet WHERE facet.apiKeyId=?";

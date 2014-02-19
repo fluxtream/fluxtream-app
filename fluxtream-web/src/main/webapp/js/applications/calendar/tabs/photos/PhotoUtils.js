@@ -116,7 +116,7 @@ define(["core/grapher/BTCore"],function(BTCore){
             optionalArguments.filteringStrategy = "any";
         if (optionalArguments.photoChange == null)
             optionalArguments.photoChange = function(){};
-        console.log(deviceName + "/" + channelName + "/" + id + "/" + timestamp);
+        //console.log(deviceName + "/" + channelName + "/" + id + "/" + timestamp);
         photoCache = createPhotoDialogCache(deviceName, channelName, optionalArguments.channelFilters, optionalArguments.filteringStrategy,optionalArguments.minTime,optionalArguments.maxTime);
 
         App.loadMustacheTemplate("applications/calendar/tabs/photos/photosTemplate.html","photoModal",function(template){
@@ -141,11 +141,8 @@ define(["core/grapher/BTCore"],function(BTCore){
             };
 
             var createPhotoDialog = function(compoundPhotoId, timestamp, completionCallback) {
-
-                console.log("photoCache");
-                console.log(photoCache);
-
-
+                //console.log("photoCache");
+                //console.log(photoCache);
                 var photoMetadata = photoCache.getPhotoMetadata(compoundPhotoId);
                 optionalArguments.photoChange(photoMetadata,timestamp);
                 var thumbnails = photoMetadata['thumbnails'];
@@ -399,8 +396,8 @@ define(["core/grapher/BTCore"],function(BTCore){
                             dataType : "json",
                             success  : function(savedData, textStatus, jqXHR) {
                                 if (typeof savedData === 'object') {
-                                    console.log("Successfully saved comment and tags for photo [" + compoundPhotoId + "]");
-                                    console.log(savedData);
+                                    //console.log("Successfully saved comment and tags for photo [" + compoundPhotoId + "]");
+                                    //console.log(savedData);
                                     photoCache.update(compoundPhotoId, {
                                         "comment": savedData['payload']['comment'],
                                         "tags": savedData['payload']['tags']
@@ -537,7 +534,7 @@ define(["core/grapher/BTCore"],function(BTCore){
     }
 
     function createPhotoDialogCache(deviceName, channelName, channelFilterTags, matchingStrategy, minTime, maxTime) {
-        console.log("createPhotoDialogCache: " + deviceName + ", " + channelName + ", [" + channelFilterTags + "], " + matchingStrategy);
+        //console.log("createPhotoDialogCache: " + deviceName + ", " + channelName + ", [" + channelFilterTags + "], " + matchingStrategy);
         var cache = {
             photos                             : [],
             photosByCompoundId                 : {}, // maps CONNECTOR_NAME.OBJECT_TYPE_NAME.PHOTO_ID to an index in the photos array
@@ -681,10 +678,10 @@ define(["core/grapher/BTCore"],function(BTCore){
                 }
             },
             initialize                         : function(compoundPhotoId, timestamp, callback) {
-                console.log("PhotoDialogCache.initialize");
-                console.log(compoundPhotoId);
-                console.log(timestamp);
-                console.log(callback);
+                //console.log("PhotoDialogCache.initialize");
+                //console.log(compoundPhotoId);
+                //console.log(timestamp);
+                //console.log(callback);
                 //console.log("PhotoDialogCache.initialize()------------------------------------------");
 
                 // To build up the initial cache, fetch the photos BEFORE this photo, then the photos AFTER it.

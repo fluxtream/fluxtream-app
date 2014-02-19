@@ -104,6 +104,7 @@ public class JawboneUpUpdater extends AbstractUpdater {
         List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey);
         if (mappings.size() != 0)
             return;
+        System.out.println("reconfiguring channel mapping");
         ChannelMapping mapping = new ChannelMapping();
         mapping.deviceName = "Jawbone_UP";
         mapping.channelName = "sleep";
@@ -118,9 +119,9 @@ public class JawboneUpUpdater extends AbstractUpdater {
         channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
         channelStyle.timespanStyles.defaultStyle.fillColor = "#fff";
         channelStyle.timespanStyles.defaultStyle.borderColor = "#fff";
-        channelStyle.timespanStyles.defaultStyle.borderWidth = 0;
-        channelStyle.timespanStyles.defaultStyle.top = 1.0;
-        channelStyle.timespanStyles.defaultStyle.bottom = 0.0;
+        channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
+        channelStyle.timespanStyles.defaultStyle.top = 0.0;
+        channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
         channelStyle.timespanStyles.values = new HashMap();
 
         BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
@@ -152,19 +153,15 @@ public class JawboneUpUpdater extends AbstractUpdater {
         setChannelMapping(updateInfo);
         updateInfo.setContext("accessToken", guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken"));
 
-        logger.info("getting moves for apiKeyId=" + updateInfo.apiKey.getId());
         updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, MOVES_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpMovesFacet.class));
         guestService.setApiKeyAttribute(updateInfo.apiKey, MOVES_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
 
-        logger.info("getting sleeps for apiKeyId=" + updateInfo.apiKey.getId());
         updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, SLEEPS_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpSleepFacet.class));
         guestService.setApiKeyAttribute(updateInfo.apiKey, SLEEPS_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
 
-        logger.info("getting meals for apiKeyId=" + updateInfo.apiKey.getId());
         updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, MEALS_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpMealFacet.class));
         guestService.setApiKeyAttribute(updateInfo.apiKey, MEALS_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
 
-        logger.info("getting workouts for apiKeyId=" + updateInfo.apiKey.getId());
         updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, WORKOUTS_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpWorkoutFacet.class));
         guestService.setApiKeyAttribute(updateInfo.apiKey, WORKOUTS_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
 
