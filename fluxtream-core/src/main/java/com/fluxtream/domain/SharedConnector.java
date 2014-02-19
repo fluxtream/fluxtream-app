@@ -12,7 +12,7 @@ import org.hibernate.annotations.Index;
  * @author Candide Kemmler (candide@fluxtream.com)
  */
 @Entity(name = "SharedConnectors")
-@NamedQuery (name="sharedConnector.byConnectorNameAndVieweeId", query="SELECT sconn FROM SharedConnector sconn WHERE sconn.connectorName=? AND sconn.buddy.guestId=?")
+@NamedQuery (name="sharedConnector.byConnectorNameAndVieweeId", query="SELECT sconn FROM SharedConnectors sconn WHERE sconn.connectorName=? AND sconn.buddy.guestId=?")
 public class SharedConnector extends AbstractEntity implements Serializable {
 
     @ManyToOne
