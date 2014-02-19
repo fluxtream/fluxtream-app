@@ -1,6 +1,7 @@
 package com.fluxtream.connectors.lastfm;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -8,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
@@ -19,9 +21,19 @@ import com.fluxtream.services.GuestService;
 import com.fluxtream.services.NotificationsService;
 import com.fluxtream.utils.HttpUtils;
 import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.joda.time.DateTimeConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import static com.fluxtream.utils.Utils.hash;
 
@@ -125,4 +137,35 @@ public class LastFmController {
 		String hashed = hash(toHash);
 		return hashed;
 	}
+
+    @RequestMapping(value="/img")
+    public void getLastfmImageResource(@RequestParam("url") String url,
+                                       final HttpServletResponse response) throws IOException {
+        HttpClient client = new DefaultHttpClient();
+        response.setDateHeader("Expires", System.currentTimeMillis() + DateTimeConstants.MILLIS_PER_WEEK*30);
+        try {
+            HttpGet get = new HttpGet(url);
+
+            HttpResponse lastfmResponse = client.execute(get);
+
+            if (lastfmResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                new ResponseHandler<byte[]>() {
+                    /** Returns the contents of the response as a <code>byte[]</code>. */
+                    @Override
+                    public byte[] handleResponse(final HttpResponse lastfmResponse) throws IOException {
+                        final HttpEntity entity = lastfmResponse.getEntity();
+                        if (entity != null) {
+                            final InputStream in = entity.getContent();
+                            IOUtils.copy(in, response.getOutputStream());
+                        }
+                        return new byte[0];
+                    }
+                }.handleResponse(lastfmResponse);
+            }
+        }
+        finally {
+            client.getConnectionManager().shutdown();
+        }
+    }
+
 }

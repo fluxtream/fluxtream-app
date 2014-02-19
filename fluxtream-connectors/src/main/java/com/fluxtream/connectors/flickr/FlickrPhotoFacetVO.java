@@ -41,10 +41,10 @@ public class FlickrPhotoFacetVO extends
 		startMinute = c.get(Calendar.HOUR_OF_DAY)*60+c.get(Calendar.MINUTE);
 
         int i = 0;
-        thumbnailUrls.put(i, String.format("http://farm%s.static.flickr.com/%s/%s_%s_s.jpg", facet.farm, facet.server, facet.flickrId, facet.secret));
+        thumbnailUrls.put(i, String.format("https://farm%s.static.flickr.com/%s/%s_%s_s.jpg", facet.farm, facet.server, facet.flickrId, facet.secret));
         thumbnailSizes.put(i, new Dimension(75, 75));
         i++;
-        final String thumbnailUrl = String.format("http://farm%s.static.flickr.com/%s/%s_%s_q.jpg", facet.farm, facet.server, facet.flickrId, facet.secret);
+        final String thumbnailUrl = String.format("https://farm%s.static.flickr.com/%s/%s_%s_q.jpg", facet.farm, facet.server, facet.flickrId, facet.secret);
         this.thumbnailUrl = thumbnailUrl;
         thumbnailUrls.put(i, thumbnailUrl);
         thumbnailSizes.put(i, new Dimension(150, 150));
@@ -52,28 +52,28 @@ public class FlickrPhotoFacetVO extends
 
         // hereafter, flickr documentation specifies a number of pixels *on longest side* - since we don't have the
         // original image's dimension, we just specify a square of that number
-        thumbnailUrls.put(i, String.format("http://farm%s.static.flickr.com/%s/%s_%s_t.jpg", facet.farm, facet.server, facet.flickrId, facet.secret));
+        thumbnailUrls.put(i, String.format("https://farm%s.static.flickr.com/%s/%s_%s_t.jpg", facet.farm, facet.server, facet.flickrId, facet.secret));
         thumbnailSizes.put(i, new Dimension(100, 100));
         i++;
-        thumbnailUrls.put(i, String.format("http://farm%s.static.flickr.com/%s/%s_%s_m.jpg", facet.farm, facet.server, facet.flickrId, facet.secret));
+        thumbnailUrls.put(i, String.format("https://farm%s.static.flickr.com/%s/%s_%s_m.jpg", facet.farm, facet.server, facet.flickrId, facet.secret));
         thumbnailSizes.put(i, new Dimension(240, 240));
         i++;
-        thumbnailUrls.put(i, String.format("http://farm%s.static.flickr.com/%s/%s_%s_n.jpg", facet.farm, facet.server, facet.flickrId, facet.secret));
+        thumbnailUrls.put(i, String.format("https://farm%s.static.flickr.com/%s/%s_%s_n.jpg", facet.farm, facet.server, facet.flickrId, facet.secret));
         thumbnailSizes.put(i, new Dimension(320, 320));
         i++;
-        thumbnailUrls.put(i, String.format("http://farm%s.static.flickr.com/%s/%s_%s_-.jpg", facet.farm, facet.server, facet.flickrId, facet.secret));
+        thumbnailUrls.put(i, String.format("https://farm%s.static.flickr.com/%s/%s_%s_-.jpg", facet.farm, facet.server, facet.flickrId, facet.secret));
         thumbnailSizes.put(i, new Dimension(500, 500));
         i++;
-        thumbnailUrls.put(i, String.format("http://farm%s.static.flickr.com/%s/%s_%s_z.jpg", facet.farm, facet.server, facet.flickrId, facet.secret));
+        thumbnailUrls.put(i, String.format("https://farm%s.static.flickr.com/%s/%s_%s_z.jpg", facet.farm, facet.server, facet.flickrId, facet.secret));
         thumbnailSizes.put(i, new Dimension(640, 640));
         i++;
-        thumbnailUrls.put(i, String.format("http://farm%s.static.flickr.com/%s/%s_%s_c.jpg", facet.farm, facet.server, facet.flickrId, facet.secret));
+        thumbnailUrls.put(i, String.format("https://farm%s.static.flickr.com/%s/%s_%s_c.jpg", facet.farm, facet.server, facet.flickrId, facet.secret));
         thumbnailSizes.put(i, new Dimension(800, 800));
         i++;
-        thumbnailUrls.put(i, String.format("http://farm%s.static.flickr.com/%s/%s_%s_b.jpg", facet.farm, facet.server, facet.flickrId, facet.secret));
+        thumbnailUrls.put(i, String.format("https://farm%s.static.flickr.com/%s/%s_%s_b.jpg", facet.farm, facet.server, facet.flickrId, facet.secret));
         thumbnailSizes.put(i, new Dimension(1024, 1024));
 
-        this.photoUrl = "http://farm" + facet.farm + ".static.flickr.com/"
+        this.photoUrl = "https://farm" + facet.farm + ".static.flickr.com/"
                         + facet.server + "/" + facet.flickrId + "_" + facet.secret
                         + "_z.jpg";
 		description = facet.title;
