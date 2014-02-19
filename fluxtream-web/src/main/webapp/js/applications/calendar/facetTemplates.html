@@ -516,7 +516,8 @@
                 <div class="flx-data">
                     <strong>SMS {{#OUTGOING}}to{{/OUTGOING}}{{#INCOMING}}from{{/INCOMING}} {{personName}} ({{personNumber}})</strong>:<br>
                     {{{message}}}
-                    {{#photoUrl}}<img photoId="{{id}}" class="flx-photo" src="{{photo42}}" style="max-height:42px; float:left;  margin:0 10px 0 0; cursor:pointer">{{/photoUrl}}
+                    {{#photoUrl}}<img data-deviceName="{{deviceName}}" data-channelName="{{channelName}}"
+                                      data-id="{{UID}}" data-timestamp="{{start}}" photoId="{{id}}" class="flx-photo" src="{{photo42}}" style="max-height:42px; float:left;  margin:0 10px 0 0; cursor:pointer">{{/photoUrl}}
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
