@@ -122,25 +122,25 @@ public class JawboneUpUpdater extends AbstractUpdater {
         channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
         channelStyle.timespanStyles.defaultStyle.top = 0.0;
         channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
-        channelStyle.timespanStyles.values = new HashMap();
+        channelStyle.timespanStyles.values = new HashMap<String, BodyTrackHelper.TimespanStyle>();
 
         BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
-        stylePart.top = 0.9;
-        stylePart.bottom = .0;
+        stylePart.top = .0;
+        stylePart.bottom = 0.9;
         stylePart.fillColor = "#1196ef";
         stylePart.borderColor = "#1196ef";
         channelStyle.timespanStyles.values.put("deep",stylePart);
 
         stylePart = new BodyTrackHelper.TimespanStyle();
-        stylePart.top = 0.6;
-        stylePart.bottom = .0;
+        stylePart.top = .0;
+        stylePart.bottom = 0.6;
         stylePart.fillColor = "#00d2ff";
         stylePart.borderColor = "#00d2ff";
         channelStyle.timespanStyles.values.put("light",stylePart);
 
         stylePart = new BodyTrackHelper.TimespanStyle();
-        stylePart.top = 0.1;
-        stylePart.bottom = .0;
+        stylePart.top = .0;
+        stylePart.bottom = 0.1;
         stylePart.fillColor = "#f87d04";
         stylePart.borderColor = "#f87d04";
         channelStyle.timespanStyles.values.put("wake",stylePart);
