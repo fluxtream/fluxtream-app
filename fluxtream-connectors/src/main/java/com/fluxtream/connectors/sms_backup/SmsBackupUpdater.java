@@ -6,22 +6,19 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 import javax.mail.Address;
-import javax.mail.BodyPart;
-import javax.mail.FetchProfile;
 import javax.mail.Folder;
 import javax.mail.FolderNotFoundException;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Store;
 import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.search.SentDateTerm;
-import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.Updater;
+import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
-import com.fluxtream.connectors.updaters.SettingsAwareAbstractUpdater;
+import com.fluxtream.connectors.updaters.SettingsAwareUpdater;
 import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
@@ -29,7 +26,6 @@ import com.fluxtream.domain.ChannelMapping;
 import com.fluxtream.domain.Notification;
 import com.fluxtream.services.ApiDataService.FacetModifier;
 import com.fluxtream.services.ApiDataService.FacetQuery;
-import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SettingsService;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.services.impl.BodyTrackHelper.ChannelStyle;
@@ -46,7 +42,6 @@ import com.google.api.services.plus.Plus;
 import com.google.api.services.plus.model.Person;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import com.ibm.icu.util.StringTokenizer;
-import com.sun.mail.util.BASE64DecoderStream;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -55,7 +50,7 @@ import org.springframework.stereotype.Component;
 @Updater(prettyName = "SMS Backup", value = 6, objectTypes = {
 		CallLogEntryFacet.class, SmsEntryFacet.class }, settings=SmsBackupSettings.class,
          defaultChannels = {"sms_backup.call_log"})
-public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
+public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUpdater {
 
     @Autowired
     BodyTrackHelper bodyTrackHelper;

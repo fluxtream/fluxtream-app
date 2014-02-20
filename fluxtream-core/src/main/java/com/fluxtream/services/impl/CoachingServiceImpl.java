@@ -15,6 +15,7 @@ import com.fluxtream.domain.SharedConnector;
 import com.fluxtream.services.CoachingService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.JPAUtils;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,9 @@ public class CoachingServiceImpl implements CoachingService {
 
     @PersistenceContext
     EntityManager em;
+
+    @Autowired
+    BeanFactory beanFactory;
 
     @Override
     @Transactional(readOnly=false)
@@ -153,9 +157,7 @@ public class CoachingServiceImpl implements CoachingService {
 
     @Override
     public CoachingBuddy getCoachee(final long guestId, final long coacheeId) {
-        final CoachingBuddy coachingBuddy = JPAUtils.findUnique(em, CoachingBuddy.class,
-                                                                "coachingBuddies.byGuestAndBuddyId",
-                                                                coacheeId, guestId);
+        final CoachingBuddy coachingBuddy = JPAUtils.findUnique(em, CoachingBuddy.class, "coachingBuddies.byGuestAndBuddyId", coacheeId, guestId);
         return coachingBuddy;
     }
 
@@ -173,7 +175,7 @@ public class CoachingServiceImpl implements CoachingService {
             if (sharedConnector!=null) {
                 final SharedConnectorFilter sharedConnectorFilter;
                 try {
-                    sharedConnectorFilter = connector.sharedConnectorFilterClass().newInstance();
+                    sharedConnectorFilter = beanFactory.getBean(connector.sharedConnectorFilterClass());
                     return sharedConnectorFilter.filterFacets(sharedConnector, facets);
                 }
                 catch (Exception e) {
@@ -191,4 +193,17 @@ public class CoachingServiceImpl implements CoachingService {
         return sconn;
     }
 
+    @Override
+    public List<SharedConnector> getSharedConnectors(final ApiKey apiKey) {
+        final List<SharedConnector> conns = JPAUtils.find(em, SharedConnector.class, "sharedConnector.byConnectorNameAndVieweeId", apiKey.getConnector().getName(), apiKey.getGuestId());
+        return conns;
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void setSharedConnectorFilter(final long sharedConnectorId, final String filterJson) {
+        final SharedConnector sharedConnector = em.find(SharedConnector.class, sharedConnectorId);
+        sharedConnector.filterJson = filterJson;
+        em.persist(sharedConnector);
+    }
 }

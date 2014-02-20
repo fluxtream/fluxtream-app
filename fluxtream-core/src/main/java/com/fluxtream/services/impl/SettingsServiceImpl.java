@@ -9,7 +9,7 @@ import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
-import com.fluxtream.connectors.updaters.SettingsAwareAbstractUpdater;
+import com.fluxtream.connectors.updaters.SettingsAwareUpdater;
 import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ConnectorChannelSet;
@@ -193,7 +193,7 @@ public class SettingsServiceImpl implements SettingsService {
             final Object settings = gson.fromJson(json, updaterAnnotation.settings());
             guestService.setApiKeySettings(apiKeyId, settings);
             final AbstractUpdater updater = beanFactory.getBean(apiKey.getConnector().getUpdaterClass());
-            ((SettingsAwareAbstractUpdater)updater).connectorSettingsChanged(apiKeyId, settings);
+            ((SettingsAwareUpdater)updater).connectorSettingsChanged(apiKeyId, settings);
         }
         catch (Exception e) {
             logger.warn(sb.append(" message=\"unexpected exception when saving connector settings for connector \"" + apiKey.getConnector().getName()));
@@ -232,9 +232,9 @@ public class SettingsServiceImpl implements SettingsService {
                 }
             }
         }
-        if (SettingsAwareAbstractUpdater.class.isAssignableFrom(updaterClass)) {
+        if (SettingsAwareUpdater.class.isAssignableFrom(updaterClass)) {
             final AbstractUpdater updater = beanFactory.getBean(apiKey.getConnector().getUpdaterClass());
-            ((SettingsAwareAbstractUpdater)updater).connectorSettingsChanged(apiKeyId, defaultSettings);
+            ((SettingsAwareUpdater)updater).connectorSettingsChanged(apiKeyId, defaultSettings);
         }
         em.persist(apiKey);
     }

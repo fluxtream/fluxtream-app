@@ -199,7 +199,11 @@
         {{#row}}
             <div class="span4"><input type="checkbox"
                                       onclick="App.sharingDialog.toggleSharedConnector('{{username}}','{{connectorName}}', this.checked);"
-                                      value="{{connectorName}}" {{#shared}}checked=checked{{/shared}}>&nbsp;{{prettyName}}</input> </div>
+                                      value="{{connectorName}}" {{#shared}}checked=checked{{/shared}}>&nbsp;{{prettyName}}</input>
+                {{#hasSettings}}
+                <a class="btn">more...</a>
+                {{/hasSettings}}
+            </div>
         {{/row}}
     </div>
     {{/connectors}}

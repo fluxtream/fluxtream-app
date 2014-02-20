@@ -6,7 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.annotations.Updater;
-import com.fluxtream.connectors.updaters.SettingsAwareAbstractUpdater;
+import com.fluxtream.connectors.updaters.AbstractUpdater;
+import com.fluxtream.connectors.updaters.SettingsAwareUpdater;
 import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
@@ -39,7 +40,7 @@ import static com.fluxtream.utils.Utils.hash;
 @Updater(prettyName = "Calendar", value = 0, objectTypes={GoogleCalendarEventFacet.class},
          settings=GoogleCalendarConnectorSettings.class, bodytrackResponder = GoogleCalendarBodytrackResponder.class,
          defaultChannels = {"google_calendar.events"})
-public class GoogleCalendarUpdater extends SettingsAwareAbstractUpdater {
+public class GoogleCalendarUpdater extends AbstractUpdater implements SettingsAwareUpdater {
 
     private static final FlxLogger logger = FlxLogger.getLogger(GoogleCalendarUpdater.class);
     private final String LAST_TIME_WE_CHECKED_FOR_UPDATED_EVENTS_ATT = "lastTimeWeCheckedForUpdatedEvents";

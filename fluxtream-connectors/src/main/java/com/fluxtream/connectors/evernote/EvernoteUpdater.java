@@ -31,19 +31,25 @@ import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.annotations.Updater;
 import com.fluxtream.connectors.location.LocationFacet;
+import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.AuthExpiredException;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
-import com.fluxtream.connectors.updaters.SettingsAwareAbstractUpdater;
+import com.fluxtream.connectors.updaters.SettingsAwareUpdater;
+import com.fluxtream.connectors.updaters.SharedConnectorSettingsAwareUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ChannelMapping;
+import com.fluxtream.domain.SharedConnector;
 import com.fluxtream.services.ApiDataService;
+import com.fluxtream.services.CoachingService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.MetadataService;
 import com.fluxtream.services.SettingsService;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.JPAUtils;
 import com.syncthemall.enml4j.ENMLProcessor;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.tika.mime.MimeType;
@@ -64,7 +70,7 @@ import org.springframework.stereotype.Component;
          defaultChannels = {"Evernote.photo", "Evernote.note"},
          deleteOrder={1, 2, 4, 8, 32, 16},
          sharedConnectorFilter = EvernoteSharedConnectorFilter.class)
-public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
+public class EvernoteUpdater extends AbstractUpdater implements SettingsAwareUpdater, SharedConnectorSettingsAwareUpdater {
 
     public static final String MAIN_APPENDIX = "main";
     public static final String RECOGNITION_APPENDIX = "recognition";
@@ -88,6 +94,9 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
 
     @Autowired
     SettingsService settingsService;
+
+    @Autowired
+    CoachingService coachingService;
 
     ENMLProcessor processor = new ENMLProcessor();
 
@@ -188,6 +197,53 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
         settings.tags = tagsMap;
 
         return settings;
+    }
+
+    @Override
+    public void syncSharedConnectorSettings(final UpdateInfo updateInfo, final SharedConnector sharedConnector) {
+        JSONObject jsonSettings = new JSONObject();
+        if (sharedConnector.filterJson!=null)
+            jsonSettings = JSONObject.fromObject(sharedConnector.filterJson);
+        // get notebooks, add new configs for new notebooks...
+        final List<EvernoteNotebookFacet> notebooks = jpaDaoService.find("evernote.notebooks.byApiKeyId",
+                                                                         EvernoteNotebookFacet.class, updateInfo.apiKey.getId());
+        JSONArray settingsNotebooks = new JSONArray();
+        if (jsonSettings.has("notebooks"))
+            settingsNotebooks = jsonSettings.getJSONArray("notebooks");
+        else
+            jsonSettings.accumulate("notebooks", settingsNotebooks);
+        there: for (EvernoteNotebookFacet notebook : notebooks) {
+            for (int i=0; i<settingsNotebooks.size(); i++) {
+                JSONObject notebookConfig = settingsNotebooks.getJSONObject(i);
+                if (notebookConfig.getString("guid").equals(notebook.guid))
+                    continue there;
+            }
+            JSONObject config = new JSONObject();
+            config.accumulate("guid", notebook.guid);
+            config.accumulate("name", notebook.name);
+            config.accumulate("shared", false);
+            settingsNotebooks.add(config);
+        }
+        // and remove configs for deleted notebooks - leave others untouched
+        JSONArray settingsToDelete = new JSONArray();
+        there: for (int i=0; i<settingsNotebooks.size(); i++) {
+            JSONObject notebookConfig = settingsNotebooks.getJSONObject(i);
+            for (EvernoteNotebookFacet notebook : notebooks) {
+                if (notebookConfig.getString("guid").equals(notebook.guid))
+                    continue there;
+            }
+            settingsToDelete.add(notebookConfig);
+        }
+        for (int i=0; i<settingsToDelete.size(); i++) {
+            JSONObject toDelete = settingsToDelete.getJSONObject(i);
+            for (int j=0; j<settingsNotebooks.size(); j++) {
+                if (settingsNotebooks.getJSONObject(j).getString("guid").equals(toDelete.getString("guid"))) {
+                    settingsNotebooks.remove(j);
+                }
+            }
+        }
+        String toPersist = jsonSettings.toString();
+        coachingService.setSharedConnectorFilter(sharedConnector.getId(), toPersist);
     }
 
     private void setChannelMapping(ApiKey apiKey, final List<NotebookConfig> notebookConfigs) {

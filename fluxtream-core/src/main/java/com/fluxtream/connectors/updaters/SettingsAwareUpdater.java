@@ -5,7 +5,7 @@ package com.fluxtream.connectors.updaters;
  * Date: 27/07/13
  * Time: 13:17
  */
-public abstract class SettingsAwareAbstractUpdater extends AbstractUpdater {
+public interface SettingsAwareUpdater {
 
     /**
      * This method will be called whenever a user has edited the settings for a specific
@@ -14,7 +14,7 @@ public abstract class SettingsAwareAbstractUpdater extends AbstractUpdater {
      * @param apiKeyId
      * @param settings
      */
-    public abstract void connectorSettingsChanged(final long apiKeyId, final Object settings);
+    void connectorSettingsChanged(final long apiKeyId, final Object settings);
 
     /**
      * This is called after a successful connector update (historical or incremental) and
@@ -22,6 +22,6 @@ public abstract class SettingsAwareAbstractUpdater extends AbstractUpdater {
      * @param updateInfo
      * @param settings either existing settings or a empty default settings instance
      */
-    public abstract Object syncConnectorSettings(final UpdateInfo updateInfo, Object settings);
+    Object syncConnectorSettings(final UpdateInfo updateInfo, Object settings);
 
 }

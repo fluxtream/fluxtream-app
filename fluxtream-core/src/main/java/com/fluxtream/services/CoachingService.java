@@ -2,8 +2,10 @@ package com.fluxtream.services;
 
 import java.util.List;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
+import com.fluxtream.domain.SharedConnector;
 
 /**
  *
@@ -33,4 +35,7 @@ public interface CoachingService {
 
     public <T extends AbstractFacet> List<T> filterFacets(long viewerId, long apiKeyId, List<T> facets);
 
+    List<SharedConnector> getSharedConnectors(ApiKey apiKey);
+
+    void setSharedConnectorFilter(long sharedConnectorId, String filterJson);
 }

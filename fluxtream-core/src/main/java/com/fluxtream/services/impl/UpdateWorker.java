@@ -1,19 +1,23 @@
 package com.fluxtream.services.impl;
 
 import java.util.Date;
+import java.util.List;
 import com.fluxtream.Configuration;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
-import com.fluxtream.connectors.updaters.SettingsAwareAbstractUpdater;
+import com.fluxtream.connectors.updaters.SettingsAwareUpdater;
+import com.fluxtream.connectors.updaters.SharedConnectorSettingsAwareUpdater;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.connectors.updaters.UpdateResult;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ConnectorInfo;
 import com.fluxtream.domain.Notification;
+import com.fluxtream.domain.SharedConnector;
 import com.fluxtream.domain.UpdateWorkerTask;
 import com.fluxtream.domain.UpdateWorkerTask.Status;
 import com.fluxtream.services.ApiDataService;
+import com.fluxtream.services.CoachingService;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.NotificationsService;
@@ -50,6 +54,9 @@ class UpdateWorker implements Runnable {
 
     @Autowired
     SettingsService settingsService;
+
+    @Autowired
+    CoachingService coachingService;
 
 	@Autowired
 	Configuration env;
@@ -167,8 +174,7 @@ class UpdateWorker implements Runnable {
                          + apiKey.getConnector().prettyName()
                          + ". Your data is now being retrieved. "
                          + "It may take a little while until it becomes visible.";
-        notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.INFO,
-                                                  apiKey.getConnector().statusNotificationName(), message);
+        notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.INFO, apiKey.getConnector().statusNotificationName(), message);
         // TODO: check if this connector type is enabled and supportsSync before calling update.
         // If it is disabled and/or does not support sync, don't try to update it.
         logger.info("module=updateQueue component=worker action=updateDataHistory " +
@@ -176,13 +182,7 @@ class UpdateWorker implements Runnable {
         UpdateInfo updateInfo = UpdateInfo.initialHistoryUpdateInfo(apiKey,
                 task.objectTypes);
         UpdateResult updateResult = updater.updateDataHistory(updateInfo);
-        if (updateResult.getType()== UpdateResult.ResultType.UPDATE_SUCCEEDED
-                && updater instanceof SettingsAwareAbstractUpdater) {
-            final SettingsAwareAbstractUpdater settingsAwareUpdater = (SettingsAwareAbstractUpdater)updater;
-            final Object synchedSettings = settingsAwareUpdater.syncConnectorSettings(updateInfo, settingsService.getConnectorSettings(updateInfo.apiKey.getId()));
-            final Object defaultSettings = settingsAwareUpdater.syncConnectorSettings(updateInfo, null);
-            settingsService.persistConnectorSettings(apiKey.getId(), synchedSettings, defaultSettings);
-        }
+        syncSettings(updater, updateInfo, updateResult);
         handleUpdateResult(updateInfo, updateResult);
 	}
 
@@ -193,14 +193,31 @@ class UpdateWorker implements Runnable {
                     " connector=" + apiKey.getConnector().getName() + " guestId=" + apiKey.getGuestId());
         UpdateInfo updateInfo = UpdateInfo.IncrementalUpdateInfo(apiKey, task.objectTypes);
         UpdateResult result = updater.updateData(updateInfo);
-        if (result.getType()== UpdateResult.ResultType.UPDATE_SUCCEEDED
-            && updater instanceof SettingsAwareAbstractUpdater) {
-            final SettingsAwareAbstractUpdater settingsAwareUpdater = (SettingsAwareAbstractUpdater)updater;
-            final Object synchedSettings = settingsAwareUpdater.syncConnectorSettings(updateInfo, settingsService.getConnectorSettings(updateInfo.apiKey.getId()));
-            final Object defaultSettings = settingsAwareUpdater.syncConnectorSettings(updateInfo, null);
-            settingsService.persistConnectorSettings(apiKey.getId(), synchedSettings, defaultSettings);
-        }
+        syncSettings(updater, updateInfo, result);
         handleUpdateResult(updateInfo, result);
+    }
+
+    private void syncSettings(final AbstractUpdater updater, final UpdateInfo updateInfo, final UpdateResult updateResult) {
+        if (updateResult.getType()== UpdateResult.ResultType.UPDATE_SUCCEEDED) {
+            if (updater instanceof SettingsAwareUpdater) {
+                final SettingsAwareUpdater settingsAwareUpdater = (SettingsAwareUpdater)updater;
+                syncConnectorSettings(updateInfo, settingsAwareUpdater);
+            }
+            if (updater instanceof SharedConnectorSettingsAwareUpdater) {
+                final SharedConnectorSettingsAwareUpdater sharedConnectorSettingsAwareUpdater = (SharedConnectorSettingsAwareUpdater)updater;
+                final ApiKey apiKey = guestService.getApiKey(updateInfo.apiKey.getId());
+                final List<SharedConnector> sharedConnectors = coachingService.getSharedConnectors(apiKey);
+                for (SharedConnector sharedConnector : sharedConnectors) {
+                    sharedConnectorSettingsAwareUpdater.syncSharedConnectorSettings(updateInfo, sharedConnector);
+                }
+            }
+        }
+    }
+
+    private void syncConnectorSettings(final UpdateInfo updateInfo, final SettingsAwareUpdater settingsAwareUpdater) {
+        final Object synchedSettings = settingsAwareUpdater.syncConnectorSettings(updateInfo, settingsService.getConnectorSettings(updateInfo.apiKey.getId()));
+        final Object defaultSettings = settingsAwareUpdater.syncConnectorSettings(updateInfo, null);
+        settingsService.persistConnectorSettings(updateInfo.apiKey.getId(), synchedSettings, defaultSettings);
     }
 
 	private void handleUpdateResult(final UpdateInfo updateInfo, UpdateResult updateResult) {

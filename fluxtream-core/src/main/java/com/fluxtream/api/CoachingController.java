@@ -12,6 +12,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.connectors.updaters.SharedConnectorSettingsAwareUpdater;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.Guest;
@@ -133,6 +134,8 @@ public class CoachingController {
             connector.accumulate("prettyName", apiKey.getConnector().prettyName());
             connector.accumulate("connectorName", connectorName);
             connector.accumulate("shared", isShared);
+            if (SharedConnectorSettingsAwareUpdater.class.isAssignableFrom(apiKey.getConnector().getUpdaterClass()))
+                connector.accumulate("hasSettings", true);
             connectors.add(connector);
         }
         coach.accumulate("sharedConnectors", connectors);

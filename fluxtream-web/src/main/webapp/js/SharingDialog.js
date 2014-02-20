@@ -70,7 +70,7 @@ define(function() {
             success:function(coach) {
                 App.loadMustacheTemplate("settingsTemplates.html","sharedConnectors",function(template){
                     updateCoachesDropdown(username);
-                    var html = template.render({connectors : FlxUtils.rowsOf(coach.sharedConnectors, 3),
+                    var html = template.render({connectors : FlxUtils.rowsOf(coach.sharedConnectors, 1),
                                                 username : username});
                     $("#sharedConnectors").empty();
                     $("#sharedConnectors").append(html);
