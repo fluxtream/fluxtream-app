@@ -7,6 +7,6 @@
 </head>
 <body class="ennote">
     ${content}
-    <script>parent.App.adjustiFrameHeight("iframe-${guid}");</script>
+    <%--<script>parent.App.adjustiFrameHeight("iframe-${guid}");</script>--%>
 </body>
 </html>

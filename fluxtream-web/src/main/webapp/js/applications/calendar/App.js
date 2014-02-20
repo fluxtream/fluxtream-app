@@ -636,6 +636,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 var hasTypedFacets = digest.cachedData[facetType] != null;
                 var objectType = facetType.split("-")[1];
                 if(Calendar.currentTab.name==="photos") {
+                    // handle special case of mymee observations
                     if (hasTypedFacets&&objectType.indexOf("observation")!=-1){
                         hasTypedFacets = false;
                         for (var i=0;i<digest.cachedData[facetType].length; i++){
@@ -645,7 +646,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                             }
                         }
                     } else {
-                        hasTypedFacets = hasTypedFacets && objectType.indexOf("photo")!=-1;
+                        // handle evernote and jawbone servings
+                        var isPhotoObjectType = objectType.indexOf("photo")!=-1;
+                        var isServingObjectType = objectType.indexOf("serving")!=-1;
+                        hasTypedFacets = hasTypedFacets && (isPhotoObjectType || isServingObjectType);
                     }
                 }
                 return hasTypedFacets;

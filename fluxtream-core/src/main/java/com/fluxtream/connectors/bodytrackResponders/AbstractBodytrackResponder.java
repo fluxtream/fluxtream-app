@@ -166,7 +166,7 @@ public abstract class AbstractBodytrackResponder {
             facet = null;
             for (ObjectType objectType : objectTypes){
                 AbstractFacet potentialFacet = apiDataService.getLatestApiDataFacet(apiKey,objectType);
-                if (facet == null || facet.end < potentialFacet.end)
+                if (potentialFacet != null && (facet == null || facet.end < potentialFacet.end))
                     facet = potentialFacet;
             }
         }

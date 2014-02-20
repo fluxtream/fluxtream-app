@@ -208,6 +208,22 @@ public class EvernoteController {
         return mav;
     }
 
+    @RequestMapping(value="/popup/{apiKeyId}/{guid}")
+    public ModelAndView getPopup(@PathVariable("apiKeyId") String apiKeyId,
+                                   @PathVariable("guid") String guid,
+                                   HttpServletResponse response) throws IOException {
+        ModelAndView mav = new ModelAndView("connectors/evernote/popup");
+        final Query nativeQuery = em.createNativeQuery(String.format("SELECT title FROM Facet_EvernoteNote WHERE apiKeyId=%s AND guid='%s'",
+                                                                     apiKeyId,
+                                                                     guid));
+        String title = (String)nativeQuery.getSingleResult();
+        response.setContentType("text/html; charset=utf-8");
+        mav.addObject("apiKeyId", apiKeyId);
+        mav.addObject("title", title);
+        mav.addObject("guid", guid);
+        return mav;
+    }
+
     /**
      * Parse the html string, detect img tags' width/height attribute and adapt them
      * to our max allowed width
