@@ -12,6 +12,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.SharedConnectorSettingsAwareUpdater;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.CoachingBuddy;
@@ -23,6 +25,7 @@ import com.fluxtream.services.CoachingService;
 import com.fluxtream.services.GuestService;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -41,6 +44,9 @@ public class CoachingController {
 
     @Autowired
     CoachingService coachingService;
+
+    @Autowired
+    BeanFactory beanFactory;
 
     @POST
     @Path("/coaches/find")
@@ -134,6 +140,7 @@ public class CoachingController {
             connector.accumulate("prettyName", apiKey.getConnector().prettyName());
             connector.accumulate("connectorName", connectorName);
             connector.accumulate("shared", isShared);
+            connector.accumulate("apiKeyId", apiKey.getId());
             if (SharedConnectorSettingsAwareUpdater.class.isAssignableFrom(apiKey.getConnector().getUpdaterClass()))
                 connector.accumulate("hasSettings", true);
             connectors.add(connector);
@@ -160,7 +167,13 @@ public class CoachingController {
     @Produces({MediaType.APPLICATION_JSON})
     public StatusModel addSharedConnector(@PathParam("username") String username,
                                           @PathParam("connector") String connectorName) {
-        coachingService.addSharedConnector(AuthHelper.getGuestId(), username, connectorName, "{}");
+        final SharedConnector sharedConnector = coachingService.addSharedConnector(AuthHelper.getGuestId(), username, connectorName, "{}");
+        final ApiKey apiKey = guestService.getApiKey(AuthHelper.getGuestId(), Connector.getConnector(connectorName));
+        final Class<? extends AbstractUpdater> updaterClass = apiKey.getConnector().getUpdaterClass();
+        if (SharedConnectorSettingsAwareUpdater.class.isAssignableFrom(updaterClass)) {
+            final SharedConnectorSettingsAwareUpdater updater = (SharedConnectorSettingsAwareUpdater) beanFactory.getBean(updaterClass);
+            updater.syncSharedConnectorSettings(apiKey.getId(), sharedConnector);
+        }
         return new StatusModel(true, "Successfully added a connector (" + username + "/" + connectorName + ")");
     }
 
@@ -171,6 +184,36 @@ public class CoachingController {
                                              @PathParam("connector") String connectorName) {
         coachingService.removeSharedConnector(AuthHelper.getGuestId(), username, connectorName);
         return new StatusModel(true, "Successfully removed a connector (" + username + "/" + connectorName + ")");
+    }
+
+    @GET
+    @Path("/sharedConnector/{apiKeyId}/{username}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String getSharedConnectorSettings(@PathParam("apiKeyId") long apiKeyId,
+                                             @PathParam("username") String username) {
+        final long buddyId = guestService.getGuest(username).getId();
+        final SharedConnector sharedConnector = coachingService.getSharedConnector(apiKeyId, buddyId);
+        return sharedConnector.filterJson;
+    }
+
+    @POST
+    @Path("/sharedConnector/{apiKeyId}/{username}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public StatusModel saveSharedConnectorSettingsFilter(@PathParam("apiKeyId") long apiKeyId,
+                                                         @PathParam("username") String username,
+                                                         @FormParam("json") String json) {
+        final ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        final long guestId = AuthHelper.getGuestId();
+        final long buddyId = guestService.getGuest(username).getId();
+        try {
+            if (apiKey.getGuestId()!=guestId)
+                throw new RuntimeException("attempt to retrieve ApiKey from another guest!");
+            final SharedConnector sharedConnector = coachingService.getSharedConnector(apiKeyId, buddyId);
+            coachingService.setSharedConnectorFilter(sharedConnector.getId(), json);
+        } catch (Throwable e) {
+            return new StatusModel(false, e.getMessage());
+        }
+        return new StatusModel(true, "saved shared connector filter object");
     }
 
 }

@@ -62,16 +62,16 @@ public class CoachingServiceImpl implements CoachingService {
 
     @Override
     @Transactional(readOnly=false)
-    public void addSharedConnector(final long guestId, final String username, final String connectorName, final String filterJson) {
+    public SharedConnector addSharedConnector(final long guestId, final String username, final String connectorName, final String filterJson) {
         final Guest buddyGuest = guestService.getGuest(username);
-        if (buddyGuest==null) return;
+        if (buddyGuest==null) throw new RuntimeException("No such guest: " + username);
         final CoachingBuddy coachingBuddy = JPAUtils.findUnique(em, CoachingBuddy.class,
                                                               "coachingBuddies.byGuestAndBuddyId",
                                                               guestId, buddyGuest.getId());
-        if (coachingBuddy==null) return;
+        if (coachingBuddy==null) throw new RuntimeException("Guest doesn't have a coaching buddy for this connector");
         for(SharedConnector sharedConnector : coachingBuddy.sharedConnectors) {
             if (sharedConnector.connectorName.equals(connectorName))
-                return;
+                return null;
         }
         SharedConnector sharedConnector = new SharedConnector();
         sharedConnector.connectorName = connectorName;
@@ -80,6 +80,7 @@ public class CoachingServiceImpl implements CoachingService {
         sharedConnector.buddy = coachingBuddy;
         em.persist(sharedConnector);
         em.merge(coachingBuddy);
+        return sharedConnector;
     }
 
     @Override
@@ -171,7 +172,7 @@ public class CoachingServiceImpl implements CoachingService {
             return facets;
         else {
             // retrieve SharedConnector instance;
-            SharedConnector sharedConnector = getSharedConnector(viewerId, apiKey);
+            SharedConnector sharedConnector = getSharedConnector(apiKeyId, viewerId);
             if (sharedConnector!=null) {
                 final SharedConnectorFilter sharedConnectorFilter;
                 try {
@@ -186,7 +187,9 @@ public class CoachingServiceImpl implements CoachingService {
         return facets;
     }
 
-    private SharedConnector getSharedConnector(final long viewerId, final ApiKey apiKey) {
+    @Override
+    public SharedConnector getSharedConnector(final long apiKeyId, final long viewerId) {
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
         final SharedConnector sconn = JPAUtils.findUnique(em, SharedConnector.class,
                                                             "sharedConnector.byConnectorNameAndViewerId",
                                                                 apiKey.getConnector().getName(), viewerId);

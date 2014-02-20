@@ -200,18 +200,16 @@ public class EvernoteUpdater extends AbstractUpdater implements SettingsAwareUpd
     }
 
     @Override
-    public void syncSharedConnectorSettings(final UpdateInfo updateInfo, final SharedConnector sharedConnector) {
+    public void syncSharedConnectorSettings(final long apiKeyId, final SharedConnector sharedConnector) {
         JSONObject jsonSettings = new JSONObject();
         if (sharedConnector.filterJson!=null)
             jsonSettings = JSONObject.fromObject(sharedConnector.filterJson);
         // get notebooks, add new configs for new notebooks...
         final List<EvernoteNotebookFacet> notebooks = jpaDaoService.find("evernote.notebooks.byApiKeyId",
-                                                                         EvernoteNotebookFacet.class, updateInfo.apiKey.getId());
+                                                                         EvernoteNotebookFacet.class, apiKeyId);
         JSONArray settingsNotebooks = new JSONArray();
         if (jsonSettings.has("notebooks"))
             settingsNotebooks = jsonSettings.getJSONArray("notebooks");
-        else
-            jsonSettings.accumulate("notebooks", settingsNotebooks);
         there: for (EvernoteNotebookFacet notebook : notebooks) {
             for (int i=0; i<settingsNotebooks.size(); i++) {
                 JSONObject notebookConfig = settingsNotebooks.getJSONObject(i);
@@ -224,6 +222,7 @@ public class EvernoteUpdater extends AbstractUpdater implements SettingsAwareUpd
             config.accumulate("shared", false);
             settingsNotebooks.add(config);
         }
+
         // and remove configs for deleted notebooks - leave others untouched
         JSONArray settingsToDelete = new JSONArray();
         there: for (int i=0; i<settingsNotebooks.size(); i++) {
@@ -242,6 +241,7 @@ public class EvernoteUpdater extends AbstractUpdater implements SettingsAwareUpd
                 }
             }
         }
+        jsonSettings.accumulate("notebooks", settingsNotebooks);
         String toPersist = jsonSettings.toString();
         coachingService.setSharedConnectorFilter(sharedConnector.getId(), toPersist);
     }

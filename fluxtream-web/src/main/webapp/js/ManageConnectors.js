@@ -10,9 +10,7 @@ define(["core/grapher/BTCore",
     var settingsHandlers = {
         "google_calendar" : GoogleCalendarSettingsHandler,
         "evernote" : EvernoteSettingsHandler,
-        "sms_backup" : SmsBackupSettingsHandler,
-        "google_calendar" : GoogleCalendarSettingsHandler,
-        "sms_backup": SmsBackupSettingsHandler
+        "sms_backup" : SmsBackupSettingsHandler
     };
 
     function show(){

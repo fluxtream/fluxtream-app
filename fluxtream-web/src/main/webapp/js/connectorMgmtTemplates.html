@@ -366,6 +366,26 @@
         <div class="alert alert-info"><strong>Heads up!</strong> For changes to be reflected in the timeline, you will have to reload the page.<br>Sorry about that!</div>
     </div>
 </template>
+<template id="evernote-sharedConnector-settings">
+    <div class="modal hide fade">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h3>{{connectorPrettyName}} Sharing Settings</h3>
+        </div>
+        <div class="modal-body">
+            <div style="height:300px">
+                <h4>Please check notebooks that you want to share</h4>
+                <form action="javascript:void(0);">
+                    {{#settings}}{{#notebooks}}
+                    <label class="checkbox">
+                        <input id="shared-notebook-{{guid}}" type="checkbox" style="margin-top:8px" {{#shared}}checked=checked{{/shared}}  value="{{guid}}"> {{name}}
+                    </label>
+                    {{/notebooks}}{{/settings}}
+                </form>
+            </div>
+        </div>
+    </div>
+</template>
 <template id="uploadDialog">
     <div id="uploadModal" class="modal hide fade">
         <div class="modal-header">

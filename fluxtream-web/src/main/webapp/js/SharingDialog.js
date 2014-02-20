@@ -1,4 +1,8 @@
-define(function() {
+define(["sharedConnectorSettings/evernote"], function(EvernoteSharedConnectorSettingsHandler) {
+
+    var sharedConnectorSettingsHandlers = {
+        "evernote" : EvernoteSharedConnectorSettingsHandler
+    };
 
     function show(){
         App.loadMustacheTemplate("settingsTemplates.html","sharingDialog",function(template){
@@ -80,6 +84,15 @@ define(function() {
                                                           "<i class=\"icon-trash\"></i></a>")
                     $("#removeCoachButton").click(function(){
                         removeCoach(username);
+                    });
+                    $("#sharedConnectors .sharedConnectorSettingsBtn").click(function(evt){
+                        var connectorName = $(evt.target).attr("data-connectorName");
+                        var connectorPrettyName = $(evt.target).attr("data-connectorPrettyName");
+                        var apiKeyId = $(evt.target).attr("data-apiKeyId");
+                        App.loadMustacheTemplate("connectorMgmtTemplates.html",connectorName + "-sharedConnector-settings",function(template){
+                            var settingsHandler = sharedConnectorSettingsHandlers[connectorName];
+                            settingsHandler.loadSettings(apiKeyId, username, connectorName, connectorPrettyName, template);
+                        });
                     });
                 });
             }

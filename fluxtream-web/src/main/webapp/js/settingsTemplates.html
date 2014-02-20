@@ -201,7 +201,8 @@
                                       onclick="App.sharingDialog.toggleSharedConnector('{{username}}','{{connectorName}}', this.checked);"
                                       value="{{connectorName}}" {{#shared}}checked=checked{{/shared}}>&nbsp;{{prettyName}}</input>
                 {{#hasSettings}}
-                <a class="btn">more...</a>
+                <a class="btn sharedConnectorSettingsBtn" data-apiKeyId="{{apiKeyId}}" data-connectorPrettyName="{{prettyName}}"
+                   data-connectorName="{{connectorName}}">more...</a>
                 {{/hasSettings}}
             </div>
         {{/row}}

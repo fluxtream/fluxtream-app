@@ -17,7 +17,7 @@ public interface CoachingService {
 
     public void removeCoach(long guestId, String username);
 
-    public void addSharedConnector(long guestId, String username, String connectorName, String filterJson);
+    public SharedConnector addSharedConnector(long guestId, String username, String connectorName, String filterJson);
 
     public void removeSharedConnector(long guestId, String username, String connectorName);
 
@@ -34,6 +34,8 @@ public interface CoachingService {
     public CoachingBuddy getCoachee(long guestId, long coacheeId);
 
     public <T extends AbstractFacet> List<T> filterFacets(long viewerId, long apiKeyId, List<T> facets);
+
+    SharedConnector getSharedConnector(long apiKeyId, long viewerId);
 
     List<SharedConnector> getSharedConnectors(ApiKey apiKey);
 

@@ -208,7 +208,7 @@ class UpdateWorker implements Runnable {
                 final ApiKey apiKey = guestService.getApiKey(updateInfo.apiKey.getId());
                 final List<SharedConnector> sharedConnectors = coachingService.getSharedConnectors(apiKey);
                 for (SharedConnector sharedConnector : sharedConnectors) {
-                    sharedConnectorSettingsAwareUpdater.syncSharedConnectorSettings(updateInfo, sharedConnector);
+                    sharedConnectorSettingsAwareUpdater.syncSharedConnectorSettings(updateInfo.apiKey.getId(), sharedConnector);
                 }
             }
         }
