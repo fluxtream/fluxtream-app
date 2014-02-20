@@ -532,13 +532,14 @@
                 <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
-                <div class="flx-data evernote-note">
+                <div class="flx-data evernote-note" style="margin-bottom: 1em;">
                     <strong>{{{title}}}</strong>
                     <div style="margin-bottom: 4px;margin-top: 2px">
                         <span class="evernoteNotebook" style="background-color:{{color}}"><i class="icon icon-book"/>&nbsp;{{notebook}}</span>
                         {{#evernoteTags}}<span class="evernoteTag"><i class="icon icon-tag"/>&nbsp;{{.}}</span>{{/evernoteTags}}
                     </div>
-                    <iframe id="iframe-{{guid}}" src="/evernote/content/{{apiKeyId}}/{{guid}}"></iframe>
+                    <a href="javascript:void(0);" onclick="App.makeModal($.ajax({url: '/evernote/popup/{{apiKeyId}}/{{guid}}',success: function(html) {App.makeModal(html);},async:false}));" class="expandcollapse">Show Note&nbsp;<i class="icon-eye-open"></i></a></span>
+                    <br>
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
