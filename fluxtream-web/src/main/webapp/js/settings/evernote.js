@@ -2,7 +2,7 @@ define(["core/ConnectorSettingsHandler"], function(ConnectorSettingsHandler) {
 
     var EvernoteSettingsHandler = new ConnectorSettingsHandler("evernote");
 
-    EvernoteSettingsHandler.bindSettings = function(settings, apiKeyId) {
+    EvernoteSettingsHandler.bindSettings = function(container,settings, apiKeyId) {
         var notebooks = settings.notebooks;
         var setNotebookChecked = EvernoteSettingsHandler.setNotebookChecked;
         var setNotebookColor = EvernoteSettingsHandler.setNotebookColor;
@@ -19,8 +19,6 @@ define(["core/ConnectorSettingsHandler"], function(ConnectorSettingsHandler) {
             var colorInput = $("#notebook-c-"+notebooks[i].guid);
             colorInput.change({guid:notebooks[i].guid},function(e){
                 var input = $(e.target);
-                console.log("guid: " + e.data.guid);
-                console.log("color: " + input.val());
                 setNotebookColor(e.data.guid, input.val(), settings);
                 saveSettings(apiKeyId, settings);
             });
@@ -28,14 +26,11 @@ define(["core/ConnectorSettingsHandler"], function(ConnectorSettingsHandler) {
     };
 
     EvernoteSettingsHandler.setNotebookColor = function(notebookId, color, settings) {
-        console.log("setting notebook color: " + notebookId + ":" + color);
         for (var i=0; i<settings.notebooks.length; i++) {
             if (settings.notebooks[i].guid===notebookId){
-                console.log("found it!");
                 settings.notebooks[i].backgroundColor = color;
             }
         }
-        console.log("done");
     };
 
     EvernoteSettingsHandler.setNotebookChecked = function(notebookId, isChecked, settings) {

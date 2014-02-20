@@ -9,7 +9,6 @@ define(function() {
         $.ajax({
             url: "/api/connectors/settings/"+apiKeyId,
             success: function(settings) {
-                console.log("blah");
                 var settingsHtml = template.render({
                     connectorName:connector.connectorName,
                     name:connector.name,
@@ -22,7 +21,6 @@ define(function() {
                 var $resetSettingsButton = $("#resetSettingsButton");
                 $resetSettingsButton.unbind("click");
                 $resetSettingsButton.click(function() {
-                    console.log("click!");
                     resetSettings(handler, apiKeyId, connector, template);
                 });
             },

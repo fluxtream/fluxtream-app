@@ -100,6 +100,13 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
         final NoteStoreClient noteStore = getNoteStoreClient(updateInfo);
         performSync(updateInfo, noteStore, true);
+        initChannelMapping(updateInfo.apiKey.getId());
+    }
+
+    private void initChannelMapping(final long apiKeyId) {
+        final EvernoteConnectorSettings connectorSettings = (EvernoteConnectorSettings)settingsService.getConnectorSettings(apiKeyId);
+        final ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        setChannelMapping(apiKey, connectorSettings.notebooks);
     }
 
     @Override
@@ -184,6 +191,7 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
 
     private void setChannelMapping(ApiKey apiKey, final List<NotebookConfig> notebookConfigs) {
         bodyTrackHelper.deleteChannelMappings(apiKey);
+
         ChannelMapping mapping = new ChannelMapping();
         mapping.deviceName = "Evernote";
         mapping.channelName = "note";
@@ -191,6 +199,7 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
         mapping.channelType = ChannelMapping.ChannelType.timespan;
         mapping.guestId = apiKey.getGuestId();
         mapping.apiKeyId = apiKey.getId();
+
         bodyTrackHelper.persistChannelMapping(mapping);
 
         BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
