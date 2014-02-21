@@ -5,6 +5,7 @@ define(function() {
     }
 
     function loadSettings(apiKeyId, username, connectorName, connectorPrettyName, template) {
+        var handler = this;
         $.ajax({
             url: "/api/coaching/sharedConnector/"+apiKeyId+"/"+username,
             success: function(settings) {
@@ -14,6 +15,7 @@ define(function() {
                     settings: settings
                 });
                 App.makeModal(settingsHtml);
+                handler.bindSettings(apiKeyId, username, settings);
             },
             error: function(){
                 console.error("blahblahblah!")
@@ -29,7 +31,6 @@ define(function() {
             type: "post",
             data: {json : JSON.stringify(settings)},
             success: function(status){
-                console.log(status);
                 if(!status.result) {
                     alert("Oops, we could not save your settings:" + status.message);
                 }
