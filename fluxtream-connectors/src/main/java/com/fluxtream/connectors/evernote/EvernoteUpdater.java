@@ -208,7 +208,7 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
         channelStyle.timespanStyles.defaultStyle.fillColor = EVERNOTE_DEFAULT_BGCOLOR;
         channelStyle.timespanStyles.defaultStyle.borderColor = EVERNOTE_DEFAULT_BGCOLOR;
         channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
-        channelStyle.timespanStyles.defaultStyle.top = 1.0;
+        channelStyle.timespanStyles.defaultStyle.top = 0.0;
         channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
         channelStyle.timespanStyles.values = new HashMap();
 
