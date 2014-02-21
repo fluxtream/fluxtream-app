@@ -100,12 +100,13 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
         final NoteStoreClient noteStore = getNoteStoreClient(updateInfo);
         performSync(updateInfo, noteStore, true);
-        initChannelMapping(updateInfo.apiKey.getId());
+        initChannelMapping(updateInfo);
     }
 
-    private void initChannelMapping(final long apiKeyId) {
-        final EvernoteConnectorSettings connectorSettings = (EvernoteConnectorSettings)settingsService.getConnectorSettings(apiKeyId);
-        final ApiKey apiKey = guestService.getApiKey(apiKeyId);
+    private void initChannelMapping(final UpdateInfo updateInfo) {
+        final ApiKey apiKey = guestService.getApiKey(updateInfo.apiKey.getId());
+        final EvernoteConnectorSettings connectorSettings = (EvernoteConnectorSettings)
+                syncConnectorSettings(updateInfo, settingsService.getConnectorSettings(updateInfo.apiKey.getId()));
         setChannelMapping(apiKey, connectorSettings.notebooks);
     }
 
