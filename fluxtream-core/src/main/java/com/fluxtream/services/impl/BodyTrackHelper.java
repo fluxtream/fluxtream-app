@@ -364,7 +364,7 @@ public class BodyTrackHelper {
 
             //TODO: this is a hack to prevent double flickr photo channel showing up
             response.deleteSource("Flickr");
-            response.deleteSource("SMS Backup");
+            response.deleteSource("SMS_Backup");
 
             final List<ChannelMapping> channelMappings = getChannelMappings(guestId);
             for (ChannelMapping mapping : channelMappings){

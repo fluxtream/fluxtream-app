@@ -57,7 +57,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-@Updater(prettyName = "SMS Backup", value = 6, objectTypes = {
+@Updater(prettyName = "SMS_Backup", value = 6, objectTypes = {
 		CallLogEntryFacet.class, SmsEntryFacet.class }, settings=SmsBackupSettings.class,
          defaultChannels = {"sms_backup.call_log"})
 public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
