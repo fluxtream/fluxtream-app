@@ -291,7 +291,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
                                                                        MimeBodyPart part = (MimeBodyPart) multipart.getBodyPart(i);
                                                                        String contentType = part.getContentType().split(";")[0].toLowerCase();
                                                                        Object partContent = part.getContent();
-                                                                       if (contentType.startsWith("text")){
+                                                                       if (contentType.startsWith("text/plain")){//other types of text are returned as byte streams and are attachments
                                                                             if (!facet.message.equals("")){
                                                                                 facet.message += "\n\n";
                                                                             }
