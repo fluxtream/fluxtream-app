@@ -195,18 +195,14 @@
 </template>
 <template id="sharedConnectors">
     {{#connectors}}
-    <div class="row-fluid">
-        {{#row}}
-            <div class="span4"><input type="checkbox"
-                                      onclick="App.sharingDialog.toggleSharedConnector('{{username}}','{{connectorName}}', this.checked);"
-                                      value="{{connectorName}}" {{#shared}}checked=checked{{/shared}}>&nbsp;{{prettyName}}</input>
-                {{#hasSettings}}
-                <a class="btn sharedConnectorSettingsBtn" data-apiKeyId="{{apiKeyId}}" data-connectorPrettyName="{{prettyName}}"
+        <label class="checkbox">
+            <input type="checkbox" onclick="App.sharingDialog.toggleSharedConnector('{{username}}','{{connectorName}}', this.checked);"
+                   value="{{connectorName}}" {{#shared}}checked=checked{{/shared}}> {{prettyName}}
+            {{#hasSettings}}
+                <a class="btn btn-link sharedConnectorSettingsBtn" data-apiKeyId="{{apiKeyId}}" data-connectorPrettyName="{{prettyName}}"
                    data-connectorName="{{connectorName}}">more...</a>
-                {{/hasSettings}}
-            </div>
-        {{/row}}
-    </div>
+            {{/hasSettings}}
+        </label>
     {{/connectors}}
 </template>
 <template id="findUserDialog">

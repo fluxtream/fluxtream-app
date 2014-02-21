@@ -74,7 +74,7 @@ define(["sharedConnectorSettings/evernote"], function(EvernoteSharedConnectorSet
             success:function(coach) {
                 App.loadMustacheTemplate("settingsTemplates.html","sharedConnectors",function(template){
                     updateCoachesDropdown(username);
-                    var html = template.render({connectors : FlxUtils.rowsOf(coach.sharedConnectors, 1),
+                    var html = template.render({connectors : coach.sharedConnectors,
                                                 username : username});
                     $("#sharedConnectors").empty();
                     $("#sharedConnectors").append(html);

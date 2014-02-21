@@ -374,11 +374,11 @@
         </div>
         <div class="modal-body">
             <div style="height:300px">
-                <h4>Please check notebooks that you want to share</h4>
+                <h4>Please check notebooks that you want to share:</h4><br>
                 <form id="evernote-sharedConnector-settings" action="javascript:void(0);">
                     {{#settings}}{{#notebooks}}
                     <label class="checkbox">
-                        <input type="checkbox" data-guid="{{guid}}" style="margin-top:8px" {{#shared}}checked=checked{{/shared}} value="{{guid}}"> {{name}}
+                        <input type="checkbox" data-guid="{{guid}}" {{#shared}}checked=checked{{/shared}} value="{{guid}}"> {{name}}
                     </label>
                     {{/notebooks}}{{/settings}}
                 </form>
