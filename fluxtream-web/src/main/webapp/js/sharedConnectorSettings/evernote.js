@@ -8,7 +8,6 @@ define(["core/SharedConnectorSettingsHandler"], function(SharedConnectorSettings
         $("#evernote-sharedConnector-settings input").click(function(evt){
             var notebookGuid = $(evt.target).attr("data-guid");
             var isChecked = evt.target.checked;
-            console.log("guid clicked: " + notebookGuid + "/" + isChecked);
             setNotebookChecked(notebookGuid, isChecked, settings);
             saveSettings(apiKeyId, username, settings);
         });
