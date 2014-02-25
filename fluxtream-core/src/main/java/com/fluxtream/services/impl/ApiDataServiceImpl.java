@@ -101,6 +101,9 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
     @Autowired
     SettingsService settingsService;
 
+    @Autowired
+    BodyTrackHelper bodyTrackHelper;
+
     @Override
     public AbstractFacetVO<AbstractFacet> getFacet(final int api, final int objectType, final long facetId) {
         Connector connector = Connector.fromValue(api);
@@ -311,12 +314,7 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
                                           + apiKey.getId()
                                           + "\n" + ExceptionUtils.getStackTrace(e));}
         if (apiKey.getConnector()!=null) {
-            try {
-                JPAUtils.execute(em, "channelStyle.delete.byGuestAndDeviceName", apiKey.getGuestId(), apiKey.getConnector().getPrettyName());
-            } catch(Exception e) {logger.warn("Couldn't delete Channel Style for connector "
-                                              + apiKey.getConnector().getPrettyName()
-                                              + ", guest: " + apiKey.getGuestId()
-                                              + "\n" + ExceptionUtils.getStackTrace(e));}
+            bodyTrackHelper.deleteStyle(apiKey.getGuestId(), apiKey.getConnector().prettyName());
         }
     }
 
