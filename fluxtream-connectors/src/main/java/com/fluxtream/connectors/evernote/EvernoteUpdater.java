@@ -100,10 +100,9 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
         final NoteStoreClient noteStore = getNoteStoreClient(updateInfo);
         performSync(updateInfo, noteStore, true);
-        initChannelMapping(updateInfo);
     }
 
-    private void initChannelMapping(final UpdateInfo updateInfo) {
+    private void resetChannelMapping(final UpdateInfo updateInfo) {
         final ApiKey apiKey = guestService.getApiKey(updateInfo.apiKey.getId());
         final EvernoteConnectorSettings connectorSettings = (EvernoteConnectorSettings)
                 syncConnectorSettings(updateInfo, settingsService.getConnectorSettings(updateInfo.apiKey.getId()));
@@ -277,6 +276,7 @@ public class EvernoteUpdater extends SettingsAwareAbstractUpdater {
             }
 
             saveSyncState(updateInfo, noteStore);
+            resetChannelMapping(updateInfo);
         } catch (EDAMSystemException e) {
             // if rate limit has been reached, EN will send us the time when we can call the API again
             // and we can explicitely inform the userInfo object of it
