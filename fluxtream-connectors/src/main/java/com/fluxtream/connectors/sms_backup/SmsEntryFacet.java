@@ -24,7 +24,7 @@ import com.fluxtream.domain.AbstractFacet;
 
 @SuppressWarnings("serial")
 @Entity(name="Facet_SmsEntry")
-@ObjectTypeSpec(name = "sms", value = 2, parallel=true, prettyname = "Text Messages", extractor=SmsEntryFacetExtractor.class)
+@ObjectTypeSpec(name = "sms", value = 2, parallel=true, isImageType=true, prettyname = "Text Messages", extractor=SmsEntryFacetExtractor.class, photoFacetFinderStrategy=SmsBackupPhotoFacetFinderStrategy.class)
 @NamedQueries({
 		@NamedQuery(name = "sms_backup.sms.byEmailId", query = "SELECT facet FROM Facet_SmsEntry facet WHERE facet.apiKeyId=? AND facet.emailId=?")
 })
@@ -48,6 +48,13 @@ public class SmsEntryFacet extends AbstractFacet implements Serializable {
 	public String message;
 	public Date dateReceived;
 	transient public int startMinute;
+
+    public Boolean hasAttachments;
+    @Lob
+    public String attachmentNames;
+    public String attachmentMimeTypes;
+
+
 
 	public String toString() {
 		String s = "Sms ";

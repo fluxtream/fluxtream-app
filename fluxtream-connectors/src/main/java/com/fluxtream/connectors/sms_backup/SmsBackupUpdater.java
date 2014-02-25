@@ -1,5 +1,7 @@
 package com.fluxtream.connectors.sms_backup;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Date;
@@ -17,13 +19,16 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.search.SentDateTerm;
+import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.annotations.Updater;
+import com.fluxtream.connectors.fluxtream_capture.FluxtreamCapturePhotoStore;
 import com.fluxtream.connectors.updaters.RateLimitReachedException;
 import com.fluxtream.connectors.updaters.SettingsAwareAbstractUpdater;
 import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ChannelMapping;
 import com.fluxtream.domain.Notification;
@@ -52,7 +57,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-@Updater(prettyName = "SMS Backup", value = 6, objectTypes = {
+@Updater(prettyName = "SMS_Backup", value = 6, objectTypes = {
 		CallLogEntryFacet.class, SmsEntryFacet.class }, settings=SmsBackupSettings.class,
          defaultChannels = {"sms_backup.call_log"})
 public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
@@ -62,6 +67,9 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 
     @Autowired
     SettingsService settingsService;
+
+    @Autowired
+    Configuration env;
 
 	// basic cache for email connections
 	static ConcurrentMap<String, Store> stores;
@@ -85,8 +93,16 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
         for (ObjectType type : updateInfo.objectTypes()){
             Date since = getStartDate(updateInfo, type);
             if (type.name().equals("call_log")){
-                List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey, type.value());
-                if (mappings.size() == 0){
+                List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey);
+                boolean call_logChannelExists = false;
+                boolean photoChannelExists = false;
+                for (ChannelMapping mapping: mappings){
+                    if (mapping.deviceName.equals("sms_backup") && mapping.channelName.equals("call_log"))
+                        call_logChannelExists = true;
+                    if (mapping.deviceName.equals("sms_backup") && mapping.channelName.equals("photo"))
+                        photoChannelExists = true;
+                }
+                if (!call_logChannelExists){
                     ChannelMapping mapping = new ChannelMapping();
                     mapping.deviceName = "sms_backup";
                     mapping.channelName = "call_log";
@@ -108,6 +124,18 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 
                     bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"sms_backup","call_log",channelStyle);
 
+                }
+                if (!photoChannelExists){
+                    ChannelMapping mapping;
+                    mapping = new ChannelMapping();
+                    mapping.deviceName = "sms_backup";
+                    mapping.channelName = "photo";
+                    mapping.timeType = ChannelMapping.TimeType.gmt;
+                    mapping.channelType = ChannelMapping.ChannelType.photo;
+                    mapping.guestId = updateInfo.getGuestId();
+                    mapping.apiKeyId = updateInfo.apiKey.getId();
+                    mapping.objectTypeId = ObjectType.getObjectType(updateInfo.apiKey.getConnector(),"sms").value();
+                    bodyTrackHelper.persistChannelMapping(mapping);
                 }
                 retrieveCallLogSinceDate(updateInfo, email, password, since);
             }
@@ -154,7 +182,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
     }
 
 
-	private void flushEntry(final UpdateInfo updateInfo, final String username, final Message message, Class type) throws Exception{
+	private AbstractFacet flushEntry(final UpdateInfo updateInfo, final String username, final Message message, Class type) throws Exception{
         final String messageId;
         final String smsBackupId;
         final String smsBackupAddress;
@@ -181,7 +209,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
         }
         final String emailId = messageId + smsBackupId;
         if (type == SmsEntryFacet.class){
-            apiDataService.createOrReadModifyWrite(SmsEntryFacet.class,
+            return apiDataService.createOrReadModifyWrite(SmsEntryFacet.class,
                                                    new FacetQuery(
                                                            "e.apiKeyId = ? AND e.emailId = ?",
                                                            updateInfo.apiKey.getId(),
@@ -252,31 +280,42 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
                                                                facet.start = facet.dateReceived.getTime();
                                                                facet.end = facet.start;
                                                                Object content = message.getContent();
+                                                               facet.hasAttachments = false;
                                                                if (content instanceof String)
                                                                    facet.message = (String) message.getContent();
                                                                else if (content instanceof MimeMultipart) {//TODO: this is an MMS and needs to be handled properly
-                                                                   facet.message = "Picture Message";
-                                                                   /*MimeMultipart multipart = (MimeMultipart) content;
+                                                                   facet.message = "";
+                                                                   MimeMultipart multipart = (MimeMultipart) content;
                                                                    int partCount = multipart.getCount();
-                                                                   if (partCount != 1){
-                                                                       throw new Exception("Don't know how to deal with part count of: " + partCount);
-                                                                   }
                                                                    for (int i = 0; i < partCount; i++){
                                                                        MimeBodyPart part = (MimeBodyPart) multipart.getBodyPart(i);
-                                                                       String contentType = part.getContentType();
+                                                                       String contentType = part.getContentType().split(";")[0].toLowerCase();
                                                                        Object partContent = part.getContent();
-                                                                       if (contentType.toLowerCase().startsWith("image")){
-                                                                           byte[] photoContent = IOUtils.toByteArray((BASE64DecoderStream) partContent);
-                                                                           throw new Exception("BLURF!");
+                                                                       if (contentType.startsWith("text/plain")){//other types of text are returned as byte streams and are attachments
+                                                                            if (!facet.message.equals("")){
+                                                                                facet.message += "\n\n";
+                                                                            }
+                                                                           facet.message = (String) partContent;
                                                                        }
                                                                        else{
-                                                                           throw new Exception("Don't know how to deal with content of type: " + contentType);
+                                                                           if (!facet.hasAttachments){
+                                                                               facet.hasAttachments = true;
+                                                                               facet.attachmentMimeTypes = contentType;
+                                                                               facet.attachmentNames = (emailId + i).replaceAll("\\W+","");
+                                                                           }
+                                                                           else{
+                                                                               facet.attachmentMimeTypes += "," + contentType;
+                                                                               facet.attachmentNames += "," + (emailId + i).replaceAll("\\W+","");
 
+                                                                           }
+
+                                                                           File attachmentFile = getAttachmentFile(env.targetEnvironmentProps.getString("btdatastore.db.location"),updateInfo.getGuestId(),updateInfo.apiKey.getId(),(emailId + i).replaceAll("\\W+",""));
+                                                                           attachmentFile.getParentFile().mkdirs();
+                                                                           FileOutputStream fileoutput = new FileOutputStream(attachmentFile);
+                                                                           IOUtils.copy((BASE64DecoderStream) partContent, fileoutput);
+                                                                           fileoutput.close();
                                                                        }
-
-
                                                                    }
-                                                                   throw new Exception("Don't know what to do with multipart!");   */
                                                                }
                                                            }  catch(Exception e){
                                                                e.printStackTrace();
@@ -288,7 +327,7 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 
         }
         else if (type == CallLogEntryFacet.class){
-            apiDataService.createOrReadModifyWrite(CallLogEntryFacet.class,
+            return apiDataService.createOrReadModifyWrite(CallLogEntryFacet.class,
                                                    new FacetQuery(
                                                            "e.apiKeyId = ? AND e.emailId = ?",
                                                            updateInfo.apiKey.getId(),
@@ -362,7 +401,18 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
                                                    }, updateInfo.apiKey.getId());
 
         }
+        else{
+            return null;
+        }
 	}
+
+    public static File getAttachmentFile(String kvsLocation, long guestId, long apiKeyId, String attachmentName){
+
+        return new File(kvsLocation + File.separator + guestId + File.separator
+                             + Connector.getConnector("sms_backup").prettyName() + File.separator
+                             + apiKeyId + File.separator + attachmentName);
+
+    }
 
     private GoogleCredential getCredentials(ApiKey apiKey) throws UpdateFailedException{
         HttpTransport httpTransport = new NetHttpTransport();
@@ -534,8 +584,10 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 
 			for (Message message : msgs) {
                 date = message.getReceivedDate();
-                flushEntry(updateInfo, email, message, SmsEntryFacet.class);
-                updateStartDate(updateInfo,smsObjectType,date);
+                if (flushEntry(updateInfo, email, message, SmsEntryFacet.class) == null){
+                    throw new Exception("Could not persist SMS message");
+                }
+                updateStartDate(updateInfo, smsObjectType, date);
 			}
 			countSuccessfulApiCall(updateInfo.apiKey,
 					smsObjectType.value(), then, query);
@@ -587,7 +639,9 @@ public class SmsBackupUpdater extends SettingsAwareAbstractUpdater {
 
 			for (Message message : msgs) {
                 date = message.getReceivedDate();
-                flushEntry(updateInfo, email, message, CallLogEntryFacet.class);
+                if (flushEntry(updateInfo, email, message, CallLogEntryFacet.class) == null){
+                    throw new Exception("Could not persist Call log");
+                }
                 updateStartDate(updateInfo,callLogObjectType,date);
 			}
 			countSuccessfulApiCall(updateInfo.apiKey,

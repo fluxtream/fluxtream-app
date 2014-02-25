@@ -287,7 +287,7 @@ public class PhotoServiceImpl implements PhotoService {
         for (ApiKey key : userKeys) {
             if (key != null) {
                 final Connector connector = key.getConnector();
-                if (connector != null && connector.prettyName() != null && connector.prettyName().equals(connectorPrettyName)) {
+                if (connector != null && ((connector.prettyName() != null && connector.prettyName().equals(connectorPrettyName)) || (connector.getName().equals(connectorPrettyName)))) {
                     return key;
                 }
             }

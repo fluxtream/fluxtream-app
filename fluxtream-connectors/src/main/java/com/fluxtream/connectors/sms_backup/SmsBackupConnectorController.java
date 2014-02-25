@@ -1,17 +1,26 @@
 package com.fluxtream.connectors.sms_backup;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import com.fluxtream.Configuration;
 import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.auth.CoachRevokedException;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SettingsService;
+import com.fluxtream.utils.ImageUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
@@ -20,100 +29,28 @@ import org.springframework.web.servlet.ModelAndView;
 @RequestMapping("/smsBackup")
 public class SmsBackupConnectorController {
 
-    private static final String SMS_BACKUP_USERNAME = "smsBackup.username";
-    private static final String SMS_BACKUP_PASSWORD = "smsBackup.password";
     @Autowired
-	GuestService guestService;
+    Configuration env;
 
-	@Autowired
-	ConnectorUpdateService connectorUpdateService;
+    @RequestMapping(value="/attachment/{apiKeyId}/{fileName}")
+    public void getAttachment(@PathVariable("apiKeyId") long apiKeyId,
+                            @PathVariable("fileName") String fileName,
+                            @RequestParam("s") Integer maxSideLength,
+                            HttpServletResponse response) throws IOException, CoachRevokedException {
+        File file = SmsBackupUpdater.getAttachmentFile(env.targetEnvironmentProps.getString("btdatastore.db.location"),
+                                            AuthHelper.getVieweeId(), apiKeyId,fileName);
+        if (!file.exists()){
+            response.sendError(404);
+        }
+        if (maxSideLength == null){
+            IOUtils.copy(new FileInputStream(file), response.getOutputStream());
+        }
+        else{     //TODO: make sure we actually have a photo
+            byte[] photoData = IOUtils.toByteArray(new FileInputStream(file));
+            IOUtils.write(ImageUtils.createJpegThumbnail(photoData,maxSideLength).getBytes(),response.getOutputStream());
+        }
 
-    @Autowired
-    SettingsService settingsService;
-
-	@RequestMapping(value = "/enterCredentials")
-	public ModelAndView signin(HttpServletRequest request) {
-		ModelAndView mav = new ModelAndView(
-				"connectors/smsBackup/enterCredentials");
-		return mav;
-	}
-
-	@RequestMapping("/check")
-	public ModelAndView check(@RequestParam("username") String email,
-			@RequestParam("password") String password,
-			HttpServletRequest request) throws MessagingException {
-		List<String> required = new ArrayList<String>();
-		email = email.trim();
-		password = password.trim();
-		request.setAttribute("username", email);
-		if (email.equals(""))
-			required.add("username");
-		if (password.equals(""))
-			required.add("password");
-		if (required.size() != 0) {
-			request.setAttribute("required", required);
-			return new ModelAndView("connectors/smsBackup/enterCredentials");
-		}
-		ModelAndView mav = new ModelAndView("connectors/smsBackup/setFolderNames");
-		boolean worked = false;
-		try {
-			worked = (new SmsBackupHelper(email, password)).testConnection();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		if (worked) {
-            request.getSession().setAttribute(SMS_BACKUP_USERNAME, email);
-            request.getSession().setAttribute(SMS_BACKUP_PASSWORD, password);
-
-			return mav;
-		} else {
-			request.setAttribute("errorMessage",
-					"Sorry, you must have entered wrong credentials.\nPlease try again.");
-			return new ModelAndView("connectors/smsBackup/enterCredentials");
-		}
-	}
-
-	@RequestMapping("/setFolderNames")
-	public ModelAndView setFolderNames(
-            @RequestParam("smsFolderName") String smsFolderName,
-			@RequestParam("callLogFolderName") String callLogFolderName,
-			HttpServletRequest request) throws MessagingException {
-
-		List<String> required = new ArrayList<String>();
-		smsFolderName = smsFolderName.trim();
-		callLogFolderName = callLogFolderName.trim();
+    }
 
 
-
-		request.setAttribute("smsFolderName", smsFolderName);
-		request.setAttribute("callLogFolderName", callLogFolderName);
-		if (smsFolderName.equals(""))
-			required.add("smsFolderName");
-		if (callLogFolderName.equals(""))
-			required.add("callLogFolderName");
-		if (required.size() != 0) {
-			request.setAttribute("required", required);
-			return new ModelAndView("connectors/smsBackup/setFolderName");
-		}
-		
-		ModelAndView mav = new ModelAndView("connectors/smsBackup/success");
-		long guestId = AuthHelper.getGuestId();
-
-        final Connector connector = Connector.getConnector("sms_backup");
-        final ApiKey apiKey = guestService.createApiKey(guestId, connector);
-
-        guestService.setApiKeyAttribute(apiKey, "username", (String)request.getSession().getAttribute(SMS_BACKUP_USERNAME));
-        guestService.setApiKeyAttribute(apiKey, "password", (String)request.getSession().getAttribute(SMS_BACKUP_PASSWORD));
-        request.getSession().removeAttribute(SMS_BACKUP_USERNAME);
-        request.getSession().removeAttribute(SMS_BACKUP_PASSWORD);
-
-        SmsBackupSettings settings = new SmsBackupSettings();
-        settings.callLogFolderName = callLogFolderName;
-        settings.smsFolderName = smsFolderName;
-        settingsService.saveConnectorSettings(apiKey.getId(),settings);
-
-
-		connectorUpdateService.updateConnector(apiKey, false);
-		return mav;
-	}
 }

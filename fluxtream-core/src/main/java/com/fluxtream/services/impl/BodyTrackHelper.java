@@ -73,8 +73,8 @@ public class BodyTrackHelper {
     @PersistenceContext
     EntityManager em;
 
-    static final boolean verboseOutput = false;
-    static final boolean showOutput = false;
+    static final boolean verboseOutput = true;
+    static final boolean showOutput = true;
 
     @Autowired
     Configuration env;
@@ -364,6 +364,7 @@ public class BodyTrackHelper {
 
             //TODO: this is a hack to prevent double flickr photo channel showing up
             response.deleteSource("Flickr");
+            response.deleteSource("SMS_Backup");
 
             final List<ChannelMapping> channelMappings = getChannelMappings(guestId);
             for (ChannelMapping mapping : channelMappings){

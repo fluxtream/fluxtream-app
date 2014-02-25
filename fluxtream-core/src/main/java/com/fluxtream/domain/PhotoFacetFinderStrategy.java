@@ -27,11 +27,7 @@ public interface PhotoFacetFinderStrategy {
                                    int desiredCount,
                                    @Nullable TagFilter tagFilter);
 
-    List<AbstractFacet> findAfter(ApiKey apiKey,
-                                  ObjectType objectType,
-                                  long timeInMillis,
-                                  int desiredCount,
-                                  @Nullable TagFilter tagFilter);
+    List findAfter(ApiKey apiKey, ObjectType objectType, long timeInMillis, int desiredCount, @Nullable TagFilter tagFilter);
 
     AbstractFacet findOldest(ApiKey apiKey, ObjectType objectType);
 

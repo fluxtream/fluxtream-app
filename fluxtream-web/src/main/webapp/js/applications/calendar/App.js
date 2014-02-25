@@ -362,6 +362,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     facet.hasImage = true;
                     break;
                 case "mymee-observation":
+                case "sms_backup-sms":
                     facet.hasImage = facet.photoUrl != null;
                     break;
             }
@@ -508,6 +509,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     digest.cachedData[connectorId].hasImages = true;
                     break;
                 case "mymee-observation":
+                case "sms_backup-sms":
                     for (var i = 0; i < digest.cachedData[connectorId].length && !digest.cachedData[connectorId].hasImages; i++){
                         digest.cachedData[connectorId].hasImages = digest.cachedData[connectorId][i].hasImage;
                     }
