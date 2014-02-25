@@ -540,7 +540,7 @@
                         <span class="evernoteNotebook" style="background-color:{{color}}"><i class="icon icon-book"/>&nbsp;{{notebook}}</span>
                         {{#evernoteTags}}<span class="evernoteTag"><i class="icon icon-tag"/>&nbsp;{{.}}</span>{{/evernoteTags}}
                     </div>
-                    <a href="javascript:void(0);" onclick="App.makeModal($.ajax({url: '/evernote/popup/{{apiKeyId}}/{{guid}}',success: function(html) {App.makeModal(html);},async:false}));" class="expandcollapse">Show Note&nbsp;<i class="icon-eye-open"></i></a></span>
+                    <a href="javascript:void(0);" onclick="$.ajax({url: '/evernote/popup/{{apiKeyId}}/{{guid}}',success: function(html) {App.makeModal(html);},async:false});" class="expandcollapse">Show Note&nbsp;<i class="icon-eye-open"></i></a></span>
                     <br>
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
