@@ -113,7 +113,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
             device_name: "Jawbone_UP",
             color: "#000",
             mapicon: {
-                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/aed-2.png",
+                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/up.png",
                 size: new google.maps.Size(32,37)
             },
             mapshadow: null,
@@ -121,7 +121,7 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                 meal:{
                     list: true,
                     photos: false,
-                    map: false,
+                    map: true,
                     gps: false,
                     clock: ClockConfig.BODY_CATEGORY
                 },
