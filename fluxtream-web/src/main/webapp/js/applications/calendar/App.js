@@ -662,6 +662,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             var configFilterLabel = connectorConfig.filterLabel,
                 filterLabel = configFilterLabel || connector.prettyName;
 
+            filterLabel = filterLabel.replace("_", " ");
+
             var buttonLink = Builder.getConnectorButton(connector.connectorName),
                 button = buttonLink.parent();
             buttonLink
