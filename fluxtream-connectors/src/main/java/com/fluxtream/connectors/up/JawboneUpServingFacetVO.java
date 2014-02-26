@@ -1,7 +1,6 @@
 package com.fluxtream.connectors.up;
 
 import java.awt.Dimension;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -40,8 +39,7 @@ public class JawboneUpServingFacetVO extends AbstractPhotoFacetVO<JawboneUpServi
 
         int i = 0;
 
-        final String thumbnailUrl = JawboneUpVOHelper.getImageURL(facet.image, facet, settings.config);
-        this.thumbnailUrl = thumbnailUrl;
+        this.thumbnailUrl = JawboneUpVOHelper.getImageURL(facet.image, facet, settings.config, 150);
         this.photoUrl = JawboneUpVOHelper.getImageURL(facet.image, facet, settings.config, 150);
         thumbnailUrls.put(i, thumbnailUrl);
         thumbnailSizes.put(i, new Dimension(150, 150));
@@ -72,10 +70,12 @@ public class JawboneUpServingFacetVO extends AbstractPhotoFacetVO<JawboneUpServi
 
     @Override
     public List<DimensionModel> getThumbnailSizes() {
-        List<DimensionModel> dimensions = new ArrayList<DimensionModel>();
-        for (Dimension dimension : thumbnailSizes.values()) {
-            dimensions.add(new DimensionModel(dimension.width, dimension.height));
-        }
-        return dimensions;
+        //List<DimensionModel> dimensions = new ArrayList<DimensionModel>();
+        //for (Dimension dimension : thumbnailSizes.values()) {
+        //    dimensions.add(new DimensionModel(dimension.width, dimension.height));
+        //}
+        //return dimensions;
+
+        return null;
     }
 }
