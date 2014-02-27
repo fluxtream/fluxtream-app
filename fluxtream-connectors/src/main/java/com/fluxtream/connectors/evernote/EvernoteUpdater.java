@@ -110,12 +110,12 @@ public class EvernoteUpdater extends AbstractUpdater implements SettingsAwareUpd
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
         final NoteStoreClient noteStore = getNoteStoreClient(updateInfo);
         performSync(updateInfo, noteStore, true);
-        initChannelMapping(updateInfo.apiKey.getId());
     }
 
-    private void initChannelMapping(final long apiKeyId) {
-        final EvernoteConnectorSettings connectorSettings = (EvernoteConnectorSettings)settingsService.getConnectorSettings(apiKeyId);
-        final ApiKey apiKey = guestService.getApiKey(apiKeyId);
+    private void resetChannelMapping(final UpdateInfo updateInfo) {
+        final ApiKey apiKey = guestService.getApiKey(updateInfo.apiKey.getId());
+        final EvernoteConnectorSettings connectorSettings = (EvernoteConnectorSettings)
+                syncConnectorSettings(updateInfo, settingsService.getConnectorSettings(updateInfo.apiKey.getId()));
         setChannelMapping(apiKey, connectorSettings.notebooks);
     }
 
@@ -265,24 +265,32 @@ public class EvernoteUpdater extends AbstractUpdater implements SettingsAwareUpd
         channelStyle.timespanStyles.defaultStyle.fillColor = EVERNOTE_DEFAULT_BGCOLOR;
         channelStyle.timespanStyles.defaultStyle.borderColor = EVERNOTE_DEFAULT_BGCOLOR;
         channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
-        channelStyle.timespanStyles.defaultStyle.top = 1.0;
+        channelStyle.timespanStyles.defaultStyle.top = 0.0;
         channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
         channelStyle.timespanStyles.values = new HashMap();
 
-        EvernoteConnectorSettings connectorSettings =
-                (EvernoteConnectorSettings)settingsService.getConnectorSettings(apiKey.getId());
-        int n = notebookConfigs.size();
-        if (connectorSettings!=null) {
-            n = 0;
-            for (NotebookConfig calendar : connectorSettings.notebooks) {
-                if (!calendar.hidden)
-                    n++;
-            }
+        addStyleParts(notebookConfigs, channelStyle);
+
+        bodyTrackHelper.deleteStyle(apiKey.getGuestId(), "Evernote");
+        bodyTrackHelper.setDefaultStyle(apiKey.getGuestId(), "Evernote", "note", channelStyle);
+    }
+
+    private int getNumberOfVisibleNotebooks(final List<NotebookConfig> notebookConfigs) {
+        int nNotebooks = 0;
+        for (NotebookConfig calendar : notebookConfigs) {
+            if (!calendar.hidden)
+                nNotebooks++;
         }
-        double rowHeight = 1.f/(n *2+1);
+        return nNotebooks;
+    }
+
+    void addStyleParts(final List<NotebookConfig> notebookConfigs,
+                       final BodyTrackHelper.ChannelStyle channelStyle) {
+        int nNotebooks = getNumberOfVisibleNotebooks(notebookConfigs);
+        double rowHeight = 1.f/(nNotebooks*2+1);
         int i=0;
         for (NotebookConfig config: notebookConfigs) {
-            if (connectorSettings!=null && config.hidden)
+            if (config.hidden)
                 continue;
 
             BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
@@ -296,8 +304,6 @@ public class EvernoteUpdater extends AbstractUpdater implements SettingsAwareUpd
             channelStyle.timespanStyles.values.put(config.guid, stylePart);
             i++;
         }
-
-        bodyTrackHelper.setDefaultStyle(apiKey.getGuestId(), "Evernote", "note", channelStyle);
     }
 
     private NoteStoreClient getNoteStoreClient(final UpdateInfo updateInfo) throws EDAMUserException, EDAMSystemException, TException {
@@ -333,6 +339,7 @@ public class EvernoteUpdater extends AbstractUpdater implements SettingsAwareUpd
             }
 
             saveSyncState(updateInfo, noteStore);
+            resetChannelMapping(updateInfo);
         } catch (EDAMSystemException e) {
             // if rate limit has been reached, EN will send us the time when we can call the API again
             // and we can explicitely inform the userInfo object of it

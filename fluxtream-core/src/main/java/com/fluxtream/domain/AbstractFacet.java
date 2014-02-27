@@ -289,7 +289,7 @@ public abstract class AbstractFacet extends AbstractEntity {
         final Class facetClass = getFacetClass(apiKey, objType);
         final String entityName = JPAUtils.getEntityName(facetClass);
         final String additionalWhereClause = (tagFilter == null) ? "" : " AND (" + tagFilter.getWhereClause() + ")";
-        String queryString = String.format("SELECT * FROM %s USE INDEX (apiKey) WHERE apiKeyId=? AND start >=? %s ORDER BY start DESC",
+        String queryString = String.format("SELECT * FROM %s USE INDEX (apiKey) WHERE apiKeyId=? AND start >=? %s ORDER BY start ASC",
                                            entityName, additionalWhereClause);
         final Query query = em.createNativeQuery(queryString, facetClass);
         query.setParameter(1, apiKey.getId());

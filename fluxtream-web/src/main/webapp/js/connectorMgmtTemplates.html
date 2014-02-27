@@ -386,6 +386,26 @@
         </div>
     </div>
 </template>
+<template id="google_calendar-sharedConnector-settings">
+    <div class="modal hide fade">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h3>{{connectorPrettyName}} Sharing Settings</h3>
+        </div>
+        <div class="modal-body">
+            <div style="height:300px">
+                <h4>Please check calendars that you want to share:</h4><br>
+                <form id="google_calendar-sharedConnector-settings" action="javascript:void(0);">
+                    {{#settings}}{{#calendars}}
+                    <label class="checkbox">
+                        <input type="checkbox" data-calendarId="{{calendarId}}" {{#shared}}checked=checked{{/shared}} value="{{calendarId}}"> {{name}}
+                    </label>
+                    {{/calendars}}{{/settings}}
+                </form>
+            </div>
+        </div>
+    </div>
+</template>
 <template id="uploadDialog">
     <div id="uploadModal" class="modal hide fade">
         <div class="modal-header">

@@ -6,14 +6,18 @@ import java.util.HashMap;
 import java.util.List;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.annotations.Updater;
+import com.fluxtream.connectors.evernote.EvernoteNotebookFacet;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.SettingsAwareUpdater;
+import com.fluxtream.connectors.updaters.SharedConnectorSettingsAwareUpdater;
 import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ChannelMapping;
 import com.fluxtream.domain.Notification;
+import com.fluxtream.domain.SharedConnector;
 import com.fluxtream.services.ApiDataService;
+import com.fluxtream.services.CoachingService;
 import com.fluxtream.services.JPADaoService;
 import com.fluxtream.services.SettingsService;
 import com.fluxtream.services.impl.BodyTrackHelper;
@@ -29,6 +33,8 @@ import com.google.api.services.calendar.model.CalendarList;
 import com.google.api.services.calendar.model.CalendarListEntry;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.Events;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.joda.time.DateTimeConstants;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +45,9 @@ import static com.fluxtream.utils.Utils.hash;
 @Component
 @Updater(prettyName = "Calendar", value = 0, objectTypes={GoogleCalendarEventFacet.class},
          settings=GoogleCalendarConnectorSettings.class, bodytrackResponder = GoogleCalendarBodytrackResponder.class,
-         defaultChannels = {"google_calendar.events"})
-public class GoogleCalendarUpdater extends AbstractUpdater implements SettingsAwareUpdater {
+         defaultChannels = {"google_calendar.events"},
+         sharedConnectorFilter = GoogleCalendarSharedConnectorFilter.class)
+public class GoogleCalendarUpdater extends AbstractUpdater implements SettingsAwareUpdater, SharedConnectorSettingsAwareUpdater {
 
     private static final FlxLogger logger = FlxLogger.getLogger(GoogleCalendarUpdater.class);
     private final String LAST_TIME_WE_CHECKED_FOR_UPDATED_EVENTS_ATT = "lastTimeWeCheckedForUpdatedEvents";
@@ -54,6 +61,9 @@ public class GoogleCalendarUpdater extends AbstractUpdater implements SettingsAw
 
     @Autowired
     BodyTrackHelper bodyTrackHelper;
+
+    @Autowired
+    CoachingService coachingService;
 
     @Override
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception, UpdateFailedException {
@@ -470,4 +480,50 @@ public class GoogleCalendarUpdater extends AbstractUpdater implements SettingsAw
         return calendar;
     }
 
+    @Override
+    public void syncSharedConnectorSettings(final long apiKeyId, final SharedConnector sharedConnector) {
+        JSONObject jsonSettings = new JSONObject();
+        if (sharedConnector.filterJson!=null)
+            jsonSettings = JSONObject.fromObject(sharedConnector.filterJson);
+        // get calendars, add new configs for new calendars...
+        final List<EvernoteNotebookFacet> notebooks = jpaDaoService.find("evernote.notebooks.byApiKeyId",
+                                                                         EvernoteNotebookFacet.class, apiKeyId);
+        JSONArray settingsNotebooks = new JSONArray();
+        if (jsonSettings.has("notebooks"))
+            settingsNotebooks = jsonSettings.getJSONArray("notebooks");
+        there: for (EvernoteNotebookFacet notebook : notebooks) {
+            for (int i=0; i<settingsNotebooks.size(); i++) {
+                JSONObject notebookConfig = settingsNotebooks.getJSONObject(i);
+                if (notebookConfig.getString("guid").equals(notebook.guid))
+                    continue there;
+            }
+            JSONObject config = new JSONObject();
+            config.accumulate("guid", notebook.guid);
+            config.accumulate("name", notebook.name);
+            config.accumulate("shared", false);
+            settingsNotebooks.add(config);
+        }
+
+        // and remove configs for deleted notebooks - leave others untouched
+        JSONArray settingsToDelete = new JSONArray();
+        there: for (int i=0; i<settingsNotebooks.size(); i++) {
+            JSONObject notebookConfig = settingsNotebooks.getJSONObject(i);
+            for (EvernoteNotebookFacet notebook : notebooks) {
+                if (notebookConfig.getString("guid").equals(notebook.guid))
+                    continue there;
+            }
+            settingsToDelete.add(notebookConfig);
+        }
+        for (int i=0; i<settingsToDelete.size(); i++) {
+            JSONObject toDelete = settingsToDelete.getJSONObject(i);
+            for (int j=0; j<settingsNotebooks.size(); j++) {
+                if (settingsNotebooks.getJSONObject(j).getString("guid").equals(toDelete.getString("guid"))) {
+                    settingsNotebooks.remove(j);
+                }
+            }
+        }
+        jsonSettings.accumulate("notebooks", settingsNotebooks);
+        String toPersist = jsonSettings.toString();
+        coachingService.setSharedConnectorFilter(sharedConnector.getId(), toPersist);
+    }
 }

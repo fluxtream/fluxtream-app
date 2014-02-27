@@ -10,6 +10,8 @@ import org.hibernate.annotations.Index;
 @NamedQueries({
       @NamedQuery(name="channelStyle.delete.all",
                   query="DELETE from ChannelStyle channelStyle WHERE channelStyle.guestId=?"),
+      @NamedQuery(name="channelStyle.delete.byGuestAndDeviceName",
+                  query="DELETE from ChannelStyle channelStyle WHERE channelStyle.guestId=? AND channelStyle.deviceName=?"),
       @NamedQuery(name="channelStyle.byDeviceNameAndChannelName",
                   query="SELECT style FROM ChannelStyle style WHERE style.guestId=? AND style.deviceName=? AND style.channelName=?")
 })

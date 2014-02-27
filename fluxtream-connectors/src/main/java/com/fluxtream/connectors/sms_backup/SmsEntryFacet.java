@@ -1,30 +1,18 @@
 package com.fluxtream.connectors.sms_backup;
 
-import java.io.IOException;
 import java.io.Serializable;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.TimeZone;
-
-import javax.mail.Address;
-import javax.mail.Message;
-import javax.mail.Message.RecipientType;
-import javax.mail.MessagingException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMultipart;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-
-import org.hibernate.search.annotations.Indexed;
-
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
+import org.hibernate.search.annotations.Indexed;
 
 @SuppressWarnings("serial")
 @Entity(name="Facet_SmsEntry")
-@ObjectTypeSpec(name = "sms", value = 2, parallel=true, prettyname = "Text Messages", extractor=SmsEntryFacetExtractor.class)
+@ObjectTypeSpec(name = "sms", value = 2, parallel=true, isImageType=true, prettyname = "Text Messages", extractor=SmsEntryFacetExtractor.class, photoFacetFinderStrategy=SmsBackupPhotoFacetFinderStrategy.class)
 @NamedQueries({
 		@NamedQuery(name = "sms_backup.sms.byEmailId", query = "SELECT facet FROM Facet_SmsEntry facet WHERE facet.apiKeyId=? AND facet.emailId=?")
 })
@@ -48,6 +36,13 @@ public class SmsEntryFacet extends AbstractFacet implements Serializable {
 	public String message;
 	public Date dateReceived;
 	transient public int startMinute;
+
+    public Boolean hasAttachments;
+    @Lob
+    public String attachmentNames;
+    public String attachmentMimeTypes;
+
+
 
 	public String toString() {
 		String s = "Sms ";

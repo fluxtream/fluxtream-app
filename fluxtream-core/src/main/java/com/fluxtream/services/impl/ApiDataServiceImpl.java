@@ -45,6 +45,7 @@ import com.fluxtream.utils.JPAUtils;
 import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.BeanFactory;
@@ -57,7 +58,6 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -100,6 +100,9 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 
     @Autowired
     SettingsService settingsService;
+
+    @Autowired
+    BodyTrackHelper bodyTrackHelper;
 
     @Override
     public AbstractFacetVO<AbstractFacet> getFacet(final int api, final int objectType, final long facetId) {
@@ -304,6 +307,14 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
                     }
                 }
             }
+        }
+        try {
+            JPAUtils.execute(em, "channelMapping.delete.byApiKeyId", apiKey.getId());
+        } catch(Exception e) {logger.warn("Couldn't delete Channel Mappings for apiKeyId="
+                                          + apiKey.getId()
+                                          + "\n" + ExceptionUtils.getStackTrace(e));}
+        if (apiKey.getConnector()!=null) {
+            bodyTrackHelper.deleteStyle(apiKey.getGuestId(), apiKey.getConnector().prettyName());
         }
     }
 

@@ -125,35 +125,6 @@ define(function() {
 		});
 	}
 
-	function submitSmsBackupFolderNames() {
-		var smsFolderName = $("input#smsBackup-smsFolderName").val(),
-		callLogFolderName = $("input#smsBackup-callLogFolderName").val();
-        $.ajax({
-			url:"/smsBackup/setFolderNames",
-			type: "POST",
-			data: {smsFolderName: smsFolderName, callLogFolderName: callLogFolderName},
-			success: function(html) {
-				$(".addConnectorsMain").html(html);
-				$(".focushere").focus();
-			}
-		});
-	}
-
-	function submitSmsBackupUsernameAndPassword() {
-		var username = $("input#smsBackup-username").val(),
-			password = $("input#smsBackup-password").val();
-        $(".addConnectorsMain input, .addConnectorsMain button").attr("disabled","disabled");
-        $.ajax({
-			url:"/smsBackup/check",
-			type: "POST",
-			data: {username: username, password: password},
-			success: function(html) {
-				$(".addConnectorsMain").html(html);
-				$(".focushere").focus();
-			}
-		});
-	}
-
 	function chooseWithingsUser() {
         var chosenUser = $("input#withings-chosenUser:checked").val();
 		$.ajax({
@@ -181,8 +152,6 @@ define(function() {
 	}
 	
 	Connectors.chooseWithingsUser = chooseWithingsUser;
-	Connectors.submitSmsBackupUsernameAndPassword = submitSmsBackupUsernameAndPassword;
-	Connectors.submitSmsBackupFolderNames = submitSmsBackupFolderNames;
 	Connectors.submitWithingsUsernameAndPassword = submitWithingsUsernameAndPassword;
 	Connectors.submitZeoCredentials = submitZeoCredentials;
 	Connectors.submitToodledoCredentials = submitToodledoCredentials;

@@ -45,6 +45,10 @@ public class JawboneUpMealFacetVO extends AbstractFacetVO<JawboneUpMealFacet> {
         JSONArray servingsArray = new JSONArray();
         for (JawboneUpServingFacet serving : facet.getServings()) {
             JSONObject servingJSON = JSONObject.fromObject(serving.servingDetails);
+            servingJSON.accumulate("deviceName", "Jawbone_UP");
+            servingJSON.accumulate("channelName", "serving");
+            servingJSON.accumulate("UID", serving.getId());
+            servingJSON.accumulate("start", serving.start);
             if (servingJSON.has("image")&&!servingJSON.getString("image").equals(""))
                 servingJSON.put("image", JawboneUpVOHelper.getImageURL(servingJSON.getString("image"), facet, settings.config));
             servingsArray.add(servingJSON);

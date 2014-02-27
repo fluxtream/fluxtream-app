@@ -516,6 +516,8 @@
                 <div class="flx-data">
                     <strong>SMS {{#OUTGOING}}to{{/OUTGOING}}{{#INCOMING}}from{{/INCOMING}} {{personName}} ({{personNumber}})</strong>:<br>
                     {{{message}}}
+                    {{#photoUrl}}<img data-deviceName="{{deviceName}}" data-channelName="{{channelName}}"
+                                      data-id="{{UID}}" data-timestamp="{{start}}" photoId="{{id}}" class="flx-photo" src="{{photo42}}" style="max-height:42px; float:left;  margin:0 10px 0 0; cursor:pointer">{{/photoUrl}}
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
@@ -538,7 +540,7 @@
                         <span class="evernoteNotebook" style="background-color:{{color}}"><i class="icon icon-book"/>&nbsp;{{notebook}}</span>
                         {{#evernoteTags}}<span class="evernoteTag"><i class="icon icon-tag"/>&nbsp;{{.}}</span>{{/evernoteTags}}
                     </div>
-                    <a href="javascript:void(0);" onclick="App.makeModal($.ajax({url: '/evernote/popup/{{apiKeyId}}/{{guid}}',success: function(html) {App.makeModal(html);},async:false}));" class="expandcollapse">Show Note&nbsp;<i class="icon-eye-open"></i></a></span>
+                    <a href="javascript:void(0);" onclick="$.ajax({url: '/evernote/popup/{{apiKeyId}}/{{guid}}',success: function(html) {App.makeModal(html);},async:false});" class="expandcollapse">Show Note&nbsp;<i class="icon-eye-open"></i></a></span>
                     <br>
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
@@ -852,7 +854,8 @@
                         <span class="flx-text">{{name}}</span>
                     </div>
                     <div class="flx-data">
-                        <br><img src="{{image}}">
+                        <br><img data-deviceName="{{deviceName}}" data-channelName="{{channelName}}"
+                                 data-id="{{UID}}" data-timestamp="{{start}}" class="flx-photo" src="{{image}}">
                     </div>
                 {{/servings}}
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}

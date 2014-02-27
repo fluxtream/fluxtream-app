@@ -1,4 +1,4 @@
-package com.fluxtream.connectors.evernote;
+package com.fluxtream.connectors.google_calendar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,33 +7,31 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.SharedConnector;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.springframework.stereotype.Component;
 
 /**
  * User: candide
- * Date: 19/02/14
- * Time: 16:42
+ * Date: 27/02/14
+ * Time: 17:18
  */
-@Component
-public class EvernoteSharedConnectorFilter implements SharedConnectorFilter {
+public class GoogleCalendarSharedConnectorFilter implements SharedConnectorFilter {
 
     @Override
     public <T extends AbstractFacet> List<T> filterFacets(final SharedConnector sharedConnector, final List<T> facets) {
         if (sharedConnector.filterJson==null)
             return facets;
         JSONObject json = JSONObject.fromObject(sharedConnector.filterJson);
-        final JSONArray notebooks = json.getJSONArray("notebooks");
-        List<String> sharedNotebookGuids = new ArrayList<String>();
-        for (int i=0; i<notebooks.size(); i++) {
-            JSONObject notebook = notebooks.getJSONObject(i);
-            boolean shared = notebook.getBoolean("shared");
+        final JSONArray calendars = json.getJSONArray("calendars");
+        List<String> sharedCalendarIds = new ArrayList<String>();
+        for (int i=0; i<calendars.size(); i++) {
+            JSONObject calendar = calendars.getJSONObject(i);
+            boolean shared = calendar.getBoolean("shared");
             if (shared)
-                sharedNotebookGuids.add(notebook.getString("guid"));
+                sharedCalendarIds.add(calendar.getString("guid"));
         }
         List<T> filteredFacets = new ArrayList<T>();
         for (T facet : facets) {
-            if (facet instanceof EvernoteNoteFacet) {
-                if(sharedNotebookGuids.contains(((EvernoteNoteFacet)facet).notebookGuid))
+            if (facet instanceof GoogleCalendarEventFacet) {
+                if(sharedCalendarIds.contains(((GoogleCalendarEventFacet)facet).calendarId))
                     filteredFacets.add(facet);
             }
         }

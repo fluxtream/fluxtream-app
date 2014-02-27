@@ -40,6 +40,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -73,8 +74,8 @@ public class BodyTrackHelper {
     @PersistenceContext
     EntityManager em;
 
-    static final boolean verboseOutput = false;
-    static final boolean showOutput = false;
+    static final boolean verboseOutput = true;
+    static final boolean showOutput = true;
 
     @Autowired
     Configuration env;
@@ -364,6 +365,7 @@ public class BodyTrackHelper {
 
             //TODO: this is a hack to prevent double flickr photo channel showing up
             response.deleteSource("Flickr");
+            response.deleteSource("SMS_Backup");
 
             final List<ChannelMapping> channelMappings = getChannelMappings(guestId);
             for (ChannelMapping mapping : channelMappings){
@@ -507,6 +509,17 @@ public class BodyTrackHelper {
 
     public void setDefaultStyle(final Long guestId, final String deviceName, final String channelName, final ChannelStyle style) {
         setDefaultStyle(guestId,deviceName,channelName, gson.toJson(style));
+    }
+
+    @Deprecated
+    @Transactional(readOnly = false)
+    public void deleteStyle(final Long guestId, final String deviceName) {
+        try {
+            JPAUtils.execute(em, "channelStyle.delete.byGuestAndDeviceName", guestId, deviceName);
+        } catch(Exception e) {logger.warn("Couldn't delete Channel Style for connector "
+                                          + deviceName
+                                          + ", guest: " + guestId
+                                          + "\n" + ExceptionUtils.getStackTrace(e));}
     }
 
     @Transactional(readOnly = false)

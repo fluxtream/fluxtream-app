@@ -362,6 +362,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     facet.hasImage = true;
                     break;
                 case "mymee-observation":
+                case "sms_backup-sms":
                     facet.hasImage = facet.photoUrl != null;
                     break;
             }
@@ -508,6 +509,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     digest.cachedData[connectorId].hasImages = true;
                     break;
                 case "mymee-observation":
+                case "sms_backup-sms":
                     for (var i = 0; i < digest.cachedData[connectorId].length && !digest.cachedData[connectorId].hasImages; i++){
                         digest.cachedData[connectorId].hasImages = digest.cachedData[connectorId][i].hasImage;
                     }
@@ -634,29 +636,33 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             var connectorConfig = App.getConnectorConfig(connector.connectorName);
             var connected = _.some(connector.facetTypes, function(facetType) {
                 var hasTypedFacets = digest.cachedData[facetType] != null;
-                var objectType = facetType.split("-")[1];
+                //var objectType = facetType.split("-")[1];
                 if(Calendar.currentTab.name==="photos") {
                     // handle special case of mymee observations
-                    if (hasTypedFacets&&objectType.indexOf("observation")!=-1){
-                        hasTypedFacets = false;
-                        for (var i=0;i<digest.cachedData[facetType].length; i++){
-                            if (typeof(digest.cachedData[facetType][i].photoUrl)!="undefined") {
-                                hasTypedFacets = true;
-                                break;
-                            }
-                        }
-                    } else {
-                        // handle evernote and jawbone servings
-                        var isPhotoObjectType = objectType.indexOf("photo")!=-1;
-                        var isServingObjectType = objectType.indexOf("serving")!=-1;
-                        hasTypedFacets = hasTypedFacets && (isPhotoObjectType || isServingObjectType);
-                    }
+                    //if (hasTypedFacets&&objectType.indexOf("observation")!=-1){
+                    //    hasTypedFacets = false;
+                    //    for (var i=0;i<digest.cachedData[facetType].length; i++){
+                    //        if (typeof(digest.cachedData[facetType][i].photoUrl)!="undefined") {
+                    //            hasTypedFacets = true;
+                    //            break;
+                    //        }
+                    //    }
+                    //} else {
+                    //    // handle evernote and jawbone servings
+                    //    var isPhotoObjectType = objectType.indexOf("photo")!=-1;
+                    //    var isServingObjectType = objectType.indexOf("serving")!=-1;
+                    //    hasTypedFacets = hasTypedFacets && (isPhotoObjectType || isServingObjectType);
+                    //
+                    //}
+                    hasTypedFacets = hasTypedFacets && digest.cachedData[facetType].hasImages;
                 }
                 return hasTypedFacets;
             });
 
             var configFilterLabel = connectorConfig.filterLabel,
                 filterLabel = configFilterLabel || connector.prettyName;
+
+            filterLabel = filterLabel.replace("_", " ");
 
             var buttonLink = Builder.getConnectorButton(connector.connectorName),
                 button = buttonLink.parent();
