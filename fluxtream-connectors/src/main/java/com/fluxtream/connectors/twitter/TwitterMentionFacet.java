@@ -13,10 +13,8 @@ import com.fluxtream.domain.AbstractFacet;
 @ObjectTypeSpec(name = "mention", value = 4, extractor=TwitterFacetExtractor.class, parallel=true, prettyname = "Mentions")
 //@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
 @NamedQueries({
-		@NamedQuery(name = "twitter.mention.deleteAll", query = "DELETE FROM Facet_TwitterMention facet WHERE facet.guestId=?"),
-		@NamedQuery(name = "twitter.mention.between", query = "SELECT facet FROM Facet_TwitterMention facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?"),
-		@NamedQuery(name = "twitter.mention.oldest", query = "SELECT facet FROM Facet_TwitterMention facet WHERE facet.guestId=? ORDER BY facet.start ASC"),
-		@NamedQuery(name = "twitter.mention.newest", query = "SELECT facet FROM Facet_TwitterMention facet WHERE facet.guestId=? ORDER BY facet.start DESC LIMIT 1")
+		@NamedQuery(name = "twitter.mention.smallestTwitterId", query = "SELECT facet FROM Facet_TwitterMention facet WHERE facet.guestId=? ORDER BY facet.twitterId ASC LIMIT 1"),
+		@NamedQuery(name = "twitter.mention.biggestTwitterId", query = "SELECT facet FROM Facet_TwitterMention facet WHERE facet.guestId=? ORDER BY facet.twitterId DESC LIMIT 1")
 })
 @Indexed
 public class TwitterMentionFacet extends AbstractFacet {
@@ -30,8 +28,16 @@ public class TwitterMentionFacet extends AbstractFacet {
 
 	public String userName;
     public String name;
-	
-	@Override
+
+    public TwitterMentionFacet() {
+        super();
+    }
+
+    public TwitterMentionFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
+    @Override
 	protected void makeFullTextIndexable() {
 		this.fullTextDescription = text;
 	}

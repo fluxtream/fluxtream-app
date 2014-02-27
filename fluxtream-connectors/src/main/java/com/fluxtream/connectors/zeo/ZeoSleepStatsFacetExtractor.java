@@ -2,13 +2,12 @@ package com.fluxtream.connectors.zeo;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
-import com.fluxtream.domain.metadata.DayMetadataFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import com.fluxtream.services.MetadataService;
 import net.sf.json.JSONArray;
@@ -24,7 +23,7 @@ public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
     @Autowired
 	MetadataService metadataService;
 
-	public List<AbstractFacet> extractFacets(ApiData apiData,
+	public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, final ApiData apiData,
 			ObjectType objectType) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 
@@ -42,11 +41,11 @@ public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
 
 	private void extractStatsData(List<AbstractFacet> facets, ApiData apiData,
 			JSONObject sleepStats) {
-		ZeoSleepStatsFacet facet = new ZeoSleepStatsFacet();
+		ZeoSleepStatsFacet facet = new ZeoSleepStatsFacet(apiData.updateInfo.apiKey.getId());
 		super.extractCommonFacetData(facet, apiData);
 		facet.zq = sleepStats.getInt("zq");
-        parseZeoTime(sleepStats, "bedTime", apiData, facet);
-        parseZeoTime(sleepStats, "riseTime", apiData, facet);
+        parseZeoTime(sleepStats, "bedTime", facet);
+        parseZeoTime(sleepStats, "riseTime", facet);
 		facet.morningFeel = sleepStats.getInt("morningFeel");
 		facet.totalZ = sleepStats.getInt("totalZ");
 		facet.timeInDeepPercentage = sleepStats.getInt("timeInDeepPercentage");
@@ -74,7 +73,7 @@ public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
 		return bf.toString();
 	}
 
-	private void parseZeoTime(JSONObject stats, String key, ApiData apiData, ZeoSleepStatsFacet facet) {
+	private void parseZeoTime(JSONObject stats, String key, ZeoSleepStatsFacet facet) {
 		JSONObject o = stats.getJSONObject(key);
 		
 		int day = o.getInt("day");
@@ -84,12 +83,17 @@ public class ZeoSleepStatsFacetExtractor extends AbstractFacetExtractor {
 		int minutes = o.getInt("minute");
 		int seconds = o.getInt("second");
 
-		if (key.equals("bedTime"))
+        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        c.set(Calendar.MILLISECOND, 0);
+        c.set(year, month-1, day, hours, minutes, seconds);
+		if (key.equals("bedTime")) {
             facet.startTimeStorage = toTimeStorage(year, month, day, hours, minutes, seconds);
-		else {
+            facet.start = c.getTimeInMillis();
+        } else {
             facet.date = (new StringBuilder()).append(year)
-                    .append("-").append(month).append("-").append(day).toString();
+                    .append("-").append(pad(month)).append("-").append(pad(day)).toString();
             facet.endTimeStorage = toTimeStorage(year, month, day, hours, minutes, seconds);
+            facet.end = c.getTimeInMillis();
         }
 
 	}

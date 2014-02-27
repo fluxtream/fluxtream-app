@@ -1,19 +1,33 @@
-define(["core/grapher/BTCore"], function(BTCore) {
+define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core/Tooltip","applications/calendar/tabs/photos/PhotoUtils"], function(BTCore,ListUtils,Tooltip,PhotoUtils) {
 
-    var Grapher = function(parentElement,options){
+    var Grapher = function(parentElement, options) {
         if (options == null) options = {};
         parentElement = $(parentElement);
-        this.plotContainersMap = {};    // maps DOM element ID to plot container
-        this.sourcesMap   		 = {};    // maps DOM element ID to available source
-        this.channelsMap  		 = {};    // maps DOM element ID to view's y_axes
-        this.plotsMap     		 = {};    // maps DOM element ID to grapher widget
+        this.plotContainersMap = {}; // maps DOM element ID to plot container
+        this.sourcesMap = {}; // maps DOM element ID to available source
+        this.channelsMap = {}; // maps DOM element ID to view's y_axes
+        this.plotsMap = {}; // maps DOM element ID to grapher widget
         this.grapherId = new Date().getTime() + "-" + Math.round(Math.random()*10000000);
+        this.plotContainers = [];    // array of plot containers
+        this.currentTooltip = null; //holds a reference to the current tooltip object
         var grapher = this;
         for (var param in options)
             grapher[param] = options[param];
-        if (grapher.onLoad == null)
-            grapher.onLoad = function(){};
-        App.loadMustacheTemplate("core/grapher/timelineTemplates.html","mainGrapherApp",function(template){
+        if (grapher.onLoadActions == null)
+            grapher.onLoadActions = [];
+        if (grapher.loadViewOverride == null)
+            grapher.loadViewOverride = function(){return false;};
+        if (grapher.loaded != null || grapher.onLoad != null)
+            console.log("grapher.loaded and grapher.onLoad should not be set with options to constructor");
+        grapher.loaded = false;
+        grapher.onLoad = function() {
+            var l = grapher.onLoadActions.length;
+            for (var i = 0; i < l; i++) {
+                grapher.onLoadActions[i]();
+            }
+            grapher.loaded = true;
+        };
+        App.loadMustacheTemplate("core/grapher/timelineTemplates.html", "mainGrapherApp", function(template) {
             parentElement.append(template.render(grapher));
             setup(grapher);
         });
@@ -30,13 +44,69 @@ define(["core/grapher/BTCore"], function(BTCore) {
     var channelIdx   		 = 0;     // counter used to uniquely identify channels
     var dragSourceId 		 = null;  // DOM id of source is stored here during drag
 
-    var plotContainers       = [];    // array of plot containers
+
     var hasUnsavedChanges    = false; // used by unsaved changes dialog handler
     var loadedViewStr        = "";    // JSON string of loaded view
     var addPaneChannelsState = [];    // add channels pane channel visibility
-    var CHANNEL_PADDING      = 3;     // Pixels between plot and drag area
+    var CHANNEL_PADDING      = 0;     // Pixels between plot and drag area
 
     var connectorEnabled;
+
+    function _performAfterLoad(grapher, callback) {
+        if (grapher.loaded) {
+            callback();
+        } else {
+            grapher.onLoadActions.push(callback);
+        }
+    }
+
+    var channelTemplate;
+
+    function makeChannelsSortable(grapher){
+        $("#" + grapher.grapherId + "_timeline_channels").sortable({
+            handle      : '.flx-channel',
+            axis        : 'y',
+            tolerance   : 'pointer',
+            containment : "#" + grapher.grapherId + "_timeline_channels",
+            /*merge		: function(event, ui) {
+             var templateValues = {
+             "deviceName"       : "Devices",
+             "channelName"      : "Compare Stub",
+             "plotElementId"    : "_timeline_channel_helper",
+             "channelElementId" : "_timeline_plot_helper",
+             "yAxisElementId"   : "_timeline_yAxis_helper",
+             "showDeleteBtn"    : grapher.showDeleteBtn,
+             "grapherId"        : grapher.grapherId
+             };
+             var html = template.render(templateValues);
+
+             $(ui.item[0]).remove();
+             $(ui.droppable.item[0]).replaceWith(html);
+             },
+             mergein		: function(event, ui) {
+             $(ui.droppable.item[0]).addClass("_timeline_channel_hover");
+             },
+             mergeout	: function(event, ui) {
+             $(ui.droppable.item[0]).removeClass("_timeline_channel_hover");
+             },*/
+            receive     : function(event, ui) {	// received new channel to add
+                var i, l, c;
+                var src = grapher.sourcesMap[dragSourceId];
+
+                // Iterate through channels and call addChannel on
+                // entries with no id
+                // NOTE: We assume the only reason the id is blank is if the
+                //       element is new (user dragged into channels)
+                c = $("#" + grapher.grapherId + "_timeline_channels").children();
+                l = c.length;
+                for (i = 0; i < l; i++) {
+                    if (c[i].id == "") {
+                        grapher.addChannel(src, c[i]);
+                    }
+                }
+            }
+        });
+    }
 
     function init(grapher, callback) {
         // Unsaved changes dialog handler
@@ -64,7 +134,10 @@ define(["core/grapher/BTCore"], function(BTCore) {
             // * 1 pixel of border on ._timeline_channel
             var borderOffset = 2;
 
-            var widthOfAreaLeftOfPlotContainer = $("._timeline_channeltd").width() + borderOffset;
+            // Could also use ._timeline_channeltd, but $("._timeline_gotozoom").width() returns 0
+            // whenever there are no channels
+            var widthOfAreaLeftOfPlotContainer = $("#" + grapher.grapherId + "_timeline_gotozoom").width() + borderOffset;
+            // TODO: Find a good way to get the ._timeline_yaxistd width even when with no channels
             var widthOfAreaRightOfPlotContainer = $("._timeline_yaxistd").width() + borderOffset;
 
             // the .plotContainer has a 1 pixel border around it, so set this to 2 to account for the left and right sides
@@ -74,12 +147,13 @@ define(["core/grapher/BTCore"], function(BTCore) {
             // will automatically shrink if the Add Channels and/or Details pane is visible, so we don't explicitly need
             // to account for them here).
             var plotContainerWidth = $("#" + grapher.grapherId + "_timeline_channelsArea").width() - widthOfAreaLeftOfPlotContainer - widthOfAreaRightOfPlotContainer - widthOfPlotContainerLeftAndRightBorder - 20;
+            if (plotContainerWidth < 1) plotContainerWidth = 1; //sometimes the calculated value can be negative. This can cause crashes in IE so we force it to be > 0
 
             // resize plot containers
             var plotContainerEventId = SequenceNumber.getNext();
-            for (var i = 0; i < plotContainers.length; i++) {
-                var plotContainerHeight = $("#" + plotContainers[i].getPlaceholder()).height();
-                plotContainers[i].setSize(plotContainerWidth, plotContainerHeight, plotContainerEventId);
+            for (var i = 0; i < grapher.plotContainers.length; i++) {
+                var plotContainerHeight = $("#" + grapher.plotContainers[i].getPlaceholder()).height();
+                grapher.plotContainers[i].setSize(plotContainerWidth, plotContainerHeight, plotContainerEventId);
             }
 
             // resize date axis
@@ -99,64 +173,12 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     }
                 }
             }
-            SOURCES.initialized = true
-            if (grapher.onLoad != null){
-                var onload = grapher.onLoad;
-                grapher.onLoad = null;
-                onload();
-                $.doTimeout(1000,function(){
-                    $.ajax("/api/timezones/mapping",{success:function(mapping){
-                        grapher.dateAxis.setTimeZoneMapping(mapping);
-                    }});
-                });
-            }
         });
 
         // Make the channel list sortable
         App.loadMustacheTemplate("core/grapher/timelineTemplates.html","channelTemplate",function(template){
-            $("#" + grapher.grapherId + "_timeline_channels").sortable({
-                handle      : '.flx-channel',
-                axis        : 'y',
-                tolerance   : 'pointer',
-                containment : "#" + grapher.grapherId + "_timeline_channels",
-                /*merge		: function(event, ui) {
-                    var templateValues = {
-                        "deviceName"       : "Devices",
-                        "channelName"      : "Compare Stub",
-                        "plotElementId"    : "_timeline_channel_helper",
-                        "channelElementId" : "_timeline_plot_helper",
-                        "yAxisElementId"   : "_timeline_yAxis_helper",
-                        "showDeleteBtn"    : grapher.showDeleteBtn,
-                        "grapherId"        : grapher.grapherId
-                    };
-                    var html = template.render(templateValues);
-
-                    $(ui.item[0]).remove();
-                    $(ui.droppable.item[0]).replaceWith(html);
-                },
-                mergein		: function(event, ui) {
-                    $(ui.droppable.item[0]).addClass("_timeline_channel_hover");
-                },
-                mergeout	: function(event, ui) {
-                    $(ui.droppable.item[0]).removeClass("_timeline_channel_hover");
-                },*/
-                receive     : function(event, ui) {	// received new channel to add
-                    var i, l, c;
-                    var src = sourcesMap[dragSourceId];
-
-                    // Iterate through channels and call addChannel on
-                    // entries with no id
-                    // NOTE: We assume the only reason the id is blank is if the
-                    //       element is new (user dragged into channels)
-                    c = $("#" + grapher.grapherId + "_timeline_channels").children();
-                    l = c.length;
-                    for (i = 0; i < l; i++) {
-                        if (c[i].id == "") {
-                            grapher.addChannel(src, c[i]);
-                        }
-                    }
-                }
-            });
+            channelTemplate = template;
+            makeChannelsSortable(grapher);
         });
         $("#" + grapher.grapherId + "_timeline_channels").disableSelection();
 
@@ -187,6 +209,8 @@ define(["core/grapher/BTCore"], function(BTCore) {
         $("#" + grapher.grapherId + "_timeline_new_gotoEnd_button").click(function(event) { event.preventDefault(); grapher.gotoTime("end"); });
         $("#" + grapher.grapherId + "_timeline_new_zoomOut_button").click(function(event) { event.preventDefault(); grapher.zoomTime("out"); });
         $("#" + grapher.grapherId + "_timeline_new_zoomIn_button").click(function(event) { event.preventDefault(); grapher.zoomTime("in"); });
+
+        $("#" + grapher.grapherId + "_timeline_export_to_csv").click(function(event){event.preventDefault(); grapher.exportToCSV();});
 
         // Configure the photo dialog
         $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog'](
@@ -280,7 +304,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
         if (VIEWS.data != "") {
             updateViewData(grapher);
             newvdata = JSON.stringify(VIEWS.data);
-            if (loadedViewStr != newvdata) {
+            if (false && loadedViewStr != newvdata) {//TODO: fix this, it's disabled for now...
                 hasUnsavedChanges = true;
                 return confirm("You have unsaved changes. Do you wish to continue?");
             }
@@ -333,11 +357,14 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     src.channels[j]["id"] = "src_" + idx;
 
                     grapher.sourcesMap["src_" + idx] = {
-                        "device_name"  : src["name"],
-                        "channel_name" : src.channels[j]["name"],
-                        "min"          : src.channels[j]["min"],
-                        "max"          : src.channels[j]["max"],
-                        "style"        : src.channels[j]["style"]
+                        "device_name"      : src["name"],
+                        "channel_name"     : src.channels[j]["name"],
+                        "object_type_name" : (typeof src.channels[j]["objectTypeName"] === 'undefined' ? src.channels[j]["name"] : src.channels[j]["objectTypeName"]),
+                        "min"              : src.channels[j]["min"],
+                        "max"              : src.channels[j]["max"],
+                        "style"            : src.channels[j]["style"],
+                        "time_type"        : src.channels[j]["time_type"],
+                        "type"             : src.channels[j]["type"]
                     };
 
                     if ((src.channels[j].hasOwnProperty("min_time")) &&
@@ -350,6 +377,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
                     idx += 1;
                 }
+                SOURCES.initialized = true;
             }
 
             // Render add channels area
@@ -360,7 +388,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             });
 
             // Drag event handler for channels
-            App.loadMustacheTemplate("core/grapher/timelineTemplates.html","channelTemplate",function(template){
+            /*App.loadMustacheTemplate("core/grapher/timelineTemplates.html","channelTemplate",function(template){
                 $("#" + grapher.grapherId + "_timeline_addChannelsArea ul ._timeline_sources_channel").draggable({
                     connectToSortable : "#" + grapher.grapherId + "_timeline_channels",
                     revert: "invalid",
@@ -389,7 +417,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         $(this).height("16px");
                     }
                 });
-            });
+            });*/
             $("#" + grapher.grapherId + "_timeline_addChannelsArea ul ._timeline_sources_channel").disableSelection();
 
             // Create new grapher widget if source receives a click
@@ -403,7 +431,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             $("#" + grapher.grapherId + "_timeline_addChannelsArea #_timeline_sources_find_btn").click(function() {
                 $("#" + grapher.grapherId + "_timeline_addChannelsArea input[type=text]").val("");
 
-                addPaneRestoreState();
+                addPaneRestoreState(grapher);
                 return false;
             });
 
@@ -413,7 +441,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 var regexp = new RegExp(search_str, 'i');
 
                 if (search_str.length === 0) {
-                    addPaneRestoreState();
+                    addPaneRestoreState(grapher);
                     return;
                 }
 
@@ -460,11 +488,11 @@ define(["core/grapher/BTCore"], function(BTCore) {
         });
     } // getSources
 
-    function addPaneRestoreState() {
+    function addPaneRestoreState(grapher) {
         var i = 0;
         var l = addPaneChannelsState.length;
 
-        $("#_timeline_addChannelsArea #_timeline_sources_list ._timeline_sources_channel").each(function() {
+        $("#" + grapher.grapherId + "_timeline_addChannelsArea #_timeline_sources_list ._timeline_sources_channel").each(function() {
             $(this).show();
         });
 
@@ -500,6 +528,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
     }
 
     Grapher.prototype.newView = function(start, end) {
+        if (this.loadViewOverride(null)) return;
         if (start == null || end == null){
             end = new Date().getTime()/1000.0;
             start = end - 86400;
@@ -526,6 +555,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
     }
 
     Grapher.prototype.loadView = function(id, mode, callback) {
+        if (this.loadViewOverride(id)) return;
         $("#" + this.grapherId + "_timeline_save_view_btn").addClass("disabled");
         var grapher = this;
         VIEWS.load(id, function(data) {
@@ -550,6 +580,92 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 callback();
             }
         });
+    }
+
+    Grapher.prototype.exportToCSV = function(){
+        var exportChannelMap = {};
+        for (var element in this.channelsMap){
+            var channel = this.channelsMap[element];
+            if (channel.type == null){//this signifies a data channel (aka we can export it!)
+                exportChannelMap[channel.device_name + "." + channel.channel_name] = element;
+            }
+        }
+        var channelsArray = [];
+        for (var element in exportChannelMap){
+            channelsArray.push(element);
+        }
+
+        var start = Math.floor(this.dateAxis.getMin());
+        var end = Math.ceil(this.dateAxis.getMax());
+
+        var grapher = this;
+
+        App.loadMustacheTemplate("core/grapher/timelineTemplates.html","timelineExportModal",function(template){
+            var modalContents = {
+                channels:[],
+                downloadLink: "javascript:void(0);",
+                filename: "fluxtream-export-from-" + start + "-to-" + end + ".csv",
+                noChannels: channelsArray.length == 0
+            };
+            var modal = App.makeModal(template.render(modalContents));
+            modal.find(".dataDownloadLink").click(function(event){
+                if ($(event.delegateTarget).hasClass("disabled")){
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+            })
+            var li = channelsArray.length;
+            function calculateNext(i){
+                if (i == li){
+                    App.loadMustacheTemplate("core/grapher/timelineTemplates.html","timelineExportContent",function(contentTemplate){
+                        var downloadLink = "/api/bodytrack/exportCSV/" + App.getUID() + "/fluxtream-export-from-" + start + "-to-" + end + ".csv?channels=" + encodeURIComponent(JSON.stringify(channelsArray));
+                        //update contents and download link and enable the download button
+                        modal.find(".dataDownloadLink").attr("href",downloadLink)
+                            .removeClass("disabled");
+                        modal.find(".modal-body").html(contentTemplate.render(modalContents));
+
+                        //this will focus on the appropriate button for the enter key to work
+                        if (modal.hasClass("in")){
+                            if (li > 0){
+                                modal.find(".dataDownloadLink").focus();
+                            }
+                            else{
+                                modal.find(".dataDownloadLink").remove();
+                                modal.find("#cancel").focus();
+                            }
+                        }
+                        else{
+                            modal.on("shown",function(){
+                                if (li > 0){
+                                    modal.find(".dataDownloadLink").focus();
+                                }
+                                else{
+                                    modal.find(".dataDownloadLink").remove();
+                                    modal.find("#cancel").focus();
+                                }
+                            })
+                        }
+                    })
+                    return;
+                }
+                grapher.plotsMap[exportChannelMap[channelsArray[i]]].getStatistics(start,end,null,function(stats){
+                    console.log(stats);
+                    modalContents.channels.push({name: channelsArray[i],
+                        count: stats.count});
+                    modal.find(".channelCount.channel" + i).text(stats.count);
+                    for (var sideChannel in stats.sideChannelCounts){
+                        modalContents.channels.push({
+                            name: channelsArray[i] + "._" + sideChannel,
+                            count: stats.sideChannelCounts[sideChannel]
+                        });
+                        channelsArray.push(channelsArray[i] + "._" + sideChannel);
+                    }
+                    calculateNext(i+1);
+                });
+            }
+            calculateNext(0);
+        });
+
     }
 
     // Save view then load saved view
@@ -649,27 +765,12 @@ define(["core/grapher/BTCore"], function(BTCore) {
         if (area.css("display") === "none") {
             $("#" + this.grapherId + "_timeline_add_channels_btn").addClass("active");
             area.show();
+            $("#" + this.grapherId + "_timeline_dateAxisLabelRegion").addClass("channelAreaShowing");
             TOOLS.resizeElementHeight($("#" + this.grapherId + "_timeline_addChannelsArea #_timeline_sources_list"));
         }
         else {
             $("#"  + this.grapherId + "_timeline_add_channels_btn").removeClass("active");
-            area.hide();
-        }
-
-        // call the resize handler to ensure that the grapher gets resized
-        TOOLS.resizeHandler();
-
-        return false;
-    }
-
-    Grapher.prototype.toggleDetailsPane = function() {
-        var area = $("#" + this.grapherId + "_timeline_detailsArea");
-        if (area.css("display") === "none") {
-            $("#" + this.grapherId + "_timeline_show_details_btn").addClass("active");
-            area.show();
-        }
-        else {
-            $("#" + this.grapherId + "_timeline_show_details_btn").removeClass("active");
+            $("#" + this.grapherId + "_timeline_dateAxisLabelRegion").removeClass("channelAreaShowing");
             area.hide();
         }
 
@@ -680,20 +781,76 @@ define(["core/grapher/BTCore"], function(BTCore) {
     }
 
     Grapher.prototype.removeChannel = function(channel){
+        var deviceName;
+        var channelName;
+        var channelElementId = null;
         var firstPeriod = channel.indexOf(".");
-        var deviceName = channel.substring(0,firstPeriod);
-        var channelName = channel.substring(firstPeriod + 1);
-
-        var channelElement = $("#" + this.grapherId +"_timeline_channel_" + deviceName + "_" + channelName);
-        if (channelElement.length != 0){
-            var channelElementId = channelElement.parent().attr("id");
-            this.plotContainersMap[channelElementId].removePlot(this.plotsMap[channelElementId]);
-            $(channelElement.parent()).remove();
+        if (firstPeriod > 0){
+            deviceName = channel.substring(0,firstPeriod);
+            channelName = channel.substring(firstPeriod + 1);
         }
+        else{
+            channelElementId = channel;
+        }
+
+        if (channelElementId == null){
+            var channelElement = $("#" + this.grapherId +"_timeline_channel_" + deviceName + "_" + channelName);
+            if (channelElement.length != 0){
+                channelElementId = channelElement.parent().attr("id");
+            }
+
+        }
+        if (channelElementId != null){
+            this.plotContainersMap[channelElementId].removePlot(this.plotsMap[channelElementId]);
+            $("#" + channelElementId).remove();
+            delete this.channelsMap[channelElementId];
+        }
+
+    }
+
+    Grapher.prototype.hasChannel = function(channelName){
+        for (var member in this.channelsMap){
+            if (this.channelsMap[member].device_name + "." + this.channelsMap[member].channel_name == channelName)
+                return true;
+        }
+        return false;
+    }
+
+    Grapher.prototype.doCursorClick = function(plot){
+        if (plot.indexOf)
+            plot = this.getPlot(plot);
+        if (plot != null)
+            plot.doCursorClick();
+    }
+
+    Grapher.prototype.getPlot = function(channel){
+        var deviceName;
+        var channelName;
+        var channelElementId = null;
+        var firstPeriod = channel.indexOf(".");
+        if (firstPeriod > 0){
+            deviceName = channel.substring(0,firstPeriod);
+            channelName = channel.substring(firstPeriod + 1);
+        }
+        else{
+            channelElementId = channel;
+        }
+
+        if (channelElementId == null){
+            var channelElement = $("#" + this.grapherId +"_timeline_channel_" + deviceName + "_" + channelName);
+            if (channelElement.length != 0){
+                channelElementId = channelElement.parent().attr("id");
+            }
+
+        }
+        if (channelElementId == null)
+            return null
+        return this.plotsMap[channelElementId];
+
     }
 
     // Add new channel to target
-    Grapher.prototype.addChannel = function(channel, target) {
+    Grapher.prototype.addChannel = function(channel, target, dontPad) {
         var grapher = this;
         if (typeof channel == "string"){
             if (!SOURCES.initialized){
@@ -702,6 +859,13 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     grapher.addChannel(channel,target);
                 });
                 return;
+            }
+            else if (SOURCES.availableList == null || (SOURCES.availableList.length > 0 && SOURCES.availableList[0].channels.length > 0 && SOURCES.availableList[0].channels[0].id == null)){
+                getSources(grapher,function(){
+                    grapher.addChannel(channel,target);
+                });
+                return;
+
             }
             var channel = getSourceChannelByFullName(channel);
             if (channel == null)
@@ -715,7 +879,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             // VERY important to clone the given channel here!
             channel = TOOLS.clone(channel);
 
-            id = channelIdx;
+            var id = channelIdx;
             channelIdx += 1;
 
             var channelElementId = grapher.grapherId + "_timeline_channel_" + id;
@@ -732,7 +896,9 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 "channelElementId" : channelElementId,
                 "yAxisElementId"   : yAxisElementId,
                 "showDeleteBtn"    : grapher.showDeleteBtn,
-                "grapherId"        : grapher.grapherId
+                "grapherId"        : grapher.grapherId,
+                "channelType"      : channel["type"] == null ? "CONTINUOUS" : channel["type"].toUpperCase(),
+                "hideYAxis"        : false
             };
 
             // Render template
@@ -752,14 +918,32 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
             var yMin = channel.min;
             var yMax = channel.max;
-            if (yMin == yMax){
-                yMin -= 1;
-                yMax += 1;
+            var yDiff = yMax - yMin;
+            var padding;
+            if (channel["type"] == "timespan"){
+                padding = 0;
+            }
+            else if(yDiff < 1e-10) {
+                padding = 0.5;
+            } else {
+                padding = 0.1 * yDiff;
             }
 
+
+            if (dontPad) padding = 0;
+
             var yAxis = new NumberAxis(yAxisElementId, "vertical", {
-                "min" : yMin,
-                "max" : yMax
+                "min" : yMin - padding,
+                "max" : yMax + padding
+            });
+
+            var oldMin = yMin - padding;
+            var oldMax = yMax + padding;
+            yAxis.addAxisChangeListener(function(event){
+                if ((oldMin != event.min || oldMax != event.max) && grapher.currentTooltip != null)//this is to avoid processing on events where the axis bounds didn't change
+                    grapher.currentTooltip.remove();
+                oldMin = event.min;
+                oldMax = event.max;
             });
 
             // Now that yAxis is initialized, if this is a new view,
@@ -770,13 +954,24 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 ($("#_timeline_channels ._timeline_channel").length == 0)) {
                 max_time = channel["max_time"];
                 grapher.dateAxis.setRange(max_time - 86400.0, max_time);
-            }*/
+            }
 
-            // TODO: The following should be keying off of "type" rather than "name" fields
+             "#e9e9e9",
+             MOVES_CYCLING_COLOR: "#68abef",
+             MOVES_WALKING_COLOR: "#23ee70",
+             MOVES_TRANSPORT_COLOR: "#8f8f8d",
+             MOVES_RUNNING_COLOR: "#e674ec"*/
+
             var plot = null;
-            if ("photo" == channel["channel_name"] || "photos" == channel["channel_name"]) {
+            if ("timespan" == channel["type"]){
+                plot = new TimespanSeriesPlot(timespanDatasource(App.getUID(), channel["device_name"], channel["channel_name"]), grapher.dateAxis,
+                    yAxis,
+                    {"style": channel["style"], "localDisplay": channel["time_type"] == "local"});
+                plot.addDataPointListener(timespanDataPointListener(grapher,plot));
+            }
+            else if (("photo" == channel['type']) || "photo" == channel["channel_name"] || "photos" == channel["channel_name"]) {
                 var tags = [];
-                var willJoinUsingAnd = false;
+                var matchingStrategy = "any";
                 var photoStyle = channel['style'];
                 if (typeof photoStyle !== 'undefined' &&
                     typeof photoStyle['filters'] !== 'undefined' &&
@@ -785,13 +980,15 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     if (jQuery.isArray(photoStyle['filters']['tag']['tags'])) {
                         tags = photoStyle['filters']['tag']['tags'];
                     }
-                    willJoinUsingAnd = !!photoStyle['filters']['tag']['isAndJoin'];
+                    matchingStrategy = photoStyle['filters']['tag']['matchingStrategy'];
                 }
-                plot = new PhotoSeriesPlot(photoDatasource(App.getUID(), channel["device_name"], channel["channel_name"], tags, willJoinUsingAnd),
+                // if defined, we must use the object_type_name here and not the channel_name!
+                var objectTypeOrChannelName = (typeof channel["object_type_name"] === 'undefined' ? channel["channel_name"] : channel["object_type_name"]);
+                plot = new PhotoSeriesPlot(photoDatasource(App.getUID(), channel["device_name"], objectTypeOrChannelName, tags, matchingStrategy),
                     grapher.dateAxis,
                     yAxis,
                     App.getUID(),
-                    channel["style"]);
+                    {"style": channel["style"], "localDisplay": channel["time_type"] == "local"});
                 plot.addDataPointListener(photoDataPointListener(grapher, channel, channelElementId));
             } else if ("comments" == channel["channel_name"]) {
                 var commentStyle = channel['style'];
@@ -802,13 +999,13 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     if (jQuery.isArray(commentStyle['filters']['tag']['tags'])) {
                         tags = commentStyle['filters']['tag']['tags'];
                     }
-                    willJoinUsingAnd = !!commentStyle['filters']['tag']['isAndJoin'];
+                    matchingStrategy = commentStyle['filters']['tag']['matchingStrategy'];
                 }
                 alert("Implement commentDatasource and CommentSeriesPlot");
                 //			var commentDatasource = commentDatasource(App.getUID(),
                 //			channel["device_name"],
                 //			tags,
-                //			willJoinUsingAnd);
+                //			matchingStrategy);
                 //			plot = new CommentSeriesPlot(commentDatasource,
                 //			dateAxis,
                 //			yAxis,
@@ -820,16 +1017,17 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 plot = new DataSeriesPlot(channelDatasource(App.getUID(), channel["device_name"], channel["channel_name"]),
                     grapher.dateAxis,
                     yAxis,
-                    channel["style"]);
+                    {"style": channel["style"], "localDisplay": channel["time_type"] == "local"});
                 plot.addDataPointListener(function(pointObj, sourceInfo){dataPointListener(grapher,pointObj, sourceInfo)});
             }
 
             var plotContainer = new PlotContainer(plotElementId, false, [plot]);
+            plot.plotContainer = plotContainer;
 
             grapher.channelsMap[channelElementId] = channel;
             grapher.plotsMap[channelElementId] = plot;
             grapher.plotContainersMap[channelElementId] = plotContainer;
-            plotContainers.push(plotContainer);
+            grapher.plotContainers.push(plotContainer);
 
             // Gear button
             $("#" + channelElementId + "_btnGear").unbind("click").click(function(event) {
@@ -839,12 +1037,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
                 channelConfigElement.toggle();
 
-                if (channelConfigElement.css("display") === "none") {
-                    $(this).find("img").attr("src", "/static/images/gear_b.png");
-                }
-                else {
-                    $(this).find("img").attr("src", "/static/images/gear_green.png");
-                }
+                makeChannelsSortable(grapher);
             });
 
             // Delete buton
@@ -855,9 +1048,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     event.preventDefault();
                     if (!grapher.showDeleteBtn)
                         return;
-                    var channelElement = $(this).parents("._timeline_channel").parent();
-                    plotContainer.removePlot(plot);
-                    $(channelElement).remove();
+                    grapher.removeChannel(channelElementId);
                 });
 
             // Drag to resize
@@ -873,8 +1064,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 // Define a function which handles updating a channel's style
                 // whenever anything in the channel configuration changes
                 var updateDataSeriesPlotChannelConfig = function() {
-                    var channelElement = $(this).parents("._timeline_channel").parent();
-                    var plot = grapher.plotsMap[channelElement.attr("id")];
+                    var plot = grapher.plotsMap[channelElementId];
 
                     var newStyle = plot.getStyle();
 
@@ -896,16 +1086,19 @@ define(["core/grapher/BTCore"], function(BTCore) {
                             "type"      : "line",
                             "show"      : $("#" + channelElementId + "-config-lines-show").is(':checked'),
                             "color"     : $("#" + channelElementId + "-config-lines-color").next(".color_picker").css("background-color"),
-                            "lineWidth" : TOOLS.parseInt($("#" + channelElementId + "-config-lines-lineWidth").val(), 1)
+                            "lineWidth" : TOOLS.parseInt($("#" + channelElementId + " .configLineWidth button").attr('value'), 1)
                         };
 
-                        var pointsStyleType = $("#" + channelElementId + "-config-points-type").val();
+                        var pointsStyleType = $("#" + channelElementId + " .configPointsType button").attr('value');
                         var pointsStyleFill = pointsStyleType.match(/-filled$/) !== null;
+
+                        $("#" + channelElementId + "-config-points-fillColor-container").toggle(pointsStyleFill);
+
                         var pointsStyle = {
                             "type"      : pointsStyleType.replace('-filled', ''),
                             "show"      : $("#" + channelElementId + "-config-points-show").is(':checked'),
                             "lineWidth" : 1,
-                            "radius"    : TOOLS.parseInt($("#" + channelElementId + "-config-points-radius").val(), 2),
+                            "radius"    : TOOLS.parseInt($("#" + channelElementId + " .configPointsRadius button").attr('value'), 2),
                             "color"     : $("#" + channelElementId + "-config-points-color").next(".color_picker").css("background-color"),
                             "fill"      : pointsStyleFill,
                             "fillColor" : $("#" + channelElementId + "-config-points-fillColor").next(".color_picker").css("background-color")
@@ -914,7 +1107,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         var barsStyle = {
                             "type"      : "lollipop",
                             "show"      : $("#" + channelElementId + "-config-bars-show").is(':checked'),
-                            "lineWidth" : TOOLS.parseInt($("#" + channelElementId + "-config-bars-lineWidth").val(), 1),
+                            "lineWidth" : TOOLS.parseInt($("#" + channelElementId + " .configBarsLineWidth button").attr('value'), 1),
                             "radius"    : 0,
                             "color"     : $("#" + channelElementId + "-config-bars-color").next(".color_picker").css("background-color"),
                             "fill"      : false
@@ -943,17 +1136,21 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         "type"           : "value",
                         "show"           : $("#" + channelElementId + "-config-values-show").is(':checked'),
                         "fillColor"      : $("#" + channelElementId + "-config-values-fillColor").next(".color_picker").css("background-color"),
-                        "marginWidth"    : TOOLS.parseInt($("#" + channelElementId + "-config-values-marginWidth").val(), 5),
-                        "verticalOffset" : TOOLS.parseInt($("#" + channelElementId + "-config-values-verticalOffset").val(), 7),
-                        "numberFormat"   : $("#" + channelElementId + "-config-values-numberFormat").val()
+                        "marginWidth"    : TOOLS.parseInt($("#" + channelElementId + " .configValuesMarginWidth button").attr('value'), 5),
+                        "verticalOffset" : TOOLS.parseInt($("#" + channelElementId + " .configValuesVerticalOffset button").attr('value'), 7),
+                        "numberFormat"   : $("#" + channelElementId + " .configValuesNumberFormat button").attr('value')
                     };
+
+
 
                     // We'll always put the values style in both the styles array AND the highlight styles array.  The "show"
                     // field will be false for both if Values option is unchecked.  The "show" field will be true for both if the
                     // Values option is checked and the showOnlyOnHighlight option is false.  If the showOnlyOnHighlight option is
                     // true, then the instance in the styles array will have show set to false
                     newStyle['highlight']['styles'][newStyle['highlight']['styles'].length] = valuesStyle;
-                    var onlyShowValuesOnHighlight = $("#" + channelElementId + "-config-values-showOnlyOnHighlight").val() === 'true';
+                    var onlyShowValuesOnHighlight = $("#" + channelElementId + " .configValuesShowOnlyOnHighlight button").attr('value') === 'true';
+                    $("#" + channelElementId + "-config-values-marginWidth-label-container").toggle(!onlyShowValuesOnHighlight);
+                    $("#" + channelElementId + "-config-values-marginWidth-container").toggle(!onlyShowValuesOnHighlight);
                     if (onlyShowValuesOnHighlight) {
                         // clone the valuesStyle instance
                         var valuesStyleCopy = TOOLS.clone(valuesStyle);
@@ -967,15 +1164,16 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     newStyle['highlight']['lineWidth'] = highlightLineWidth;
 
                     // Finally, build the comments style (this completely overwrites the existing comments object)
-                    var commentsStyleType = $("#" + channelElementId + "-config-comments-type").val();
+                    var commentsStyleType = $("#" + channelElementId + " .configCommentsType button").attr('value');
                     var commentsStyleFill = commentsStyleType.match(/-filled$/) !== null;
+                    $("#" + channelElementId + "-config-comments-fillColor-container").toggle(commentsStyleFill);
                     newStyle['comments'] = {
                         "show"           : $("#" + channelElementId + "-config-comments-show").is(':checked'),
                         "styles"         : [{
                                                 "type"      : commentsStyleType.replace('-filled', ''),
                                                 "show"      : $("#" + channelElementId + "-config-comments-show").is(':checked'),
                                                 "lineWidth" : 1,
-                                                "radius"    : TOOLS.parseInt($("#" + channelElementId + "-config-comments-radius").val(), 3),
+                                                "radius"    : TOOLS.parseInt($("#" + channelElementId + " .configCommentsRadius button").attr('value'), 3),
                                                 "color"     : $("#" + channelElementId + "-config-comments-color").next(".color_picker").css("background-color"),
                                                 "fill"      : commentsStyleFill,
                                                 "fillColor" : $("#" + channelElementId + "-config-comments-fillColor").next(".color_picker").css("background-color")
@@ -1178,6 +1376,21 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     return false;
                 });
 
+                //bind dropdown menus
+
+                $("#" + channelElementId + " .configDropdown").each(function(index,dropdown){
+                    dropdown = $(dropdown);
+                    dropdown.find("a").click(function(event){
+                        event.preventDefault();
+                        var button = dropdown.find("button");
+                        var target = $(event.delegateTarget);
+                        button.html(target.html() + ' <span class="caret"></span>');
+                        button.attr("value",target.attr("value"));
+                        updateDataSeriesPlotChannelConfig();
+                    });
+                });
+
+
                 /* Configure the Zeo options ------------------------------------------------------------------------------ */
                 $("#" + channelElementId + "-config-zeo-show").prop("checked", isZeo);
 
@@ -1206,9 +1419,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 $("#" + channelElementId + "-config-lines-show").change(updateDataSeriesPlotChannelConfig);
 
                 // Set the initial value of the lineWidth select menu
-                $("#" + channelElementId + "-config-lines-lineWidth").val(TOOLS.parseInt(linesStyle["lineWidth"], 1));
-                $("#" + channelElementId + "-config-lines-lineWidth").change(updateDataSeriesPlotChannelConfig);
-                $("#" + channelElementId + "-config-lines-lineWidth").msDropDown();
+                $("#" + channelElementId + " .configLineWidth a[value=" + TOOLS.parseInt(linesStyle["lineWidth"], 1) + "]").click();
 
                 // Create the color colorpicker, and set its initial value
                 $("#" + channelElementId + "-config-lines-color").colorPicker();
@@ -1226,19 +1437,11 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 $("#" + channelElementId + "-config-points-show").change(updateDataSeriesPlotChannelConfig);
 
                 // Set the initial value of the type select menu and the initial state of the fillColor color picker
-                $("#" + channelElementId + "-config-points-type").val(pointsStyle['type-ui']);
-                $("#" + channelElementId + "-config-points-type").change(updateDataSeriesPlotChannelConfig);
-                $("#" + channelElementId + "-config-points-type").change(function() {
-                    var isFilledType = $("#" + channelElementId + "-config-points-type").val().match(/-filled$/) !== null;
-                    $("#" + channelElementId + "-config-points-fillColor-container").toggle(isFilledType);
-                });
-                $("#" + channelElementId + "-config-points-type").msDropDown();
+                $("#" + channelElementId + " .configPointsType a[value=" + pointsStyle['type-ui'] + "]").click();
                 $("#" + channelElementId + "-config-points-fillColor-container").toggle(pointsStyle['fill']);
 
                 // Set the initial value of the radius select menu
-                $("#" + channelElementId + "-config-points-radius").val(TOOLS.parseInt(pointsStyle["radius"], 2));
-                $("#" + channelElementId + "-config-points-radius").change(updateDataSeriesPlotChannelConfig);
-                $("#" + channelElementId + "-config-points-radius").msDropDown();
+                $("#" + channelElementId + " .configPointsRadius a[value=" + TOOLS.parseInt(pointsStyle["radius"], 2) + "]").click();
 
                 // Create the color colorpicker, and set its initial value
                 $("#" + channelElementId + "-config-points-color").colorPicker();
@@ -1262,9 +1465,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 $("#" + channelElementId + "-config-bars-show").change(updateDataSeriesPlotChannelConfig);
 
                 // Set the initial value of the lineWidth select menu
-                $("#" + channelElementId + "-config-bars-lineWidth").val(TOOLS.parseInt(barsStyle["lineWidth"], 1));
-                $("#" + channelElementId + "-config-bars-lineWidth").change(updateDataSeriesPlotChannelConfig);
-                $("#" + channelElementId + "-config-bars-lineWidth").msDropDown();
+                $("#" + channelElementId + " .configBarsLineWidth a[value=" + TOOLS.parseInt(barsStyle["lineWidth"], 1) + "]").click();
 
                 // Create the color colorpicker, and set its initial value
                 $("#" + channelElementId + "-config-bars-color").colorPicker();
@@ -1285,32 +1486,20 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 $("#" + channelElementId + "-config-values-fillColor").change(updateDataSeriesPlotChannelConfig);
 
                 // Set the initial value of the numberFormat select menu
-                $("#" + channelElementId + "-config-values-numberFormat").val(typeof valuesStyle["numberFormat"] === 'undefined' ? "###,##0.0##" : valuesStyle["numberFormat"]);
-                $("#" + channelElementId + "-config-values-numberFormat").change(updateDataSeriesPlotChannelConfig);
-                $("#" + channelElementId + "-config-values-numberFormat").msDropDown();
+                $("#" + channelElementId + " .configValuesNumberFormat a[value=\"" + (typeof valuesStyle["numberFormat"] === 'undefined' ? "###,##0.0##" : valuesStyle["numberFormat"]) + "\"]").click();
 
                 // Set the initial value of the verticalOffset select menu
-                $("#" + channelElementId + "-config-values-verticalOffset").val(TOOLS.parseInt(valuesStyle["verticalOffset"], 7));
-                $("#" + channelElementId + "-config-values-verticalOffset").change(updateDataSeriesPlotChannelConfig);
-                $("#" + channelElementId + "-config-values-verticalOffset").msDropDown();
+                $("#" + channelElementId + " .configValuesVerticalOffset a[value=" + TOOLS.parseInt(valuesStyle["verticalOffset"], 7) + "]").click();
 
                 // Set the initial value of the showOnlyOnHighlight select menu and the initial visibility of the marginWidth select menu
-                $("#" + channelElementId + "-config-values-showOnlyOnHighlight").val(showValuesOnlyOnHighlight);
-                $("#" + channelElementId + "-config-values-showOnlyOnHighlight").change(updateDataSeriesPlotChannelConfig);
-                $("#" + channelElementId + "-config-values-showOnlyOnHighlight").change(function() {
-                    var shouldShowMarginMenu = $("#" + channelElementId + "-config-values-showOnlyOnHighlight").val() == 'false';
-                    $("#" + channelElementId + "-config-values-marginWidth-label-container").toggle(shouldShowMarginMenu);
-                    $("#" + channelElementId + "-config-values-marginWidth-container").toggle(shouldShowMarginMenu);
-                });
+                $("#" + channelElementId + " .configValuesShowOnlyOnHighlight a[value=" + showValuesOnlyOnHighlight + "]").click();
                 $("#" + channelElementId + "-config-values-showOnlyOnHighlight").msDropDown();
                 var showValuesOnlyOnHighlightBoolean = showValuesOnlyOnHighlight == 'true';
                 $("#" + channelElementId + "-config-values-marginWidth-label-container").toggle(!showValuesOnlyOnHighlightBoolean);
                 $("#" + channelElementId + "-config-values-marginWidth-container").toggle(!showValuesOnlyOnHighlightBoolean);
 
                 // Set the initial value of the marginWidth select menu
-                $("#" + channelElementId + "-config-values-marginWidth").val(TOOLS.parseInt(valuesStyle["marginWidth"], 5));
-                $("#" + channelElementId + "-config-values-marginWidth").change(updateDataSeriesPlotChannelConfig);
-                $("#" + channelElementId + "-config-values-marginWidth").msDropDown();
+                $("#" + channelElementId + " .configValuesMarginWidth a[value=" + TOOLS.parseInt(valuesStyle["marginWidth"], 5) + "]").click();
 
                 /* Configure the Comments options ------------------------------------------------------------------------- */
 
@@ -1319,19 +1508,10 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 $("#" + channelElementId + "-config-comments-show").change(updateDataSeriesPlotChannelConfig);
 
                 // Set the initial value of the type select menu and the initial state of the fillColor color picker
-                $("#" + channelElementId + "-config-comments-type").val(commentsStyle['type-ui']);
-                $("#" + channelElementId + "-config-comments-type").change(updateDataSeriesPlotChannelConfig);
-                $("#" + channelElementId + "-config-comments-type").change(function() {
-                    var isFilledType = $("#" + channelElementId + "-config-comments-type").val().match(/-filled$/) !== null;
-                    $("#" + channelElementId + "-config-comments-fillColor-container").toggle(isFilledType);
-                });
-                $("#" + channelElementId + "-config-comments-type").msDropDown();
-                $("#" + channelElementId + "-config-comments-fillColor-container").toggle(commentsStyle['fill']);
+                $("#" + channelElementId + " .configCommentsType a[value=" + commentsStyle['type-ui'] + "]").click();
 
                 // Set the initial value of the radius select menu
-                $("#" + channelElementId + "-config-comments-radius").val(TOOLS.parseInt(commentsStyle["radius"], 3));
-                $("#" + channelElementId + "-config-comments-radius").change(updateDataSeriesPlotChannelConfig);
-                $("#" + channelElementId + "-config-comments-radius").msDropDown();
+                $("#" + channelElementId + " .configCommentsRadius a[value=" + TOOLS.parseInt(commentsStyle["radius"],3) + "]").click();
 
                 // Create the color colorpicker, and set its initial value
                 $("#" + channelElementId + "-config-comments-color").colorPicker();
@@ -1378,16 +1558,32 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         newStyle['filters'] = {};
                     }
 
-                    var isAndJoin = $("#" + channelElementId + "-photo-tags-isAndJoin").val() === 'true';
+                    var matchingStrategy = $("#" + channelElementId + "-photo-tags-matching-strategy").val();
                     var userSelectedTags = getUserSelectedTags();
                     newStyle['filters']["tag"] = {
                         "tags" : userSelectedTags,
-                        "isAndJoin" : isAndJoin
+                        "matchingStrategy" : matchingStrategy
                     };
 
                     // Display the filter settings in the channel tab
-                    if (userSelectedTags.length > 0) {
-                        var filterHtml = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_channel_tab_filter_template").render({"value":userSelectedTags.join(", ")});
+                    if (userSelectedTags.length > 0 || matchingStrategy == "untagged") {
+                        var params = {
+                            value:userSelectedTags.join(", "),
+                            matchingString: "Any of:"
+                        };
+                        switch (matchingStrategy){
+                            case "all":
+                                params.matchingString = "All of:";
+                                break;
+                            case "none":
+                                params.matchingString = "None of:";
+                                break;
+                            case "untagged":
+                                params.matchingString = "Untagged";
+                                params.value = "";
+                                break;
+                        }
+                        var filterHtml = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_channel_tab_filter_template").render(params);
                         $("#" + channelElementId + "-timeline-channel-filter").html(filterHtml).shorten();
                     } else {
                         $("#" + channelElementId + "-timeline-channel-filter").text('').hide();
@@ -1397,11 +1593,13 @@ define(["core/grapher/BTCore"], function(BTCore) {
 
                     plot.setStyle(newStyle);
 
+                    // we must use the object_type_name here and not the channel_name!
+                    var objectTypeOrChannelName = (typeof channel["object_type_name"] === 'undefined' ? channel["channel_name"] : channel["object_type_name"]);
                     plot.setDatasource(photoDatasource(App.getUID(),
                         channel["device_name"],
-                        channel["channel_name"],
+                        objectTypeOrChannelName,
                         newStyle['filters']["tag"]["tags"],
-                        newStyle['filters']["tag"]["isAndJoin"]
+                        newStyle['filters']["tag"]["matchingStrategy"]
                     ));
                 };
 
@@ -1417,17 +1615,22 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 if (!channel["style"]["filters"]["tag"].hasOwnProperty("tags")) {
                     channel["style"]["filters"]["tag"]["tags"] = [];
                 }
-                // Check for filters.tag.isAndJoin property
-                if (!channel["style"]["filters"]["tag"].hasOwnProperty("isAndJoin")) {
-                    channel["style"]["filters"]["tag"]["isAndJoin"] = false;  // default to joining with OR
+                // Check for filters.tag.matchingStrategy property
+                if (!channel["style"]["filters"]["tag"].hasOwnProperty("matchingStrategy")) {
+                    channel["style"]["filters"]["tag"]["matchingStrategy"] = "any";  // default to joining with OR
                 }
 
                 // Load up the existing tag filter (if any)
                 var tagFilter = channel["style"]["filters"]["tag"];
 
-                // Set the initial value of the isAndJoin select menu
-                $("#" + channelElementId + "-photo-tags-isAndJoin").val("" + tagFilter["isAndJoin"]);
-                $("#" + channelElementId + "-photo-tags-isAndJoin").change(updatePhotoSeriesPlotChannelConfig);
+                // Set the initial value of the matchingStrategy select menu
+                $("#" + channelElementId + "-photo-tags-matching-strategy").val("" + tagFilter["matchingStrategy"]);
+                $("#" + channelElementId + "-photo-tags-matching-strategy").change(updatePhotoSeriesPlotChannelConfig);
+                $("#" + channelElementId + "-photo-tags-matching-strategy").change(function(){
+                    // show/hide the tags text box depending on the matching strategy (hidden when the "untagged" strategy is selected)
+                    var matchingStrategy = $("#" + channelElementId + "-photo-tags-matching-strategy").val();
+                    $("#" + channelElementId + "-photo-tags-filter").toggle(matchingStrategy != "untagged");
+                });
 
                 // seed the tag filter editor with the tags currently saved in the channel (if any)
                 if (tagFilter['tags'].length > 0) {
@@ -1475,8 +1678,16 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 $("#" + channelElementId + " ._timeline_photo_series_plot_config").show();
 
                 // Finally, trigger a call updatePhotoSeriesPlotChannelConfig() so that the grapher properly represents the config settings
-                $("#" + channelElementId + "-photo-tags-isAndJoin").change();
+                $("#" + channelElementId + "-photo-tags-matching-strategy").change();
+            } else if (plot instanceof TimespanSeriesPlot){
+                yAxis.setMaxRange(0,1);
+                $("#" + channelElementId + " #" + channelElementId + "_btnShowAllY").click(function(event){
+                    yAxis.setRange(0,1);
+                });
             }
+
+            // Force initial resize
+            resizePlot(grapher, id, 0);
 
             // Update scroll area
             TOOLS.resizeHandler();
@@ -1498,12 +1709,8 @@ define(["core/grapher/BTCore"], function(BTCore) {
         l = channelIds.length;
 
         // Update xAxis min/max
-        if (l > 0) {
-            plot = grapher.plotsMap[channelIds[0]];
-            xAxis = plot.getHorizontalAxis();
-            VIEWS.data["v2"]["x_axis"]["min"] = xAxis.getMin();
-            VIEWS.data["v2"]["x_axis"]["max"] = xAxis.getMax();
-        }
+        VIEWS.data["v2"]["x_axis"]["min"] = grapher.dateAxis.getMin();
+        VIEWS.data["v2"]["x_axis"]["max"] = grapher.dateAxis.getMax();
 
         // Update yAxis min/max, order, height
         for (i = 0; i < l; i++) {
@@ -1551,10 +1758,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             }
             $("#" + grapher.grapherId + "_timeline_save_view_btn").removeClass("disabled");
             $("#" + grapher.grapherId + "_timeline_add_channels_btn").unbind('click')
-                .click(function(){grapher.toggleAddChannelsPane()})
-                .removeClass("disabled");
-            $("#" + grapher.grapherId + "_timeline_show_details_btn").unbind('click')
-                .click(function(){grapher.toggleDetailsPane()})
+                .click(function(){grapher.toggleAddChannelsPane(); return false;})
                 .removeClass("disabled");
 
             grapher.dateAxis.setRange(view["v2"]["x_axis"]["min"],
@@ -1566,7 +1770,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             grapher.channelsMap = {};
             grapher.plotsMap = {};
             grapher.plotContainersMap = {};
-            plotContainers = [];
+            grapher.plotContainers = [];
 
             // Reset colorpicker color cycling
             jQuery.fn.colorPicker.resetGetNextColor();
@@ -1582,10 +1786,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             // TODO: only enable this when the view has changed
             $("#" + grapher.grapherId + "_timeline_save_view_btn").removeClass("disabled");
             $("#" + grapher.grapherId + "_timeline_add_channels_btn").unbind('click')
-                .click(function(){grapher.toggleAddChannelsPane()})
-                .removeClass("disabled");
-            $("#" + grapher.grapherId + "_timeline_show_details_btn").unbind('click')
-                .click(function(){grapher.toggleDetailsPane()})
+                .click(function(){grapher.toggleAddChannelsPane(); return false;})
                 .removeClass("disabled");
 
             // Show/hide add channels pane
@@ -1606,7 +1807,21 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 "min" : view["v2"]["x_axis"]["min"],
                 "max" : view["v2"]["x_axis"]["max"]
             });
-            grapher.dateAxis.addAxisChangeListener(function() {
+            grapher.cursorString = null;
+            grapher.prevCursorPos = null;
+            var currentMin = view["v2"]["x_axis"]["min"];
+            var currentMax = view["v2"]["x_axis"]["max"];
+            grapher.dateAxis.addAxisChangeListener(function(event) {
+                if ((currentMin != event.min || currentMax != event.max) && grapher.currentTooltip != null)//this is to avoid processing on events where the axis bounds didn't change
+                    grapher.currentTooltip.remove();
+                currentMin = event.min;
+                currentMax = event.max;
+                if (event.cursorPosition != grapher.prevCursorPos){
+                    grapher.prevCursorPos = event.cursorPosition;
+                    grapher.cursorString = event.cursorPositionString;
+                    grapher.clickPointString = null;
+                }
+                updateDataPointDisplay(grapher);
                 var center = (grapher.dateAxis.getMin() + grapher.dateAxis.getMax()) / 2.0;
                 var utcOffsetHrs = new Date(center * 1000).getTimezoneOffset() / -60;
                 // 60 mins/hour, and offset is backwards of the convention
@@ -1625,7 +1840,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
             // Create y-axes
             yAxes = view["v2"]["y_axes"];
             l = yAxes.length;
-            for (i = 0; i < l; i++) {
+            for (i = l - 1; i >= 0; i--) {
 
                 // Update min_time, max_time for each channel with latest from
                 // SOURCES if available
@@ -1636,22 +1851,21 @@ define(["core/grapher/BTCore"], function(BTCore) {
                     yAxes[i]["max_time"] = channel["max_time"];
                 }
 
-                grapher.addChannel(yAxes[i], null);
+                grapher.addChannel(yAxes[i], null, true);
             }
         }
         $(window).resize();//fixes issue of no date axis when window no channels are in view.
     }
 
     Grapher.prototype.getCurrentTimeUnit = function(){
-        var timeUnit = "DAY";
         var range = this.dateAxis.getMax() - this.dateAxis.getMin();
-        if (range > 364 * 24 * 3600)
-            timeUnit = "YEAR";
-        else if (range > 27 * 24 * 3600)
-            timeUnit = "MONTH";
-        else if (range > 6 * 24 * 3600)
-            timeUnit = "WEEK";
-        return timeUnit;
+        //if (range > 364 * 24 * 3600)   Temporarily disabled
+        //    return "year";
+        if (range > 27 * 24 * 3600)
+            return "month";
+        if (range > 6 * 24 * 3600)
+            return "week";
+        return "date";
     }
 
     // Helper function which converts the given channels object to an array
@@ -1773,278 +1987,33 @@ define(["core/grapher/BTCore"], function(BTCore) {
         return true;
     }
 
-    function createPhotoDialogCache(channel, channelFilterTags, isAndJoin) {
-        var cache = {
-            photos                             : [],
-            photosById                         : {}, // maps photo ID to an index in the photos array
-            isLoadingPreceding                 : false,
-            isLoadingFollowing                 : false,
-            NUM_PHOTOS_TO_FETCH                : 20,
-            DISTANCE_FROM_END_TO_TRIGGER_FETCH : 10,
-            __loadNeighboringPhotoMetadata     : function(currentPhotoId,
-                                                          currentPhotoTimestamp,
-                                                          tagsFilterArray,
-                                                          isAndJoin,
-                                                          shouldLoadPreviousNeighbor, // flag which determines whether the previous or following neighbor will be loaded
-                                                          callbacks) {
-                currentPhotoId = TOOLS.parseInt(currentPhotoId, -1);
-                if (currentPhotoId >= 0) {
-                    if (typeof callbacks === 'undefined') {
-                        callbacks = {};
-                    }
-                    var successCallback = callbacks['success'];
-                    var errorCallback = callbacks['error'];
-                    var completeCallback = callbacks['complete'];
-
-                    shouldLoadPreviousNeighbor = !!shouldLoadPreviousNeighbor;
-                    isAndJoin = !!isAndJoin;
-
-                    var url = "/api/bodytrack/photos/" + App.getUID() + "/" + channel['device_name'] + "." + channel['channel_name'] + "/" + currentPhotoTimestamp + "/" + cache.NUM_PHOTOS_TO_FETCH;
-                    var urlParams = {
-                        "isBefore" : shouldLoadPreviousNeighbor
-                    };
-
-                    if (isAndJoin) {
-                        urlParams["all_tags"] = tagsFilterArray.join(",");
-                    } else {
-                        urlParams["any_tags"] = tagsFilterArray.join(",");
-                    }
-
-                    TOOLS.loadJson(url, urlParams, {
-                        "success"  : function(photos) {
-                            if ($.isArray(photos)) {
-                                if (typeof successCallback === 'function') {
-                                    var photosMetadata = [];
-                                    $.each(photos, function(index, photo) {
-                                        photosMetadata[index] = {
-                                            "photoId"         : photo['id'],
-                                            "comment"         : photo['comment'],
-                                            "tags"            : photo['tags'],
-                                            "timestamp"       : photo['end_d'],
-                                            "timestampString" : photo['end'],
-                                            "url"             : photo['url']
-                                        };
-                                    });
-
-                                    // mark the last photo as the end if we got fewer photos than we wanted
-                                    if (photos.length < cache.NUM_PHOTOS_TO_FETCH) {
-                                        console.log("PhotoDialogCache.__loadNeighboringPhotoMetadata(): Requested ["+cache.NUM_PHOTOS_TO_FETCH+"] photos, but only got ["+photos.length+"].  Marking the last photo as the end to prevent spurious fetches.");
-                                        photosMetadata[photosMetadata.length-1]['isEndingPhoto'] = true;
-                                    }
-
-                                    successCallback(photosMetadata);
-                                }
-                            } else if (typeof errorCallback == 'function') {
-                                errorCallback("loadNeighboringPhotoMetadata(): Returned data is not an array");
-                            }
-                        },
-                        "error"    : errorCallback,
-                        "complete" : completeCallback
-                    });
-                }
-            }, __loadPreceding                 : function(photoId, timestamp, successCallback) {
-                if (cache.isLoadingPreceding) {
-                    console.log("PhotoDialogCache.__loadPreceding(): doing nothing since we're already loading");
-                } else {
-                    cache.isLoadingPreceding = true;
-                    cache.__loadNeighboringPhotoMetadata(photoId,
-                        timestamp,
-                        channelFilterTags,
-                        isAndJoin,
-                        true,
-                        {
-                            "success" : successCallback,
-                            "complete": function() {
-                                cache.isLoadingPreceding = false;
-                            }
-                        });
-                }
-            },
-            __loadFollowing                    : function(photoId, timestamp, successCallback) {
-                if (cache.isLoadingFollowing) {
-                    console.log("PhotoDialogCache.__loadFollowing(): doing nothing since we're already loading");
-                } else {
-                    cache.isLoadingFollowing = true;
-                    cache.__loadNeighboringPhotoMetadata(photoId,
-                        timestamp,
-                        channelFilterTags,
-                        isAndJoin,
-                        false,
-                        {
-                            "success" : successCallback,
-                            "complete": function() {
-                                cache.isLoadingFollowing = false;
-                            }
-                        });
-                }
-            },
-            initialize                         : function(photoId, timestamp, callback) {
-                //console.log("PhotoDialogCache.initialize()------------------------------------------");
-
-                // To build up the initial cache, fetch the photos BEFORE this photo, then the photos AFTER it.
-                cache.__loadPreceding(photoId,
-                    timestamp,
-                    function(precedingPhotosMetadata) {
-                        cache.__loadFollowing(photoId,
-                            timestamp,
-                            function(followingPhotosMetadata) {
-
-                                // Create the initial cache.  We do this by first slicing off the first element
-                                // of the array containing the following photos (since it's a dupe
-                                // of the last element in the reverse precedingPhotosMetadata
-                                // array) and then concatenating with the preceding photos.
-                                cache.photos = precedingPhotosMetadata.concat(followingPhotosMetadata.slice(1));
-
-                                // now create the map which maps photo ID to photo array element index
-                                $.each(cache.photos, function(index, photo) {
-                                    cache.photosById[photo['photoId']] = index;
-                                });
-
-                                // now that the cache is created, we can call the callback
-                                if (typeof callback === 'function') {
-                                    callback();
-                                }
-                            })
-                    });
-            },
-
-            __getPhotoMetadata : function(photoId, offset) {
-                if (photoId in cache.photosById) {
-                    var indexOfRequestedPhoto = cache.photosById[photoId] + offset;
-                    if (indexOfRequestedPhoto >= 0 && indexOfRequestedPhoto < cache.photos.length) {
-                        return cache.photos[indexOfRequestedPhoto];
-                    }
-                }
-                //console.log("PhotoDialogCache.__getPhotoMetadata(): Failed to get photo offset [" + offset + "] for ID [" + photoId + "]");
-                return null;
-            },
-
-            getPreviousPhotoMetadata : function(photoId) {
-                var photo = cache.__getPhotoMetadata(photoId, -1);
-
-                if (photo != null) {
-                    // Check how close we are to the beginning of the array.  If it's within __DISTANCE_FROM_END_TO_TRIGGER_FETCH,
-                    // then spawn an asyncrhonous job to fetch more photos
-                    var distance = cache.photosById[photoId];
-                    if (distance < cache.DISTANCE_FROM_END_TO_TRIGGER_FETCH) {
-                        var endingPhoto = cache.photos[0];
-                        if ('isEndingPhoto' in endingPhoto) {
-                            console.log("PhotoDialogCache.getPreviousPhotoMetadata(): No need to fetch more photos since we've already loaded up to the end [" + endingPhoto['photoId'] + "]");
-                        } else {
-                            console.log("PhotoDialogCache.getPreviousPhotoMetadata(): Fetching more photos preceding id ["+endingPhoto['photoId']+"]");
-                            cache.__loadPreceding(endingPhoto['photoId'],
-                                endingPhoto['timestamp'],
-                                function(photosMetadata) {
-                                    console.log("PhotoDialogCache.getPreviousPhotoMetadata(): Fetched ["+photosMetadata.length+"] more previous photos.");
-
-                                    // make sure that the cache didn't change while we were doing the fetch
-                                    if (endingPhoto['photoId'] == cache.photos[0]['photoId']) {
-                                        // create a new photos array for the cache
-                                        var newPhotos = photosMetadata.slice(1).reverse().concat(cache.photos);
-                                        var newPhotosById = {};
-
-                                        // now recreate the map which maps photo ID to photo array element index
-                                        $.each(newPhotos, function(index, photo) {
-                                            newPhotosById[photo['photoId']] = index;
-                                        });
-
-                                        //var s = "";
-                                        //$.each(newPhotos, function(index, photo) {
-                                        //  s += photo['photoId'] + ","
-                                        //});
-                                        //console.log("length=[" + newPhotos.length + "," + cache.photos.length + "]: " + s);
-
-                                        // update the cache's array and map
-                                        cache.photos = newPhotos;
-                                        cache.photosById = newPhotosById;
-                                    } else {
-                                        console.log("PhotoDialogCache.getPreviousPhotoMetadata(): cache has changed, won't update");
-                                    }
-                                });
-                        }
-                    }
-                }
-
-                return photo;
-            },
-
-            getNextPhotoMetadata : function(photoId) {
-                var photo = cache.__getPhotoMetadata(photoId, 1);
-
-                if (photo != null) {
-                    // Check how close we are to the beginning of the array.  If it's within __DISTANCE_FROM_END_TO_TRIGGER_FETCH,
-                    // then spawn an asyncrhonous job to fetch more photos
-                    var distance = cache.photos.length - 1 - cache.photosById[photoId];
-                    if (distance < cache.DISTANCE_FROM_END_TO_TRIGGER_FETCH) {
-                        var endingPhoto = cache.photos[cache.photos.length - 1];
-                        if ('isEndingPhoto' in endingPhoto) {
-                            console.log("PhotoDialogCache.getNextPhotoMetadata(): No need to fetch more photos since we've already loaded up to the end [" + endingPhoto['photoId'] + "]");
-                        } else {
-                            console.log("PhotoDialogCache.getNextPhotoMetadata(): Fetching more photos following id ["+endingPhoto['photoId']+"]");
-                            cache.__loadFollowing(endingPhoto['photoId'],
-                                endingPhoto['timestamp'],
-                                function(photosMetadata) {
-                                    console.log("PhotoDialogCache.getNextPhotoMetadata(): Fetched ["+photosMetadata.length+"] more following photos.");
-
-                                    // make sure that the cache didn't change while we were doing the fetch
-                                    if (endingPhoto['photoId'] == cache.photos[cache.photos.length - 1]['photoId']) {
-                                        // create a new photos array for the cache
-                                        var newPhotos = cache.photos.concat(photosMetadata.slice(1));
-                                        var newPhotosById = {};
-
-                                        // now recreate the map which maps photo ID to photo array element index
-                                        $.each(newPhotos, function(index, photo) {
-                                            newPhotosById[photo['photoId']] = index;
-                                        });
-
-                                        //var s = "";
-                                        //$.each(newPhotos, function(index, photo) {
-                                        //  s += photo['photoId'] + ","
-                                        //});
-                                        //console.log("length=[" + newPhotos.length + "," + cache.photos.length + "]: " + s);
-
-                                        // update the cache's array and map
-                                        cache.photos = newPhotos;
-                                        cache.photosById = newPhotosById;
-                                    } else {
-                                        console.log("PhotoDialogCache.getNextPhotoMetadata(): cache has changed, won't update");
-                                    }
-                                });
-                        }
-                    }
-                }
-
-                return photo;
-            },
-
-            getPhotoMetadata : function(photoId) {
-                return cache.__getPhotoMetadata(photoId, 0);
-            },
-
-            update : function(photoId, newData) {
-                if (photoId in cache.photosById) {
-                    var index = cache.photosById[photoId];
-                    cache.photos[index] = {
-                        "photoId"         : newData['id'],
-                        "comment"         : newData['comment'],
-                        "tags"            : newData['tags'],
-                        "timestamp"       : newData['end_d'],
-                        "timestampString" : newData['end']
-                    };
-                }
-            }
-        };
-        return cache;
-    }
-
     function dataPointListener(grapher, pointObj, sourceInfo) {
         if (pointObj) {
             App.loadMustacheTemplate("core/grapher/timelineTemplates.html","dataPointValueLabel",function (template){
-                $("#" + grapher.grapherId + "_timeline_dataPointValueLabel").html(template.render(pointObj));
+                if (sourceInfo.actionName == "highlight")
+                    grapher.pointString = template.render(pointObj);
+                else if (sourceInfo.actionName == "click")
+                    grapher.clickPointString = template.render(pointObj);
+                updateDataPointDisplay(grapher);
             });
         } else {
-            $("#" + grapher.grapherId + "_timeline_dataPointValueLabel").html("");
+            grapher.pointString = null;
+            updateDataPointDisplay(grapher);
         }
+    }
+
+    function updateDataPointDisplay(grapher){
+        var stringToUse = "";
+        if (grapher.pointString != null){
+            stringToUse = grapher.pointString;
+        }
+        else if (grapher.clickPointString != null){
+            stringToUse = grapher.clickPointString
+        }
+        else if (grapher.cursorString != null){
+            stringToUse = grapher.cursorString;
+        }
+        $("#" + grapher.grapherId + "_timeline_dataPointValueLabel").html(stringToUse);
     }
 
     function loadLogrecMetadata(logrecId, callbacks) {
@@ -2057,25 +2026,41 @@ define(["core/grapher/BTCore"], function(BTCore) {
         }
     }
 
+    function timespanDataPointListener(grapher,plot){
+        var mainContentContainer = $("#" + grapher.grapherId + "_timeline_mainContentArea");
+
+        return function (pointObj, sourceInfo){
+            var timespanObject = sourceInfo.info.timespanInfo;
+            $.ajax("/api/connectors/" + timespanObject.objectType + "/data?start=" + timespanObject.start * 1000 + "&end=" + timespanObject.end * 1000 + "&value=" + encodeURIComponent(timespanObject.value),{
+                success: function(facets){
+                    $.ajax("/api/metadata/cities?start=" + timespanObject.start * 1000 + "&end=" + timespanObject.end * 1000,{
+                        success: function(cities){
+                            var plotContainer = $("#" + plot.plotContainer.getPlaceholder());
+                            var position = sourceInfo.info.position;
+                            var mainContentPosition = mainContentContainer.offset();
+                            var plotOffset = plotContainer.offset();
+                            var positionRelativeToMainContentArea = {
+                                x: plotOffset.left - mainContentPosition.left + position.x,
+                                y: plotOffset.top - mainContentPosition.top + position.y
+
+                            }
+
+                            grapher.currentTooltip = Tooltip.createTooltip(mainContentContainer,positionRelativeToMainContentArea,ListUtils.buildList(facets,cities),sourceInfo.info.color);
+                            grapher.currentTooltip.onRemove = function(){
+                                if (grapher.currentTooltip == this)
+                                    grapher.currentTooltip = null;
+                            }
+                        }
+                    });
+                }
+            });
+        };
+    }
+
     function photoDataPointListener(grapher, channel, channelElementId) {
         return function(pointObj, sourceInfo) {
             if (pointObj && sourceInfo && sourceInfo['info']) {
-
-                // returns the array of tags currently selected for this photo
-                var getUserSelectedTags = function() {
-                    var tags = [];
-                    $.each($("#_timeline_photo_dialog_tags_editor .tagedit-listelement-old input"),
-                        function(index, inputElement) {
-                            var val = inputElement['value'];
-                            if (typeof val === 'string' && val != '') {
-                                tags[tags.length] = val;
-                            }
-                        });
-                    return tags;
-                };
-
-                // returns the array of tags selected for this channel's filter
-                var getTagFilterForChannel = function() {
+                function getTagFilterForChannel() {
                     var tags = [];
                     $.each($("#" + channelElementId + "-photo-tags-filter .tagedit-listelement-old input"),
                         function(index, inputElement) {
@@ -2086,441 +2071,24 @@ define(["core/grapher/BTCore"], function(BTCore) {
                         });
                     return tags;
                 };
-                // get the channel's current settings for tag filtering
-                var isAndJoin = $("#" + channelElementId + "-photo-tags-isAndJoin").val() === 'true';
-                var channelFilterTags = getTagFilterForChannel();
 
-                // create the photo cache
-                var photoCache = createPhotoDialogCache(channel, channelFilterTags, isAndJoin);
 
-                var createPhotoDialog = function(photoId, timestamp, completionCallback) {
+                var parts = sourceInfo.info.imageId.split(".");
 
-                    var mediumResImageUrl = photoCache.getPhotoMetadata(photoId)['url'];    // TODO: use medium-res version
-                    var highResImageUrl = photoCache.getPhotoMetadata(photoId)['url'];
-                    var photoDialogTemplate = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_template");
-                    var photoDialogHtml = photoDialogTemplate.render({"photoUrl" : mediumResImageUrl});
-                    $("#" + grapher.grapherId + "_timeline_photo_dialog").html(photoDialogHtml);
-
-                    var updateGoToNeighborOnSaveWidgets = function() {
-                        var isEnabled = $("#_timeline_photo_dialog_save_should_goto_neighbor").is(':checked');
-                        var direction = TOOLS.parseInt($("#_timeline_photo_dialog_save_should_goto_neighbor_choice").val(),0);
-                        PREFS.set("photo_dialog.goto_neighbor_on_save.enabled", isEnabled);
-                        PREFS.set("photo_dialog.goto_neighbor_on_save.direction", direction);
-
-                        if (isEnabled) {
-                            $("#_timeline_photo_dialog_save_should_goto_neighbor_choice").removeAttr("disabled");
-                            $("#_timeline_photo_dialog_save_preferences label").css("color", "#000000");
-                            if (direction < 0) {
-                                $("#_timeline_photo_dialog_save_button").html("Save &amp; Previous");
-                            } else {
-                                $("#_timeline_photo_dialog_save_button").html("Save &amp; Next");
-                            }
-                        } else {
-                            $("#_timeline_photo_dialog_save_should_goto_neighbor_choice").attr("disabled", "disabled");
-                            $("#_timeline_photo_dialog_save_preferences label").css("color", "#aaaaaa");
-                            $("#_timeline_photo_dialog_save_button").text("Save");
+                PhotoUtils.showPhotoDialog(parts[0],parts[1],parts[2],pointObj.date * 1000,{
+                    channelFilters: getTagFilterForChannel(),
+                    filteringStrategy: $("#" + channelElementId + "-photo-tags-matching-strategy").val(),
+                    photoChange: function(metadata,timestamp){
+                        grapher.setTimeCursorPosition(timestamp);
+                        var curRange = grapher.getRange();
+                        if (timestamp < curRange.min || timestamp > curRange.max){
+                            var factor = (curRange.max - curRange.min) / 2;
+                            grapher.setRange(timestamp - factor,timestamp + factor);
                         }
-                    };
-
-                    // set the widgets for the Save button behavior based on saved prefs
-                    var goToNeighborOnSaveEnabled = !!PREFS.get("photo_dialog.goto_neighbor_on_save.enabled", false);
-                    var goToNeighborOnSaveDirection = TOOLS.parseInt(PREFS.get("photo_dialog.goto_neighbor_on_save.direction", 0), 0);
-                    $("#_timeline_photo_dialog_save_should_goto_neighbor").prop("checked", goToNeighborOnSaveEnabled);
-                    $("#_timeline_photo_dialog_save_should_goto_neighbor").change(updateGoToNeighborOnSaveWidgets);
-                    $("#_timeline_photo_dialog_save_should_goto_neighbor_choice").val(goToNeighborOnSaveDirection == 0 ? 1 : goToNeighborOnSaveDirection);
-                    $("#_timeline_photo_dialog_save_should_goto_neighbor_choice").change(updateGoToNeighborOnSaveWidgets);
-
-                    // display Loading status message
-                    $("#_timeline_photo_dialog_form_status").text("Loading...").show();
-
-                    // set previous and next buttons initially hidden
-                    $("#_timeline_photo_dialog_previous_button").hide();
-                    $("#_timeline_photo_dialog_next_button").hide();
-
-                    // Fetch the metadata for the preceding, following, and current photos from the cache.
-                    var previousPhotoMetadata = photoCache.getPreviousPhotoMetadata(photoId);
-                    var nextPhotoMetadata = photoCache.getNextPhotoMetadata(photoId);
-                    var data = photoCache.getPhotoMetadata(photoId);
-
-                    var isPreviousPhoto = previousPhotoMetadata != null &&
-                                          typeof previousPhotoMetadata !== 'undefined' &&
-                                          typeof previousPhotoMetadata['photoId'] !== 'undefined';
-                    if (isPreviousPhoto) {
-                        $("#_timeline_photo_dialog_previous_button").show().click(function() {
-                            createPhotoDialog(previousPhotoMetadata['photoId'],
-                                previousPhotoMetadata['timestamp']);
-                        });
                     }
 
-                    var isNextPhoto = nextPhotoMetadata != null &&
-                                      typeof nextPhotoMetadata !== 'undefined' &&
-                                      typeof nextPhotoMetadata['photoId'] !== 'undefined';
-                    if (isNextPhoto) {
-                        $("#_timeline_photo_dialog_next_button").show().click(function() {
-                            createPhotoDialog(nextPhotoMetadata['photoId'],
-                                nextPhotoMetadata['timestamp']);
-                        });
-                    }
-
-                    if (typeof data === 'string') {
-                        data = JSON.parse(data);
-                    }
-
-                    // treat undefined or null comment as an empty comment
-                    if (typeof data['comment'] === 'undefined' || data['comment'] == null) {
-                        data['comment'] = '';
-                    }
-
-                    // treat undefined or null tags as an empty array
-                    if (typeof data['tags'] === 'undefined' || data['tags'] == null) {
-                        data['tags'] = [];
-                    }
-
-                    // add click handler for photo to allow viewing of high-res version
-                    $("#_timeline_photo_dialog_image").click(function() {
-                        var theImage = $(this);
-                        var imageAspectRatio = $(this).width() / $(this).height();
-                        var formContainer = $("#_timeline_photo_dialog_form_container");
-                        if ($("#_timeline_photo_dialog_form_container").is(":visible")) {
-                            // fade out the form and show the hi-res version of the image
-                            formContainer.fadeOut(100, function() {
-                                var imageHeight = $("body").height() - 60;
-                                var imageWidth = imageAspectRatio * imageHeight;
-
-                                // make sure the image isn't too wide now
-                                if (imageWidth > $("body").width()) {
-                                    imageWidth = $("body").width() - 100;
-                                    imageHeight = imageWidth / imageAspectRatio;
-                                }
-
-                                theImage.attr("src",highResImageUrl).height(imageHeight).width(imageWidth);
-                                $("._timeline_photo_dialog_photo_table").height(imageHeight).width(imageWidth);
-                                centerPhotoDialog(grapher);
-                            });
-                        } else {
-                            // fade the form back in and show the medium-res version of the image
-                            formContainer.fadeIn(100, function() {
-                                var imageHeight = 300;
-                                var imageWidth = 300;
-
-                                if (imageAspectRatio > 1) {
-                                    imageHeight = Math.round(imageWidth / imageAspectRatio);
-                                } else {
-                                    imageWidth = imageAspectRatio * imageHeight;
-                                }
-
-                                theImage.height(imageHeight).width(imageWidth);
-                                $("._timeline_photo_dialog_photo_table").height(300).width(300);
-                                centerPhotoDialog(grapher);
-                                theImage.attr("src", mediumResImageUrl);
-                            });
-                        }
-                    });
-
-                    var createCommentAndTagForm = function(comment, tags) {
-
-                        var isDirty = function() {
-                            // first check the comment, since it's easy and cheap
-                            if ($("#_timeline_photo_dialog_comment").val() != comment) {
-                                return true;
-                            }
-
-                            // if the comment isn't dirty, then check the tags
-                            var newTags = getUserSelectedTags();
-
-                            // start by checking the length
-                            if (newTags.length != tags.length) {
-                                return true;
-                            }
-
-                            // now compare individual tags
-                            for (var i = 0; i < newTags.length; i++) {
-                                if (newTags[i] != tags[i]) {
-                                    return true;
-                                }
-                            }
-
-                            return false;
-                        };
-
-                        var setEnabledStateOfRevertAndSaveButtons = function() {
-                            if (isDirty()) {
-                                //$("#_timeline_photo_dialog_save_button").removeAttr("disabled");
-                                $("#_timeline_photo_dialog_revert_button").removeAttr("disabled");
-                            } else {
-                                //$("#_timeline_photo_dialog_save_button").attr("disabled", "disabled");
-                                $("#_timeline_photo_dialog_revert_button").attr("disabled", "disabled");
-                            }
-                        };
-
-                        // build the form for the metadata editor
-                        var photoMetadataForm = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_form_template").render({});
-                        $("#_timeline_photo_dialog_form").html(photoMetadataForm);
-
-                        // fill in the timestamp
-                        if (typeof data['timestampString'] === 'undefined') {
-                            $("#_timeline_photo_dialog_timestamp").html("&nbsp;");
-                        } else {
-                            $("#_timeline_photo_dialog_timestamp").text(new Date(data['timestampString']).toString());
-                        }
-
-                        // fill in the comment, if any
-                        if (typeof comment === 'undefined' || comment == null) {
-                            $("#_timeline_photo_dialog_comment").val('');
-                        } else {
-                            $("#_timeline_photo_dialog_comment").val(comment);
-                        }
-
-                        // Set up focus and blur event handlers for the comment field, to toggle
-                        // close on ESC for the photo dialog.  We don't want the ESC key to close
-                        // the dialog when the user is editing the comment.
-                        $("#_timeline_photo_dialog_comment").focus(function() {
-                            $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog']("option", "closeOnEscape", false);
-                        });
-                        $("#_timeline_photo_dialog_comment").blur(function() {
-                            $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog']("option", "closeOnEscape", true);
-                        });
-                        $("#_timeline_photo_dialog_comment").keyup(setEnabledStateOfRevertAndSaveButtons);
-
-                        // add the tags, if any
-                        if ($.isArray(tags) && tags.length > 0) {
-                            $.each(tags,
-                                function(index, value) {
-                                    var tagHtml =App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_tags_editor_tag_template").render({"value" : value});
-                                    $("#_timeline_photo_dialog_tags_editor").append(tagHtml);
-                                });
-                        } else {
-                            var tagHtml = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_tags_editor_tag_template").render({"value" : ""});
-                            $("#_timeline_photo_dialog_tags_editor").append(tagHtml);
-                        }
-
-                        // construct the tag editor
-                        var tagEditorOptions = {
-                            autocompleteOptions : {
-                                "minLength" : 0, // TODO: make this 1 or 2 if the list of tags is huge
-                                "delay"     : 0,
-                                "autoFocus" : false,
-                                source      : function(request, response) {
-                                    var tagsToExclude = getUserSelectedTags();
-                                    var cachedTagsData = TAG_MANAGER.getCachedTagsForTagEditor(tagsToExclude);
-                                    return response($.ui.autocomplete.filter(cachedTagsData, request.term));
-                                }
-                            },
-                            // return, comma, space, period, semicolon
-                            breakKeyCodes       : [ 13, 44, 32, 59 ],
-                            additionalListClass : '_timeline_photo_tags_input',
-                            animSpeed           : 100,
-                            allowAdd            : true,
-                            allowEdit           : true,
-                            allowDelete         : false,
-                            texts               : {
-                                removeLinkTitle    : 'Remove this tag from the list',
-                                saveEditLinkTitle  : 'Save changes',
-                                breakEditLinkTitle : 'Undo changes'
-                            }
-                        };
-                        $('#_timeline_photo_dialog_tags_editor input.tag').tagedit(tagEditorOptions);
-                        $('#_timeline_photo_dialog_tags_editor').bind('tagsChanged', setEnabledStateOfRevertAndSaveButtons);
-                        $('#_timeline_photo_dialog_tags_editor').bind('receivedFocus', function() {
-                            $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog']("option", "closeOnEscape", false);
-                        });
-                        $('#_timeline_photo_dialog_tags_editor').bind('tabToNextElement', function(event) {
-                            $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog']("option", "closeOnEscape", true);
-
-                            $("#_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_forward").focus();
-                            return false;
-                        });
-                        $('#_timeline_photo_dialog_tags_editor').bind('tabToPreviousElement', function(event) {
-                            $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog']("option", "closeOnEscape", true);
-
-                            $("#_timeline_photo_dialog_comment").select().focus();
-                            return false;
-                        });
-
-                        // set form buttons to initially disabled
-                        //$("#_timeline_photo_dialog_save_button").attr("disabled", "disabled");
-                        $("#_timeline_photo_dialog_revert_button").attr("disabled", "disabled");
-
-                        // configure the Revert button
-                        $("#_timeline_photo_dialog_revert_button").click(function() {
-                            $("#_timeline_photo_dialog_form").hide();
-                            $("#_timeline_photo_dialog_form_status").text("Loading...").show();
-
-                            // recreate the comment and tag form
-                            createCommentAndTagForm(comment, tags);
-                            $("#_timeline_photo_dialog_form_status").hide();
-                            $("#_timeline_photo_dialog_form").show();
-
-                            // focus on the comment
-                            $("#_timeline_photo_dialog_comment").select().focus();
-                        });
-
-                        // configure the Save button
-                        $("#_timeline_photo_dialog_save_button").click(function() {
-
-                            // set form buttons to disabled while saving
-                            //$("#_timeline_photo_dialog_save_button").attr("disabled", "disabled");
-                            $("#_timeline_photo_dialog_revert_button").attr("disabled", "disabled");
-
-                            $("#_timeline_photo_dialog_form").hide();
-                            $("#_timeline_photo_dialog_form_status").text("Saving...").show();
-
-                            $.ajax({
-                                cache    : false,
-                                type     : "POST",
-                                url      : "/bodytrack/users/" + App.getUID() + "/logrecs/" + photoId + "/set",
-                                data     : {
-                                    "tags"    : getUserSelectedTags().join(','),
-                                    "comment" : $("#_timeline_photo_dialog_comment").val()
-                                },
-                                dataType : "json",
-                                success  : function(savedData, textStatus, jqXHR) {
-                                    if (typeof savedData === 'object') {
-                                        console.log("Successfully saved comment and tags for photo [" + photoId + "]");
-                                        console.log(savedData);
-                                        photoCache.update(photoId, savedData);
-                                        TAG_MANAGER.refreshTagCache(function() {
-
-                                            $("#_timeline_photo_dialog_form_status")
-                                                .text("Saved.")
-                                                .delay(250)
-                                                .fadeOut(500, function() {
-                                                    // read the desired direction from the prefs
-                                                    goToNeighborOnSaveEnabled = !!PREFS.get("photo_dialog.goto_neighbor_on_save.enabled", false);
-                                                    goToNeighborOnSaveDirection = TOOLS.parseInt(PREFS.get("photo_dialog.goto_neighbor_on_save.direction", 0), 0);
-
-                                                    // now determine what action to take upon save
-                                                    if (goToNeighborOnSaveEnabled && isPreviousPhoto && goToNeighborOnSaveDirection < 0) {
-                                                        $("#_timeline_photo_dialog_previous_button").click();
-                                                    } else if (goToNeighborOnSaveEnabled && isNextPhoto && goToNeighborOnSaveDirection > 0) {
-                                                        $("#_timeline_photo_dialog_next_button").click();
-                                                    } else {
-                                                        // recreate the comment and tag form
-                                                        createCommentAndTagForm(savedData['comment'], savedData['tags']);
-
-                                                        $("#_timeline_photo_dialog_form").show();
-
-                                                        // focus on the comment
-                                                        $("#_timeline_photo_dialog_comment").select().focus();
-                                                    }
-                                                });
-                                        });
-                                    } else {
-                                        console.log("Unexpected response when saving comment and tags for photo [" + photoId + "]:  savedData=[" + savedData + "] textStatus=[" + textStatus + "]");
-                                        $("#_timeline_photo_dialog_form_status").text("Saved failed.").show();
-                                    }
-                                },
-                                error    : function(jqXHR, textStatus, errorThrown) {
-                                    console.log("Failed to save comment and tags for photo [" + photoId + "]:  textStatus=[" + textStatus + "] errorThrown=[" + errorThrown + "]");
-                                    $("#_timeline_photo_dialog_form_status").text("Saved failed.").show();
-                                }
-                            });
-                        });
-
-                        updateGoToNeighborOnSaveWidgets();
-
-                        // set up tabbing and focus handling
-                        $("#_timeline_photo_dialog_form #tagedit-input").attr("tabindex", 102);
-                        $("#_timeline_photo_dialog_tabhelper_pre_proxy_backward").focus(function() {
-                            if ($("#_timeline_photo_dialog_save_should_goto_neighbor_choice").is(":enabled")) {
-                                $("#_timeline_photo_dialog_save_should_goto_neighbor_choice").focus();
-                            } else {
-                                $("#_timeline_photo_dialog_save_should_goto_neighbor").focus();
-                            }
-                            return false;
-                        });
-                        $("#_timeline_photo_dialog_previous_button").focus(function() {
-                            $(this).css("background-position", "0 -38px");
-                        }).blur(function() {
-                                $(this).css("background-position", "0 0");
-                            });
-                        $("#_timeline_photo_dialog_next_button").focus(function() {
-                            $(this).css("background-position", "0 -38px");
-                        }).blur(function() {
-                                $(this).css("background-position", "0 0");
-                            });
-                        $("#_timeline_photo_dialog_comment_tabhelper_pre_proxy_forward").focus(function() {
-                            $("#_timeline_photo_dialog_comment").focus().select();
-                            return false;
-                        });
-                        $("#_timeline_photo_dialog_comment_tabhelper_pre_proxy_backward").focus(function() {
-                            if (isNextPhoto) {
-                                $("#_timeline_photo_dialog_next_button").focus();
-                            } else if (isPreviousPhoto) {
-                                $("#_timeline_photo_dialog_previous_button").focus();
-                            } else {
-                                $("#_timeline_photo_dialog_tabhelper_pre_proxy_backward").focus();
-                            }
-                            return false;
-                        });
-                        $("#_timeline_photo_dialog_comment").focus(function() {
-                            return false;
-                        });
-                        $("#_timeline_photo_dialog_tags_editor_tabhelper_pre_proxy_forward").focus(function() {
-                            $("#_timeline_photo_dialog_tags_editor ul").click();
-                        });
-                        $("#_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_forward").focus(function() {
-                            if ($("#_timeline_photo_dialog_save_button").is(":disabled")) {
-                                $("#_timeline_photo_dialog_save_should_goto_neighbor").focus();
-                            } else {
-                                $("#_timeline_photo_dialog_save_button").focus();
-                            }
-                            return false;
-                        });
-                        $("#_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_backward").focus(function() {
-                            $("#_timeline_photo_dialog_tags_editor ul").click();
-                        });
-                        $("#_timeline_photo_dialog_revert_button").focus(function() {
-                            $(this).css("color", "#18B054");
-                        }).blur(function() {
-                                $(this).css("color", "#000000");
-                            });
-                        $("#_timeline_photo_dialog_save_button").focus(function(event) {
-                            $(this).css("color", "#18B054");
-                        }).blur(function(event) {
-                                $(this).css("color", "#000000");
-                            });
-                        $("#_timeline_photo_dialog_post_proxy_forward").focus(function() {
-                            if (isPreviousPhoto) {
-                                $("#_timeline_photo_dialog_previous_button").focus();
-                            } else if (isNextPhoto) {
-                                $("#_timeline_photo_dialog_next_button").focus();
-                            } else {
-                                $("#_timeline_photo_dialog_comment").focus().select();
-                            }
-                            return false;
-                        });
-
-                        // set focus on the comment input, and select all the text
-                        $("#_timeline_photo_dialog_comment").select().focus();
-
-                    };
-
-                    // create the comment and tag form, hide the status area, and show the form
-                    createCommentAndTagForm(data['comment'], data['tags']);
-                    $("#_timeline_photo_dialog_form_status").hide();
-                    $("#_timeline_photo_dialog_form").show();
-
-                    // Finally, call the completion callback, if any
-                    if (typeof completionCallback === 'function') {
-                        completionCallback();
-                    }
-                };
-
-                // initialize the photo cache--when it's done preloading then open the photo dialog
-                photoCache.initialize(sourceInfo['info']['imageId'],
-                    pointObj['date'],
-                    function() {
-                        createPhotoDialog(sourceInfo['info']['imageId'],
-                            pointObj['date'],
-                            function() {
-                                centerPhotoDialog(grapher);
-                            });
-                    });
-
-                // Open the dialog
-                $("#" + grapher.grapherId + "_timeline_photo_dialog").html(App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_loading_template").render({}));
-                $("#" + grapher.grapherId + "_timeline_photo_dialog")['dialog']('open');
+                });
+                return;
             }
         };
     }
@@ -2583,65 +2151,67 @@ define(["core/grapher/BTCore"], function(BTCore) {
         }
     }
 
-    function dragAreaOnMouseDown(grapher, plotId) {
+    function resizePlot(grapher, plotId, dy) {
         var channelElementId = grapher.grapherId + "_timeline_channel_" + plotId;
         var plotElementId = grapher.grapherId + "_timeline_plot_" + plotId;
         var yAxisElementId = grapher.grapherId + "_timeline_yAxis_" + plotId;
 
+        var container = grapher.plotContainersMap[channelElementId];
+        var cPlaceholder = $("#" + container.getPlaceholder());
+        var containerW = cPlaceholder.width();
+        var containerH = cPlaceholder.height();
+
+        var plot = grapher.plotsMap[channelElementId];
+        var yAxis = plot.getVerticalAxis();
+        var yAixsW = $("#" + yAxis.getPlaceholder()).width();
+
+        var dragAreaH = $("._timeline_dragArea").height() - CHANNEL_PADDING;
+
+        if ((dy > 0) || (Math.abs(dy) < containerH)) {
+            // There is a min height of 67, which is taken from the
+            // min height of the channel label
+            if (containerH + dy + dragAreaH < 67) {
+                dy = 67 - containerH - dragAreaH;
+            }
+
+            // Set the size of the plot container itself
+            $("#" + plotElementId).height(containerH + dy);
+            container.setSize(containerW, containerH + dy,
+                SequenceNumber.getNext());
+
+            // Set the size of the Y-axis
+            $("#" + yAxisElementId).height(containerH + dy);
+            yAxis.setSize(yAixsW, containerH + dy,
+                SequenceNumber.getNext());
+
+            // Set the size of the channel label
+            $("#_timeline_channelTab_" + plotId).height(
+                containerH + dy + CHANNEL_PADDING);
+
+            // Update the view data to match the new channel height
+            if ((!!VIEWS.data) && (!!VIEWS.data["v2"])
+                    && (!!VIEWS.data["v2"]["y_axes"])
+                && (VIEWS.data["v2"]["y_axes"].length > plotId)) {
+                VIEWS.data["v2"]["y_axes"][plotId]["channel_height"] =
+                containerH + dy;
+            }
+        }
+
+        return false;
+    };
+
+    function dragAreaOnMouseDown(grapher, plotId) {
         var mostRecentY = null;
         var resizeTimer = null;
         var dylist = [];
 
-        var resizePlot = function(dy) {
-            var container = grapher.plotContainersMap[channelElementId];
-            var cPlaceholder = $("#" + container.getPlaceholder());
-            var containerW = cPlaceholder.width();
-            var containerH = cPlaceholder.height();
-
-            var plot = grapher.plotsMap[channelElementId];
-            var yAxis = plot.getVerticalAxis();
-            var yAixsW = $("#" + yAxis.getPlaceholder()).width();
-
-            var dragAreaH = $("._timeline_dragArea").height() - CHANNEL_PADDING;
-
-            if ((dy > 0) || (Math.abs(dy) < containerH)) {
-                // There is a min height of 67, which is taken from the
-                // min height of the channel label
-                if (containerH + dy + dragAreaH < 67) {
-                    dy = 67 - containerH - dragAreaH;
-                }
-
-                // Set the size of the plot container itself
-                $("#" + plotElementId).height(containerH + dy);
-                container.setSize(containerW, containerH + dy,
-                    SequenceNumber.getNext());
-
-                // Set the size of the Y-axis
-                $("#" + yAxisElementId).height(containerH + dy);
-                yAxis.setSize(yAixsW, containerH + dy,
-                    SequenceNumber.getNext());
-
-                // Set the size of the channel label
-                $("#_timeline_channelTab_" + plotId).height(
-                    containerH + dy + CHANNEL_PADDING);
-
-                // Update the view data to match the new channel height
-                if ((!!VIEWS.data) && (!!VIEWS.data["v2"])
-                        && (!!VIEWS.data["v2"]["y_axes"])
-                    && (VIEWS.data["v2"]["y_axes"].length > plotId)) {
-                    VIEWS.data["v2"]["y_axes"][plotId]["channel_height"] =
-                    containerH + dy;
-                }
-            }
-
-            mostRecentY = mostRecentY + dy;
-            return false;
-        };
         var mouseup = null;
         var mousemove = null;
         var updatePlotSize = function() {
             if (dylist.length > 0) {
-                resizePlot(dylist[dylist.length - 1]);
+                var dy = dylist[dylist.length - 1];
+                resizePlot(grapher, plotId, dy);
+                mostRecentY = mostRecentY + dy;
                 dylist = [];
             }
         };
@@ -2666,7 +2236,7 @@ define(["core/grapher/BTCore"], function(BTCore) {
                 return stopListening();
             }
             stopListening();
-            resizePlot(event.pageY - mostRecentY);
+            resizePlot(grapher, plotId, event.pageY - mostRecentY);
             return false; // Stops the event from propagating
         };
 
@@ -2755,12 +2325,29 @@ define(["core/grapher/BTCore"], function(BTCore) {
     }
 
     Grapher.prototype.setRange = function(start, end) {
-        if (this.dateAxis) {
-            this.dateAxis.setRange(start, end);
-        } else {
-            console.log("we don't have a dateAxis yet");
-        }
+        var grapher = this;
+        _performAfterLoad(grapher, function() {
+            grapher.dateAxis.setRange(start, end);
+            repaintAllPlots(grapher);
+        });
+    }
+
+    Grapher.prototype.getRange = function(){
+        return {min:this.dateAxis.getMin(), max:this.dateAxis.getMax()};
+    }
+
+    Grapher.prototype.getCenter = function(){
+        var range = this.getRange();
+        return (range.min + range.max) / 2;
+    }
+
+    Grapher.prototype.setTimeCursorPosition = function(position){
+        this.dateAxis.setCursorPosition(position);
         repaintAllPlots(this);
+    }
+
+    Grapher.prototype.getTimeCursorPosition = function(){
+        return this.dateAxis.getCursorPosition();
     }
 
     function repaintAllPlots(grapher) {
@@ -2781,6 +2368,24 @@ define(["core/grapher/BTCore"], function(BTCore) {
         APP.init(function() {
             init(grapher, function() {
                 grapher.newView();
+
+                var finishLoading = function(){
+                    if (SOURCES.initialized){
+                        if (grapher.onLoad != null) {
+                            var onload = grapher.onLoad;
+                            grapher.onLoad = null;
+                            onload();
+                        }
+                        /*$.ajax("/api/timezones/mapping", {success: function(mapping) {    //Disabled for now
+                            grapher.dateAxis.setTimeZoneMapping(mapping);
+                        }});    */
+                    }
+                    else{
+                        $.doTimeout(100,finishLoading);
+                    }
+                }
+
+                finishLoading();
             });
         });
     }

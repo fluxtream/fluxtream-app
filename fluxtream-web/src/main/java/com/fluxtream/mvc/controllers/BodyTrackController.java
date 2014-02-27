@@ -2,22 +2,21 @@ package com.fluxtream.mvc.controllers;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.DELETE;
 import com.fluxtream.Configuration;
+import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.utils.HttpUtils;
-import net.sf.json.JSONObject;
-import org.apache.commons.httpclient.HttpException;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -45,11 +44,13 @@ public class BodyTrackController {
     @RequestMapping(value = "/bodytrack/users/{UID}/log_items/get")
     public void bodyTrackLogItemsGet(HttpServletResponse response,
                                      HttpServletRequest request,
-                                     @PathVariable("UID") Long uid) throws IOException {
+                                     @PathVariable("UID") Long uid) throws IOException, UnexpectedHttpResponseCodeException {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
+        // TODO: this is really going to be problematic...
+        ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("bodytrack"));
+        String user_id = guestService.getApiKeyAttribute(apiKey, "user_id");
         String bodyTrackUrl = "http://localhost:3000/users/" + user_id + "/log_items/get";
         String pstr = request.getQueryString();
         if (pstr != null) {
@@ -62,12 +63,13 @@ public class BodyTrackController {
 	public void bodyTrackPhotoTileFetch(HttpServletResponse response,
 			HttpServletRequest request, @PathVariable("UID") Long uid,
 			@PathVariable("Level") String level,
-			@PathVariable("Offset") String offset) throws HttpException,
-			IOException {
+			@PathVariable("Offset") String offset) throws IOException, UnexpectedHttpResponseCodeException {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
+        //TODO: WARNING!
+        ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("bodytrack"));
+        String user_id = guestService.getApiKeyAttribute(apiKey, "user_id");
 		String bodyTrackUrl = "http://localhost:3000/photos/" + user_id + "/"
 				+ level + "." + offset + ".json";
 		String pstr = request.getQueryString();
@@ -84,17 +86,19 @@ public class BodyTrackController {
     public void bodyTrackLogPhotosFetch(HttpServletResponse response,
                                         HttpServletRequest request,
                                         @PathVariable("UID") Long uid,
-                                        @PathVariable("PhotoSpec") String photoSpec) throws IOException {
+                                        @PathVariable("PhotoSpec") String photoSpec) throws IOException, UnexpectedHttpResponseCodeException {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
+        //TODO: WARNING!
+        ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("bodytrack"));
+        String user_id = guestService.getApiKeyAttribute(apiKey, "user_id");
         String bodyTrackUrl = "http://localhost:3000/users/" + user_id + "/logphotos/" + photoSpec + ".jpg";
         String pstr = request.getQueryString();
         if (pstr != null) {
             bodyTrackUrl += "?" + pstr;
         }
-        final byte[] contents = HttpUtils.fetchBinary(bodyTrackUrl, env);
+        final byte[] contents = HttpUtils.fetchBinary(bodyTrackUrl);
         response.setContentLength(contents == null ? 0 : contents.length);
         if (contents != null) {
             final ByteArrayInputStream in = new ByteArrayInputStream(contents);
@@ -107,11 +111,12 @@ public class BodyTrackController {
 
 	@RequestMapping(value = "/bodytrack/users/{UID}/sources")
 	public void bodyTrackSources(HttpServletResponse response,
-			@PathVariable("UID") Long uid) throws IOException {
+			@PathVariable("UID") Long uid) throws IOException, UnexpectedHttpResponseCodeException {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
+        ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("bodytrack"));
+        String user_id = guestService.getApiKeyAttribute(apiKey, "user_id");
 		String tunnelUrl = "http://localhost:3000/users/" + user_id + "/sources";
 		writeTunnelResponse(tunnelUrl, response);
 	}
@@ -119,11 +124,12 @@ public class BodyTrackController {
     @RequestMapping(value = "/bodytrack/users/{UID}/logrecs/{LOGREC_ID}/get")
     public void bodyTrackGetMetadata(HttpServletResponse response,
     			HttpServletRequest request, @PathVariable("UID") Long uid,
-    			@PathVariable("LOGREC_ID") String LOGREC_ID) throws IOException {
+    			@PathVariable("LOGREC_ID") String LOGREC_ID) throws IOException, UnexpectedHttpResponseCodeException {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
+        ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("bodytrack"));
+        String user_id = guestService.getApiKeyAttribute(apiKey, "user_id");
     	String bodyTrackUrl = "http://localhost:3000/users/" + user_id + "/logrecs/" + LOGREC_ID + "/get";
     	String pstr = request.getQueryString();
     	if (pstr != null) {
@@ -146,9 +152,9 @@ public class BodyTrackController {
         //   comment=<string> Set the comment field to the provided string
         //   tags=<list of tags separated by commas> Set the tags for the logrec.  Behaves the same as /users/UID/tags/LOGREC_ID/set?tags=<value> other than having a different return value.
         //    nsfw=<value> If specified, alters the value of the NSFW flag on the logrec and modifies tag list appropriately to either include an "nsfw" tag if value is true, or remove any existing "nsfw" tags if value is false.
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
+        ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("bodytrack"));
+        String user_id = guestService.getApiKeyAttribute(apiKey, "user_id");
         String bodyTrackUrl = "http://localhost:3000/users/" + user_id + "/logrecs/" + LOGREC_ID + "/set";
-        Map parameterMap = request.getParameterMap();
         Enumeration parameterNames = request.getParameterNames();
         Map<String,String> tunneledParameters = new HashMap<String,String>();
         while(parameterNames.hasMoreElements()) {
@@ -159,7 +165,9 @@ public class BodyTrackController {
         postTunnelRequest(bodyTrackUrl, response, tunneledParameters);
      }
 
-    //TODO: implement tags
+    /**
+     * @deprecated Use {@link com.fluxtream.api.BodyTrackController#getAllTagsForUser} instead.
+     */
 	@RequestMapping(value = "/bodytrack/users/{UID}/tags")
 	public void bodyTrackTags(HttpServletResponse response,
 			@PathVariable("UID") Long uid) throws IOException {
@@ -175,12 +183,12 @@ public class BodyTrackController {
 	@RequestMapping(value = "/bodytrack/users/{UID}/tags/{LOGREC_ID}/get")
 	public void bodyTrackGetTags(HttpServletResponse response,
 			@PathVariable("UID") Long uid,
-			@PathVariable("LOGREC_ID") String LOGREC_ID) throws HttpException,
-			IOException {
+			@PathVariable("LOGREC_ID") String LOGREC_ID) throws IOException, UnexpectedHttpResponseCodeException {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
+        ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("bodytrack"));
+        String user_id = guestService.getApiKeyAttribute(apiKey, "user_id");
 		String tunnelUrl = "http://localhost:3000/users/" + user_id + "/tags/"
 				+ LOGREC_ID + "/get";
 		writeTunnelResponse(tunnelUrl, response);
@@ -190,12 +198,12 @@ public class BodyTrackController {
 	public void bodyTrackSetTags(HttpServletResponse response,
 			@PathVariable("UID") Long uid,
 			@PathVariable("LOGREC_ID") String LOGREC_ID,
-			@RequestParam("tags") String tags) throws HttpException,
-			IOException {
+			@RequestParam("tags") String tags) throws IOException, UnexpectedHttpResponseCodeException {
         if (!checkForPermissionAccess(uid)){
             uid = null;
         }
-        String user_id = guestService.getApiKeyAttribute(uid,Connector.getConnector("bodytrack"), "user_id");
+        ApiKey apiKey = guestService.getApiKey(uid, Connector.getConnector("bodytrack"));
+        String user_id = guestService.getApiKeyAttribute(apiKey, "user_id");
 		Map<String, String> params = new HashMap<String, String>();
 		params.put("tags", tags);
 		String tunnelUrl = "http://localhost:3000/users/" + user_id + "/tags/"
@@ -204,22 +212,21 @@ public class BodyTrackController {
 	}
 
 	private void writeTunnelResponse(String tunnelUrl,
-			HttpServletResponse response) throws IOException {
+			HttpServletResponse response) throws IOException, UnexpectedHttpResponseCodeException {
         System.out.println("tunneled URL: " + tunnelUrl);
-		String contents = HttpUtils.fetch(tunnelUrl, env);
+		String contents = HttpUtils.fetch(tunnelUrl);
 		response.getWriter().write(contents);
 	}
 
 	private void postTunnelRequest(String tunnelUrl,
-			HttpServletResponse response, Map<String, String> params)
-            throws IOException {
+			HttpServletResponse response, Map<String, String> params) throws IOException, UnexpectedHttpResponseCodeException {
         System.out.println("tunneled URL: " + tunnelUrl);
-		String contents = HttpUtils.fetch(tunnelUrl, params, env);
+		String contents = HttpUtils.fetch(tunnelUrl, params);
 		response.getWriter().write(contents);
 	}
 
     private boolean checkForPermissionAccess(long targetUid){
-        Guest guest = ControllerHelper.getGuest();
+        Guest guest = AuthHelper.getGuest();
         return targetUid == guest.getId() || guest.hasRole(Guest.ROLE_ADMIN) || guest.hasRole(Guest.ROLE_ADMIN);
     }
 

@@ -4,86 +4,68 @@ define([],function(){
         this.tabs = {};
         this.nav = $("<ul class='nav nav-tabs'></ul>");
         this.nav.listeners = [];
-        loadTab(this,tabPaths,0);
-        var nav = this.nav;
-        var tabs = this.tabs;
+        loadTabs(this, tabPaths);
         this.nav.addClickListener = function(listener){
-            nav.listeners.push(listener);
-        }
+            this.nav.listeners.push(listener);
+        }.bind(this);
         this.nav.click(function(event){
             event.preventDefault();
             event.stopImmediatePropagation();
-            var target = $(event.target);
-            while (target != null){
-                if (target[0].tagName == "LI")
-                    break;
-                else if (target[0] == nav[0])
-                    target = null;
-                else
-                    target = target.parent();
-            }
-            if (target == null)
+            var targetName = $(event.target).closest('li').attr('name');
+            if (_.isUndefined(targetName) || !_.has(this.tabs, targetName)) {
                 return;
-            var targetName = null;
-            for (var tabname in tabs)
-                if (tabs[tabname].nav[0] == target[0]){
-                    targetName = tabname;
-                    break;
-                }
-            if (targetName != null){
-                for (var i = 0; i < nav.listeners.length; i++)
-                    nav.listeners[i](targetName);
             }
-        });
+            $.each(this.nav.listeners, function(i, listener) {
+                listener(targetName);
+            });
+        }.bind(this));
     }
 
     TabInterface.prototype.getRenderParams = function(){
         return {};
-    }
+    };
 
     TabInterface.prototype.setRenderParamsFunction = function(fn){
         this.getRenderParams = fn;
-    }
+    };
 
     TabInterface.prototype.setTabVisibility = function(tabnames,visible){
         if (typeof tabnames == "string")
             tabnames = [tabnames];
+        if (typeof tabnames=="undefined")
+            return;
         for (var i = 0; i < tabnames.length; i++)
             setFieldValue(this,tabnames[i],"visible",visible);
-    }
+    };
 
     TabInterface.prototype.setActiveTab = function(tabname){
         setFieldValue(this,tabname,"active",true);
-    }
+    };
 
     function getActiveTab(ti){
         for (var tabname in ti.tabs)
             if (ti.tabs[tabname].active)
                 return ti.tabs[tabname];
         return null
-    }
+    };
 
     TabInterface.prototype.getActiveTab = function(){
         var tab = getActiveTab(this);
         return tab == null ? null : tab.tab;
-    }
+    };
 
     TabInterface.prototype.getNav = function(){
         return this.nav;
-    }
+    };
 
-    function loadTab(ti,tabPaths,i){ //loads all tabs in order they are listed consistently
-        require([tabPaths[i]],function(tab){
-            setTabObject(ti,tab);
-            if (++i < tabPaths.length)
-                loadTab(ti,tabPaths,i);
+    function loadTabs(ti,tabPaths){ //loads all tabs in order they are listed consistently
+        require(tabPaths, function(/* tabs */) {
+            for (var i = 0; i < arguments.length; i++) {
+                var tab = arguments[i];
+                setFieldValue(ti,tab.name,"nav",$("<li name='" + tab.name + "' style='cursor:pointer'><a class='" + tab.appname + "-" + tab.name + "-" + "tab' data-toggle='tab'><i class= '" + tab.icon + "'></i> " + tab.name.upperCaseFirst() + "</a></li>"));
+                setFieldValue(ti,tab.name,"tab",tab);
+            }
         });
-    }
-
-
-    function setTabObject(ti, tab){
-        setFieldValue(ti,tab.name,"nav",$("<li style='cursor:pointer'><a class='" + tab.appname + "-" + tab.name + "-" + "tab' data-toggle='tab'><i class= '" + tab.icon + "'></i> " + capitalizeFirstLetter(tab.name) + "</a></li>"));
-        setFieldValue(ti,tab.name,"tab",tab);
     }
 
     function setFieldValue(ti,tabname,key,value){

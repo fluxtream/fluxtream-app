@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
 import com.fluxtream.ApiData;
+import com.fluxtream.TimezoneMap;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
@@ -14,10 +16,12 @@ import com.fluxtream.utils.TimeUtils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
-import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.LocalDate;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -30,7 +34,7 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
 {
 
     //Logs various transactions
-    Logger logger = Logger.getLogger(BodymediaBurnFacetExtractor.class);
+    FlxLogger logger = FlxLogger.getLogger(BodymediaBurnFacetExtractor.class);
 
     DateTimeFormatter form = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
     DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
@@ -44,18 +48,18 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
     ConnectorUpdateService connectorUpdateService;
 
     @Override
-    public List<AbstractFacet> extractFacets(ApiData apiData, ObjectType objectType) throws Exception
+    public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, final ApiData apiData,
+                                             ObjectType objectType) throws Exception
     {
 
         logger.info("guestId=" + apiData.updateInfo.getGuestId() +
-        				" connector=bodymedia action=extractFacets objectType="
-        						+ objectType.getName());
+                    " connector=bodymedia action=extractFacets objectType=" + objectType.getName());
 
         ArrayList<AbstractFacet> facets;
         String name = objectType.getName();
         if(name.equals("burn"))
         {
-            facets = extractBurnFacets(apiData);
+            facets = extractBurnFacets(updateInfo,apiData);
         }
         else //If the facet to be extracted wasn't a burn facet
         {
@@ -64,17 +68,12 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
         return facets;
     }
 
-    @Override
-    public void setUpdateInfo(final UpdateInfo updateInfo) {
-        super.setUpdateInfo(updateInfo);
-    }
-
     /**
      * Extracts facets for each day from the data returned by the api.
      * @param apiData The data returned by the Burn api
      * @return A list of facets for each day provided by the apiData
      */
-    private ArrayList<AbstractFacet> extractBurnFacets(ApiData apiData)
+    private ArrayList<AbstractFacet> extractBurnFacets(final UpdateInfo updateInfo, ApiData apiData)
     {
         ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         /* burnJson is a JSONArray that contains a seperate JSONArray and calorie counts for each day
@@ -83,13 +82,20 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
         if(bodymediaResponse.has("days") && bodymediaResponse.has("lastSync"))
         {
             DateTime d = form.parseDateTime(bodymediaResponse.getJSONObject("lastSync").getString("dateTime"));
+
+            // Get timezone map from UpdateInfo context
+            TimezoneMap tzMap = (TimezoneMap)updateInfo.getContext("tzMap");
+
+            // Insert lastSync into the updateInfo context so it's accessible to the updater
+            updateInfo.setContext("lastSync", d);
+
             JSONArray daysArray = bodymediaResponse.getJSONArray("days");
             for(Object o : daysArray)
             {
                 if(o instanceof JSONObject)
                 {
                     JSONObject day = (JSONObject) o;
-                    BodymediaBurnFacet burn = new BodymediaBurnFacet();
+                    BodymediaBurnFacet burn = new BodymediaBurnFacet(apiData.updateInfo.apiKey.getId());
                     //The following call must be made to load data about he facets
                     super.extractCommonFacetData(burn, apiData);
                     burn.setTotalCalories(day.getInt("totalCalories"));
@@ -100,13 +106,33 @@ public class BodymediaBurnFacetExtractor extends AbstractFacetExtractor
                     burn.lastSync = d.getMillis();
 
                     DateTime date = formatter.parseDateTime(day.getString("date"));
-                    burn.date = dateFormatter.print(date.getMillis());
-                    TimeZone timeZone = metadataService.getTimeZone(apiData.updateInfo.getGuestId(), date.getMillis());
-                    long fromMidnight = TimeUtils.fromMidnight(date.getMillis(), timeZone);
-                    long toMidnight = TimeUtils.toMidnight(date.getMillis(), timeZone);
-                    //Sets the start and end times for the facet so that it can be uniquely defined
-                    burn.start = fromMidnight;
-                    burn.end = toMidnight;
+                    burn.date = TimeUtils.dateFormatter.print(date.getMillis());
+
+                    if(tzMap!=null)
+                    {
+                        // Create a LocalDate object which just captures the date without any
+                        // timezone assumptions
+                        LocalDate ld = new LocalDate(date.getYear(),date.getMonthOfYear(),date.getDayOfMonth());
+                        // Use tzMap to convert date into a datetime with timezone information
+                        DateTime realDateStart = tzMap.getStartOfDate(ld);
+                        // Set the start and end times for the facet.  The start time is the leading midnight
+                        // of burn.date according to BodyMedia's idea of what timezone you were in then.
+                        // End should, I think, be start + the number of minutes in the minutes array *
+                        // the number of milliseconds in a minute.
+                        burn.start = realDateStart.getMillis();
+                        int minutesLength = 1440;
+                        burn.end = burn.start + DateTimeConstants.MILLIS_PER_MINUTE * minutesLength;
+                    }
+                    else {
+                        // This is the old code from Prasanth that uses metadataService, which isn't right
+                        TimeZone timeZone = metadataService.getTimeZone(apiData.updateInfo.getGuestId(), date.getMillis());
+                        long fromMidnight = TimeUtils.fromMidnight(date.getMillis(), timeZone);
+                        long toMidnight = TimeUtils.toMidnight(date.getMillis(), timeZone);
+                        //Sets the start and end times for the facet so that it can be uniquely defined
+                        burn.start = fromMidnight;
+                        burn.end = toMidnight;
+                    }
+
 
                     facets.add(burn);
                 }

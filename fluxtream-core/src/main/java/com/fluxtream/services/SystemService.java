@@ -7,7 +7,9 @@ import com.fluxtream.domain.ConnectorInfo;
 
 public interface SystemService {
 
-	public List<ConnectorInfo> getConnectors();
+	public List<ConnectorInfo> getConnectors() throws Exception;
+
+    public ConnectorInfo getConnectorInfo(String connectorName) throws Exception;
 	
 	public Connector getApiFromGoogleScope(String scope);
 	

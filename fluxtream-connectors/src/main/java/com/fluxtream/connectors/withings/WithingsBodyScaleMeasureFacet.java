@@ -1,20 +1,12 @@
 package com.fluxtream.connectors.withings;
 
 import javax.persistence.Entity;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-
-import org.hibernate.search.annotations.Indexed;
-
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
+import org.hibernate.search.annotations.Indexed;
 
 @Entity(name="Facet_WithingsBodyScaleMeasure")
-@ObjectTypeSpec(name = "weight", value = 1, extractor=WithingsFacetExtractor.class, prettyname = "Weight Measures")
-@NamedQueries({
-		@NamedQuery(name = "withings.weight.deleteAll", query = "DELETE FROM Facet_WithingsBodyScaleMeasure facet WHERE facet.guestId=?"),
-		@NamedQuery(name = "withings.weight.between", query = "SELECT facet FROM Facet_WithingsBodyScaleMeasure facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?")
-})
+@ObjectTypeSpec(name = "weight", value = 1, prettyname = "Weight Measures")
 @Indexed
 public class WithingsBodyScaleMeasureFacet extends AbstractFacet {
 	
@@ -29,8 +21,16 @@ public class WithingsBodyScaleMeasureFacet extends AbstractFacet {
 	public transient float systolic;
 	public transient float diastolic;
 	public transient float heartPulse;
-	
-	@Override
+
+    public WithingsBodyScaleMeasureFacet() {
+        super();
+    }
+
+    public WithingsBodyScaleMeasureFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
+    @Override
 	protected void makeFullTextIndexable() {}
 	
 }

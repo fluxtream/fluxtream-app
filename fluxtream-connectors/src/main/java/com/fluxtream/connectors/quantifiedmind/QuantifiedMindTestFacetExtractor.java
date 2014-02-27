@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import net.sf.json.JSONArray;
@@ -18,12 +19,12 @@ import org.springframework.stereotype.Component;
 public class QuantifiedMindTestFacetExtractor extends AbstractFacetExtractor {
 
     @Override
-    public List<AbstractFacet> extractFacets(final ApiData apiData, final ObjectType objectType) throws Exception {
+    public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, final ApiData apiData, final ObjectType objectType) throws Exception {
         List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 
         JSONArray array = JSONArray.fromObject(apiData.json);
         for(int i=0; i<array.size(); i++) {
-            QuantifiedMindTestFacet facet = new QuantifiedMindTestFacet();
+            QuantifiedMindTestFacet facet = new QuantifiedMindTestFacet(apiData.updateInfo.apiKey.getId());
 
             JSONObject testData = array.getJSONObject(i);
             extractCommonFacetData(facet, apiData);

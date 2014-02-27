@@ -1,380 +1,610 @@
 define(["core/Application", "core/FlxState", "applications/calendar/Builder", "libs/bootstrap-datepicker",
-        "ConnectorConfig"],
-       function(Application, FlxState, Builder, ConnectorConfig) {
+        "ConnectorConfig", "core/DateUtils", "core/StringUtils", "applications/calendar/tabs/photos/PhotoUtils"],
+       function(Application, FlxState, Builder, Datepicker, ConnectorConfig, DateUtils, StringUtils,
+           PhotoUtils) {
 
-	var Calendar = new Application("calendar", "Candide Kemmler", "icon-calendar");
+	var Calendar = new Application("calendar", "Candide Kemmler", "icon-calendar", "Calendar App");
 
-    Calendar.currentTabName = Builder.tabs["DAY"][0];
+    var needDigestReload = false;
+    var currentCityPool;
+    var foursquareVenueTemplate;
+
+    Calendar.currentTabName = Builder.tabs["date"][0];
     Calendar.currentTab = null;
     Calendar.tabState = null;
     Calendar.digest = null;
-    Calendar.timeUnit = "DAY";
+    Calendar.weather = null;
+    Calendar.timeUnit = "date";
     Calendar.digestTabState = false;
     Calendar.tabParam = null;
-
-	var start, end;
     Calendar.connectorEnabled = {"default":{}};
-    var buttons = {};
+    Calendar.timespanState = null;
+    Calendar.detailsTemplates = {};
+
+    App.loadAllMustacheTemplates("applications/calendar/facetTemplates.html",function(templates){
+        for (var templateId in templates){
+            Calendar.detailsTemplates[templateId] = templates[templateId];
+        }
+    });
+
+    Calendar.dateAxisCursorPosition = null;
+
+    Calendar.timeRange = {
+        updated: true,
+        start: null,
+        end: null
+    };
 
 	Calendar.setup = function() {
-        $.ajax("/api/connectors/filters",{
-            success:function(data){
+        $.ajax("/api/connectors/filters", {
+            async: false,
+            success: function(data){
                 for (var member in data){
                     Calendar.connectorEnabled[member] = data[member];
                 }
             }
-
         });
-		$(".menuNextButton").click(function(e) {
-            if (Calendar.currentTab.timeNavigation("next"))
-                return;
-			fetchState("POST", "/api/calendar/nav/incrementTimespan?state=" + Calendar.tabState); });
-		$(".menuPrevButton").click(function(e) {
-            if (Calendar.currentTab.timeNavigation("prev"))
-                return;
-			fetchState("POST", "/api/calendar/nav/decrementTimespan?state=" + Calendar.tabState); });
-		$(".menuTodayButton").click(function(e) {
-            if (Calendar.currentTab.timeNavigation("today"))
-                return;
-			fetchState("POST", "/api/calendar/nav/setToToday?timeUnit=DAY");
-		});
-        Builder.init(this);
+        Builder.init(App, this);
 	};
 
 	Calendar.initialize = function () {
 		_.bindAll(this);
-
-        FlxState.router.route(/^app\/calendar(\/?)(.*?)$/, "", function() {
-            var parse_url = /^(?:([A-Za-z]+):)?(\/{0,3})([0-9.\-A-Za-z]+)(?::(\d+))?(?:\/([^?#]*))?(?:\?([^#]*))?(?:#(.*))?$/;
-            var result = parse_url.exec(window.location.href);
-            var names = [ 'url', 'scheme', 'slash', 'host', 'port', 'path' ];
-            var i;
-            var parts = {};
-            for (i = 0; i < names.length; i += 1)
-                parts[names[i]] = result[i];
-            var pathElements = parts.path.split("/");
-            if (pathElements.length<3)
-                App.invalidPath();
-            var splits = {};
-            var splitNames = ["app", "appName", "tabName", "timeUnit"];
-            for (i = 0; i < pathElements.length; i += 1)
-                splits[splitNames[i]] = pathElements[i];
-            var validTab = _.include(["clock","map","diary","photos","list","timeline","dashboards"], splits.tabName),
-                validTimeUnit = _.include(["date","week","month","year"], splits.timeUnit);
-            if (validTab && validTimeUnit) {
-                var tab = Builder.tabExistsForTimeUnit(splits.tabName, Calendar.timeUnit)?splits.tabName:Builder.tabs[Calendar.timeUnit][0];
-                switch (splits.timeUnit) {
-                    case "date":
-                        var date = pathElements[4];
-                        var tabParam = pathElements[5];
-                        Calendar.render(tab + "/date/" + date + (tabParam == null ? "" : "/" + tabParam));
-                        break;
-                    case "week":
-                        var year = pathElements[4],
-                            week = pathElements[5];
-                        var tabParam = pathElements[6];
-                        Calendar.render(tab + "/week/" + year + "/" + week + (tabParam == null ? "" : "/" + tabParam));
-                        break;
-                    case "month":
-                        var year = pathElements[4],
-                            month = pathElements[5];
-                        var tabParam = pathElements[6];
-                        Calendar.render(tab + "/month/" + year + "/" + month + (tabParam == null ? "" : "/" + tabParam));
-                        break;
-                    case "year":
-                        var year = pathElements[4];
-                        var tabParam = pathElements[5];
-                        Calendar.render(tab + "/year/" + year + (tabParam == null ? "" : "/" + tabParam));
-                        break;
-                }
-            } else
-                App.invalidPath();
-        });
     };
 
-	Calendar.renderState = function(state, forceReload) {
-        forceReload = typeof(forceReload)!="undefined"&&forceReload;
-        if (!forceReload&&FlxState.getState("calendar")===state) {
-			return;
-		}
-		if (state==null||state==="") {
-			Builder.bindTimeUnitsMenu(Calendar);
-			Builder.createTabs(Calendar);
-			fetchState("POST", "/api/calendar/nav/setToToday?timeUnit=DAY");
-            return;
-		}
-		var splits = state.split("/");
-		Calendar.currentTabName = splits[0];
-        if (!Builder.isValidTabName(splits[0])) {
-            App.invalidPath();
-            return;
+    function updateTimespan(currentTimespan,currentState) {
+        Calendar.timespanState = currentState;
+        document.title = currentTimespan + " (" + Calendar.currentTabName + ")";
+        $("#currentTimespanLabel span").html(currentTimespan);
+    }
+
+    function startLoading() {
+        loading = true;
+        //$(".calendar-navigation-button").addClass("disabled");
+        $(".loading").show();
+        $("#tabs").css("opacity", ".3");
+    }
+
+    function stopLoading() {
+        if (fetchId == latestFetchFinished){
+            $("#tabs").css("opacity", "1");
+            //$(".calendar-navigation-button").removeClass("disabled");
+            $(".loading").hide();
         }
-        if (!Builder.isValidTimeUnit(splits[1])) {
-            App.invalidPath();
-            return;
+        $(window).resize();
+    }
+
+    function handleError(msg) {
+        return function(xhr, status, error) {
+            stopLoading();
+            console.log(xhr, status, error);
+            alert(msg);
         }
-        Calendar.timeUnit = toTimeUnit(splits[1]);
-		var nextTabState = state.substring(splits[0].length+1);
-        var w = Builder.tabExistsForTimeUnit(Calendar.currentTabName, Calendar.timeUnit)?Calendar.currentTabName:Builder.tabs[Calendar.timeUnit][0];
-        Calendar.currentTabName = w;
+    }
+
+    Calendar.stopLoading = stopLoading;
+
+    Calendar.fetchState = function(url, params) {
+        startLoading();
+        $.ajax({
+           url: url,
+           type: "GET",
+           data: params,
+           dataType: "JSON",
+           success: function(response) {
+               if (response.result == "KO"){//signifies error was returned
+                   handleError("You aren't logged in!")();
+                   return;
+               }
+               Calendar.timeRange.start = response.start;
+               Calendar.timeRange.end = response.end;
+               if (Calendar.dateAxisCursorPosition * 1000 < Calendar.timeRange.start || Calendar.dateAxisCursorPosition * 1000 > Calendar.timeRange.end)
+                   Calendar.dateAxisCursorPosition = null;
+               updateTimespan(response.currentTimespanLabel,params);
+               Calendar.timeRange.updated = true;
+               Calendar.navigateState(Calendar.currentTabName + "/" + response.state);
+               // TODO: Change visible date in the datepicker to Sunday
+               // TODO: Would be nice to use updateDatepicker, but what's the state argument?
+               //stopLoading is now called by the tab once it's done processing the data.
+           },
+           error: handleError("failed to fetch next calendar state!")
+        });
+    }
+
+    Calendar.parseState = function(state) {
+        var splits = state.split("/");
+        if (_.isEmpty(splits)) {
+            return null;
+        }
+        var obj = {};
+        obj.tabName = splits.shift();
+        obj.tabState = splits.join("/");
+        obj.timeUnit = splits.shift();
+        if (!Builder.isValidTabName(obj.tabName) || !Builder.isValidTimeUnit(obj.timeUnit)) {
+            return null;
+        }
+        if (!Builder.tabExistsForTimeUnit(obj.tabName, obj.timeUnit)) {
+            obj.tabName = Builder.tabs[obj.timeUnit][0];
+        }
+        switch (obj.timeUnit) {
+            case "date":
+                obj.date = splits.shift();
+                if (_.isUndefined(obj.date)) {
+                    return null;
+                }
+                break;
+            case "week":
+                obj.year = splits.shift();
+                obj.week = splits.shift();
+                if (_.isUndefined(obj.year) || _.isUndefined(obj.week)) {
+                    return null;
+                }
+                break;
+            case "month":
+                obj.year = splits.shift();
+                obj.month = splits.shift();
+                if (_.isUndefined(obj.year) || _.isUndefined(obj.month)) {
+                    return null;
+                }
+                break;
+            case "year":
+                obj.year = splits.shift();
+                if (_.isUndefined(obj.year)) {
+                    return null;
+                }
+                break;
+        }
+        obj.tabParam = splits.shift();
+        return obj;
+    };
+
+    Calendar.renderDefaultState = function() {
+        Calendar.fetchState("/api/calendar/nav/setToToday", {timeUnit: "DAY"});
+    };
+
+    function fetchTimespan(state,doneLoadingId) {
+        $.ajax({
+            url: "/api/calendar/nav/model",
+            async: false,
+            type: "GET",
+            data: {state: state.tabState},
+            dataType: "JSON",
+            success: function(response) {
+                if (response.result == "KO"){//signifies error was returned
+                    handleError("You aren't logged in!")();
+                    return;
+                }
+                Calendar.timeRange.start = response.start;
+                Calendar.timeRange.end = response.end;
+                if (Calendar.dateAxisCursorPosition * 1000 < Calendar.timeRange.start || Calendar.dateAxisCursorPosition * 1000 > Calendar.timeRange.end)
+                    Calendar.dateAxisCursorPosition = null;
+                updateTimespan(response.currentTimespanLabel,state.tabState);
+                Calendar.timeRange.updated = true;
+                stopLoading(doneLoadingId);
+            },
+            error: handleError("failed to fetch timespan label!")
+        });
+    }
+
+    function fetchWeatherData() {
+       $.ajax({ url: "/api/calendar/weather/"+Calendar.tabState,
+           success: function(response) {
+               // we should check that time boundaries are in line with the digest data
+               Calendar.weather = response;
+               var label = weatherLabel();
+               $(".ephemerisWrapper").remove();
+               $("#mainCityMetadata").prepend($("<span class='ephemerisWrapper'>" + label + "&nbsp;&nbsp;</span>"));
+           }
+       });
+    }
+
+    function setDocumentTitle() {
+        document.title = $("#currentTimespanLabel").text().trim() + " (" + Calendar.currentTabName + ")";
+    }
+
+	Calendar.renderState = function(state, forceUpdate) {
+        startLoading();
+        if (typeof state == "string")
+            state = Calendar.parseState(state);
+
+        var connectorToggleName;
+        var sendConnectorToggled = false;
+
+        //if we're showing a specific facet, we should make sure our state will hold the facet!
+        if (this.params != null && this.params.facetToShow != null){
+            var facet = this.params.facetToShow;
+            state = Calendar.toState(state.tabName, state.timeUnit,new Date(facet.end == null ? facet.start : (facet.start + facet.end) / 2));
+
+            connectorToggleName = this.params.facetToShow.type.split("-")[0];
+            sendConnectorToggled = Calendar.connectorEnabled[state.tabName][connectorToggleName] == false;
+            Calendar.connectorEnabled[state.tabName][connectorToggleName] = true;
+        }
+
+        if (Calendar.timespanState !== state.tabState) {
+            // NOTE: when loading a URL like /app/calendar/date/2012-12-25 directly,
+            // the FlxState routes invoke renderState() directly instead of going
+            // through fetchState. That bypasses the timespan label fetching, so we
+            // need to do that here.
+            fetchTimespan(state);
+            //stopLoading();
+        }
+        var tabChanged = Calendar.tabState === state.tabState;
+        Calendar.tabState = state.tabState;
+        Calendar.currentTabName = state.tabName;
+        Calendar.timeUnit = state.timeUnit;
         Calendar.updateButtonStates();
         Builder.createTabs(Calendar);
-        if (!forceReload&&Calendar.tabState==nextTabState) {
-			// time didn't change
-            document.title = "Fluxtream Calendar | " + $("#currentTimespanLabel").text().trim() + " (" + Calendar.currentTabName + ")";
-			Builder.updateTab(Calendar.digest, Calendar);
-			FlxState.router.navigate("app/calendar/" + state + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam));
-			FlxState.saveState("calendar", state);
-			return;
+        if (tabChanged) {
+            setDocumentTitle();
+            Builder.updateTab(Calendar.digest, Calendar);
+            if (forceUpdate || needDigestReload)
+                fetchCalendar(state)
 		} else {
-            Builder.bindTimeUnitsMenu(Calendar);
-            if ("DAY"===Calendar.timeUnit) {
-                Calendar.tabParam = splits[3];
-				fetchState("GET", "/api/calendar/nav/getDate?date=" + splits[2]);
-			} else if ("WEEK"===Calendar.timeUnit) {
-                Calendar.tabParam = splits[4];
-				fetchState("GET", "/api/calendar/nav/getWeek?year=" + splits[2] + "&week=" + splits[3]);
-			} else if ("MONTH"===Calendar.timeUnit) {
-                Calendar.tabParam = splits[4];
-				fetchState("GET", "/api/calendar/nav/getMonth?year=" + splits[2] + "&month=" + splits[3]);
-			} else if ("YEAR"===Calendar.timeUnit) {
-                Calendar.tabParam = splits[3];
-				fetchState("GET", "/api/calendar/nav/getYear?year=" + splits[2]);
-			}
-		}
+            updateDisplays(state);
+            updateDatepicker(state);
+            fetchCalendar(state);
+        }
+        if (sendConnectorToggled){
+            for (var i = 0, li = Calendar.digest.selectedConnectors.length; i < li; i++){
+                if (Calendar.digest.selectedConnectors[i].connectorName == connectorToggleName){
+                    Calendar.currentTab.connectorToggled(connectorToggleName,Calendar.digest.selectedConnectors[i].facetTypes,true);
+                    break;
+                }
+            }
+
+        }
+        // Next time the page loads, won't accidentally believe that the timespan in the
+        // title and calendar bar has already been initialized
+        //Calendar.timespanInited = false;
 	};
 
     Calendar.setTabParam = function(tabParam){
         Calendar.tabParam = tabParam;
-        FlxState.router.navigate("app/calendar/" + Calendar.currentTabName + "/" + Calendar.tabState + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam));
-        FlxState.saveState("calendar", Calendar.currentTabName + "/" + Calendar.tabState + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam));
+    };
+
+    function getDatepickerDate(state) {
+        switch (state.timeUnit) {
+            case "date":
+                return new Date(state.date);
+            case "week":
+                return DateUtils.getDateRangeForWeek(state.year, state.week)[0];
+            case "month":
+                return new Date(state.year,state.month-1,1,0,0,0,0);
+            case "year":
+                return new Date(state.year,0,1,0,0,0,0);
+        }
+        return null;
     }
 
-	function fetchState(verb, url) {
-        $(".calendar-navigation-button").addClass("disabled");
-		$(".loading").show();
-		$("#tabs").css("opacity", ".3");
-		$.ajax({ url:url,
-            type: verb,
-			success : function(response) {
-				if (Calendar.currentTab) {
-					Calendar.currentTab.saveState();
-				}
-				Calendar.tabState = response.state;
-                updateDisplays();
-                Calendar.start = response.start;
-                Calendar.end  = response.end;
-				FlxState.router.navigate("app/calendar/" + Calendar.currentTabName + "/" + response.state + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam));
-				FlxState.saveState("calendar", Calendar.currentTabName + "/" + response.state + (Calendar.tabParam == null ? "" : "/" + Calendar.tabParam));
-                document.title = "Fluxtream Calendar | " + response.currentTimespanLabel + " (" + Calendar.currentTabName + ")";
-				$("#currentTimespanLabel span").html(response.currentTimespanLabel);
-                updateDatepicker();
-                fetchCalendar("/api/calendar/all/" + response.state,response.state);
-			},
-			error : function() {
-				alert("error");
-			}
-		});
-	}
-
-    function updateDatepicker(){
-        switch (Calendar.timeUnit){
-            case "DAY":
-                setDatepicker(Calendar.tabState.split("/")[1]);
-                break;
-            case "WEEK":
-                var splits = Calendar.tabState.split("/");
-                if (typeof splits[2]=="undefined") {
-                    setDatepicker(splits[1]);
-                } else {
-                    var d = getDateRangeForWeek(splits[1],splits[2])[0],
-                        datePickerDate = App.formatDateAsDatePicker(d);
-                    setDatepicker(datePickerDate);
-                }
-                break;
-            case "MONTH":
-                var splits = Calendar.tabState.split("/");
-                var d = new Date(splits[1],splits[2],1,0,0,0,0);
-                setDatepicker(App.formatDateAsDatePicker(d));
-                break;
-            case "YEAR":
-                var d = new Date(Calendar.tabState.split("/")[1],0,1,0,0,0,0);
-                setDatepicker(App.formatDateAsDatePicker(d));
-                break;
-        }
+    function updateDatepicker(state) {
+        var currentDate = getDatepickerDate(state);
+        $("#datepicker").datepicker("setUTCDate", currentDate);
     }
 
-	function setDatepicker(currentDate) {
-        $(".datepicker.dropdown-menu").remove();
-        $("#datepicker").replaceWith("<a data-date-format=\"yyyy-mm-dd\" id=\"datepicker\"><i class=\"icon-calendar icon-large\"></i></a>");
-        $("#datepicker").attr("data-date", currentDate);
-		$("#datepicker").unbind("changeDate");
-		$("#datepicker").datepicker().on(
-			"changeDate", function(event) {;
-                if (Calendar.timeUnit == "DAY"){
-                    var formatted = App.formatDateAsDatePicker(event.date);
-                    if (Calendar.currentTab.timeNavigation("set/date/" + formatted)){
-                        $(".datepicker").hide();
-                        return;
-                    }
-                    fetchState("GET", "/api/calendar/nav/getDate?date=" + formatted + "&state=" + Calendar.tabState);
-                }
-                else if (Calendar.timeUnit == "WEEK"){
-                    var weekNumber = getWeekNumber(event.date);
-                    var range = getDateRangeForWeek(weekNumber[0],weekNumber[1]);
-                    if (Calendar.currentTab.timeNavigation("set/week/" + App.formatDateAsDatePicker(range[0]) + "/" + App.formatDateAsDatePicker(range[1]))){
-                        $(".datepicker").hide();
-                        return;
-                    }
-                    fetchState("GET", "/api/calendar/nav/getWeek?week=" + weekNumber[1] + "&year=" + weekNumber[0] + "&state=" + Calendar.tabState);
-                }
-				$(".datepicker").hide();
-			}
-		);
-        $("#datepicker").click(function(){
-            if (Calendar.timeUnit == "MONTH" || Calendar.timeUnit == "YEAR"){
-                $(".datepicker-days .switch").click();
-            }
-            if (Calendar.timeUnit == "YEAR"){
-                $(".datepicker-months .switch").click();
-            }
-        });
-        $(".datepicker-years td").click(function(event){
-            if (Calendar.timeUnit == "YEAR" && $(event.target).hasClass("year")){
-                if (Calendar.currentTab.timeNavigation("set/year/" + $(event.target).text())){
-                    $(".datepicker").hide();
-                    return;
-                }
-                fetchState("GET", "/api/calendar/api/calendar/nav/getYear?year=" + $(event.target).text() + "&state=" + Calendar.tabState);
-                $(".datepicker").hide();
-            }
-        });
-        $(".datepicker-months td").click(function(event){
-            if (Calendar.timeUnit == "MONTH" && $(event.target).hasClass("month")){
-                var month;
-                switch ($(event.target).text()){
-                    case "Jan":
-                        month = 0;
-                        break;
-                    case "Feb":
-                        month = 1;
-                        break;
-                    case "Mar":
-                        month = 2;
-                        break;
-                    case "Apr":
-                        month = 3;
-                        break;
-                    case "May":
-                        month = 4;
-                        break;
-                    case "Jun":
-                        month = 5;
-                        break;
-                    case "Jul":
-                        month = 6;
-                        break;
-                    case "Aug":
-                        month = 7;
-                        break;
-                    case "Sep":
-                        month = 8;
-                        break;
-                    case "Oct":
-                        month = 9;
-                        break;
-                    case "Nov":
-                        month = 10;
-                        break;
-                    case "Dec":
-                        month = 11;
-                        break;
-                }
-                if (Calendar.currentTab.timeNavigation("set/month/" + $(".datepicker-months .switch").text() + "/" + month)){
-                    $(".datepicker").hide();
-                    return;
-                }
-                fetchState("GET", "/api/calendar/nav/getMonth?year=" + $(".datepicker-months .switch").text() + "&month=" + month + "&state=" + Calendar.tabState);
-                $(".datepicker").hide();
-            }
-        });
-        if (Calendar.timeUnit == "WEEK"){
-            var dayStart = parseInt(currentDate.split("-")[2],10);
-            var count = 0;
-            var dayElements = $(".datepicker-days td");
-            for (var i = 0; i < dayElements.length && count < 7; i++){
-                var element = $(dayElements[i])
-                if (element.text() == dayStart || count != 0){
-                    element.addClass("active");
-                    count++;
-                }
-            }
-        }
-	}
+    var fetchId = 0;
+    var latestFetchFinished = 0;
+    var lastFetch = null;
 
-	function fetchCalendar(url,state) {
-		$.ajax({ calendarState:state, url: url,
+	function fetchCalendar(state) {
+        needDigestReload = false;
+        startLoading();
+        var thisFetchId = ++fetchId;
+        if (lastFetch != null)
+            lastFetch.abort();
+        lastFetch = $.ajax({
+            url: "/api/calendar/all/" + state.tabState,
 			success : function(response) {
-                if (Calendar.timeUnit==="DAY")
-                    handleCityInfo(response);
-                else
-                    $("#mainCity").empty();
+                if (thisFetchId != fetchId)//we litter the callback with these in case a we got to the callback but a new request started
+                    return;
+                latestFetchFinished = thisFetchId;
+                if (response.result === "KO") {
+                    handleError(response.message)();
+                    return;
+                }
                 Calendar.digest = response;
-                Calendar.digestTabState = this.calendarState;
+                Calendar.digestTabState = state.tabState;
+                if (thisFetchId != fetchId)
+                    return;
                 enhanceDigest(Calendar.digest);
+                if (thisFetchId != fetchId)
+                    return;
+                Builder.updateTab(Calendar.digest, Calendar);
+                if (thisFetchId != fetchId)
+                    return;
                 processDigest(Calendar.digest);
-				Builder.updateTab(Calendar.digest, Calendar);
-				$("#tabs").css("opacity", "1");
-				$(".calendar-navigation-button").removeClass("disabled");
-				$(".loading").hide();
+                if (thisFetchId != fetchId)
+                    return;
+                Builder.updateTab(Calendar.digest, Calendar); //TODO: shouldn't be calling this twice really
+                if (thisFetchId != fetchId)
+                    return;
                 Builder.handleNotifications(response);
+                if (Calendar.timeUnit==="date") {
+                    $(".ephemerisWrapper").show();
+                    handleCityInfo(response);
+                    fetchWeatherData();
+                } else {
+                    $(".ephemerisWrapper").hide();
+                    $("#mainCity").empty();
+                    $("#visitedCitiesDetails").hide();
+                }
 			},
-			error: function() {
-				alert("error fetching calendar");
-			}
+			error: function(){
+                if (thisFetchId != fetchId)//we don't really care about errors on old fetches
+                    return;
+                latestFetchFinished = thisFetchId;
+                handleError("failed to fetch calendar data!")
+            }
 		});
 	}
 
-    function getTemplate(digest,i,j){
-        App.loadMustacheTemplate("applications/calendar/facetTemplates.html",digest.selectedConnectors[i].facetTypes[j],function(template){
-            if (template == null)
-                console.log("WARNING: no template found for " + digest.selectedConnectors[i].facetTypes[j] + ".");
-            digest.detailsTemplates[digest.selectedConnectors[i].facetTypes[j]] = template;
-        });
+    Calendar.processFacets = function(facets){
+        if (facets == null || facets.length == 0 || facets[0].getDetails != null)
+            return;
+        for (var i = 0, li = facets.length; i < li; i++){
+            var facet = facets[i];
+            facet.getDetails = function(array,showDate){
+                if (typeof(array) == "boolean"){
+                    showDate = array;
+                    array = null;
+                }
+                if (array == null)
+                    array = [this];
+                return buildDetails(array,showDate);
+            };
+            facet.shouldGroup = function(facet){
+                return shouldFacetsGroup(this,facet);
+            };
+            switch (facet.type){
+                case "picasa-photo":
+                case "flickr-photo":
+                case "evernote-photo":
+                case "up-serving":
+                case "fluxtream_capture-photo":
+                    facet.hasImage = true;
+                    break;
+                case "mymee-observation":
+                case "sms_backup-sms":
+                    facet.hasImage = facet.photoUrl != null;
+                    break;
+            }
+            if (facet.hasImage) {
+                var photo42 = facet.photoUrl;
+                if (typeof(facet.thumbnailUrl)!="undefined")
+                    photo42 = facet.thumbnailUrl;
+                if (facet.thumbnailUrls != null){
+                    var bestMatch = -1;
+                    var bestMatchAmmount = 0;
+                    for (var j in facet.thumbnailSizes){
+                        var size = facet.thumbnailSizes[j];
+                        var matchAmmount = (size.width - 42) * (size.width - 42) + (size.height - 42) * (size.height - 42);
+                        if (bestMatch == -1 || matchAmmount < bestMatchAmmount){
+                            bestMatchAmmount = matchAmmount;
+                            bestMatch = j;
+                        }
+                    }
+                    if (bestMatch != -1){
+                        photo42 = facet.thumbnailUrls[bestMatch];
+                    }
+                }
+                facet.photo42 = photo42;
+            }
+            if (facet.start == undefined){
+                if (facet.date != undefined && facet.date != null){
+                    var dateParts = facet.date.split("-");
+                    var year = parseInt(dateParts[0]);
+                    var month = parseInt(dateParts[1]) - 1;
+                    var day = parseInt(dateParts[2]);
+                    if (facet.startTime != null){
+                        var hours = parseInt(facet.startTime.hours);
+                        var minutes = parseInt(facet.startTime.minutes);
+                        if (facet.startTime.ampm == "pm" && hours < 12)
+                            hours += 12;
+                        facet.start = new Date(year,month,day,hours,minutes,0,0).getTime();
+                    }
+                    if (facet.endTime != null) {
+                        var hours = parseInt(facet.endTime.hours);
+                        var minutes = parseInt(facet.endTime.minutes);
+                        if (facet.endTime.ampm == "pm" && hours < 12)
+                            hours += 12;
+                        facet.end = new Date(year,month,day,hours,minutes,0,0).getTime();
+                        if (facet.end < facet.start){
+                            facet.end = new Date(year,month,day+1,hours,0,0).getTime();
+                        }
+                    }
+                }
+            }
+
+            if (facet.type === "moves-move"){
+                for (var j = 0, lj = facet.activities.length; j < lj; j++){
+                    var subfacet = facet.activities[j];
+                    subfacet.parentType = facet.type;
+                    subfacet.parentId = facet.id;
+                    subfacet.parentStartTime = facet.startTime;
+                    subfacet.parentEndTime = facet.endTime;
+                    subfacet.comment = facet.comment;
+                    subfacet.getDetails = function(array,showDate){
+                        if (typeof(array) == "boolean"){
+                            showDate = array;
+                            array = null;
+                        }
+                        if (array == null)
+                            array = [this];
+                        return buildDetails(array,showDate);
+                    };
+                    subfacet.shouldGroup = function(facet){
+                        return shouldFacetsGroup(this,facet);
+                    };
+
+                    if (subfacet.start == undefined){
+                        if (subfacet.date != undefined && subfacet.date != null){
+                            var dateParts = subfacet.date.split("-");
+                            var year = parseInt(dateParts[0]);
+                            var month = parseInt(dateParts[1]) - 1;
+                            var day = parseInt(dateParts[2]);
+                            if (subfacet.startTime != null){
+                                var hours = parseInt(subfacet.startTime.hours);
+                                var minutes = parseInt(subfacet.startTime.minutes);
+                                if (subfacet.startTime.ampm == "pm" && hours < 12)
+                                    hours += 12;
+                                subfacet.start = new Date(year,month,day,hours,minutes,0,0).getTime();
+                            }
+                            if (subfacet.endTime != null) {
+                                var hours = parseInt(subfacet.endTime.hours);
+                                var minutes = parseInt(subfacet.endTime.minutes);
+                                if (subfacet.endTime.ampm == "pm" && hours < 12)
+                                    hours += 12;
+                                subfacet.end = new Date(year,month,day,hours,minutes,0,0).getTime();
+                                if (subfacet.end < subfacet.start){
+                                    subfacet.end = new Date(year,month,day+1,hours,0,0).getTime();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+
     }
 
     function enhanceDigest(digest){
-        digest.detailsTemplates = {};
-        for (var i = 0; i < digest.selectedConnectors.length; i++){
-            for (var j = 0; j < digest.selectedConnectors[i].facetTypes.length; j++){
-                getTemplate(digest,i,j);
-            }
+        if (typeof(digest.settings.messageDisplayCounters)!="undefined") {
+            App.setupBeginnersFriendlyUI(digest.settings.messageDisplayCounters, digest.nApis);
         }
-        App.loadMustacheTemplate("applications/calendar/facetTemplates.html","fluxtream-address",function(template){
-            if (template == null)
-                console.log("WANRING: no template found for fluxtream-address.");
-            digest.detailsTemplates["fluxtream-address"] = template;
-        });
-        for (var connectorId in digest.cachedData){
-            for (var i = 0; i < digest.cachedData[connectorId].length; i++){
-                digest.cachedData[connectorId][i].getDetails = function(array){
-                    if (array == null)
-                        array = [this];
-                    return buildDetails(digest,array);
+        digest.getConsensusCitiesList = function(){
+            if (digest.metadata.timeUnit === "DAY")
+                return [digest.metadata.mainCity];
+            return digest.metadata.consensusCities;
+        };
+        digest.getCitiesList = function(){
+            if (digest.metadata.timeUnit === "DAY")
+                return [digest.metadata.mainCity];
+            return digest.metadata.cities;
+        };
+        var templatePath = "applications/calendar/facetTemplates.html";
+        function loadTemplate(name) {
+            App.loadMustacheTemplate(templatePath, name, function(template){
+                if (template == null) {
+                    console.log("WARNING: no template found for " + name + ".");
                 }
-                digest.cachedData[connectorId][i].shouldGroup = function(facet){
-                    return shouldFacetsGroup(this,facet);
+                Calendar.detailsTemplates[name] = template;
+            });
+        }
+        $.each(digest.selectedConnectors, function(i, connector) {
+            $.each(connector.facetTypes, function(j, facetType) {
+                loadTemplate(facetType);
+            });
+        });
+        loadTemplate("fluxtream-address");
+        loadTemplate("foursquare-venue");
+        loadTemplate("moves-move-activity");
+        for (var connectorId in digest.cachedData){
+            Calendar.processFacets(digest.cachedData[connectorId]);
+            digest.cachedData[connectorId].hasImages = false;
+            switch (connectorId){
+                case "evernote-photo":
+                case "up-serving":
+                case "picasa-photo":
+                case "flickr-photo":
+                case "fluxtream_capture-photo":
+                    digest.cachedData[connectorId].hasImages = true;
+                    break;
+                case "mymee-observation":
+                case "sms_backup-sms":
+                    for (var i = 0; i < digest.cachedData[connectorId].length && !digest.cachedData[connectorId].hasImages; i++){
+                        digest.cachedData[connectorId].hasImages = digest.cachedData[connectorId][i].hasImage;
+                    }
+                    break;
+            }
+
+            var connectorName = connectorId.split("-")[0];
+            var config = App.getConnectorConfig(connectorName);
+            var hasGeneralSettings = false;
+            if (typeof(config.hasGeneralSettings)!="undefined"&&config.hasGeneralSettings)
+                hasGeneralSettings = true;
+            for (var i = 0; i < digest.cachedData[connectorId].length; i++){
+                var facet = digest.cachedData[connectorId][i];
+                if (typeof(config.isFilteredOut)!="undefined"&&config.isFilteredOut!=null) {
+                    var filteredOut = config.isFilteredOut(facet, digest.settings.connectorSettings);
+                    if (filteredOut) {
+                        digest.cachedData[connectorId].splice(i, 1);
+                        i = -1;
+                        continue;
+                    }
+                }
+            }
+            for (var i = 0; i < digest.cachedData[connectorId].length; i++){
+                var facet = digest.cachedData[connectorId][i];
+                if (hasGeneralSettings && config.applySettings != null)
+                    config.applySettings(facet, digest.settings.connectorSettings);
+                if (digest.cachedData[connectorId].hasImages){
+                    switch (connectorId){
+                        case "picasa-photo":
+                        case "flickr-photo":
+                        case "up-serving":
+                        case "evernote-photo":
+                        case "fluxtream_capture-photo":
+                            facet.hasImage = true;
+                            break;
+                        case "mymee-observation":
+                            facet.hasImage = facet.photoUrl != null;
+                            break;
+                    }
+                    if (facet.hasImage) {
+                        var photo42 = facet.photoUrl;
+                        if (typeof(facet.thumbnailUrl)!="undefined")
+                            photo42 = facet.thumbnailUrl;
+                        if (facet.thumbnailUrls != null){
+                            var bestMatch = -1;
+                            var bestMatchAmmount = 0;
+                            for (var j in facet.thumbnailSizes){
+                                var size = facet.thumbnailSizes[j];
+                                var matchAmmount = (size.width - 42) * (size.width - 42) + (size.height - 42) * (size.height - 42);
+                                if (bestMatch == -1 || matchAmmount < bestMatchAmmount){
+                                    bestMatchAmmount = matchAmmount;
+                                    bestMatch = j;
+                                }
+                            }
+                            if (bestMatch != -1){
+                                photo42 = digest.cachedData[connectorId][i].thumbnailUrls[bestMatch];
+                            }
+                        }
+                        facet.photo42 = photo42;
+                    }
+                }
+                if (facet.start == undefined){
+                    if (facet.date != undefined && facet.date != null){
+                        var dateParts = facet.date.split("-");
+                        var year = parseInt(dateParts[0]);
+                        var month = parseInt(dateParts[1]) - 1;
+                        var day = parseInt(dateParts[2]);
+                        if (facet.startTime != null){
+                            var hours = parseInt(facet.startTime.hours);
+                            var minutes = parseInt(facet.startTime.minutes);
+                            if (facet.startTime.ampm == "pm" && hours > 12)
+                                hours += 12;
+                            facet.start = new Date(year,month,day,hours,minutes,0,0).getTime();
+                        }
+                        if (facet.endTime != null) {
+                            var hours = parseInt(facet.endTime.hours);
+                            var minutes = parseInt(facet.endTime.minutes);
+                            if (facet.endTime.ampm == "pm" && hours > 12)
+                                hours += 12;
+                            facet.end = new Date(year,month,day,hours,minutes,0,0).getTime();
+                            if (facet.end < facet.start){
+                                facet.end = new Date(year,month,day+1,hours,0,0).getTime();
+                            }
+                        }
+                    }
                 }
             }
         }
 
         for (var addressType in digest.addresses){
-            for (var i = 0; i < digest.addresses[addressType].length; i++){
-                digest.addresses[addressType][i].getDetails = function(){
+            $.each(digest.addresses[addressType], function(i, address) {
+                address.getDetails = function(){
                     return buildAddressDetails(digest,this);
-                }
-
-            }
+                };
+            });
         }
     }
 
@@ -384,58 +614,68 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         switch (facet1.type){
             case "twitter-dm":
                 return facet1.sent == facet2.sent;
+            case "sms_backup-call_log":
+                return facet1.callType == facet2.callType;
+            case "sms_backup-sms":
+                return facet1.smsType == facet2.smsType;
         }
         return true;
     }
 
-
+   /**
+    * Inspects whats in the digest and sets the state of the filter buttons accordingly
+    * @param digest
+    */
     function processDigest(digest){
-        var selectedConnectors = $("#selectedConnectors");
-        selectedConnectors.empty();
-        for (var i = 0; i < digest.selectedConnectors.length; i++){
-            var enabled = false;
-            for (var j = 0; j < digest.selectedConnectors[i].facetTypes.length && !enabled; j++){
-                enabled =  digest.cachedData[digest.selectedConnectors[i].facetTypes[j]] != null;
-            }
-            enabled = enabled ? "" : "flx-disconnected";
-            var filterLabel = digest.selectedConnectors[i].prettyName;
-            if (typeof (App.getConnectorConfig(digest.selectedConnectors[i].connectorName).filterLabel)!="undefined")
-                filterLabel = App.getConnectorConfig(digest.selectedConnectors[i].connectorName).filterLabel;
-            var button = $('<li><a href="#" id="flx-connector-btn-' + digest.selectedConnectors[i].connectorName + '" class="flx-active '
-                               + enabled + '">' + filterLabel + '</button></li>');
-            if (enabled == "")
-                button.children().css("border-bottom-color",App.getConnectorConfig(digest.selectedConnectors[i].connectorName).color);
-            selectedConnectors.append(button);
-            button = $(button.children()[0]);
-            buttons[digest.selectedConnectors[i].connectorName] = button;
-            button.click({button:button,objectTypeNames:digest.selectedConnectors[i].facetTypes,connectorName:digest.selectedConnectors[i].connectorName}, function(event){
-                event.preventDefault();
-                $(document).click(); //needed for click away to work on tooltips in clock tab
-                connectorClicked(event.data.button,event.data.objectTypeNames,event.data.connectorName);
-                var uploadData = {};
-                for (var member in Calendar.connectorEnabled){
-                    if (member != "default")
-                        uploadData[member] = Calendar.connectorEnabled[member];
+        $.each(Builder.getConnectorNames(), function(i, connectorName) {
+            var buttonLink = Builder.getConnectorButton(connectorName),
+                button = buttonLink.parent();
+            button.hide();
+        });
+        $.each(digest.selectedConnectors, function(i, connector) {
+            var connectorConfig = App.getConnectorConfig(connector.connectorName);
+            var connected = _.some(connector.facetTypes, function(facetType) {
+                var hasTypedFacets = digest.cachedData[facetType] != null;
+                //var objectType = facetType.split("-")[1];
+                if(Calendar.currentTab.name==="photos") {
+                    // handle special case of mymee observations
+                    //if (hasTypedFacets&&objectType.indexOf("observation")!=-1){
+                    //    hasTypedFacets = false;
+                    //    for (var i=0;i<digest.cachedData[facetType].length; i++){
+                    //        if (typeof(digest.cachedData[facetType][i].photoUrl)!="undefined") {
+                    //            hasTypedFacets = true;
+                    //            break;
+                    //        }
+                    //    }
+                    //} else {
+                    //    // handle evernote and jawbone servings
+                    //    var isPhotoObjectType = objectType.indexOf("photo")!=-1;
+                    //    var isServingObjectType = objectType.indexOf("serving")!=-1;
+                    //    hasTypedFacets = hasTypedFacets && (isPhotoObjectType || isServingObjectType);
+                    //
+                    //}
+                    hasTypedFacets = hasTypedFacets && digest.cachedData[facetType].hasImages;
                 }
-                $.ajax("/api/connectors/filters",{
-                    type:"POST",
-                    data:{filterState:JSON.stringify(uploadData)},
-                    success : function() {
-                        $.ajax("/api/connectors/filters",{
-                            success:function(data){
-                                for (var member in data){
-                                    Calendar.connectorEnabled[member] = data[member];
-                                }
-                            }
-
-                        });
-                    }
-                });
+                return hasTypedFacets;
             });
-            if (Calendar.connectorEnabled["default"][digest.selectedConnectors[i].connectorName] == null)
-                Calendar.connectorEnabled["default"][digest.selectedConnectors[i].connectorName] = true;
-            Calendar.updateButtonStates();
-        }
+
+            var configFilterLabel = connectorConfig.filterLabel,
+                filterLabel = configFilterLabel || connector.prettyName;
+
+            var buttonLink = Builder.getConnectorButton(connector.connectorName),
+                button = buttonLink.parent();
+            buttonLink
+                .toggleClass("flx-disconnected", !connected)
+                .text(filterLabel);
+            if (connected) {
+                buttonLink.css("border-bottom-color",App.getConnectorConfig(connector.connectorName).color);
+            }
+            if (Calendar.connectorEnabled["default"][connector.connectorName] == null) {
+                Calendar.connectorEnabled["default"][connector.connectorName] = true;
+            }
+            button.show();
+        });
+        Calendar.updateButtonStates();
     }
 
     Calendar.updateButtonStates = function(){
@@ -444,35 +684,15 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         for (var connectorName in Calendar.connectorEnabled["default"]){
             if (Calendar.connectorEnabled[Calendar.currentTabName][connectorName] == null)
                 Calendar.connectorEnabled[Calendar.currentTabName][connectorName] = Calendar.connectorEnabled["default"][connectorName];
-            if (Calendar.connectorEnabled[Calendar.currentTabName][connectorName]){
-                buttons[connectorName].addClass("flx-active");
-                buttons[connectorName].removeClass("flx-inactive")
-            }
-            else{
-                buttons[connectorName].removeClass("flx-active");
-                buttons[connectorName].addClass("flx-inactive");
-            }
+            var button = Builder.getConnectorButton(connectorName),
+                enabled = Calendar.connectorEnabled[Calendar.currentTabName][connectorName];
+            button.toggleClass("flx-active", enabled);
+            button.toggleClass("flx-inactive", !enabled);
         }
-    }
-
-    function connectorClicked(button,objectTypeNames,connectorName){
-        if (button.is(".flx-disconnected"))
-            return;
-        Calendar.connectorEnabled[Calendar.currentTabName][connectorName] = !Calendar.connectorEnabled[Calendar.currentTabName][connectorName];
-        if (Calendar.connectorEnabled[Calendar.currentTabName][connectorName]){
-            button.addClass("flx-active");
-            button.removeClass("flx-inactive")
-        }
-        else{
-            button.removeClass("flx-active");
-            button.addClass("flx-inactive");
-        }
-        Calendar.currentTab.connectorToggled(connectorName,objectTypeNames,Calendar.connectorEnabled[Calendar.currentTabName][connectorName]);
-        return;
     }
 
     function buildAddressDetails(digest, address){
-        if (digest.detailsTemplates["fluxtream-address"] == null){
+        if (Calendar.detailsTemplates["fluxtream-address"] == null){
             console.log("WARNING: no template found for fluxtream-address.");
             return "";
         }
@@ -498,27 +718,44 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     params[member] = address[member];
             }
         }
-        return digest.detailsTemplates["fluxtream-address"].render(params);
+        return Calendar.detailsTemplates["fluxtream-address"].render(params);
     }
 
-    function buildDetails(digest,facets){
+    function buildDetails(facets,showDate){
         if (facets.length == 0)
             return"";
-        if (digest.detailsTemplates[facets[0].type] == null){
-            console.log("WARNING: hey, no template found for " + facets[0].type + ".");
-            return "";
+        if (Calendar.detailsTemplates[facets[0].type] == null){
+            console.warn("hey, no template found for " + facets[0].type + ".");
+            return $("");
         }
-        var params = {color:App.getFacetConfig(facets[0].type).color,facets:[],sent:facets[0].sent};
+        var facetConfig = App.getFacetConfig(facets[0].type);
+        var params = {color:facetConfig.color,facets:[],sent:facets[0].sent,callType:facets[0].callType,smsType:facets[0].smsType};
         for (var i = 0; i < facets.length; i++){
             var data = facets[i];
+            if (typeof(facetConfig.applySettings)!="undefined")
+                facetConfig.applySettings(data, Calendar.digest.settings.connectorSettings);
             var newFacet = {};
             params.facets[i] = newFacet;
             for (var member in data){
                 switch (member){
+                    case "date":
+                        if (showDate){
+                            newFacet[member] = data[member];
+                        }
+                        break;
                     case "source":
                         switch (data[member]){
                             case "GOOGLE_LATITUDE":
-                                newFacet[member] = "google latitude";
+                                newFacet[member] = "Google Latitude";
+                                break;
+                            case "RUNKEEPER":
+                                newFacet[member] = "Runkeeper";
+                                break;
+                            case "FLUXTREAM_CAPTURE":
+                                newFacet[member] = "Fluxtream Capture";
+                                break;
+                            case "MOVES":
+                                newFacet[member] = "Moves";
                                 break;
                             case "OTHER":
                                 newFacet[member] = "IP lookup";
@@ -546,9 +783,45 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                             newFacet[member] = data[member];
                         }
                         break;
+                    case "averageHeartRate":
+                        newFacet[member] = data[member];
+                        newFacet.showHeartRate = newFacet[member] != 0;
+                        break;
+                    case "total_climb":
+                        newFacet[member] = data[member];
+                        newFacet.showClimb = newFacet[member] != 0;
+                        break;
+                    case "position":
+                        newFacet[member] = data[member];
+                        newFacet.hasPosition = true;
+                        break;
+                    case "uri":
+                        var parts = data[member].split("/");
+                        if (parts.length == 2){
+                            params.iconClass = "-activity " + parts[0];
+                        }
+                        break;
+                    case "smsType":
+                    case "callType":
+                        newFacet[data[member]] = true;
+                        newFacet[member] = data[member];
+                        break;
+                    case "message":
+                        if (data.type == "sms_backup-sms"){
+                            newFacet[member] = data[member];
+                        }
+                        else{
+                            newFacet[member] = data[member];
+                        }
+                        break;
+
                     default:
                         newFacet[member] = data[member];
                 }
+            }
+            if (showDate){
+                var facetCity = App.getFacetCity(data, Calendar.digest.getConsensusCitiesList());
+                newFacet.displayDate = App.formatDate(data.start + facetCity.tzOffset,false,true);
             }
         }
 
@@ -567,51 +840,214 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             for (var member in params.facets[i]) {
                 if (params.facets[i].hasOwnProperty(member)) {
                     if (typeof(params.facets[i][member])==="number") {
-                        var formatted = addCommas(params.facets[i][member]);
+                        var formatted = StringUtils.addCommas(params.facets[i][member]);
                         params.facets[i]["_"+member] = formatted;
                     }
                 }
             }
         }
-        return digest.detailsTemplates[data.type].render(params);
+
+        // retrieve foursquare venues asynchronously
+        var foursquareVenueIds = [];
+        for (var i=0; i<params.facets.length; i++) {
+            if (facets[i].type=="moves-place") {
+                var placeType = facets[i].placeType;
+                if (placeType==="foursquare")  {
+                    foursquareVenueIds.push(facets[i].foursquareId);
+                }
+            }
+        }
+
+        foursquareVenueTemplate = Calendar.detailsTemplates["foursquare-venue"];
+        var details = $(Calendar.detailsTemplates[data.type].render(params));
+        details.find("img");
+        setTimeout(function(){getFoursquareVenues(details,foursquareVenueIds);}, 100);
+        return details;
     }
 
+    function getFacet(facetType, facetId){
+        var cachedData = Calendar.digest.cachedData[facetType];
+        var facet = null;
+        for (var i = 0, li = cachedData.length; i < li; i++){
+            if (cachedData[i].id == facetId){
+                facet = cachedData[i];
+                break;
+            }
+        }
+        if (facet == null){
+            console.warn("Couldn't find " + facetType + " " + facetid);
+        }
+        return facet;
 
-    function addCommas(nStr) {
-       nStr += '';
-       x = nStr.split('.');
-       x1 = x[0];
-       x2 = x.length > 1 ? '.' + x[1] : '';
-       var rgx = /(\d+)(\d{3})/;
-       while (rgx.test(x1)) {
-           x1 = x1.replace(rgx, '$1' + ',' + '$2');
+    }
+
+    function switchToAppForFacet(appname,tabname,facet){
+        App.renderApp(appname,tabname + (appname === "calendar" ? "/" + getTabState() : ""),{facetToShow:facet});
+    }
+
+    var activePopup = null;
+
+    Calendar.bindShowOnXDropDown = function(jqElement,facet,onShowInX){
+        jqElement.off("click.showOnXDropDown").on("click.showOnXDropDown",function(event){
+            var popup = $('<ul id="menu1" class="dropdown-menu">' +
+                          '<li><a class="clockLink" notthide="true" href="javascript:void(0)">Show in Clock</a></li>' +
+                          '<li><a class="mapLink" href="javascript:void(0)">Show on Map</a></li>' +
+                          '<li><a class="listLink" href="javascript:void(0)">Show in List</a></li>' +
+                          '<li><a class="timelineLink" href="javascript:void(0)">Show on Timeline</a></li>' +
+                          '<li><a class="bodytrackLink" href="javascript:void(0)">Show in Bodytrack</a></li>' +
+                          '</ul>');
+
+            var config = App.getFacetConfig(facet.type);
+            if (!config.map || (App.activeApp.name === "calendar" && Calendar.currentTabName === "map")){
+                popup.find(".mapLink").css("display","none");
+            }
+            if (!config.list || (App.activeApp.name === "calendar" && Calendar.currentTabName === "list")){
+                popup.find(".listLink").css("display","none");
+            }
+            if (config.clock == null || (Calendar.timeUnit != null && Calendar.timeUnit !== "date") || (App.activeApp.name === "calendar" && Calendar.currentTabName === "clock")){
+                popup.find(".clockLink").css("display","none");
+            }
+            if ((App.activeApp.name === "calendar" && Calendar.currentTabName === "timeline")){
+                popup.find(".timelineLink").css("display","none");
+            }
+            if (App.activeApp.name === "bodytrack"){
+                popup.find(".bodytrackLink").css("display","none");
+            }
+
+            popup.css("position","absolute");
+            $("body").append(popup);
+
+            var target = $(event.delegateTarget);
+
+            var offset = target.offset();
+            popup.css("top",offset.top + target.height());
+            popup.css("left",offset.left);
+            popup.css("display","inline-block");
+            popup.css("zIndex",target.zIndex() + 1);
+
+            popup.find(".mapLink").unbind('click').click(function(event){
+                switchToAppForFacet("calendar","map",facet);
+                if (onShowInX != null)
+                    onShowInX();
+            });
+            popup.find(".clockLink").unbind('click').click(function(event){
+                switchToAppForFacet("calendar","clock",facet);
+                if (onShowInX != null)
+                    onShowInX();
+            });
+            popup.find(".listLink").unbind('click').click(function(event){
+                switchToAppForFacet("calendar","list",facet);
+                if (onShowInX != null)
+                    onShowInX();
+            });
+            popup.find(".timelineLink").unbind('click').click(function(event){
+                switchToAppForFacet("calendar","timeline",facet);
+                if (onShowInX != null)
+                    onShowInX();
+            });
+            popup.find(".bodytrackLink").unbind('click').click(function(event){
+                switchToAppForFacet("bodytrack","grapher",facet);
+                if (onShowInX != null)
+                    onShowInX();
+            });
+
+            if (activePopup != null)
+                activePopup.remove();
+
+            activePopup = popup;
+            return false;
+        });
+    }
+
+    Calendar.rebindDetailsControls = function(details,facetList){
+        function getFacet(facetType,facetId){
+            try{
+                for (var i = 0, li = facetList.length; i < li; i++){
+                    if (facetList[i].type === facetType && facetList[i].id === facetId)
+                        return facetList[i];
+                }
+                var facets = facetList[facetType];
+                for (var i = 0, li = facets.length; i < li; i++){
+                    if (facets[i].id === facetId)
+                        return facets[i];
+                }
+            } catch (e){}
+            console.warn("Couldn't find " + facetType + " with id " + facetId);
+            return null;
+        }
+
+        details.find(".facet-edit a").unbind("click").click(function(event){
+            var facetType = $(event.delegateTarget).parent().parent().attr("facettype");
+            var facetId = parseInt($(event.delegateTarget).parent().parent().attr("itemid"));
+            Calendar.commentEdit(event,getFacet(facetType,facetId));
+            return false;
+        });
+        var element;
+        for (element = details.find(".timedropdown");element.length > 0 && element[0] != "BODY" && !element.hasClass("facetDetails"); element = element.parent());
+
+        var facet = getFacet(element.attr("facettype"),parseInt(element.attr('itemid')));
+        Calendar.bindShowOnXDropDown(details.find(".timedropdown"),facet);
+    }
+
+   $("body").mousedown(function(event){
+       if (activePopup != null){
+           var top = $("body");
+           for (var cur = $(event.target); cur[0] != activePopup[0] && cur[0] != top[0]; cur = cur.parent());
+           if (cur[0] == top[0]){
+               activePopup.remove();
+               activePopup = null;
+           }
        }
-       return x1 + x2;
-    };
+   });
 
+    $("body").click(function(){
+        if (activePopup != null){
+            activePopup.remove();
+            activePopup = null;
+        }
+    });
 
-           var topLevelDomains = ["aero","asia","biz","cat","com","coop","info", "int", "jobs", "mobi",
-                           "museum", "name", "net", "org", "pro", "tel", "travel", "xxx", "edu",
-                           "edu", "gov", "mil", "ac", "ad", "ae", "af", "ag", "ai", "al", "am",
-                           "am", "an", "aq", "ar", "as", "at", "au", "aw", "ax", "az", "ba", "bb",
-                           "be", "bf", "bg", "bh", "bi", "bj", "bm", "bn" , "bo", "br", "bs", "bt",
-                           "bv", "bw", "by", "bz", "ca", "cc", "cd", "cf", "cg", "ch", "ci", "ck",
-                           "cl", "cm", "cn", "co", "cr", "cs", "cu", "cv", "cx", "cy", "cz", "dd",
-                           "de", "dj", "dk", "dm", "do", "dz", "ec", "ee", "eg", "eh", "er", "es", "et",
-                           "eu", "fi", "fj", "fk", "fm", "fo", "fr", "ga", "gb", "gd", "ge", "gf", "gg",
-                           "gh", "gi", "gl", "gm", "gn", "gp", "gq", "gr", "gs", "gt", "gu", "gw", "gy",
-                           "hk", "hm", "hn", "hr", "ht", "hu", "id", "ie", "il", "im", "in", "io", "iq",
-                           "iq", "ir", "is", "it", "je", "jm", "jo", "jp", "ke", "kg", "kh", "ki", "km",
-                           "kn", "kp", "kr", "kw", "ky", "kz", "la", "lb", "lc", "li", "lk", "lr", "ls",
-                           "lt", "lu", "lv", "ly", "ma", "mc", "md", "me", "mg", "mh", "mk", "ml", "mm",
-                           "mn", "mo", "mp", "mq", "mr", "ms", "mt", "mu", "mv", "mw", "mx", "my", "mz",
-                           "na", "nc", "ne", "nf", "ng", "ni", "nl", "no", "np", "nr", "nu", "nz", "om",
-                           "pa", "pe", "pf", "pg", "ph", "pk", "pl", "pm", "pn", "pr", "ps", "pt", "pw",
-                           "py", "qa", "re", "ro", "rs", "ru", "rw", "sa", "sb", "sc", "sd", "se", "sg",
-                           "sh", "si", "sj", "sk", "sl", "sm", "sn", "so", "sr", "ss", "st", "su", "sv",
-                           "sy", "sz", "tc", "td", "tf", "tg", "th", "tj", "tk", "tl", "tm", "tn", "to",
-                           "tp", "tr", "tt", "tv", "tw", "tz", "ua", "uk", "us", "uy", "uz", "va", "vc",
-                           "ve", "vg", "vi", "vn", "vu", "wf", "ws", "ye", "yt", "yu", "za", "zm", "zw"]
+    function getFoursquareVenues(details,foursquareVenueIds) {
+        for (var i=0; i<foursquareVenueIds.length; i++) {
+            $.ajax({
+                url: "/api/metadata/foursquare/venue/" + foursquareVenueIds[i],
+                success: function(response) {
+                    var html = foursquareVenueTemplate.render(response);
+                    var foursquareVenueDiv = details.find("#foursquare-venue-"+response.foursquareId);
+                    foursquareVenueDiv.replaceWith(html);
+                    foursquareVenueDiv = details.find("#foursquare-venue-"+response.foursquareId);
+                    var icon = foursquareVenueDiv.closest(".moves-place").find(".flx-deviceIcon");
+                    icon.css("background-image","url(" + response.categoryIconUrlPrefix + "bg_32" + response.categoryIconUrlSuffix + ")");
+                    icon.css("background-position", "7px 0px");
+                    icon.css("background-size", "32px 32px");
+                    details.trigger("contentchange");
+                }
+            });
+        }
+    }
+
+    var topLevelDomains = ["aero","asia","biz","cat","com","coop","info", "int", "jobs", "mobi",
+                   "museum", "name", "net", "org", "pro", "tel", "travel", "xxx", "edu",
+                   "edu", "gov", "mil", "ac", "ad", "ae", "af", "ag", "ai", "al", "am",
+                   "am", "an", "aq", "ar", "as", "at", "au", "aw", "ax", "az", "ba", "bb",
+                   "be", "bf", "bg", "bh", "bi", "bj", "bm", "bn" , "bo", "br", "bs", "bt",
+                   "bv", "bw", "by", "bz", "ca", "cc", "cd", "cf", "cg", "ch", "ci", "ck",
+                   "cl", "cm", "cn", "co", "cr", "cs", "cu", "cv", "cx", "cy", "cz", "dd",
+                   "de", "dj", "dk", "dm", "do", "dz", "ec", "ee", "eg", "eh", "er", "es", "et",
+                   "eu", "fi", "fj", "fk", "fm", "fo", "fr", "ga", "gb", "gd", "ge", "gf", "gg",
+                   "gh", "gi", "gl", "gm", "gn", "gp", "gq", "gr", "gs", "gt", "gu", "gw", "gy",
+                   "hk", "hm", "hn", "hr", "ht", "hu", "id", "ie", "il", "im", "in", "io", "iq",
+                   "iq", "ir", "is", "it", "je", "jm", "jo", "jp", "ke", "kg", "kh", "ki", "km",
+                   "kn", "kp", "kr", "kw", "ky", "kz", "la", "lb", "lc", "li", "lk", "lr", "ls",
+                   "lt", "lu", "lv", "ly", "ma", "mc", "md", "me", "mg", "mh", "mk", "ml", "mm",
+                   "mn", "mo", "mp", "mq", "mr", "ms", "mt", "mu", "mv", "mw", "mx", "my", "mz",
+                   "na", "nc", "ne", "nf", "ng", "ni", "nl", "no", "np", "nr", "nu", "nz", "om",
+                   "pa", "pe", "pf", "pg", "ph", "pk", "pl", "pm", "pn", "pr", "ps", "pt", "pw",
+                   "py", "qa", "re", "ro", "rs", "ru", "rw", "sa", "sb", "sc", "sd", "se", "sg",
+                   "sh", "si", "sj", "sk", "sl", "sm", "sn", "so", "sr", "ss", "st", "su", "sv",
+                   "sy", "sz", "tc", "td", "tf", "tg", "th", "tj", "tk", "tl", "tm", "tn", "to",
+                   "tp", "tr", "tt", "tv", "tw", "tz", "ua", "uk", "us", "uy", "uz", "va", "vc",
+                   "ve", "vg", "vi", "vn", "vu", "wf", "ws", "ye", "yt", "yu", "za", "zm", "zw"]
 
     var uriRegex = "\\b(http://|ftp://)?[A-z0-9\\-.]+[.](" + topLevelDomains.join("|") + ")(/[/A-z0-9#@_\\-&?=.]+\\b|\\b)";
     var twitterNameRegex = "@[A-Za-z0-9_]+";
@@ -645,202 +1081,472 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     function handleCityInfo(digestInfo) {
         $("#mainCity").empty();
-        if (digestInfo.cities&&digestInfo.cities.length>0) {
-            $("#mainCity").html(cityLabel(digestInfo.cities[0]) +
-                                temperaturesLabel(digestInfo))
+        if (digestInfo.metadata.mainCity) {
+           $("#mainCity").html(cityLabel(digestInfo.metadata.mainCity))
+            if (digestInfo.metadata.previousInferredCity!=null||
+                digestInfo.metadata.nextInferredCity!=null) {
+                $("#visitedCitiesDetails").html("Wrong city? You can fix it!");
+                $("#mainCity").addClass("guessed");
+            } else {
+                $("#visitedCitiesDetails").html("More cities visited that day...");
+                $("#mainCity").removeClass("guessed");
+            }
         }
+        $("#visitedCitiesDetails").show();
+        $("#visitedCitiesDetails").off("click");
+        $("#visitedCitiesDetails").on("click", function(){
+            showVisitedCities(digestInfo.metadata);
+        });
     }
 
-    function ephemerisLabel(digestInfo) {
-        var sunriseH = Math.floor(digestInfo.solarInfo.sunrise/60);
-        var sunriseM = digestInfo.solarInfo.sunrise%60;
-        var sunsetH = Math.floor(digestInfo.solarInfo.sunset/60);
-        var sunsetM = digestInfo.solarInfo.sunset%60;
-        if (sunriseM<10) sunriseM = "0" + sunriseM;
-        if (sunsetM<10) sunsetM = "0" + sunsetM;
-        return "<span class=\"ephemeris\"><i class=\"flx-pict-sun\">&nbsp;</i><span>" + sunriseH + ":" + sunriseM + " am"+
-               "</span>&nbsp;<i class=\"flx-pict-moon\">&nbsp;</i><span>" + sunsetH + ":" + sunsetM + " pm</span></span>";
-    }
+    function showVisitedCities(metadata) {
+        var cities = [];
+        for(var i=0; i<metadata.cities.length;i++)
+            cities.push(metadata.cities[i]);
+        var timeUnit = metadata.timeUnit;
+        var mainCity = metadata.mainCity;
+        var cityData = [];
+        if (typeof(metadata.previousInferredCity)!="undefined") {
+            cities.push(metadata.previousInferredCity);
+        }
+        if (typeof(metadata.nextInferredCity)!="undefined") {
+            cities.push(metadata.nextInferredCity);
+        }
+        for (var i=0; i<cities.length; i++) {
+            var cityInfo = {};
+            cityInfo.visitedCityId = cities[i].visitedCityId;
+            cityInfo.count = cities[i].count;
+            cityInfo.isUser = cities[i].source=="USER";
+            cityInfo.source = toPrettySource(cities[i].source);
+            cityInfo.description = cities[i].description;
+            cityInfo.timezone = cities[i].shortTimezone;
+            cityInfo.startMinute = cities[i].startMinute;
+            cityInfo.endMinute = cities[i].endMinute;
+            cityInfo.daysInferred = cities[i].daysInferred;
+            if (cities[i].daysInferred!=0) {
+                var dayOrDays = Math.abs(cities[i].daysInferred)==1?"day":"days";
+                cityInfo.when = (cities[i].daysInferred<0)
+                    ? Math.abs(cities[i].daysInferred) + " " + dayOrDays + " ago"
+                    : cities[i].daysInferred + " " + dayOrDays + " later";
+            }
+            if (timeUnit=="DAY") {
+                var minutes = cities[i].startMinute%60;
+                minutes = minutes<10?"0"+minutes:""+minutes;
+                cityInfo.firstSeenHere = Math.floor(cities[i].startMinute/60)+"h"+minutes;
+                minutes = cities[i].endMinute%60;
+                minutes = minutes<10?"0"+minutes:""+minutes;
+                cityInfo.lastSeenHere = Math.floor(cities[i].endMinute/60)+"h"+minutes;
+            } else {
+                cityInfo.firstSeenHere = cities[i].startTime;
+                cityInfo.lastSeenHere = cities[i].endTime;
+            }
+            cityData[cityData.length] = cityInfo;
+        }
+        for (var i=0; i<cityData.length; i++) {
+            if (cityData[i].startMinute==metadata.mainCity.startMinute&&
+                cityData[i].endMinute==metadata.mainCity.endMinute&&
+                cityData[i].source==toPrettySource(metadata.mainCity.source)&&
+                cityData[i].daysInferred==metadata.mainCity.daysInferred)
+            cityData[i].consensus = true;
+        }
+        var mainCityMessage;
+        var guessed = false;
+        if (metadata.previousInferredCity!=null||metadata.nextInferredCity!=null) {
+            guessed = true;
+            mainCityMessage = "Based on past/future location data, we guessed the you were in <b>" + cityLabel(mainCity) + "</b>";
+        } else if (mainCity.source!="USER")
+            mainCityMessage="We detected that you were in <b>" + cityLabel(mainCity) + "</b>";
+        else
+            mainCityMessage="You have indicated that you were in <b>" + cityLabel(mainCity) + "</b>";
+        switch (timeUnit) {
+            case "DAY":
+                mainCityMessage += " today.<br>";
+                break;
+            case "WEEK":
+                mainCityMessage += " this week.<br>";
+                break;
+            case "MONTH":
+                mainCityMessage += " this month.<br>";
+                break;
+        }
+        var changeMainCityMessage;
+        if (cities.length>0)
+            changeMainCityMessage="You can choose an alternate city in the list below.<br><br>";
 
-    function temperaturesLabel(digestInfo) {
-        if (digestInfo.maxTempC == -10000) {
-            return "";
-        }
-        else if (digestInfo.settings.temperatureUnit != "CELSIUS") {
-            return ephemerisLabel(digestInfo) + "<i class=\"flx-pict-temp\">&nbsp;</i>"
-                       + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
-                       + digestInfo.minTempF
-                       + " / "
-                       + digestInfo.maxTempF
-                       + "&deg;F"
-                + "</span>";
-        }
         else {
-            return ephemerisLabel(digestInfo) + "<i class=\"flx-pict-temp\">&nbsp;</i>"
-                       + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
-                       + digestInfo.minTempC
-                       + " / "
-                       + digestInfo.maxTempC
-                       + "&deg;C"
-                + "</span>";
+            changeMainCityMessage="You can change it by entering a city name below.<br><br>";
         }
+
+        App.loadMustacheTemplate("applications/calendar/facetTemplates.html","visitedCities-details",function(template){
+
+            bindCitySearch(template.render(
+                {
+                    cities:cityData,
+                    guessed:guessed,
+                    mainCityMessage:mainCityMessage,
+                    changeMainCityMessage:changeMainCityMessage
+                }), timeUnit);
+
+        });
+    }
+
+    function toPrettySource(source) {
+        source = source.replace(/_/g, ' ');
+        source = source.toLowerCase().replace(/^.|\s\S/g, function(a) { return a.toUpperCase(); });
+        return source;
+    }
+
+    function bindCitySearch(html, timeUnit) {
+        App.makeModal(html);
+
+        $("#mainCitySearch").off("click");
+        $("#mainCitySearch").on("click", function(){
+            var cityName = $("#mainCityInput").val();
+            $("#mainCitySelect").attr("disabled","disabled");
+            $("#mainCitySearch").attr("disabled","disabled");
+            $("#mainCityInput").attr("disabled","disabled");
+            App.geocoder.geocode({"address":cityName},function(results,status){
+                var options = $("#mainCitySelect").children();
+                for (var i = 1; i < options.length; i++)
+                    $(options[i]).remove();
+                if (status == google.maps.GeocoderStatus.OK) {
+                    if (results.length>0) {
+                        $("#selectMainCity").removeClass("disabled");
+                        $("#selectMainCity").addClass("enabled");
+                        $("#selectMainCity").click(function(){
+                            selectMainCity(timeUnit);
+                        });
+                    }
+                    for (var i = 0; i < results.length; i++){
+                        $("#mainCitySelect").append('<option>' + results[i].formatted_address + '</option>')
+                    }
+                    currentCityPool = results;
+                    $("#mainCitySelect")[0].selectedIndex = 1;
+                }
+                else{
+                    $("#mainCitySelect")[0].selectedIndex = 0;
+                    $("#selectMainCity").removeClass("enabled");
+                    $("#selectMainCity").addClass("disabled");
+                    currentCityPool = [];
+                }
+                $("#mainCitySelect").removeAttr("disabled");
+                $("#mainCitySearch").removeAttr("disabled");
+                $("#mainCityInput").removeAttr("disabled");
+            });
+        });
+        $("#mainCityInput").off("keyup");
+        $("#mainCityInput").on("keyup", function(event){
+            event.preventDefault();
+            if (event.keyCode == 13)
+                $("#mainCitySearch").click();
+            else{
+                var options = $("#mainCitySelect").children();
+                for (var i = 1; i < options.length; i++)
+                    $(options[i]).remove();
+                currentCityPool = [];
+            }
+        });
+        $(".selectVisitedCity").click(function(evt){selectVisitedCity(evt);});
+
+    }
+
+    function selectVisitedCity(evt) {
+        var state = App.state.getState("calendar");
+        state = state.substring(state.indexOf("/"));
+        if ($(evt.target).hasClass("undo")) {
+            removeMainVisitedCity("/api/metadata/mainCity"+state);
+        } else {
+            var visitedCityId = evt.target.id.substring("visitedCity-".length);
+            postMainVisitedCity("/api/metadata/mainCity/"+visitedCityId+state);
+        }
+    }
+
+    function selectMainCity(timeUnit) {
+        var selectedIndex = $("#mainCitySelect")[0].selectedIndex-1;
+        var selectedCity = currentCityPool[selectedIndex];
+        if(typeof(selectedCity.geometry)!="undefined"&&
+            selectedCity.geometry.location!="undefined") {
+            var latitude = selectedCity.geometry.location.lat();
+            var longitude = selectedCity.geometry.location.lng();
+            var state = App.state.getState("calendar");
+            state = state.substring(state.indexOf("/"));
+            postMainCity("/api/metadata/mainCity"+state, {"latitude":latitude,"longitude":longitude});
+        } else {
+            console.log("no city (" + timeUnit + ")");
+        }
+    }
+
+
+    function removeMainVisitedCity(url) {
+       $.ajax({
+           url: url,
+           type: "DELETE",
+           success: function(status) {
+               $("#visitedCitiesDialog").modal('hide');
+               App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
+           }
+       })
+    }
+
+    function postMainCity(url, data) {
+       $.ajax({
+           url: url,
+           type: "POST",
+           data: data,
+           success: function(status) {
+               $("#visitedCitiesDialog").modal('hide');
+               App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
+           }
+       })
+    }
+
+    function postMainVisitedCity(url) {
+       $.ajax({
+           url: url,
+           type: "POST",
+           success: function(status) {
+               $("#visitedCitiesDialog").modal('hide');
+               App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
+           }
+       })
     }
 
     function cityLabel(cityInfo) {
-        var s = "";
-        s += cityInfo.name;
-        if (cityInfo.state) s += ", " + cityInfo.state;
-        s += ", " + cityInfo.country;
-        //if (traveling)
-        //    s += " <i>- on holiday</i>";
-        //if (FlxState.cities.length>20)
-        //    s += " <i>- in transit</i>";
-        return s;
+       var s = "";
+       s += cityInfo.name;
+       if (cityInfo.country=="US"||cityInfo.country=="USA") s += ", " + cityInfo.state;
+       s += ", " + cityInfo.country + " (" + cityInfo.timezone + ")";
+       return s;
     }
 
-    function toTimeUnit(urlTimeUnit) {
-		if (urlTimeUnit==="date") return "DAY";
-		return urlTimeUnit.toUpperCase();
-	}
+    function ephemerisLabel() {
+        var sunriseH = Math.floor(Calendar.weather.solarInfo.sunrise/60);
+        var sunriseM = Calendar.weather.solarInfo.sunrise%60;
+        var sunsetH = Math.floor(Calendar.weather.solarInfo.sunset/60);
+        var sunsetM = Calendar.weather.solarInfo.sunset%60;
+        if (sunriseM<10) sunriseM = "0" + sunriseM;
+        if (sunsetM<10) sunsetM = "0" + sunsetM;
+        if (sunsetH>12)sunsetH-=12;
+        return "<span class=\"ephemeris\"><span title='Sunrise'><i class=\"flx-pict-sun\">&nbsp;</i><span>" + sunriseH + ":" + sunriseM + " am"+
+               "</span></span>&nbsp;<span title='Sunset'><i class=\"flx-pict-moon\">&nbsp;</i><span>" + sunsetH + ":" + sunsetM + " pm</span></span></span>";
+    }
 
-   function getWeekNumber(date) {
-       //OK let's have java compute that for us and avoid the discrepancy bug that way for now
-       var dateString = date.getFullYear() + "-" + (date.getMonth() < 9 ? 0 : "") + (date.getMonth() + 1) + "-" + (date.getDate() < 10 ? 0 : "") + date.getDate(),
-           result = null;
-       $.ajax({
-           url: "/api/calendar/nav/getMeTheJavaComputedWeekForThisDate?formattedDate=" + dateString,
-           async: false,
-           success: function(data) {
-               result = data;
-           }
-       });
-       return result;
-   }
+    function weatherLabel() {
+        function getFahrenheitTemps() {
+            if (Calendar.weather.minTempF==null) return "";
+            var FahrenheitTemps = "<span title='Temperature Min / Max'><i class=\"flx-pict-temp\">&nbsp;</i>"
+                                      + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
+                                      + Calendar.weather.minTempF
+                                      + " / "
+                                      + Calendar.weather.maxTempF
+                + "&deg;F</span>";
+            return FahrenheitTemps;
+        }
 
-   function getDateRangeForWeek(year,week){
-       if (week==null) return null;
-       var result = null, range = null;
-       $.ajax({
-           url: "/api/calendar/nav/getDateRangeForWeek?year=" + year + "&week=" + week,
-           async: false,
-           success: function(data) {
-               result = data;
-           }
-       });
-       range = [new Date(result[0]+86400000), new Date(result[1]+86400000)];
-       return range;
-   }
+        function getCelsiusTemps() {
+            if (Calendar.weather.minTempC==null) return "";
+            return "<i class=\"flx-pict-temp\">&nbsp;</i>"
+                       + "<span class=\"ephemeris\" style=\"font-weight:normal;\">&nbsp;"
+                       + Calendar.weather.minTempC
+                       + " / "
+                       + Calendar.weather.maxTempC
+                       + "&deg;C"
+                + "</span>";
+        }
 
-   var w2date = function(year, wn, dayNb){
-       var j10 = new Date( year,0,10,12,0,0),
-           j4 = new Date( year,0,4,12,0,0),
-           mon1 = j4.getTime() - j10.getDay() * 86400000;
-       return new Date(mon1 + ((wn - 1)  * 7  + dayNb) * 86400000);
-   };
+        if (Calendar.weather.temperatureUnit != "CELSIUS") {
+            var FahrenheitTemps = getFahrenheitTemps();
+            return ephemerisLabel() + FahrenheitTemps
+                + "</span>";
+        }
+        else {
+            return ephemerisLabel() + getCelsiusTemps();
+        }
+    }
 
-    Calendar.toDateString = function(date,rangeType){
+    Calendar.toState = function(tabName, timeUnit, date) {
         var dateString = "";
-        switch (rangeType){
-            case 'DAY':
+        switch (timeUnit){
+            case 'date':
                 dateString = date.getFullYear() + "-" + (date.getMonth() < 9 ? 0 : "") + (date.getMonth() + 1) + "-" + (date.getDate() < 10 ? 0 : "") + date.getDate();
                 break;
-            case 'WEEK':
-                var weekInfo = getWeekNumber(date);
+            case 'week':
+                var weekInfo = DateUtils.getWeekNumber(date.getFullYear(), date.getMonth(), date.getDate());
                 dateString = weekInfo[0] + "/" + weekInfo[1];
                 break;
-            case 'MONTH':
-                dateString = date.getFullYear() + "/" + (date.getMonth() < 10 ? 0 : "") + date.getMonth();
+            case 'month':
+                dateString = date.getFullYear() + "/" + (date.getMonth() < 9 ? 0 : "") + (date.getMonth() + 1);
                 break;
-            case 'YEAR':
+            case 'year':
                 dateString =  date.getFullYear();
                 break;
         }
-        return dateString;
-    }
-
-    Calendar.dateChanged = function(date, rangeType) {
-        var oldTimeUnit = Calendar.timeUnit;
-
-        Calendar.timeUnit = rangeType;
-
-        var dateLabel, state;
-        var daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-        var monthsOfYear = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
-                            "Oct", "Nov", "Dec"];
-
-        var monthsOfYearFull = ["January","February","March","April","May","June","July",
-                                "August","September","October","November","December"];
-        switch (Calendar.timeUnit){
-            case "DAY":
-                state = "timeline/date/" + date;
-                Calendar.tabState = "date/" + date;
-                var dateSplits = date.split("-"),
-                    d = new Date(Number(dateSplits[0]),Number(dateSplits[1])-1,Number(dateSplits[2]));
-                dateLabel = daysOfWeek[d.getDay()] +
-                                ", " + monthsOfYear[d.getMonth()] + " " + d.getDate() +
-                                ", " + (d.getFullYear());
-                break;
-            case "WEEK":
-                state = "timeline/week/" + date;
-                Calendar.tabState = "week/" + date;
-                var dateSplits = date.split("/");
-                var range = getDateRangeForWeek(parseInt(dateSplits[0],10),parseInt(dateSplits[1],10));
-                dateLabel = monthsOfYear[range[0].getMonth()] + " " + range[0].getDate() + " - " +
-                            monthsOfYear[range[1].getMonth()] + " " + range[1].getDate() + " " + range[1].getFullYear();
-                break;
-            case "MONTH":
-                state = "timeline/month/" + date;
-                Calendar.tabState = "month/" + date;
-                var dateSplits = date.split("/");
-                dateLabel = monthsOfYearFull[parseInt(dateSplits[1])] + " " + dateSplits[0];
-                break;
-            case "YEAR":
-                state = "timeline/year/" + date;
-                Calendar.tabState = "year/" + date;
-                dateLabel = date;
-                break;
-        }
-        FlxState.router.navigate("app/calendar/" + state, {trigger: false, replace: true});
-        FlxState.saveState("calendar", state);
-
-        if (oldTimeUnit != Calendar.timeUnit)
-            Builder.createTabs(Calendar);
-
-        updateDisplays();
-
-        $("#currentTimespanLabel span").html(dateLabel);
-        updateDatepicker();
+        return Calendar.parseState([tabName, timeUnit, dateString].join("/"));
     };
 
-    var viewBtnIds = {DAY:"#dayViewBtn",WEEK:"#weekViewBtn",MONTH:"#monthViewBtn",YEAR:"#yearViewBtn"};
+    Calendar.toURL = function(state) {
+        return ["app/calendar", state.tabName, state.tabState].join("/");
+    };
 
-    function updateDisplays(){
-        var rangeType;
-        switch (Calendar.tabState.substring(0,Calendar.tabState.indexOf("/"))){
-            case "date":
-                rangeType = "DAY";
-                break;
-            case "week":
-                rangeType = "WEEK";
-                break;
-            case "month":
-                rangeType = "MONTH";
-                break;
-            case "year":
-                rangeType = "YEAR";
-                break;
-        }
-        for (var type in viewBtnIds){
-            if (type == rangeType){
-                $(viewBtnIds[type]).addClass("active");
-            }
-            else{
-                $(viewBtnIds[type]).removeClass("active");
-            }
-        }
+    Calendar.toStateURL = function(state){
+        return [state.tabName, state.tabState].join("/");
     }
 
+    /**
+     * Updates the state of the current tab using the given state object. The
+     * tab is not re-rendered, but Calendar interface elements may be updated as
+     * necessary (e.g. time units buttons, datepicker, etc.)
+     *
+     * @param state  new state to be loaded
+     */
+    Calendar.changeTabState = function(state,waitUpdate) {
+        if (state.tabName !== Calendar.currentTabName) {
+            var msg = "invalid state: cannot use changeTabState() to switch tabs!";
+            console.log(msg);
+            //alert(msg); //the alert is commented out because the timeline tab sometimes calls this late and will give the user a nasty popup
+            return;
+        }
+        var updated = false;
+        if (state.timeUnit !== Calendar.timeUnit) {
+            Calendar.timeUnit = state.timeUnit;
+            Builder.createTabs(Calendar);
+            updateDisplays(state);
+            updated = true;
+        }
+        if (state.tabState !== Calendar.tabState) {
+            Calendar.tabState = state.tabState;
+            fetchTimespan(state);
+            updated = true;
+        }
+        if (updated) {
+            setDocumentTitle();
+            updateDatepicker(state);
+            if (waitUpdate){
+                needDigestReload = true;
+            }
+            else{
+                fetchCalendar(state);
+            }
+            FlxState.router.navigate(Calendar.toURL(state), {trigger: false, replace: true});
+            FlxState.saveState("calendar", Calendar.toStateURL(state));
+        }
+    };
+
+    function getTabState(){
+        if (Calendar.tabState != null)
+            return Calendar.tabState;
+        else
+            return "date/" + App.formatDateAsDatePicker(new Date());
+    }
+
+    var viewBtnIds = {date:"#dayViewBtn",week:"#weekViewBtn",month:"#monthViewBtn",year:"#yearViewBtn"};
+
+    function updateDisplays(state){
+        for (var type in viewBtnIds){
+            $(viewBtnIds[type]).removeClass("active");
+        }
+        $(viewBtnIds[state.timeUnit]).addClass("active");
+    }
+
+
+    Calendar.showPhotoDialog = function(deviceName, channelName, uid, timestamp,optionalArguments) {
+       PhotoUtils.showPhotoDialog(deviceName, channelName, uid, timestamp,optionalArguments);
+    };
+
+
+    Calendar.fbShare = function(ogLink) {
+        window.open(
+            'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(ogLink),
+            'facebook-share-dialog',
+            'width=626,height=436');
+    };
+
+    Calendar.commentEdit = function(evt,facet) {
+        var target = $(evt.target);
+        var facetDetails = target.parent().parent();
+        if (facetDetails.find(".facet-comment").length > 0){
+            facetDetails.find(".cancel").click();
+            return;
+        }
+        facet = facet;
+
+        var hasComment = facet.comment != null;
+        if (hasComment) {
+            facetDetails.find(".facet-comment-text").remove();
+        }
+        var commentDiv =     '<div class="facet-comment" style="margin-bottom:5px">'+
+                             '<textarea placeholder="type a comment..." rows="3"></textarea>' +
+                             '<button class="btn btn-small save disabled" type="button"><i class="icon icon-save"/> Save</button>&nbsp;' +
+                             '<button class="btn btn-small cancel" type="button"><i class="icon icon-undo"/> Cancel</button>&nbsp;' +
+                             '<button class="btn btn-link delete" type="button"><i class="icon icon-trash"/> Delete</button>';
+
+        if (typeof(facet.ogLink)!="undefined") {
+            commentDiv +=    '<a class="fbShare" title="Share on Facebook" onclick="App.apps[\'calendar\'].fbShare(\'' + facet.ogLink + '\');" type="button"><img src="/static/images/facetSharing/FB-f-Logo__blue_22.png"/></a>';
+        }
+        commentDiv += '</div>';
+
+        facetDetails.append(commentDiv);
+        var commentWarning = facetDetails.find(".commentWarning");
+        commentWarning.removeClass("hidden");
+        facetDetails.trigger("contentchange");
+        var textarea = facetDetails.find("textarea");
+        if (hasComment) {
+            textarea.val(facet.comment);
+        }
+        var cancelButton = facetDetails.find(".cancel");
+        var saveButton = facetDetails.find(".save");
+        var deleteButton = facetDetails.find(".delete");
+        textarea.focus();
+        var originalComment = textarea.val();
+        textarea.keyup(function(){
+            if (originalComment==textarea.val()) {
+                saveButton.addClass("disabled");
+            } else {
+                saveButton.removeClass("disabled");
+            }
+        });
+        saveButton.click(function(event) {
+            event.stopPropagation();
+            $.ajax({
+                url: "/api/comments/" + facet.type + "/" + facet.id,
+                data: {comment: textarea.val()},
+                type: "POST",
+                success: function() {
+                    facet.comment = textarea.val();
+                    facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + facet.comment + '</div>');
+                    commentWarning.addClass("hidden");
+                    facetDetails.trigger("contentchange");
+                }
+            });
+        });
+        cancelButton.click(function(event) {
+            event.stopPropagation();
+            if (hasComment)
+                facetDetails.find(".facet-comment").replaceWith('<div class="facet-comment-text">' + originalComment + '</div>');
+            else
+                facetDetails.find(".facet-comment").remove();
+            commentWarning.addClass("hidden");
+            facetDetails.trigger("contentchange");
+        });
+        deleteButton.click(function(event) {
+            event.stopPropagation();
+            $.ajax({
+                url: "/api/comments/" + facet.type + "/" + facet.id,
+                data: {comment: textarea.val()},
+                type: "DELETE",
+                success: function() {
+                    facetDetails.find(".facet-comment").remove();
+                    commentWarning.addClass("hidden");
+                    facetDetails.trigger("contentchange");
+                    delete facet.comment;
+                }
+            });
+        });
+    };
+
+    Calendar.startLoading = startLoading;
+    Calendar.stopLoading = stopLoading;
+    Calendar.handleError = handleError;
+
 	return Calendar;
-
-
 });

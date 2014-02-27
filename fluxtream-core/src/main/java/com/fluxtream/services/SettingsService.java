@@ -1,5 +1,7 @@
 package com.fluxtream.services;
 
+import java.io.Serializable;
+import java.util.List;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.GuestAddress;
 import com.fluxtream.domain.GuestSettings;
@@ -7,11 +9,13 @@ import com.fluxtream.domain.GuestSettings.DistanceMeasureUnit;
 import com.fluxtream.domain.GuestSettings.LengthMeasureUnit;
 import com.fluxtream.domain.GuestSettings.TemperatureUnit;
 import com.fluxtream.domain.GuestSettings.WeightMeasureUnit;
-import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface SettingsService {
 
 	public GuestSettings getSettings(long guestId);
+
+    public int incrementDisplayCounter(long guestId, String messageName);
 
 	public void setFirstname(long guestId, String firstname);
 
@@ -33,8 +37,6 @@ public interface SettingsService {
 
     public void setChannelsForConnector(long guestId, Connector connector, String[] channels);
 
-    public void setChannelsForConenctor(long guestId, Connector connector, List<String> channels);
-	
 	public List<GuestAddress> getAllAddressesForDate(long guestId, long date);
 
     public List<GuestAddress> getAllAddresses(long guestId);
@@ -63,4 +65,16 @@ public interface SettingsService {
     public void setConnectorFilterState(long guestId, String stateJSON);
 
     public String getConnectorFilterState(long guestId);
+
+    public Object getConnectorSettings(long apiKeyId);
+
+    @Transactional(readOnly=false)
+    void persistConnectorSettings(long apiKeyId, Object settings, Object defaultSettings);
+
+    public void saveConnectorSettings(long apiKeyId, String json);
+
+    public void saveConnectorSettings(long apiKeyId, Serializable settings);
+
+    public void resetConnectorSettings(long apiKeyId);
+
 }

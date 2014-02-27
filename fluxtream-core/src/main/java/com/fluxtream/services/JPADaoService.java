@@ -1,7 +1,6 @@
 package com.fluxtream.services;
 
 import java.util.List;
-
 import com.fluxtream.connectors.Connector;
 
 public interface JPADaoService {
@@ -16,9 +15,13 @@ public interface JPADaoService {
     @SuppressWarnings("unused")
 	public long countFacets(Connector connector, long guestId);
 
-    public int execute(String jpql);
+    public int execute(String jpql, Object... params);
 
-    public void persist(Object o);
+    <T> List<T>  executeQueryWithLimit(String queryString, int i, Class<T> clazz, Object... params);
 
-	public void remove(Class<?> clazz, long id);
+    <T> List<T>  executeQueryWithLimitAndOffset(String queryString, int i, int offset, Class<T> clazz, Object... params);
+
+    Long executeNativeQuery(String queryString);
+
+    List executeNativeQuery(String s, Object... params);
 }

@@ -1,0 +1,1 @@
+ALTER TABLE `ScheduledUpdate` ADD COLUMN `serverUUID` VARCHAR(50) NULL;

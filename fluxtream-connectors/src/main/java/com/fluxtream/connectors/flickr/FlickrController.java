@@ -1,23 +1,26 @@
 package com.fluxtream.connectors.flickr;
 
-
-import static com.fluxtream.utils.HttpUtils.fetch;
-import static com.fluxtream.utils.Utils.hash;
-
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.fluxtream.Configuration;
+import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.controllers.ControllerSupport;
+import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.Guest;
+import com.fluxtream.domain.Notification;
+import com.fluxtream.services.GuestService;
+import com.fluxtream.services.NotificationsService;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -26,38 +29,66 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.fluxtream.Configuration;
-import com.fluxtream.connectors.Connector;
-import com.fluxtream.domain.Guest;
-import com.fluxtream.mvc.controllers.ControllerHelper;
-import com.fluxtream.services.GuestService;
+import static com.fluxtream.utils.HttpUtils.fetch;
+import static com.fluxtream.utils.Utils.hash;
 
 @Controller
 @RequestMapping(value="/flickr")
 public class FlickrController {
 
-	@Autowired
+    private static final String FLICKR_RENEWTOKEN_APIKEYID = "flickr.renewtoken.apiKeyId";
+    @Autowired
 	GuestService guestService;
 	
 	@Autowired
 	Configuration env;
+
+    @Autowired
+    NotificationsService notificationsService;
 	
 	@RequestMapping(value = "/token")
-	public String getToken(HttpServletRequest request,
-			HttpServletResponse response)
+	public String getToken(HttpServletRequest request)
 		throws NoSuchAlgorithmException
 	{
 		String api_key = env.get("flickrConsumerKey");
 		String api_sig = env.get("flickrConsumerSecret") + "api_key" + api_key + "permsread";
 		api_sig = hash(api_sig);
-		String loginUrl = "http://flickr.com/services/auth/" +
+        final String validRedirectUrl = env.get("flickr.validRedirectURL");
+        if (!validRedirectUrl.startsWith(ControllerSupport.getLocationBase(request, env))) {
+            final long guestId = AuthHelper.getGuestId();
+            final String validRedirectBase = getBaseURL(validRedirectUrl);
+
+            notificationsService.addNamedNotification(guestId, Notification.Type.WARNING, Connector.getConnector("flickr").statusNotificationName(),
+                                                      "Adding a Flickr connector only works when logged in through " + validRedirectBase +
+                                                      ".  You are logged in through " + ControllerSupport.getLocationBase(request, env) +
+                                                      ".<br>Please re-login via the supported URL or inform your Fluxtream administrator " +
+                                                      "that the flickr.validRedirectURL setting does not match your needs.");
+            return "redirect:/app";
+        }
+        if (request.getParameter("apiKeyId") != null)
+            request.getSession().setAttribute(FLICKR_RENEWTOKEN_APIKEYID,
+                                              request.getParameter("apiKeyId"));
+        String loginUrl = "http://flickr.com/services/auth/" +
 			"?api_key=" + api_key + "&perms=read&api_sig=" + api_sig;
 		return "redirect:" + loginUrl;
 	}
-	
-	@RequestMapping(value = "/upgradeToken")
-	public String upgradeToken(HttpServletRequest request,
-			HttpServletResponse response) throws NoSuchAlgorithmException, IOException, DocumentException {
+
+    public static String getBaseURL(String url) {
+        try {
+            URI uri = new URI(url);
+            StringBuilder rootURI = new StringBuilder(uri.getScheme()).append("://").append(uri.getHost());
+            if (uri.getPort() != -1) {
+                rootURI.append(":" + uri.getPort());
+            }
+            return (rootURI.toString());
+        }
+        catch (URISyntaxException e) {
+            return null;
+        }
+    }
+
+    @RequestMapping(value = "/upgradeToken")
+	public String upgradeToken(HttpServletRequest request) throws NoSuchAlgorithmException, DocumentException, IOException {
 		String api_key = env.get("flickrConsumerKey");
 		String frob = request.getParameter("frob");
 		
@@ -71,10 +102,20 @@ public class FlickrController {
 		String getTokenUrl = "http://api.flickr.com/services/rest/" +
 			"?method=flickr.auth.getToken&api_key=" + api_key + "&frob=" + frob + "&api_sig=" + api_sig;
 
-		Guest guest = ControllerHelper.getGuest();
-		long guestId = guest.getId();
-		
-		String authToken = fetch(getTokenUrl, env);
+		Guest guest = AuthHelper.getGuest();
+
+        String authToken = null;
+        try {
+            authToken = fetch(getTokenUrl);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            notificationsService.addNamedNotification(AuthHelper.getGuestId(),
+                                                      Notification.Type.ERROR, Connector.getConnector("flickr").statusNotificationName(),
+                                                      "Oops, we could not link your Flickr account<br>" +
+                                                      "Please contact your administrator.");
+            return "redirect:/app";
+        }
 
         StringReader stringReader = new StringReader(authToken);
         StringBuilder sb = new StringBuilder();
@@ -96,12 +137,25 @@ public class FlickrController {
 		String token = document.selectSingleNode("rsp/auth/token/text()").getStringValue();
 		
 		Connector flickrConnector = Connector.getConnector("flickr");
-		
-		guestService.setApiKeyAttribute(guestId, flickrConnector, "username", username);
-		guestService.setApiKeyAttribute(guestId, flickrConnector, "token", token);
-		guestService.setApiKeyAttribute(guestId, flickrConnector, "nsid", nsid);
-		guestService.setApiKeyAttribute(guestId, flickrConnector, "fullname", fullname);
-		
+
+        ApiKey apiKey;
+        if (request.getSession().getAttribute(FLICKR_RENEWTOKEN_APIKEYID)!=null) {
+            final String apiKeyIdString = (String)request.getSession().getAttribute(FLICKR_RENEWTOKEN_APIKEYID);
+            long apiKeyId = Long.valueOf(apiKeyIdString);
+            apiKey = guestService.getApiKey(apiKeyId);
+        } else
+            apiKey = guestService.createApiKey(guest.getId(), flickrConnector);
+
+        guestService.populateApiKey(apiKey.getId());
+		guestService.setApiKeyAttribute(apiKey,  "username", username);
+		guestService.setApiKeyAttribute(apiKey,  "token", token);
+		guestService.setApiKeyAttribute(apiKey,  "nsid", nsid);
+		guestService.setApiKeyAttribute(apiKey,  "fullname", fullname);
+
+        if (request.getSession().getAttribute(FLICKR_RENEWTOKEN_APIKEYID)!=null) {
+            request.getSession().removeAttribute(FLICKR_RENEWTOKEN_APIKEYID);
+            return "redirect:/app/tokenRenewed/flickr";
+        }
 		return "redirect:/app/from/"+flickrConnector.getName();
 	}
 	

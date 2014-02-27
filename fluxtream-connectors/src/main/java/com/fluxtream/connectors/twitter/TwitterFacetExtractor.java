@@ -3,25 +3,24 @@ package com.fluxtream.connectors.twitter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
+import com.fluxtream.ApiData;
+import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-
+import org.apache.commons.lang.StringEscapeUtils;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Component;
-
-import com.fluxtream.ApiData;
-import com.fluxtream.connectors.ObjectType;
-import com.fluxtream.domain.AbstractFacet;
-import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 
 @Component
 public class TwitterFacetExtractor extends AbstractFacetExtractor {
 	
 	private static final DateTimeFormatter format = DateTimeFormat.forPattern("EEE MMM d HH:mm:ss Z yyyy");
 	
-	public List<AbstractFacet> extractFacets(ApiData apiData, ObjectType objectType) {
+	public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, final ApiData apiData, final ObjectType objectType) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 
 		JSONArray feed = JSONArray.fromObject(apiData.json);
@@ -35,11 +34,11 @@ public class TwitterFacetExtractor extends AbstractFacetExtractor {
 			switch (objectType.value()) {
 				case 1:
                 {
-					TweetFacet tweetFacet = new TweetFacet();
+					TweetFacet tweetFacet = new TweetFacet(apiData.updateInfo.apiKey.getId());
 					super.extractCommonFacetData(tweetFacet, apiData);
 		
 					long createdAtTime = parseDate(twitterItem.getString("created_at"));
-					tweetFacet.text = twitterItem.getString("text");
+					tweetFacet.text = StringEscapeUtils.unescapeHtml(twitterItem.getString("text"));
 					tweetFacet.start = createdAtTime;
 					tweetFacet.end = createdAtTime;
 					tweetFacet.time = createdAtTime;
@@ -52,11 +51,11 @@ public class TwitterFacetExtractor extends AbstractFacetExtractor {
                 }
 				case 4:
                 {
-					TwitterMentionFacet twitterMentionFacet = new TwitterMentionFacet();
+					TwitterMentionFacet twitterMentionFacet = new TwitterMentionFacet(apiData.updateInfo.apiKey.getId());
 					super.extractCommonFacetData(twitterMentionFacet, apiData);
 
                     long createdAtTime = parseDate(twitterItem.getString("created_at"));
-					twitterMentionFacet.text = twitterItem.getString("text");
+					twitterMentionFacet.text =  StringEscapeUtils.unescapeHtml(twitterItem.getString("text"));
 					twitterMentionFacet.start = createdAtTime;
 					twitterMentionFacet.end = createdAtTime;
 					twitterMentionFacet.time = createdAtTime;
@@ -70,11 +69,11 @@ public class TwitterFacetExtractor extends AbstractFacetExtractor {
                 }
 				case 2:
                 {
-					TwitterDirectMessageFacet twitterDirectMessageFacet = new TwitterDirectMessageFacet();
+					TwitterDirectMessageFacet twitterDirectMessageFacet = new TwitterDirectMessageFacet(apiData.updateInfo.apiKey.getId());
 					super.extractCommonFacetData(twitterDirectMessageFacet, apiData);
 					
 					long createdAtTime = parseDate(twitterItem.getString("created_at"));
-					twitterDirectMessageFacet.text = twitterItem.getString("text");
+					twitterDirectMessageFacet.text = StringEscapeUtils.unescapeHtml(twitterItem.getString("text"));
 					twitterDirectMessageFacet.start = createdAtTime;
 					twitterDirectMessageFacet.end = createdAtTime;
 					twitterDirectMessageFacet.time = createdAtTime;
@@ -87,7 +86,10 @@ public class TwitterFacetExtractor extends AbstractFacetExtractor {
 					twitterDirectMessageFacet.recipientProfileImageUrl = recipient.getString("profile_image_url");
 					twitterDirectMessageFacet.recipientScreenName = twitterItem.getString("recipient_screen_name");
 					twitterDirectMessageFacet.twitterId = twitterItem.getLong("id");
-					twitterDirectMessageFacet.sent = (byte) (this.updateInfo.getContext("sent").equals("1") ? 1 : 0);
+                    if (updateInfo.getContext("sent")==null)
+                        twitterDirectMessageFacet.sent = (byte) 0;
+                    else
+                        twitterDirectMessageFacet.sent = (byte) (updateInfo.getContext("sent").equals("1") ? 1 : 0);
 					facets.add(twitterDirectMessageFacet);
 					break;
                 }

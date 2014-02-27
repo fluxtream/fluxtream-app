@@ -7,42 +7,60 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import com.fluxtream.connectors.annotations.JsonFacetCollection;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.connectors.annotations.Updater;
-import com.fluxtream.connectors.dao.FacetDao;
+import com.fluxtream.connectors.bodytrackResponders.AbstractBodytrackResponder;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
-import com.fluxtream.connectors.vos.AbstractFacetVOCollection;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.velocity.util.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
-import org.springframework.stereotype.Component;
 
-@Component
 public class Connector {
+
+    static FlxLogger logger = FlxLogger.getLogger(Connector.class);
+
+    UpdateStrategyType updateStrategyType = UpdateStrategyType.INCREMENTAL;
 
     private static Map<String, Connector> connectors = new ConcurrentHashMap<String, Connector>();
     private static Map<Integer, Connector> connectorsByValue = new ConcurrentHashMap<Integer, Connector>();
+    private static Map<String, Connector> connectorsByPrettyName = new ConcurrentHashMap<String, Connector>();
 
+    private Class<? extends AbstractFacetExtractor> extractorClass;
+    private Map<Integer, Class<? extends AbstractFacetExtractor>> objectTypeExtractorClasses;
+    private Class<? extends AbstractUserProfile> userProfileClass;
+    private ObjectType[] objectTypes;
+    private Class<? extends AbstractFacet> facetClass;
+    private int value;
+    private String name;
+    private String prettyName;
+    private int[] objectTypeValues;
+    private boolean hasFacets;
+    private String[] defaultChannels;
+    private Class<? extends AbstractUpdater> updaterClass;
+    private Class<? extends AbstractBodytrackResponder> bodytrackResponder;
 
     static {
         Connector flxConnector = new Connector();
         flxConnector.name = "fluxtream";
         connectors.put(flxConnector.name, flxConnector);
         connectorsByValue.put(0xCAFEBABE, flxConnector);
+        // NOTE! This connector has no pretty name, and ConcurrentHashMaps don't allow keys or values to be null, so
+        // we won't add it to the connectorsByPrettyName map.
         ObjectType objectType = new ObjectType();
         objectType.value = 0xBABEFACE;
         objectType.name = "comment";
         ObjectType.addObjectType(objectType.name, flxConnector, objectType);
     }
 
-    @SuppressWarnings("rawtypes")
-    private Map<String, Class<? extends AbstractFacetVOCollection>> jsonFacetCollectionClasses = new ConcurrentHashMap<String, Class<? extends AbstractFacetVOCollection>>();
+    private int[] deleteOrder;
 
     public String toString() {
         String string = "{name:" + name;
@@ -73,38 +91,12 @@ public class Connector {
         return s;
     }
 
-    public FacetDao getCustomDao() {
-        return null;
-    }
-
     public static Collection<Connector> getAllConnectors() {
         return connectors.values();
     }
 
     public static Connector fromString(String s) {
         return connectors.get(s);
-    }
-
-    @SuppressWarnings("rawtypes")
-    public AbstractFacetVOCollection getJsonFacetCollection() {
-        return getJsonFacetCollection(null);
-    }
-
-    @SuppressWarnings("rawtypes")
-    private AbstractFacetVOCollection getJsonFacetCollection(String name) {
-        if (name == null)
-            name = "default";
-        Class<? extends AbstractFacetVOCollection> clazz = jsonFacetCollectionClasses
-                .get(name);
-        if (clazz == null)
-            return null;
-        try {
-            return clazz.newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(
-                    "Could not instantiate json facet collection: "
-                    + this.getClass().getName() + "/" + name);
-        }
     }
 
     private static boolean initialized = false;
@@ -128,16 +120,17 @@ public class Connector {
         String beanClassName = bd.getBeanClassName();
         String connectorName = getConnectorName(beanClassName);
         Connector connector = new Connector();
-        Class<? extends AbstractUpdater> updaterClass = getUpdaterClass(beanClassName);
-        Updater updaterAnnotation = updaterClass
+        connector.updaterClass = getUpdaterClass(beanClassName);
+        Updater updaterAnnotation = connector.updaterClass
                 .getAnnotation(Updater.class);
         // set connectors' pretty name
-        connector.manageable = updaterAnnotation.isManageable();
         connector.prettyName = updaterAnnotation.prettyName();
         connector.value = updaterAnnotation.value();
         connector.updateStrategyType = updaterAnnotation
                 .updateStrategyType();
         connector.hasFacets = updaterAnnotation.hasFacets();
+        connector.name = connectorName;
+        connector.deleteOrder = updaterAnnotation.deleteOrder();
         // set connectors' object types
         Class<? extends AbstractFacet>[] facetTypes = updaterAnnotation
                 .objectTypes();
@@ -151,47 +144,55 @@ public class Connector {
         }
         connector.defaultChannels = updaterAnnotation.defaultChannels();
         List<ObjectType> connectorObjectTypes = new ArrayList<ObjectType>();
-        connector.objectTypeExtractorClasses = new ConcurrentHashMap<Integer, Class<? extends AbstractFacetExtractor>>();
         for (Class<? extends AbstractFacet> facetType : facetTypes) {
-            ObjectTypeSpec ots = facetType
-                    .getAnnotation(ObjectTypeSpec.class);
-            // objectTypes are mandatory only if there are more than 1
-            if (ots == null) {
-                if (facetTypes.length>1)
-                    throw new RuntimeException(
-                            "No ObjectTypeSpec Annotation for Facet ["
-                            + facetType.getName() + "]");
-                else
-                    continue;
-            }
-            ObjectType objectType = new ObjectType();
-            objectType.facetClass = facetType;
-            objectType.value = ots.value();
-            objectType.name = ots.name();
-            objectType.prettyname = ots.prettyname();
-            objectType.isImageType = ots.isImageType();
-            if (ots.extractor() != null) {
-                connector.addObjectTypeExtractorClass(
-                        objectType.value, ots.extractor(),
-                        ots.parallel());
-            }
+            final ObjectType objectType = getFacetTypeMetadata(connector, facetTypes, facetType);
             connectorObjectTypes.add(objectType);
-            ObjectType.addObjectType(ots.name(), connector,
-                                     objectType);
+            ObjectType.addObjectType(objectType.name(), connector, objectType);
         }
+
         if (connectorObjectTypes.size()>0)
             connector.objectTypes = connectorObjectTypes.toArray(new ObjectType[0]);
 
-        JsonFacetCollection jsonFacetAnnotation = updaterClass
-                .getAnnotation(JsonFacetCollection.class);
-        if (jsonFacetAnnotation != null)
-            connector.jsonFacetCollectionClasses.put(
-                    jsonFacetAnnotation.name(),
-                    jsonFacetAnnotation.value());
-
-        connector.name = connectorName;
         connectors.put(connectorName, connector);
         connectorsByValue.put(connector.value(), connector);
+        if (connector.prettyName != null) {
+            connectorsByPrettyName.put(connector.prettyName, connector);
+        }
+
+        connector.bodytrackResponder = updaterAnnotation.bodytrackResponder();
+
+    }
+
+    private static ObjectType getFacetTypeMetadata(final Connector connector,
+                                             final Class<? extends AbstractFacet>[] facetTypes,
+                                             final Class<? extends AbstractFacet> facetType) {
+        ObjectTypeSpec ots = facetType
+                .getAnnotation(ObjectTypeSpec.class);
+        // objectTypes are mandatory only if there are more than 1
+        if (ots == null) {
+            if (facetTypes.length>1)
+                throw new RuntimeException(
+                        "No ObjectTypeSpec Annotation for Facet ["
+                        + facetType.getName() + "]");
+            else
+                return null;
+        }
+        ObjectType objectType = new ObjectType();
+        objectType.facetClass = facetType;
+        objectType.value = ots.value();
+        objectType.name = ots.name();
+        objectType.prettyname = ots.prettyname();
+        objectType.isImageType = ots.isImageType();
+        objectType.isDateBased = ots.isDateBased();
+        objectType.isMixedType = ots.isMixedType();
+        objectType.isClientFacet = ots.clientFacet();
+        objectType.visibleClause = ots.visibleClause().equals("")?null:ots.visibleClause();
+        if (ots.extractor() != null && ots.extractor()!=AbstractFacetExtractor.class) {
+            connector.addObjectTypeExtractorClass(
+                    objectType.value, ots.extractor(),
+                    ots.parallel());
+        }
+        return objectType;
     }
 
     public boolean hasImageObjectType() {
@@ -246,28 +247,25 @@ public class Connector {
         return splits[splits.length-2];
     }
 
-    public enum UpdateStrategyType {
-        ALWAYS_UPDATE, INCREMENTAL, PUSH
+    public Class<? extends AbstractUpdater> getUpdaterClass() {
+        return updaterClass;
     }
 
-    UpdateStrategyType updateStrategyType = UpdateStrategyType.INCREMENTAL;
+    public String statusNotificationName() {
+        return new StringBuilder(getName()).append(".status").toString();
+    }
 
-    private Class<? extends AbstractFacetExtractor> extractorClass;
-    private Map<Integer, Class<? extends AbstractFacetExtractor>> objectTypeExtractorClasses;
-    private Class<? extends AbstractUserProfile> userProfileClass;
-    private ObjectType[] objectTypes;
-    private Class<? extends AbstractFacet> facetClass;
-    private int value;
-    private String name;
-    private String prettyName;
-    private int[] objectTypeValues;
-    private boolean hasFacets;
-    private String[] defaultChannels;
-    private String[] additionalParameters;
-    private boolean manageable;
+    public enum UpdateStrategyType {
+        ALWAYS_UPDATE, INCREMENTAL
+    }
 
-    public boolean isManageable(){
-        return manageable;
+    public boolean isAutonomous() {
+        final Class<?>[] interfaces = this.updaterClass.getInterfaces();
+        for (Class<?> anInterface : interfaces) {
+            if (anInterface==Autonomous.class)
+                return true;
+        }
+        return false;
     }
 
     private Connector() {
@@ -332,7 +330,11 @@ public class Connector {
                 }
             }
             try {
-                return beanFactory.getBean(extractorClass);
+                if (extractorClass!=null)
+                    return beanFactory.getBean(extractorClass);
+                else {
+                    logger.error("COULD NOT FIND EXTRACTOR CLASS FOR " + objectTypes);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -344,8 +346,20 @@ public class Connector {
         return this.updateStrategyType;
     }
 
+    public String getPrettyName() {
+        return prettyName();
+    }
+
     public String prettyName() {
         return prettyName;
+    }
+
+    public int[] getDeleteOrder() {
+        return deleteOrder;
+    }
+
+    public boolean hasDeleteOrder() {
+        return !ArrayUtils.isEquals(deleteOrder, new int[]{-1});
     }
 
     public ObjectType[] getObjectTypesForValue(int value) {
@@ -370,12 +384,27 @@ public class Connector {
         return connectorsByValue.get(api);
     }
 
-    public boolean hasAdditionalParameters() {
-        return additionalParameters != null && additionalParameters.length > 0;
+    /**
+     * Returns the Connector having the given pretty name.  Returns <code>null</code> if no such connector exists or
+     * if the given pretty name is <code>null</code>.
+     */
+    public static Connector fromPrettyName(@Nullable final String prettyName) {
+        if (prettyName != null) {
+            return connectorsByPrettyName.get(prettyName);
+        }
+        return null;
     }
 
-    public String[] getAdditionalParameters() {
-        return additionalParameters;
+    public AbstractBodytrackResponder getBodytrackResponder(BeanFactory beanFactory){
+        try{
+            final AbstractBodytrackResponder bean = beanFactory.getBean(bodytrackResponder);
+            return bean;
+        }
+        catch (Exception e){
+            System.out.println("COULD NOT INSTANTIATE RESPONDER: " + bodytrackResponder);
+            System.out.println("PLEASE CHECK THAT IT HAS THE @Component ANNOTATION!");
+            return null;
+        }
     }
 
 }

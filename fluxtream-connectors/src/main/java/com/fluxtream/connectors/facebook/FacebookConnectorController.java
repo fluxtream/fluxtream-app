@@ -8,6 +8,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.domain.ApiKey;
+import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +21,6 @@ import org.springframework.web.servlet.ModelAndView;
 import com.fluxtream.Configuration;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.mvc.controllers.ControllerHelper;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SystemService;
 import com.fluxtream.utils.HttpUtils;
@@ -56,8 +58,7 @@ public class FacebookConnectorController {
 	}
 	
 	@RequestMapping(value = "/swapToken")
-	public ModelAndView upgradeToken(HttpServletRequest request,
-			HttpServletResponse response) throws IOException {
+	public ModelAndView upgradeToken(HttpServletRequest request) throws IOException, UnexpectedHttpResponseCodeException {
 		
 		String code = request.getParameter("code");
 		String redirectUri = env.get("facebook.redirect_uri");
@@ -75,7 +76,7 @@ public class FacebookConnectorController {
 			String swapTokenUrl = "https://graph.facebook.com/oauth/access_token?" +
 				"client_id=" + params.get("client_id") + "&redirect_uri=" + redirectUri +
 				"&client_secret=" + params.get("client_secret") + "&code=" + code;
-			fetched = HttpUtils.fetch(swapTokenUrl, env);
+			fetched = HttpUtils.fetch(swapTokenUrl);
 		} catch (RuntimeException e) {
 			errorMessage = e.getMessage();
 			hasError = true;
@@ -102,11 +103,12 @@ public class FacebookConnectorController {
 			
 			if (!access_token.equals("")) {
 				Connector connector = Connector.getConnector("facebook");
-				Guest guest = ControllerHelper.getGuest();
-		
-				guestService.setApiKeyAttribute(guest.getId(), connector,
+				Guest guest = AuthHelper.getGuest();
+            final ApiKey apiKey = guestService.createApiKey(guest.getId(), connector);
+
+				guestService.setApiKeyAttribute(apiKey,
 						"accessToken", access_token);
-				guestService.setApiKeyAttribute(guest.getId(), connector,
+				guestService.setApiKeyAttribute(apiKey,
 						"expires", expires);
 				
 				return new ModelAndView("redirect:/app/from/"+connector.getName());

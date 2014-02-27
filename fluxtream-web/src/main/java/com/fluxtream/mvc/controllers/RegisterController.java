@@ -2,11 +2,12 @@ package com.fluxtream.mvc.controllers;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
+import com.fluxtream.domain.Guest;
+import com.fluxtream.services.GuestService;
+import com.fluxtream.services.impl.ExistingEmailException;
+import com.fluxtream.services.impl.UsernameAlreadyTakenException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,12 +16,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.fluxtream.services.GuestService;
+import static com.fluxtream.utils.Utils.generateSecureRandomString;
 
 @Controller
 public class RegisterController {
 	
-	Logger logger = Logger.getLogger(RegisterController.class);
+	FlxLogger logger = FlxLogger.getLogger(RegisterController.class);
 
 	@Qualifier("authenticationManager")
 	AuthenticationManager authenticationManager;
@@ -48,9 +49,7 @@ public class RegisterController {
 		@RequestParam("password2") String password2,
 //		@RequestParam("recaptchaChallenge") String challenge,
 //		@RequestParam("recaptchaResponse") String uresponse,
-		HttpServletRequest request,
-		HttpServletResponse response) throws Exception
-	{
+		HttpServletRequest request) throws Exception, UsernameAlreadyTakenException, ExistingEmailException {
 		email = email.trim();
 		password = password.trim();
 		password2 = password2.trim();
@@ -86,9 +85,10 @@ public class RegisterController {
 		
 		if (errors.size()==0&&required.size()==0) {
 			logger.info("action=register success=true username="+username + " email=" + email);
-			guestService.createGuest (username, firstname, lastname, password, email);
-			request.setAttribute("username", username);
-			request.setAttribute("password", password);
+            final Guest guest = guestService.createGuest(username, firstname, lastname, password, email, Guest.RegistrationMethod.REGISTRATION_METHOD_FORM);
+            final String autoLoginToken = generateSecureRandomString();
+            guestService.setAutoLoginToken(guest.getId(), autoLoginToken);
+			request.setAttribute("autoLoginToken", autoLoginToken);
 			return new ModelAndView("accountCreationComplete");
 		} else {
 			logger.info("action=register errors=true");

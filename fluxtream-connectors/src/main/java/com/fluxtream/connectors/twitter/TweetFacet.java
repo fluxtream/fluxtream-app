@@ -13,10 +13,8 @@ import com.fluxtream.domain.AbstractFacet;
 @ObjectTypeSpec(name = "tweet", value = 1, extractor = TwitterFacetExtractor.class, parallel = true, prettyname = "Tweets")
 //@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
 @NamedQueries({
-		@NamedQuery(name = "twitter.tweet.deleteAll", query = "DELETE FROM Facet_Tweet facet WHERE facet.guestId=?"),
-		@NamedQuery(name = "twitter.tweet.between", query = "SELECT facet FROM Facet_Tweet facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?"),
-		@NamedQuery(name = "twitter.tweet.oldest", query = "SELECT facet FROM Facet_Tweet facet WHERE facet.guestId=? ORDER BY facet.start ASC"),
-		@NamedQuery(name = "twitter.tweet.newest", query = "SELECT facet FROM Facet_Tweet facet WHERE facet.guestId=? ORDER BY facet.start DESC LIMIT 1")
+		@NamedQuery(name = "twitter.tweet.smallestTwitterId", query = "SELECT facet FROM Facet_Tweet facet WHERE facet.guestId=? ORDER BY facet.tweetId ASC LIMIT 1"),
+		@NamedQuery(name = "twitter.tweet.biggestTwitterId", query = "SELECT facet FROM Facet_Tweet facet WHERE facet.guestId=? ORDER BY facet.tweetId DESC LIMIT 1")
 })
 @Indexed
 public class TweetFacet extends AbstractFacet {
@@ -27,8 +25,16 @@ public class TweetFacet extends AbstractFacet {
     public String profileImageUrl;
     public String userName;
 	long time;
-	
-	@Override
+
+    public TweetFacet() {
+        super();
+    }
+
+    public TweetFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
+    @Override
 	protected void makeFullTextIndexable() {
 		this.fullTextDescription = text;
 	}

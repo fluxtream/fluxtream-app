@@ -1,0 +1,1 @@
+ALTER TABLE `ApiKey` ADD COLUMN `settingsStorage` longblob NULL;

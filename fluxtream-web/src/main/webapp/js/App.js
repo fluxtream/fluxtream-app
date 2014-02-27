@@ -1,11 +1,125 @@
+var dateFormat = function () {
+    var	token = /d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,
+        timezone = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,
+        timezoneClip = /[^-+\dA-Z]/g,
+        pad = function (val, len) {
+            val = String(val);
+            len = len || 2;
+            while (val.length < len) val = "0" + val;
+            return val;
+        };
+
+    // Regexes and supporting functions are cached through closure
+    return function (date, mask, utc) {
+        var dF = dateFormat;
+
+        // You can't provide utc if you skip other args (use the "UTC:" mask prefix)
+        if (arguments.length == 1 && Object.prototype.toString.call(date) == "[object String]" && !/\d/.test(date)) {
+            mask = date;
+            date = undefined;
+        }
+
+        // Passing date through Date applies Date.parse, if necessary
+        date = date ? new Date(date) : new Date;
+        if (isNaN(date)) throw SyntaxError("invalid date");
+
+        mask = String(dF.masks[mask] || mask || dF.masks["default"]);
+
+        // Allow setting the utc argument via the mask
+        if (mask.slice(0, 4) == "UTC:") {
+            mask = mask.slice(4);
+            utc = true;
+        }
+
+        var	_ = utc ? "getUTC" : "get",
+            d = date[_ + "Date"](),
+            D = date[_ + "Day"](),
+            m = date[_ + "Month"](),
+            y = date[_ + "FullYear"](),
+            H = date[_ + "Hours"](),
+            M = date[_ + "Minutes"](),
+            s = date[_ + "Seconds"](),
+            L = date[_ + "Milliseconds"](),
+            o = utc ? 0 : date.getTimezoneOffset(),
+            flags = {
+                d:    d,
+                dd:   pad(d),
+                ddd:  dF.i18n.dayNames[D],
+                dddd: dF.i18n.dayNames[D + 7],
+                m:    m + 1,
+                mm:   pad(m + 1),
+                mmm:  dF.i18n.monthNames[m],
+                mmmm: dF.i18n.monthNames[m + 12],
+                yy:   String(y).slice(2),
+                yyyy: y,
+                h:    H % 12 || 12,
+                hh:   pad(H % 12 || 12),
+                H:    H,
+                HH:   pad(H),
+                M:    M,
+                MM:   pad(M),
+                s:    s,
+                ss:   pad(s),
+                l:    pad(L, 3),
+                L:    pad(L > 99 ? Math.round(L / 10) : L),
+                t:    H < 12 ? "a"  : "p",
+                tt:   H < 12 ? "am" : "pm",
+                T:    H < 12 ? "A"  : "P",
+                TT:   H < 12 ? "AM" : "PM",
+                Z:    utc ? "UTC" : (String(date).match(timezone) || [""]).pop().replace(timezoneClip, ""),
+                o:    (o > 0 ? "-" : "+") + pad(Math.floor(Math.abs(o) / 60) * 100 + Math.abs(o) % 60, 4),
+                S:    ["th", "st", "nd", "rd"][d % 10 > 3 ? 0 : (d % 100 - d % 10 != 10) * d % 10]
+            };
+
+        return mask.replace(token, function ($0) {
+            return $0 in flags ? flags[$0] : $0.slice(1, $0.length - 1);
+        });
+    };
+}();
+
+// Some common format strings
+dateFormat.masks = {
+    "default":      "ddd mmm dd yyyy HH:MM:ss",
+    shortDate:      "m/d/yy",
+    mediumDate:     "mmm d, yyyy",
+    longDate:       "mmmm d, yyyy",
+    fullDate:       "dddd, mmmm d, yyyy",
+    shortTime:      "h:MM TT",
+    mediumTime:     "h:MM:ss TT",
+    longTime:       "h:MM:ss TT Z",
+    isoDate:        "yyyy-mm-dd",
+    isoTime:        "HH:MM:ss",
+    isoDateTime:    "yyyy-mm-dd'T'HH:MM:ss",
+    isoUtcDateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"
+};
+
+// Internationalization strings
+dateFormat.i18n = {
+    dayNames: [
+        "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
+        "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+    ],
+    monthNames: [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+        "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
+    ]
+};
+
+// For convenience...
+Date.prototype.format = function (mask, utc) {
+    return dateFormat(this, mask, utc);
+};
+
 define(
-    [ "core/FlxState", "Addresses", "ManageConnectors", "AddConnectors", "ConnectorConfig", "Settings",
-      "libs/jquery.form", "libs/jquery.jeditable.mini" ],
-    function(FlxState, Addresses, ManageConnectors, AddConnectors, ConnectorConfig, Settings) {
+    [ "core/FlxState", "Addresses", "ManageConnectors", "AddConnectors", "ConnectorConfig", "Settings", "SharingDialog",
+      "libs/jquery.form", "libs/jquery.jeditable.mini", "libs/jquery.timeago" ],
+    function(FlxState, Addresses, ManageConnectors, AddConnectors, ConnectorConfig, Settings,
+        SharingDialog ) {
 
         var App = {};
-        var toLoad = 0, loaded = 0;
-        var apps = {};
+
+        App.apps = {};
+
         var compiledTemplates = {};
 
         function initialize() {
@@ -13,10 +127,22 @@ define(
             // start loading all applications
             checkScreenDensity();
             loadApps();
+
+            bindGlobalEventHandlers();
+        }
+
+        function bindGlobalEventHandlers(){
+            $("body").on("keyup.gloablAppEventHandler",function(event){
+                if (event.keyCode == 27 && App.modals.length > 0){
+                    event.preventDefault();
+                    App.modals[0].modal("hide");//close the top most modal dialog
+                }
+            })
+
         }
 
         function checkScreenDensity() {
-            var retina = window.devicePixelRatio > 1 ? true : false;
+            var retina = window.devicePixelRatio > 1;
             setCookie("retina", retina?"1":"0", 30);
         }
 
@@ -34,119 +160,180 @@ define(
          * future) to let every application know of the existence of others
          */
         function loadApps() {
-            toLoad = FlxState.apps.length;
-            for ( var i = 0; i < FlxState.apps.length; i++) {
-                require([ "applications/" + FlxState.apps[i] + "/App" ],
-                        function(app) {
-                            apps[app.name] = app;
-                            app.initialize();
-                            appLoaded(app.name);
-                        });
+            var appModules = FlxState.apps.map(function(appName) {
+                return "applications/" + appName + "/App";
+            });
+            require(appModules, function(/* apps */) {
+
+                for (var i = 0; i < arguments.length; i++) {
+                    var app = arguments[i];
+                    App.apps[app.name] = app;
+                    app.initialize();
+                }
+
+                createAppsMenu();
+                loadAppTemplates();
+            });
+        }
+
+        function renderAppTemplate(app, html) {
+            var appDiv = $("<div/>", {
+                class: "application",
+                id: app.name + "-app"
+            }).addClass("dormant").html(html);
+            $("#applications").append(appDiv);
+        }
+
+        function loadAppTemplates() {
+            var apps = _.values(App.apps),
+                appTemplates = apps.map(function(app) {
+                    return "text!applications/" + app.name + "/template.html";
+                });
+            require(appTemplates, function(/* templates */) {
+                for (var i = 0; i < arguments.length; i++)  {
+                    renderAppTemplate(apps[i], arguments[i]);
+                    apps[i].setup();
+                }
+                setupURLRouting();
+            });
+        }
+
+        function setAppDivEnabled(app, enabled) {
+            var appDiv = $("#" + app.name + "-app");
+            appDiv.toggleClass("active", enabled);
+            appDiv.toggleClass("dormant", !enabled);
+        }
+
+        function maybeSwapApps(app) {
+            // TODO: add destroy()/setup() calls again...
+            $(".appMenuBtn.active").removeClass("active");
+            $("#"+app.name+"MenuButton").addClass('active');
+            var appChanged = app !== App.activeApp;
+            if (appChanged) {
+                if (!_.isUndefined(App.activeApp)) {
+                    setAppDivEnabled(App.activeApp, false);
+                }
+                App.activeApp = app;
+            }
+            setAppDivEnabled(app, true);
+        }
+
+        function renderDefault(app) {
+            maybeSwapApps(app);
+            App.activeApp.renderDefaultState();
+        }
+
+        function render(app, state) {
+            maybeSwapApps(app);
+            App.activeApp.renderState(state);
+        }
+
+        function setupURLRouting() {
+            FlxState.router.route("*path", "default", function(path) {
+                console.log("default route: path=" + path);
+                var appName = FlxState.defaultApp,
+                    app = App.apps[appName];
+                renderDefault(app);
+            });
+            FlxState.router.route("app/:name", "app-default", function(appName) {
+                console.log("app-default route: name=" + appName);
+                var app = App.apps[appName];
+                renderDefault(app);
+            });
+            FlxState.router.route("app/:name/*state", "app", function(appName, state) {
+                console.log("app route: name=" + appName + ", state=" + state);
+                var app = App.apps[appName];
+                if (_.isUndefined(app)) {
+                    console.log("invalid app: " + appName);
+                    App.invalidPath();
+                }
+                // strip trailing slash from state, if any
+                if (state.endsWith("/")) {
+                    state = state.slice(0, -1);
+                }
+                FlxState.saveState(appName, state);
+                state = app.parseState(state);
+                if (state === null) {
+                    console.log("invalid state: " + state);
+                    App.invalidPath();
+                    return;
+                }
+                render(app, state);
+            });
+
+            if (!Backbone.history.start({pushState : window.history && window.history.pushState})) {
+                console.log("error loading routes!");
             }
         }
 
         /**
          * Add the buttons to the top apps menu
          */
-        function createAppsMenu(appName, appIcon) {
-            for ( var i = 0; i < FlxState.apps.length; i++) {
-                var app = apps[FlxState.apps[i]];
-                $("#apps-menu")
-                    .append(
-                    "<button id=\""
-                        + app.name
-                        + "MenuButton\" class=\"btn appMenuBtn\" "
-                        + "onclick=\"javascript:App.renderApp('"
-                        + app.name + "','last')\">"
-                        + "<i class=\"" + app.icon
-                        + "  icon-large\"></i></button>");
-            }
-        }
-
-        /**
-         * Application-is-loaded callback
-         */
-        function appLoaded(appName) {
-            // we keep track of how many apps have been loaded
-            loaded++;
-            // when all apps are loaded...
-            if (loaded === toLoad) {
-                App.apps = apps;
-                // we create the top apps menu
-                createAppsMenu();
-                // we start the history
-                Backbone.history.start({
-                                           pushState : true
-                                       });
-                // finally we render the default - or url-specified - app
-                renderMainApp();
-            }
-        }
-
-        /**
-         * Render main app or the one that's specified in the location bar's
-         * contents
-         */
-        function renderMainApp() {
-            var parse_url = /^(?:([A-Za-z]+):)?(\/{0,3})([0-9.\-A-Za-z]+)(?::(\d+))?(?:\/([^?#]*))?(?:\?([^#]*))?(?:#(.*))?$/;
-            var result = parse_url.exec(window.location.href);
-            var names = [ 'url', 'scheme', 'slash', 'host', 'port', 'path',
-                          'query', 'hash' ];
-            var blanks = ' ';
-            var i;
-            var parts = {};
-            for (i = 0; i < names.length; i += 1)
-                parts[names[i]] = result[i];
-            var splits = parts.path.split("/");
-            if (splits[0] === "app" && typeof (splits[1]) != "undefined") {
-                var appState = parts.path.substring("app/".length
-                                                        + splits[1].length + 1);
-                var appName = splits[1];
-                FlxState.saveState(appName, appState);
-                if (typeof(apps[appName])=="undefined") {
-                    if (console && console.log) console.log("invalid app: " + appName);
-                    App.invalidPath();
-                }
-                App.activeApp = apps[appName];
-            } else {
-                App.activeApp = apps[FlxState.defaultApp];
-                apps[FlxState.defaultApp].render("");
-            }
-        }
-
-        function fullHeight() {
-            if ($(".fullHeight").length>0) {
-                tabsY = $("#tabs").position().top;
-                windowHeight = $(window).height();
-                footerHeight = $("#footer").height();
-                fHeight = (windowHeight-tabsY-footerHeight-20);
-                $(".fullHeight").height(fHeight);
-            }
-            $(window).resize(function() {
-                setTimeout(App.fullHeight, 100);
+        function createAppsMenu() {
+            $.each(FlxState.apps, function(i, appName) {
+                var app = App.apps[appName],
+                    button = $("<button/>", {
+                        id: app.name + "MenuButton",
+                        class: "btn appMenuBtn",
+                        text: app.prettyName
+                    }).click(function(event) {
+                        App.renderApp(app.name);
+                    });
+                $("#apps-menu").append(button);
             });
         }
 
+        function fullHeight() {
+            var windowHeight = $(window).height();
+            var footerHeight = $("#footer").outerHeight(false);
+            if ($(".fullHeight").length>0) {
+                tabsY = $("#tabs").position().top;
+
+                fHeight = (windowHeight-tabsY-footerHeight);
+                $(".fullHeight").height(fHeight);
+            }
+            var contentHeight = (windowHeight - footerHeight);
+            $("#content").css("min-height",contentHeight + "px");
+        }
+
+        $(window).resize(function() {
+            $.doTimeout("fullSizeHandler");//cancel original
+            $.doTimeout("fullSizeHandler",100,App.fullHeight);
+        });
+
+        $(window).resize();
+
         function renderApp(appName,state,params) {
-            if (params == null)
-                params = {};
-            App.activeApp.saveState();
-            App.activeApp=App.apps[appName];
-            App.apps[appName].render(state,params);
+            var app = App.apps[appName];
+            if (_.isUndefined(state)) {
+                state = FlxState.getState(appName);
+            }
+            app.navigateState(state,params);
         }
 
         App.settings = function() {
             Settings.show();
         };
 
+        App.modals = [];
+
         function makeModal(html) {
             var dialog = $(html);
+            App.modals.unshift(dialog);
             dialog.addClass("modal");
             dialog.addClass("hide");
             $("body").append(dialog);
             dialog.modal();
-            dialog.on("hidden",function(){
+            dialog.on("hidden.cleanupListener",function(event){
+                event.stopImmediatePropagation();
                 dialog.remove();
+                var index = App.modals.indexOf(dialog);
+                if (index == -1){
+                    console.warn("couldn't find dialog in modal list");
+                }
+                else{
+                    App.modals.splice(index,1);
+                }
             });
             var backdrops = $(".modal-backdrop");
             if (backdrops.length > 1){
@@ -157,6 +344,7 @@ define(
                 zIndex++;
                 dialog.css("zIndex",zIndex);
             }
+            return dialog;
         }
 
         App.makeModal = makeModal;
@@ -197,14 +385,51 @@ define(
                 compiledTemplates[templatePath] = templateData;
                 onLoad(compiledTemplates[templatePath]);
             });
-        }
+        };
 
         App.closeModal = function(){
             $("#modal").modal("hide");
+        };
+
+        App.htmlEscape = function(str){
+            return str.replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
         }
 
         App.eraseEverything = function() {
+            if (typeof(ga)!="undefined") {
+                ga('send', 'event', 'button', 'click', 'eraseEverything', 1);
+            }
             var confirmed = confirm("Are you sure?");
+            if (confirmed) {
+                $.ajax({
+                    url: "/api/settings/deleteAccount",
+                    type: "POST",
+                    success: function(status) {
+                        if (status.result=="OK") {
+                            window.location = "/logout";
+                        } else {
+                            alert(status.message);
+                        }
+                    }
+                });
+            }
+        };
+
+        App.as = function(username) {
+            $.ajax({
+                url: "/api/coaching/coachees/" + username,
+                type: "POST",
+                success: function(status) {
+                    if (status.result=="OK") {
+                        location.reload();
+                    } else
+                        alert(status.message);
+                }
+            });
         };
 
         App.connectors = function() {
@@ -213,17 +438,19 @@ define(
 
         App.addresses = function() {
             Addresses.show();
-        }
+        };
 
         App.manageConnectors = function(){
             ManageConnectors.show();
-        }
+        };
 
         App.removeConnector = function(api) {
+            if (typeof(ga)!='undefined') {ga('send', 'event', 'button', 'click', 'removeConnector', 1);}
             var c = confirm("If you wrote comments on events related to this connector, "
-                                + "you will loose them forever.\n"
+                                + "you will lose them forever.\n"
                                 + "Are your sure you want to continue?");
             if (c) {
+                if (typeof(ga)!='undefined') {ga('send', 'event', 'button', 'click', 'removeConnectorConfirmed', 1);}
                 $.ajax({
                            url : "/connectors/removeConnector?api=" + api,
                            dataType : "json",
@@ -240,22 +467,32 @@ define(
             }
         };
 
+        App.getConnectorSettings = function(connectorId) {
+            console.log("getting connector settings: " + connectorId);
+        };
+
         App.getConnectorConfig = function(connectorName){
             var config = ConnectorConfig[connectorName];
             if (config == null){
                 console.log("WARNING: No config found for connector: " + connectorName);
-                config = ConnectorConfig.default;
+                config = {};
             }
             config = $.extend({}, config);
             config.facets = false;
+
+            for (var member in ConnectorConfig.default){
+                if (typeof config[member] === "undefined")
+                    config[member] = ConnectorConfig.default[member];
+            }
+
             return config;
-        }
+        };
 
         App.getFacetConfig = function(facetName){
             var config = ConnectorConfig[App.getFacetConnector(facetName)];
             if (config == null){
                 console.log("WARNING: No config found for Connector: " + App.getFacetConnector(facetName));
-                config = ConnectorConfig.default;
+                config = {};
             }
             var finalConfig = $.extend({},config);
             finalConfig.facets = null;
@@ -269,6 +506,11 @@ define(
                         finalConfig[member] = facet[member];
                     }
                 }
+            }
+
+            for (var member in ConnectorConfig.default){
+                if (typeof finalConfig[member] === "undefined")
+                    finalConfig[member] = ConnectorConfig.default[member];
             }
             return finalConfig;
 
@@ -295,24 +537,44 @@ define(
 
         App.addConnector = function(url) {
             if (startsWith(url, "ajax:")) {
-                var savedConnectorContent = $(".addConnectorsMain").html();
                 $.ajax({
-                           url : url.substring(5),
-                           success : function(html) {
-                               $(".addConnectorsMain").html(html);
-                               $(".focushere").focus();
-                           }
-                       });
+                   url : url.substring(5),
+                   success : function(html) {
+                       $(".addConnectorsMain").html(html);
+                       $(".focushere").focus();
+                   }
+                });
+            } else if (startsWith(url, "upload:")) {
+                var connectorName = url.substring(7);
+                $.ajax({
+                    url : "/upload/addConnector",
+                    type: "POST",
+                    data: {connectorName : connectorName},
+                    success : function(response) {
+                        var status;
+                        try { status = JSON.parse(response); }
+                        catch(err) { alert("Couldn't add upload-only connector:" + err); }
+                        if (status.result==="OK") {
+                            $("#modal").modal("hide");
+                            App.activeApp.renderState(App.state.getState(App.activeApp.name),true);
+                        }
+                        else {
+                            if (typeof(status.stackTrace)!="undefined")
+                                console.log(status.stackTrace);
+                            alert("Could not add upload-only connector: " + status.message);
+                        }
+                    }
+                });
             } else {
                 var loading = $("#loading").clone().show();
                 $(".addConnectorsMain").empty();
                 $(".addConnectorsMain").append(loading);
                 setTimeout("window.location='" + url + "'", 500);
             }
+            if (typeof(ga)!='undefined') {ga('send', 'event', 'button', 'click', 'addConnector', 1);}
         };
 
         App.showConnectorsPage = function(page) {
-            console.log("showing connectors page " + page);
             $("#availableConnectors").load(
                 "/connectors/availableConnectors?page=" + page);
         };
@@ -322,7 +584,8 @@ define(
                     url: "/api/notifications/" + notificationId,
                     type: "DELETE",
                     success: function() {
-                        $("#notification-" + notificationId).remove()
+                        $("#notification-" + notificationId).remove();
+                        $(window).resize();
                     }
                 }
             );
@@ -331,15 +594,75 @@ define(
         App.showCarousel = function(photoId) {
             if ($("#photosCarousel").length==0) {
                 $.ajax({
-                           url : "/tabs/photos/carousel",
-                           success: function(html) {
-                               makeModal(html);
-                               carousel(photoId);
-                           }
-                       });
+                   url : "/tabs/photos/carousel",
+                   success: function(html) {
+                       makeModal(html);
+                       carousel(photoId);
+                   }
+                });
             } else {
                 carousel(photoId);
             }
+        };
+
+        var monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Nov","Dec"];
+
+        App.duplicateVisitedCityForDate = function(city,date){
+            var cityToReturn = $.extend({},city,{});
+            cityToReturn.date = date;
+            var dateWithTimezoneParts = cityToReturn.dateWithTimezone.split(" ");
+            dateWithTimezoneParts.splice(0,1,date);
+            cityToReturn.dateWithTimezone = dateWithTimezoneParts.join(" ");
+
+            var msDifference = new Date(cityToReturn.dateWithTimezone) - new Date(city.dateWithTimezone);
+            cityToReturn.dayStart += msDifference;
+            cityToReturn.dayEnd += msDifference;
+
+            var startTime = city.startTime.split(" ");
+            var endTime = city.endTime.split(" ");
+
+            var targetDate = new Date(cityToReturn.dateWithTimezone);
+            startTime[0] = endTime[0] = monthNames[targetDate.getMonth()];
+            startTime[1] = endTime[1] = targetDate.getDate();
+            if (startTime[1] < 10)
+                startTime[1] = endTime[1] = "0" + startTime[1];
+            startTime[1] = endTime[1] = startTime[1] + ",";
+
+            cityToReturn.startTime = startTime.join(" ");
+            cityToReturn.endTime = endTime.join(" ");
+
+
+            return cityToReturn;
+
+        }
+
+        App.getFacetCity = function(facet, citiesList){
+            var closestCity = null;
+            var cityTimeDistance = 0;
+            for (var i= 0, li = citiesList.length; i < li; i++) {
+                var city = citiesList[i];
+                if (city.date===facet.date) {
+                    //console.log("found date for facet\ncity: " + JSON.stringify(city) + "\nfacet: " + JSON.stringify(facet));
+                    return city;
+                }
+                else{
+                    var distance = Math.abs(new Date(city.date) - new Date(facet.date));
+                    if (closestCity == null || distance < cityTimeDistance){
+                        cityTimeDistance = distance;
+                        closestCity = city;
+                    }
+
+
+                }
+            }
+            //if we couldn't find the city for the facet we attempt to get a closest match, in many places having no city will make the facet unviewable
+            return App.duplicateVisitedCityForDate(closestCity,facet.date);
+        };
+
+        App.prettyDateFormat = function(dateString) {
+            dateString = dateString.split(" ")[0];
+            var date = new Date(Date.parse(dateString) + 1000 * 60 * 60 * 12);   // place it in the middle of the day to help prevent errors
+            return date.format("dddd, mmmm d");
         };
 
         App.formatDate = function(date, includeTime, UTC){
@@ -420,11 +743,11 @@ define(
             value += ", " + year;
             if (includeTime){
                 value += " " + hour;
-                value += ":"
+                value += ":";
                 if (minute < 10)
                     value += "0";
                 value += minute;
-                value += ":"
+                value += ":";
                 if (second < 10)
                     value += "0";
                 value += second;
@@ -442,23 +765,58 @@ define(
                 return [(hour > 12 ? hour - 12 : 12) + ":" + minutes, "pm"];
         }
 
-        App.formatDateAsDatePicker = function(date){
+        App.formatDateAsDatePicker = function(date) {
             if (typeof(date) == "number")
                 date = new Date(date);
-            if (isNaN(date.getFullYear()))
-                return "Present";
-            return date.getFullYear() + "-" + (date.getMonth() < 9 ? "0" : "") + (date.getMonth() + 1) + "-" + (date.getDate() < 9 ? "0" : "") + date.getDate();
+            return App._formatDateAsDatePicker(date.getFullYear(), date.getMonth(), date.getDate());
         }
 
+        App._formatDateAsDatePicker = function(year, month, date) {
+            if (isNaN(year))
+                return "Present";
+            return year + "-" + (month < 9 ? "0" : "") + (month + 1) + "-" + (date < 9 ? "0" : "") + date;
+        }
+
+        //This is a hack to force enable dropdown on all specified elements since bootstrap doesn't seem to be doing it on its own
+        function globalClickHandler(event){
+            for (var target = event.target; target != null; target = target.parentElement){
+                if ($(target).attr("data-toggle") == "dropdown"){
+                    $(target).dropdown("toggle");
+                    break;
+                }
+                else if ($(target).attr("data-toggle") == "collapse"){
+                    $($(target).attr("data-target")).addClass("collapse");
+                    $($(target).attr("data-target")).collapse("toggle");
+                }
+            }
+        }
+
+        var hideFunctions = [];
+
+        var onEvent = function(event){ //hides the tooltip if an element clicked on or any of its parents has the notthide property
+            for (var target = event.target; target != null; target=target.parentElement){
+                if ($(target).attr("notthide") != null)
+                    return;
+            }
+            for (var i = 0, li = hideFunctions.length; i < li; i++)
+                hideFunctions[i]();
+        };
+
+        $(document).bind("touchend",onEvent).bind("click",globalClickHandler).bind("mousedown", onEvent);
+
+        var hideFunctions = [];
+
         App.addHideTooltipListener = function(hideFunction) {
+            hideFunctions.push(hideFunction);
             var onEvent = function(event){ //hides the tooltip if an element clicked on or any of its parents has the notthide property
                 for (var target = event.target; target != null; target=target.parentElement){
                     if ($(target).attr("notthide") != null)
                         return;
                 }
-                hideFunction();
+                for (var i = 0, li = hideFunctions.length; i < li; i++)
+                    hideFunctions[i];
             };
-            $(document).unbind("click").unbind("touchend").bind("touchend",onEvent).bind("click", onEvent);
+            $(document).unbind("click").unbind("touchend").bind("touchend",onEvent).bind("click",globalClickHandler).bind("click", onEvent);
         }
 
         App.search = function() {
@@ -473,12 +831,102 @@ define(
 
         App.isLeapYear = function(year){
             return (year % 400 == 0) || (year % 100 != 0 && year % 4 == 0);
+        };
+
+        App.expandCollapse = function(o) {
+            var finedetails = $(o).closest(".facetDetails").find(".flx-finedetails");
+            var details = finedetails.html();
+            finedetails.toggleClass("flx-collapsed");
+            if (!finedetails.hasClass("flx-collapsed")){
+                finedetails.empty();
+                finedetails.append(details);
+            }
+            finedetails.parent().parent().trigger("contentchange");
+        }
+
+        App.setupBeginnersFriendlyUI = function (messageDisplayCounters, nApis) {
+            App.messageDisplayCounters = messageDisplayCounters;
+            if (nApis==0) {
+                $("#manageConnectorsMenuItem").addClass("disabled");
+                $("#connectorsDropdownToggle").popover({
+                    container: "body",
+                    placement: "bottom",
+                    title: "Click menu above to add your first Connector!",
+                    content: "Connectors let Fluxtream link up your data",
+                    animation: true
+                });
+                $("#connectorsDropdownToggle").popover("show");
+            } else {
+                $("#manageConnectorsMenuItem").removeClass("disabled");
+            }
+            var messages = [
+                {
+                    element     : "bodytrackMenuButton",
+                    title       : "This is the BodyTrack Application",
+                    content     : "It lets you explore your data in a zoomable timeline, load and save different views.",
+                    placement   : "bottom"
+                },{
+                    element     : "calendarMenuButton",
+                    title       : "This is the Calendar application",
+                    content     : "This app gives you different aggregated views of your data: as a clock, a list, a map " +
+                                  "or a photo gallery. It also provides a timeline, but it only shows the default channels " +
+                                  "for each connector and doesn't let you load and save views like the BodyTrack app.",
+                    placement   : "bottom"
+                },{
+                    element     : "timelineRuler",
+                    title       : "Pan & Zoom",
+                    content     : "If you have a trackpad, go up/down to Zoom in and out, left/right to pan.\n" +
+                                  "If you have a mouse, use the scrollwheel to zoom in and out and drag the ruler left and right to pan.",
+                    placement   : "top"
+                }
+            ];
+            for (var i=0; i<messages.length; i++) {
+                bindPopover(messages[i].element, messages[i].title, messages[i].content, messages[i].placement);
+            }
+        };
+
+        function bindPopover(element, title, content, placement){
+            if (typeof(App.messageDisplayCounters[element])=="undefined"||
+                App.messageDisplayCounters[element]<3) {
+                var popover = $("#"+element).popover({
+                    container: "body",
+                    placement: placement,
+                    trigger: "hover",
+                    title: title,
+                    content: content,
+                    animation: true
+                });
+                popover.on("hidden", function(e){
+                    var element = e.target.id;
+                    incrementMessageDisplay(element);
+                    if (App.messageDisplayCounters[element]==2) {
+                        $("#"+element).unbind();
+                        $("#"+element).popover("destroy");
+                    }
+                });
+            }
+        }
+
+        function incrementMessageDisplay(messageName){
+            $.ajax({
+                url: "/api/settings/"+messageName+"/increment",
+                method: "POST",
+                success: function(status){
+                    if (status.result=="OK") {
+                        var count =parseInt(status.payload,10);
+                        App.messageDisplayCounters[messageName] = count;
+                    } else
+                        console.log("Couldn't increment message display for " + messageName)
+                }
+            });
         }
 
         function carousel(photoId) {
             $(".carousel-inner div.item").removeClass("active");
             $(".carousel-inner #photo-"+photoId).addClass("active");
+            $('.carousel').carousel();
             $("#modal").modal("show");
+            $(window).resize();
         }
 
         function invalidPath() {
@@ -497,6 +945,69 @@ define(
             return $("#flxUID").html();
         }
 
+        window.FlxUtils = {};
+        FlxUtils.rowsOf = function(array, size) {
+            if (array.length==0) return [[]];
+            var row = [array[0]], rows = [{row : row}], i=1;
+            for (; i<array.length; i++) {
+                if (i%size===0) {
+                    row = [];
+                    rows.push({row : row});
+                }
+                row.push(array[i]);
+            }
+            return rows;
+        }
+
+        App.toPolar = function(center, x, y){
+            x -= center[0];
+            y -= center[1];
+            var r = Math.sqrt(x * x + y * y);
+            var theta;
+            if (x == 0){
+                if (y > 0)
+                    theta = Math.PI / 2;
+                else
+                    theta = 3 * Math.PI / 2;
+            }
+            else if (y == 0){
+                if (x > 0)
+                    theta = 0;
+                else
+                    theta = Math.PI;
+            }
+            else if (x > 0)
+                theta = Math.atan(y/x);
+            else
+                theta = Math.PI + Math.atan(y/x);
+            theta *= 180 / Math.PI;
+            if (theta < 0)
+                theta += 360;
+            return [r,theta];
+        }
+
+        App.adjustiFrameHeight = function(iFrameId) {
+            var iFrame = document.getElementById(iFrameId);
+            if(iFrame) {
+                iFrame.height = "";
+                var height = iFrame.contentWindow.document.body.scrollHeight + "px";
+                iFrame.height = height;
+            }
+        }
+
+        App.quickStart = function() {
+            App.loadMustacheTemplate("settingsTemplates.html","quickStartDialog",function(template){
+                var html = template.render({release : window.FLX_RELEASE_NUMBER});
+                App.makeModal(html);
+            });
+        }
+
+        App.privacyPolicy = function() {
+            App.loadMustacheTemplate("settingsTemplates.html","privacyPolicyDialog",function(template){
+                var html = template.render({release : window.FLX_RELEASE_NUMBER});
+                App.makeModal(html);
+            });
+        }
 
         App.getUsername = getUsername;
         App.getUID = getUID;
@@ -506,6 +1017,7 @@ define(
         App.fullHeight = fullHeight;
         App.invalidPath = invalidPath;
         App.geocoder = new google.maps.Geocoder();
+        App.sharingDialog = SharingDialog;
         window.App = App;
         return App;
 

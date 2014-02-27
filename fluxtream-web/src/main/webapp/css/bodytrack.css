@@ -68,7 +68,7 @@
     border-top: 3px solid #D1D2D3;
 }
 
-._timeline_addChannelsArea ul li {
+._timeline_addChannelsArea > ul > li {
     width: 100%;
 }
 
@@ -137,6 +137,7 @@
     margin: 0;
     padding: 0;
     border: 1px solid #D1D2D3;
+    background-color: white;
 }
 
 ._timeline_channel_hover {
@@ -248,7 +249,6 @@
 }
 
 ._timeline_plotContainer {
-    border-top: 1px solid #CCCCCC;
     border-left: 1px solid #CCCCCC;
     border-right: 1px solid #CCCCCC;
 }
@@ -332,10 +332,15 @@
 
 ._timeline_gotozoom {
     width: 202px;
-    height: 70px;
+    height: 36px;
     margin-left: 1px;
     border: 1px solid #CCCCCC;
     background: #BCBCBC;
+}
+
+._timeline_gotozoom .btn-toolbar{
+    margin-top:4px;
+    margin-bottom:0px;
 }
 
 ._timeline_gotozoom_button {
@@ -357,25 +362,30 @@
 
 ._timeline_dateAxisContainer {
     width: auto;
-    height:70px;
+    height: 35px;
     margin: 0 53px 0 0px;
     padding: 0;
     border: 1px solid #CCCCCC;
     border-bottom-width: 0;
+    border-right-width:0;
 }
 
 ._timeline_dateAxis {
     width: auto;
-    height: 70px;
+    height: 37px;
+    border-right: 1px solid #CCCCCC;
     z-index: 2;
 }
 
 ._timeline_dateAxisLabelRegion {
-    min-width: 400px;
     height: 20px;
-    padding: 0;
-    margin-top: -20px;
+    margin-top:-20px;
+    padding-left: 525px;
     z-index: 1;
+}
+
+._timeline_dateAxisLabelRegion.channelAreaShowing{
+    padding-left:316px;
 }
 
 ._timeline_dataPointTimeZoneLabel {
@@ -383,6 +393,7 @@
     padding: 0 5px 0 5px;
     text-align: left;
     color: #778899;
+    pointer-events: none;
 }
 
 ._timeline_dataPointValueLabel {
@@ -390,6 +401,7 @@
     padding: 0 5px 0 5px;
     text-align: right;
     margin-top: -20px;
+    pointer-events: none;
 }
 
 .ui-dialog .ui-dialog-content {
@@ -424,7 +436,7 @@
 }
 
 ._timeline_photo_dialog_timestamp {
-    font-size: 9pt;
+    font-size: 8pt;
     width: 300px;
     min-width: 300px;
     border-bottom: 1px solid #aaaaaa;
@@ -434,7 +446,7 @@
 ._timeline_photo_dialog_comment {
     margin: 12px 0 0 0;
     padding: 0 2px 0 2px;
-    width: 294px;
+    width: 290px;
     max-width: 300px;
     height: auto;
     font-size: .85em;
@@ -451,6 +463,66 @@
 
 ._timeline_photo_dialog_next_button {
     margin:140px 0 0 10px;
+}
+
+._timeline_photo_dialog_image_orientation_1 {
+    /* No transform required */
+}
+
+._timeline_photo_dialog_image_orientation_2 {
+    transform: scale(-1, 1);
+    -ms-transform: scale(-1, 1); /* IE 9 */
+    -webkit-transform: scale(-1, 1); /* Safari and Chrome */
+    -o-transform: scale(-1, 1); /* Opera */
+    -moz-transform: scale(-1, 1); /* Firefox */
+}
+
+._timeline_photo_dialog_image_orientation_3 {
+    transform: scale(-1, -1);
+    -ms-transform: scale(-1, -1); /* IE 9 */
+    -webkit-transform: scale(-1, -1); /* Safari and Chrome */
+    -o-transform: scale(-1, -1); /* Opera */
+    -moz-transform: scale(-1, -1); /* Firefox */
+}
+
+._timeline_photo_dialog_image_orientation_4 {
+    transform: rotate(180deg) scale(-1, 1);
+    -ms-transform: rotate(180deg) scale(-1, 1); /* IE 9 */
+    -webkit-transform: rotate(180deg) scale(-1, 1); /* Safari and Chrome */
+    -o-transform: rotate(180deg) scale(-1, 1); /* Opera */
+    -moz-transform: rotate(180deg) scale(-1, 1); /* Firefox */
+}
+
+._timeline_photo_dialog_image_orientation_5 {
+    transform: rotate(-90deg) scale(-1, 1);
+    -ms-transform: rotate(-90deg) scale(-1, 1); /* IE 9 */
+    -webkit-transform: rotate(-90deg) scale(-1, 1); /* Safari and Chrome */
+    -o-transform: rotate(-90deg) scale(-1, 1); /* Opera */
+    -moz-transform: rotate(-90deg) scale(-1, 1); /* Firefox */
+}
+
+._timeline_photo_dialog_image_orientation_6 {
+    transform: rotate(90deg);
+    -ms-transform: rotate(90deg); /* IE 9 */
+    -webkit-transform: rotate(90deg); /* Safari and Chrome */
+    -o-transform: rotate(90deg); /* Opera */
+    -moz-transform: rotate(90deg); /* Firefox */
+}
+
+._timeline_photo_dialog_image_orientation_7 {
+    transform: scale(-1, 1) rotate(-90deg);
+    -ms-transform: scale(-1, 1) rotate(-90deg); /* IE 9 */
+    -webkit-transform: scale(-1, 1) rotate(-90deg); /* Safari and Chrome */
+    -o-transform: scale(-1, 1) rotate(-90deg); /* Opera */
+    -moz-transform: scale(-1, 1) rotate(-90deg); /* Firefox */
+}
+
+._timeline_photo_dialog_image_orientation_8 {
+    transform: rotate(-90deg);
+    -ms-transform: rotate(-90deg); /* IE 9 */
+    -webkit-transform: rotate(-90deg); /* Safari and Chrome */
+    -o-transform: rotate(-90deg); /* Opera */
+    -moz-transform: rotate(-90deg); /* Firefox */
 }
 
 ._timeline_left_arrow{
@@ -565,8 +637,11 @@
 ._timeline_dragArea {
     height: 3px;
     cursor: ns-resize;
-    border-left: 1px solid #CCCCCC;
-    background: #D1D2D3;
+    background: transparent;
+    position:absolute;
+    bottom:0px;
+    left:0px;
+    right:0px;
 }
 
 .g2d-Surface canvas {
@@ -668,4 +743,50 @@ canvas {
     border: 1px solid #d1d2d3;
     font-size: 1.2em;
     vertical-align: middle;
+}
+
+
+._channelType_TIMESPAN ._grapher_btnGear{
+    display:none;
+}
+
+.channelHideYAxis ._timeline_yaxistd{
+    opacity:0;
+}
+
+
+
+
+/*
+The following isn't that graceful but it forces the navigation buttons to not act all wonky with some resolutions
+*/
+._timeline_dateAxisAndChannelsArea .flx-channel-navigation .btn{
+    padding-left: 0;
+    padding-right:0;
+    padding-top:5px;
+    padding-bottom:5px;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+
+._timeline_dateAxisAndChannelsArea ._timeline_zoom{
+    position: absolute;
+    left: 0;
+    width: 80px;
+
+}
+
+._timeline_dateAxisAndChannelsArea ._timeline_zoom .btn{
+    width: 50%;
+}
+
+._timeline_dateAxisAndChannelsArea ._timeline_goto{
+    position: absolute;
+    right: 5px;
+    width: 140px;
+}
+
+._timeline_dateAxisAndChannelsArea ._timeline_goto .btn{
+    width: 25%;
 }

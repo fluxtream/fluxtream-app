@@ -7,11 +7,48 @@
 		<version>1.0</version>
 	</parent>
 	<artifactId>fluxtream-core</artifactId>
-	<dependencies>
+    <repositories>
+        <repository>
+            <id>thirdparty-releases</id>
+            <name>JBoss Thirdparty Releases</name>
+            <url>https://repository.jboss.org/nexus/content/repositories/thirdparty-releases</url>
+        </repository>
+    </repositories>
+    <dependencies>
+        <dependency>
+            <groupId>com.newrelic</groupId>
+            <artifactId>newrelic-api</artifactId>
+            <version>2.15</version>
+        </dependency>
 		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
 			<version>1.8</version>
 		</dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>7.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.imgscalr</groupId>
+            <artifactId>imgscalr-lib</artifactId>
+            <version>4.2</version>
+        </dependency>
+        <dependency>
+        	<groupId>com.drewnoakes</groupId>
+        	<artifactId>metadata-extractor</artifactId>
+        	<version>2.6.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey.contribs</groupId>
+            <artifactId>jersey-multipart</artifactId>
+            <version>1.11</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>1.6.12</version>
+        </dependency>
     </dependencies>
 </project>

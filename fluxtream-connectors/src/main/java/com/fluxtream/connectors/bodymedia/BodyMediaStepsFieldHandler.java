@@ -32,13 +32,19 @@ public class BodyMediaStepsFieldHandler implements FieldHandler {
         for(int i=0; i<stepsJson.size(); i++) {
             JSONObject stepsCount = stepsJson.getJSONObject(i);
             final int totalSteps = stepsCount.getInt("totalSteps");
-            long when = (facet.start/1000) + (i*3600);
+            // Put the steps in the middle of the hour they're for rather
+            // than at the beginning.  That way the steps are  centered
+            // with respect to the hour with the matching mets peaks
+            // rather than preceeding them
+            long when = (facet.start/1000) + (i*3600) + 1800;
             List<Object> record = new ArrayList<Object>();
             record.add(when);
             record.add(totalSteps);
             data.add(record);
         }
         final List<String> channelNames = Arrays.asList("stepsGraph");
+
+        // TODO: check the status code in the BodyTrackUploadResult
         bodyTrackHelper.uploadToBodyTrack(guestId, "BodyMedia", channelNames, data);
     }
 

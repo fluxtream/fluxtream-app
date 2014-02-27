@@ -8,7 +8,9 @@ import java.util.TimeZone;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import com.fluxtream.SimpleTimeInterval;
+import com.fluxtream.auth.AuthHelper;
+import com.fluxtream.aspects.FlxLogger;
 import org.joda.time.format.DateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -29,7 +31,7 @@ import com.fluxtream.services.MetadataService;
 @Controller
 public class SearchController {
 
-	Logger logger = Logger.getLogger(SearchController.class);
+	FlxLogger logger = FlxLogger.getLogger(SearchController.class);
 
 	@Autowired
 	FullTextSearchService searchService;
@@ -49,15 +51,15 @@ public class SearchController {
                                @RequestParam("q") String terms) throws Exception {
         logger.info("action=search");
 		
-		long guestId = ControllerHelper.getGuestId();
+		long guestId = AuthHelper.getGuestId();
 
 		List<AbstractFacet> facets = searchService.searchFacetsIndex(guestId,
 				terms);
 
 		List<AbstractFacetVO<? extends AbstractFacet>> facetVos = new ArrayList<AbstractFacetVO<? extends AbstractFacet>>();
 		TimeZone currentTimeZone = metadataService.getCurrentTimeZone(guestId);
-		TimeInterval timeInterval = new TimeInterval(new Date().getTime(),
-				System.currentTimeMillis(), TimeUnit.DAY, currentTimeZone);
+		TimeInterval timeInterval = new SimpleTimeInterval(new Date().getTime(),
+				System.currentTimeMillis(), TimeUnit.ARBITRARY, currentTimeZone);
 		
 		for (AbstractFacet facet : facets) {
 			Class<? extends AbstractFacetVO<AbstractFacet>> jsonFacetClass = AbstractFacetVO

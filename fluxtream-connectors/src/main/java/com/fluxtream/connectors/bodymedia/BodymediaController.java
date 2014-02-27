@@ -6,11 +6,17 @@ import java.security.NoSuchAlgorithmException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import com.fluxtream.Configuration;
+import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.controllers.ControllerSupport;
+import com.fluxtream.connectors.updaters.UpdateFailedException;
 import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.Guest;
-import com.fluxtream.mvc.controllers.ControllerHelper;
+import com.fluxtream.domain.Notification;
+import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
+import com.fluxtream.services.NotificationsService;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.OAuthProvider;
 import oauth.signpost.basic.DefaultOAuthConsumer;
@@ -21,6 +27,7 @@ import oauth.signpost.exception.OAuthMessageSignerException;
 import oauth.signpost.exception.OAuthNotAuthorizedException;
 import oauth.signpost.http.HttpParameters;
 import org.apache.http.client.HttpClient;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,6 +42,14 @@ public class BodymediaController {
 	@Autowired
 	Configuration env;
 
+    @Autowired
+    NotificationsService notificationsService;
+
+    @Autowired
+    ConnectorUpdateService connectorUpdateService;
+
+    static final Logger logger = Logger.getLogger(BodymediaController.class);
+
 	private static final String BODYMEDIA_OAUTH_CONSUMER = "bodymediaOAuthConsumer";
 	private static final String BODYMEDIA_OAUTH_PROVIDER = "bodymediaOAuthProvider";
 
@@ -43,11 +58,13 @@ public class BodymediaController {
 			OAuthMessageSignerException, OAuthNotAuthorizedException,
 			OAuthExpectationFailedException, OAuthCommunicationException {
 
-		String oauthCallback = env.get("homeBaseUrl") + "bodymedia/upgradeToken";
+		String oauthCallback = ControllerSupport.getLocationBase(request, env) + "bodymedia/upgradeToken";
 		if (request.getParameter("guestId") != null)
 			oauthCallback += "?guestId=" + request.getParameter("guestId");
+        if (request.getParameter("apiKeyId") != null)
+            oauthCallback += "?apiKeyId=" + request.getParameter("apiKeyId");
 
-		String apiKey = env.get("bodymediaConsumerKey");
+        String apiKey = env.get("bodymediaConsumerKey");
 		OAuthConsumer consumer = new DefaultOAuthConsumer(
 				apiKey,
 				env.get("bodymediaConsumerSecret"));
@@ -65,8 +82,23 @@ public class BodymediaController {
 		request.getSession().setAttribute(BODYMEDIA_OAUTH_CONSUMER, consumer);
 		request.getSession().setAttribute(BODYMEDIA_OAUTH_PROVIDER, provider);
 
-		String approvalPageUrl = provider.retrieveRequestToken(consumer,
-				oauthCallback);
+        String approvalPageUrl = null;
+        try {
+            approvalPageUrl = provider.retrieveRequestToken(consumer,
+                    oauthCallback);
+        } catch (Throwable t) {
+            logger.error("Couldn't retrieve BodyMedia request token.");
+            t.printStackTrace();
+            notificationsService.addNamedNotification(AuthHelper.getGuestId(),
+                                                      Notification.Type.ERROR, connector().statusNotificationName(),
+                                                      "Oops. There was an error with the BodyMedia API. " +
+                                                      "Hang tight, we are working on it.");
+            // TODO: Should we record permanent failure since an existing connector won't work again until
+            // it is reauthenticated?  We would need to get hold of the apiKey and do:
+            //  guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
+
+            return "redirect:/app/";
+        }
 		
 		System.out.println("the token secret is: " + consumer.getTokenSecret());
 		approvalPageUrl+="&oauth_api=" + apiKey;
@@ -86,18 +118,46 @@ public class BodymediaController {
 				.getAttribute(BODYMEDIA_OAUTH_PROVIDER);
 		String verifier = request.getParameter("oauth_verifier");
 		provider.retrieveAccessToken(consumer, verifier);
-		Guest guest = ControllerHelper.getGuest();
-		
-		guestService.setApiKeyAttribute(guest.getId(), connector(),
-				"api_key", env.get("bodymediaConsumerKey"));
-		guestService.setApiKeyAttribute(guest.getId(), connector(),
+		Guest guest = AuthHelper.getGuest();
+
+        ApiKey apiKey;
+        if (request.getParameter("apiKeyId")!=null) {
+            long apiKeyId = Long.valueOf(request.getParameter("apiKeyId"));
+            apiKey = guestService.getApiKey(apiKeyId);
+        } else
+            apiKey = guestService.createApiKey(guest.getId(), connector());
+
+        guestService.setApiKeyAttribute(apiKey, "api_key", env.get("bodymediaConsumerKey"));
+		guestService.setApiKeyAttribute(apiKey,
 				"accessToken", consumer.getToken());
-		guestService.setApiKeyAttribute(guest.getId(), connector(),
+		guestService.setApiKeyAttribute(apiKey,
 				"tokenSecret", consumer.getTokenSecret());
-        guestService.setApiKeyAttribute(guest.getId(), connector(),
+        guestService.setApiKeyAttribute(apiKey,
                 "tokenExpiration", provider.getResponseParameters().get("xoauth_token_expiration_time").first());
 
-		return "redirect:/app/from/" + connector().getName();
+        // Store the OAuth server keys used for the token upgrade, which are the ones currently in oauth.properties
+        // into ApiKeyAttributes.  The values in oauth.properties may change over time, so we need to preserve
+        // the values used for the token creation with the ApiKey itself.
+        guestService.setApiKeyAttribute(apiKey, "bodymediaConsumerKey", env.get("bodymediaConsumerKey"));
+        guestService.setApiKeyAttribute(apiKey, "bodymediaConsumerSecret", env.get("bodymediaConsumerSecret"));
+
+        // If bodymediaRateDelayMs is specified in oauth.properties store it with the attributes
+        // This should be 1000/Calls per second for the associated key.  The default is 2 calls per second,
+        // which is bodymediaRateDelayMs=500
+        String bodymediaRateDelayMs = env.get("bodymediaRateDelayMs");
+
+        if(bodymediaRateDelayMs==null) {
+            bodymediaRateDelayMs="500";
+        }
+        guestService.setApiKeyAttribute(apiKey, "bodymediaRateDelayMs", bodymediaRateDelayMs);
+
+        request.getSession().removeAttribute(BODYMEDIA_OAUTH_CONSUMER);
+        request.getSession().removeAttribute(BODYMEDIA_OAUTH_PROVIDER);
+
+        if (request.getParameter("apiKeyId")!=null)
+    		return "redirect:/app/tokenRenewed/" + connector().getName();
+        else
+            return "redirect:/app/from/" + connector().getName();
 	}
 
 	private Connector connector() {
@@ -105,16 +165,50 @@ public class BodymediaController {
 	}
 
     public void replaceToken(UpdateInfo updateInfo) throws OAuthExpectationFailedException, OAuthMessageSignerException,
-                                                           OAuthCommunicationException, OAuthNotAuthorizedException {
-        String apiKey = guestService.getApiKeyAttribute(updateInfo.getGuestId(), connector(), "api_key");
+                                                           OAuthCommunicationException, OAuthNotAuthorizedException,
+                                                           UpdateFailedException {
+        // Check to see if we are running on a mirrored test instance
+        // and should therefore refrain from swapping tokens lest we
+        // invalidate an existing token instance
+        String disableTokenSwap = env.get("disableTokenSwap");
+        if(disableTokenSwap!=null && disableTokenSwap.equals("true")) {
+            String msg = "**** Skipping refreshToken for bodymedia connector instance because disableTokenSwap is set on this server";
+                                            ;
+            StringBuilder sb2 = new StringBuilder("module=BodymediaController component=BodymediaController action=replaceToken apiKeyId=" + updateInfo.apiKey.getId())
+            			    .append(" message=\"").append(msg).append("\"");
+            logger.info(sb2.toString());
+            System.out.println(msg);
+
+             // Notify the user that the tokens need to be manually renewed
+            notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
+                                                      "Heads Up. This server cannot automatically refresh your authentication tokens.<br>" +
+                                                      "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                      "scroll to the BodyMedia connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+
+            // Record permanent failure since this connector won't work again until
+            // it is reauthenticated
+            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
+            throw new UpdateFailedException("requires token reauthorization",true);
+        }
+
+        // We're not on a mirrored test server.  Try to swap the expired
+        // access token for a fresh one.
+
+        // First, retrieve the OAuth server keys used when this key was created.  These are automatically stored
+        // in the ApiKeyAttribute table at the time of creation based on the values present in
+        // oauth.properties.
+        String bodymediaConsumerKey = guestService.getApiKeyAttribute(updateInfo.apiKey, "bodymediaConsumerKey");
+        String bodymediaConsumerSecret = guestService.getApiKeyAttribute(updateInfo.apiKey, "bodymediaConsumerSecret");
+
         OAuthConsumer consumer = new DefaultOAuthConsumer(
-                apiKey,
-                env.get("bodymediaConsumerSecret"));
-        String accessToken = guestService.getApiKeyAttribute(updateInfo.getGuestId(), connector(), "accessToken");
+                bodymediaConsumerKey,
+                bodymediaConsumerSecret);
+
+        String accessToken = guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken");
         consumer.setTokenWithSecret(accessToken,
-                guestService.getApiKeyAttribute(updateInfo.getGuestId(), connector(), "tokenSecret"));
+                guestService.getApiKeyAttribute(updateInfo.apiKey, "tokenSecret"));
         HttpParameters additionalParameter = new HttpParameters();
-        additionalParameter.put("api_key", apiKey);
+        additionalParameter.put("api_key", bodymediaConsumerKey);
         additionalParameter.put("oauth_token",
                                 accessToken);
         consumer.setAdditionalParameters(additionalParameter);
@@ -122,19 +216,35 @@ public class BodymediaController {
         HttpClient httpClient = env.getHttpClient();
 
         OAuthProvider provider = new CommonsHttpOAuthProvider(
-                "https://api.bodymedia.com/oauth/request_token?api_key="+apiKey,
-                "https://api.bodymedia.com/oauth/access_token?api_key="+apiKey,
-                "https://api.bodymedia.com/oauth/authorize?api_key="+apiKey, httpClient);
+                "https://api.bodymedia.com/oauth/request_token?api_key="+bodymediaConsumerKey,
+                "https://api.bodymedia.com/oauth/access_token?api_key="+bodymediaConsumerKey,
+                "https://api.bodymedia.com/oauth/authorize?api_key="+bodymediaConsumerKey, httpClient);
 
-        provider.retrieveAccessToken(consumer, null);
+        try {
+            provider.retrieveAccessToken(consumer, null);
 
-        guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(),
-                                        "api_key", env.get("bodymediaConsumerKey"));
-        guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(),
-                                        "accessToken", consumer.getToken());
-        guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(),
-                                        "tokenSecret", consumer.getTokenSecret());
-        guestService.setApiKeyAttribute(updateInfo.getGuestId(), connector(),
-                                        "tokenExpiration", provider.getResponseParameters().get("xoauth_token_expiration_time").first());
+            guestService.setApiKeyAttribute(updateInfo.apiKey,
+                                            "accessToken", consumer.getToken());
+            guestService.setApiKeyAttribute(updateInfo.apiKey,
+                                            "tokenSecret", consumer.getTokenSecret());
+            guestService.setApiKeyAttribute(updateInfo.apiKey,
+                                            "tokenExpiration", provider.getResponseParameters().get("xoauth_token_expiration_time").first());
+
+            // Record this connector as having status up
+            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_UP, null);
+            // Schedule an update for this connector
+            connectorUpdateService.updateConnector(updateInfo.apiKey, false);
+
+        } catch (Throwable t) {
+            // Notify the user that the tokens need to be manually renewed
+            notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
+                                                      "Heads Up. We failed in our attempt to automatically refresh your authentication tokens.<br>" +
+                                                      "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                      "scroll to the BodyMedia connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+            // Record permanent failure since this connector won't work again until
+            // it is reauthenticated
+            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
+            throw new UpdateFailedException("refresh token attempt failed", t, true);
+        }
     }
 }

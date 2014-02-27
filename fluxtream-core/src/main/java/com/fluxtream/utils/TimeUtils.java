@@ -4,33 +4,18 @@ import java.text.ParseException;
 import java.util.Calendar;
 import java.util.TimeZone;
 
+import org.joda.time.DateTimeConstants;
+import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 public class TimeUtils {
 
 	private static final long MILLIS_IN_DAY = 86400000l;
-	
-	public static Calendar setFromMidnight(Calendar calendar) {
-		Calendar c = Calendar.getInstance(calendar.getTimeZone());
-		c.setTime(calendar.getTime());
-		c.set(Calendar.HOUR_OF_DAY, 0);
-		c.set(Calendar.MINUTE, 0);
-		c.set(Calendar.SECOND, 0);
-		c.set(Calendar.MILLISECOND, 0);
-		return c;
-	}
-	
-	public static Calendar setToMidnight(Calendar calendar) {
-		Calendar c = Calendar.getInstance(calendar.getTimeZone());
-		c.setTime(calendar.getTime());
-		c.set(Calendar.HOUR_OF_DAY, 23);
-		c.set(Calendar.MINUTE, 59);
-		c.set(Calendar.SECOND, 59);
-		c.set(Calendar.MILLISECOND, 999);
-		return c;
-	}
-	
+	public static final int FIRST_DAY_OF_WEEK = DateTimeConstants.SUNDAY;
+    public static final DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
+    public static final DateTimeFormatter dateFormatterUTC = DateTimeFormat.forPattern("yyyy-MM-dd").withZoneUTC();
+
 	public static String getStart(String date, TimeZone tz) {
 		return date + " 00:00:00 " + tz.getDisplayName(true, TimeZone.SHORT);
 	}
@@ -68,5 +53,29 @@ public class TimeUtils {
 		c.set(Calendar.MILLISECOND, 999);
 		return c.getTimeInMillis();
 	}
-	
+
+	public static LocalDate getBeginningOfWeek(final int year, final int week) {
+		return (new LocalDate())
+				.withWeekyear(year)
+				.withWeekOfWeekyear(week)
+				.minusWeeks(1)
+				.withDayOfWeek(FIRST_DAY_OF_WEEK);
+		// Need to subtract 1 week because Sunday is the last day of the week, which
+		// would logically move all the week start dates forward by 6 days.  Better
+		// one day earlier than JodaTime's standard than 6 days later than
+		// users' expectations.
+	}
+
+    public static LocalDate getEndOfMonth(final int year, final int month) {
+        return (new LocalDate())
+                .withWeekyear(year)
+                .withMonthOfYear(month).dayOfMonth().withMaximumValue();
+    }
+
+    public static LocalDate getBeginningOfMonth(final int year, final int month) {
+        return (new LocalDate())
+                .withWeekyear(year)
+                .withMonthOfYear(month).dayOfMonth().withMinimumValue();
+    }
+
 }

@@ -6,8 +6,10 @@ define(["core/Tab",
 	var digest, dashboardData;
 
     var setTabParam;
+      var doneLoading;
 
 	function render(params) {
+        doneLoading = params.doneLoading;
         setTabParam = params.setTabParam;
         if (params.tabParam != null)
             dashboardsTab.activeDashboard = parseInt(params.tabParam);
@@ -33,11 +35,16 @@ define(["core/Tab",
        setTabParam(dashboardsTab.activeDashboard);
         this.getTemplate("text!applications/calendar/tabs/dashboards/dashboards.html", "dashboards",
                          function() {
-                             makeDashboardTabs(dashboardsTemplateData);
+                             makeDashboardTabs(dashboardsTemplateData,doneLoading);
                          },
                          dashboardsTemplateData
         );
    };
+
+   function dashboardTabClickHandler(evt){
+       var dashboardId = Number($(evt.target).parent().attr("id").substring("dashboard-".length));
+       setActiveDashboard(dashboardId);
+   }
 
    function makeDashboardTabs(dashboardsTemplateData) {
         App.loadMustacheTemplate("applications/calendar/tabs/dashboards/dashboardsTabTemplates.html","dashboardTabs", function(template){
@@ -49,10 +56,7 @@ define(["core/Tab",
             $(".dashboardName").unbind();
             $("#addWidgetButton").click(addWidget);
             $("#manageDashboardsButton").click(manageDashboards);
-            $(".dashboardName").click(function(evt) {
-                var dashboardId = Number($(evt.target).parent().attr("id").substring("dashboard-".length));
-                setActiveDashboard(dashboardId);
-            });
+            $(".dashboardName").click(dashboardTabClickHandler);
             fetchWidgets(getActiveWidgetInfos(dashboardsTemplateData.dashboards));
         });
    }
@@ -109,7 +113,8 @@ define(["core/Tab",
         for (var i=0; i<activeWidgetInfos.length; i++) {
             var widgetInfo = activeWidgetInfos[i];
             loadWidget(widgetInfo);
-        };
+        }
+        doneLoading();
     }
 
    function loadWidget(widgetInfo) {
@@ -189,6 +194,7 @@ define(["core/Tab",
             var tab = $("#dashboard-" + tabId);
             tab.remove();
             $("#dashboardTabs").append(tab);
+            tab.click(dashboardTabClickHandler);
         }
         $.ajax({
             url: "/api/dashboards/reorder",

@@ -3,12 +3,9 @@ package com.fluxtream.connectors.withings;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import com.fluxtream.connectors.bodymedia.BodymediaBurnFacet;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.services.impl.BodyTrackHelper;
 import com.fluxtream.services.impl.FieldHandler;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +30,8 @@ public class WithingsBMIFieldHandler implements FieldHandler {
         record.add(facet.start/1000);
         record.add(bmi(weightFacet));
         data.add(record);
+
+        // TODO: check the status code in the BodyTrackUploadResult
         bodyTrackHelper.uploadToBodyTrack(guestId, "Withings", Arrays.asList("bmi"), data);
     }
 

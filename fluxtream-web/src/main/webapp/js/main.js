@@ -1,10 +1,31 @@
-require(['App', 'Connectors'], function(App, Connectors) {
-	document.body.onselectstart = function() { return false; };
-	document.body.style.MozUserSelect = "none";
-	document.body.style.KhtmlUserSelect = "none";
-	document.body.unselectable = "on";
-	App.initialize();
+require.config({
+    waitSeconds: 0
 });
+
+require(['App', 'Connectors'], function(App, Connectors) {
+	App.initialize();
+    setAvatarImage();
+});
+
+function setAvatarImage() {
+    $.ajax({
+        url: "/api/guest/avatarImage",
+        success: function(result) {
+            if (result.type!="none") {
+                $("#profileIcon").replaceWith("<img src=\"" + result.url + "\" style=\"display:inline;width:27px;margin: 0 1px 0 4px;\" width=27 height=27>");
+                $("#profileIconCaret").css("margin-top", "10px");
+                $("#connectorsDropdownToggle").css("margin-top", "3px");
+                $("#appsMenuWrapper").css("margin-top", "4px");
+                $(".brand").css("margin-top", "3px");
+            } else {
+                $("#profileIcon").replaceWith("<i class=\"icon-user icon-large\"></i>");
+            }
+        },
+        error: function() {
+            $("#profileIcon").replaceWith("<i class=\"icon-user icon-large\"></i>");
+        }
+    });
+}
 
 
 //below are require statements for all dynamically required files.
@@ -28,7 +49,8 @@ if (aggressiveLoading) {
 
     //Applications
     require([
-            "applications/calendar/App"
+            "applications/calendar/App",
+            "applications/bodytrack/App"
     ]);
 
     //calendar tabs
@@ -53,5 +75,25 @@ if (aggressiveLoading) {
         "text!applications/calendar/tabs/list/list.html",
         "text!applications/calendar/tabs/map/map.html",
         "text!applications/calendar/tabs/photos/photos.html"
+    ]);
+
+    //bodytrack tabs
+    require([
+        "applications/bodytrack/tabs/grapher/GrapherTab",
+        "applications/bodytrack/tabs/views/ViewsTab"
+    ]);
+
+    //bodytrack tabs' main templates
+    require([
+        "text!applications/bodytrack/tabs/grapher/grapher.html",
+        "text!applications/bodytrack/tabs/views/views.html"
+    ]);
+
+    //widgets
+    require([
+        "../widgets/averageBloodPressure/averageBloodPressure",
+        "../widgets/averageSteps/averageSteps",
+        "../widgets/averageWeight/averageWeight",
+        "../widgets/grapherWidget/grapherWidget",
     ]);
 }

@@ -31,6 +31,10 @@ define(["core/Tab","core/grapher/BTCore"], function(Tab,BTCore) {
                                 tr.remove();
                         });
                     });
+                    $("#load-view-" + availableList[i].id).click({id:availableList[i].id},function(event){
+                        App.renderApp("bodytrack","grapher/view/" + event.data.id);
+                        return false;
+                    });
                 }
             })
         });

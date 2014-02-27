@@ -2,23 +2,22 @@ package com.fluxtream.domain;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
-
+import com.fluxtream.Configuration;
+import com.fluxtream.aspects.FlxLogger;
+import com.fluxtream.connectors.Connector;
 import com.google.gson.annotations.Expose;
 import org.hibernate.annotations.Index;
-
-import com.fluxtream.Configuration;
-import com.fluxtream.connectors.Connector;
+import org.hibernate.annotations.Type;
+import org.springframework.util.SerializationUtils;
 
 @Entity(name="ApiKey")
 @NamedQueries ( {
@@ -30,23 +29,45 @@ import com.fluxtream.connectors.Connector;
 			query="SELECT apiKey FROM ApiKey apiKey WHERE apiKey.guestId=?"),
 	@NamedQuery( name="apiKey.count.byApi",
 			query="SELECT COUNT(apiKey) FROM ApiKey apiKey WHERE apiKey.api=?"),
-	@NamedQuery( name="apiKey.byApi",
-			query="SELECT apiKey FROM ApiKey apiKey WHERE apiKey.guestId=? AND apiKey.api=?"),
+    @NamedQuery( name="apiKey.byApi",
+   			query="SELECT apiKey FROM ApiKey apiKey WHERE apiKey.guestId=? AND apiKey.api=? ORDER BY apiKey.id DESC"),
+    @NamedQuery( name="apiKeys.all.byApi",
+   			query="SELECT apiKey FROM ApiKey apiKey WHERE apiKey.api=?"),
 	@NamedQuery( name="apiKey.byAttribute",
 			query="SELECT apiKey FROM ApiKey apiKey JOIN apiKey.attributes attr WHERE attr.attributeKey=? AND attr.attributeValue=?")
 })
 public class ApiKey extends AbstractEntity {
 
+    transient FlxLogger logger = FlxLogger.getLogger(ApiKey.class);
+
+    public enum Status {
+        STATUS_UP, STATUS_PERMANENT_FAILURE, STATUS_TRANSIENT_FAILURE, STATUS_OVER_RATE_LIMIT
+    }
+
     @Expose
 	@Index(name="guestId_index")
 	private long guestId;
+
+    @Type(type="yes_no")
+    public boolean synching;
 
     @Expose
 	@Index(name="api_index")
 	private int api;
 	
-	@OneToMany(mappedBy="apiKey", fetch=FetchType.EAGER, cascade=CascadeType.ALL)
-	Set<ApiKeyAttribute> attributes = new HashSet<ApiKeyAttribute>();
+	@OneToMany(mappedBy="apiKey", orphanRemoval = true, fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+	List<ApiKeyAttribute> attributes = new ArrayList<ApiKeyAttribute>();
+
+    public Status status;
+
+    @Lob
+    public String stackTrace;
+
+    @Lob
+    private byte[] settingsStorage;
+
+    @Lob
+    private byte[] defaultSettingsStorage;
 
 	public void setGuestId(long guestId) {
 		this.guestId = guestId;
@@ -56,21 +77,54 @@ public class ApiKey extends AbstractEntity {
 		return guestId;
 	}
 
-	public void setAttribute(ApiKeyAttribute attr) {
+    public void setSettings(Object o) {
+        settingsStorage = SerializationUtils.serialize(o);
+    }
+
+    public void setDefaultSettings(Object o) {
+        defaultSettingsStorage = SerializationUtils.serialize(o);
+    }
+
+    public Object getSettings() {
+        try {
+            return SerializationUtils.deserialize(settingsStorage);
+        } catch (Throwable e) {
+            // let's be robust against class changes
+            return null;
+        }
+    }
+
+    public Object getDefaultSettings() {
+        try {
+            return SerializationUtils.deserialize(defaultSettingsStorage);
+        } catch (Throwable e) {
+            // let's be robust against class changes
+            return null;
+        }
+    }
+
+    public void setAttribute(ApiKeyAttribute attr) {
 		attr.apiKey = this;
         List<ApiKeyAttribute> toRemove = new ArrayList<ApiKeyAttribute>();
         for (ApiKeyAttribute attribute : attributes) {
+            if (attribute.attributeKey==null) {
+                logger.warn("null attributeKey for ApiKey: " + guestId + "/" + api);
+                toRemove.add(attribute);
+                continue;
+            }
             if (attribute.attributeKey.equals(attr.attributeKey))
                 toRemove.add(attribute);
         }
-        for (ApiKeyAttribute attribute : toRemove)
+        for (ApiKeyAttribute attribute : toRemove) {
+            attribute.apiKey = null;
             attributes.remove(attribute);
+        }
         attributes.add(attr);
 	}
 	
 	private ApiKeyAttribute getAttribute(String key) {
 		for (ApiKeyAttribute attr : attributes) {
-			if (attr.attributeKey.equals(key))
+			if (attr.attributeKey!=null&&attr.attributeKey.equals(key))
 				return attr;
 		}
 		return null;
@@ -102,10 +156,6 @@ public class ApiKey extends AbstractEntity {
 		attributes.remove(attribute);
 	}
 
-	public void setConnector(Connector api) {
-		this.api = api.value();
-	}
-	
 	public boolean equals(Object o) {
 		if (! (o instanceof ApiKey))
 			return false;
@@ -121,4 +171,12 @@ public class ApiKey extends AbstractEntity {
 	public Connector getConnector() {
 		return Connector.fromValue(api);
 	}
+
+    public void setConnector(final Connector connector) {
+        this.api = connector.value();
+    }
+
+    public Status getStatus() {
+        return status;
+    }
 }

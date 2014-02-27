@@ -11,12 +11,17 @@
 		<dependency>
 			<groupId>com.fluxtream</groupId>
 			<artifactId>fluxtream-core</artifactId>
-			<version>1.0</version>
+			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>com.fluxtream</groupId>
-			<artifactId>fluxtream-core-webapp</artifactId>
-			<version>1.0</version>
-		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.9</version>
+        </dependency>
+        <dependency>
+            <groupId>com.syncthemall</groupId>
+            <artifactId>enml4j</artifactId>
+            <version>0.2.1</version>
+        </dependency>
+    </dependencies>
 </project>

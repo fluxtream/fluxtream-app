@@ -7,20 +7,28 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
+import com.fluxtream.OutsideTimeBoundariesException;
+import com.fluxtream.SimpleTimeInterval;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.connectors.vos.AbstractFacetVO;
 import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
 import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.CoachingBuddy;
 import com.fluxtream.domain.GuestSettings;
-import com.fluxtream.services.ApiDataService;
+import com.fluxtream.domain.PhotoFacetFinderStrategy;
+import com.fluxtream.domain.TagFilter;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.PhotoService;
 import com.fluxtream.services.SettingsService;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -32,44 +40,66 @@ import org.springframework.stereotype.Service;
 @Component
 public class PhotoServiceImpl implements PhotoService {
 
+    private static final FlxLogger LOG = FlxLogger.getLogger("Fluxtream");
+    private static final FlxLogger LOG_DEBUG = FlxLogger.getLogger("Fluxtream");
+
     @Autowired
     SettingsService settingsService;
 
     @Autowired
-    private ApiDataService apiDataService;
-
-    @Autowired
     GuestService guestService;
 
-    private static interface PhotoFacetFinderStrategy {
-        List<AbstractFacet> find(final Connector connector, final ObjectType objectType);
+    @Autowired
+    BeanFactory beanFactory;
+
+    private static abstract class PhotoFinder {
+        final Map<ObjectType, List<AbstractFacet>> find(final ApiKey apiKey, @Nullable TagFilter tagFilter) {
+            final Map<ObjectType, List<AbstractFacet>> facets = new HashMap<ObjectType, List<AbstractFacet>>();
+            if (apiKey.getConnector() != null) {
+                final ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
+                if (objectTypes != null) {
+                    for (final ObjectType objectType : objectTypes) {
+                        if (objectType.isImageType()) {
+                            facets.put(objectType, find(apiKey, objectType, tagFilter));
+                        }
+                    }
+                }
+            }
+            return facets;
+        }
+
+        protected abstract List<AbstractFacet> find(final ApiKey apiKey,
+                                                    final ObjectType objectType,
+                                                    @Nullable TagFilter tagFilter);
     }
 
-    /**
-     * Gets all photos from all connectors having image {@link ObjectType}s.
-     */
     @Override
-    public SortedSet<Photo> getPhotos(long guestId, TimeInterval timeInterval)
-            throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        return getPhotos(guestId, timeInterval, ALL_DEVICES_NAME, DEFAULT_PHOTOS_CHANNEL_NAME);
+    public SortedSet<Photo> getPhotos(long guestId,
+                                      TimeInterval timeInterval) throws ClassNotFoundException, IllegalAccessException, InstantiationException, OutsideTimeBoundariesException {
+        return getPhotos(guestId, timeInterval, ALL_DEVICES_NAME, DEFAULT_PHOTOS_CHANNEL_NAME, null, null);
     }
-
 
     @Override
     public SortedSet<Photo> getPhotos(final long guestId,
-                                       final TimeInterval timeInterval,
-                                       final String connectorPrettyName,
-                                       final String objectTypeName)
-            throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-        return getPhotos(guestId,
-                         timeInterval,
-                         connectorPrettyName,
-                         objectTypeName,
-                         new PhotoFacetFinderStrategy() {
-                             public List<AbstractFacet> find(final Connector connector, final ObjectType objectType) {
-                                 return apiDataService.getApiDataFacets(guestId, connector, objectType, timeInterval);
-                             }
-                         });
+                                      final TimeInterval timeInterval,
+                                      final String connectorPrettyName,
+                                      final String objectTypeName,
+                                      @Nullable TagFilter tagFilter) throws ClassNotFoundException, IllegalAccessException, InstantiationException, OutsideTimeBoundariesException {
+
+        return getPhotos(guestId, timeInterval, connectorPrettyName, objectTypeName, tagFilter, new PhotoFinder() {
+            public List<AbstractFacet> find(final ApiKey apiKey,
+                                            final ObjectType objectType,
+                                            @Nullable TagFilter tagFilter) {
+
+                LOG_DEBUG.debug("PhotoServiceImpl.find(): finding photos for ApiKey [" + apiKey + "] and ObjectType [" + objectType + "] having TagFilter [" + tagFilter + "]");
+
+                final PhotoFacetFinderStrategy photoFacetFinderStrategy = getPhotoFacetFinderStrategyFromObjectType(objectType);
+                if (photoFacetFinderStrategy != null) {
+                    return photoFacetFinderStrategy.findAll(apiKey, objectType, timeInterval, tagFilter);
+                }
+                return new ArrayList<AbstractFacet>(0);
+            }
+        });
     }
 
     @Override
@@ -78,20 +108,30 @@ public class PhotoServiceImpl implements PhotoService {
                                       final String connectorPrettyName,
                                       final String objectTypeName,
                                       final int desiredCount,
-                                      final boolean isGetPhotosBeforeTime)
-            throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+                                      final boolean isGetPhotosBeforeTime,
+                                      @Nullable TagFilter tagFilter) throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException {
 
         // make sure the count is >= 1
         final int cleanedDesiredCount = Math.max(1, desiredCount);
 
-        final SortedSet<Photo> photos = getPhotos(guestId, null, connectorPrettyName, objectTypeName, new PhotoFacetFinderStrategy() {
-            public List<AbstractFacet> find(final Connector connector, final ObjectType objectType) {
-                if (isGetPhotosBeforeTime) {
-                    return apiDataService.getApiDataFacetsBefore(guestId, connector, objectType, timeInMillis, cleanedDesiredCount);
+        final SortedSet<Photo> photos = getPhotos(guestId, null, connectorPrettyName, objectTypeName, tagFilter, new PhotoFinder() {
+
+            public List<AbstractFacet> find(final ApiKey apiKey,
+                                            final ObjectType objectType,
+                                            @Nullable TagFilter tagFilter) {
+
+                LOG_DEBUG.debug("PhotoServiceImpl.find(): finding photos for ApiKey [" + apiKey + "] and ObjectType [" + objectType + "] having TagFilter [" + tagFilter + "]");
+
+                final PhotoFacetFinderStrategy photoFacetFinderStrategy = getPhotoFacetFinderStrategyFromObjectType(objectType);
+                if (photoFacetFinderStrategy != null) {
+                    if (isGetPhotosBeforeTime) {
+                        return photoFacetFinderStrategy.findBefore(apiKey, objectType, timeInMillis, cleanedDesiredCount, tagFilter);
+                    }
+                    else {
+                        return photoFacetFinderStrategy.findAfter(apiKey, objectType, timeInMillis, cleanedDesiredCount, tagFilter);
+                    }
                 }
-                else {
-                    return apiDataService.getApiDataFacetsAfter(guestId, connector, objectType, timeInMillis, cleanedDesiredCount);
-                }
+                return new ArrayList<AbstractFacet>(0);
             }
         });
 
@@ -117,34 +157,33 @@ public class PhotoServiceImpl implements PhotoService {
         return photos;
     }
 
-    /**
-     * Returns a {@link Map} of photo channels (a {@link String} which is of the form {connector_pretty_name}.{object_name})
-     * mapped to a {@link TimeInterval} which specifies the time range for that channel.  May return an empty
-     * {@link Map}, but guaranteed to not return <code>null</code>.
-     */
     @Override
-    public Map<String, TimeInterval> getPhotoChannelTimeRanges(long guestId) {
+    public Map<String, TimeInterval> getPhotoChannelTimeRanges(final long guestId, final CoachingBuddy coachee) {
         // TODO: This could really benefit from some caching.  The time ranges can only change upon updating a photo
         // connector so it would be better to cache this info and then just refresh it whenever the connector is updated
 
         Map<String, TimeInterval> photoChannelTimeRanges = new HashMap<String, TimeInterval>();
 
         List<ApiKey> userKeys = guestService.getApiKeys(guestId);
-        for (ApiKey key : userKeys) {
-            final Connector connector = key.getConnector();
-            if (connector.hasImageObjectType()) {
+        for (ApiKey apiKey : userKeys) {
+            Connector connector = null;
+            if (apiKey != null) {
+                connector = apiKey.getConnector();
+            }
+            if (connector != null && connector.getName() != null &&
+                (coachee == null || coachee.hasAccessToConnector(connector.getName())) && connector.hasImageObjectType()) {
                 // Check the object types, if any, to find the image object type(s)
-                ObjectType[] objectTypes = key.getConnector().objectTypes();
+                ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
                 if (objectTypes == null) {
                     final String channelName = constructChannelName(connector, null);
-                    final TimeInterval timeInterval = constructTimeIntervalFromOldestAndNewestFacets(guestId, connector, null);
+                    final TimeInterval timeInterval = constructTimeIntervalFromOldestAndNewestFacets(apiKey, null);
                     photoChannelTimeRanges.put(channelName, timeInterval);
                 }
                 else {
                     for (ObjectType objectType : objectTypes) {
                         if (objectType.isImageType()) {
                             final String channelName = constructChannelName(connector, objectType);
-                            final TimeInterval timeInterval = constructTimeIntervalFromOldestAndNewestFacets(guestId, connector, null);
+                            final TimeInterval timeInterval = constructTimeIntervalFromOldestAndNewestFacets(apiKey, objectType);
                             photoChannelTimeRanges.put(channelName, timeInterval);
                         }
                     }
@@ -154,35 +193,59 @@ public class PhotoServiceImpl implements PhotoService {
         return photoChannelTimeRanges;
     }
 
+    private PhotoFacetFinderStrategy getPhotoFacetFinderStrategyFromObjectType(final ObjectType objectType) {
+        if (objectType != null) {
+            try {
+                final Class<? extends AbstractFacet> facetClass = objectType.facetClass();
+                final ObjectTypeSpec objectTypeSpec = facetClass.getAnnotation(ObjectTypeSpec.class);
+                final Class<? extends PhotoFacetFinderStrategy> photoFacetFinderStrategyClass = objectTypeSpec.photoFacetFinderStrategy();
+                return beanFactory.getBean(photoFacetFinderStrategyClass);
+            }
+            catch (Exception e) {
+                LOG.error("Exception caught while trying trying to instantiate the PhotoFacetFinderStrategy from objectType [" + objectType + "].  Returning null.", e);
+            }
+        }
+        return null;
+    }
+
     /**
      * Returns all photos for {@link Connector}(s) specified by the given <code>connectorPrettyName</code>, and
      * optionally narrowed by the {@link ObjectType} specified by the given <code>objectTypeName</code>.  If the
      * <code>connectorPrettyName</code> is equal to the {@link #ALL_DEVICES_NAME}, then this method checks every
      * Connector for whether it has an image ObjectType and, if so, adds the relevant photos from each image ObjectType
      * belonging to the Connector.  If the <code>connectorPrettyName</code> is not equal to the
-     * {@link #ALL_DEVICES_NAME}, then this method finds the specified Connector and ObjectType and adds the photos. May
-     * return an empty {@link SortedSet}, but guaranteeed to not return <code>null</code>.
+     * {@link #ALL_DEVICES_NAME}, then this method finds the specified Connector and ObjectType and adds the photos.
+     * Furthermore, if the objectTypeName does not specify an existing ObjectType for the Connector, then this method
+     * returns photos from from all ObjectTypes which are of {@link ObjectType#isImageType() image type}.  The set of
+     * returned photos may also be optionally filtered by the given <code>tags</code> and <code>tagFilteringStrategy</code>.
+     *
+     * May return an empty {@link SortedSet}, but guaranteeed to not return <code>null</code>.
      */
     private SortedSet<Photo> getPhotos(final long guestId,
                                        final TimeInterval timeInterval,
                                        final String connectorPrettyName,
                                        final String objectTypeName,
-                                       final PhotoFacetFinderStrategy facetFinderStrategy)
-            throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+                                       @Nullable TagFilter tagFilter,
+                                       final PhotoFinder facetFinderStrategy)
+            throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException
+    {
 
         SortedSet<Photo> photos = new TreeSet<Photo>();
 
         if (ALL_DEVICES_NAME.equals(connectorPrettyName)) {
             List<ApiKey> userKeys = guestService.getApiKeys(guestId);
-            for (ApiKey key : userKeys) {
-                final Connector connector = key.getConnector();
-                if (connector.hasImageObjectType()) {
+            for (ApiKey apiKey : userKeys) {
+                Connector connector = null;
+                if (apiKey != null && apiKey.getConnector() != null) {
+                    connector = apiKey.getConnector();
+                }
+                if (connector != null && connector.hasImageObjectType()) {
                     final ObjectType[] objectTypes = connector.objectTypes();
                     if (objectTypes != null) {
                         for (ObjectType objectType : objectTypes) {
                             if (objectType.isImageType()) {
-                                List<AbstractFacet> facets = facetFinderStrategy.find(connector, objectType);
-                                photos.addAll(convertFacetsToPhotos(guestId, timeInterval, facets, connector, objectType));
+                                List<AbstractFacet> facets = facetFinderStrategy.find(apiKey, objectType, tagFilter);
+                                photos.addAll(convertFacetsToPhotos(apiKey, timeInterval, facets, connector, objectType));
                             }
                         }
                     }
@@ -190,12 +253,27 @@ public class PhotoServiceImpl implements PhotoService {
             }
         }
         else {
-            final Connector connector = findConnectorByPrettyName(guestId, connectorPrettyName);
-            if (connector != null) {
+            final ApiKey apiKey = findConnectorApiKeyByPrettyName(guestId, connectorPrettyName);
+            if (apiKey != null && apiKey.getConnector() != null) {
+                final Connector connector = apiKey.getConnector();
                 final ObjectType desiredObjectType = findObjectTypeByName(connector, objectTypeName);
-                if (desiredObjectType != null && desiredObjectType.isImageType()) {
-                    List<AbstractFacet> facets = facetFinderStrategy.find(connector, desiredObjectType);
-                    photos.addAll(convertFacetsToPhotos(guestId, timeInterval, facets, connector, desiredObjectType));
+
+                if (desiredObjectType == null) {
+                    final Map<ObjectType, List<AbstractFacet>> facetsByObjectType = facetFinderStrategy.find(apiKey, tagFilter);
+                    if ((facetsByObjectType != null) && (!facetsByObjectType.isEmpty())) {
+                        for (final ObjectType objectType : facetsByObjectType.keySet()) {
+                            final List<AbstractFacet> facets = facetsByObjectType.get(objectType);
+                            if (facets != null) {
+                                photos.addAll(convertFacetsToPhotos(apiKey, timeInterval, facets, connector, objectType));
+                            }
+                        }
+                    }
+                }
+                else if (desiredObjectType.isImageType()) {
+                    final List<AbstractFacet> facets = facetFinderStrategy.find(apiKey, desiredObjectType, tagFilter);
+                    if (facets != null) {
+                        photos.addAll(convertFacetsToPhotos(apiKey, timeInterval, facets, connector, desiredObjectType));
+                    }
                 }
             }
         }
@@ -204,12 +282,14 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     /** Returns the Connector having the given pretty name.  Returns <code>null</code> if no such connector exists. */
-    private Connector findConnectorByPrettyName(final long guestId, final String connectorPrettyName) {
+    private ApiKey findConnectorApiKeyByPrettyName(final long guestId, final String connectorPrettyName) {
         List<ApiKey> userKeys = guestService.getApiKeys(guestId);
         for (ApiKey key : userKeys) {
-            final Connector connector = key.getConnector();
-            if (connector.prettyName().equals(connectorPrettyName)) {
-                return connector;
+            if (key != null) {
+                final Connector connector = key.getConnector();
+                if (connector != null && ((connector.prettyName() != null && connector.prettyName().equals(connectorPrettyName)) || (connector.getName().equals(connectorPrettyName)))) {
+                    return key;
+                }
             }
         }
 
@@ -235,27 +315,27 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     /**
-     * Converts {@link AbstractFacet}s to {@link Photo}s.  If the given {@link TimeInterval} is <code>null</code>, this
+     * Converts {@link AbstractFacet}s to {@link Photo}s.  If the given {@link SimpleTimeInterval} is <code>null</code>, this
      * method creates a new one for each {@link AbstractFacet} using the facet's start time.
      */
-    private SortedSet<Photo> convertFacetsToPhotos(final long guestId,
+    private SortedSet<Photo> convertFacetsToPhotos(final ApiKey apiKey,
                                                    final TimeInterval timeInterval,
                                                    final List<AbstractFacet> facets,
                                                    final Connector connector,
                                                    final ObjectType objectType)
-            throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+            throws ClassNotFoundException, InstantiationException, IllegalAccessException, OutsideTimeBoundariesException
+    {
 
         SortedSet<Photo> photos = new TreeSet<Photo>();
 
-        GuestSettings settings = settingsService.getSettings(guestId);
+        GuestSettings settings = settingsService.getSettings(apiKey.getGuestId());
         for (AbstractFacet facet : facets) {
             Class<? extends AbstractFacetVO<AbstractFacet>> jsonFacetClass = AbstractFacetVO.getFacetVOClass(facet);
             AbstractInstantFacetVO<AbstractFacet> facetVo = (AbstractInstantFacetVO<AbstractFacet>)jsonFacetClass.newInstance();
 
             final TimeInterval actualTimeInterval;
             if (timeInterval == null) {
-                // TODO: Not sure if this is correct for time zones...
-                actualTimeInterval = new TimeInterval(facet.start, facet.start, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
+                actualTimeInterval = new SimpleTimeInterval(facet.start, facet.start, TimeUnit.ARBITRARY, TimeZone.getTimeZone("UTC"));
             }
             else {
                 actualTimeInterval = timeInterval;
@@ -276,12 +356,20 @@ public class PhotoServiceImpl implements PhotoService {
         return connector.prettyName() + "." + (objectType == null ? DEFAULT_PHOTOS_CHANNEL_NAME : objectType.getName());
     }
 
-    private TimeInterval constructTimeIntervalFromOldestAndNewestFacets(final long guestId, final Connector connector, final ObjectType objectType) {
-        final AbstractFacet oldestFacet = apiDataService.getOldestApiDataFacet(guestId, connector, objectType);
-        final AbstractFacet newestFacet = apiDataService.getLatestApiDataFacet(guestId, connector, objectType);
+    /**
+     * Returns the {@link SimpleTimeInterval} for the oldest and newest facets.  Returns <code>null</code> if no facets exist.
+     */
+    private TimeInterval constructTimeIntervalFromOldestAndNewestFacets(final ApiKey apiKey,
+                                                                        final ObjectType objectType) {
+        final PhotoFacetFinderStrategy photoFacetFinderStrategy = getPhotoFacetFinderStrategyFromObjectType(objectType);
+        final AbstractFacet oldestFacet = photoFacetFinderStrategy.findOldest(apiKey, objectType);
+        final AbstractFacet newestFacet = photoFacetFinderStrategy.findLatest(apiKey, objectType);
 
-        // TODO: Not sure if this is correct for time zones...
-        return new TimeInterval(oldestFacet.start, newestFacet.start, TimeUnit.DAY, TimeZone.getTimeZone("UTC"));
+        if (oldestFacet != null && newestFacet != null) {
+            return new SimpleTimeInterval(oldestFacet.start, newestFacet.start, TimeUnit.ARBITRARY, TimeZone.getTimeZone("UTC"));
+        }
+
+        return null;
     }
 
     private static final class PhotoImpl implements Photo, Comparable<Photo> {

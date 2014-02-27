@@ -3,22 +3,26 @@ package com.fluxtream.updaters.quartz;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import com.fluxtream.Configuration;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.auth.FlxUserDetails;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.services.ConnectorUpdateService;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.utils.Utils;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+/**
+ * This class' scheduleIncrementalUpdates is meant to be call at regular intervals by
+ * a quartz trigger (see spring-quartz.xml)
+ */
 public class Producer {
 
-    Logger logger = Logger.getLogger(Producer.class);
+    FlxLogger logger = FlxLogger.getLogger(Producer.class);
 
     @Autowired
     private ConnectorUpdateService connectorUpdateService;
@@ -26,22 +30,53 @@ public class Producer {
     @Autowired
     private GuestService guestService;
 
-    public void scheduleIncrementalUpdates() {
-        logger.info("module=updateQueue component=producer action=scheduleIncrementalUpdates");
-        //List<String> roles = new ArrayList<String>();
-        //roles.add("ROLE_ADMIN");
-        //roles.add("ROLE_ROOT");
-        //as(roles);
-        //try {
-        //    List<Guest> guests = guestService.getAllGuests();
-        //    for (Guest g : guests) {
-        //        connectorUpdateService.updateAllConnectors(g.getId());
-        //    }
-        //}
-        //catch (Exception e) {
-        //    String stackTrace = Utils.stackTrace(e);
-        //    logger.error("module=updateQueue component=producer message=Could not update all connectors stackTrace=" + stackTrace);
-        //}
+    @Autowired
+    private Configuration env;
+
+    private boolean contextStarted = false;
+
+    public void setContextStarted() {
+        contextStarted = true;
+    }
+
+    /**
+     * bluntly go through the list of all guests and attempt to update all of their connectors
+     * spacing them evenly around 3/4 of producer.trigger.repeatInterval so they don't all happen at once.
+     * The reason to use only 3/4 of the producer.trigger.repeatInterval is to allow the later users' connectors
+     * some time to complete before the next time scheduleIncrementalUpdates is called.
+     */
+    public void scheduleIncrementalUpdates() throws InterruptedException {
+        while (!contextStarted) {
+            Thread.sleep(1000);
+            System.out.println("Context not started, delaying queue consumption...");
+        }
+
+        logger.debug("module=updateQueue component=producer action=scheduleIncrementalUpdates");
+        List<String> roles = new ArrayList<String>();
+        roles.add("ROLE_ADMIN");
+        roles.add("ROLE_ROOT");
+        as(roles);
+        try {
+            List<Guest> guests = guestService.getAllGuests();
+            // Prepare to calculate when to start the connector updates for each guest.
+            // updateTimespan is the span of time over which to space the guests' updates
+            // guestUpdateSpacing is updateTimespan/# guests, for how much to increment the
+            //    time for each guest
+            // nextUpdateTime is the time to update the next guest.  It starts at now,
+            // and is incremented for each guest
+            String producerRepeatInterval = env.get("producer.trigger.repeatInterval");
+            long updateTimespan = (producerRepeatInterval!=null)?((long)(Double.valueOf(producerRepeatInterval)*0.75)):0;
+            long guestUpdateSpacing = (guests.size()>0)?(updateTimespan/guests.size()):0;
+            long nextUpdateTime = System.currentTimeMillis();
+            for (Guest g : guests) {
+                connectorUpdateService.updateAllConnectors(g.getId(), false, nextUpdateTime);
+                nextUpdateTime += guestUpdateSpacing;
+            }
+        }
+        catch (Exception e) {
+            String stackTrace = Utils.stackTrace(e);
+            logger.error("module=updateQueue component=producer message=Could not update all connectors stackTrace=" + stackTrace);
+        }
     }
 
     private static void as(final List<String> roles) {

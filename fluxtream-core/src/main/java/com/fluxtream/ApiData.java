@@ -1,16 +1,12 @@
 package com.fluxtream;
 
 import java.util.TimeZone;
-
-import net.sf.json.JSONObject;
-
-import org.dom4j.Document;
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-
 import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractEntity;
+import com.fluxtream.utils.TimeUtils;
+import net.sf.json.JSONObject;
+import org.dom4j.Document;
+import org.joda.time.DateTimeZone;
 
 public class ApiData extends AbstractEntity {
 
@@ -22,8 +18,6 @@ public class ApiData extends AbstractEntity {
 	public JSONObject jsonObject;
 	public Document xmlDocument;
 	
-	private static final DateTimeFormatter format = DateTimeFormat.forPattern("yyyy-MM-dd");
-
 	public ApiData(UpdateInfo updateInfo, long start, long end) {
 		this.updateInfo = updateInfo;
 		this.start = start;
@@ -31,7 +25,7 @@ public class ApiData extends AbstractEntity {
 	}
 	
 	public String getDate(TimeZone timeZone) {
-		return format.withZone(DateTimeZone.forTimeZone(timeZone)).print(start);
+		return TimeUtils.dateFormatter.withZone(DateTimeZone.forTimeZone(timeZone)).print(start);
 	}
 	
 }

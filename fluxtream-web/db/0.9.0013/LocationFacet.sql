@@ -1,0 +1,1 @@
+RENAME TABLE Facet_GoogleLatitudeLocation TO Facet_Location;

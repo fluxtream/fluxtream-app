@@ -4,8 +4,9 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
 import com.fluxtream.connectors.Connector.UpdateStrategyType;
+import com.fluxtream.connectors.bodytrackResponders.AbstractBodytrackResponder;
+import com.fluxtream.connectors.bodytrackResponders.DefaultBodytrackResponder;
 import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.AbstractUserProfile;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
@@ -13,7 +14,10 @@ import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Updater {
-	
+
+    // dummy empty class meant to let settings have a default
+    static class EmptySettings {}
+
 	int value();
 	
 	UpdateStrategyType updateStrategyType() default UpdateStrategyType.INCREMENTAL;
@@ -27,11 +31,13 @@ public @interface Updater {
 	public Class<? extends AbstractUserProfile> userProfile() default AbstractUserProfile.class;
 	
 	public boolean hasFacets() default true;
-	
-	public String[] additionalParameters() default {};
 
     public String[] defaultChannels() default {};
 
-    public boolean isManageable() default true;
-	
+    public Class<? extends Object> settings() default EmptySettings.class;
+
+    public Class<? extends AbstractBodytrackResponder> bodytrackResponder() default DefaultBodytrackResponder.class;
+
+    public int[] deleteOrder() default {-1};
+
 }

@@ -20,12 +20,16 @@ define(function() {
     function dataLoaded(data){
         App.loadMustacheTemplate("connectorMgmtTemplates.html","addConnectors",function(template){
             var html = template.render(data);
+            $("#connectorsDropdownToggle").popover("destroy");
             App.makeModal(html);
             bindDialog();
         });
     }
 
     function bindDialog(){
+        $("#modal").on("hide",function(){
+            App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
+        });
     }
 
     var AddConnectors = {};

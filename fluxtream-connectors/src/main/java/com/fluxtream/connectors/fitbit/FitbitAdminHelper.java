@@ -24,7 +24,7 @@ public class FitbitAdminHelper {
 		ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector("fitbit"));
 		
 		String json = signpostHelper
-				.makeRestCall(Connector.getConnector("fitbit"), apiKey, -10,
+				.makeRestCall(apiKey, -10,
 						"http://api.fitbit.com/1/user/-/apiSubscriptions.json");
 
 		JSONObject wrapper = JSONObject.fromObject(json);
@@ -36,7 +36,7 @@ public class FitbitAdminHelper {
 		ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector("fitbit"));
 		
 		String json = signpostHelper
-				.makeRestCall(Connector.getConnector("fitbit"), apiKey, -10,
+				.makeRestCall(apiKey, -10,
 						"http://api.fitbit.com/1/user/-/apiSubscriptions.json");
 
 		JSONObject wrapper = JSONObject.fromObject(json);

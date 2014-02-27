@@ -1,7 +1,6 @@
 package com.fluxtream.services.impl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import javax.persistence.EntityManager;
@@ -40,7 +39,7 @@ public class DashboardsServiceImpl implements DashboardsService {
     @Autowired
     Configuration env;
 
-    @Autowired
+    @Autowired(required=false)
     @Qualifier("widgets")
     PropertiesConfiguration widgetProperties;
 
@@ -73,10 +72,12 @@ public class DashboardsServiceImpl implements DashboardsService {
         List<String> widgetNames = new ArrayList<String>();
         while (eachKey.hasNext()) {
             ApiKey key = eachKey.next();
-            String defaultWidgetKey = key.getConnector().getName() + ".defaultWidget";
-            String widgetName = widgetProperties.getString(defaultWidgetKey);
-            if (widgetName!=null) {
-                widgetNames.add(widgetName);
+            if(key!=null && key.getConnector()!=null && key.getConnector().getName()!=null) {
+                String defaultWidgetKey = key.getConnector().getName() + ".defaultWidget";
+                String widgetName = widgetProperties.getString(defaultWidgetKey);
+                if (widgetName!=null) {
+                    widgetNames.add(widgetName);
+                }
             }
         }
         dashboard.widgetNames = StringUtils.join(widgetNames, ",");

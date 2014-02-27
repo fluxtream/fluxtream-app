@@ -1,4 +1,4 @@
-<%@ page import="com.fluxtream.mvc.controllers.ControllerHelper" %>
+<%@ page import="com.fluxtream.mvc.controllers.AuthHelper" %>
 <%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"%><%@ taglib
     prefix="c" uri="http://java.sun.com/jsp/jstl/core"%><%@ taglib
     prefix="sec" uri="http://www.springframework.org/security/tags"%><%@ taglib
@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-status-bar-style"
     content="black-translucent" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fluxtream - Personal Analytics</title>
+<title>Fluxtream</title>
 <meta name="description" content="">
 <meta name="author" content="">
 
@@ -22,14 +22,14 @@
     <link rel="stylesheet" href="/css/flx.css">
     <link rel="stylesheet" href="/css/bodytrack.css">
     <link rel="stylesheet" href="/css/datepicker.css">
-    <link rel="stylesheet" href="/static/css/jquery-ui/jquery-ui-1.8.18.custom.css">
+    <link rel="stylesheet" href="/static/css/jquery-ui/jquery-ui-1.10.3.custom.css">
     <link rel="stylesheet"
         href="/static/css/jquery-colorPicker/jquery.colorPicker.css">
     <link rel="stylesheet" href="/static/css/msdropdown/dd.css">
     <link rel="stylesheet" href="/static/css/tagedit/css/jquery.tagedit.css">
 </g:compress>
 
-<link rel="stylesheet" href="/static/css/font-awesome.css">
+<link rel="stylesheet" href="/static/css/font-awesome-3.2.1.css">
 
 <script
     src="https://maps-api-ssl.google.com/maps/api/js?libraries=geometry&v=3&sensor=false"
@@ -50,7 +50,7 @@
                 <div class="container-fluid">
                     <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span>
                     </a> 
-                    <a class="brand" href="/app"><img src="/1.0-alpha-build_20120403/images/header-logo-v4.png" /></a>
+                    <a class="brand" href="/app"><img src="/${release}/images/header-logo-v4.png" /></a>
                     <div class="nav-collapse">
                         <ul class="nav">
                             <li>
@@ -81,67 +81,50 @@
                     </div>
                 </div>
             </div>
-        </div>    
-
-
-
-<div class="container-fluid">
-    <div class="row-fluid">
-        <div class="span8">
-            <div class="row-fluid">
-                    <div class="set-device-header" style="padding-left:15px;">
-                        <h2>Fitbit</h2>
-                    </div>
-                    <div class="tabbable tabs-left">
-                      <ul class="nav nav-tabs span3">
-                          <li>
-                            <a href="#">General settings</a>
-                          </li>
-                          <li class="active">
-                            <a href="#">Advanced settings</a>
-                          </li>
-                      </ul>
-                      <div class="tab-content span8 set-device">
-                    <form class="form-inline">
-                        <table class="table flx-channel-table">
-                            <thead>
-                                <tr>
-                                    <th>Select</th>
-                                    <th>Name</th>
-                                    <th>Description</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><input type="checkbox" name="1" id="1"></td>
-                                    <td class="flx-channel-name"><label for="1">Fitbit sleep</label></td>
-                                    <td class="description">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </td>
-                                </tr>
-                                <tr>
-                                    <td><input type="checkbox" name="2" id="2"></td>
-                                    <td class="flx-channel-name"><label for="2">Fitbit activity summary</label></td>
-                                    <td class="description">Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </td>
-                                </tr>
-                                <tr>
-                                    <td><input type="checkbox" name="3" id="3"></td>
-                                    <td class="flx-channel-name"><label for="3">Fitbit log</label></td>
-                                    <td class="description">Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </td>
-                                </tr>
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan="3">
-                                        <button class="btn">Save changes</button>
-                                    </td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </form>
-                </div>
         </div>
-    </div>
-</div>        
-<div class="row-fluid">
+
+
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span2">
+                    <div class="btn-group">
+                        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+                            &lt;No Selected User&gt;
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="">Thomas Carton de Wiart</a></li>
+                            <li><a href="">Anne Wright</a></li>
+                            <li><a href="">Randy Sargent</a></li>
+                            <li class="divider"></li>
+                            <li><a href="">New User...</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div><br/>
+            <div class="row-fluid">
+                <div class="span9">
+                    <div class="row-fluid">
+                        <div class="span3"><input disabled=disabled type="checkbox">&nbsp;Fitbit</input> </div>
+                        <div class="span3"><input disabled=disabled type="checkbox">&nbsp;Zeo</input> </div>
+                        <div class="span3"><input disabled=disabled type="checkbox">&nbsp;Withings</input> </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span3"><input disabled=disabled type="checkbox">&nbsp;BodyMedia</input> </div>
+                        <div class="span3"><input disabled=disabled type="checkbox">&nbsp;Google Latitude</input> </div>
+                        <div class="span3"><input disabled=disabled type="checkbox">&nbsp;Flickr</input> </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span3"><input disabled=disabled type="checkbox">&nbsp;Picasa</input> </div>
+                        <div class="span3"><input disabled=disabled type="checkbox">&nbsp;Google Calendar</input> </div>
+                        <div class="span3"><input disabled=disabled type="checkbox">&nbsp;Last FM</input> </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row-fluid">
 <div class="span8">
         <div class="row-fluid well">
             <div class="span4">
@@ -731,7 +714,7 @@
                                                 <input type="text" title="insert view name" style="display:inline"/>
                                                 <a href="#" class="btn btn-mini">save</a>
                                             </form>
-                                            <h5>Or save as one of the views bellow</h5>
+                                            <h5>Or save as one of the views below</h5>
                                         </li>
                                         <li class="divider"></li>
                                         <li>
@@ -775,7 +758,7 @@
         <div class="row">
             <div class="span10">
                 <div class="synchAll">
-                    <span>Though your data are supposedly up to date, you might want to <a href="#" class="btn btn-info">sync all your devices now <i class="icon-refresh"></i></a></span>          
+                    <span>Though your data should be up to date, you might want to <a href="#" class="btn btn-info">sync all your devices now <i class="icon-refresh"></i></a></span>
                 </div>
             </div>
         </div>
@@ -1085,15 +1068,15 @@
     </script>
 
     <script
-        src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+        src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script>
         window.jQuery
                 || document
-                        .write('<script src="/static/js/jquery-1.7.1.min.js"><\/script>')
+                        .write('<script src="/static/js/jquery-1.10.2.min.js"><\/script>')
     </script>
     <g:compress>
-        <script src="/static/js/jquery-ui-1.8.18.custom.min.js"></script>
-        <script src="/static/js/jquery.ui.sortable-1.8.2-bt-1.0.0.js"></script>
+        <script src="/static/js/jquery-ui-1.10.3.custom.min.js"></script>
+        <script src="/static/js/jquery.ui.sortable-1.8.2-bt-1.0.1.js"></script>
         <script src="/static/tiny_mce/jquery.tinymce.js"></script>
         <script src="/static/js/json2-2011.10.19.js"></script>
         <script src="/static/js/hogan-2.0.0.js"></script>
@@ -1109,7 +1092,7 @@
         <script src="/static/js/bootstrap-2.0.2.min.js"></script>
         <script src="/static/js/raphael-2.1.0.js"></script>
         <script src="/static/js/underscore-1.3.3-min.js"></script>
-        <script src="/static/js/backbone-0.9.2-min.js"></script>
+        <script src="/static/js/backbone-1.0.0-custom.1-min.js"></script>
     </g:compress>
 </body>
 </html>

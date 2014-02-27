@@ -5,11 +5,18 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
-
+import com.fluxtream.connectors.annotations.ObjectTypeSpec;
 import com.fluxtream.domain.AbstractFacet;
 
 public class ObjectType {
-	
+
+    String name;
+    String prettyname;
+    boolean isDateBased;
+    boolean isMixedType;
+    boolean isClientFacet;
+    String visibleClause;
+
 	private static Map<Connector,List<ObjectType>> connectorObjectTypes = new Hashtable<Connector,List<ObjectType>>();
 	
 	private static Map<Connector,Map<String,ObjectType>> connectorNamedObjectTypes = new Hashtable<Connector,Map<String,ObjectType>>();
@@ -17,15 +24,14 @@ public class ObjectType {
 	private static Map<Connector,Map<Integer,ObjectType>> connectorObjectTypeValues = new Hashtable<Connector,Map<Integer,ObjectType>>();
 	
 	private static Map<String, ObjectType> customObjectTypes = new Hashtable<String, ObjectType>();
-	
-	/**
+
+    /**
 	 * "Custom" objectTypes are there to compute a value (hashCode())
 	 * for special API calls. We use it for counting those calls so we
 	 * don't confuse them with the usual API calls that retrieve data.
 	 * @param name
 	 */
 	public static void registerCustomObjectType(String name) {
-		name = name.toLowerCase();
 		ObjectType customObjectType = new ObjectType();
 		customObjectType.name = name;
 		customObjectType.value = name.hashCode();
@@ -35,11 +41,18 @@ public class ObjectType {
 	public static ObjectType getCustomObjectType(String name) {
 		return customObjectTypes.get(name);
 	}
-	
+
+    public String getApiKeyAttributeName(String attName) {
+        return new StringBuilder(name).append("/").append(attName).toString();
+    }
+
 	public static ObjectType getObjectType(Connector connector, int objectType) {
 		Map<Integer, ObjectType> connectorObjectTypes = connectorObjectTypeValues.get(connector);
-		ObjectType type = connectorObjectTypes.get(objectType);
-		return type;
+        if (connectorObjectTypes!=null) {
+    		ObjectType type = connectorObjectTypes.get(objectType);
+    		return type;
+        }
+        return null;
 	}
 	
 	static void addObjectType(String name, Connector connector, ObjectType value) {
@@ -56,13 +69,10 @@ public class ObjectType {
 	
 	public static ObjectType getObjectType(Connector connector, String name) {
 		Map<String, ObjectType> connectorObjectTypes = connectorNamedObjectTypes.get(connector);
-		ObjectType namedObjectType = connectorObjectTypes.get(name.toLowerCase());
+		ObjectType namedObjectType = connectorObjectTypes.get(name);
 		return namedObjectType;
 	}
-	
-	String name;
-	String prettyname;
-	
+
 	public static List<ObjectType> getObjectTypes(Connector connector, int objectTypes) {
 		List<ObjectType> connectorTypes = connectorObjectTypes.get(connector);
 		if (connectorTypes==null) return null;
@@ -73,7 +83,15 @@ public class ObjectType {
 		}
 		return result;
 	}
-	
+
+    public boolean isDateBased() {
+        return isDateBased;
+    }
+
+    public boolean isClientFacet() {
+        return isClientFacet;
+    }
+
 	public String toString() {
 		return name;
 	}
@@ -108,5 +126,68 @@ public class ObjectType {
 	public String prettyname() {
 		return prettyname;
 	}
-	
+
+    public String visibleClause() {
+        return visibleClause;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        final ObjectType that = (ObjectType)o;
+
+        if (isDateBased != that.isDateBased) {
+            return false;
+        }
+        if (isImageType != that.isImageType) {
+            return false;
+        }
+        if (value != that.value) {
+            return false;
+        }
+        if (facetClass != null ? !facetClass.equals(that.facetClass) : that.facetClass != null) {
+            return false;
+        }
+        if (name != null ? !name.equals(that.name) : that.name != null) {
+            return false;
+        }
+        if (prettyname != null ? !prettyname.equals(that.prettyname) : that.prettyname != null) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (prettyname != null ? prettyname.hashCode() : 0);
+        result = 31 * result + (isDateBased ? 1 : 0);
+        result = 31 * result + (isMixedType ? 1 : 0);
+        result = 31 * result + value;
+        result = 31 * result + (isImageType ? 1 : 0);
+        result = 31 * result + (facetClass != null ? facetClass.hashCode() : 0);
+        return result;
+    }
+
+    public boolean isMixedType() {
+        return isMixedType;
+    }
+
+    public static int getObjectTypeValue(final Class<? extends AbstractFacet> facetClass) {
+        try {
+            final ObjectTypeSpec annotation = facetClass.getAnnotation(ObjectTypeSpec.class);
+            final int value = annotation.value();
+            return value;
+        } catch (Throwable t) {
+            final String message = "Could not get Facet ObjectType value for " + facetClass.getName();
+            throw new RuntimeException(message);
+        }
+    }
 }

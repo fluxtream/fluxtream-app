@@ -1,19 +1,47 @@
 define(function() {
 	
 	var Connectors = {};
-	
-	function submitNikePlusCredentials() {
-		var username = $("input#nikeplus-username").val();
+
+    function submitMymeeAuthInfo() {
+        var username = $("input#mymee-username").val();
+        var password = $("input#mymee-password").val();
+        var activationCode = $("input#mymee-activationCode").val();
+        $.ajax({
+            url:"/mymee/setAuthInfo",
+            type: "POST",
+            data: {username : username, password : password, activationCode : activationCode},
+            success: function(html) {
+                $(".addConnectorsMain").html(html);
+                $("#mymee-username").focus();
+            }
+        });
+    }
+
+	function submitMymeeFetchURL() {
+		var fetchURL = $("input#mymee-fetchURL").val();
 		$.ajax({
-			url:"/nikeplus/setUsername",
+			url:"/mymee/setFetchURL",
 			type: "POST",
-			data: {username: username},
+			data: {url: fetchURL},
 			success: function(html) {
 				$(".addConnectorsMain").html(html);
-				$(".focushere").focus();
+				$("#mymee-fetchURL").focus();
 			}
 		});
 	}
+
+    function submitNikePlusCredentials() {
+        var username = $("input#nikeplus-username").val();
+        $.ajax({
+            url:"/nikeplus/setUsername",
+            type: "POST",
+            data: {username: username},
+            success: function(html) {
+                $(".addConnectorsMain").html(html);
+                $(".focushere").focus();
+            }
+        });
+    }
 
     function getQuantifiedMindToken() {
         $.ajax({
@@ -97,34 +125,6 @@ define(function() {
 		});
 	}
 
-	function submitSmsBackupFolderNames() {
-		var smsFolderName = $("input#smsBackup-smsFolderName").val(),
-		callLogFolderName = $("input#smsBackup-callLogFolderName").val();
-		$.ajax({
-			url:"/smsBackup/setFolderNames",
-			type: "POST",
-			data: {smsFolderName: smsFolderName, callLogFolderName: callLogFolderName},
-			success: function(html) {
-				$(".addConnectorsMain").html(html);
-				$(".focushere").focus();
-			}
-		});
-	}
-
-	function submitSmsBackupUsernameAndPassword() {
-		var username = $("input#smsBackup-username").val(),
-			password = $("input#smsBackup-password").val();
-		$.ajax({
-			url:"/smsBackup/check",
-			type: "POST",
-			data: {username: username, password: password},
-			success: function(html) {
-				$(".addConnectorsMain").html(html);
-				$(".focushere").focus();
-			}
-		});
-	}
-
 	function chooseWithingsUser() {
         var chosenUser = $("input#withings-chosenUser:checked").val();
 		$.ajax({
@@ -152,12 +152,12 @@ define(function() {
 	}
 	
 	Connectors.chooseWithingsUser = chooseWithingsUser;
-	Connectors.submitSmsBackupUsernameAndPassword = submitSmsBackupUsernameAndPassword;
-	Connectors.submitSmsBackupFolderNames = submitSmsBackupFolderNames;
 	Connectors.submitWithingsUsernameAndPassword = submitWithingsUsernameAndPassword;
 	Connectors.submitZeoCredentials = submitZeoCredentials;
 	Connectors.submitToodledoCredentials = submitToodledoCredentials;
 	Connectors.submitNikePlusCredentials = submitNikePlusCredentials;
+    Connectors.submitMymeeFetchURL = submitMymeeFetchURL;
+    Connectors.submitMymeeAuthInfo = submitMymeeAuthInfo;
 	Connectors.submitOpenPathKeypair = submitOpenPathKeypair;
     Connectors.getQuantifiedMindToken = getQuantifiedMindToken;
 

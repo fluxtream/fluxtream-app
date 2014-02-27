@@ -116,7 +116,9 @@
             </div>
             <div class="control-group">
                 <div class="controls">
-                    <button type="submit" id="submitCreateAccountForm" class="btn btn-primary">Register</button>
+                    <button type="submit"
+                            onclick="if (typeof(ga)!='undefined') {ga('send', 'event', 'button', 'click', 'register', 1);}"
+                            id="submitCreateAccountForm" class="btn btn-primary">Register</button>
                 </div>
             </div>
         </div>

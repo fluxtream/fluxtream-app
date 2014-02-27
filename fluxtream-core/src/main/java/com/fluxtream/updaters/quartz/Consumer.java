@@ -1,24 +1,36 @@
 package com.fluxtream.updaters.quartz;
 
-import org.apache.log4j.Logger;
+import com.fluxtream.Configuration;
+import com.fluxtream.aspects.FlxLogger;
+import com.fluxtream.services.ConnectorUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import com.fluxtream.services.ConnectorUpdateService;
 
 @Component
 public class Consumer {
 	
 	@Autowired
 	ConnectorUpdateService connectorUpdateService;
+
+    @Autowired
+    Configuration env;
 	
-	static Logger logger = Logger.getLogger(Consumer.class);
+	static FlxLogger logger = FlxLogger.getLogger(Consumer.class);
+
+    private boolean contextStarted = false;
+
+    public void setContextStarted() {
+        contextStarted = true;
+    }
 
 	public void checkUpdatesQueue() throws Exception {
-        logger.info("module=updateQueue component=consumer action=checkUpdatesQueue");
-		connectorUpdateService.pollScheduledUpdates();
+        while (!contextStarted) {
+            Thread.sleep(1000);
+            System.out.println("Context not started, delaying queue consumption...");
+        }
+        logger.debug("module=updateQueue component=consumer action=checkUpdatesQueue");
+        connectorUpdateService.pollScheduledUpdateWorkerTasks();
 	}
-	
 
-		
+
 }

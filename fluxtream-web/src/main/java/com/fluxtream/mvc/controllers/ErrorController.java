@@ -4,7 +4,7 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,7 +17,7 @@ import com.fluxtream.utils.Utils;
 @Controller
 public class ErrorController {
 
-	Logger logger = Logger.getLogger(ErrorController.class);
+	FlxLogger logger = FlxLogger.getLogger(ErrorController.class);
 
 	@Autowired
 	Configuration env;
@@ -36,8 +36,20 @@ public class ErrorController {
         else return "accessDenied";
     }
 
-                                  @RequestMapping(value = "/errors/{code}.html")
-	public ModelAndView handle404(@PathVariable("code") int code,
+    public ModelAndView handleError(int code,
+                                    String errorMessage,
+                                    String stackTrace) {
+        ModelAndView mav = new ModelAndView("error");
+        mav.addObject("code", code);
+        mav.addObject("errorMessage", errorMessage);
+        mav.addObject("stackTrace", stackTrace);
+        mav.addObject("release", env.get("release"));
+        return mav;
+    }
+
+
+    @RequestMapping(value = "/error/{code}.html")
+	public ModelAndView handleError(@PathVariable("code") int code,
 			HttpServletRequest request) {
 		ModelAndView mav = new ModelAndView("error");
 		Throwable e = (Throwable) request.getAttribute(SERVLET_EXCEPTION_ATTR);

@@ -1,14 +1,11 @@
 package com.fluxtream.domain;
 
+import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.StringTokenizer;
-
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.Index;
 
@@ -20,15 +17,19 @@ import org.hibernate.annotations.Index;
 			query="SELECT guest FROM Guest guest WHERE guest.email=?"),
 	@NamedQuery( name="guest.byUsername",
 			query="SELECT guest FROM Guest guest WHERE guest.username=?"),
+    @NamedQuery( name="guest.byAutoLoginToken",
+                 query="SELECT guest FROM Guest guest WHERE guest.autoLoginToken=?"),
 	@NamedQuery( name="guests.all",
 			query="SELECT guest FROM Guest guest")
 })
-public class Guest extends AbstractEntity {
+public class Guest extends AbstractEntity implements Serializable {
 
 	public static final String ROLE_USER = "ROLE_USER";
 	public static final String ROLE_ADMIN = "ROLE_ADMIN";
-	public static final String ROLE_COACH = "ROLE_COACH";
-	public static final String ROLE_ROOT = "ROLE_ROOT";
+
+    public enum RegistrationMethod {
+        REGISTRATION_METHOD_FORM, REGISTRATION_METHOD_FACEBOOK, REGISTRATION_METHOD_FACEBOOK_WITH_PASSWORD;
+    }
 
 	@Index(name="username_index")
 	public String username;
@@ -36,9 +37,12 @@ public class Guest extends AbstractEntity {
 	@Index(name="email_index")
 	public String email;
 	public String salt;
+    public String autoLoginToken;
+    public Long autoLoginTokenTimestamp;
+    public RegistrationMethod registrationMethod;
 
 	transient List<String> userRoles;
-	public String roles = ROLE_USER;
+	String roles = ROLE_USER;
 
 	public Guest() {}
 
@@ -56,6 +60,12 @@ public class Guest extends AbstractEntity {
 		return userRoles;
 	}
 
+    public boolean equals(Object o) {
+        if (! (o instanceof Guest))
+            return false;
+        return ((Guest)o).getId() == getId();
+    }
+
 	public String getGuestName() {
 		if (!StringUtils.isEmpty(firstname)){
 			if (!StringUtils.isEmpty(lastname))
@@ -65,4 +75,7 @@ public class Guest extends AbstractEntity {
 		else return username;
 	}
 
+    public void setRoles(final String roles) {
+        this.roles = roles;
+    }
 }

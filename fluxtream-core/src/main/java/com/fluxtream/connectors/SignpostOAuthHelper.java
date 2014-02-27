@@ -3,24 +3,26 @@ package com.fluxtream.connectors;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
+import com.fluxtream.connectors.updaters.RateLimitReachedException;
+import com.fluxtream.connectors.updaters.UnexpectedResponseCodeException;
+import com.fluxtream.domain.ApiKey;
+import com.fluxtream.services.GuestService;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.basic.DefaultOAuthConsumer;
-import oauth.signpost.http.HttpParameters;
-
 import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import com.fluxtream.connectors.updaters.RateLimitReachedException;
-import com.fluxtream.domain.ApiKey;
 
 @Component
 public class SignpostOAuthHelper extends ApiClientSupport {
-	
-	public final String makeRestCall(Connector connector, ApiKey apiKey,
-			int objectTypes, String urlString) throws RateLimitReachedException {
 
-		if (hasReachedRateLimit(connector, apiKey.getGuestId()))
+    @Autowired
+    GuestService guestService;
+
+	public final String makeRestCall(ApiKey apiKey,
+			int objectTypes, String urlString) throws RateLimitReachedException, UnexpectedResponseCodeException {
+
+		if (hasReachedRateLimit(apiKey.getConnector(), apiKey.getGuestId()))
 			throw new RateLimitReachedException();
 
 		try {
@@ -29,15 +31,12 @@ public class SignpostOAuthHelper extends ApiClientSupport {
 			HttpURLConnection request = (HttpURLConnection) url.openConnection();
 			
 			OAuthConsumer consumer = new DefaultOAuthConsumer(
-					getConsumerKey(connector), getConsumerSecret(connector));
+					getConsumerKey(apiKey), getConsumerSecret(apiKey));
 	
 			consumer.setTokenWithSecret(
-					apiKey.getAttributeValue("accessToken", env),
-					apiKey.getAttributeValue("tokenSecret", env));
-			if (connector.hasAdditionalParameters()) {
-				addAdditionalParameters(consumer, apiKey, connector.getAdditionalParameters());
-			}
-			
+                    guestService.getApiKeyAttribute(apiKey,"accessToken"),
+                    guestService.getApiKeyAttribute(apiKey,"tokenSecret"));
+
 			// sign the request (consumer is a Signpost DefaultOAuthConsumer)
 			try {
 				consumer.sign(request);
@@ -45,45 +44,36 @@ public class SignpostOAuthHelper extends ApiClientSupport {
 				throw new RuntimeException("OAuth exception: " + e.getMessage());
 			}
 			request.connect();
-			if (request.getResponseCode() == 200) {
+            final int httpResponseCode = request.getResponseCode();
+            final String httpResponseMessage = request.getResponseMessage();
+            if (httpResponseCode == 200) {
 				String json = IOUtils.toString(request.getInputStream());
-				connectorUpdateService.addApiUpdate(apiKey.getGuestId(), connector,
+				connectorUpdateService.addApiUpdate(apiKey,
 						objectTypes, then, System.currentTimeMillis() - then,
-						urlString, true);
+						urlString, true, httpResponseCode, httpResponseMessage);
 				// logger.info(apiKey.getGuestId(), "REST call success: " +
 				// urlString);
 				return json;
 			} else {
-				connectorUpdateService.addApiUpdate(apiKey.getGuestId(), connector,
+				connectorUpdateService.addApiUpdate(apiKey,
 						objectTypes, then, System.currentTimeMillis() - then,
-						urlString, false);
-				throw new RuntimeException(
-						"Could not make REST call, got response code: "
-								+ request.getResponseCode() + ", message: "
-								+ request.getResponseMessage() + "\n+REST url: "
-								+ urlString);
+						urlString, false, httpResponseCode, httpResponseMessage);
+				throw new UnexpectedResponseCodeException(httpResponseCode,
+                                                          httpResponseMessage,
+                                                          urlString);
 			}
 		} catch (IOException e) {
 			throw new RuntimeException("IOException trying to make rest call: " + e.getMessage());
 		}
 	}
 
-	private void addAdditionalParameters(OAuthConsumer consumer, ApiKey apiKey,
-			String[] additionalParameters) {
-		for (String additionalParameterName : additionalParameters) {
-			HttpParameters additionalParameter = new HttpParameters();
-			additionalParameter.put(additionalParameterName, apiKey.getAttributeValue(additionalParameterName, env));
-			consumer.setAdditionalParameters(additionalParameter);
-		}
-	}
-
-	private String getConsumerSecret(Connector connector) {
-		String consumerSecret = env.get(connector.getName() + "ConsumerSecret");
+	private String getConsumerSecret(ApiKey apiKey) {
+		String consumerSecret = guestService.getApiKeyAttribute(apiKey, apiKey.getConnector().getName() + "ConsumerSecret");
 		return consumerSecret == null ? "" : consumerSecret;
 	}
 
-	private String getConsumerKey(Connector connector) {
-		String consumerKey = env.get(connector.getName() + "ConsumerKey");
+	private String getConsumerKey(ApiKey apiKey) {
+		String consumerKey = guestService.getApiKeyAttribute(apiKey, apiKey.getConnector().getName() + "ConsumerKey");
 		return consumerKey == null ? "" : consumerKey;
 	}
 

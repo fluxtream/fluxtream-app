@@ -1,36 +1,131 @@
-<template id="carousel">
-    <div class="modal fade" id="modal" style="position: fixed;left: 10%;top: 10%;bottom: 10%;width: auto;margin: 0px;right: 10%;">
-        <div class="modal-header">
-            <h3>&nbsp;<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
-        </div>
-        <div class="modal-body" style="overflow:hidden;position: absolute;left: 0px;right: 0px;">
-            <div id="photosCarousel" class="carousel">
-                <div class="carousel-inner">
-                    {{#photos}}
-                    <div id="photo-{{id}}" style="text-align:center;" class="item{{#active}} active{{/active}}" style="overflow:none">
-                        <img style="display:inline-block" src="{{photoUrl}}">
-                    </div>
-                    {{/photos}}
-                </div>
-                {{#includeNav}}
-                <a class="carousel-control left" href="#photosCarousel" data-slide="prev">&lsaquo;</a>
-                <a class="carousel-control right" href="#photosCarousel" data-slide="next">&rsaquo;</a>
-                {{/includeNav}}
-            </div>
-        </div>
-        <div class="modal-footer" style="position: absolute;bottom: 0;left: 0;right: 0;">
-            <button class="btn" onclick="App.closeModal();">Close</button>
-        </div>
-    </div>
-</template>
 <template id="thumbnailGroup">
-    <hr>
-    <div>
-        {{date}}
+    <div class="dateHeadingGroup">
+        <hr class="priorRuler">
+        <div class="dateHeading placeholder hidden"></div>
+        <div class="dateHeading dateLabel"><a href="javascript:App.renderApp(App.activeApp.name,'{{state}}');">{{date}}, {{city}} ({{timezone}})</a>
+            <hr></div>
     </div>
     <div class='thumbnailGroup'>
         {{#photos}}
-        <img id="photo-{{id}}" src="{{photoUrl}}" class="photoThumbnail">
+        <div class="photoThumbnail">
+            <span style="color:lightgray;position:relative;padding:2px;background-color:#000;">{{time}} {{ampm}}</span>
+            <img id="photo-{{id}}" src="{{photoUrl}}">
+        </div>
         {{/photos}}
     </div>
+</template>
+
+<template id="_timeline_photo_dialog_template">
+    <div style="width:1px;height:1px;"><img id="_timeline_photo_dialog_tabhelper_pre_proxy_backward" src="/images/clear.gif" width="1" height="1" tabindex="95"/></div>
+    <table border="0" cellpadding="0" cellspacing="0" class="_timeline_photo_dialog_table">
+        <tr valign="top">
+            <td rowspan="2" style="width:20px"><button id="_timeline_photo_dialog_previous_button" tabindex="96" class="_timeline_left_arrow"></button></td>
+            <td>
+                <table border="0" cellpadding="0" cellspacing="0" class="_timeline_photo_dialog_photo_table">
+                    <tr valign="middle">
+                        <td align="center">
+                            <img id="_timeline_photo_dialog_image" src="{{photoUrl}}" style="max-width: 300px; max-height: 300px;">
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td rowspan="2" align="right" style="width:20px"><button id="_timeline_photo_dialog_next_button" tabindex="97" class="_timeline_right_arrow"></button></td>
+        </tr>
+        <tr valign="top" id="_timeline_photo_dialog_form_container">
+            <td>
+                <div id="_timeline_photo_dialog_form_status"></div>
+                <div id="_timeline_photo_dialog_form"></div>
+                <div id="_timeline_photo_dialog_save_preferences">
+                    <table border="0" cellpadding="3" cellspacing="0" align="center">
+                        <tr valign="middle">
+                            <td><input id="_timeline_photo_dialog_save_should_goto_neighbor" type="checkbox" value="true" tabindex="107"></td>
+                            <td><label for="_timeline_photo_dialog_save_should_goto_neighbor" style="font-size:8pt; margin:0">After saving, go to the </label></td>
+                            <td><select id="_timeline_photo_dialog_save_should_goto_neighbor_choice" tabindex="108" disabled="disabled" style="width:auto; font-size:8pt; margin:0; font-family: 'Arial Unicode MS', Arial, sans-serif"><option value="1">next</option><option value="-1">previous</option></select></td>
+                            <td><label for="_timeline_photo_dialog_save_should_goto_neighbor" style="font-size:8pt; margin:0"> photo.</label><img id="_timeline_photo_dialog_post_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="109"/></td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
+</template>
+<template id="_timeline_photo_dialog_loading_template">
+    <table border="0" cellpadding="0" cellspacing="0" class="_timeline_photo_dialog_loading_table">
+        <tr valign="middle">
+            <td align="center"><i class="icon-refresh icon-spin"></i><br>Loading...</td>
+        </tr>
+    </table>
+</template>
+
+<template id="_timeline_photo_dialog_form_template">
+    <div style="width:1px; height:1px">
+        <img id="_timeline_photo_dialog_comment_tabhelper_pre_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="98"/>
+        <img id="_timeline_photo_dialog_comment_tabhelper_pre_proxy_backward" src="/images/clear.gif" width="1" height="1" tabindex="99"/>
+    </div>
+    <div>
+        <a id="_timeline_photo_dialog_timestamp" style="font-size:8pt" href="javascript:void(0);"></a>
+    </div>
+    <textarea rows="2" id="_timeline_photo_dialog_comment" tabindex="100" style="width:290px"></textarea>
+    <div style="width:1px;height:1px;">
+        <img id="_timeline_photo_dialog_tags_editor_tabhelper_pre_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="101"/>
+    </div>
+    <form id="_timeline_photo_dialog_tags_editor" action="" method="post" onsubmit="return false;">
+    </form>
+    <form id="_timeline_photo_dialog_form_buttons" action="" method="post" onsubmit="return false;" style="text-align:right">
+        <div style="width:1px; height:1px">
+            <img id="_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_forward" src="/images/clear.gif" width="1" height="1" tabindex="103"/>
+            <img id="_timeline_photo_dialog_tags_editor_tabhelper_post_proxy_backward" src="/images/clear.gif" width="1" height="1" tabindex="104"/>
+        </div>
+        <button id="_timeline_photo_dialog_revert_button" tabindex="106">Revert</button>
+        <button id="_timeline_photo_dialog_save_button" tabindex="105">Save</button>
+    </form>
+</template>
+
+<template id="_timeline_photo_dialog_tags_editor_tag_template">
+    <input type="text" name="tag[]" value="{{value}}" class="tag"/>
+</template>
+
+<template id="_timeline_channel_tab_filter_template"><span class="_timeline_channelFilter_label">{{matchingString}}</span> {{value}}</template>
+<template id="timelineExportModal">
+    <div id="timelineExportModal" class="modal hide fade"">
+    <div class="modal-header">
+        <a class="close" data-dismiss="modal">&times;</a>
+        <h3>Export Your Data to CSV</h3>
+    </div>
+    <div class="modal-body">
+        <i>Preparing Download...</i>
+    </div>
+    <div class="modal-footer">
+        <button id="cancel" class="btn" onclick="$('#timelineExportModal').modal('hide');">Cancel</button>
+        {{^noChannels}}
+        <a class="btn btn-primary disabled dataDownloadLink" href="{{downloadLink}}" download="{{filename}}" onclick="$('#timelineExportModal').modal('hide');">Download Data</a>
+        {{/noChannels}}
+    </div>
+    </div>
+</template>
+
+<template id="photoModal">
+    <div id="photoModal" class="modal hide fade">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h3 id="myModalLabel">Edit Photo Tags and Comments</h3>
+        </div>
+        <div id="photoDialog" class="modal-body" style="text-align:center">
+        </div>
+    </div>
+</template>
+
+<template id="fullScreenPhotoView">
+    <div id="photoViewContainer" class="modal">
+        <a id="closePhotoViewer" href="javascript:void(0);">&times;</a>
+        <div class="photoHolder">
+            <img class="photo" src="{{photoUrl}}">
+        </div>
+        <div class="carousel-inner">
+            <div class="item active" style="overflow:none;">
+                <img onload="$(window).resize();" orientation="{{orientation}}" transformations="{{transformations}}" style="display:inline-block; max-height:100%; transform:{{transformations}}; -ms-transform:{{transformations}}; -webkit-transform:{{transformations}}; -o-transform:{{transformations}}" src="{{photoUrl}}">
+            </div>
+        </div>
+    </div>
+
 </template>

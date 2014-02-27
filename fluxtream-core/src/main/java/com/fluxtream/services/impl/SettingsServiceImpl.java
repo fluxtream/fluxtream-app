@@ -1,21 +1,19 @@
 package com.fluxtream.services.impl;
 
+import java.io.Serializable;
+import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import com.fluxtream.Configuration;
+import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.Connector;
+import com.fluxtream.connectors.annotations.Updater;
+import com.fluxtream.connectors.updaters.AbstractUpdater;
+import com.fluxtream.connectors.updaters.SettingsAwareAbstractUpdater;
+import com.fluxtream.connectors.updaters.UpdateFailedException;
+import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.ConnectorChannelSet;
 import com.fluxtream.domain.ConnectorFilterState;
-import com.sun.jersey.core.util.StringIgnoreCaseKeyComparator;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.fluxtream.Configuration;
 import com.fluxtream.domain.Guest;
 import com.fluxtream.domain.GuestAddress;
 import com.fluxtream.domain.GuestSettings;
@@ -26,10 +24,18 @@ import com.fluxtream.domain.GuestSettings.WeightMeasureUnit;
 import com.fluxtream.services.GuestService;
 import com.fluxtream.services.SettingsService;
 import com.fluxtream.utils.JPAUtils;
+import com.google.gson.Gson;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly=true)
 public class SettingsServiceImpl implements SettingsService {
+
+    static FlxLogger logger = FlxLogger.getLogger(SettingsServiceImpl.class);
 
 	@Autowired
 	Configuration env;
@@ -40,23 +46,44 @@ public class SettingsServiceImpl implements SettingsService {
 	@PersistenceContext
 	EntityManager em;
 
+    @Autowired
+    BeanFactory beanFactory;
+
+    Gson gson = new Gson();
+
 	@Override
 	@Transactional(readOnly = false)
 	public GuestSettings getSettings(long guestId) {
 		GuestSettings settings = JPAUtils.findUnique(em, GuestSettings.class,
 				"settings.byGuestId", guestId);
         if (settings != null) {
+            settings.config = env;
             return settings;
         }
         else {
             settings = new GuestSettings();
             settings.guestId = guestId;
+            settings.createMessageDisplayCounters();
             em.persist(settings);
+            settings.config = env;
             return settings;
         }
 	}
 
-	@Override
+    @Override
+    @Transactional(readOnly=false)
+    public int incrementDisplayCounter(final long guestId, final String messageName) {
+        GuestSettings settings = JPAUtils.findUnique(em, GuestSettings.class,
+                                                     "settings.byGuestId", guestId);
+        final Integer count = settings.getMessageDisplayCounter(messageName);
+        int incremented = count==null? 1 : count+1;
+        if (count==null) settings.setMessageDisplayCounter(messageName, incremented);
+        else settings.setMessageDisplayCounter(messageName, incremented);
+        em.persist(settings);
+        return incremented;
+    }
+
+    @Override
 	@Transactional(readOnly = false)
 	public void setFirstname(long guestId, String firstname) {
 		Guest guest = guestService.getGuestById(guestId);
@@ -109,10 +136,107 @@ public class SettingsServiceImpl implements SettingsService {
 
     @Override
     public String getConnectorFilterState(final long guestId) {
-        ConnectorFilterState filterState = JPAUtils.findUnique(em, ConnectorFilterState.class,
-                                                               "connectorFilterState",
-                                                               guestId);
+        ConnectorFilterState filterState = JPAUtils.findUnique(em, ConnectorFilterState.class, "connectorFilterState", guestId);
         return filterState == null ? "{}" : filterState.stateJSON;
+    }
+
+    /**
+     * Returns the serialized settings for a connector instance or new settings of the right
+     * type if none have been already persisted and a non-default Settings class is specified in
+     * the connector's Updater (annotation)
+     * @param apiKeyId
+     * @return
+     * @throws UpdateFailedException
+     */
+    @Override
+    @Transactional(readOnly = false)
+    public Object getConnectorSettings(final long apiKeyId) {
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        Object settings = apiKey.getSettings();
+        final Class<? extends AbstractUpdater> updaterClass = apiKey.getConnector().getUpdaterClass();
+        final Class<?> settingsClass = updaterClass.getAnnotation(Updater.class).settings();
+        if (settings==null&& settingsClass != Updater.EmptySettings.class){
+            try {
+                settings = settingsClass.newInstance();
+                apiKey.setSettings(settings);
+                em.persist(apiKey);
+                return settings;
+            }
+            catch (Exception e) {
+                throw new RuntimeException("Could not instantiate default settings for connector " + apiKey.getConnector().getName());
+            }
+        }
+        return settings;
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void persistConnectorSettings(final long apiKeyId, final Object settings, final Object defaultSettings) {
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        apiKey.setSettings(settings);
+        apiKey.setDefaultSettings(defaultSettings);
+        em.persist(apiKey);
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void saveConnectorSettings(final long apiKeyId, final String json) {
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        final Updater updaterAnnotation = apiKey.getConnector().getUpdaterClass().getAnnotation(Updater.class);
+        StringBuilder sb = new StringBuilder("module=connectors component=settingsServiceImpl action=saveConnectorSettings")
+                .append(" apiKeyId=").append(apiKeyId);
+        if (updaterAnnotation.settings()==Updater.EmptySettings.class){
+            logger.warn(sb.append(" message=\"no settings class has been specified for \"" + apiKey.getConnector().getName()));
+            return;
+        }
+        try {
+            final Object settings = gson.fromJson(json, updaterAnnotation.settings());
+            guestService.setApiKeySettings(apiKeyId, settings);
+            final AbstractUpdater updater = beanFactory.getBean(apiKey.getConnector().getUpdaterClass());
+            ((SettingsAwareAbstractUpdater)updater).connectorSettingsChanged(apiKeyId, settings);
+        }
+        catch (Exception e) {
+            logger.warn(sb.append(" message=\"unexpected exception when saving connector settings for connector \"" + apiKey.getConnector().getName()));
+            return;
+        }
+    }
+
+    /**
+     * Reset connector settings to the defaults if they have been specified, or a new instance of
+     * the settings class for this connector, if one exists
+     * @param apiKeyId
+     */
+    @Override
+    @Transactional(readOnly=false)
+    public void saveConnectorSettings(final long apiKeyId, final Serializable settings){
+        saveConnectorSettings(apiKeyId, gson.toJson(settings));
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void resetConnectorSettings(final long apiKeyId) {
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        final Class<? extends AbstractUpdater> updaterClass = apiKey.getConnector().getUpdaterClass();
+        Object defaultSettings = apiKey.getDefaultSettings();
+        if (defaultSettings!=null)
+            apiKey.setSettings(defaultSettings);
+        else {
+            final Class<?> settingsClass = updaterClass.getAnnotation(Updater.class).settings();
+            if (settingsClass != Updater.EmptySettings.class){
+                try {
+                    defaultSettings = settingsClass.newInstance();
+                    apiKey.setSettings(defaultSettings);
+                }
+                catch (Exception e) {
+                    throw new RuntimeException("Could not instantiate default settings for connector " + apiKey.getConnector().getName());
+                }
+            }
+        }
+        if (SettingsAwareAbstractUpdater.class.isAssignableFrom(updaterClass)) {
+            final AbstractUpdater updater = beanFactory.getBean(apiKey.getConnector().getUpdaterClass());
+            ((SettingsAwareAbstractUpdater)updater).connectorSettingsChanged(apiKeyId, defaultSettings);
+        }
+        em.persist(apiKey);
     }
 
     @Override
@@ -198,11 +322,6 @@ public class SettingsServiceImpl implements SettingsService {
             channelSet.channels = StringUtils.join(channels,",");
             em.merge(channelSet);
         }
-    }
-
-    @Override
-    public void setChannelsForConenctor(final long guestId, final Connector connector, final List<String> channels) {
-        setChannelsForConnector(guestId,connector,(String[]) channels.toArray());
     }
 
     @Override

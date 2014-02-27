@@ -2,44 +2,48 @@ package com.fluxtream.services;
 
 import java.util.List;
 import java.util.TimeZone;
-
-import com.fluxtream.connectors.google_latitude.LocationFacet;
+import java.util.TreeSet;
+import com.fluxtream.connectors.location.LocationFacet;
 import com.fluxtream.domain.metadata.City;
-import com.fluxtream.domain.metadata.DayMetadataFacet;
-import com.fluxtream.domain.metadata.DayMetadataFacet.TravelType;
+import com.fluxtream.domain.metadata.FoursquareVenue;
+import com.fluxtream.domain.metadata.VisitedCity;
 import com.fluxtream.domain.metadata.WeatherInfo;
+import com.fluxtream.metadata.ArbitraryTimespanMetadata;
+import com.fluxtream.metadata.DayMetadata;
+import com.fluxtream.metadata.MonthMetadata;
+import com.fluxtream.metadata.WeekMetadata;
+import net.sf.json.JSONObject;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface MetadataService {
 
 	void setTimeZone(long guestId, String date, String timeZone);
+
+    void resetDayMainCity(long guestId, String date);
+
+    void setDayMainCity(long guestId, float latitude, float longitude, String date);
+
+    void setDayMainCity(long guestId, long visitedCityId, String date);
 
 	TimeZone getCurrentTimeZone(long guestId);
 
 	TimeZone getTimeZone(long guestId, long time);
 
 	TimeZone getTimeZone(long guestId, String date);
-	
-	void addTimeSpentAtHome(long guestId, long startTime, long endTime);
 
-	City getMainCity(long guestId, DayMetadataFacet context);
+    ArbitraryTimespanMetadata getArbitraryTimespanMetadata(long guestId, long start, long end);
 
-	DayMetadataFacet getDayMetadata(long guestId, String date, boolean create);
+	DayMetadata getDayMetadata(long guestId, String date);
 
-    List<DayMetadataFacet> getAllDayMetadata(long guestId);
+    WeekMetadata getWeekMetadata(long guestId, int year, int week);
 
-	void setTraveling(long guestId, String date, TravelType travelType);
+    MonthMetadata getMonthMetadata(long guestId, int year, int month);
+
+    List<DayMetadata> getAllDayMetadata(long guestId);
 
 	LocationFacet getLastLocation(long guestId, long time);
 
-	LocationFacet getNextLocation(long guestId, long time);
-
 	TimeZone getTimeZone(double latitude, double longitude);
-
-	DayMetadataFacet getLastDayMetadata(long guestId);
-	
-	void setDayCommentTitle(long guestId, String date, String title);
-	
-	void setDayCommentBody(long guestId, String date, String body);
 
     public City getClosestCity(double latitude, double longitude);
 
@@ -47,5 +51,20 @@ public interface MetadataService {
                                 double dist);
 
     List<WeatherInfo> getWeatherInfo(double latitude, double longitude,
-                                     String date, int startMinute, int endMinute);
+                                     String date);
+
+    public void rebuildMetadata(String username);
+
+    public void updateLocationMetadata(long guestId, List<LocationFacet> locationResources);
+
+    public FoursquareVenue getFoursquareVenue(String venueId);
+
+    public TreeSet<String> getDatesForWeek(final int year, final int week);
+
+    public TreeSet<String> getDatesForMonth(final int year, final int month);
+
+    public List<VisitedCity> getConsensusCities(final long guestId, final TreeSet<String> dates);
+
+    @Transactional(readOnly=false)
+    JSONObject getFoursquareVenueJSON(String venueId);
 }

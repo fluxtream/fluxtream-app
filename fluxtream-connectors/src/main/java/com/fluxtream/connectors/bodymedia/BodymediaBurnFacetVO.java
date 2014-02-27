@@ -10,13 +10,16 @@ public class BodymediaBurnFacetVO extends AbstractInstantFacetVO<BodymediaBurnFa
     public int estimatedCalories = 0;
     public int predictedCalories = 0;
 
-    public String burnJson;
+    public boolean allDay = true;
+
+//    public String burnJson;
 
     @Override
     protected void fromFacet(final BodymediaBurnFacet facet, final TimeInterval timeInterval, final GuestSettings settings) {
         this.totalCalories = facet.totalCalories;
         this.estimatedCalories = facet.estimatedCalories;
         this.predictedCalories = facet.predictedCalories;
-        this.burnJson = facet.getJson();
+        this.date = facet.date;
+//        this.burnJson = facet.getJson();
     }
 }

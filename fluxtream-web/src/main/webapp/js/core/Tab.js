@@ -13,14 +13,14 @@ define([ "core/FlxState" ], function(FlxState) {
 	 * or tab
 	 */
     Tab.prototype.saveState = function() {
-		FlxState.saveTabState(this.getCurrentState());
+		FlxState.saveTabState(this.appname, this.name, this.getCurrentState());
 	};
 
 	/**
 	 * This lets the tab retrieve its last saved state
 	 */
     Tab.prototype.getSavedState = function() {
-		return FlxState.getTabState(this.name);
+		return FlxState.getTabState(this.appname, this.name);
 	};
 
     Tab.prototype.getUrl = function(url, id, domReady, forceLoad, tabData) {
@@ -33,7 +33,7 @@ define([ "core/FlxState" ], function(FlxState) {
 
     Tab.prototype.getTabContents = function(uri, id, domReady, isResource, forceLoad, tabData) {
         var that = this;
-        var onContenetsRetrieved = function(html){
+        var onContentsRetrieved = function(html){
             var nextTabId = that.appname + "-" + id + "-tab",
                 nextTabDiv = $("#"+nextTabId);
             var noTab = $(".tab").length==0;
@@ -62,11 +62,11 @@ define([ "core/FlxState" ], function(FlxState) {
 
         }
         if (isResource)
-            require([uri], onContenetsRetrieved);
+            require([uri], onContentsRetrieved);
         else
             $.ajax({
                 url : uri,
-                success: onContenetsRetrieved
+                success: onContentsRetrieved
             });
 		
 	};
@@ -102,7 +102,6 @@ define([ "core/FlxState" ], function(FlxState) {
     Tab.prototype.connectorToggled = function(){};
     Tab.prototype.connectorDisplayable = function(){return true};
     Tab.prototype.connectorsAlwaysEnabled = function(){return false;};
-    Tab.prototype.timeNavigation = function(navigation){return false;};
 
 	return Tab;
 

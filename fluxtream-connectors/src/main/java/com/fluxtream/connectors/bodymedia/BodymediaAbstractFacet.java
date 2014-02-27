@@ -20,6 +20,13 @@ public abstract class BodymediaAbstractFacet extends AbstractFacet
     @Lob
     public String json;
 
+    public BodymediaAbstractFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
+    public BodymediaAbstractFacet() {
+    }
+
     public String getDate() {
         return date;
     }

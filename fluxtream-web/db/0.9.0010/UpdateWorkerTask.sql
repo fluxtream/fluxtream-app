@@ -1,0 +1,9 @@
+ALTER TABLE `ScheduledUpdate` ADD INDEX `status_index` (`status`);
+ALTER TABLE `ScheduledUpdate` ADD INDEX `serverUUID_index` (`serverUUID`);
+ALTER TABLE `ScheduledUpdate` ADD INDEX `apiKeyId_index` (`apiKeyId`);
+ALTER TABLE `ScheduledUpdate` ADD INDEX `connectorName_index` (`connectorName`);
+ALTER TABLE `ScheduledUpdate` ADD INDEX `timeScheduled_index` (`timeScheduled`);
+ALTER TABLE `ScheduledUpdate` ADD INDEX `updateType_index` (`updateType`);
+ALTER TABLE `ScheduledUpdate` ADD INDEX `guestId_index` (`guestId`);
+ALTER TABLE `ScheduledUpdate` ADD INDEX `objectTypes_index` (`objectTypes`);
+ALTER TABLE `ScheduledUpdate` ADD INDEX `retries_index` (`retries`);

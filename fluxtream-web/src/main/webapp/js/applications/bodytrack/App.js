@@ -1,6 +1,6 @@
 define(["core/Application", "core/FlxState", "core/TabInterface"], function(Application, FlxState, TabInterface) {
 
-    var BodyTrack = new Application("bodytrack", "Candide Kemmler", "icon-bookmark");
+    var BodyTrack = new Application("bodytrack", "Candide Kemmler", "icon-bookmark", "BodyTrack App");
 
 
     var grapher;
@@ -10,71 +10,66 @@ define(["core/Application", "core/FlxState", "core/TabInterface"], function(Appl
     var tabNames = ["grapher","views"]
 
     BodyTrack.initialize = function () {
-        var bt = this;
-        FlxState.router.route(/^app\/bodytrack(\/?)(.*?)$/, "", function() {
-            var parse_url = /^(?:([A-Za-z]+):)?(\/{0,3})([0-9.\-A-Za-z]+)(?::(\d+))?(?:\/([^?#]*))?(?:\?([^#]*))?(?:#(.*))?$/;
-            var result = parse_url.exec(window.location.href);
-            var names = [ 'url', 'scheme', 'slash', 'host', 'port', 'path' ];
-            var i;
-            var parts = {};
-            for (i = 0; i < names.length; i += 1)
-                parts[names[i]] = result[i];
-            var pathElements = parts.path.split("/");
-            if (pathElements.length<3){
-                App.invalidPath();
-                return;
-            }
-            var found = false;
-            for (var i = 0; i < tabNames.length && !found; i++){
-                found = pathElements[2] == tabNames[i];
-            }
-            if (!found){
-                App.invalidPath();
-                return;
-            }
-
-            var state = "";
-            for (var i = 2; i < pathElements.length; i++){
-                state += "/" + pathElements[i];
-            }
-
-            bt.render(state);
-        });
-    };
-
-    BodyTrack.saveState = function() {
-    };
-
-    BodyTrack.renderState = function(state, forceReload, params) {
-        if (state===null) state = "";
-        else if (state.indexOf("/") != 0) state = "/" + state;
-
-        var splits = state.split("/");
-
-        var tabName = splits[1];
-        if (tabName == "" || tabName == null){
-            this.renderState(tabNames[0]);
-            return;
-        }
-        params.stateParts = splits;
-        tabInterface.setRenderParamsFunction(function(){
-            return params;
-        });
-        tabInterface.setActiveTab(tabName);
-
-        document.title = "Fluxtream BodyTrack" + " (" + tabName + ")";
-        FlxState.router.navigate("app/bodytrack" + state);
-        FlxState.saveState("bodytrack", state);
+        _.bindAll(this);
     };
 
     BodyTrack.setup = function() {
         tabInterface = new TabInterface(tabPaths);
         $("#bodytrackTabs").replaceWith(tabInterface.getNav());
         tabInterface.setTabVisibility(tabNames,true);
-        var bt = this;
-        tabInterface.getNav().addClickListener(function(tabName){
-            bt.render(tabName);
+        tabInterface.getNav().addClickListener(function(tabName) {
+            BodyTrack.navigateState(tabName);
         });
+    };
+
+    function isValidTabName(tabName) {
+        return _.include(tabNames, tabName);
+    }
+
+    BodyTrack.parseState = function(state) {
+        var splits = state.split("/");
+        var obj = {};
+        var params = this.getParams();
+        for (var member in params)
+            obj[member] = params[member];
+        obj.stateParts = splits;
+        obj.tabName = splits.shift();
+        if (!isValidTabName(obj.tabName)) {
+            return null;
+        }
+        obj.tabState = splits.join("/");
+        return obj;
+    };
+
+    function getStateString(state){
+        if(state!=null && state.tabName!=null) {
+            return state.tabName + "/" + state.stateParts.join("/");
+        }
+        else {
+            // I'm not sure why state is sometimes null, but return "grapher" in that case
+            // so we go to the default state for the BodyTrack app
+            return "grapher";
+        }
+    }
+
+    BodyTrack.renderDefaultState = function() {
+        BodyTrack.navigateState(tabNames[0]);
+    };
+
+    BodyTrack.renderState = function(state) {
+        if (typeof state == "string") {
+            state = BodyTrack.parseState(state);
+        }
+        if(state == null) {
+            // Default to "grapher" if state is null
+            state = BodyTrack.parseState("grapher");
+        }
+        tabInterface.setRenderParamsFunction(function(){
+            return state;
+        });
+        document.title = "Fluxtream BodyTrack App";
+        App.state.saveState("bodytrack",getStateString(state));
+        tabInterface.setActiveTab(state.tabName);
     };
 
     return BodyTrack;

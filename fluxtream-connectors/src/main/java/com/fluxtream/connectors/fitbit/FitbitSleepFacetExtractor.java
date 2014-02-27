@@ -1,12 +1,13 @@
 package com.fluxtream.connectors.fitbit;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import com.fluxtream.ApiData;
 import com.fluxtream.connectors.ObjectType;
+import com.fluxtream.connectors.updaters.UpdateInfo;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.AbstractLocalTimeFacet;
 import com.fluxtream.facets.extractors.AbstractFacetExtractor;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -15,31 +16,26 @@ import org.springframework.stereotype.Component;
 @Component
 public class FitbitSleepFacetExtractor extends AbstractFacetExtractor {
 
-	public List<AbstractFacet> extractFacets(ApiData apiData,
+	public List<AbstractFacet> extractFacets(final UpdateInfo updateInfo, ApiData apiData,
 			ObjectType objectType) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 
 		JSONObject fitbitResponse = JSONObject.fromObject(apiData.json);
 		JSONArray sleepRecords = fitbitResponse.getJSONArray("sleep");
 
-		if (sleepRecords == null || sleepRecords.size() == 0) {
-			FitbitSleepFacet facet = new FitbitSleepFacet();
-			super.extractCommonFacetData(facet, apiData);
-			facet.isEmpty = true;
-			facets.add(facet);
-			return facets;
-		}
-
 		@SuppressWarnings("rawtypes")
 		Iterator iterator = sleepRecords.iterator();
 		while (iterator.hasNext()) {
 			JSONObject record = (JSONObject) iterator.next();
 
-			FitbitSleepFacet facet = new FitbitSleepFacet();
+			FitbitSleepFacet facet = new FitbitSleepFacet(apiData.updateInfo.apiKey.getId());
+
+            int duration = record.getInt("duration");
+            if (duration==0)
+                continue;
 
 			super.extractCommonFacetData(facet, apiData);
 			String startTime = record.getString("startTime");
-			int duration = record.getInt("duration");
             facet.duration = duration;
 
 			if (record.containsKey("minutesAwake"))
@@ -49,10 +45,14 @@ public class FitbitSleepFacetExtractor extends AbstractFacetExtractor {
 			if (record.containsKey("minutesToFallAsleep"))
 				facet.minutesToFallAsleep = record
 						.getInt("minutesToFallAsleep");
-			Date startDate;
-            facet.date = getDate(startTime);
+
+            facet.date = (String) apiData.updateInfo.getContext("date");
+            final long startTimeMillis = AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().parseMillis(startTime);
+            facet.start = startTimeMillis;
+            facet.end = startTimeMillis + duration;
             facet.startTimeStorage = startTime;
-            facet.endTimeStorage = startTime;
+            final long endTimeMillis = startTimeMillis + duration;
+            facet.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().print(endTimeMillis);
 
 			if (record.containsKey("awakeningsCount"))
 				facet.awakeningsCount = record.getInt("awakeningsCount");
@@ -65,8 +65,12 @@ public class FitbitSleepFacetExtractor extends AbstractFacetExtractor {
 		return facets;
 	}
 
-    private static String getDate(final String timeStr) {
-        int i = timeStr.indexOf("T");
-        return timeStr.substring(0, i);
+    public static void main(final String[] args) {
+        String s = "2012-11-07T03:13:00.000";
+        final long startTimeMillis = AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().parseMillis(s);
+        long endTimeMillis = startTimeMillis+3600000;
+        final String endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().print(endTimeMillis);
+        System.out.println(startTimeMillis);
+        System.out.println(endTimeStorage);
     }
 }

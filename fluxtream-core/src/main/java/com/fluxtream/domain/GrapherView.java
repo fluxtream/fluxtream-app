@@ -8,6 +8,8 @@ import org.hibernate.annotations.Index;
 
 @Entity(name="GrapherView")
 @NamedQueries({
+      @NamedQuery(name="grapherView.delete.all",
+                  query="DELETE FROM GrapherView grapherView WHERE grapherView.guestId=? "),
       @NamedQuery(name="grapherView",
                   query="SELECT view FROM GrapherView view WHERE view.guestId=?"),
       @NamedQuery(name="grapherView.byName",

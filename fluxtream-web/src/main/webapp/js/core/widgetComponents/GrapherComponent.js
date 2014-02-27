@@ -1,6 +1,7 @@
-define(["core/grapher/BTCore"],function(BodyTrack){
+define(["core/grapher/BTCore"],function(BTCore){
 
     var defaultStyle = {"styles":[{"type":"line","lineWidth":1}]};
+    var availableSources = null;
 
     var GrapherComponent = function(parentElement, channelName, tbounds, options){
         if (options == null)
@@ -16,7 +17,7 @@ define(["core/grapher/BTCore"],function(BodyTrack){
         var component = this;
         this.channelName = channelName;
         this.parent = $(parentElement);
-        var width = this.parent.width() - yAxisWidth;
+        var width = this.parent.width() - yAxisWidth - 1;//-1 makes sure the yAxis canvas doesn't fall get pushed out of sight
         var height = this.parent.height() - xAxisHeight;
         this.width = width;
         this.height = height;
@@ -108,7 +109,24 @@ define(["core/grapher/BTCore"],function(BodyTrack){
         var deviceName = channelName.substring(0,periodLocation);
         var subChannelName = channelName.substring(periodLocation+1);
 
-        component.plot = new DataSeriesPlot(channelDatasource(App.getUID(), deviceName, subChannelName),component.xAxis,component.yAxis,grapherStyle);
+        var sources = availableSources || BTCore.SOURCES.availableSources || [];
+        var localDisplay = false;
+
+        for (var i = 0; i < sources.length; i++) {
+            if (sources[i]["name"] == deviceName) {
+                var channels = sources[i]["channels"];
+                for (var j = 0; j < channels.length; j++) {
+                    if (channels[j]["name"] == subChannelName) {
+                        localDisplay = channels[j]["name"]["time_type"] == "local";
+                    }
+                }
+            }
+        }
+
+        component.plot = new DataSeriesPlot(channelDatasource(App.getUID(), deviceName, subChannelName),
+            component.xAxis,
+            component.yAxis,
+            {"style": grapherStyle, "localDisplay": localDisplay});
         component.parent.css("opacity",0);
 
         var afterload = function(stats){
@@ -143,13 +161,22 @@ define(["core/grapher/BTCore"],function(BodyTrack){
         var getStats = function(){
             afterload(component.plot.getStatistics( component.xAxis.getMin(), component.xAxis.getMax(),["has_data", "y_max", "y_min"],afterload));
         }
-        getStats();
+        //extremely hacky work arround for a bug in getStatistics
+        //TODO: change this back after bug on GWT side is fixed
+        $.doTimeout(10,getStats);
+        $.doTimeout(100,getStats);
+        $.doTimeout(500,getStats);
+        $.doTimeout(1000,getStats);
 
         component.plotContainer = new PlotContainer(component.plotContainerContainer.attr('id'), true,[ component.plot]);
-
-
-
+        component.plotContainer.setSize(width,height,SequenceNumber.getNext());
+        component.xAxis.setSize(width,height);
+        component.yAxis.setSize(width,height);
     };
+
+    BTCore.SOURCES.getAvailableList(function (sources) {
+        availableSources = sources;
+    });
 
     return GrapherComponent;
 });

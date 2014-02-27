@@ -1,28 +1,14 @@
 package com.fluxtream.connectors.fitbit;
 
-import java.text.ParseException;
-import java.util.TimeZone;
 import javax.persistence.Entity;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-
-import com.fluxtream.domain.AbstractFloatingTimeZoneFacet;
+import com.fluxtream.connectors.annotations.ObjectTypeSpec;
+import com.fluxtream.domain.AbstractLocalTimeFacet;
 import org.hibernate.search.annotations.Indexed;
 
-import com.fluxtream.connectors.annotations.ObjectTypeSpec;
-import com.fluxtream.domain.AbstractFacet;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormatter;
-
 @Entity(name="Facet_FitbitLoggedActivity")
-@ObjectTypeSpec(name = "logged_activity", value = 2, extractor=FitbitFacetExtractor.class, prettyname = "Logged Activities")
-@NamedQueries({
-		@NamedQuery(name = "fitbit.logged_activity.deleteAll", query = "DELETE FROM Facet_FitbitLoggedActivity facet WHERE facet.guestId=?"),
-		@NamedQuery(name = "fitbit.logged_activity.between", query = "SELECT facet FROM Facet_FitbitLoggedActivity facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?"),
-        @NamedQuery(name = "fitbit.logged_activity.newest", query = "SELECT facet FROM Facet_FitbitLoggedActivity facet WHERE facet.guestId=? ORDER BY facet.end DESC LIMIT 1")
-})
+@ObjectTypeSpec(name = "logged_activity", value = 2, extractor= FitbitActivityFacetExtractor.class, prettyname = "Logged Activities", isDateBased = true)
 @Indexed
-public class FitbitLoggedActivityFacet extends AbstractFloatingTimeZoneFacet {
+public class FitbitLoggedActivityFacet extends AbstractLocalTimeFacet {
 	
 	public long activityId;
 	public long activityParentId;
@@ -34,15 +20,15 @@ public class FitbitLoggedActivityFacet extends AbstractFloatingTimeZoneFacet {
 	public String name;
 	public int steps;
 
-	@Override
-	protected void makeFullTextIndexable() {}
+    public FitbitLoggedActivityFacet() {
+        super();
+    }
+
+    public FitbitLoggedActivityFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
 
     @Override
-    public void updateTimeInfo(TimeZone timeZone) throws ParseException {
-        super.updateTimeInfo(timeZone);
-        DateTime startDate = new DateTime(this.start);
-        DateTime endDate = startDate.withDurationAdded(this.duration*60000,1);
-        this.end = endDate.getMillis();
-    }
+	protected void makeFullTextIndexable() {}
 
 }

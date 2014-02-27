@@ -1,41 +1,39 @@
 package com.fluxtream.connectors.google_latitude;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
-
-import com.fluxtream.connectors.controllers.GoogleOAuth2Helper;
-import com.fluxtream.utils.Utils;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import com.fluxtream.aspects.FlxLogger;
+import com.fluxtream.connectors.Connector.UpdateStrategyType;
+import com.fluxtream.connectors.FileUploadSupport;
+import com.fluxtream.connectors.annotations.Updater;
+import com.fluxtream.connectors.location.LocationFacet;
+import com.fluxtream.connectors.updaters.AbstractUpdater;
+import com.fluxtream.connectors.updaters.UpdateInfo;
+import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.Notification;
+import com.fluxtream.services.ApiDataService;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.fluxtream.connectors.Connector.UpdateStrategyType;
-import com.fluxtream.connectors.annotations.JsonFacetCollection;
-import com.fluxtream.connectors.annotations.Updater;
-import com.fluxtream.connectors.updaters.AbstractGoogleOAuthUpdater;
-import com.fluxtream.connectors.updaters.UpdateInfo;
-import com.fluxtream.domain.ApiUpdate;
-import com.fluxtream.services.ApiDataService;
-import com.fluxtream.services.GuestService;
-import com.fluxtream.services.MetadataService;
-import com.google.api.client.googleapis.json.JsonCParser;
-import com.google.api.client.http.HttpRequest;
-import com.google.api.client.http.HttpResponse;
-import com.google.api.client.http.HttpTransport;
-
 @Component
 @Updater(prettyName = "Latitude", value = 2, objectTypes = { LocationFacet.class }, updateStrategyType = UpdateStrategyType.INCREMENTAL)
-@JsonFacetCollection(LocationFacetVOCollection.class)
-public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
+public class GoogleLatitudeUpdater extends AbstractUpdater implements FileUploadSupport {
 
-	@Autowired
-	GuestService guestService;
-
-	@Autowired
-	ApiDataService apiDataService;
+    FlxLogger logger = FlxLogger.getLogger(GoogleLatitudeUpdater.class);
 
     @Autowired
-    GoogleOAuth2Helper oAuth2Helper;
+    ApiDataService apiDataService;
 
 	public GoogleLatitudeUpdater() {
 		super();
@@ -44,72 +42,156 @@ public class GoogleLatitudeUpdater extends AbstractGoogleOAuthUpdater {
 	@Override
 	public void updateConnectorDataHistory(UpdateInfo updateInfo)
 			throws Exception {
-		loadHistory(updateInfo, 0, System.currentTimeMillis());
+        if (guestService.getApiKeyAttribute(updateInfo.apiKey, "googleConsumerKey")!=null) {
+            sendServiceDiscontinuedWarning(updateInfo);
+            cleanupOldTokens(updateInfo);
+        }
 	}
 
-	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-		ApiUpdate lastSuccessfulUpdate = connectorUpdateService
-				.getLastSuccessfulUpdate(updateInfo.apiKey.getGuestId(),
-						connector());
-		loadHistory(updateInfo, lastSuccessfulUpdate.ts,
-				System.currentTimeMillis());
+    public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
+        if (guestService.getApiKeyAttribute(updateInfo.apiKey, "googleConsumerKey")!=null) {
+            sendServiceDiscontinuedWarning(updateInfo);
+            cleanupOldTokens(updateInfo);
+        }
 	}
 
-	private void loadHistory(UpdateInfo updateInfo, long from, long to)
-			throws Exception {
-        String accessToken = oAuth2Helper.getAccessToken(updateInfo.getGuestId(), updateInfo.apiKey.getConnector());
-		HttpTransport transport = this.getTransport(updateInfo.apiKey);
-		String key = env.get("google_latitudeApiKey");
-		List<LocationFacet> locationList = executeList(updateInfo, transport,
-				key, 1000, from, to, accessToken);
-		if (locationList != null && locationList.size() > 0) {
-			List<LocationFacet> storedLocations = new ArrayList<LocationFacet>();
-			for (LocationFacet locationResource : locationList) {
-				if (locationResource.timestampMs==0)
-					continue;
-				locationResource.start = locationResource.timestampMs;
-				locationResource.end = locationResource.timestampMs;
+    private void sendServiceDiscontinuedWarning(final UpdateInfo updateInfo) {
+        notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
+                                                  "Heads Up. Google recently discontinued support for their Latitude service.<br>" +
+                                                  "However, Google Takeout will let you get a backup of your data that you will be able to import in Fluxtream.<br>" +
+                                                  "If you choose to do this, please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                  "go to the Google Latitude connector section and click on the upload icon <i class=\"icon-arrow-up\"></i>," +
+                                                  "To track your location, we now recommend using the <a target=\"_blank\" href\"http://movesapp.com/\">Moves App<a>.");
+    }
 
-                apiDataService.addGuestLocation(updateInfo.getGuestId(),
-						locationResource,
-                        LocationFacet.Source.GOOGLE_LATITUDE);
-				
-				storedLocations.add(locationResource);
-			}
-			Collections.sort(storedLocations);
-			LocationFacet oldest = storedLocations.get(0);
-            loadHistory(updateInfo, from, oldest.timestampMs-1000);
-		}
-	}
+    private void cleanupOldTokens(final UpdateInfo updateInfo) {
+        guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), "googleConsumerKey");
+        if (guestService.getApiKeyAttribute(updateInfo.apiKey, "googleConsumerSecret")!=null)
+            guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), "googleConsumerSecret");
+    }
 
-	private List<LocationFacet> executeList(UpdateInfo updateInfo,
-			HttpTransport transport, String key, int maxResults, long minTime,
-			long maxTime, String accessToken) throws Exception {
-		long then = System.currentTimeMillis();
-		String requestUrl = "request url not set yet";
-		try {
-			transport.addParser(new JsonCParser());
-			HttpRequest request = transport.buildGetRequest();
-			LatitudeUrl latitudeUrl = LatitudeUrl.forLocation();
-			latitudeUrl.maxResults = String.valueOf(maxResults);
-			latitudeUrl.granularity = "best";
-			latitudeUrl.minTime = String.valueOf(minTime);
-			latitudeUrl.maxTime = String.valueOf(maxTime);
-			latitudeUrl.put("location", "all");
-            latitudeUrl.put("key", key);
-            latitudeUrl.put("access_token", accessToken);
-			request.url = latitudeUrl;
-			requestUrl = latitudeUrl.build();
-			HttpResponse response = request.execute();
-			List<LocationFacet> result = response.parseAs(LocationList.class).items;
-			countSuccessfulApiCall(updateInfo.apiKey.getGuestId(),
-					updateInfo.objectTypes, then, requestUrl);
-			return result;
-		} catch (Exception e) {
-			countFailedApiCall(updateInfo.apiKey.getGuestId(),
-					updateInfo.objectTypes, then, requestUrl, Utils.stackTrace(e));
-			throw e;
-		}
-	}
+    @Override
+    public int importFile(final ApiKey apiKey, final File f) throws Exception {
+        try {
+            ZipFile zipFile = new ZipFile(f);
+            final Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                final ZipEntry zipEntry = entries.nextElement();
+                if (zipEntry.isDirectory()) continue;
+                if (zipEntry.getName().endsWith("LocationHistory.json"))
+                    return parseLocations(apiKey, zipFile.getInputStream(zipEntry));
+            }
+            throw new RuntimeException("Couldn't find LocationHistory.json in the uploaded zip file");
+        }
+        catch (Exception e) {
+            notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
+                                                      "Failed to import Google Latitude zip file, error is:<br>" +
+                                                      e.getMessage());
+            throw (e);
+        }
+    }
+
+    private int parseLocations(final ApiKey apiKey, final InputStream inputStream) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonFactory jfactory = mapper.getJsonFactory();
+        JsonParser jParser = jfactory.createJsonParser(inputStream);
+
+        JsonToken token;
+        List<LocationFacet> locations = new ArrayList<LocationFacet>();
+
+        getToLocationData(jParser);
+
+        int nLocations = 0;
+        while ((token = jParser.nextToken())!=null) {
+            if (token==JsonToken.START_OBJECT) {
+                jParser.nextToken();
+                parseLocation(apiKey, jParser, locations);
+                if (locations.size()==1000) {
+                    nLocations += 1000;
+                    boolean connectorIsLive = persistLocations(apiKey, locations);
+                    if (!connectorIsLive)
+                        break;
+                    locations.clear();
+                }
+            }
+        }
+        nLocations += locations.size();
+        if (apiKey!=null) persistLocations(apiKey, locations);
+        return nLocations;
+    }
+
+    private boolean persistLocations(ApiKey apiKey, List<LocationFacet> locations) {
+        if (guestService.getApiKey(apiKey.getId())!=null){
+            apiDataService.addGuestLocations(apiKey.getGuestId(), locations);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private void getToLocationData(final JsonParser jParser) throws IOException {
+        // The start of the LocationHistory.json file looks like this:
+        // {
+        //  "somePointsHidden" : true,
+        //  "locations" : [ {
+        //    "timestampMs" : "1380841104348",
+
+        // Get to the first open brace
+        while (jParser.nextToken()!=JsonToken.START_OBJECT);
+        // Go forward until currentName is set
+        while (jParser.getCurrentName()==null)
+            jParser.nextToken();
+
+        // Go forward until we reach the "locations" array
+        while (!jParser.getCurrentName().equals("locations"))
+            jParser.nextToken();
+    }
+
+    void parseLocation(final ApiKey apiKey, final JsonParser jParser, final List<LocationFacet> locations) throws IOException {
+        LocationFacet locationFacet = new LocationFacet();
+        if (apiKey!=null) {
+            locationFacet.apiKeyId = apiKey.getId();
+            locationFacet.guestId = apiKey.getGuestId();
+        }
+
+        locationFacet.timeUpdated = System.currentTimeMillis();
+        locationFacet.source = LocationFacet.Source.GOOGLE_LATITUDE;
+
+        do {
+            String fieldName = jParser.getCurrentName();
+            final JsonToken jsonToken = jParser.nextValue();
+            if (jsonToken.isScalarValue()) {
+                if (fieldName.equals("timestampMs")) {
+                    long ts = Long.valueOf(jParser.getText());
+                    locationFacet.timestampMs = ts;
+                    locationFacet.start = ts;
+                    locationFacet.end = ts;
+                    locationFacet.api = 2;
+                } else if (fieldName.equals("accuracy")) {
+                    int accuracy = jParser.getIntValue();
+                    locationFacet.accuracy = accuracy;
+                } else if (fieldName.equals("altitude")) {
+                    int altitude = jParser.getIntValue();
+                    locationFacet.altitude = altitude;
+                } else if (fieldName.equals("heading")) {
+                    int heading = jParser.getIntValue();
+                    locationFacet.heading = heading;
+                } else if (fieldName.equals("latitudeE7")) {
+                    int lat = jParser.getIntValue();
+                    locationFacet.latitude = lat/1E7f;
+                } else if (fieldName.equals("longitudeE7")) {
+                    int lon = jParser.getIntValue();
+                    locationFacet.longitude = lon/1E7f;
+                } else if (fieldName.equals("velocity")) {
+                    int speed = jParser.getIntValue();
+                    locationFacet.speed = speed;
+                }
+            } else {
+                final JsonNode junk = jParser.readValueAsTree();
+                logger.info("we are not interested in this junk: " + junk.toString());
+            }
+        } while (jParser.nextToken() != JsonToken.END_OBJECT);
+        locations.add(locationFacet);
+    }
 
 }

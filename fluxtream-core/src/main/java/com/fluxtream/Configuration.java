@@ -1,22 +1,21 @@
 package com.fluxtream;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.commons.codec.binary.Base64;
+import com.fluxtream.aspects.FlxLogger;
+import com.fluxtream.utils.DesEncrypter;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.WordUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.stereotype.Component;
-
-import com.fluxtream.utils.DesEncrypter;
-import com.google.api.client.http.LowLevelHttpRequest;
 
 public class Configuration implements InitializingBean {
+
+    FlxLogger logger = FlxLogger.getLogger(Configuration.class);
 
 	private DesEncrypter encrypter;
 	
@@ -35,6 +34,8 @@ public class Configuration implements InitializingBean {
     private Map<String,String> countries;
 	
 	private Map<String,String> countryCodes;
+
+    public Map<String,String> bodytrackToFluxtreamConnectorNames;
 
     public void setLastCommitProperties(PropertiesConfiguration properties) throws IOException {
         this.lastCommitProperties = properties;
@@ -57,6 +58,15 @@ public class Configuration implements InitializingBean {
 	}
 	
 	public void setBodytrackProperties(PropertiesConfiguration properties) throws IOException {
+        final Iterator<String> keys = properties.getKeys();
+        bodytrackToFluxtreamConnectorNames = new ConcurrentHashMap<String,String>();
+        while(keys.hasNext()) {
+            String key = keys.next();
+            if (key.indexOf(".dev_nickname")!=-1) {
+                bodytrackToFluxtreamConnectorNames.put(properties.getString(key),
+                                                       key.substring(0, key.indexOf(".")));
+            }
+        }
 		this.bodytrackProperties = properties;
 	}
 	
@@ -80,22 +90,36 @@ public class Configuration implements InitializingBean {
 	public String decrypt(String s) {
 		return encrypter.decrypt(s);
 	}
-	
-	public String get(String key) {
-		String property = (String)commonProperties.getProperty(key);
+
+    public String get(String key) {
+        String property = getAsString(commonProperties, key);
         if (property==null)
-            property = (String) lastCommitProperties.getProperty(key);
+            property = getAsString(lastCommitProperties, key);
         if (property==null)
-			property = (String) targetEnvironmentProps.getProperty(key);
-		if (property==null)
-			property = (String) oauth.getProperty(key);
-		if (property==null)
-			property = (String) connectors.getProperty(key);
-		if (property==null)
-			property = (String) bodytrackProperties.getProperty(key);
-		if (property!=null) return property.trim();
-		return property;
-	}
+            property = getAsString(targetEnvironmentProps, key);
+        if (property==null)
+            property = getAsString(oauth, key);
+        if (property==null)
+            property = getAsString(connectors, key);
+        if (property==null)
+            property = getAsString(bodytrackProperties, key);
+        if (property!=null) return property.trim();
+        return property;
+    }
+
+    private String getAsString(PropertiesConfiguration properties, String key) {
+        if (properties==null) return null;
+        final Object property = properties.getProperty(key);
+        if (property==null)
+            return null;
+        if (!(property instanceof String)) {
+            final String message = "Property " + key + " was supposed to be a String, found " + property.getClass();
+            logger.error(message);
+            System.out.println(message);
+            return "";
+        }
+        return (String) property;
+    }
 
 	public long getInt(String key) {
 		return Integer.valueOf(get(key));
@@ -108,13 +132,6 @@ public class Configuration implements InitializingBean {
     public HttpClient getHttpClient() {
 		DefaultHttpClient client = new DefaultHttpClient();
 		return client;
-	}
-
-	public void setProxyAuthHeaders(LowLevelHttpRequest request) {
-		if (get("proxyUser")==null) return;
-		String credentials = get("proxyUser")+":"+get("proxyPassword");
-		String encodedPassword = new String(Base64.encodeBase64(credentials.getBytes()));
-		request.addHeader("Proxy-Authorization", "Basic " + encodedPassword);
 	}
 
 	@Override

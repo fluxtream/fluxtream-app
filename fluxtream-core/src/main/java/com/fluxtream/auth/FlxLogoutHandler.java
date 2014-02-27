@@ -3,7 +3,7 @@ package com.fluxtream.auth;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import com.fluxtream.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,7 +13,7 @@ import com.fluxtream.services.GuestService;
 
 public class FlxLogoutHandler implements LogoutHandler {
 
-	Logger logger = Logger.getLogger(FlxLogoutHandler.class);
+	FlxLogger logger = FlxLogger.getLogger(FlxLogoutHandler.class);
 	
 	@Autowired
 	GuestService guestService;

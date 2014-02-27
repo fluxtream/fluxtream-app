@@ -21,8 +21,13 @@
         http://www.springframework.org/schema/context 
         http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
+    <task:executor id="AsyncWorker" pool-size="5-25"
+                   rejection-policy="CALLER_RUNS" queue-capacity="100"/>
 
-	<task:executor id="executorWithPoolSizeRange" pool-size="5-25"
+    <task:executor id="FileUploadWorker" pool-size="5-25"
+                   rejection-policy="CALLER_RUNS" queue-capacity="100"/>
+
+	<task:executor id="updateWorkersExecutor" pool-size="5-25"
 		rejection-policy="CALLER_RUNS" queue-capacity="100" />
 
     <cache:annotation-driven />
@@ -37,7 +42,8 @@
         </property>
     </bean>
 
-	<import resource="spring-quartz.xml" />
+	<import resource="spring-aspects.xml" />
+    <import resource="spring-quartz.xml" />
 
     <bean id="velocityEngine" class="org.springframework.ui.velocity.VelocityEngineFactoryBean" 
           p:resourceLoaderPath="classpath:/com/fluxtream/mvc/controllers" 
@@ -134,7 +140,7 @@
 
 	<mvc:annotation-driven />
 
-    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
         <property name="driverClass" value="com.mysql.jdbc.Driver" />
         <property name="jdbcUrl" value="${db.url}" />
         <property name="user" value="${db.username}" />

@@ -13,10 +13,8 @@ import com.fluxtream.domain.AbstractFacet;
 @Entity(name="Facet_LastFmRecentTrack")
 @ObjectTypeSpec(name = "recent_track", value = 2, extractor=LastFmFacetExtractor.class, parallel=true, prettyname = "Recent Tracks")
 @NamedQueries({
-		@NamedQuery(name = "lastfm.recent_track.byStartEnd", query = "SELECT facet FROM Facet_LastFmRecentTrack facet WHERE facet.guestId=? AND facet.start=? AND facet.end=?"),
-		@NamedQuery(name = "lastfm.recent_track.newest", query = "SELECT facet FROM Facet_LastFmRecentTrack facet WHERE facet.guestId=? ORDER BY time DESC LIMIT 1"),
-		@NamedQuery(name = "lastfm.recent_track.deleteAll", query = "DELETE FROM Facet_LastFmRecentTrack facet WHERE facet.guestId=?"),
-		@NamedQuery(name = "lastfm.recent_track.between", query = "SELECT facet FROM Facet_LastFmRecentTrack facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?")
+		@NamedQuery(name = "lastfm.recent_track.byStartEnd", query = "SELECT facet FROM Facet_LastFmRecentTrack facet WHERE facet.apiKeyId=? AND facet.start=? AND facet.end=?"),
+		@NamedQuery(name = "lastfm.recent_track.newest", query = "SELECT facet FROM Facet_LastFmRecentTrack facet WHERE facet.apiKeyId=? ORDER BY time DESC LIMIT 1")
 })
 @Indexed
 public class LastFmRecentTrackFacet extends AbstractFacet {
@@ -29,8 +27,17 @@ public class LastFmRecentTrackFacet extends AbstractFacet {
     @Lob
     String imgUrls;
     long time;
-    
-	@Override
+    String mbid;
+
+    public LastFmRecentTrackFacet() {
+        super();
+    }
+
+    public LastFmRecentTrackFacet(final long apiKeyId) {
+        super(apiKeyId);
+    }
+
+    @Override
 	protected void makeFullTextIndexable() {
 		this.fullTextDescription = artist + " " + name;
 	}

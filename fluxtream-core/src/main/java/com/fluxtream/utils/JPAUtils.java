@@ -1,14 +1,42 @@
 package com.fluxtream.utils;
 
+import java.lang.reflect.Field;
 import java.util.List;
-
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
 import javax.persistence.EntityManager;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Query;
-import com.fluxtream.domain.ApiUpdate;
+import com.fluxtream.domain.AbstractFacet;
 
 public class JPAUtils {
 
-	public static long count(EntityManager em,
+    public static String getEntityName(Class<? extends AbstractFacet> facetClass) {
+        try {
+            final Entity annotation = facetClass.getAnnotation(Entity.class);
+            final String name = annotation.name();
+            return name;
+        } catch (Throwable t) {
+            final String message = "Could not get Facet class for connector for " + facetClass.getName();
+            throw new RuntimeException(message);
+        }
+    }
+
+    public static boolean hasRelation(final Class<? extends AbstractFacet> facetClass) {
+        final Field[] fields = facetClass.getFields();
+        for (Field field : fields) {
+            if (field.getAnnotation(OneToMany.class)!=null||
+                field.getAnnotation(ManyToMany.class)!=null||
+                field.getAnnotation(OneToOne.class)!=null||
+                field.getAnnotation(ElementCollection.class)!=null)
+                return true;
+        }
+        return false;
+    }
+
+    public static long count(EntityManager em,
 			String queryName, Object... params) {
 		Query query = em.createNamedQuery(queryName);
 		int i = 1;
@@ -75,8 +103,7 @@ public class JPAUtils {
 		return results;
 	}
 
-	public static <T> List<T> find(EntityManager em, Class<T> clazz,
-			String queryName, int firstResult, int maxResults, Object... params) {
+	public static <T> List<T> findWithLimit(EntityManager em, Class<T> clazz, String queryName, int firstResult, int maxResults, Object... params) {
 		List<T> results = doQuery(em, queryName, true, firstResult,
 				maxResults, params);
 		return results;
@@ -88,5 +115,14 @@ public class JPAUtils {
         List<T> results = doQuery(em, queryName, true, pageSize*page,
                                   pageSize, params);
         return results;
+    }
+
+    public static String asListOfString(final String...strings) {
+        StringBuilder sb = new StringBuilder();
+        for (int i=0; i<strings.length; i++) {
+            if (i>0) sb.append(",");
+            sb.append("'").append(strings[i]).append("'");
+        }
+        return sb.toString();
     }
 }

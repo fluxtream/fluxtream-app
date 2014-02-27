@@ -1,12 +1,11 @@
 package com.fluxtream.connectors.fitbit;
 
-import java.util.Date;
-
 import com.fluxtream.TimeInterval;
-import com.fluxtream.connectors.vos.AbstractTimedFacetVO;
+import com.fluxtream.connectors.vos.AbstractLocalTimeTimedFacetVO;
 import com.fluxtream.domain.GuestSettings;
+import org.joda.time.LocalDateTime;
 
-public class FitbitLoggedActivityFacetVO extends AbstractTimedFacetVO<FitbitLoggedActivityFacet> {
+public class FitbitLoggedActivityFacetVO extends AbstractLocalTimeTimedFacetVO<FitbitLoggedActivityFacet> {
 
 	int steps;
 	int caloriesOut;
@@ -17,8 +16,10 @@ public class FitbitLoggedActivityFacetVO extends AbstractTimedFacetVO<FitbitLogg
 		this.steps = facet.steps;
 		caloriesOut = facet.calories;
 		description = facet.fullTextDescription;
-		startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.timeZone);
-		endMinute = toMinuteOfDay(new Date(facet.end), timeInterval.timeZone);
+        LocalDateTime startTime = new LocalDateTime(facet.start);
+        LocalDateTime endTime = new LocalDateTime(facet.end);
+		startMinute = startTime.getHourOfDay()*60+startTime.getMinuteOfHour();
+		endMinute = endTime.getHourOfDay()*60+endTime.getMinuteOfHour();
 	}
 
 }

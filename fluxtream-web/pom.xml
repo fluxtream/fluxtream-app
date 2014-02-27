@@ -7,7 +7,6 @@
 		<version>1.0</version>
 	</parent>
 	<artifactId>fluxtream-web</artifactId>
-    <version>1.0</version>
 	<packaging>war</packaging>
 	<build>
 		<resources>
@@ -18,51 +17,70 @@
 		</resources>
         <plugins>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.2.1</version>
+                <groupId>org.lesscss</groupId>
+                <artifactId>lesscss-maven-plugin</artifactId>
+                <version>1.3.3</version>
+                <configuration>
+                    <sourceDirectory>${project.basedir}/src/main/webapp/less</sourceDirectory>
+                    <outputDirectory>${project.basedir}/src/main/webapp/css</outputDirectory>
+                    <compress>true</compress>
+                </configuration>
                 <executions>
                     <execution>
-                        <goals><goal>exec</goal></goals>
-                </execution>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
                 </executions>
-                <configuration>
-                    <executable>java</executable>
-                    <arguments>
-                        <argument>-Xss10m</argument>
-                        <argument>-classpath</argument>
-                        <!--argument>${project.build.directory}/dependency/requirejs/build/lib/rhino/js.jar${path.separator}${project.build.directory}/dependency/requirejs/build/lib/closure/compiler.jar</argument -->
-                        <argument>${basedir}${file.separator}lib${file.separator}js.jar</argument>
-                        <argument>org.mozilla.javascript.tools.shell.Main</argument>
-                        <argument>r.js</argument>
-                        <argument>-o</argument>
-                        <argument>baseUrl=src/main/webapp/js/</argument>
-                        <argument>name=main</argument>
-                        <argument>out=${project.build.directory}/ROOT/js/main.js</argument>
-                    </arguments>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.2.1</version>
                 <executions>
+                    <!--<execution>-->
+                        <!--<phase>generate-resources</phase>-->
+                        <!--<id>js</id>-->
+                        <!--<goals>-->
+                            <!--<goal>exec</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<executable>node</executable>-->
+                                <!--<arguments>-->
+                                <!--<argument>r.js</argument>-->
+                                <!--<argument>-o</argument>-->
+                                <!--<argument>name=main</argument>-->
+                                <!--<argument>out=src/main/webapp/js/main-built.js</argument>-->
+                                <!--<argument>baseUrl=src/main/webapp/js/</argument>-->
+                            <!--</arguments>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
                     <execution>
                         <phase>generate-resources</phase>
                         <goals>
-                            <goal>exec</goal>
+                            <goal>java</goal>
                         </goals>
-                    </execution>
+                        <configuration>
+                            <includePluginDependencies>true</includePluginDependencies>
+                            <mainClass>com.fluxtream.maven.GetLastGitCommit</mainClass>
+                            <arguments>
+                               <argument>${release}</argument>
+                            </arguments>
+                        </configuration>
+                   </execution>
                 </executions>
-                <configuration>
-                    <executable>java</executable>
-                    <arguments>
-                        <argument>-classpath</argument>
-                        <argument>${basedir}/../fluxtream-core/target/classes:${basedir}/lib/commons-io-2.0.1.jar</argument>
-                        <argument>com.fluxtream.maven.GetLastGitCommit</argument>
-                        <argument>${release}</argument>
-                    </arguments>
-                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.mozilla</groupId>
+                        <artifactId>rhino</artifactId>
+                        <version>1.7R4</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>commons-io</groupId>
+                        <artifactId>commons-io</artifactId>
+                        <version>2.0.1</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
 		<finalName>ROOT</finalName>
@@ -71,20 +89,15 @@
 		<dependency>
 			<groupId>com.fluxtream</groupId>
 			<artifactId>fluxtream-core</artifactId>
-			<version>1.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.fluxtream</groupId>
-			<artifactId>fluxtream-core-webapp</artifactId>
-			<version>1.0</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fluxtream</groupId>
 			<artifactId>fluxtream-connectors</artifactId>
-			<version>1.0</version>
+			<version>${project.version}</version>
 		</dependency>
-	</dependencies>
+    </dependencies>
     <properties>
-        <release>0.9.0002</release>
+        <release>0.9.0027</release>
     </properties>
 </project>

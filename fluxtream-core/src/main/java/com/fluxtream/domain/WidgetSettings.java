@@ -12,6 +12,9 @@ import org.hibernate.annotations.Index;
  */
 @Entity(name="WidgetSettings")
 @NamedQueries( {
+       @NamedQuery( name="widgetSettings.delete.all",
+                    query="DELETE FROM WidgetSettings settings " +
+                          "WHERE settings.guestId=?"),
        @NamedQuery( name="widgetSettings.delete.byDashboardAndName",
                     query="DELETE FROM WidgetSettings settings " +
                           "WHERE settings.guestId=? " +

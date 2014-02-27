@@ -2,25 +2,40 @@ package com.fluxtream.connectors.dao;
 
 import java.util.List;
 import com.fluxtream.TimeInterval;
-import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.domain.AbstractFacet;
+import com.fluxtream.domain.AbstractRepeatableFacet;
+import com.fluxtream.domain.ApiKey;
+import com.fluxtream.domain.TagFilter;
+import org.jetbrains.annotations.Nullable;
 
 public interface FacetDao {
 
-    public List<AbstractFacet> getFacetsBetween(Connector connector, long guestId, ObjectType objectType, TimeInterval timeInterval);
+    public List<AbstractFacet> getFacetsByDates(ApiKey apiKey, ObjectType objectType, List<String> dates);
 
-    public AbstractFacet getOldestFacet(Connector connector, long guestId, ObjectType objectType);
+    public List<AbstractRepeatableFacet> getFacetsBetweenDates(ApiKey apiKey, ObjectType objectType, String startDate, String endDate);
 
-    public AbstractFacet getLatestFacet(Connector connector, long guestId, ObjectType objectType);
+    public List<AbstractFacet> getFacetsBetween(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval);
 
-    List<AbstractFacet> getFacetsBefore(long guestId, Connector connector, ObjectType objectType, long timeInMillis, int desiredCount);
+    public List<AbstractFacet> getFacetsBetween(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval, @Nullable TagFilter tagFilter);
 
-    List<AbstractFacet> getFacetsAfter(long guestId, Connector connector, ObjectType objectType, long timeInMillis, int desiredCount);
+    public AbstractFacet getOldestFacet(ApiKey apiKey, ObjectType objectType);
 
-    public void deleteAllFacets(Connector connector, long guestId);
+    public AbstractFacet getLatestFacet(ApiKey apiKey, ObjectType objectType);
 
-    public void deleteAllFacets(Connector connector, ObjectType objectType, long guestId);
+    List<AbstractFacet> getFacetsBefore(ApiKey apiKey, ObjectType objectType, long timeInMillis, int desiredCount);
+
+    List<AbstractFacet> getFacetsAfter(ApiKey apiKey, ObjectType objectType, long timeInMillis, int desiredCount);
+
+    List<AbstractFacet> getFacetsBefore(ApiKey apiKey, ObjectType objectType, long timeInMillis, int desiredCount, @Nullable TagFilter tagFilter);
+
+    List<AbstractFacet> getFacetsAfter(ApiKey apiKey, ObjectType objectType, long timeInMillis, int desiredCount, @Nullable TagFilter tagFilter);
+
+    public void deleteAllFacets(ApiKey apiKey);
+
+    AbstractFacet getFacetById(ApiKey apiKey, final ObjectType objectType, final long facetId);
+
+    public void deleteAllFacets(ApiKey apiKey, ObjectType objectType);
 
     public void persist(Object o);
 

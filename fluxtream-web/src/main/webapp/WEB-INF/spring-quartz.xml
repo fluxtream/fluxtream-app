@@ -10,28 +10,43 @@
 			<list>
 				<ref bean="producerTrigger" />
 				<ref bean="consumerTrigger" />
+                <ref bean="cleanupCronTrigger" />
 			</list>
 		</property>
 	</bean>
-	
+
+    <bean id="cleanupCronTrigger"
+          class="org.springframework.scheduling.quartz.CronTriggerBean">
+        <property name="jobDetail" ref="cleanupJobDetail" />
+        <property name="cronExpression" value="0 0 * * * ?" />
+    </bean>
+    <bean id="cleanup" class="com.fluxtream.updaters.quartz.Cleanup"/>
+    <bean id="cleanupJobDetail"
+          class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="cleanup" />
+        <property name="targetMethod" value="doCleanup" />
+        <property name="concurrent" value="false" />
+    </bean>
+
+
  	<bean id="producerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
 		<property name="jobDetail" ref="producerJobDetail" />
 		<property name="startDelay" value="0" />
-		<property name="repeatInterval" value="60000" />
+		<property name="repeatInterval" value="${producer.trigger.repeatInterval}" />
 	</bean>
 
-	<bean id="producerJobDetail"
-		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
-		<property name="targetObject" ref="producer" />
-		<property name="targetMethod" value="scheduleIncrementalUpdates" />
-		<property name="concurrent" value="false" />
-	</bean>
-	<bean id="producer" class="com.fluxtream.updaters.quartz.Producer"/>
-	
+    <bean id="producer" class="com.fluxtream.updaters.quartz.Producer"/>
+    <bean id="producerJobDetail"
+          class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="producer" />
+        <property name="targetMethod" value="scheduleIncrementalUpdates" />
+        <property name="concurrent" value="false" />
+    </bean> 
+
  	<bean id="consumerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
 		<property name="jobDetail" ref="consumerJobDetail" />
 		<property name="startDelay" value="0" />
-		<property name="repeatInterval" value="5000" />
+		<property name="repeatInterval" value="${consumer.trigger.repeatInterval}" />
 	</bean>
 
 	<bean id="consumerJobDetail"
@@ -41,4 +56,5 @@
 		<property name="concurrent" value="false" />
 	</bean>
 	<bean id="consumer" class="com.fluxtream.updaters.quartz.Consumer"/>
+
 </beans>

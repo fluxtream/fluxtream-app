@@ -1,0 +1,1 @@
+RENAME TABLE ScheduledUpdate TO UpdateWorkerTask;
