@@ -1,7 +1,9 @@
-define(["sharedConnectorSettings/evernote"], function(EvernoteSharedConnectorSettingsHandler) {
+define(["sharedConnectorSettings/evernote", "sharedConnectorSettings/google_calendar"],
+    function(EvernoteSharedConnectorSettingsHandler, GoogleCalendarSharedConnectorSettingsHandler) {
 
     var sharedConnectorSettingsHandlers = {
-        "evernote" : EvernoteSharedConnectorSettingsHandler
+        "evernote" : EvernoteSharedConnectorSettingsHandler,
+        "google_calendar" : GoogleCalendarSharedConnectorSettingsHandler
     };
 
     function show(){
