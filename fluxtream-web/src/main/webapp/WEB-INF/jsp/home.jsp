@@ -82,7 +82,7 @@
                             </ul>
                             <ul class="nav pull-right">
                                 <li class="divider-vertical"></li>
-                                <li class="dropdown" id="" data-container="body">
+                                <li class="dropdown" id="helpDropdownToggle" data-container="body">
                                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">Help <i class="icon-lightbulb icon-large"></i></a>
                                     <ul class="dropdown-menu">
                                         <li><a href="javascript:App.quickStart();">Quick Start</a></li>
