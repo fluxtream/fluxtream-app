@@ -6,6 +6,7 @@ import java.util.TimeZone;
 import com.fluxtream.SimpleTimeInterval;
 import com.fluxtream.TimeInterval;
 import com.fluxtream.TimeUnit;
+import com.fluxtream.auth.AuthHelper;
 import com.fluxtream.connectors.Connector;
 import com.fluxtream.connectors.ObjectType;
 import com.fluxtream.connectors.bodytrackResponders.AbstractBodytrackResponder;
@@ -14,6 +15,7 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.ApiKey;
 import com.fluxtream.domain.GuestSettings;
 import com.fluxtream.mvc.models.TimespanModel;
+import com.fluxtream.services.CoachingService;
 import com.fluxtream.services.SettingsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,6 +31,9 @@ public class EvernoteBodytrackResponder extends AbstractBodytrackResponder {
     @Autowired
     SettingsService settingsService;
 
+    @Autowired
+    CoachingService coachingService;
+
     @Override
     public List<TimespanModel> getTimespans(final long startMillis, final long endMillis,
                                             final ApiKey apiKey, final String channelName) {
@@ -37,6 +42,7 @@ public class EvernoteBodytrackResponder extends AbstractBodytrackResponder {
         final TimeInterval timeInterval = new SimpleTimeInterval(startMillis, endMillis, TimeUnit.ARBITRARY, TimeZone.getTimeZone("UTC"));
         String objectTypeName = "Evernote-note";
         List<AbstractFacet> facets = getFacetsInTimespan(timeInterval, apiKey, ObjectType.getObjectType(Connector.getConnector("evernote"), "note"));
+        facets = coachingService.filterFacets(AuthHelper.getGuestId(), apiKey.getId(), facets);
 
         // The start and end times of track facets are the same.  Assume that the
         // start time is correct and arbitrarily draw a box that's 7 mins or
