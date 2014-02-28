@@ -14,6 +14,7 @@ function setAvatarImage() {
             if (result.type!="none") {
                 $("#profileIcon").replaceWith("<img src=\"" + result.url + "\" style=\"display:inline;width:27px;margin: 0 1px 0 4px;\" width=27 height=27>");
                 $("#profileIconCaret").css("margin-top", "10px");
+                $("#helpDropdownToggle").css("margin-top", "3px");
                 $("#connectorsDropdownToggle").css("margin-top", "3px");
                 $("#appsMenuWrapper").css("margin-top", "4px");
                 $(".brand").css("margin-top", "3px");
