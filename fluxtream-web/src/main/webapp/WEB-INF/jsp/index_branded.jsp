@@ -87,7 +87,7 @@
                     <div class="screenshot_txt_2">
                         Choose from our growing list of supported devices and APIs. Importing your data is easy.
                     </div></td>
-                <td rowspan="4"><div class="connector_img"></div></td>
+                <td rowspan="5"><div class="connector_img"></div></td>
             </tr>
             <tr class="sc_highlight">
                 <td><a href="javascript:showLightbox(2);"><img src="images/s2.png" class="screenshot_img_general screenshot_img_2"/></a></td>
