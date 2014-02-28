@@ -124,11 +124,14 @@ define(["sharedConnectorSettings/evernote", "sharedConnectorSettings/google_cale
         });
     }
 
-    function toggleSharedConnector(username, connectorName, checked) {
-        if (checked)
+    function toggleSharedConnector(username, connectorName, checkbox) {
+        if (checkbox.checked) {
             addSharedConnector(username, connectorName);
-        else
+            $(checkbox).parent().find(".sharedConnectorSettingsBtn").show();
+        } else {
             removeSharedConnector(username, connectorName);
+            $(checkbox).parent().find(".sharedConnectorSettingsBtn").hide();
+        }
     }
 
     function addSharedConnector(username, connectorName) {

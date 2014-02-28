@@ -7,12 +7,14 @@ import com.fluxtream.domain.AbstractFacet;
 import com.fluxtream.domain.SharedConnector;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.springframework.stereotype.Component;
 
 /**
  * User: candide
  * Date: 27/02/14
  * Time: 17:18
  */
+@Component
 public class GoogleCalendarSharedConnectorFilter implements SharedConnectorFilter {
 
     @Override

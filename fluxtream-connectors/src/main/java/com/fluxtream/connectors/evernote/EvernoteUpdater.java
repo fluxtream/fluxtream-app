@@ -241,7 +241,7 @@ public class EvernoteUpdater extends AbstractUpdater implements SettingsAwareUpd
                 }
             }
         }
-        jsonSettings.accumulate("notebooks", settingsNotebooks);
+        jsonSettings.put("notebooks", settingsNotebooks);
         String toPersist = jsonSettings.toString();
         coachingService.setSharedConnectorFilter(sharedConnector.getId(), toPersist);
     }

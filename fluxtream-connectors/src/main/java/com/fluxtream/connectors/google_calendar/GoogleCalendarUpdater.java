@@ -525,7 +525,7 @@ public class GoogleCalendarUpdater extends AbstractUpdater implements SettingsAw
                 }
             }
         }
-        jsonSettings.accumulate("calendars", sharingSettingsCalendars);
+        jsonSettings.put("calendars", sharingSettingsCalendars);
         String toPersist = jsonSettings.toString();
         coachingService.setSharedConnectorFilter(sharedConnector.getId(), toPersist);
     }

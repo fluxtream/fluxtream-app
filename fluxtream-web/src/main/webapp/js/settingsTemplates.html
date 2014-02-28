@@ -196,10 +196,10 @@
 <template id="sharedConnectors">
     {{#connectors}}
         <label class="checkbox">
-            <input type="checkbox" onclick="App.sharingDialog.toggleSharedConnector('{{username}}','{{connectorName}}', this.checked);"
+            <input type="checkbox" onclick="App.sharingDialog.toggleSharedConnector('{{username}}','{{connectorName}}', this);"
                    value="{{connectorName}}" {{#shared}}checked=checked{{/shared}}> {{prettyName}}
             {{#hasSettings}}
-                <a class="btn btn-link sharedConnectorSettingsBtn" data-apiKeyId="{{apiKeyId}}" data-connectorPrettyName="{{prettyName}}"
+                <a class="btn btn-link sharedConnectorSettingsBtn" {{^shared}}style="display:none"{{/shared}} data-apiKeyId="{{apiKeyId}}" data-connectorPrettyName="{{prettyName}}"
                    data-connectorName="{{connectorName}}">more...</a>
             {{/hasSettings}}
         </label>
