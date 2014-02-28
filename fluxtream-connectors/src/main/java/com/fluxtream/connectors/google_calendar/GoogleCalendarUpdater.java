@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import com.fluxtream.aspects.FlxLogger;
 import com.fluxtream.connectors.annotations.Updater;
-import com.fluxtream.connectors.evernote.EvernoteNotebookFacet;
 import com.fluxtream.connectors.updaters.AbstractUpdater;
 import com.fluxtream.connectors.updaters.SettingsAwareUpdater;
 import com.fluxtream.connectors.updaters.SharedConnectorSettingsAwareUpdater;
@@ -486,43 +485,47 @@ public class GoogleCalendarUpdater extends AbstractUpdater implements SettingsAw
         if (sharedConnector.filterJson!=null)
             jsonSettings = JSONObject.fromObject(sharedConnector.filterJson);
         // get calendars, add new configs for new calendars...
-        final List<EvernoteNotebookFacet> notebooks = jpaDaoService.find("evernote.notebooks.byApiKeyId",
-                                                                         EvernoteNotebookFacet.class, apiKeyId);
-        JSONArray settingsNotebooks = new JSONArray();
-        if (jsonSettings.has("notebooks"))
-            settingsNotebooks = jsonSettings.getJSONArray("notebooks");
-        there: for (EvernoteNotebookFacet notebook : notebooks) {
-            for (int i=0; i<settingsNotebooks.size(); i++) {
-                JSONObject notebookConfig = settingsNotebooks.getJSONObject(i);
-                if (notebookConfig.getString("guid").equals(notebook.guid))
+        // we use the data in the connector settings, which have either just been synched (see UpdateWorker's syncSettings)
+        // or were synched  when the connector was last updated; in either cases, we know that the data is up-to-date
+        final GoogleCalendarConnectorSettings connectorSettings = (GoogleCalendarConnectorSettings)settingsService.getConnectorSettings(apiKeyId);
+        final List<CalendarConfig> calendars = connectorSettings.calendars;
+
+        JSONArray sharingSettingsCalendars = new JSONArray();
+        if (jsonSettings.has("calendars"))
+            sharingSettingsCalendars = jsonSettings.getJSONArray("calendars");
+        there: for (CalendarConfig calendarConfig : calendars) {
+            for (int i=0; i<sharingSettingsCalendars.size(); i++) {
+                JSONObject sharingSettingsCalendar = sharingSettingsCalendars.getJSONObject(i);
+                if (sharingSettingsCalendar.getString("id").equals(calendarConfig.id))
                     continue there;
             }
-            JSONObject config = new JSONObject();
-            config.accumulate("guid", notebook.guid);
-            config.accumulate("name", notebook.name);
-            config.accumulate("shared", false);
-            settingsNotebooks.add(config);
+            JSONObject sharingConfig = new JSONObject();
+            sharingConfig.accumulate("id", calendarConfig.id);
+            sharingConfig.accumulate("summary", calendarConfig.summary);
+            sharingConfig.accumulate("description", calendarConfig.description);
+            sharingConfig.accumulate("shared", false);
+            sharingSettingsCalendars.add(sharingConfig);
         }
 
         // and remove configs for deleted notebooks - leave others untouched
         JSONArray settingsToDelete = new JSONArray();
-        there: for (int i=0; i<settingsNotebooks.size(); i++) {
-            JSONObject notebookConfig = settingsNotebooks.getJSONObject(i);
-            for (EvernoteNotebookFacet notebook : notebooks) {
-                if (notebookConfig.getString("guid").equals(notebook.guid))
+        there: for (int i=0; i<sharingSettingsCalendars.size(); i++) {
+            JSONObject sharingSettingsCalendar = sharingSettingsCalendars.getJSONObject(i);
+            for (CalendarConfig calendarConfig : calendars) {
+                if (sharingSettingsCalendar.getString("id").equals(calendarConfig.id))
                     continue there;
             }
-            settingsToDelete.add(notebookConfig);
+            settingsToDelete.add(sharingSettingsCalendar);
         }
         for (int i=0; i<settingsToDelete.size(); i++) {
             JSONObject toDelete = settingsToDelete.getJSONObject(i);
-            for (int j=0; j<settingsNotebooks.size(); j++) {
-                if (settingsNotebooks.getJSONObject(j).getString("guid").equals(toDelete.getString("guid"))) {
-                    settingsNotebooks.remove(j);
+            for (int j=0; j<sharingSettingsCalendars.size(); j++) {
+                if (sharingSettingsCalendars.getJSONObject(j).getString("id").equals(toDelete.getString("id"))) {
+                    sharingSettingsCalendars.remove(j);
                 }
             }
         }
-        jsonSettings.accumulate("notebooks", settingsNotebooks);
+        jsonSettings.accumulate("calendars", sharingSettingsCalendars);
         String toPersist = jsonSettings.toString();
         coachingService.setSharedConnectorFilter(sharedConnector.getId(), toPersist);
     }

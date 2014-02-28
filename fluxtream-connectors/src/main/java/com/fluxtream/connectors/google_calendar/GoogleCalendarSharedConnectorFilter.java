@@ -26,7 +26,7 @@ public class GoogleCalendarSharedConnectorFilter implements SharedConnectorFilte
             JSONObject calendar = calendars.getJSONObject(i);
             boolean shared = calendar.getBoolean("shared");
             if (shared)
-                sharedCalendarIds.add(calendar.getString("guid"));
+                sharedCalendarIds.add(calendar.getString("id"));
         }
         List<T> filteredFacets = new ArrayList<T>();
         for (T facet : facets) {
