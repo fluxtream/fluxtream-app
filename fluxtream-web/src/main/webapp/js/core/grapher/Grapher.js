@@ -852,25 +852,29 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
     // Add new channel to target
     Grapher.prototype.addChannel = function(channel, target, dontPad) {
         var grapher = this;
-        if (typeof channel == "string"){
-            if (!SOURCES.initialized){
-                $.doTimeout(33,function(){
-                    console.log('timeout');
-                    grapher.addChannel(channel,target);
-                });
-                return;
-            }
-            else if (SOURCES.availableList == null || (SOURCES.availableList.length > 0 && SOURCES.availableList[0].channels.length > 0 && SOURCES.availableList[0].channels[0].id == null)){
-                getSources(grapher,function(){
-                    grapher.addChannel(channel,target);
-                });
-                return;
+        if (!SOURCES.initialized){
+            $.doTimeout(33,function(){
+                console.log('timeout');
+                grapher.addChannel(channel,target,dontPad);
+            });
+            return;
+        }
+        else if (SOURCES.availableList == null || (SOURCES.availableList.length > 0 && SOURCES.availableList[0].channels.length > 0 && SOURCES.availableList[0].channels[0].id == null)){
+            getSources(grapher,function(){
+                grapher.addChannel(channel,target,dontPad);
+            });
+            return;
 
-            }
+        }
+        if (typeof channel == "string"){
             var channel = getSourceChannelByFullName(channel);
             if (channel == null)
                 return;
             var channel = grapher.sourcesMap[channel.id];
+        }
+        else{
+            if (getSourceChannelByName(channel.device_name,channel.channel_name) == null)
+                return; //if the channel doesn't exist we shouldn't add it, there will just be crashes
         }
 
         App.loadMustacheTemplate("core/grapher/timelineTemplates.html","channelTemplate",function(template){
