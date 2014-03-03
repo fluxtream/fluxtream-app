@@ -1,10 +1,10 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%><%@ taglib
 	prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%><%@ page
-	isELIgnored="false"%><%@ page import="com.fluxtream.domain.*"%>
-<%@ page import="com.fluxtream.connectors.vos.*"
+	isELIgnored="false"%><%@ page import="org.fluxtream.domain.*"%>
+<%@ page import="org.fluxtream.connectors.vos.*"
 %><%@ page import="glacier.picasa.*"
-%><%@ page import="com.fluxtream.connectors.flickr.*"
-%><%@ page import="com.fluxtream.*"
+%><%@ page import="org.fluxtream.connectors.flickr.*"
+%><%@ page import="org.fluxtream.*"
 %><%@ page import="java.util.*"
 %>
 <%

@@ -1,9 +1,9 @@
 package glacier.picasa;
 
-import com.fluxtream.connectors.annotations.Updater;
-import com.fluxtream.connectors.updaters.AbstractUpdater;
-import com.fluxtream.connectors.updaters.UpdateInfo;
-import com.fluxtream.services.GuestService;
+import org.fluxtream.connectors.annotations.Updater;
+import org.fluxtream.connectors.updaters.AbstractUpdater;
+import org.fluxtream.connectors.updaters.UpdateInfo;
+import org.fluxtream.services.GuestService;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<artifactId>fluxtream-app</artifactId>
-		<groupId>com.fluxtream</groupId>
+		<groupId>org.fluxtream</groupId>
 		<version>1.0</version>
 	</parent>
 	<artifactId>fluxtream-core</artifactId>

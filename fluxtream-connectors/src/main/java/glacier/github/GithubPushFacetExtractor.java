@@ -2,12 +2,12 @@ package glacier.github;
 
 import java.util.ArrayList;
 import java.util.List;
-import com.fluxtream.ApiData;
-import com.fluxtream.connectors.ObjectType;
-import com.fluxtream.connectors.updaters.UpdateInfo;
-import com.fluxtream.domain.AbstractFacet;
-import com.fluxtream.facets.extractors.AbstractFacetExtractor;
-import com.fluxtream.services.GuestService;
+import org.fluxtream.ApiData;
+import org.fluxtream.connectors.ObjectType;
+import org.fluxtream.connectors.updaters.UpdateInfo;
+import org.fluxtream.domain.AbstractFacet;
+import org.fluxtream.facets.extractors.AbstractFacetExtractor;
+import org.fluxtream.services.GuestService;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.joda.time.format.DateTimeFormat;

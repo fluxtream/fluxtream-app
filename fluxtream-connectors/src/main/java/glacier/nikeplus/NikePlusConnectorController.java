@@ -3,16 +3,13 @@ package glacier.nikeplus;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 
-import com.fluxtream.auth.AuthHelper;
-import com.fluxtream.domain.ApiKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.fluxtream.connectors.Connector;
-import com.fluxtream.services.GuestService;
+import org.fluxtream.services.GuestService;
 
 @Controller()
 @RequestMapping("/nikeplus")

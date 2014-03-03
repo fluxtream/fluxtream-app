@@ -6,8 +6,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.fluxtream.auth.AuthHelper;
-import com.fluxtream.domain.ApiKey;
+import org.fluxtream.auth.AuthHelper;
+import org.fluxtream.domain.ApiKey;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.OAuthProvider;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
@@ -21,10 +21,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.fluxtream.Configuration;
-import com.fluxtream.connectors.Connector;
-import com.fluxtream.domain.Guest;
-import com.fluxtream.services.GuestService;
+import org.fluxtream.Configuration;
+import org.fluxtream.connectors.Connector;
+import org.fluxtream.domain.Guest;
+import org.fluxtream.services.GuestService;
 import com.google.gdata.client.authn.oauth.OAuthException;
 
 @Controller

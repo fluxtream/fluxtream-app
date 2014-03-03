@@ -1,5 +1,5 @@
-<%@ page import="com.fluxtream.connectors.lastfm.LastFmRecentTrackFacet" %>
-<%@ page import="com.fluxtream.connectors.lastfm.LastFmRecentTrackFacetVO" %>
+<%@ page import="org.fluxtream.connectors.lastfm.LastFmRecentTrackFacet" %>
+<%@ page import="org.fluxtream.connectors.lastfm.LastFmRecentTrackFacetVO" %>
 <%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"%><%@ taglib
         prefix="c" uri="http://java.sun.com/jsp/jstl/core"%><%@ taglib
         prefix="sec" uri="http://www.springframework.org/security/tags"%><%@ taglib
