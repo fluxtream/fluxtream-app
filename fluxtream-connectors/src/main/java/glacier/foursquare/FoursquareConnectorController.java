@@ -8,21 +8,21 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.fluxtream.auth.AuthHelper;
-import com.fluxtream.domain.ApiKey;
-import com.fluxtream.utils.UnexpectedHttpResponseCodeException;
+import org.fluxtream.auth.AuthHelper;
+import org.fluxtream.domain.ApiKey;
+import org.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.fluxtream.Configuration;
-import com.fluxtream.connectors.Connector;
-import com.fluxtream.domain.Guest;
-import com.fluxtream.services.GuestService;
-import com.fluxtream.services.SystemService;
-import com.fluxtream.utils.HttpUtils;
+import org.fluxtream.Configuration;
+import org.fluxtream.connectors.Connector;
+import org.fluxtream.domain.Guest;
+import org.fluxtream.services.GuestService;
+import org.fluxtream.services.SystemService;
+import org.fluxtream.utils.HttpUtils;
 
 @Controller
 @RequestMapping(value = "/foursquare")

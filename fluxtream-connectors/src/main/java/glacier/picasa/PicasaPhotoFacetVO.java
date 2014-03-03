@@ -7,10 +7,10 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import com.fluxtream.TimeInterval;
-import com.fluxtream.connectors.vos.AbstractPhotoFacetVO;
-import com.fluxtream.domain.GuestSettings;
-import com.fluxtream.mvc.models.DimensionModel;
+import org.fluxtream.TimeInterval;
+import org.fluxtream.connectors.vos.AbstractPhotoFacetVO;
+import org.fluxtream.domain.GuestSettings;
+import org.fluxtream.mvc.models.DimensionModel;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 

@@ -1,7 +1,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%><%@ taglib
 	prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%><%@ page
-	isELIgnored="false"%><%@ page import="com.fluxtream.*"%><%@ page
-	import="com.fluxtream.domain.*"%><%@ page import="java.util.List"%><%@ page
+	isELIgnored="false"%><%@ page import="org.fluxtream.*"%><%@ page
+	import="org.fluxtream.domain.*"%><%@ page import="java.util.List"%><%@ page
 	import="java.util.ArrayList"%><%@ page import="java.lang.Object"%>
 <jsp:useBean id="userApis" type="java.util.List" scope="request" />
 <jsp:useBean id="availableConnectorRows" type="java.util.List"

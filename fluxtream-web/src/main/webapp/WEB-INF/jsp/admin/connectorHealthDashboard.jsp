@@ -1,6 +1,6 @@
 <%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"
         %><%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %><%@ page import="java.util.List"
-        %><%@ page import="com.fluxtream.domain.ConnectorInfo"
+        %><%@ page import="org.fluxtream.domain.ConnectorInfo"
         %><%
     final List<ConnectorInfo> connectors = (List<ConnectorInfo>) request.getAttribute("connectors");
     final int fromGuest = (Integer)request.getAttribute("fromGuest");

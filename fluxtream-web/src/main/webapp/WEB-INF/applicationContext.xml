@@ -46,12 +46,12 @@
     <import resource="spring-quartz.xml" />
 
     <bean id="velocityEngine" class="org.springframework.ui.velocity.VelocityEngineFactoryBean" 
-          p:resourceLoaderPath="classpath:/com/fluxtream/mvc/controllers" 
+          p:resourceLoaderPath="classpath:/org/fluxtream/mvc/controllers"
           p:preferFileSystemAccess="false"/>
 
 	<context:spring-configured />
 	<context:annotation-config />
-	<context:component-scan base-package="com.fluxtream" />
+	<context:component-scan base-package="org.fluxtream" />
 	<tx:annotation-driven transaction-manager="transactionManager" />
 
 	<bean id="jmxExporter" class="org.springframework.jmx.export.MBeanExporter">
@@ -81,7 +81,7 @@
 		</property>
 	</bean>
 
-	<bean id="guestService" class="com.fluxtream.services.impl.GuestServiceImpl" />
+	<bean id="guestService" class="org.fluxtream.services.impl.GuestServiceImpl" />
 
 	<bean id="messageSource"
 		class="org.springframework.context.support.ResourceBundleMessageSource">
@@ -121,7 +121,7 @@
 		<constructor-arg value="bodytrack.properties"/>
    	</bean>
 	
-	<bean class="com.fluxtream.Configuration">
+	<bean class="org.fluxtream.Configuration">
         <property name="lastCommitProperties" ref="lastCommitProperties"/>
         <property name="commonProperties" ref="commonProperties"/>
 		<property name="targetEnvProperties" ref="targetEnvProperties"/>
@@ -149,7 +149,7 @@
 	
 	<bean id="entityManagerFactory"
 		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"
-		p:packagesToScan="com.fluxtream" p:dataSource-ref="dataSource"
+		p:packagesToScan="org.fluxtream" p:dataSource-ref="dataSource"
 		p:jpaVendorAdapter-ref="hibernateVendor" p:jpaPropertyMap-ref="jpaPropertyMap" />
 		
 	<bean id="hibernateVendor"

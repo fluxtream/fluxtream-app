@@ -2,8 +2,8 @@ package glacier.github;
 
 import javax.persistence.Entity;
 import javax.persistence.Lob;
-import com.fluxtream.connectors.annotations.ObjectTypeSpec;
-import com.fluxtream.domain.AbstractFacet;
+import org.fluxtream.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.domain.AbstractFacet;
 
 /**
  *

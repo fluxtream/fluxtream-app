@@ -5,7 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import org.apache.commons.io.IOUtils;
-import com.fluxtream.aspects.FlxLogger;
+import org.fluxtream.aspects.FlxLogger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

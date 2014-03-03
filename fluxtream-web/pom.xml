@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<artifactId>fluxtream-app</artifactId>
-		<groupId>com.fluxtream</groupId>
+		<groupId>org.fluxtream</groupId>
 		<version>1.0</version>
 	</parent>
 	<artifactId>fluxtream-web</artifactId>
@@ -62,7 +62,7 @@
                         </goals>
                         <configuration>
                             <includePluginDependencies>true</includePluginDependencies>
-                            <mainClass>com.fluxtream.maven.GetLastGitCommit</mainClass>
+                            <mainClass>org.fluxtream.maven.GetLastGitCommit</mainClass>
                             <arguments>
                                <argument>${release}</argument>
                             </arguments>
@@ -87,12 +87,12 @@
 	</build>
 	<dependencies>
 		<dependency>
-			<groupId>com.fluxtream</groupId>
+			<groupId>org.fluxtream</groupId>
 			<artifactId>fluxtream-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.fluxtream</groupId>
+			<groupId>org.fluxtream</groupId>
 			<artifactId>fluxtream-connectors</artifactId>
 			<version>${project.version}</version>
 		</dependency>

@@ -6,7 +6,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.fluxtream.domain.ApiKey;
+import org.fluxtream.domain.ApiKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,11 +14,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.fluxtream.Configuration;
-import com.fluxtream.auth.FlxUserDetails;
-import com.fluxtream.connectors.Connector;
-import com.fluxtream.connectors.updaters.RateLimitReachedException;
-import com.fluxtream.services.GuestService;
+import org.fluxtream.Configuration;
+import org.fluxtream.auth.FlxUserDetails;
+import org.fluxtream.connectors.Connector;
+import org.fluxtream.connectors.updaters.RateLimitReachedException;
+import org.fluxtream.services.GuestService;
 
 @Controller
 @RequestMapping(value="/toodledo")
