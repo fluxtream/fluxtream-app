@@ -16,10 +16,10 @@ public class WithingsFatRatioFieldHandler implements FieldHandler {
     BodyTrackHelper bodyTrackHelper;
 
     @Override
-    public void handleField ( final long guestId, AbstractFacet facet) {
+    public List<BodyTrackHelper.BodyTrackUploadResult> handleField ( final long guestId, AbstractFacet facet) {
         WithingsBodyScaleMeasureFacet measureFacet = (WithingsBodyScaleMeasureFacet) facet;
         if (measureFacet.fatRatio == 0)
-            return;
+            return Arrays.asList();
 
         List<List<Object>> data = new ArrayList<List<Object>>();
         List<Object> record = new ArrayList<Object>();
@@ -29,6 +29,6 @@ public class WithingsFatRatioFieldHandler implements FieldHandler {
         data.add(record);
 
         // TODO: check the status code in the BodyTrackUploadResult
-        bodyTrackHelper.uploadToBodyTrack(guestId , "Withings", Arrays.asList("fatRatio"), data);
+        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(guestId , "Withings", Arrays.asList("fatRatio"), data));
     }
 }

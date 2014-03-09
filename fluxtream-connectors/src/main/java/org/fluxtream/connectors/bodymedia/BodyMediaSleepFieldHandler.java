@@ -22,10 +22,10 @@ public class BodyMediaSleepFieldHandler implements FieldHandler {
     BodyTrackHelper bodyTrackHelper;
 
     @Override
-    public void handleField ( final long guestId, AbstractFacet facet) {
+    public List<BodyTrackHelper.BodyTrackUploadResult> handleField ( final long guestId, AbstractFacet facet) {
         BodymediaSleepFacet sleepFacet = (BodymediaSleepFacet) facet;
         if (sleepFacet.json == null) {
-            return;
+            return Arrays.asList();
         }
         JSONArray sleepJson = JSONArray.fromObject(sleepFacet.json);
         List<List<Object>> sleepingData = new ArrayList<List<Object>>();
@@ -52,8 +52,8 @@ public class BodyMediaSleepFieldHandler implements FieldHandler {
             addStandingRecord(facet.start/1000+lastMinuteIndex*60, sleepingData, lyingData, 1440-lastMinuteIndex);
 
         // TODO: check the status code in the BodyTrackUploadResult
-        bodyTrackHelper.uploadToBodyTrack(guestId, "BodyMedia", Arrays.asList("sleeping"), sleepingData);
-        bodyTrackHelper.uploadToBodyTrack(guestId, "BodyMedia", Arrays.asList("lying"), lyingData);
+        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(guestId, "BodyMedia", Arrays.asList("sleeping"), sleepingData),
+                    bodyTrackHelper.uploadToBodyTrack(guestId, "BodyMedia", Arrays.asList("lying"), lyingData));
     }
 
     private void addSleepingRecord(long when, List<List<Object>> sleepingData, List<List<Object>> lyingData, int duration) {

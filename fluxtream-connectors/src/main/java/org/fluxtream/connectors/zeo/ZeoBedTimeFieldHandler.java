@@ -22,7 +22,7 @@ public class ZeoBedTimeFieldHandler implements FieldHandler {
     BodyTrackHelper bodyTrackHelper;
 
     @Override
-    public void handleField ( final long guestId, AbstractFacet facet) {
+    public List<BodyTrackHelper.BodyTrackUploadResult> handleField ( final long guestId, AbstractFacet facet) {
         ZeoSleepStatsFacet sleepStatsFacet = (ZeoSleepStatsFacet) facet;
         DateTime startTimeJoda = new DateTime(facet.start,DateTimeZone.UTC);
         int stHour = startTimeJoda.getHourOfDay();
@@ -36,6 +36,6 @@ public class ZeoBedTimeFieldHandler implements FieldHandler {
         data.add(record);
 
         // TODO: check the status code in the BodyTrackUploadResult
-        bodyTrackHelper.uploadToBodyTrack(guestId , "Zeo", Arrays.asList("bedTime"), data);
+        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(guestId , "Zeo", Arrays.asList("bedTime"), data));
     }
 }

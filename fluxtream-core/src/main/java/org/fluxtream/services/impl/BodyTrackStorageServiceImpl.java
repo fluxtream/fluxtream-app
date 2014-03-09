@@ -12,6 +12,7 @@ import org.fluxtream.Configuration;
 import org.fluxtream.SimpleTimeInterval;
 import org.fluxtream.TimeInterval;
 import org.fluxtream.TimeUnit;
+import org.fluxtream.api.BodyTrackController;
 import org.fluxtream.connectors.Connector;
 import org.fluxtream.connectors.ObjectType;
 import org.fluxtream.domain.AbstractFacet;
@@ -67,10 +68,13 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 		//if (bodytrackApiKey == null)
 		//	return;
 
+        List<BodyTrackHelper.BodyTrackUploadResult> results = new ArrayList<BodyTrackHelper.BodyTrackUploadResult>();
+
 		Map<String, List<AbstractFacet>> facetsByFacetName = sortFacetsByFacetName(facets);
         for (final String facetName : facetsByFacetName.keySet()) {
-            storeDeviceData(guestId, facetsByFacetName, facetName);
+            results.addAll(storeDeviceData(guestId, facetsByFacetName, facetName));
         }
+        System.out.println(results);
 
 	}
 
@@ -88,35 +92,36 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
         logger.info(sb.toString());
     }
 
-    private void storeDeviceData(long guestId,
+    private List<BodyTrackHelper.BodyTrackUploadResult> storeDeviceData(long guestId,
 			Map<String, List<AbstractFacet>> facetsByDeviceNickname,
 			String facetName) {
+        List<BodyTrackHelper.BodyTrackUploadResult> results = new ArrayList<BodyTrackHelper.BodyTrackUploadResult>();
         String deviceName = getDeviceNickname(facetName);
         List<AbstractFacet> deviceFacets = facetsByDeviceNickname.get(facetName);
 
-        uploadDailyData(guestId, deviceName, deviceFacets, facetName);
+        results.add(uploadDailyData(guestId, deviceName, deviceFacets, facetName));
 
         List<FieldHandler> facetFieldHandlers = getFieldHandlers(facetName);
         for (FieldHandler fieldHandler : facetFieldHandlers) {
-            uploadIntradayData(guestId, deviceFacets, fieldHandler);
+            results.addAll(uploadIntradayData(guestId, deviceFacets, fieldHandler));
         }
+        return results;
     }
 
-    private void uploadDailyData(long guestId,
-                                 String deviceName,
-                                 List<AbstractFacet> deviceFacets,
-                                 String facetName) {
+    private BodyTrackHelper.BodyTrackUploadResult uploadDailyData(long guestId, String deviceName, List<AbstractFacet> deviceFacets, String facetName) {
         List<String> datastoreChannelNames = getDailyDatastoreChannelNames(facetName);
         List<String> facetColumnNames = getFacetColumnNames(facetName);
         List<List<Object>> dailyDataChannelValues = getDailyDataChannelValues(deviceFacets, facetColumnNames);
 
         // TODO: check the status code in the BodyTrackUploadResult
-        bodyTrackHelper.uploadToBodyTrack(guestId, deviceName, datastoreChannelNames, dailyDataChannelValues);
+        return bodyTrackHelper.uploadToBodyTrack(guestId, deviceName, datastoreChannelNames, dailyDataChannelValues);
     }
 
-    private void uploadIntradayData(long guestId, List<AbstractFacet> deviceFacets, FieldHandler fieldHandler) {
+    private List<BodyTrackHelper.BodyTrackUploadResult> uploadIntradayData(long guestId, List<AbstractFacet> deviceFacets, FieldHandler fieldHandler) {
+        List<BodyTrackHelper.BodyTrackUploadResult> results = new ArrayList<BodyTrackHelper.BodyTrackUploadResult>();
         for (AbstractFacet deviceFacet : deviceFacets)
-            fieldHandler.handleField(guestId, deviceFacet);
+            results.addAll(fieldHandler.handleField(guestId, deviceFacet));
+        return results;
     }
 
     private FieldHandler getFieldHandler(String fieldHandlerName) {
