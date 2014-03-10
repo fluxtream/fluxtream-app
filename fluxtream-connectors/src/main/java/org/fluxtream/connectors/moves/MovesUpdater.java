@@ -71,8 +71,9 @@ public class MovesUpdater extends AbstractUpdater {
     final static int pastDaysToUpdatePlaces = 7;
 
     public static DateTimeFormatter compactDateFormat = DateTimeFormat.forPattern("yyyyMMdd");
-    public static DateTimeFormatter timeStorageFormat = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmss'Z'");
-    public static DateTimeFormatter httpResponseDateFormat = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss ZZZ");
+    public final DateTimeFormatter timeStorageFormat = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmss'Z'");
+    public final DateTimeFormatter localTimeStorageFormat = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
+    public static final DateTimeFormatter httpResponseDateFormat = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss ZZZ");
 
     // This holds onto the next time that we know quota is available.  The quota for Moves is global
     // across all the instances using a given consumer key.  The MovesUpdater is a singleton, so
@@ -784,7 +785,7 @@ public class MovesUpdater extends AbstractUpdater {
     private MovesMoveFacet createOrUpdateMovesMoveFacet(final String date,final JSONObject segment, final UpdateInfo updateInfo)
         throws UpdateFailedException {
         try {
-            final DateTime startTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("startTime"));
+            final DateTime startTime = localTimeStorageFormat.parseDateTime(segment.getString("startTime"));
             long start = startTime.getMillis();
 
             MovesMoveFacet ret =
@@ -848,7 +849,7 @@ public class MovesUpdater extends AbstractUpdater {
     private MovesPlaceFacet createOrUpdateMovesPlaceFacet(final String date,final JSONObject segment, final UpdateInfo updateInfo)
         throws UpdateFailedException{
         try {
-            final DateTime startTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("startTime"));
+            final DateTime startTime = localTimeStorageFormat.parseDateTime(segment.getString("startTime"));
             final long start = startTime.getMillis();
 
             MovesPlaceFacet ret =
@@ -938,7 +939,7 @@ public class MovesUpdater extends AbstractUpdater {
             final MovesActivity movesActivity = movesActivities.get(i);
             for (int j=0; i<activities.size(); i++) {
                 JSONObject activityData = activities.getJSONObject(j);
-                final long start = timeStorageFormat.withZoneUTC().parseDateTime(activityData.getString("startTime")).getMillis();
+                final long start = localTimeStorageFormat.parseDateTime(activityData.getString("startTime")).getMillis();
                 if (movesActivity.start==start) {
                     continue withMovesActivities;
                 }
@@ -961,7 +962,7 @@ public class MovesUpdater extends AbstractUpdater {
             // their start times are the same.
             JSONObject jsonActivity = activities.getJSONObject(i);
             for (int j=0; j<movesActivities.size(); j++) {
-                final long start = timeStorageFormat.withZoneUTC().parseDateTime(jsonActivity.getString("startTime")).getMillis();
+                final long start = localTimeStorageFormat.parseDateTime(jsonActivity.getString("startTime")).getMillis();
                 final MovesActivity storedActivityFacet = movesActivities.get(j);
                 if (storedActivityFacet.start==start) {
                     // Here we know that the storedActivityFacet and jsonActivity started at the same time.
@@ -982,7 +983,7 @@ public class MovesUpdater extends AbstractUpdater {
                                    final MovesActivity movesActivity,
                                    final JSONObject activityData) {
         boolean needsUpdate = false;
-        final long end = timeStorageFormat.withZoneUTC().parseDateTime(activityData.getString("endTime")).getMillis();
+        final long end = localTimeStorageFormat.parseDateTime(activityData.getString("endTime")).getMillis();
         if (movesActivity.end!=end) {
             needsUpdate = true;
             movesActivity.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.print(end);
@@ -1056,7 +1057,7 @@ public class MovesUpdater extends AbstractUpdater {
             // jsonActivity.  Consider a given stored activity facet and JSON item to match if
             // their start times are the same.
             for (int j=0; j<movesActivities.size(); j++) {
-                final long start = timeStorageFormat.withZoneUTC().parseDateTime(jsonActivity.getString("startTime")).getMillis();
+                final long start = localTimeStorageFormat.parseDateTime(jsonActivity.getString("startTime")).getMillis();
                 MovesActivity storedActivityFacet = movesActivities.get(j);
                 if (storedActivityFacet.start==start) {
                     // Here we know that storedActivityFacet and jsonActivity started at the same time.
@@ -1080,7 +1081,7 @@ public class MovesUpdater extends AbstractUpdater {
         boolean needsUpdating = false;
 
         // Check for change in the end time
-        final DateTime endTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("endTime"));
+        final DateTime endTime = localTimeStorageFormat.parseDateTime(segment.getString("endTime"));
         if(place.end != endTime.getMillis()) {
             //System.out.println(place.start + ": endTime changed");
             needsUpdating = true;
@@ -1132,7 +1133,7 @@ public class MovesUpdater extends AbstractUpdater {
         boolean needsUpdating = false;
 
         // Check for change in the end time
-        final DateTime endTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("endTime"));
+        final DateTime endTime = localTimeStorageFormat.parseDateTime(segment.getString("endTime"));
         if(moveFacet.end != endTime.getMillis()) {
             needsUpdating = true;
             moveFacet.end = endTime.getMillis();
@@ -1217,8 +1218,8 @@ public class MovesUpdater extends AbstractUpdater {
     private void extractMoveData(final String date, final JSONObject segment, final MovesFacet facet, UpdateInfo updateInfo) {
         facet.date = date;
         // The times given by Moves are absolute GMT, not local time
-        final DateTime startTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("startTime"));
-        final DateTime endTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("endTime"));
+        final DateTime startTime = localTimeStorageFormat.parseDateTime(segment.getString("startTime"));
+        final DateTime endTime = localTimeStorageFormat.parseDateTime(segment.getString("endTime"));
         facet.start = startTime.getMillis();
         facet.end = endTime.getMillis();
         facet.date=date;
@@ -1242,8 +1243,8 @@ public class MovesUpdater extends AbstractUpdater {
         // Generate a URI of the form '{wlk,cyc,trp}/UUID'.  The activity field must be set before calling createActivityURI
         activity.activityURI = createActivityURI(activity);
 
-        final DateTime startTime = timeStorageFormat.withZoneUTC().parseDateTime(activityData.getString("startTime"));
-        final DateTime endTime = timeStorageFormat.withZoneUTC().parseDateTime(activityData.getString("endTime"));
+        final DateTime startTime = localTimeStorageFormat.parseDateTime(activityData.getString("startTime"));
+        final DateTime endTime = localTimeStorageFormat.parseDateTime(activityData.getString("endTime"));
 
         // Note that unlike everywhere else in the sysetm, startTimeStorage and endTimeStorage here are NOT local times.
         // They are in GMT.
