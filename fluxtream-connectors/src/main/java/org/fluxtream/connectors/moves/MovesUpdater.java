@@ -64,7 +64,7 @@ public class MovesUpdater extends AbstractUpdater {
     @Autowired
     BodyTrackHelper bodyTrackHelper;
 
-    final static String host = "https://api.moves-app.com/api/v1";
+    final static String host = "https://api.moves-app.com/api/1.1";
     final static String updateDateKeyName = "lastDate";
 
     // Fixup the place data for a full week into the past
