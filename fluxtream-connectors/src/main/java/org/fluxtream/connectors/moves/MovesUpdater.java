@@ -7,6 +7,15 @@ import java.util.List;
 import java.util.Random;
 import java.util.TimeZone;
 import java.util.UUID;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.BasicResponseHandler;
 import org.fluxtream.aspects.FlxLogger;
 import org.fluxtream.connectors.Connector;
 import org.fluxtream.connectors.annotations.Updater;
@@ -15,7 +24,6 @@ import org.fluxtream.connectors.updaters.AbstractUpdater;
 import org.fluxtream.connectors.updaters.RateLimitReachedException;
 import org.fluxtream.connectors.updaters.UpdateFailedException;
 import org.fluxtream.connectors.updaters.UpdateInfo;
-import org.fluxtream.domain.AbstractFacet;
 import org.fluxtream.domain.AbstractLocalTimeFacet;
 import org.fluxtream.domain.ApiKey;
 import org.fluxtream.domain.ChannelMapping;
@@ -33,15 +41,6 @@ import org.fluxtream.utils.JPAUtils;
 import org.fluxtream.utils.TimeUtils;
 import org.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import org.fluxtream.utils.Utils;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.BasicResponseHandler;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.format.DateTimeFormat;
@@ -1157,39 +1156,6 @@ public class MovesUpdater extends AbstractUpdater {
         return segments;
     }
 
-    private List<AbstractFacet> extractFacets(UpdateInfo updateInfo, String json) throws Exception {
-        List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
-        JSONArray jsonArray = JSONArray.fromObject(json);
-        for (int i=0; i<jsonArray.size(); i++) {
-            JSONObject dayFacetData = jsonArray.getJSONObject(i);
-            String date = dayFacetData.getString("date");
-            String dateStorage = toStorageFormat(date);
-            JSONArray segments = dayFacetData.getJSONArray("segments");
-            for (int j=0; j<segments.size(); j++) {
-                JSONObject segment = segments.getJSONObject(j);
-                if (segment.getString("type").equals("move")) {
-                    facets.add(createOrUpdateMovesMoveFacet(dateStorage, segment, updateInfo));
-                    // Old version:
-//                    facets.add(extractMove(dateStorage, segment, updateInfo));
-                } else if (segment.getString("type").equals("place")) {
-                    facets.add(createOrUpdateMovesPlaceFacet(dateStorage, segment, updateInfo));
-                    // Old version:
-//                    facets.add(extractPlace(dateStorage, segment, updateInfo));
-                }
-            }
-        }
-        return facets;
-    }
-
-    private MovesPlaceFacet extractPlace(final String date, final JSONObject segment, UpdateInfo updateInfo) {
-        MovesPlaceFacet facet = new MovesPlaceFacet(updateInfo.apiKey.getId());
-        facet.guestId=updateInfo.getGuestId();
-        facet.date=date;
-        extractMoveData(date, segment, facet, updateInfo);
-        extractPlaceData(segment, facet);
-        return facet;
-    }
-
     private void extractPlaceData(final JSONObject segment, final MovesPlaceFacet facet) {
         JSONObject placeData = segment.getJSONObject("place");
         if (placeData.has("id"))
@@ -1205,14 +1171,6 @@ public class MovesUpdater extends AbstractUpdater {
         JSONObject locationData = placeData.getJSONObject("location");
         facet.latitude = (float) locationData.getDouble("lat");
         facet.longitude = (float) locationData.getDouble("lon");
-    }
-
-    private MovesMoveFacet extractMove(final String date, final JSONObject segment, final UpdateInfo updateInfo) {
-        MovesMoveFacet facet = new MovesMoveFacet(updateInfo.apiKey.getId());
-        facet.guestId=updateInfo.getGuestId();
-        facet.date=date;
-        extractMoveData(date, segment, facet, updateInfo);
-        return facet;
     }
 
     private void extractMoveData(final String date, final JSONObject segment, final MovesFacet facet, UpdateInfo updateInfo) {
