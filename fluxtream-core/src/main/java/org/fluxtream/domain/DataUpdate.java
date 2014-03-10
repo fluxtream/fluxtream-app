@@ -5,25 +5,31 @@ import javax.persistence.Entity;
 @Entity(name="DataUpdate")
 public class DataUpdate extends AbstractEntity {
     public enum UpdateType{
-        bodytrack,
+        bodytrackData,
+        bodytrackStyle,
         apiData,
         notification,
-        intercom
+        intercom,
+        delete
     }
 
-    UpdateType type;
+    public DataUpdate(){}
 
-    long guestId;
+    public UpdateType type;
 
-    long apiKeyId;
-    long objectTypeId;
+    public long guestId;
 
-    String additionalInfo;
+    public long apiKeyId;//always at least needs to be associated with fluxtream capture so this can't be null
+    public Long objectTypeId;
 
-    long timestamp;
+    public String channelNames;//format: device.[channelNames]
 
-    long startTime;
-    long endTime;
+    public String additionalInfo;
+
+    public long timestamp;
+
+    public Long startTime;
+    public Long endTime;
 
 
 }

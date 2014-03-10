@@ -19,6 +19,7 @@ import org.fluxtream.domain.AbstractFacet;
 import org.fluxtream.domain.ApiKey;
 import org.fluxtream.services.ApiDataService;
 import org.fluxtream.services.BodyTrackStorageService;
+import org.fluxtream.services.DataUpdateService;
 import org.fluxtream.services.GuestService;
 import org.fluxtream.services.MetadataService;
 import org.apache.commons.lang.StringUtils;
@@ -37,6 +38,9 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 
 	@Autowired
 	Configuration env;
+
+    @Autowired
+    private DataUpdateService dataUpdateSerivce;
 
 	@Autowired
 	GuestService guestService;
@@ -62,19 +66,28 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 	public void storeApiData(long guestId, List<AbstractFacet> facets) {
         logStoreApiData(guestId, facets);
 
-		//Connector bodytrackConnector = Connector.getConnector("bodytrack");
-		//ApiKey bodytrackApiKey = guestService.getApiKey(guestId,
-		//		bodytrackConnector);
-		//if (bodytrackApiKey == null)
-		//	return;
-
-        List<BodyTrackHelper.BodyTrackUploadResult> results = new ArrayList<BodyTrackHelper.BodyTrackUploadResult>();
-
 		Map<String, List<AbstractFacet>> facetsByFacetName = sortFacetsByFacetName(facets);
         for (final String facetName : facetsByFacetName.keySet()) {
-            results.addAll(storeDeviceData(guestId, facetsByFacetName, facetName));
+            List<BodyTrackHelper.BodyTrackUploadResult> results = storeDeviceData(guestId, facetsByFacetName, facetName);
+            if (!results.isEmpty()){
+                AbstractFacet facet = facetsByFacetName.get(facetName).get(0);
+                long apiKeyId = facet.apiKeyId;
+                long objectTypeId = facet.objectType;
+                for (BodyTrackHelper.BodyTrackUploadResult result : results){
+                    if (!(result instanceof BodyTrackHelper.ParsedBodyTrackUploadResult))
+                        continue;
+                    BodyTrackHelper.ParsedBodyTrackUploadResult parsedResult = (BodyTrackHelper.ParsedBodyTrackUploadResult) result;
+                    if (parsedResult.getParsedResponse().channel_specs == null)
+                        continue;
+                    String deviceName = parsedResult.getDeviceName();
+                    String[] channels = parsedResult.getParsedResponse().channel_specs.keySet().toArray(new String[]{});
+                    long startTime = (long) (parsedResult.getParsedResponse().min_time * 1000);
+                    long endTime = (long) (parsedResult.getParsedResponse().max_time * 1000);
+                    dataUpdateSerivce.logBodyTrackDataUpdate(guestId,apiKeyId,objectTypeId,deviceName,channels,startTime,endTime);
+
+                }
+            }
         }
-        System.out.println(results);
 
 	}
 
