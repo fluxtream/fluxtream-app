@@ -1,9 +1,11 @@
 package org.fluxtream.services.impl;
 
+import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import org.fluxtream.domain.DataUpdate;
 import org.fluxtream.services.DataUpdateService;
+import org.fluxtream.utils.JPAUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +21,7 @@ public class DataUpdateServiceImpl implements DataUpdateService {
     @Transactional(readOnly = false)
     public void logBodyTrackDataUpdate(final long guestId, final long apiKeyId, final Long objectTypeId, final String deviceName, final String[] channelNames, final long startTime, final long endTime) {
         DataUpdate update = new DataUpdate();
+        update.guestId = guestId;
         update.type = DataUpdate.UpdateType.bodytrackData;
         update.apiKeyId = apiKeyId;
         update.objectTypeId = objectTypeId;
@@ -36,5 +39,10 @@ public class DataUpdateServiceImpl implements DataUpdateService {
         update.timestamp = System.currentTimeMillis();
         em.persist(update);
 
+    }
+
+    @Override
+    public List<DataUpdate> getAllUpdatesSince(final long guestId, final long sinceTime) {
+        return JPAUtils.find(em,DataUpdate.class,"dataUpdate.since",guestId,sinceTime);
     }
 }
