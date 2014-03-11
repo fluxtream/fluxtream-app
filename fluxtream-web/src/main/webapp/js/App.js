@@ -129,6 +129,7 @@ define(
             loadApps();
 
             bindGlobalEventHandlers();
+            checkForDataUpdates();
         }
 
         function bindGlobalEventHandlers(){
@@ -1006,6 +1007,44 @@ define(
             App.loadMustacheTemplate("settingsTemplates.html","privacyPolicyDialog",function(template){
                 var html = template.render({release : window.FLX_RELEASE_NUMBER});
                 App.makeModal(html);
+            });
+        }
+
+        var dataUpdateListeners = {};
+
+        App.addDataUpdatesListener = function(name,listener){
+            dataUpdateListeners[name] = listener;
+        }
+
+        App.removeDataUpdatesListener = function(name){
+            delete dataUpdateListeners[name];
+        }
+
+
+        var lastCheckTimestamp = new Date().getTime();
+
+        function checkForDataUpdates(){
+            function afterDone(){
+                setTimeout(checkForDataUpdates,30*1000);
+
+            }
+            $.ajax("/api/dataUpdates/all",{
+                type: "GET",
+                dataType: "json",
+                data: {since: lastCheckTimestamp},
+                success: function(data){
+                    lastCheckTimestamp = data.generationTimestamp;
+                    for (var member in dataUpdateListeners){
+                        dataUpdateListeners[member](data);
+                    }
+                    afterDone();
+                },
+                error: function(){
+                    afterDone();
+
+                }
+
+
             });
         }
 

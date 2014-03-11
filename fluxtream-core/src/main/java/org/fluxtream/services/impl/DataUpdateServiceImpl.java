@@ -1,5 +1,6 @@
 package org.fluxtream.services.impl;
 
+import java.util.Arrays;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -19,7 +20,7 @@ public class DataUpdateServiceImpl implements DataUpdateService {
 
     @Override
     @Transactional(readOnly = false)
-    public void logBodyTrackDataUpdate(final long guestId, final long apiKeyId, final Long objectTypeId, final String deviceName, final String[] channelNames, final long startTime, final long endTime) {
+    public void logBodyTrackDataUpdate(final long guestId, final long apiKeyId, final Long objectTypeId, final String deviceName, String[] channelNames, final long startTime, final long endTime) {
         DataUpdate update = new DataUpdate();
         update.guestId = guestId;
         update.type = DataUpdate.UpdateType.bodytrackData;
@@ -27,6 +28,8 @@ public class DataUpdateServiceImpl implements DataUpdateService {
         update.objectTypeId = objectTypeId;
         update.additionalInfo = null;
         StringBuilder channelNamesBuilder = new StringBuilder(deviceName).append(".[");
+        channelNames = channelNames.clone();
+        Arrays.sort(channelNames);//sort so that channel names strings are the same for the same set of channels
         for (int i = 0; i < channelNames.length; i++){
             if (i != 0){
                 channelNamesBuilder.append(",");

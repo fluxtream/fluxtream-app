@@ -31,6 +31,9 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             parentElement.append(template.render(grapher));
             setup(grapher);
         });
+        App.addDataUpdatesListener("grapherListener-" + this.grapherId, function(data){
+            grapher.onDataUpdate(data);
+        });
     };
 
     var APP 		= BTCore.APP;
@@ -2405,6 +2408,19 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
     Grapher.prototype.updateViews = function(){
         updateSaveViewDropdown(this);
         updateLoadViewDropdown(this);
+    }
+
+    Grapher.prototype.onDataUpdate = function(data){
+        if (data.bodytrackData != null){
+            for (var member in this.channelsMap){
+                var deviceName = this.channelsMap[member].device_name;
+                var channelName = this.channelsMap[member].channel_name;
+                if (data.bodytrackData[deviceName] != null && data.bodytrackData[deviceName][channelName] != null){
+                    var range = data.bodytrackData[deviceName][channelName];
+                    this.plotsMap[member].invalidateTiles(range.start / 1000, range.end / 1000);
+                }
+            }
+        }
     }
 
     return Grapher;
