@@ -10,6 +10,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.fluxtream.auth.AuthHelper;
 import org.fluxtream.domain.DataUpdate;
+import org.fluxtream.mvc.models.DataUpdateDigestModel;
+import org.fluxtream.mvc.models.StatusModel;
 import org.fluxtream.services.DataUpdateService;
 import org.fluxtream.services.GuestService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +35,12 @@ public class DataUpdateStore {
     @Path("/all")
     @Produces({MediaType.APPLICATION_JSON})
     public String getDataUpdates(@QueryParam("since") long since){
-        List<DataUpdate> updates = dataUpdateService.getAllUpdatesSince(AuthHelper.getGuestId(),since);
-        return gson.toJson(updates);
+        try{
+            List<DataUpdate> updates = dataUpdateService.getAllUpdatesSince(AuthHelper.getGuestId(),since);
+            return gson.toJson(new DataUpdateDigestModel(updates));
+        }
+        catch (Exception e){
+            return gson.toJson(new StatusModel(false,"Failed to fetch updates"));
+        }
     }
 }
