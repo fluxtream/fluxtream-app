@@ -1,7 +1,7 @@
 package org.fluxtream.connectors.moves;
 
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Test;
 
 /**
@@ -12,10 +12,13 @@ import org.junit.Test;
 public class MovesUpdaterTest {
 
     @Test
-    public void testDateTimeFormat(){
-        DateTimeFormatter timeStorageFormat = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
-        String d = "20121212T160744+0200";
-        System.out.println(timeStorageFormat.parseDateTime(d));
+    public void testSublistOf(){
+        MovesUpdater movesUpdater = new MovesUpdater();
+        List<String> dates = new ArrayList<String>();
+        String[] ds = new String[] {"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15"};
+        for (String d : ds)
+            dates.add(d);
+        System.out.println(movesUpdater.subListsOf(dates, 7));
     }
 
 }

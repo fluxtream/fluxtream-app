@@ -13,6 +13,7 @@ public class MovesActivity {
 
     String activityURI;
     public String activity;
+    public String activityGroup;
     public String date;
 
     // Note that unlike everywhere else in the sysetm, startTimeStorage and endTimeStorage here are NOT local times.
@@ -21,6 +22,8 @@ public class MovesActivity {
 
     public long start, end;
     public int distance;
+
+    public Boolean manual;
     public Integer steps;
 
     public String getActivityURI() {
