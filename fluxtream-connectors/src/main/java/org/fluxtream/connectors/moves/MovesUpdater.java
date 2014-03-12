@@ -69,7 +69,6 @@ public class MovesUpdater extends AbstractUpdater {
     final static String updateDateKeyName = "lastDate";
 
     public static DateTimeFormatter compactDateFormat = DateTimeFormat.forPattern("yyyyMMdd");
-    public final DateTimeFormatter timeStorageFormat = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmss'Z'");
     public final DateTimeFormatter localTimeStorageFormat = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
     public static final DateTimeFormatter httpResponseDateFormat = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss ZZZ");
 
@@ -120,85 +119,84 @@ public class MovesUpdater extends AbstractUpdater {
     }
 
     public String getUserRegistrationDate(UpdateInfo updateInfo) throws Exception, UpdateFailedException {
-        //// Check first if we already have a user registration date stored in apiKeyAttributes as userRegistrationDate.
-        //// userRegistrationDate is stored in storage format (yyyy-mm-dd)
-        //String userRegistrationKeyName = "userRegistrationDate";
-        //String userRegistrationDate = guestService.getApiKeyAttribute(updateInfo.apiKey,userRegistrationKeyName);
-        //
-        //// The first time we do this there won't be a stored userRegistrationDate yet.  In that case get the
-        //// registration date from a Moves API call
-        //if(userRegistrationDate == null) {
-        //    long currentTime = System.currentTimeMillis();
-        //    String accessToken = controller.getAccessToken(updateInfo.apiKey);
-        //    String query = host + "/user/profile?access_token=" + accessToken;
-        //    try {
-        //        final String fetched = fetchMovesAPI(updateInfo, query);
-        //        countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query);
-        //        JSONObject json = JSONObject.fromObject(fetched);
-        //        if (!json.has("profile"))
-        //            throw new Exception("no profile");
-        //        final JSONObject profile = json.getJSONObject("profile");
-        //        if (!profile.has("firstDate"))
-        //            throw new Exception("no firstDate in profile");
-        //        String compactRegistrationDate = profile.getString("firstDate");
-        //
-        //        if(compactRegistrationDate!=null) {
-        //            // The format of firstDate returned by the Moves API is compact (yyyymmdd).  Convert to
-        //            // the storage format (yyyy-mm-dd) for consistency
-        //            userRegistrationDate = toStorageFormat(compactRegistrationDate);
-        //
-        //            // Cache registrationDate so we don't need to do an API call next time
-        //            guestService.setApiKeyAttribute(updateInfo.apiKey, userRegistrationKeyName, userRegistrationDate);
-        //        }
-        //    } catch (UnexpectedHttpResponseCodeException e) {
-        //        // Couldn't get user registration date
-        //        StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
-        //                .append(" message=\"exception while retrieving UserRegistrationDate\" connector=")
-        //                .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
-        //                .append(updateInfo.apiKey.getGuestId())
-        //                .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
-        //        logger.info(sb.toString());
-        //
-        //        countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e),
-        //                           e.getHttpResponseCode(), e.getHttpResponseMessage());
-        //
-        //        // The update failed.  We don't know if this is permanent or temporary.
-        //        // Throw the appropriate exception.
-        //        throw new UpdateFailedException(e);
-        //
-        //    } catch (RateLimitReachedException e) {
-        //        // Couldn't get user registration date, rate limit reached
-        //        StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
-        //                .append(" message=\"rate limit reached while retrieving UserRegistrationDate\" connector=")
-        //                .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
-        //                .append(updateInfo.apiKey.getGuestId())
-        //                .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
-        //        logger.info(sb.toString());
-        //
-        //        countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e),
-        //                           429, "Rate limit reached");
-        //
-        //        // Rethrow the rate limit reached exception
-        //        throw e;
-        //
-        //    } catch (IOException e) {
-        //        // Couldn't get user registration date
-        //        StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
-        //                .append(" message=\"exception while retrieving UserRegistrationDate\" connector=")
-        //                .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
-        //                .append(updateInfo.apiKey.getGuestId())
-        //                .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
-        //        logger.info(sb.toString());
-        //
-        //        reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e), "I/O");
-        //
-        //        // The update failed.  We don't know if this is permanent or temporary.
-        //        // Throw the appropriate exception.
-        //        throw new UpdateFailedException(e);
-        //    }
-        //}
-        //return userRegistrationDate;
-        return "2014-02-14";
+        // Check first if we already have a user registration date stored in apiKeyAttributes as userRegistrationDate.
+        // userRegistrationDate is stored in storage format (yyyy-mm-dd)
+        String userRegistrationKeyName = "userRegistrationDate";
+        String userRegistrationDate = guestService.getApiKeyAttribute(updateInfo.apiKey,userRegistrationKeyName);
+
+        // The first time we do this there won't be a stored userRegistrationDate yet.  In that case get the
+        // registration date from a Moves API call
+        if(userRegistrationDate == null) {
+            long currentTime = System.currentTimeMillis();
+            String accessToken = controller.getAccessToken(updateInfo.apiKey);
+            String query = host + "/user/profile?access_token=" + accessToken;
+            try {
+                final String fetched = fetchMovesAPI(updateInfo, query);
+                countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query);
+                JSONObject json = JSONObject.fromObject(fetched);
+                if (!json.has("profile"))
+                    throw new Exception("no profile");
+                final JSONObject profile = json.getJSONObject("profile");
+                if (!profile.has("firstDate"))
+                    throw new Exception("no firstDate in profile");
+                String compactRegistrationDate = profile.getString("firstDate");
+
+                if(compactRegistrationDate!=null) {
+                    // The format of firstDate returned by the Moves API is compact (yyyymmdd).  Convert to
+                    // the storage format (yyyy-mm-dd) for consistency
+                    userRegistrationDate = toStorageFormat(compactRegistrationDate);
+
+                    // Cache registrationDate so we don't need to do an API call next time
+                    guestService.setApiKeyAttribute(updateInfo.apiKey, userRegistrationKeyName, userRegistrationDate);
+                }
+            } catch (UnexpectedHttpResponseCodeException e) {
+                // Couldn't get user registration date
+                StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
+                        .append(" message=\"exception while retrieving UserRegistrationDate\" connector=")
+                        .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+                        .append(updateInfo.apiKey.getGuestId())
+                        .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
+                logger.info(sb.toString());
+
+                countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e),
+                                   e.getHttpResponseCode(), e.getHttpResponseMessage());
+
+                // The update failed.  We don't know if this is permanent or temporary.
+                // Throw the appropriate exception.
+                throw new UpdateFailedException(e);
+
+            } catch (RateLimitReachedException e) {
+                // Couldn't get user registration date, rate limit reached
+                StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
+                        .append(" message=\"rate limit reached while retrieving UserRegistrationDate\" connector=")
+                        .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+                        .append(updateInfo.apiKey.getGuestId())
+                        .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
+                logger.info(sb.toString());
+
+                countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e),
+                                   429, "Rate limit reached");
+
+                // Rethrow the rate limit reached exception
+                throw e;
+
+            } catch (IOException e) {
+                // Couldn't get user registration date
+                StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
+                        .append(" message=\"exception while retrieving UserRegistrationDate\" connector=")
+                        .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+                        .append(updateInfo.apiKey.getGuestId())
+                        .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
+                logger.info(sb.toString());
+
+                reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e), "I/O");
+
+                // The update failed.  We don't know if this is permanent or temporary.
+                // Throw the appropriate exception.
+                throw new UpdateFailedException(e);
+            }
+        }
+        return userRegistrationDate;
     }
 
     public String getUpdateStartDate(UpdateInfo updateInfo) throws Exception
@@ -472,6 +470,7 @@ public class MovesUpdater extends AbstractUpdater {
 
                 for (String date : dayStorylines.keySet()) {
                     JSONObject dayStoryline = dayStorylines.get(date);
+                    date = toStorageFormat(date);
                     final JSONArray segments = dayStoryline.getJSONArray("segments");
                     if(segments!=null && segments.size()>0) {
                         createOrUpdateDataForDate(updateInfo, segments, date);
@@ -1213,10 +1212,18 @@ public class MovesUpdater extends AbstractUpdater {
 
         // if the place wasn't identified previously, store its fourquare info now
         if (!previousPlaceType.equals("foursquare")&&
-            place.type.equals("foursquare")){
+            placeData.getString("type").equals("foursquare")){
             //System.out.println(place.start + ": storing foursquare info");
             needsUpdating = true;
             place.foursquareId = placeData.getString("foursquareId");
+        }
+
+        // if the place had wrongly been identified previously and was manually
+        // set to be home/work, set its foursquare id to null
+        if (previousPlaceType.equals("foursquare")&&
+            !placeData.getString("type").equals("foursquare")){
+            needsUpdating = true;
+            place.foursquareId = null;
         }
         JSONObject locationData = placeData.getJSONObject("location");
         float lat = (float) locationData.getDouble("lat");
