@@ -56,6 +56,19 @@ public class DataUpdateServiceImpl implements DataUpdateService {
     }
 
     @Override
+    @Transactional(readOnly = false)
+    public void logBodyTrackDataUpdate(final long guestId, final long apiKeyId, final Long objectTypeId, final BodyTrackHelper.ParsedBodyTrackUploadResult parsedResult) {
+        if (!parsedResult.isSuccess() || parsedResult.getParsedResponse().channel_specs == null)
+            return;
+        String deviceName = parsedResult.getDeviceName();
+        String[] channels = parsedResult.getParsedResponse().channel_specs.keySet().toArray(new String[]{});
+        long startTime = (long) (parsedResult.getParsedResponse().min_time * 1000);
+        long endTime = (long) (parsedResult.getParsedResponse().max_time * 1000);
+        logBodyTrackDataUpdate(guestId,apiKeyId,objectTypeId,deviceName,channels,startTime,endTime);
+    }
+
+    @Override
+    @Transactional(readOnly = false)
     public void logBodyTrackStyleUpdate(final long guestId, final long apiKeyId, final Long objectTypeId, final String deviceName, final String[] channelNames) {
         createDataUpdate(DataUpdate.UpdateType.bodytrackStyle,guestId,apiKeyId,objectTypeId,deviceName,channelNames,null,null,null);
 

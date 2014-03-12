@@ -74,16 +74,10 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
                 long apiKeyId = facet.apiKeyId;
                 long objectTypeId = facet.objectType;
                 for (BodyTrackHelper.BodyTrackUploadResult result : results){
-                    if (!(result instanceof BodyTrackHelper.ParsedBodyTrackUploadResult) || !result.isSuccess())
+                    if (!(result instanceof BodyTrackHelper.ParsedBodyTrackUploadResult))
                         continue;
                     BodyTrackHelper.ParsedBodyTrackUploadResult parsedResult = (BodyTrackHelper.ParsedBodyTrackUploadResult) result;
-                    if (parsedResult.getParsedResponse().channel_specs == null)
-                        continue;
-                    String deviceName = parsedResult.getDeviceName();
-                    String[] channels = parsedResult.getParsedResponse().channel_specs.keySet().toArray(new String[]{});
-                    long startTime = (long) (parsedResult.getParsedResponse().min_time * 1000);
-                    long endTime = (long) (parsedResult.getParsedResponse().max_time * 1000);
-                    dataUpdateSerivce.logBodyTrackDataUpdate(guestId,apiKeyId,objectTypeId,deviceName,channels,startTime,endTime);
+                    dataUpdateSerivce.logBodyTrackDataUpdate(guestId,apiKeyId,objectTypeId,parsedResult);
 
                 }
             }

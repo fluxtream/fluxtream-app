@@ -256,8 +256,16 @@ public class BodyTrackHelper {
              fos.write(json.getBytes());
              fos.close();
 
-             final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("import",new Object[]{guestId,deviceName,tempFile.getAbsolutePath()});
+             final ParsedBodyTrackUploadResult dataStoreExecutionResult = new ParsedBodyTrackUploadResult(executeDataStore("import", new Object[]{guestId, deviceName, tempFile.getAbsolutePath()}), deviceName, gson);
              tempFile.delete();
+             if (dataStoreExecutionResult.isSuccess()){//log to DataUpdate table //TODO: confirm this works
+                 List<ApiKey> keys = guestService.getApiKeys(guestId,Connector.getConnector("fluxtream_capture"));
+                 long apiKeyId = -1;
+                 if (keys.size() > 0){
+                     apiKeyId = keys.get(0).getId();
+                 }
+                 dataUpdateService.logBodyTrackDataUpdate(guestId,apiKeyId,null,dataStoreExecutionResult);
+             }
              return dataStoreExecutionResult;
          } catch (Exception e) {
              System.out.println("Could not persist to datastore");

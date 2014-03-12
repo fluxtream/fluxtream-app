@@ -52,6 +52,7 @@ import org.fluxtream.mvc.models.TimespanModel;
 import org.fluxtream.services.ApiDataService;
 import org.fluxtream.services.BodyTrackStorageService;
 import org.fluxtream.services.CoachingService;
+import org.fluxtream.services.DataUpdateService;
 import org.fluxtream.services.GuestService;
 import org.fluxtream.services.PhotoService;
 import org.fluxtream.services.impl.BodyTrackHelper;
@@ -90,6 +91,9 @@ public class BodyTrackController {
 
     @Autowired
 	GuestService guestService;
+
+    @Autowired
+    DataUpdateService dataUpdateService;
 
 	@Autowired
 	BodyTrackStorageService bodytrackStorageService;
@@ -223,7 +227,7 @@ public class BodyTrackController {
                                     @FormParam("data") String data){
         StatusModel status;
         try{
-            long uid = AuthHelper.getGuestId();
+            long guestId = AuthHelper.getGuestId();
             Type channelsType =  new TypeToken<Collection<String>>(){}.getType();
 
             List<List<Object>> parsedData = new ArrayList<List<Object>>();
@@ -249,7 +253,16 @@ public class BodyTrackController {
                 }
             }
 
-            final BodyTrackHelper.BodyTrackUploadResult uploadResult = bodyTrackHelper.uploadToBodyTrack(uid, deviceNickname, (Collection<String>)gson.fromJson(channels, channelsType), parsedData);
+            final BodyTrackHelper.BodyTrackUploadResult uploadResult = bodyTrackHelper.uploadToBodyTrack(guestId, deviceNickname, (Collection<String>)gson.fromJson(channels, channelsType), parsedData);
+            if (uploadResult instanceof BodyTrackHelper.ParsedBodyTrackUploadResult){
+                BodyTrackHelper.ParsedBodyTrackUploadResult parsedResult = (BodyTrackHelper.ParsedBodyTrackUploadResult) uploadResult;
+                List<ApiKey> keys = guestService.getApiKeys(guestId,Connector.getConnector("fluxtream_capture"));
+                long apiKeyId = -1;
+                if (keys.size() > 0){
+                    apiKeyId = keys.get(0).getId();
+                }
+                dataUpdateService.logBodyTrackDataUpdate(guestId,apiKeyId,null,parsedResult);
+            }
             status = createStatusModelFromBodyTrackUploadResult(uploadResult);
         }
         catch (Exception e){
