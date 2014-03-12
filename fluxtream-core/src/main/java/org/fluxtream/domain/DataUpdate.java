@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import org.hibernate.annotations.Index;
 
 @Entity(name="DataUpdate")
 @NamedQueries({
@@ -38,6 +39,7 @@ public class DataUpdate extends AbstractEntity {
 
     public UpdateType type;
 
+    @Index(name="GuestIdAndTimestamp")
     public long guestId;
 
     public long apiKeyId;//always at least needs to be associated with fluxtream capture so this can't be null
@@ -50,6 +52,7 @@ public class DataUpdate extends AbstractEntity {
     @Nullable
     public String additionalInfo;
 
+    @Index(name="GuestIdAndTimestamp")
     public long timestamp;
 
     @Nullable
