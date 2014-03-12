@@ -22,6 +22,7 @@ import javax.persistence.Query;
 import org.fluxtream.Configuration;
 import org.fluxtream.TimeInterval;
 import org.fluxtream.aspects.FlxLogger;
+import org.fluxtream.connectors.Connector;
 import org.fluxtream.connectors.bodytrackResponders.AbstractBodytrackResponder;
 import org.fluxtream.domain.ApiKey;
 import org.fluxtream.domain.ChannelMapping;
@@ -29,6 +30,7 @@ import org.fluxtream.domain.CoachingBuddy;
 import org.fluxtream.domain.GrapherView;
 import org.fluxtream.domain.Tag;
 import org.fluxtream.services.ApiDataService;
+import org.fluxtream.services.DataUpdateService;
 import org.fluxtream.services.GuestService;
 import org.fluxtream.services.PhotoService;
 import org.fluxtream.utils.JPAUtils;
@@ -76,6 +78,9 @@ public class BodyTrackHelper {
 
     static final boolean verboseOutput = false;
     static final boolean showOutput = false;
+
+    @Autowired
+    DataUpdateService dataUpdateService;
 
     @Autowired
     Configuration env;
@@ -542,6 +547,15 @@ public class BodyTrackHelper {
                 savedStyle.json = style;
                 em.merge(savedStyle);
             }
+
+            List<ApiKey> keys = guestService.getApiKeys(guestId,Connector.getConnector("fluxtream_capture"));
+            long apiKeyId = -1;
+            if (keys.size() > 0){
+                apiKeyId = keys.get(0).getId();
+            }
+            dataUpdateService.logBodyTrackStyleUpdate(guestId,apiKeyId,null,deviceName,new String[]{channelName});
+
+
         }
         catch (Exception e){
 

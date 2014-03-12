@@ -1,5 +1,6 @@
 package org.fluxtream.domain;
 
+import javax.annotation.Nullable;
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -40,15 +41,20 @@ public class DataUpdate extends AbstractEntity {
     public long guestId;
 
     public long apiKeyId;//always at least needs to be associated with fluxtream capture so this can't be null
+    @Nullable
     public Long objectTypeId;
 
+    @Nullable
     public String channelNames;//format: device.[channelNames]
 
+    @Nullable
     public String additionalInfo;
 
     public long timestamp;
 
+    @Nullable
     public Long startTime;
+    @Nullable
     public Long endTime;
 
 
