@@ -1,6 +1,7 @@
 package org.fluxtream.connectors.moves;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -451,7 +452,7 @@ public class MovesUpdater extends AbstractUpdater {
      */
     private void backwardFixupDataNoTrackPoints(final String fullUpdateStartDate, final UpdateInfo updateInfo) throws UpdateFailedException, RateLimitReachedException {
         DateTime toDate = TimeUtils.dateFormatterUTC.parseDateTime(fullUpdateStartDate);
-        final DateTime fromDate = toDate.minusDays(31);
+        final DateTime fromDate = toDate.minusDays(30);
         try {
             // use lastSyncTime to reduce the data returned by this call to contain only stuff that has actually
             // been updated since last time we checked
@@ -459,7 +460,7 @@ public class MovesUpdater extends AbstractUpdater {
             final long millis = ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().parseDateTime(lastSyncTimeAtt).getMillis();
             final String updatedSinceDate = localTimeStorageFormat.withZoneUTC().print(millis);
             String fetched = fetchStorylineForDates(updateInfo, TimeUtils.dateFormatterUTC.print(fromDate),
-                                                    fullUpdateStartDate, true, updatedSinceDate);
+                                                    fullUpdateStartDate, false, updatedSinceDate);
             if(fetched!=null) {
                 // put the results in ascending order
                 JSONArray storyline = JSONArray.fromObject(fetched);
@@ -520,7 +521,7 @@ public class MovesUpdater extends AbstractUpdater {
             fetchUrl = String.format(host + "/user/storyline/daily?from=%s&to=%s&trackPoints=%s",
                                             compactFromDate, compactToDate, withTrackpoints);
             if (updatedSinceDate!=null)
-                fetchUrl += "&updatedSince=" + updatedSinceDate;
+                fetchUrl += "&updatedSince=" + URLEncoder.encode(updatedSinceDate, "utf-8");
             fetchUrl += "&access_token=" + accessToken;
             fetched = fetchMovesAPI(updateInfo, fetchUrl);
             countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, fetchUrl);
