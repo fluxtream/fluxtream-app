@@ -74,7 +74,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
                 long apiKeyId = facet.apiKeyId;
                 long objectTypeId = facet.objectType;
                 for (BodyTrackHelper.BodyTrackUploadResult result : results){
-                    if (!(result instanceof BodyTrackHelper.ParsedBodyTrackUploadResult))
+                    if (!(result instanceof BodyTrackHelper.ParsedBodyTrackUploadResult) || !result.isSuccess())
                         continue;
                     BodyTrackHelper.ParsedBodyTrackUploadResult parsedResult = (BodyTrackHelper.ParsedBodyTrackUploadResult) result;
                     if (parsedResult.getParsedResponse().channel_specs == null)
