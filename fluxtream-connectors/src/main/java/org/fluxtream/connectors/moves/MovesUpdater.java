@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
-import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.UUID;
 import net.sf.json.JSONArray;
@@ -120,84 +119,85 @@ public class MovesUpdater extends AbstractUpdater {
     }
 
     public String getUserRegistrationDate(UpdateInfo updateInfo) throws Exception, UpdateFailedException {
-        // Check first if we already have a user registration date stored in apiKeyAttributes as userRegistrationDate.
-        // userRegistrationDate is stored in storage format (yyyy-mm-dd)
-        String userRegistrationKeyName = "userRegistrationDate";
-        String userRegistrationDate = guestService.getApiKeyAttribute(updateInfo.apiKey,userRegistrationKeyName);
-
-        // The first time we do this there won't be a stored userRegistrationDate yet.  In that case get the
-        // registration date from a Moves API call
-        if(userRegistrationDate == null) {
-            long currentTime = System.currentTimeMillis();
-            String accessToken = controller.getAccessToken(updateInfo.apiKey);
-            String query = host + "/user/profile?access_token=" + accessToken;
-            try {
-                final String fetched = fetchMovesAPI(updateInfo, query);
-                countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query);
-                JSONObject json = JSONObject.fromObject(fetched);
-                if (!json.has("profile"))
-                    throw new Exception("no profile");
-                final JSONObject profile = json.getJSONObject("profile");
-                if (!profile.has("firstDate"))
-                    throw new Exception("no firstDate in profile");
-                String compactRegistrationDate = profile.getString("firstDate");
-
-                if(compactRegistrationDate!=null) {
-                    // The format of firstDate returned by the Moves API is compact (yyyymmdd).  Convert to
-                    // the storage format (yyyy-mm-dd) for consistency
-                    userRegistrationDate = toStorageFormat(compactRegistrationDate);
-
-                    // Cache registrationDate so we don't need to do an API call next time
-                    guestService.setApiKeyAttribute(updateInfo.apiKey, userRegistrationKeyName, userRegistrationDate);
-                }
-            } catch (UnexpectedHttpResponseCodeException e) {
-                // Couldn't get user registration date
-                StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
-                        .append(" message=\"exception while retrieving UserRegistrationDate\" connector=")
-                        .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
-                        .append(updateInfo.apiKey.getGuestId())
-                        .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
-                logger.info(sb.toString());
-
-                countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e),
-                                   e.getHttpResponseCode(), e.getHttpResponseMessage());
-
-                // The update failed.  We don't know if this is permanent or temporary.
-                // Throw the appropriate exception.
-                throw new UpdateFailedException(e);
-
-            } catch (RateLimitReachedException e) {
-                // Couldn't get user registration date, rate limit reached
-                StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
-                        .append(" message=\"rate limit reached while retrieving UserRegistrationDate\" connector=")
-                        .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
-                        .append(updateInfo.apiKey.getGuestId())
-                        .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
-                logger.info(sb.toString());
-
-                countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e),
-                                   429, "Rate limit reached");
-
-                // Rethrow the rate limit reached exception
-                throw e;
-
-            } catch (IOException e) {
-                // Couldn't get user registration date
-                StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
-                        .append(" message=\"exception while retrieving UserRegistrationDate\" connector=")
-                        .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
-                        .append(updateInfo.apiKey.getGuestId())
-                        .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
-                logger.info(sb.toString());
-
-                reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e), "I/O");
-
-                // The update failed.  We don't know if this is permanent or temporary.
-                // Throw the appropriate exception.
-                throw new UpdateFailedException(e);
-            }
-        }
-        return userRegistrationDate;
+        //// Check first if we already have a user registration date stored in apiKeyAttributes as userRegistrationDate.
+        //// userRegistrationDate is stored in storage format (yyyy-mm-dd)
+        //String userRegistrationKeyName = "userRegistrationDate";
+        //String userRegistrationDate = guestService.getApiKeyAttribute(updateInfo.apiKey,userRegistrationKeyName);
+        //
+        //// The first time we do this there won't be a stored userRegistrationDate yet.  In that case get the
+        //// registration date from a Moves API call
+        //if(userRegistrationDate == null) {
+        //    long currentTime = System.currentTimeMillis();
+        //    String accessToken = controller.getAccessToken(updateInfo.apiKey);
+        //    String query = host + "/user/profile?access_token=" + accessToken;
+        //    try {
+        //        final String fetched = fetchMovesAPI(updateInfo, query);
+        //        countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query);
+        //        JSONObject json = JSONObject.fromObject(fetched);
+        //        if (!json.has("profile"))
+        //            throw new Exception("no profile");
+        //        final JSONObject profile = json.getJSONObject("profile");
+        //        if (!profile.has("firstDate"))
+        //            throw new Exception("no firstDate in profile");
+        //        String compactRegistrationDate = profile.getString("firstDate");
+        //
+        //        if(compactRegistrationDate!=null) {
+        //            // The format of firstDate returned by the Moves API is compact (yyyymmdd).  Convert to
+        //            // the storage format (yyyy-mm-dd) for consistency
+        //            userRegistrationDate = toStorageFormat(compactRegistrationDate);
+        //
+        //            // Cache registrationDate so we don't need to do an API call next time
+        //            guestService.setApiKeyAttribute(updateInfo.apiKey, userRegistrationKeyName, userRegistrationDate);
+        //        }
+        //    } catch (UnexpectedHttpResponseCodeException e) {
+        //        // Couldn't get user registration date
+        //        StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
+        //                .append(" message=\"exception while retrieving UserRegistrationDate\" connector=")
+        //                .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+        //                .append(updateInfo.apiKey.getGuestId())
+        //                .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
+        //        logger.info(sb.toString());
+        //
+        //        countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e),
+        //                           e.getHttpResponseCode(), e.getHttpResponseMessage());
+        //
+        //        // The update failed.  We don't know if this is permanent or temporary.
+        //        // Throw the appropriate exception.
+        //        throw new UpdateFailedException(e);
+        //
+        //    } catch (RateLimitReachedException e) {
+        //        // Couldn't get user registration date, rate limit reached
+        //        StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
+        //                .append(" message=\"rate limit reached while retrieving UserRegistrationDate\" connector=")
+        //                .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+        //                .append(updateInfo.apiKey.getGuestId())
+        //                .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
+        //        logger.info(sb.toString());
+        //
+        //        countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e),
+        //                           429, "Rate limit reached");
+        //
+        //        // Rethrow the rate limit reached exception
+        //        throw e;
+        //
+        //    } catch (IOException e) {
+        //        // Couldn't get user registration date
+        //        StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
+        //                .append(" message=\"exception while retrieving UserRegistrationDate\" connector=")
+        //                .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+        //                .append(updateInfo.apiKey.getGuestId())
+        //                .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
+        //        logger.info(sb.toString());
+        //
+        //        reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e), "I/O");
+        //
+        //        // The update failed.  We don't know if this is permanent or temporary.
+        //        // Throw the appropriate exception.
+        //        throw new UpdateFailedException(e);
+        //    }
+        //}
+        //return userRegistrationDate;
+        return "2014-02-14";
     }
 
     public String getUpdateStartDate(UpdateInfo updateInfo) throws Exception
@@ -354,12 +354,14 @@ public class MovesUpdater extends AbstractUpdater {
                     for (String date : dayStorylines.keySet()) {
                         JSONObject dayStoryline = dayStorylines.get(date);
                         final JSONArray segments = dayStoryline.getJSONArray("segments");
+                        date = toStorageFormat(date);
                         if(segments!=null && segments.size()>0) {
                             boolean dateHasData=createOrUpdateDataForDate(updateInfo, segments, date);
 
-                            // Update maxDateWithData only if there was data for this date
+                            // Save maxDateWithData only if there was data for this date
                             if(dateHasData && (maxDateWithData==null || maxDateWithData.compareTo(date)<0)) {
                                 maxDateWithData = date;
+                                saveMaxDateWithData(updateInfo, maxDateWithData);
                             }
                         }
                     }
@@ -395,18 +397,21 @@ public class MovesUpdater extends AbstractUpdater {
             throw new UpdateFailedException(e);
         }
 
-        // In the case that maxDateWithData is set to non-null and we're moving forward in time and we completed successfully,
-        // record the maxDateWithData date to start with next time.  This has the unfortunate effect that we may end up
-        // reading in the dates since the user last had access to wireless or since they gave up on Moves many
-        // times.  The alternative would be to potentially fail to update a range of dates that don't have complete
-        // data on the Moves server.  This may set updateDateKeyName to an earlier date than the place above where updateDateKeyName
-        // is set.  This looks a bit strange, but it's the best I could come up with to both handle the
-        // case where the Moves server doesn't have data for the most recent of days and where the
-        // user registration date is set to way before the earliest real data.  In the former case, the above
-        // set of updateDateKeyName will now be overridden with an earlier date.  In the latter case, the
-        // above set or updateDateKeyName will stand as-is and continue moving forward on restarts until we have
-        // seen a date that really has some data.  To prevent excessive updating in the case where a user
-        // has given up on Moves and is really never going to update, limit the setback to a maximum of 7 days.
+    }
+
+    // In the case that maxDateWithData is set to non-null and we're moving forward in time and we completed successfully,
+    // record the maxDateWithData date to start with next time.  This has the unfortunate effect that we may end up
+    // reading in the dates since the user last had access to wireless or since they gave up on Moves many
+    // times.  The alternative would be to potentially fail to update a range of dates that don't have complete
+    // data on the Moves server.  This may set updateDateKeyName to an earlier date than the place above where updateDateKeyName
+    // is set.  This looks a bit strange, but it's the best I could come up with to both handle the
+    // case where the Moves server doesn't have data for the most recent of days and where the
+    // user registration date is set to way before the earliest real data.  In the former case, the above
+    // set of updateDateKeyName will now be overridden with an earlier date.  In the latter case, the
+    // above set or updateDateKeyName will stand as-is and continue moving forward on restarts until we have
+    // seen a date that really has some data.  To prevent excessive updating in the case where a user
+    // has given up on Moves and is really never going to update, limit the setback to a maximum of 7 days.
+    private void saveMaxDateWithData(final UpdateInfo updateInfo, final String maxDateWithData) {
         if(maxDateWithData!=null) {
             String dateToStore = maxDateWithData;
             DateTime maxDateTimeWithData = TimeUtils.dateFormatterUTC.parseDateTime(maxDateWithData);
@@ -442,7 +447,6 @@ public class MovesUpdater extends AbstractUpdater {
      * Retrieves data that was updated since <code>updatedSinceParam</code> for 31 days before <code>fullUpdateStartDate</code>
      * and uses that data to fixup the data that we already have in store
      * @param fullUpdateStartDate
-     * @param updatedSinceParam
      * @param updateInfo
      */
     private void backwardFixupDataNoTrackPoints(final String fullUpdateStartDate, final UpdateInfo updateInfo) throws UpdateFailedException, RateLimitReachedException {
@@ -513,7 +517,7 @@ public class MovesUpdater extends AbstractUpdater {
         String fetchUrl = "not set yet";
         try {
             String accessToken = controller.getAccessToken(updateInfo.apiKey);
-            fetchUrl = String.format(host + "/user/storyline/daily/from=%s&to=%s&trackPoints=%s",
+            fetchUrl = String.format(host + "/user/storyline/daily?from=%s&to=%s&trackPoints=%s",
                                             compactFromDate, compactToDate, withTrackpoints);
             if (updatedSinceDate!=null)
                 fetchUrl += "&updatedSince=" + updatedSinceDate;
@@ -869,7 +873,8 @@ public class MovesUpdater extends AbstractUpdater {
     private MovesMoveFacet createOrUpdateMovesMoveFacet(final String date,final JSONObject segment, final UpdateInfo updateInfo)
         throws UpdateFailedException {
         try {
-            final DateTime startTime = localTimeStorageFormat.parseDateTime(segment.getString("startTime"));
+            final String startTimeString = segment.getString("startTime");
+            final DateTime startTime = localTimeStorageFormat.parseDateTime(startTimeString);
             long start = startTime.getMillis();
 
             MovesMoveFacet ret =
@@ -1078,6 +1083,18 @@ public class MovesUpdater extends AbstractUpdater {
         if (!movesActivity.activity.equals(activity)) {
             needsUpdate = true;
             movesActivity.activity = activity;
+        }
+
+        final String activityGroup = activityData.getString("group");
+        if (!movesActivity.activityGroup.equals(activityGroup)) {
+            needsUpdate = true;
+            movesActivity.activityGroup = activityGroup;
+        }
+
+        final String manual = activityData.getString("manual");
+        if (!movesActivity.manual.equals(manual)) {
+            needsUpdate = true;
+            movesActivity.manual = new Boolean(manual);
         }
 
         if ((activityData.has("steps")&&movesActivity.steps==null)||
@@ -1299,6 +1316,9 @@ public class MovesUpdater extends AbstractUpdater {
             activity.end = endTime.getMillis();
         }
 
+        if (activityData.has("group"))
+            activity.activityGroup = activityData.getString("group");
+
         if (activityData.has("manual"))
             activity.manual = activityData.getBoolean("manual");
 
@@ -1330,7 +1350,7 @@ public class MovesUpdater extends AbstractUpdater {
             // timestamps from Moves are already in GMT, so don't mess with the timezone
             //if (timeZone==null)
             //    timeZone = metadataService.getTimeZone(locationFacet.latitude, locationFacet.longitude);
-            final DateTime time = timeStorageFormat.withZoneUTC().parseDateTime(trackPoint.getString("time"));
+            final DateTime time = localTimeStorageFormat.parseDateTime(trackPoint.getString("time"));
             locationFacet.timestampMs = time.getMillis();
             locationFacet.api = connector.value();
             locationFacet.start = locationFacet.timestampMs;

@@ -1,10 +1,9 @@
 package org.fluxtream.connectors.moves;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TimeZone;
 import java.text.DecimalFormat;
+import java.util.Date;
+import java.util.TimeZone;
+import org.codehaus.plexus.util.StringUtils;
 import org.fluxtream.OutsideTimeBoundariesException;
 import org.fluxtream.connectors.vos.AbstractTimedFacetVO;
 import org.fluxtream.connectors.vos.TimeOfDayVO;
@@ -17,14 +16,6 @@ import org.fluxtream.mvc.models.DurationModel;
  * Time: 17:33
  */
 public class MovesActivityVO {
-
-    private static Map<String,String> activityDict = new HashMap<String,String>();
-    static {
-        activityDict.put("wlk", "Walking");
-        activityDict.put("cyc", "Cycling");
-        activityDict.put("run", "Running");
-        activityDict.put("trp", "Transport");
-    }
 
     public final int startMinute;
     public final int endMinute;
@@ -40,8 +31,8 @@ public class MovesActivityVO {
     public MovesActivityVO(MovesActivity activity, TimeZone timeZone,
                            long dateStart, long dateEnd,
                            GuestSettings settings, boolean doDateBoundsCheck) throws OutsideTimeBoundariesException {
-        this.activity = activityDict.get(activity.activity);
-        this.activityCode = activity.activity;
+        this.activity = StringUtils.capitalise(activity.activity);
+        this.activityCode = activity.activityGroup;
         this.date = activity.date;
         this.start = activity.start;
         this.end = activity.end;

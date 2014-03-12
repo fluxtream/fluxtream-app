@@ -326,13 +326,13 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             return config.MOVES_PLACE_COLOR;
         else if (item.type==="moves-move-activity") {
             switch (item.activityCode) {
-                case "cyc":
+                case "cycling":
                     return config.MOVES_CYCLING_COLOR;
-                case "wlk":
+                case "walking":
                     return config.MOVES_WALKING_COLOR;
-                case "trp":
+                case "transport":
                     return config.MOVES_TRANSPORT_COLOR;
-                case "run":
+                case "running":
                     return config.MOVES_RUNNING_COLOR;
                 default:
                     return "#000000";
