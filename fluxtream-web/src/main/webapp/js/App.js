@@ -133,11 +133,27 @@ define(
         }
 
         function bindGlobalEventHandlers(){
-            $("body").on("keyup.gloablAppEventHandler",function(event){
+            $(document).on("keyup.gloablAppEventHandler",function(event){
+                nonIdleEventDetected();
                 if (event.keyCode == 27 && App.modals.length > 0){
                     event.preventDefault();
                     App.modals[0].modal("hide");//close the top most modal dialog
                 }
+            });
+            $(document).on("keydown.globalAppEventHandler",function(event){
+                nonIdleEventDetected();
+            });
+            $(document).on("mousemove.globalAppEventHandler",function(event){
+                nonIdleEventDetected();
+            });
+            $(document).on("scroll.globalAppEventHandler",function(event){
+                nonIdleEventDetected();
+            });
+            $(document).on("mouseup.globalAppEventHandler",function(event){
+                nonIdleEventDetected();
+            });
+            $(document).on("mousedown.globalAppEventHandler",function(event){
+                nonIdleEventDetected();
             })
 
         }
@@ -1021,9 +1037,37 @@ define(
         }
 
 
+        var lastNonIdleEvent = new Date().getTime();
+        var isIdle = false;
+
+        var maxIdleTime = 20000;
+
+
+        var nonIdleMutex = false;
+        var nonIdleMutexDuration = maxIdleTime / 30;
+
+        function nonIdleEventDetected(){
+            if (nonIdleMutex) return; //prevent from unnecessary spamming calls to Date().getTime()
+            nonIdleMutex = true;
+            lastNonIdleEvent = new Date().getTime();
+            if (isIdle){
+                isIdle = false;
+                checkForDataUpdates();
+            }
+            setTimeout(function(){
+                nonIdleMutex = false;
+            },nonIdleMutexDuration);
+        }
+
+
+
         var lastCheckTimestamp = new Date().getTime();
 
         function checkForDataUpdates(){
+            if (isIdle || new Date().getTime() - lastNonIdleEvent > maxIdleTime){
+                isIdle = true;
+                return;
+            }
             function afterDone(){
                 setTimeout(checkForDataUpdates,30*1000);
 
