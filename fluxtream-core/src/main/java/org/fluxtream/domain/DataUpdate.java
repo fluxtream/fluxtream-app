@@ -11,7 +11,9 @@ import org.hibernate.annotations.Index;
 @NamedQueries({
         @NamedQuery(name="dataUpdate.since",
             query="select new org.fluxtream.domain.DataUpdate(du.guestId, du.type, du.apiKeyId, du.objectTypeId, du.channelNames, du.additionalInfo, max(du.timestamp), min(du.startTime), max(du.endTime))" +
-                  " from DataUpdate du where du.guestId = ? and du.timestamp >= ? group by du.guestId,du.type,du.apiKeyId,du.objectTypeId,du.channelNames,du.additionalInfo")
+                  " from DataUpdate du where du.guestId = ? and du.timestamp >= ? group by du.guestId,du.type,du.apiKeyId,du.objectTypeId,du.channelNames,du.additionalInfo"),
+        @NamedQuery(name="dataUpdate.delete.before",
+            query="delete from DataUpdate du where du.timestamp <?")
 })
 public class DataUpdate extends AbstractEntity {
 
