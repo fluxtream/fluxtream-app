@@ -792,9 +792,14 @@
                 {{/hasActivities}}
                 <div class="flx-finedetails flx-collapsed">
                     {{#activities}}
-                    <div class="flx-data">{{activity}}{{#distance}} ({{distance}}){{/distance}}</div>
-                    <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
-                    {{#steps}}{{steps}} steps{{/steps}}
+                    {{^manual}}
+                        <div class="flx-data">{{activity}}{{#distance}} ({{distance}}){{/distance}}</div>
+                        <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
+                        {{#steps}}{{steps}} steps{{/steps}}
+                    {{/manual}}
+                    {{#manual}}
+                        <div class="flx-data">{{activity}} {{#duration}}{{#hours}}{{hours}} hrs {{/hours}}{{#minutes}}{{minutes}} minutes{{/minutes}}{{/duration}}</div>
+                    {{/manual}}
                     {{/activities}}
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}

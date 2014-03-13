@@ -17,9 +17,11 @@ import org.fluxtream.mvc.models.DurationModel;
  */
 public class MovesActivityVO {
 
-    public final int startMinute;
-    public final int endMinute;
+    public int startMinute;
+    public int endMinute;
+    public boolean manual;
     public String activity, activityCode;
+    public String activityGroup;
     public String distance;
     public Integer steps;
     public DurationModel duration;
@@ -36,6 +38,8 @@ public class MovesActivityVO {
         this.date = activity.date;
         this.start = activity.start;
         this.end = activity.end;
+        this.activityGroup = activity.activityGroup;
+        this.manual = activity.manual!=null?activity.manual:false;
 
         // Potentially trucate to fit within the date
         long truncStartMilli = activity.start;
@@ -62,30 +66,33 @@ public class MovesActivityVO {
             }
         }
 
-        // Calculate start/end Minute and Time based on truncated millisecond time
-        this.startMinute = AbstractTimedFacetVO.toMinuteOfDay(new Date(truncStartMilli), timeZone);
-        this.endMinute = AbstractTimedFacetVO.toMinuteOfDay(new Date(truncEndMilli), timeZone);
+        if (this.manual) {
+            this.duration = new DurationModel(activity.duration);
+        } else {
+            // Calculate start/end Minute and Time based on truncated millisecond time
+            this.startMinute = AbstractTimedFacetVO.toMinuteOfDay(new Date(truncStartMilli), timeZone);
+            this.endMinute = AbstractTimedFacetVO.toMinuteOfDay(new Date(truncEndMilli), timeZone);
 
-        this.startTime = new TimeOfDayVO(this.startMinute, true);
-        this.endTime = new TimeOfDayVO(this.endMinute, true);
+            this.startTime = new TimeOfDayVO(this.startMinute, true);
+            this.endTime = new TimeOfDayVO(this.endMinute, true);
 
-        // The args for creating a DurationModel are in seconds.
-        // The units of start and end are milliseconds, so divide by 1000 to
-        // calculate the duration in seconds to pass to the Duration Model.
-        this.duration = new DurationModel((int)((truncEndMilli-truncStartMilli)/1000));
+            // The args for creating a DurationModel are in seconds.
+            // The units of start and end are milliseconds, so divide by 1000 to
+            // calculate the duration in seconds to pass to the Duration Model.
+            this.duration = new DurationModel((int)((truncEndMilli-truncStartMilli)/1000));
 
-        // Note that the distance isn't going to be accurate here if we've done truncation
-        // In that case, skip distance and steps for now
-        if (activity.distance>0 && !timeTruncated) {
-            if (settings.distanceMeasureUnit==GuestSettings.DistanceMeasureUnit.SI)
-                getMetricDistance(activity);
-            else
-                getImperialdistance(activity);
+            // Note that the distance isn't going to be accurate here if we've done truncation
+            // In that case, skip distance and steps for now
+            if (activity.distance>0 && !timeTruncated) {
+                if (settings.distanceMeasureUnit==GuestSettings.DistanceMeasureUnit.SI)
+                    getMetricDistance(activity);
+                else
+                    getImperialdistance(activity);
+            }
+            if(activity.steps!=null && !timeTruncated) {
+                this.steps = activity.steps;
+            }
         }
-        if(activity.steps!=null && !timeTruncated) {
-            this.steps = activity.steps;
-        }
-
     }
 
     private void getImperialdistance(final MovesActivity activity) {

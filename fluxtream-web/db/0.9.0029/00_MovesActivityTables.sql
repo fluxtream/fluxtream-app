@@ -1,7 +1,9 @@
 ALTER TABLE MovesMoveActivity ADD COLUMN activityGroup VARCHAR(255) NULL;
 ALTER TABLE MovesPlaceActivity ADD COLUMN activityGroup VARCHAR(255) NULL;
-ALTER TABLE MovesMoveActivity ADD COLUMN manual bit(1) NULL;
-ALTER TABLE MovesPlaceActivity ADD COLUMN manual bit(1) NULL;
+ALTER TABLE MovesMoveActivity ADD COLUMN manual bit(1) NOT NULL default false;
+ALTER TABLE MovesPlaceActivity ADD COLUMN manual bit(1) NOT NULL default false;
+ALTER TABLE MovesMoveActivity ADD COLUMN duration int(11) NULL;
+ALTER TABLE MovesPlaceActivity ADD COLUMN duration int(11) NULL;
 UPDATE MovesPlaceActivity SET activityGroup="transport" WHERE activity="trp";
 UPDATE MovesPlaceActivity SET activityGroup="cycling" WHERE activity="cyc";
 UPDATE MovesPlaceActivity SET activityGroup="running" WHERE activity="run";

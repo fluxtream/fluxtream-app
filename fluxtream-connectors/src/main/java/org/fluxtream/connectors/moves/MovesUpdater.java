@@ -905,6 +905,7 @@ public class MovesUpdater extends AbstractUpdater {
                                                                        // Just update from the segment info
                                                                        needsUpdate = tidyUpMoveFacet(segment, facet);
                                                                        needsUpdate |= tidyUpActivities(updateInfo, segment, facet);
+                                                                       needsUpdate |= replaceManualActivities(updateInfo, segment, facet);
                                                                    }
 
 
@@ -953,7 +954,7 @@ public class MovesUpdater extends AbstractUpdater {
                                                                // This will abort the transaction
                                                                @Override
                                                                public MovesPlaceFacet createOrModify(MovesPlaceFacet facet, Long apiKeyId) {
-                                                                   boolean needsUpdate = false;
+                                                                   boolean needsUpdate;
                                                                    if (facet == null) {
                                                                        facet = new MovesPlaceFacet(apiKeyId);
                                                                        facet.guestId = updateInfo.apiKey.getGuestId();
@@ -968,6 +969,7 @@ public class MovesUpdater extends AbstractUpdater {
                                                                        // Just update from the segment info
                                                                        needsUpdate = tidyUpPlaceFacet(segment, facet);
                                                                        needsUpdate |= tidyUpActivities(updateInfo, segment, facet);
+                                                                       needsUpdate |= replaceManualActivities(updateInfo, segment, facet);
                                                                    }
 
                                                                    // If the facet changed set timeUpdated
@@ -994,7 +996,42 @@ public class MovesUpdater extends AbstractUpdater {
         }
     }
 
-    @Transactional(readOnly=false)
+    /**
+     * Since there is no way to uniquely identify manual activities, here we bluntly replace all possibly existing such
+     * activities with the new ones, if any. If none pre-existed and no new manual activities were created, this method
+     * is a no-op and return false.
+     * @param updateInfo
+     * @param segment
+     * @param parentFacet
+     * @return
+     */
+    private boolean replaceManualActivities(final UpdateInfo updateInfo, final JSONObject segment, final MovesFacet parentFacet) {
+        final List<MovesActivity> movesActivities = parentFacet.getActivities();
+        if (!segment.has("activities"))
+            return false;
+        List<MovesActivity> oldManualActivities = new ArrayList<MovesActivity>();
+        for (MovesActivity movesActivity : movesActivities) {
+            if (movesActivity.manual) {
+                oldManualActivities.add(movesActivity);
+            }
+        }
+        boolean hasOldManualActivities = oldManualActivities.size()>0;
+        for (MovesActivity oldManualActivity : oldManualActivities)
+            movesActivities.remove(oldManualActivity);
+
+        final JSONArray activities = segment.getJSONArray("activities");
+        boolean hasNewManualActivities = false;
+        for (int i=0; i<activities.size(); i++) {
+            JSONObject jsonActivity = activities.getJSONObject(i);
+            if (jsonActivity.getBoolean("manual")) {
+                hasNewManualActivities = true;
+                final MovesActivity activity = extractActivity(parentFacet.date,updateInfo, jsonActivity);
+                parentFacet.addActivity(activity);
+            }
+        }
+        return hasOldManualActivities||hasNewManualActivities;
+    }
+
     private boolean tidyUpActivities(final UpdateInfo updateInfo, final JSONObject segment, final MovesFacet parentFacet) {
         // Reconcile the stored activities associated with a given parent facet with the contents of a corresponding json
         // object returned by the Moves API.  Returns true if the facet needs update, and false otherwise.
@@ -1003,18 +1040,10 @@ public class MovesUpdater extends AbstractUpdater {
             return false;
         final JSONArray activities = segment.getJSONArray("activities");
         boolean needsUpdate = false;
-        // TODO: it's possible that the two lists would be of the same length
-        // yet not have perfectly matching start times.  In that case
-        // this function will fail to behave properly.
-        if (movesActivities.size()<activities.size()) {
-            // identify missing activities and add them to the facet's activities
-            addMissingActivities(updateInfo, movesActivities, activities, parentFacet);
-            needsUpdate = true;
-        } else if (movesActivities.size()>activities.size()) {
-            // find out which activities we need to remove
-            removeActivities(movesActivities, activities, parentFacet);
-            needsUpdate = true;
-        }
+        // identify missing activities and add them to the facet's activities
+        needsUpdate |= addMissingActivities(updateInfo, movesActivities, activities, parentFacet);
+        // identify activities that have been removed
+        needsUpdate |= removeActivities(movesActivities, activities, parentFacet);
         // finally, update activities that need it
         needsUpdate|=updateActivities(updateInfo, movesActivities, activities);
         return(needsUpdate);
@@ -1023,18 +1052,24 @@ public class MovesUpdater extends AbstractUpdater {
     // This function compares start times between a list of stored moves activity facets and entries in a JSON array
     // of activity objects returned by the Moves API.  Any items in the list of stored facets which do not have a
     // corresponding item in the JSON array with a matching start time are removed.
-    private void removeActivities(final List<MovesActivity> movesActivities, final JSONArray activities, final MovesFacet facet) {
+    // 2014/03/13: Candide modified so it only affects non-manual entries + return true if modifications occured
+    private boolean removeActivities(final List<MovesActivity> movesActivities, final JSONArray activities, final MovesFacet facet) {
+        boolean needsUpdate = false;
         withMovesActivities:for (int i=0; i<movesActivities.size(); i++) {
             final MovesActivity movesActivity = movesActivities.get(i);
             for (int j=0; i<activities.size(); i++) {
                 JSONObject activityData = activities.getJSONObject(j);
+                if (activityData.getBoolean("manual"))
+                    continue;
                 final long start = localTimeStorageFormat.parseDateTime(activityData.getString("startTime")).getMillis();
                 if (movesActivity.start==start) {
                     continue withMovesActivities;
                 }
             }
             facet.removeActivity(movesActivity);
+            needsUpdate = true;
         }
+        return needsUpdate;
     }
 
     // This function reconciles a list of moves activity facets with a JSON array of activity objects returned by the
@@ -1051,6 +1086,8 @@ public class MovesUpdater extends AbstractUpdater {
             // their start times are the same.
             JSONObject jsonActivity = activities.getJSONObject(i);
             for (int j=0; j<movesActivities.size(); j++) {
+                if (jsonActivity.getBoolean("manual"))
+                    continue;
                 final long start = localTimeStorageFormat.parseDateTime(jsonActivity.getString("startTime")).getMillis();
                 final MovesActivity storedActivityFacet = movesActivities.get(j);
                 if (storedActivityFacet.start==start) {
@@ -1085,10 +1122,16 @@ public class MovesUpdater extends AbstractUpdater {
             movesActivity.activity = activity;
         }
 
-        final String activityGroup = activityData.getString("group");
-        if (!movesActivity.activityGroup.equals(activityGroup)) {
+        if (activityData.has("group")) {
+            final String activityGroup = activityData.getString("group");
+            if (movesActivity.activityGroup==null||
+                (!movesActivity.activityGroup.equals(activityGroup))) {
+                needsUpdate = true;
+                movesActivity.activityGroup = activityGroup;
+            }
+        } else if (movesActivity.activityGroup!=null) {
+            movesActivity.activityGroup = null;
             needsUpdate = true;
-            movesActivity.activityGroup = activityGroup;
         }
 
         final String manual = activityData.getString("manual");
@@ -1102,7 +1145,8 @@ public class MovesUpdater extends AbstractUpdater {
             needsUpdate = true;
             movesActivity.steps = activityData.getInt("steps");
         }
-        if (activityData.getInt("distance")!=movesActivity.distance) {
+        if (activityData.has("distance")&&
+            activityData.getInt("distance")!=movesActivity.distance) {
             needsUpdate = true;
             movesActivity.distance = activityData.getInt("distance");
         }
@@ -1144,13 +1188,16 @@ public class MovesUpdater extends AbstractUpdater {
             return null;
         }
     }
-    private void addMissingActivities(final UpdateInfo updateInfo,
+
+    // 2014/03/13: Candide modified so it only affects non-manual entries + return true if modifications occured
+    private boolean addMissingActivities(final UpdateInfo updateInfo,
                                       final List<MovesActivity> movesActivities,
                                       final JSONArray activities,
                                       final MovesFacet parentFacet) {
         // Loop over the activities JSON array returned by a recent API call to check if each has a corresponding
         // stored activity facet.  Consider a given stored activity facet and JSON item to match if their
         // start times are the same.
+        boolean needsUpdate = false;
         withApiActivities:for (int i=0; i<activities.size(); i++) {
             JSONObject jsonActivity = activities.getJSONObject(i);
 
@@ -1158,6 +1205,8 @@ public class MovesUpdater extends AbstractUpdater {
             // jsonActivity.  Consider a given stored activity facet and JSON item to match if
             // their start times are the same.
             for (int j=0; j<movesActivities.size(); j++) {
+                if (jsonActivity.getBoolean("manual"))
+                    continue;
                 final long start = localTimeStorageFormat.parseDateTime(jsonActivity.getString("startTime")).getMillis();
                 MovesActivity storedActivityFacet = movesActivities.get(j);
                 if (storedActivityFacet.start==start) {
@@ -1174,7 +1223,9 @@ public class MovesUpdater extends AbstractUpdater {
             // used to make the request to the Moves API.
             final MovesActivity activity = extractActivity(parentFacet.date,updateInfo, jsonActivity);
             parentFacet.addActivity(activity);
+            needsUpdate = true;
         }
+        return needsUpdate;
     }
 
     @Transactional(readOnly=false)
@@ -1203,11 +1254,18 @@ public class MovesUpdater extends AbstractUpdater {
             needsUpdating = true;
             place.type = placeData.getString("type");
         }
+
         if (placeData.has("name")&&
             (place.name==null || !place.name.equals(placeData.getString("name")))) {
             //System.out.println(place.start + ": place name has changed");
             needsUpdating = true;
             place.name = placeData.getString("name");
+        }
+
+        if (placeData.has("foursquareId")&&place.foursquareId!=null&&
+            !placeData.getString("foursquareId").equals(place.foursquareId)) {
+            place.foursquareId = placeData.getString("foursquareId");
+            needsUpdating = true;
         }
 
         // if the place wasn't identified previously, store its fourquare info now
@@ -1225,6 +1283,7 @@ public class MovesUpdater extends AbstractUpdater {
             needsUpdating = true;
             place.foursquareId = null;
         }
+
         JSONObject locationData = placeData.getJSONObject("location");
         float lat = (float) locationData.getDouble("lat");
         float lon = (float) locationData.getDouble("lon");
@@ -1249,21 +1308,6 @@ public class MovesUpdater extends AbstractUpdater {
         }
 
         return(needsUpdating);
-    }
-
-    private JSONArray getSegments(final String json) {
-        JSONArray segments = null;
-        try {
-            JSONArray jsonArray = JSONArray.fromObject(json);
-            JSONObject dayFacetData = jsonArray.getJSONObject(0);
-            segments = dayFacetData.getJSONArray("segments");
-        } catch (Throwable t) {
-            // The above code may fail in the case where a day has
-            // no segments.  That's a legitimate result.
-            // In that case, return null.
-        }
-
-        return segments;
     }
 
     private void extractPlaceData(final JSONObject segment, final MovesPlaceFacet facet) {
@@ -1330,12 +1374,17 @@ public class MovesUpdater extends AbstractUpdater {
         if (activityData.has("manual"))
             activity.manual = activityData.getBoolean("manual");
 
+        if (activityData.has("duration"))
+            activity.duration = activityData.getInt("duration");
+
         // The date we use here is the date which we used to request this activity from the Moves API
         activity.date = date;
 
         if (activityData.has("steps"))
             activity.steps = activityData.getInt("steps");
-        activity.distance = activityData.getInt("distance");
+        if (activityData.has("distance"))
+            activity.distance = activityData.getInt("distance");
+
         extractTrackPoints(activity.activityURI, activityData, updateInfo);
         return activity;
     }
