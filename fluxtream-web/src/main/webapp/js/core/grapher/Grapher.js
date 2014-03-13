@@ -485,6 +485,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             });
 
             addPaneSaveState();
+            $(window).resize();//fixes issue where panel wouldn't have a scrollbar
             if (typeof callback === "function") {
                 callback();
             }
@@ -2412,14 +2413,29 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
 
     Grapher.prototype.onDataUpdate = function(data){
         if (data.bodytrackData != null){
+            var channelName,deviceName;
+            var shouldRefreshSources = false;
             for (var member in this.channelsMap){
-                var deviceName = this.channelsMap[member].device_name;
-                var channelName = this.channelsMap[member].channel_name;
+                deviceName = this.channelsMap[member].device_name;
+                 channelName = this.channelsMap[member].channel_name;
                 if (data.bodytrackData[deviceName] != null && data.bodytrackData[deviceName][channelName] != null){
                     var range = data.bodytrackData[deviceName][channelName];
                     this.plotsMap[member].invalidateTiles(range.start / 1000, range.end / 1000);
                 }
             }
+            outerCheck: for (deviceName in data.bodytrackData){
+                for (channelName in data.bodytrackData[deviceName]){
+                    shouldRefreshSources = getSourceChannelByName(deviceName,channelName) == null;
+                    if (shouldRefreshSources)
+                        break outerCheck;
+                }
+            }
+            if (shouldRefreshSources){
+                getSources(this);
+            }
+        }
+        if (data.bodytrackStyle != null){
+            console.log(data.bodytrackStyle);
         }
     }
 

@@ -2,6 +2,7 @@ package org.fluxtream.domain;
 
 import javax.annotation.Nullable;
 import javax.persistence.Entity;
+import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import org.hibernate.annotations.Index;
@@ -10,7 +11,7 @@ import org.hibernate.annotations.Index;
 @NamedQueries({
         @NamedQuery(name="dataUpdate.since",
             query="select new org.fluxtream.domain.DataUpdate(du.guestId, du.type, du.apiKeyId, du.objectTypeId, du.channelNames, du.additionalInfo, max(du.timestamp), min(du.startTime), max(du.endTime))" +
-                  " from DataUpdate du where du.guestId = ? and du.timestamp > ? group by du.guestId,du.type,du.apiKeyId,du.objectTypeId,du.channelNames,du.additionalInfo")
+                  " from DataUpdate du where du.guestId = ? and du.timestamp >= ? group by du.guestId,du.type,du.apiKeyId,du.objectTypeId,du.channelNames,du.additionalInfo")
 })
 public class DataUpdate extends AbstractEntity {
 
@@ -47,9 +48,11 @@ public class DataUpdate extends AbstractEntity {
     public Long objectTypeId;
 
     @Nullable
+    @Lob
     public String channelNames;//format: device.[channelNames]
 
     @Nullable
+    @Lob
     public String additionalInfo;
 
     @Index(name="GuestIdAndTimestamp")
