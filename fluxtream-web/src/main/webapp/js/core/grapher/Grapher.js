@@ -129,7 +129,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         });
 
         // Deal with window resize events
-        TOOLS.onWindowResizeResizeElementHeight("#" + grapher.grapherId + "_timeline_addChannelsArea #_timeline_sources_list");
+        TOOLS.onWindowResizeResizeElementHeight("#" + grapher.grapherId + "_timeline_addChannelsArea ._timeline_sources_list");
         TOOLS.onWindowResizeResizeElementHeight("#" + grapher.grapherId + "_timeline_channelsWrapper");
         TOOLS.onWindowResizeListener(function() {
             // borderOffset is used to account for:
@@ -385,112 +385,108 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                 SOURCES.initialized = true;
             }
 
-            // Render add channels area
-            App.loadMustacheTemplate("core/grapher/timelineTemplates.html","sourcesList",function(template){
-                $("#" + grapher.grapherId + "_timeline_addChannelsArea").html(template.render({
-                    sources: SOURCES.availableList
-                }));
-            });
+            App.loadMustacheTemplate("core/grapher/timelineTemplates.html","sourceListItem",function(sourceListItemTemplate){
+                App.loadMustacheTemplate("core/grapher/timelineTemplates.html","channelListItem",function(channeListItemTemplate){
+                    var addChannelsArea = $("#" + grapher.grapherId + "_timeline_addChannelsArea");
+                    var deviceRemoveList = addChannelsArea.find("._timeline_sources_list").children();;
+                    for (var i = 0, li = SOURCES.availableList.length; i < li; i++){
+                        var device = SOURCES.availableList[i];
+                        deviceRemoveList = deviceRemoveList.filter(":not(._timeline_source_" + device.name + ")");
+                        var sourceListItem = addChannelsArea.find("._timeline_source_" + device.name);
+                        if (sourceListItem.length == 0){
+                            sourceListItem = $(sourceListItemTemplate.render(device));
+                            addChannelsArea.find("._timeline_sources_list").append(sourceListItem);
+                        }
+                        var channelList = sourceListItem.find("._timeline_channel_list");
+                        var channelRemoveList = channelList.children();
+                        for (var j = 0, lj = device.channels.length; j < lj; j++){
+                            var channel = device.channels[j];
+                            channelRemoveList = channelRemoveList.filter(":not(._timeline_channel_" + channel.name + ")");
+                            var channelListItem = channelList.find("._timeline_channel_" + channel.name);
+                            if (channelListItem.length == 0){
+                                channelListItem = $(channeListItemTemplate.render(channel));
+                                channelList.append(channelListItem);
+                            }
+                        }
+                        channelRemoveList.remove();
 
-            // Drag event handler for channels
-            /*App.loadMustacheTemplate("core/grapher/timelineTemplates.html","channelTemplate",function(template){
-                $("#" + grapher.grapherId + "_timeline_addChannelsArea ul ._timeline_sources_channel").draggable({
-                    connectToSortable : "#" + grapher.grapherId + "_timeline_channels",
-                    revert: "invalid",
-                    helper: function() {
-                        // Create mock grapher widget to show while dragging
-                        var src = grapher.sourcesMap[this.id];
-                        dragSourceId = this.id;
-                        var templateValues = {
-                            "deviceName"       : src["device_name"],
-                            "channelName"      : src["channel_name"],
-                            "plotElementId"    : "_timeline_channel_helper",
-                            "channelElementId" : "_timeline_plot_helper",
-                            "yAxisElementId"   : "_timeline_yAxis_helper",
-                            "showDeleteBtn"    : grapher.showDeleteBtn,
-                            "grapherId"        : grapher.grapherId
-                        };
-                        return template.render(templateValues);
-                    },
-                    start : function(event, ui) {
-                        // Set height to match grapher widget so that hovering
-                        // over channels pane shifts existing widgets by correct amount
-                        $(this).height("74px");
-                    },
-                    stop : function(event, ui) {
-                        // Restore height
-                        $(this).height("16px");
+                    }
+                    deviceRemoveList.remove();
+
+                    //TODO: remove leftover elements for sources that weren't accounted for
+
+                    $("#" + grapher.grapherId + "_timeline_addChannelsArea ul ._timeline_sources_channel").disableSelection();
+
+                    // Create new grapher widget if source receives a click
+                    $("#" + grapher.grapherId + "_timeline_addChannelsArea ul li ._timeline_sources_channel").unbind("click").click(function() {
+                        var c = grapher.sourcesMap[this.id];
+                        grapher.addChannel(c, null);
+                        //$("#" + grapher.grapherId + "_timeline_channelsWrapper").animate({scrollTop:0}, 500);
+                    });
+
+                    // Add channels pane reset button
+                    $("#" + grapher.grapherId + "_timeline_addChannelsArea #_timeline_sources_find_btn").unbind("click").click(function() {
+                        $("#" + grapher.grapherId + "_timeline_addChannelsArea input[type=text]").val("");
+
+                        addPaneRestoreState(grapher);
+                        return false;
+                    });
+
+                    // Add channels pane search functionality
+                    $("#" + grapher.grapherId + "_timeline_addChannelsArea input[type=text]").unbind("keyup").keyup(function(event) {
+                        var search_str = $("#" + grapher.grapherId + "_timeline_addChannelsArea input[type=text]").val();
+                        var regexp = new RegExp(search_str, 'i');
+
+                        if (search_str.length === 0) {
+                            addPaneRestoreState(grapher);
+                            return;
+                        }
+
+                        $("._timeline_sources_name").each(function() {
+                            var ul = $(this).parent().find("ul");
+                            var arrow = $(this).children("._timeline_sources_name_arrow");
+                            if (ul.css("display") === "none") {
+                                ul.show();
+                                arrow.html("&#9660;");
+                            }
+                        });
+
+                        $("#" + grapher.grapherId + "_timeline_addChannelsArea ._timeline_sources_list ._timeline_sources_channel").each(function() {
+                            if ($.trim($(this).html()).search(regexp) == -1) {
+                                $(this).hide();
+                            }
+                            else {
+                                $(this).show();
+                            }
+                        });
+                    }).keyup();
+
+                    // Collapsible devices
+                    $("._timeline_sources_name").unbind("click").click(function() {
+                        var ul = $(this).parent().find("ul");
+                        var arrow = $(this).children("._timeline_sources_name_arrow");
+
+                        if (ul.css("display") === "none") {
+                            ul.show();
+                            arrow.html("&#9660;");
+                        }
+                        else {
+                            ul.hide();
+                            arrow.html("&#9658;");
+                        }
+
+                        addPaneSaveState();
+                    });
+
+                    addPaneSaveState();
+
+                    $(window).resize();//fixes issue where panel wouldn't have a scrollbar
+                    if (typeof callback === "function") {
+                        callback();
                     }
                 });
-            });*/
-            $("#" + grapher.grapherId + "_timeline_addChannelsArea ul ._timeline_sources_channel").disableSelection();
-
-            // Create new grapher widget if source receives a click
-            $("#" + grapher.grapherId + "_timeline_addChannelsArea ul li ._timeline_sources_channel").click(function() {
-                var c = grapher.sourcesMap[this.id];
-                grapher.addChannel(c, null);
-                //$("#" + grapher.grapherId + "_timeline_channelsWrapper").animate({scrollTop:0}, 500);
             });
 
-            // Add channels pane reset button
-            $("#" + grapher.grapherId + "_timeline_addChannelsArea #_timeline_sources_find_btn").click(function() {
-                $("#" + grapher.grapherId + "_timeline_addChannelsArea input[type=text]").val("");
-
-                addPaneRestoreState(grapher);
-                return false;
-            });
-
-            // Add channels pane search functionality
-            $("#" + grapher.grapherId + "_timeline_addChannelsArea input[type=text]").keyup(function(event) {
-                var search_str = $("#" + grapher.grapherId + "_timeline_addChannelsArea input[type=text]").val();
-                var regexp = new RegExp(search_str, 'i');
-
-                if (search_str.length === 0) {
-                    addPaneRestoreState(grapher);
-                    return;
-                }
-
-                $("._timeline_sources_name").each(function() {
-                    var ul = $(this).parent().find("ul");
-                    var arrow = $(this).children("._timeline_sources_name_arrow");
-                    if (ul.css("display") === "none") {
-                        ul.show();
-                        arrow.html("&#9660;");
-                    }
-                });
-
-                $("#" + grapher.grapherId + "_timeline_addChannelsArea #_timeline_sources_list ._timeline_sources_channel").each(function() {
-                    if ($.trim($(this).html()).search(regexp) == -1) {
-                        $(this).hide();
-                    }
-                    else {
-                        $(this).show();
-                    }
-                });
-            });
-
-            // Collapsible devices
-            $("._timeline_sources_name").click(function() {
-                var ul = $(this).parent().find("ul");
-                var arrow = $(this).children("._timeline_sources_name_arrow");
-
-                if (ul.css("display") === "none") {
-                    ul.show();
-                    arrow.html("&#9660;");
-                }
-                else {
-                    ul.hide();
-                    arrow.html("&#9658;");
-                }
-
-                addPaneSaveState();
-            });
-
-            addPaneSaveState();
-            $(window).resize();//fixes issue where panel wouldn't have a scrollbar
-            if (typeof callback === "function") {
-                callback();
-            }
         });
     } // getSources
 
@@ -498,7 +494,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         var i = 0;
         var l = addPaneChannelsState.length;
 
-        $("#" + grapher.grapherId + "_timeline_addChannelsArea #_timeline_sources_list ._timeline_sources_channel").each(function() {
+        $("#" + grapher.grapherId + "_timeline_addChannelsArea ._timeline_sources_list ._timeline_sources_channel").each(function() {
             $(this).show();
         });
 
@@ -772,7 +768,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             $("#" + this.grapherId + "_timeline_add_channels_btn").addClass("active");
             area.show();
             $("#" + this.grapherId + "_timeline_dateAxisLabelRegion").addClass("channelAreaShowing");
-            TOOLS.resizeElementHeight($("#" + this.grapherId + "_timeline_addChannelsArea #_timeline_sources_list"));
+            TOOLS.resizeElementHeight($("#" + this.grapherId + "_timeline_addChannelsArea ._timeline_sources_list"));
         }
         else {
             $("#"  + this.grapherId + "_timeline_add_channels_btn").removeClass("active");
