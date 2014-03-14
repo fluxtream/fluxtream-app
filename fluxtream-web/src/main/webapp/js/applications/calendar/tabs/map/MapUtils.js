@@ -61,7 +61,7 @@ define(["applications/calendar/tabs/map/MapConfig",
         var splittingStrategy = getSplittingStrategy(config.gpsSplittingStrategy);
 
         function endLineSection(disjoint){
-            var colorToUse = currentType == null ? config.color : config[currentType + "Color"];
+            var colorToUse = currentType == null ? config.color : config.getCustomColor(currentType);
             if (disjoint){
                 currentLinePoints.splice(currentLinePoints.length - 1, 1);
             }

@@ -1,6 +1,8 @@
 package org.fluxtream.connectors.moves;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.TimeZone;
 import org.codehaus.plexus.util.StringUtils;
@@ -20,7 +22,7 @@ public class MovesActivityVO {
     public int startMinute;
     public int endMinute;
     public boolean manual;
-    public String activity, activityCode;
+    public String activity, activityCode = "generic";
     public String activityGroup;
     public String distance;
     public Integer steps;
@@ -30,11 +32,16 @@ public class MovesActivityVO {
     public final String type = "moves-move-activity";
     public long start, end;
 
+    private static final ArrayList<String> validActivityCodes = new ArrayList<String>(Arrays.asList(new String[]{"running", "walking", "cycling", "transport"}));
+
     public MovesActivityVO(MovesActivity activity, TimeZone timeZone,
                            long dateStart, long dateEnd,
                            GuestSettings settings, boolean doDateBoundsCheck) throws OutsideTimeBoundariesException {
         this.activity = StringUtils.capitalise(activity.activity);
-        this.activityCode = activity.activityGroup;
+        if (activity.activityGroup!=null&&validActivityCodes.contains(activity.activityGroup))
+            this.activityCode = activity.activityGroup;
+        else if (activity.activityGroup==null&&validActivityCodes.contains(activity.activity))
+            this.activityCode = activity.activity;
         this.date = activity.date;
         this.start = activity.start;
         this.end = activity.end;
