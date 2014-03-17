@@ -60,6 +60,7 @@ define(["core/FlxState"], function(FlxState) {
         if (state) {
             url += "/" + state;
         }
+
         FlxState.router.navigate(url, {trigger: true});
         if (typeof(ga)!="undefined") {
             ga("send", "pageview", url);

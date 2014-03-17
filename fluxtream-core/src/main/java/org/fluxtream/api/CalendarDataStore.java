@@ -17,6 +17,13 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import com.google.gson.Gson;
+import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
+import com.luckycatlabs.sunrisesunset.dto.Location;
+import org.codehaus.jackson.annotate.JsonAutoDetect;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.plexus.util.ExceptionUtils;
 import org.fluxtream.Configuration;
 import org.fluxtream.OutsideTimeBoundariesException;
 import org.fluxtream.TimeInterval;
@@ -46,6 +53,7 @@ import org.fluxtream.metadata.DayMetadata;
 import org.fluxtream.metadata.MonthMetadata;
 import org.fluxtream.metadata.WeekMetadata;
 import org.fluxtream.mvc.models.AddressModel;
+import org.fluxtream.mvc.models.CalendarModel;
 import org.fluxtream.mvc.models.ConnectorDigestModel;
 import org.fluxtream.mvc.models.ConnectorResponseModel;
 import org.fluxtream.mvc.models.DigestModel;
@@ -63,13 +71,6 @@ import org.fluxtream.services.NotificationsService;
 import org.fluxtream.services.SettingsService;
 import org.fluxtream.utils.TimeUtils;
 import org.fluxtream.utils.Utils;
-import com.google.gson.Gson;
-import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
-import com.luckycatlabs.sunrisesunset.dto.Location;
-import org.codehaus.jackson.annotate.JsonAutoDetect;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.plexus.util.ExceptionUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
@@ -148,7 +149,8 @@ public class CalendarDataStore {
             //this implementation is just a dirt hacky way to make it work and some aspects (weather info) don't work
 
             WeekMetadata weekMetadata = metadataService.getWeekMetadata(guestId, year, week);
-            DigestModel digest = new DigestModel(TimeUnit.WEEK, weekMetadata, env);
+            CalendarModel calendarModel = CalendarModel.fromState(guestId, metadataService, "week/" + year + "/" + week);
+            DigestModel digest = new DigestModel(TimeUnit.WEEK, weekMetadata, env, calendarModel);
 
             if (filter == null) {
                 filter = "";
@@ -231,7 +233,8 @@ public class CalendarDataStore {
         try{
             long then = System.currentTimeMillis();
             MonthMetadata monthMetadata = metadataService.getMonthMetadata(guestId, year, month);
-            DigestModel digest = new DigestModel(TimeUnit.MONTH, monthMetadata, env);
+            CalendarModel calendarModel = CalendarModel.fromState(guestId, metadataService, "month/" + year + "/" + month);
+            DigestModel digest = new DigestModel(TimeUnit.MONTH, monthMetadata, env, calendarModel);
 
             digest.metadata.timeUnit = "MONTH";
             if (filter == null) {
@@ -356,7 +359,8 @@ public class CalendarDataStore {
         try{
             long then = System.currentTimeMillis();
             DayMetadata dayMetadata = metadataService.getDayMetadata(guestId, date);
-            DigestModel digest = new DigestModel(TimeUnit.DAY, dayMetadata, env);
+            CalendarModel calendarModel = CalendarModel.fromState(guestId, metadataService, "date/" + date);
+            DigestModel digest = new DigestModel(TimeUnit.DAY, dayMetadata, env, calendarModel);
 
             digest.metadata.timeUnit = "DAY";
             if (filter == null) {

@@ -83,33 +83,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     Calendar.stopLoading = stopLoading;
 
-    Calendar.fetchState = function(url, params) {
-        startLoading();
-        $.ajax({
-           url: url,
-           type: "GET",
-           data: params,
-           dataType: "JSON",
-           success: function(response) {
-               if (response.result == "KO"){//signifies error was returned
-                   handleError("You aren't logged in!")();
-                   return;
-               }
-               Calendar.timeRange.start = response.start;
-               Calendar.timeRange.end = response.end;
-               if (Calendar.dateAxisCursorPosition * 1000 < Calendar.timeRange.start || Calendar.dateAxisCursorPosition * 1000 > Calendar.timeRange.end)
-                   Calendar.dateAxisCursorPosition = null;
-               updateTimespan(response.currentTimespanLabel,params);
-               Calendar.timeRange.updated = true;
-               Calendar.navigateState(Calendar.currentTabName + "/" + response.state);
-               // TODO: Change visible date in the datepicker to Sunday
-               // TODO: Would be nice to use updateDatepicker, but what's the state argument?
-               //stopLoading is now called by the tab once it's done processing the data.
-           },
-           error: handleError("failed to fetch next calendar state!")
-        });
-    }
-
     Calendar.parseState = function(state) {
         var splits = state.split("/");
         if (_.isEmpty(splits)) {
@@ -158,31 +131,16 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     };
 
     Calendar.renderDefaultState = function() {
-        Calendar.fetchState("/api/calendar/nav/setToToday", {timeUnit: "DAY"});
+        Calendar.navigateState("clock/date/"+moment().format("YYYY-MM-DD"));
     };
 
-    function fetchTimespan(state,doneLoadingId) {
-        $.ajax({
-            url: "/api/calendar/nav/model",
-            async: false,
-            type: "GET",
-            data: {state: state.tabState},
-            dataType: "JSON",
-            success: function(response) {
-                if (response.result == "KO"){//signifies error was returned
-                    handleError("You aren't logged in!")();
-                    return;
-                }
-                Calendar.timeRange.start = response.start;
-                Calendar.timeRange.end = response.end;
-                if (Calendar.dateAxisCursorPosition * 1000 < Calendar.timeRange.start || Calendar.dateAxisCursorPosition * 1000 > Calendar.timeRange.end)
-                    Calendar.dateAxisCursorPosition = null;
-                updateTimespan(response.currentTimespanLabel,state.tabState);
-                Calendar.timeRange.updated = true;
-                stopLoading(doneLoadingId);
-            },
-            error: handleError("failed to fetch timespan label!")
-        });
+    function updateTimeRange(digest, state) {
+        Calendar.timeRange.start = digest.calendar.start;
+        Calendar.timeRange.end = digest.calendar.end;
+        if (Calendar.dateAxisCursorPosition * 1000 < Calendar.timeRange.start || Calendar.dateAxisCursorPosition * 1000 > Calendar.timeRange.end)
+            Calendar.dateAxisCursorPosition = null;
+        updateTimespan(digest.calendar.currentTimespanLabel,state.tabState);
+        Calendar.timeRange.updated = true;
     }
 
     function fetchWeatherData() {
@@ -224,7 +182,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             // the FlxState routes invoke renderState() directly instead of going
             // through fetchState. That bypasses the timespan label fetching, so we
             // need to do that here.
-            fetchTimespan(state);
+            //fetchTimespan(state);
             //stopLoading();
         }
         var tabChanged = Calendar.tabState === state.tabState;
@@ -285,6 +243,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     var lastFetch = null;
 
 	function fetchCalendar(state) {
+        console.log("fetch calendar, state is " );
+        console.log(state);
         needDigestReload = false;
         startLoading();
         var thisFetchId = ++fetchId;
@@ -301,6 +261,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     return;
                 }
                 Calendar.digest = response;
+                updateTimeRange(response, state);
                 Calendar.digestTabState = state.tabState;
                 if (thisFetchId != fetchId)
                     return;
@@ -1419,11 +1380,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             Calendar.timeUnit = state.timeUnit;
             Builder.createTabs(Calendar);
             updateDisplays(state);
-            updated = true;
-        }
-        if (state.tabState !== Calendar.tabState) {
-            Calendar.tabState = state.tabState;
-            fetchTimespan(state);
             updated = true;
         }
         if (updated) {

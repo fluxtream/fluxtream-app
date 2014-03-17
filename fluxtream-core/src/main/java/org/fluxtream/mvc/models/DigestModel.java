@@ -7,12 +7,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.codehaus.jackson.annotate.JsonRawValue;
 import org.fluxtream.Configuration;
 import org.fluxtream.TimeUnit;
 import org.fluxtream.metadata.AbstractTimespanMetadata;
 
 public class DigestModel {
 
+    @JsonRawValue
+    public String calendar;
 	public TimeBoundariesModel tbounds;
 	public int nApis;
 	public boolean hasPictures;
@@ -27,13 +30,14 @@ public class DigestModel {
 
     public Metadata metadata;
 
-    public DigestModel(TimeUnit timeUnit, AbstractTimespanMetadata metadata, Configuration env) {
+    public DigestModel(TimeUnit timeUnit, AbstractTimespanMetadata metadata, Configuration env, CalendarModel calendarModel) {
         VisitedCityModel nic = null, pic = null;
         if (metadata.nextInferredCity!=null)
             nic = new VisitedCityModel(metadata.nextInferredCity, env);
         if (metadata.previousInferredCity!=null)
             pic = new VisitedCityModel(metadata.previousInferredCity, env);
         this.metadata = new Metadata(timeUnit.toString(), pic, nic);
+        this.calendar = calendarModel.toJSONString(env);
     }
 
     public class Metadata {
