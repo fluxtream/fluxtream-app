@@ -18,8 +18,6 @@ public class FitbitLoggedActivityFacetVO extends AbstractLocalTimeTimedFacetVO<F
 		description = facet.fullTextDescription;
         LocalDateTime startTime = new LocalDateTime(facet.start);
         LocalDateTime endTime = new LocalDateTime(facet.end);
-		startMinute = startTime.getHourOfDay()*60+startTime.getMinuteOfHour();
-		endMinute = endTime.getHourOfDay()*60+endTime.getMinuteOfHour();
 	}
 
 }

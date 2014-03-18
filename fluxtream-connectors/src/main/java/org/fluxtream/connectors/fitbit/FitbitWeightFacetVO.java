@@ -6,7 +6,6 @@ import org.fluxtream.OutsideTimeBoundariesException;
 import org.fluxtream.TimeInterval;
 import org.fluxtream.connectors.vos.AbstractInstantFacetVO;
 import org.fluxtream.domain.GuestSettings;
-import org.joda.time.DateTimeConstants;
 
 public class FitbitWeightFacetVO extends AbstractInstantFacetVO<FitbitWeightFacet> {
 
@@ -23,9 +22,7 @@ public class FitbitWeightFacetVO extends AbstractInstantFacetVO<FitbitWeightFace
         if (facet.start==facet.end) {
             Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             c.setTimeInMillis(facet.start);
-            this.startMinute = c.get(Calendar.HOUR_OF_DAY)*60+c.get(Calendar.MINUTE);
-        } else
-            this.startMinute = DateTimeConstants.MINUTES_PER_DAY/2;
+        }
         switch (settings.weightMeasureUnit) {
             case SI:
                 this.weightUnitLabel = "kg";

@@ -1,8 +1,6 @@
 package org.fluxtream.connectors.withings;
 
 import java.io.Serializable;
-import java.util.Date;
-
 import org.fluxtream.OutsideTimeBoundariesException;
 import org.fluxtream.TimeInterval;
 import org.fluxtream.connectors.vos.AbstractInstantFacetVO;
@@ -24,7 +22,6 @@ public class WithingsBodyScaleMeasureFacetVO extends
 		copy.unitLabel = unitLabel;
 		copy.daysAgo = daysAgo;
 		copy.start = start;
-		copy.startMinute = startMinute;
 		return copy;
 	}
 	
@@ -35,7 +32,6 @@ public class WithingsBodyScaleMeasureFacetVO extends
 		long elapsed = timeInterval.getStart()
 				- TimeUtils.fromMidnight(facet.measureTime, timeInterval.getTimeZone(facet.measureTime));
 		daysAgo = (int) (elapsed / (24 * 3600000));
-		this.startMinute = toMinuteOfDay(new Date(facet.measureTime), timeInterval.getTimeZone(facet.measureTime));
 		format(facet.weight, settings.weightMeasureUnit);
 		this.description = new StringBuffer().append(weight).append(" ")
 				.append(unitLabel).toString();

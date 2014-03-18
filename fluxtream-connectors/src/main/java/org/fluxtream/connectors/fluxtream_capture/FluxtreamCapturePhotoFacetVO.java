@@ -2,7 +2,6 @@ package org.fluxtream.connectors.fluxtream_capture;
 
 import java.awt.Dimension;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +33,6 @@ public class FluxtreamCapturePhotoFacetVO extends AbstractPhotoFacetVO<Fluxtream
         channelName = "photo";
         UID = facet.getId();
         start = facet.start;
-        startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getTimeZone(facet.start));
 
         final String photoStoreKey = facet.getPhotoStoreKey();
         photoUrl = "/api/bodytrack/photo/" + photoStoreKey;

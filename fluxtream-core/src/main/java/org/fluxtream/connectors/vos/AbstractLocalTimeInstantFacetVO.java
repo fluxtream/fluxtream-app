@@ -4,6 +4,9 @@ import org.fluxtream.OutsideTimeBoundariesException;
 import org.fluxtream.TimeInterval;
 import org.fluxtream.domain.AbstractLocalTimeFacet;
 import org.fluxtream.domain.GuestSettings;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.ISODateTimeFormat;
 
 /**
  *
@@ -12,23 +15,22 @@ import org.fluxtream.domain.GuestSettings;
 public abstract class AbstractLocalTimeInstantFacetVO<T extends AbstractLocalTimeFacet> extends
                                              AbstractFacetVO<T> implements Comparable<AbstractInstantFacetVO<T>> {
 
-    public transient long start;
-    public int startMinute;
-    public TimeOfDayVO startTime;
     public boolean localTime;
+    public String eventStart;
 
     @Override
     public void extractValues(T facet, TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
         super.extractValues(facet, timeInterval, settings);
         this.date = facet.date;
-        this.start = facet.start;
-        this.startTime = new TimeOfDayVO(startMinute, settings.distanceMeasureUnit == GuestSettings.DistanceMeasureUnit.MILES_YARDS);
+        this.eventStart = ISODateTimeFormat.basicDateTime().withZone(DateTimeZone.forTimeZone(timeInterval.getTimeZone(facet.date))).print(facet.start);
         localTime = true;
     }
 
     @Override
     public int compareTo(final AbstractInstantFacetVO<T> other) {
-        return this.start > other.start ? 1 : -1;
+        final DateTime thisStart = ISODateTimeFormat.basicDate().parseDateTime(this.eventStart);
+        DateTime otherStart = ISODateTimeFormat.basicDate().parseDateTime(other.eventStart);
+        return thisStart.isAfter(otherStart) ? 1 : -1;
     }
 
 }

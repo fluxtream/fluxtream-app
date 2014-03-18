@@ -2,16 +2,14 @@ package org.fluxtream.connectors.google_calendar;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import com.google.api.client.json.jackson.JacksonFactory;
+import com.google.api.services.calendar.model.Event;
+import com.google.api.services.calendar.model.EventAttendee;
 import org.fluxtream.OutsideTimeBoundariesException;
 import org.fluxtream.TimeInterval;
 import org.fluxtream.connectors.vos.AbstractTimedFacetVO;
 import org.fluxtream.domain.GuestSettings;
-import com.google.api.client.json.jackson.JacksonFactory;
-import com.google.api.services.calendar.model.Event;
-import com.google.api.services.calendar.model.EventAttendee;
-import org.joda.time.DateTimeConstants;
 
 /**
  * User: candide
@@ -36,13 +34,6 @@ public class GoogleCalendarEventFacetVO extends AbstractTimedFacetVO<GoogleCalen
     protected void fromFacet(final GoogleCalendarEventFacet facet, final TimeInterval timeInterval, final GuestSettings settings) throws OutsideTimeBoundariesException {
         try {
             this.allDay = facet.allDayEvent;
-            if (this.allDay) {
-                this.startMinute = 0;
-                this.endMinute = DateTimeConstants.SECONDS_PER_DAY;
-            } else {
-                startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getTimeZone(facet.start));
-                endMinute = toMinuteOfDay(new Date(facet.end), timeInterval.getTimeZone(facet.end));
-            }
             JacksonFactory jacksonFactory = new JacksonFactory();
             if (facet.attendeesStorage!=null) {
                 this.attendees = new ArrayList<EventAttendee>();

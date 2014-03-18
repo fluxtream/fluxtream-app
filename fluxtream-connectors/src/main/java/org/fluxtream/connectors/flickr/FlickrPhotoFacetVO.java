@@ -1,12 +1,10 @@
 package org.fluxtream.connectors.flickr;
 
 import java.awt.Dimension;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
-import java.util.TimeZone;
 import java.util.TreeMap;
 import org.fluxtream.TimeInterval;
 import org.fluxtream.connectors.vos.AbstractPhotoFacetVO;
@@ -36,9 +34,6 @@ public class FlickrPhotoFacetVO extends
         UID = facet.getId();
         this.date = facet.date;
         start = facet.datetaken;
-        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        c.setTimeInMillis(start);
-		startMinute = c.get(Calendar.HOUR_OF_DAY)*60+c.get(Calendar.MINUTE);
 
         int i = 0;
         thumbnailUrls.put(i, String.format("https://farm%s.static.flickr.com/%s/%s_%s_s.jpg", facet.farm, facet.server, facet.flickrId, facet.secret));

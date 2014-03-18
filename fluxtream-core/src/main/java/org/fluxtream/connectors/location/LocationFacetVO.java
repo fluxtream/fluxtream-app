@@ -29,7 +29,6 @@ public class LocationFacetVO extends AbstractInstantFacetVO<LocationFacet> {
 		this.position = position;
         this.accuracy = facet.accuracy;
 		Date date = new Date(facet.timestampMs);
-		this.startMinute = toMinuteOfDay(date, timeInterval.getMainTimeZone());
 		this.time = hmDateFormat.withZone(DateTimeZone.forTimeZone(timeInterval.getMainTimeZone())).print(date.getTime());
         source = facet.source.name();
         this.uri = facet.uri;

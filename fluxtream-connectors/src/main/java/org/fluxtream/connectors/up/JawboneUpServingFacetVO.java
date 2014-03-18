@@ -35,7 +35,6 @@ public class JawboneUpServingFacetVO extends AbstractPhotoFacetVO<JawboneUpServi
         start = facet.start;
         Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         c.setTimeInMillis(start);
-        startMinute = c.get(Calendar.HOUR_OF_DAY)*60+c.get(Calendar.MINUTE);
 
         int i = 0;
 

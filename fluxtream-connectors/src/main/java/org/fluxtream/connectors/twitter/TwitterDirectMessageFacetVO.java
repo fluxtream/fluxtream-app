@@ -20,7 +20,6 @@ public class TwitterDirectMessageFacetVO extends AbstractInstantFacetVO<TwitterD
 			GuestSettings settings) throws OutsideTimeBoundariesException {
 		Date date = new Date(facet.start);
 		
-		this.startMinute = toMinuteOfDay(date, timeInterval.getTimeZone(facet.start));
 		if (SecurityUtils.isDemoUser())
 			this.description = "***demo - text content hidden***";
 		else

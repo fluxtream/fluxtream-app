@@ -663,8 +663,8 @@ public class CalendarDataStore {
                     try {
                         facetVO.extractValues(abstractFacet, timeInterval, settings);
                         final DateTime startTime = TimeUtils.dateFormatter.withZone(DateTimeZone.forTimeZone(timeZone)).parseDateTime(repeatedDate);
-                        facetVO.start = startTime.getMillis();
-                        facetVO.end = startTime.getMillis() + DateTimeConstants.MILLIS_PER_DAY;
+                        facetVO.setStart(startTime.getMillis());
+                        facetVO.setEnd(startTime.getMillis() + DateTimeConstants.MILLIS_PER_DAY);
                         facetCollection.add(facetVO);
                     } catch(OutsideTimeBoundariesException e) {
                         // OutsideTimeBoundariesException can legitimately happen in the case that the timezone
