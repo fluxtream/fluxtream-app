@@ -36,7 +36,6 @@ import org.fluxtream.connectors.ObjectType;
 import org.fluxtream.connectors.updaters.UpdateFailedException;
 import org.fluxtream.connectors.vos.AbstractFacetVO;
 import org.fluxtream.connectors.vos.AbstractTimedFacetVO;
-import org.fluxtream.connectors.vos.ImageVOCollection;
 import org.fluxtream.domain.AbstractFacet;
 import org.fluxtream.domain.AbstractRepeatableFacet;
 import org.fluxtream.domain.ApiKey;
@@ -598,9 +597,6 @@ public class CalendarDataStore {
         //if (needsUpdate) {
         //    digest.setUpdateNeeded(apiKey.getConnector().getName());
         //}
-        if (facetCollection instanceof ImageVOCollection) {
-            digest.hasPictures = true;
-        }
         if (!apiKeySelection.contains(apiKey)) {
             return;
         }
