@@ -38,8 +38,8 @@ define([], function() {
 
     function getDateRangeForWeek(year, week) {
         if (week == null) return null;
-        var startDay = moment().year(year).week(week).day(0).subtract("days", 7);
-        var endDay = moment().year(year).week(week).day(0).add("days", 6);
+        var startDay = moment().year(year).week(week).day(1);
+        var endDay = moment().year(year).week(week).day(7);
 
         // JavaScript Date objects are 0-based, but our date strings are 1-based
         var range = [new Date(startDay.year(), startDay.month(), startDay.date()),

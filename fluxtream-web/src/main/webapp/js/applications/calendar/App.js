@@ -226,7 +226,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             case "week":
                 return DateUtils.getDateRangeForWeek(state.year, state.week)[0];
             case "month":
-                return new Date(state.year,state.month-1,1,0,0,0,0);
+                return new Date(state.year,state.month,1,0,0,0,0);
             case "year":
                 return new Date(state.year,0,1,0,0,0,0);
         }
@@ -243,8 +243,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     var lastFetch = null;
 
 	function fetchCalendar(state) {
-        console.log("fetch calendar, state is " );
-        console.log(state);
         needDigestReload = false;
         startLoading();
         var thisFetchId = ++fetchId;
@@ -930,6 +928,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     Calendar.rebindDetailsControls = function(details,facetList){
         function getFacet(facetType,facetId){
+            if (typeof(facetType)==="undefined")
+                return;
             try{
                 for (var i = 0, li = facetList.length; i < li; i++){
                     if (facetList[i].type === facetType && facetList[i].id === facetId)

@@ -196,7 +196,11 @@ public class CalendarModel {
                 final String to = shortDayFormatter.print(getToDate().minusDays(1));
                 // TODO: Way to handle from and to in different years?
                 final String year = currentYearFormatter.print(fromDate);
-                return from + " - " + to + " " + year;
+                final String toYear = currentYearFormatter.print(getToDate().minusDays(1));
+                if (toYear.equals(year))
+                    return from + " - " + to + " " + year;
+                else
+                    return String.format("%s %s - %s %s", from, year, to, toYear);
             case MONTH:
                 return currentMonthFormatter.print(fromDate);
             case YEAR:

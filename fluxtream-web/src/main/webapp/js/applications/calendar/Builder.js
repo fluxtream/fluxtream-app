@@ -214,7 +214,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
         } else if (splits[0]==="week") {
             var year = Number(splits[1]);
             var week = Number(splits[2]);
-            date = moment().year(year).week(week).day(0);
+            date = moment().year(year).isoWeek(week).day(0);
         } else if (splits[0]==="month") {
             var year = Number(splits[1]);
             var month = Number(splits[2])-1;
@@ -224,7 +224,6 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
             case "date":
                 return "date/" + date.format("YYYY-MM-DD");
             case "week":
-                date = date.day("Sunday");
                 return "week/" + date.year() + "/" + date.week();
             case "month":
                 var month = date.month()+1;
@@ -242,8 +241,8 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
         } else if (splits[0]==="week") {
             var year = Number(splits[1]);
             var week = Number(splits[2]);
-            var startDay = moment().year(year).week(week).day(0).subtract("days", 7);
-            var result = "week/" + startDay.year() + "/" + startDay.week();
+            var startDay = moment().year(year).isoWeek(week).day("Thursday").subtract("weeks", 1);
+            var result = "week/" + startDay.year() + "/" + startDay.isoWeek();
             return result;
         } else if (splits[0]==="month") {
             var year = Number(splits[1]);
@@ -264,8 +263,8 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
         } else if (splits[0]==="week") {
             var year = Number(splits[1]);
             var week = Number(splits[2]);
-            var startDay = moment().year(year).week(week).day(0).add("days", 7);
-            var result = "week/" + startDay.year() + "/" + startDay.week();
+            var endDay = moment().year(year).isoWeek(week).day("Thursday").add("weeks", 1);
+            var result = "week/" + endDay.year() + "/" + endDay.isoWeek();
             return result;
         } else if (splits[0]==="month") {
             var year = Number(splits[1]);
