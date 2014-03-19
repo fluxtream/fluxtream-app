@@ -11,6 +11,7 @@ import org.fluxtream.domain.DataUpdate;
 public class DataUpdateDigestModel {
     Map<String,Map<String,TimeBoundariesModel>> bodytrackData;//a list of all the bodytrack data requests
     Map<String,Set<String>> bodytrackStyle;
+    Boolean notification;
 
     long generationTimestamp;
 
@@ -23,6 +24,9 @@ public class DataUpdateDigestModel {
                     break;
                 case bodytrackStyle:
                     addBodytrackStyleUpdate(update);
+                    break;
+                case notification:
+                    addNotificationUpdate(update);
                     break;
                 default:
                     throw new Exception("Unhandled update type encountered!");
@@ -61,6 +65,10 @@ public class DataUpdateDigestModel {
 
         }
         Collections.addAll(channelSet, channelNames);
+    }
+
+    private void addNotificationUpdate(DataUpdate update){
+        notification = true;
     }
 
 }

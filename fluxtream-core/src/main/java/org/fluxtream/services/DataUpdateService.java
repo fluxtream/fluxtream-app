@@ -13,6 +13,7 @@ public interface DataUpdateService {
     public void logBodyTrackDataUpdate(long guestId, long apiKeyId, Long objectTypeId, BodyTrackHelper.ParsedBodyTrackUploadResult uploadResult);
     public void logBodyTrackStyleUpdate(long guestId, long apiKeyId, Long objectTypeId, String deviceName,
                                         String[] channelNames);
+    public void logNotificationUpdate(final long guestId);
 
     public List<DataUpdate> getAllUpdatesSince(long guestId, long sinceTime);
     public void cleanupOldDataUpdates();

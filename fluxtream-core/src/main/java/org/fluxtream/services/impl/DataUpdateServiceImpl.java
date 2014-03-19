@@ -19,7 +19,7 @@ public class DataUpdateServiceImpl implements DataUpdateService {
     private EntityManager em;
 
     @Transactional(readOnly = false)
-    private void createDataUpdate(DataUpdate.UpdateType type, long guestId, long apiKeyId, Long objectTypeId,
+    private void createDataUpdate(DataUpdate.UpdateType type, long guestId, Long apiKeyId, Long objectTypeId,
                                   String deviceName,  String[] channelNames, String addtionalInfo, Long start, Long end){
         DataUpdate update = new DataUpdate();
         update.type = type;
@@ -71,8 +71,12 @@ public class DataUpdateServiceImpl implements DataUpdateService {
     @Transactional(readOnly = false)
     public void logBodyTrackStyleUpdate(final long guestId, final long apiKeyId, final Long objectTypeId, final String deviceName, final String[] channelNames) {
         createDataUpdate(DataUpdate.UpdateType.bodytrackStyle,guestId,apiKeyId,objectTypeId,deviceName,channelNames,null,null,null);
+    }
 
-
+    @Override
+    @Transactional(readOnly = false)
+    public void logNotificationUpdate(final long guestId){
+        createDataUpdate(DataUpdate.UpdateType.notification,guestId,null,null,null,null,null,null,null);
     }
 
     @Override

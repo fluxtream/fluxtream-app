@@ -5,8 +5,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import org.fluxtream.domain.Notification;
 import org.fluxtream.domain.Notification.Type;
+import org.fluxtream.services.DataUpdateService;
 import org.fluxtream.services.NotificationsService;
 import org.fluxtream.utils.JPAUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,9 @@ public class NotificationsServiceImpl implements NotificationsService {
 
 	@PersistenceContext
 	EntityManager em;
+
+    @Autowired
+    DataUpdateService dataUpdateService;
 
     @Override
     @Transactional(readOnly = false)
@@ -40,6 +45,8 @@ public class NotificationsServiceImpl implements NotificationsService {
             previousNotification.ts = System.currentTimeMillis();
             em.merge(previousNotification);
         }
+        dataUpdateService.logNotificationUpdate(guestId);
+
     }
 
     @Override
@@ -60,6 +67,7 @@ public class NotificationsServiceImpl implements NotificationsService {
             sameNotification.repeated++;
             em.merge(sameNotification);
         }
+        dataUpdateService.logNotificationUpdate(guestId);
 	}
 
     @Override
@@ -82,6 +90,7 @@ public class NotificationsServiceImpl implements NotificationsService {
             sameNotification.ts = System.currentTimeMillis();
             em.merge(sameNotification);
         }
+        dataUpdateService.logNotificationUpdate(guestId);
     }
 
     @Override
@@ -93,6 +102,7 @@ public class NotificationsServiceImpl implements NotificationsService {
 		}
 		notification.deleted = true;
 		em.merge(notification);
+        dataUpdateService.logNotificationUpdate(guestId);
 	}
 
 	@Override

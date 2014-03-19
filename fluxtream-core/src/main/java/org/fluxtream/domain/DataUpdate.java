@@ -17,7 +17,7 @@ import org.hibernate.annotations.Index;
 })
 public class DataUpdate extends AbstractEntity {
 
-    public DataUpdate(long guestId, UpdateType type, long apiKeyId, Long objectTypeId, String channelNames, String additionalInfo, long timestamp, Long startTime, Long endTime){
+    public DataUpdate(long guestId, UpdateType type, Long apiKeyId, Long objectTypeId, String channelNames, String additionalInfo, long timestamp, Long startTime, Long endTime){
         this.guestId = guestId;
         this.type = type;
         this.apiKeyId = apiKeyId;
@@ -45,7 +45,8 @@ public class DataUpdate extends AbstractEntity {
     @Index(name="GuestIdAndTimestamp")
     public long guestId;
 
-    public long apiKeyId;//always at least needs to be associated with fluxtream capture so this can't be null
+    @Nullable
+    public Long apiKeyId;//always at least needs to be associated with fluxtream capture so this can't be null
     @Nullable
     public Long objectTypeId;
 
