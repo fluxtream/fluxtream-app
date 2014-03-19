@@ -172,7 +172,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
                 .click(function(event){
                     var timeUnit = $(event.target).attr("unit");
 
-                    if (Calendar.dateAxisCursorPosition == null || (Calendar.currentTabName != "map" && Calendar.currentTabName != "timeline")){
+                    if (Calendar.dateAxisCursorPosition == null || Calendar.currentTabName != "timeline"){
                         var newState = updateTimeUnit(timeUnit, Calendar.tabState);
                         Calendar.navigateState(Calendar.currentTab.name + "/" + newState);
                     }
