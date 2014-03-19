@@ -31,6 +31,35 @@ define([], function() {
         return month;
     };
 
+    DateUtils.constrainDate = function(ts, state) {
+        var splits = state.split("/");
+        var date;
+        if (splits[0]==="date"){
+            date = moment(splits[1], "YYYY-MM-DD");
+            return date.format("YYYY-MM-DD");
+        } else if (splits[0]==="week") {
+            var year = Number(splits[1]);
+            var week = Number(splits[2]);
+            var firstDate = moment().year(year).isoWeek(week).day(0);
+            var lastDate = moment().year(year).isoWeek(week).day(6);
+            if (ts.isBefore(firstDate))
+                return firstDate.format("YYYY-MM-DD");
+            else if (ts.isAfter(lastDate))
+                return lastDate.format("YYYY-MM-DD");
+            else return ts.format("YYYY-MM-DD");
+        } else if (splits[0]==="month") {
+            var year = Number(splits[1]);
+            var month = Number(splits[2])-1;
+            firstDate = moment().year(year).month(month).date(1);
+            lastDate = moment().year(year).month(month).date(31);
+            if (ts.isBefore(firstDate))
+                return firstDate.format("YYYY-MM-DD");
+            else if (ts.isAfter(lastDate))
+                return lastDate.format("YYYY-MM-DD");
+            else return ts.format("YYYY-MM-DD");
+        }
+    }
+
     function getWeekNumber(year, month, date) {
         var week = moment().year(year).month(month).date(date).week();
         return week;

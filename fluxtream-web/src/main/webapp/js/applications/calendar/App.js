@@ -310,7 +310,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     facet.time = App.formatMinuteOfDay(facet.startMinute)[0];
                     facet.ampm = App.formatMinuteOfDay(facet.startMinute)[1];
                     facet.start = eventStart.utc().valueOf();
-                    facet.date = eventStart.format("YYYY-MM-DD");
+                    facet.date = DateUtils.constrainDate(eventStart, Calendar.digest.calendar.state);
                     break;
                 case "eventEnd":
                     var eventEnd = moment(facet[member], "YYYYMMDD'T'HHmmss.SSSZ");
