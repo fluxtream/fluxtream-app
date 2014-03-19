@@ -79,4 +79,10 @@ public class DataUpdateServiceImpl implements DataUpdateService {
     public List<DataUpdate> getAllUpdatesSince(final long guestId, final long sinceTime) {
         return JPAUtils.find(em,DataUpdate.class,"dataUpdate.since",guestId,sinceTime);
     }
+
+    @Override
+    @Transactional(readOnly = false)
+    public void cleanupOldDataUpdates() {
+        JPAUtils.execute(em,"dataUpdate.delete.before",System.currentTimeMillis() - 24 * 60 * 60 * 1000);
+    }
 }

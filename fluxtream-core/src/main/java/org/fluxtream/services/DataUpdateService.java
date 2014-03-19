@@ -15,4 +15,5 @@ public interface DataUpdateService {
                                         String[] channelNames);
 
     public List<DataUpdate> getAllUpdatesSince(long guestId, long sinceTime);
+    public void cleanupOldDataUpdates();
 }
