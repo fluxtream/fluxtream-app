@@ -605,7 +605,7 @@ public class CalendarDataStore {
             if (objectType != null) {
                 sb.append("-").append(objectType.getName());
             }
-			digest.cachedData.put(sb.toString(), facetCollection);
+			digest.facets.put(sb.toString(), facetCollection);
 		}
 	}
 

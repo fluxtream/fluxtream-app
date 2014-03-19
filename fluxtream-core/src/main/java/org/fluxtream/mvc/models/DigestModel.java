@@ -59,7 +59,7 @@ public class DigestModel {
     }
 
 	@SuppressWarnings("rawtypes")
-	public Map<String,Collection> cachedData
+	public Map<String,Collection> facets
 		= new HashMap<String,Collection>();
 
 	public void addNotification(NotificationModel nm) {

@@ -42,10 +42,10 @@ define(["core/Tab",
             $("#photoTab").empty();
             var noPhotos = true;
             var photos = [];
-            for (var connectorName in digest.cachedData){
-                if (digest.cachedData[connectorName].hasImages){
+            for (var connectorName in digest.facets){
+                if (digest.facets[connectorName].hasImages){
                     noPhotos = false;
-                    photos = _.union(photos, digest.cachedData[connectorName]);
+                    photos = _.union(photos, digest.facets[connectorName]);
                 }
             }
             if (noPhotos){

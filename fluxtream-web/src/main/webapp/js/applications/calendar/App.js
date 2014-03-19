@@ -492,21 +492,21 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         loadTemplate("fluxtream-address");
         loadTemplate("foursquare-venue");
         loadTemplate("moves-move-activity");
-        for (var connectorId in digest.cachedData){
-            Calendar.processFacets(digest.cachedData[connectorId]);
-            digest.cachedData[connectorId].hasImages = false;
+        for (var connectorId in digest.facets){
+            Calendar.processFacets(digest.facets[connectorId]);
+            digest.facets[connectorId].hasImages = false;
             switch (connectorId){
                 case "evernote-photo":
                 case "up-serving":
                 case "picasa-photo":
                 case "flickr-photo":
                 case "fluxtream_capture-photo":
-                    digest.cachedData[connectorId].hasImages = true;
+                    digest.facets[connectorId].hasImages = true;
                     break;
                 case "mymee-observation":
                 case "sms_backup-sms":
-                    for (var i = 0; i < digest.cachedData[connectorId].length && !digest.cachedData[connectorId].hasImages; i++){
-                        digest.cachedData[connectorId].hasImages = digest.cachedData[connectorId][i].hasImage;
+                    for (var i = 0; i < digest.facets[connectorId].length && !digest.facets[connectorId].hasImages; i++){
+                        digest.facets[connectorId].hasImages = digest.facets[connectorId][i].hasImage;
                     }
                     break;
             }
@@ -516,22 +516,22 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             var hasGeneralSettings = false;
             if (typeof(config.hasGeneralSettings)!="undefined"&&config.hasGeneralSettings)
                 hasGeneralSettings = true;
-            for (var i = 0; i < digest.cachedData[connectorId].length; i++){
-                var facet = digest.cachedData[connectorId][i];
+            for (var i = 0; i < digest.facets[connectorId].length; i++){
+                var facet = digest.facets[connectorId][i];
                 if (typeof(config.isFilteredOut)!="undefined"&&config.isFilteredOut!=null) {
                     var filteredOut = config.isFilteredOut(facet, digest.settings.connectorSettings);
                     if (filteredOut) {
-                        digest.cachedData[connectorId].splice(i, 1);
+                        digest.facets[connectorId].splice(i, 1);
                         i = -1;
                         continue;
                     }
                 }
             }
-            for (var i = 0; i < digest.cachedData[connectorId].length; i++){
-                var facet = digest.cachedData[connectorId][i];
+            for (var i = 0; i < digest.facets[connectorId].length; i++){
+                var facet = digest.facets[connectorId][i];
                 if (hasGeneralSettings && config.applySettings != null)
                     config.applySettings(facet, digest.settings.connectorSettings);
-                if (digest.cachedData[connectorId].hasImages){
+                if (digest.facets[connectorId].hasImages){
                     switch (connectorId){
                         case "picasa-photo":
                         case "flickr-photo":
@@ -560,7 +560,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                                 }
                             }
                             if (bestMatch != -1){
-                                photo42 = digest.cachedData[connectorId][i].thumbnailUrls[bestMatch];
+                                photo42 = digest.facets[connectorId][i].thumbnailUrls[bestMatch];
                             }
                         }
                         facet.photo42 = photo42;
@@ -630,14 +630,14 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         $.each(digest.selectedConnectors, function(i, connector) {
             var connectorConfig = App.getConnectorConfig(connector.connectorName);
             var connected = _.some(connector.facetTypes, function(facetType) {
-                var hasTypedFacets = digest.cachedData[facetType] != null;
+                var hasTypedFacets = digest.facets[facetType] != null;
                 //var objectType = facetType.split("-")[1];
                 if(Calendar.currentTab.name==="photos") {
                     // handle special case of mymee observations
                     //if (hasTypedFacets&&objectType.indexOf("observation")!=-1){
                     //    hasTypedFacets = false;
-                    //    for (var i=0;i<digest.cachedData[facetType].length; i++){
-                    //        if (typeof(digest.cachedData[facetType][i].photoUrl)!="undefined") {
+                    //    for (var i=0;i<digest.facets[facetType].length; i++){
+                    //        if (typeof(digest.facets[facetType][i].photoUrl)!="undefined") {
                     //            hasTypedFacets = true;
                     //            break;
                     //        }
@@ -649,7 +649,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     //    hasTypedFacets = hasTypedFacets && (isPhotoObjectType || isServingObjectType);
                     //
                     //}
-                    hasTypedFacets = hasTypedFacets && digest.cachedData[facetType].hasImages;
+                    hasTypedFacets = hasTypedFacets && digest.facets[facetType].hasImages;
                 }
                 return hasTypedFacets;
             });
@@ -865,11 +865,11 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function getFacet(facetType, facetId){
-        var cachedData = Calendar.digest.cachedData[facetType];
+        var facets = Calendar.digest.facets[facetType];
         var facet = null;
-        for (var i = 0, li = cachedData.length; i < li; i++){
-            if (cachedData[i].id == facetId){
-                facet = cachedData[i];
+        for (var i = 0, li = facets.length; i < li; i++){
+            if (facets[i].id == facetId){
+                facet = facets[i];
                 break;
             }
         }

@@ -77,16 +77,16 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         else
             map.reset();
 
-        if (digest.cachedData != null && digest.cachedData["google_latitude-location"] != null)
-            map.addGPSData(digest.cachedData["google_latitude-location"],App.getFacetConfig("google_latitude-location"),false);
-        for (var objectType in digest.cachedData){
+        if (digest.facets != null && digest.facets["google_latitude-location"] != null)
+            map.addGPSData(digest.facets["google_latitude-location"],App.getFacetConfig("google_latitude-location"),false);
+        for (var objectType in digest.facets){
             if (objectType == "google_latitude-location")
                 continue;//we already showed google latitude data if it existed
-            map.addGPSData(digest.cachedData[objectType],App.getFacetConfig(objectType),false)
+            map.addGPSData(digest.facets[objectType],App.getFacetConfig(objectType),false)
         }
         map.fitBounds(map.gpsBounds);
-        /*if (digest.cachedData != null && digest.cachedData["google_latitude-location"] != null){
-            map.addGPSData(digest.cachedData["google_latitude-location"],false);
+        /*if (digest.facets != null && digest.facets["google_latitude-location"] != null){
+            map.addGPSData(digest.facets["google_latitude-location"],false);
 
             map.fitBounds(map.gpsBounds);
         }
@@ -123,10 +123,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		drawingUtils.paintCircle(paper, config.SOCIAL_CATEGORY.orbit, "#ffffff", 1);
 		drawingUtils.paintCircle(paper, config.MEDIA_CATEGORY.orbit, "#ffffff", 1);
 		paintSolarInfo(digest.metadata.solarInfo);
-		for(var objectTypeName in digest.cachedData) {
-			if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
+		for(var objectTypeName in digest.facets) {
+			if (digest.facets[objectTypeName]==null||typeof(digest.facets[objectTypeName])=="undefined")
 				continue;
-			updateDataDisplay(digest.cachedData[objectTypeName], objectTypeName, digest);
+			updateDataDisplay(digest.facets[objectTypeName], objectTypeName, digest);
 		}
 
         var hasData = $(paper.canvas).find(".facet").length != 0;
@@ -526,7 +526,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 commentEdit.click();
             });
 
-            App.apps.calendar.rebindDetailsControls(ttpdiv,dgst.cachedData);
+            App.apps.calendar.rebindDetailsControls(ttpdiv,dgst.facets);
 
             ttpdiv.find(".flx-photo").click(function(event){
                 var dTarget = $(event.delegateTarget);
@@ -661,7 +661,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             toggleConnectorObjectType(objectTypeNames[i], enabled);
         if (connectorName==="moves")
             toggleConnectorObjectType("moves-move-activity", enabled);
-        updateDataDisplay(dgst.cachedData["google_latitude-location"], "google_latitude-location", dgst);
+        updateDataDisplay(dgst.facets["google_latitude-location"], "google_latitude-location", dgst);
     }
 
     function toggleConnectorObjectType(objectTypeName, enabled) {

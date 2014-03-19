@@ -60,12 +60,12 @@ define(["core/Tab", "applications/calendar/tabs/list/ListUtils"], function(Tab, 
             itemGroups = {};
             list.empty();
             var photoCount = 0;
-            there:for (var connectorName in digest.cachedData){
+            there:for (var connectorName in digest.facets){
                 if (!shouldDisplayInListView(connectorName))
                     continue;
-                for (var i = 0; i < digest.cachedData[connectorName].length; i++){
+                for (var i = 0; i < digest.facets[connectorName].length; i++){
                     var item = {};
-                    item.facet = digest.cachedData[connectorName][i];
+                    item.facet = digest.facets[connectorName][i];
                     if (typeof(item.facet)=="undefined") {
                         console.log("warning: undefined facet for connector " + connectorName);
                         continue;

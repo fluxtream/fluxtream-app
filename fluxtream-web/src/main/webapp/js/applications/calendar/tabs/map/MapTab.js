@@ -77,9 +77,9 @@ define(["core/Tab",
             $.ajax({
                 url: "/api/calendar/location/" + Calendar.tabState,
                 success: function(locationDigest) {
-                    for (name in locationDigest.cachedData) {
-                        Calendar.processFacets(locationDigest.cachedData[name]);
-                        digest.cachedData[name] = locationDigest.cachedData[name];
+                    for (name in locationDigest.facets) {
+                        Calendar.processFacets(locationDigest.facets[name]);
+                        digest.facets[name] = locationDigest.facets[name];
                     }
                     digest.locationFetched = true;
 
@@ -122,24 +122,24 @@ define(["core/Tab",
 
     function showData(connectorEnabled,bounds,doneLoading){
         var digest = digestData;
-        if (digest!=null && digest.cachedData!=null &&
-            typeof(digest.cachedData["google_latitude-location"])!="undefined"
-                && digest.cachedData["google_latitude-location"] !=null &&
-            digest.cachedData["google_latitude-location"].length>0) { //make sure gps data is available before trying to display it
-            map.addGPSData(digest.cachedData["google_latitude-location"],App.getFacetConfig("google_latitude-location"),true);
+        if (digest!=null && digest.facets!=null &&
+            typeof(digest.facets["google_latitude-location"])!="undefined"
+                && digest.facets["google_latitude-location"] !=null &&
+            digest.facets["google_latitude-location"].length>0) { //make sure gps data is available before trying to display it
+            map.addGPSData(digest.facets["google_latitude-location"],App.getFacetConfig("google_latitude-location"),true);
         }
 
-        for (var objectType in digest.cachedData){
+        for (var objectType in digest.facets){
             if (objectType == "google_latitude-location")
                 continue;//we already showed google latitude data if it existed
-            map.addGPSData(digest.cachedData[objectType],App.getFacetConfig(objectType),true)
+            map.addGPSData(digest.facets[objectType],App.getFacetConfig(objectType),true)
         }
 
         map.addAddresses(digest.addresses,true);
-        for(var objectTypeName in digest.cachedData) {
-            if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
+        for(var objectTypeName in digest.facets) {
+            if (digest.facets[objectTypeName]==null||typeof(digest.facets[objectTypeName])=="undefined")
                 continue;
-            map.addData(digest.cachedData[objectTypeName], objectTypeName, true);
+            map.addData(digest.facets[objectTypeName], objectTypeName, true);
         }
         for (var i = 0; i < digest.selectedConnectors.length; i++){
             if (!connectorEnabled[digest.selectedConnectors[i].connectorName])
