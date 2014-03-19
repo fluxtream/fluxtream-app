@@ -295,29 +295,44 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 		});
 	}
 
+    function addTimeInfo(facet){
+        function pad(i){
+           var is = ""+i;
+           if (is.length<2) is = "0"+i;
+           return is;
+        }
+        for (var member in facet){
+            switch (member){
+                case "eventStart":
+                    var eventStart = moment(facet[member], "YYYYMMDD'T'HHmmss.SSSZ");
+                    facet.startMinute = eventStart.hour()*60+eventStart.minute();
+                    facet.startTime = {"hours" : eventStart.hour()>12?eventStart.hour()-12:eventStart.hour(), "minutes" : pad(eventStart.minute()), "ampm" : eventStart.hour()>12?"pm":"am"};
+                    facet.time = App.formatMinuteOfDay(facet.startMinute)[0];
+                    facet.ampm = App.formatMinuteOfDay(facet.startMinute)[1];
+                    facet.start = eventStart.utc().valueOf();
+                    facet.date = eventStart.format("YYYY-MM-DD");
+                    break;
+                case "eventEnd":
+                    var eventEnd = moment(facet[member], "YYYYMMDD'T'HHmmss.SSSZ");
+                    facet.endMinute = eventEnd.hour()*60+eventEnd.minute();
+                    facet.endTime = {"hours" : eventEnd.hour()>12?eventEnd.hour()-12:eventEnd.hour(), "minutes" : pad(eventEnd.minute()), "ampm" : eventEnd.hour()>12?"pm":"am"};
+                    facet.end = eventEnd.utc().valueOf();
+                    break;
+            }
+        }
+        if (facet.type.indexOf("moves-")!=-1&&typeof(facet.activities)!="undefined"){
+           for (var i=0; i<facet.activities.length;i++) {
+               addTimeInfo(facet.activities[i]);
+           }
+        }
+    }
+
     Calendar.processFacets = function(facets){
         if (facets == null || facets.length == 0 || facets[0].getDetails != null)
             return;
         for (var i = 0; i < facets.length; i++){
             var data = facets[i];
-            for (var member in data){
-                switch (member){
-                    case "eventStart":
-                        var eventStart = moment(data[member], "YYYYMMDD'T'HH:mm:ss.SSSZ");
-                        data.startMinute = eventStart.hour()*60+eventStart.minute();
-                        data.startTime = {"hours" : eventStart.hour()>12?eventStart.hour()-12:eventStart.hour(), "minutes" : eventStart.minute(), "ampm" : eventStart.hour()>12?"pm":"am"};
-                        data.time = App.formatMinuteOfDay(data.startMinute)[0];
-                        data.ampm = App.formatMinuteOfDay(data.startMinute)[1];
-                        data.start = eventStart.utc().valueOf()*1000;
-                        break;
-                    case "eventEnd":
-                        var eventEnd = moment(data[member], "YYYYMMDD'T'HH:mm:ss.SSSZ");
-                        data.endMinute = eventEnd.hour()*60+eventEnd.minute();
-                        data.endTime = {"hours" : eventEnd.hour()>12?eventEnd.hour()-12:eventEnd.hour(), "minutes" : eventEnd.minute(), "ampm" : eventEnd.hour()>12?"pm":"am"};
-                        data.end = eventEnd.utc().valueOf()*1000;
-                        break;
-                }
-            }
+            addTimeInfo(data);
         }
         for (var i = 0, li = facets.length; i < li; i++){
             var facet = facets[i];

@@ -216,7 +216,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
 	function drawEvents(items, orbit) {
 		if (typeof(items)=="undefined") return;
-		for (i = 0; i < items.length; i++) {
+		for (var i = 0; i < items.length; i++) {
 			try {
 				var item = items[i];
                 if (item.type==="google_calendar-entry"&&item.allDay)

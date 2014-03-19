@@ -35,7 +35,7 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
     public transient int api;
     public transient int objectType;
 
-    public String date;
+    public transient String date;
 
 	/**
 	 * Thread-safe cache for vo classes
