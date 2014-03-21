@@ -80,6 +80,11 @@ public class DataUpdateServiceImpl implements DataUpdateService {
     }
 
     @Override
+    public void logApiDataUpdate(final long guestId, final long apiKeyId, final Long objectTypeId, final long startTime, final long endTime) {
+        createDataUpdate(DataUpdate.UpdateType.apiData,guestId,apiKeyId,objectTypeId,null,null,null,startTime,endTime);
+    }
+
+    @Override
     public List<DataUpdate> getAllUpdatesSince(final long guestId, final long sinceTime) {
         return JPAUtils.find(em,DataUpdate.class,"dataUpdate.since",guestId,sinceTime);
     }

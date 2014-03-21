@@ -15,6 +15,8 @@ public interface DataUpdateService {
                                         String[] channelNames);
     public void logNotificationUpdate(final long guestId);
 
+    public void logApiDataUpdate(long guestId, long apiKeyId, Long objectTypeId, long startTime, long endTime);
+
     public List<DataUpdate> getAllUpdatesSince(long guestId, long sinceTime);
     public void cleanupOldDataUpdates();
 }
