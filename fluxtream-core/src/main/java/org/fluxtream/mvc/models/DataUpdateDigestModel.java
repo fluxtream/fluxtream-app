@@ -1,21 +1,26 @@
 package org.fluxtream.mvc.models;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.fluxtream.connectors.ObjectType;
+import org.fluxtream.domain.ApiKey;
 import org.fluxtream.domain.DataUpdate;
+import org.fluxtream.services.GuestService;
 
 public class DataUpdateDigestModel {
     Map<String,Map<String,TimeBoundariesModel>> bodytrackData;//a list of all the bodytrack data requests
+    Map<String,Map<String,TimeBoundariesModel>> apiData;
     Map<String,Set<String>> bodytrackStyle;
     Boolean notification;
 
     long generationTimestamp;
 
-    public DataUpdateDigestModel(List<DataUpdate> updates) throws Exception{
+    public DataUpdateDigestModel(List<DataUpdate> updates, GuestService guestService) throws Exception{
         generationTimestamp = System.currentTimeMillis();
         for (DataUpdate update : updates){
             switch (update.type){
@@ -28,6 +33,10 @@ public class DataUpdateDigestModel {
                 case notification:
                     addNotificationUpdate(update);
                     break;
+                case apiData:
+                    addApiDataUpdate(update,guestService);
+                    break;
+
                 default:
                     throw new Exception("Unhandled update type encountered!");
             }
@@ -65,6 +74,37 @@ public class DataUpdateDigestModel {
 
         }
         Collections.addAll(channelSet, channelNames);
+    }
+
+    private void addApiDataUpdate(DataUpdate update, GuestService guestService){
+        ApiKey api = guestService.getApiKey(update.apiKeyId);
+        String apiName = api.getConnector().getName();
+        List<String> facetNames = new ArrayList<String>();
+        if (update.objectTypeId == null){     //TODO: determine if this is ever reached
+            System.err.println("Unhandled: objectType = null for DataUpdate");
+        }
+        else{
+            ObjectType[] objectTypes = api.getConnector().getObjectTypesForValue(update.objectTypeId.intValue());
+            for(ObjectType objectType : objectTypes){
+                facetNames.add(objectType.getName());
+            }
+        }
+        if (facetNames.size() == 0){   //TODO: determine if this is ever reached
+            System.err.println("ApiDataUpdate with no facetNames!");
+            return;
+        }
+        if (apiData == null){
+            apiData = new HashMap<String,Map<String,TimeBoundariesModel>>();
+        }
+        Map<String,TimeBoundariesModel> connectorMap = apiData.get(apiName);
+        if (connectorMap == null){
+            connectorMap = new HashMap<String,TimeBoundariesModel>();
+            apiData.put(apiName,connectorMap);
+        }
+        for (String facetName : facetNames){
+            connectorMap.put(facetName,new TimeBoundariesModel(update.startTime,update.endTime));
+        }
+
     }
 
     private void addNotificationUpdate(DataUpdate update){

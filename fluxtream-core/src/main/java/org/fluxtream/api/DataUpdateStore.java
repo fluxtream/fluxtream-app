@@ -37,7 +37,7 @@ public class DataUpdateStore {
     public String getDataUpdates(@QueryParam("since") long since){
         try{
             List<DataUpdate> updates = dataUpdateService.getAllUpdatesSince(AuthHelper.getGuestId(),since);
-            return gson.toJson(new DataUpdateDigestModel(updates));
+            return gson.toJson(new DataUpdateDigestModel(updates,guestService));
         }
         catch (Exception e){
             return gson.toJson(new StatusModel(false,"Failed to fetch updates"));

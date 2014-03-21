@@ -267,7 +267,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                 }
             }
         }
-        else{
+        else{        //TODO: determine if this is ever reached
             try{
                 if (updateInfo.apiKey.getConnector().hasFacets()){
                     Class<? extends AbstractFacet> facetClass = updateInfo.apiKey.getConnector().facetClass();
