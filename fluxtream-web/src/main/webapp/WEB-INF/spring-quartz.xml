@@ -20,7 +20,7 @@
         <property name="jobDetail" ref="cleanupJobDetail" />
         <property name="cronExpression" value="0 0 * * * ?" />
     </bean>
-    <bean id="cleanup" class="com.fluxtream.updaters.quartz.Cleanup"/>
+    <bean id="cleanup" class="org.fluxtream.updaters.quartz.Cleanup"/>
     <bean id="cleanupJobDetail"
           class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
         <property name="targetObject" ref="cleanup" />
@@ -35,7 +35,7 @@
 		<property name="repeatInterval" value="${producer.trigger.repeatInterval}" />
 	</bean>
 
-    <bean id="producer" class="com.fluxtream.updaters.quartz.Producer"/>
+    <bean id="producer" class="org.fluxtream.updaters.quartz.Producer"/>
     <bean id="producerJobDetail"
           class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
         <property name="targetObject" ref="producer" />
@@ -55,6 +55,6 @@
 		<property name="targetMethod" value="checkUpdatesQueue" />
 		<property name="concurrent" value="false" />
 	</bean>
-	<bean id="consumer" class="com.fluxtream.updaters.quartz.Consumer"/>
+	<bean id="consumer" class="org.fluxtream.updaters.quartz.Consumer"/>
 
 </beans>

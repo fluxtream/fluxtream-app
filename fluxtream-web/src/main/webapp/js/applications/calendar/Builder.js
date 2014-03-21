@@ -4,7 +4,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
 
     var tabsPath = "applications/calendar/tabs/";
     var tabPaths = [tabsPath + "clock/ClockTab", tabsPath + "dashboards/DashboardsTab",
-                    tabsPath + "diary/DiaryTab", tabsPath + "list/ListTab",
+                    tabsPath + "list/ListTab",
                     tabsPath + "map/MapTab", tabsPath + "photos/PhotosTab",
                     tabsPath + "timeline/TimelineTab"];
 

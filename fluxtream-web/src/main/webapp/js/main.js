@@ -58,7 +58,6 @@ if (aggressiveLoading) {
     require([
         "applications/calendar/tabs/clock/ClockTab",
         "applications/calendar/tabs/dashboards/DashboardsTab",
-        "applications/calendar/tabs/diary/DiaryTab",
         "applications/calendar/tabs/list/ListTab",
         "applications/calendar/tabs/map/MapTab",
         "applications/calendar/tabs/photos/PhotosTab",

@@ -1,5 +1,5 @@
-<%@ page import="com.fluxtream.connectors.moves.MovesPlaceFacetVO" %>
-<%@ page import="com.fluxtream.services.MetadataService" %>
+<%@ page import="org.fluxtream.connectors.moves.MovesPlaceFacetVO" %>
+<%@ page import="org.fluxtream.services.MetadataService" %>
 <%@ page import="net.sf.json.JSONArray" %>
 <%@ page import="net.sf.json.JSONObject" %>
 <%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"%><%@ taglib

@@ -1,6 +1,6 @@
-<%@ page import="com.fluxtream.auth.AuthHelper" %>
+<%@ page import="org.fluxtream.auth.AuthHelper" %>
 <%@ page import="java.util.List"
-%><%@ page import="com.fluxtream.domain.Guest"
+%><%@ page import="org.fluxtream.domain.Guest"
 %><!DOCTYPE html>
 <html lang="en">
 <head>

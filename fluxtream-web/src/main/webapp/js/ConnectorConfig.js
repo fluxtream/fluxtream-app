@@ -1,4 +1,4 @@
-define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
+define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"],function(ClockConfig, MovesColors){
     ClockConfig = ClockConfig.getConfig();
 
 
@@ -645,11 +645,16 @@ define(["applications/calendar/tabs/clock/ClockConfig"],function(ClockConfig){
                     clock: ClockConfig.OUTSIDE_CATEGORY
                 },
                 "location":{
+                    getCustomColor: function(type) {
+                        for (var i=0;i<MovesColors.activities.length;i++) {
+                            if (type.toLowerCase()===MovesColors.activities[i].group||
+                                type.toLowerCase()===MovesColors.activities[i].activity){
+                                return "#"+MovesColors.activities[i].color;
+                            }
+                        }
+                        return "#000";
+                    },
                     color: "rgb(36, 77, 187)",
-                    wlkColor: "#23ee70",
-                    trpColor: "#8f8f8d",
-                    cycColor: "#68abef",
-                    runColor: "#e674ec",
                     mapicon : {
                         url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",
                         anchor: new google.maps.Point(5,5)

@@ -54,7 +54,6 @@ define(function() {
             type: "post",
             data: {json : JSON.stringify(settings)},
             success: function(status){
-                console.log(status);
                 if(!status.result) {
                     alert("Oops, we could not save your settings:" + status.message);
                 }

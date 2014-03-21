@@ -1,14 +1,14 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"
 %><%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"
 %><%@ page isELIgnored="false"
-%><%@ page import="com.fluxtream.*"
-%><%@ page import="com.fluxtream.domain.*"
+%><%@ page import="org.fluxtream.*"
+%><%@ page import="org.fluxtream.domain.*"
 %><%@ page import="java.util.List"
 %><%@ page import="java.util.ArrayList" %>
 <jsp:useBean id="showing" type="java.lang.String" scope="request"/>
 <jsp:useBean id="pages" type="java.lang.Integer" scope="request"/>
 <jsp:useBean id="currentPage" type="java.lang.Integer" scope="request"/>
-<jsp:useBean id="env" type="com.fluxtream.Configuration" scope="request"/>
+<jsp:useBean id="env" type="org.fluxtream.Configuration" scope="request"/>
 <div class="container-fluid" style="width:530px">
 <% 
 	List<List<ConnectorInfo>> rows = (List<List<ConnectorInfo>>) request.getAttribute("availableConnectorRows");

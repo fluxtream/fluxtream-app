@@ -2,9 +2,9 @@ package glacier.dropbox;
 
 import org.springframework.stereotype.Component;
 
-import com.fluxtream.connectors.annotations.Updater;
-import com.fluxtream.connectors.updaters.AbstractUpdater;
-import com.fluxtream.connectors.updaters.UpdateInfo;
+import org.fluxtream.connectors.annotations.Updater;
+import org.fluxtream.connectors.updaters.AbstractUpdater;
+import org.fluxtream.connectors.updaters.UpdateInfo;
 
 /**
  * @author candide

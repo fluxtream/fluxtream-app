@@ -1,9 +1,9 @@
 package glacier.github;
 
 import java.util.Date;
-import com.fluxtream.TimeInterval;
-import com.fluxtream.connectors.vos.AbstractInstantFacetVO;
-import com.fluxtream.domain.GuestSettings;
+import org.fluxtream.TimeInterval;
+import org.fluxtream.connectors.vos.AbstractInstantFacetVO;
+import org.fluxtream.domain.GuestSettings;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 

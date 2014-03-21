@@ -1,9 +1,9 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"
 %><%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"
 %><%@ page isELIgnored="false"
-%><%@ page import="com.fluxtream.*"%><%
-%><%@ page import="com.fluxtream.connectors.*"%><%
-%><%@ page import="com.fluxtream.domain.*"%><%
+%><%@ page import="org.fluxtream.*"%><%
+%><%@ page import="org.fluxtream.connectors.*"%><%
+%><%@ page import="org.fluxtream.domain.*"%><%
 %><%@ page import="java.util.*"%><%
 	ResourceBundle res =
 		ResourceBundle.getBundle("messages/connectors");

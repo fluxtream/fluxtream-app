@@ -4,7 +4,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         "applications/calendar/App",
         "applications/calendar/tabs/map/MapUtils",
         "App",
-        "applications/calendar/tabs/photos/PhotoUtils"], function(DrawingUtils, Config, Tab, Calendar, MapUtils, App, PhotoUtils) {
+        "applications/calendar/tabs/photos/PhotoUtils",
+        "libs/moves-colorcodes"], function(DrawingUtils, Config, Tab, Calendar, MapUtils, App, PhotoUtils, MovesColors) {
 	
 	var paper = null;
 	var config = null;
@@ -325,18 +326,13 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         if (item.type==="moves-place")
             return config.MOVES_PLACE_COLOR;
         else if (item.type==="moves-move-activity") {
-            switch (item.activityCode) {
-                case "cyc":
-                    return config.MOVES_CYCLING_COLOR;
-                case "wlk":
-                    return config.MOVES_WALKING_COLOR;
-                case "trp":
-                    return config.MOVES_TRANSPORT_COLOR;
-                case "run":
-                    return config.MOVES_RUNNING_COLOR;
-                default:
-                    return "#000000";
+            for (var i=0;i<MovesColors.activities.length;i++) {
+                if (item.activity.toLowerCase()===MovesColors.activities[i].group||
+                    item.activity.toLowerCase()===MovesColors.activities[i].activity){
+                    return "#"+MovesColors.activities[i].color;
+                }
             }
+            return "#000";
         } else
             return App.getConnectorConfig(App.getFacetConnector(item.type)).color;
     }

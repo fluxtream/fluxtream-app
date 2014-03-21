@@ -4,16 +4,16 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.fluxtream.connectors.updaters.UpdateInfo;
+import org.fluxtream.connectors.updaters.UpdateInfo;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import org.springframework.stereotype.Component;
 
-import com.fluxtream.ApiData;
-import com.fluxtream.connectors.ObjectType;
-import com.fluxtream.domain.AbstractFacet;
-import com.fluxtream.facets.extractors.AbstractFacetExtractor;
+import org.fluxtream.ApiData;
+import org.fluxtream.connectors.ObjectType;
+import org.fluxtream.domain.AbstractFacet;
+import org.fluxtream.facets.extractors.AbstractFacetExtractor;
 
 @Component
 class InstagramFacetExtractor extends AbstractFacetExtractor {

@@ -5,8 +5,8 @@ import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import com.fluxtream.connectors.annotations.ObjectTypeSpec;
-import com.fluxtream.domain.AbstractFacet;
+import org.fluxtream.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.domain.AbstractFacet;
 import org.hibernate.search.annotations.Indexed;
 
 @SuppressWarnings("serial")

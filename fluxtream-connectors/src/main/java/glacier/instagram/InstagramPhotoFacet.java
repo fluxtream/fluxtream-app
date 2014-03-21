@@ -1,8 +1,8 @@
 package glacier.instagram;
 
 import javax.persistence.Entity;
-import com.fluxtream.connectors.annotations.ObjectTypeSpec;
-import com.fluxtream.domain.AbstractFacet;
+import org.fluxtream.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.domain.AbstractFacet;
 import org.hibernate.search.annotations.Indexed;
 
 @Entity(name="Facet_InstagramPhoto")

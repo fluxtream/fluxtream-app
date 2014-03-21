@@ -1,21 +1,21 @@
 package glacier.toodledo;
 
 import java.security.NoSuchAlgorithmException;
-import com.fluxtream.Configuration;
-import com.fluxtream.connectors.Connector;
-import com.fluxtream.connectors.Connector.UpdateStrategyType;
-import com.fluxtream.connectors.RESTHelper;
-import com.fluxtream.connectors.annotations.Updater;
-import com.fluxtream.connectors.updaters.AbstractUpdater;
-import com.fluxtream.connectors.updaters.RateLimitReachedException;
-import com.fluxtream.connectors.updaters.UpdateInfo;
-import com.fluxtream.domain.ApiKey;
-import com.fluxtream.services.GuestService;
+import org.fluxtream.Configuration;
+import org.fluxtream.connectors.Connector;
+import org.fluxtream.connectors.Connector.UpdateStrategyType;
+import org.fluxtream.connectors.RESTHelper;
+import org.fluxtream.connectors.annotations.Updater;
+import org.fluxtream.connectors.updaters.AbstractUpdater;
+import org.fluxtream.connectors.updaters.RateLimitReachedException;
+import org.fluxtream.connectors.updaters.UpdateInfo;
+import org.fluxtream.domain.ApiKey;
+import org.fluxtream.services.GuestService;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static com.fluxtream.utils.Utils.hash;
+import static org.fluxtream.utils.Utils.hash;
 
 /**
  * @author candide

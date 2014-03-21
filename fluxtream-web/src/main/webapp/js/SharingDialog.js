@@ -1,4 +1,10 @@
-define(function() {
+define(["sharedConnectorSettings/evernote", "sharedConnectorSettings/google_calendar"],
+    function(EvernoteSharedConnectorSettingsHandler, GoogleCalendarSharedConnectorSettingsHandler) {
+
+    var sharedConnectorSettingsHandlers = {
+        "evernote" : EvernoteSharedConnectorSettingsHandler,
+        "google_calendar" : GoogleCalendarSharedConnectorSettingsHandler
+    };
 
     function show(){
         App.loadMustacheTemplate("settingsTemplates.html","sharingDialog",function(template){
@@ -70,7 +76,7 @@ define(function() {
             success:function(coach) {
                 App.loadMustacheTemplate("settingsTemplates.html","sharedConnectors",function(template){
                     updateCoachesDropdown(username);
-                    var html = template.render({connectors : FlxUtils.rowsOf(coach.sharedConnectors, 3),
+                    var html = template.render({connectors : coach.sharedConnectors,
                                                 username : username});
                     $("#sharedConnectors").empty();
                     $("#sharedConnectors").append(html);
@@ -80,6 +86,15 @@ define(function() {
                                                           "<i class=\"icon-trash\"></i></a>")
                     $("#removeCoachButton").click(function(){
                         removeCoach(username);
+                    });
+                    $("#sharedConnectors .sharedConnectorSettingsBtn").click(function(evt){
+                        var connectorName = $(evt.target).attr("data-connectorName");
+                        var connectorPrettyName = $(evt.target).attr("data-connectorPrettyName");
+                        var apiKeyId = $(evt.target).attr("data-apiKeyId");
+                        App.loadMustacheTemplate("connectorMgmtTemplates.html",connectorName + "-sharedConnector-settings",function(template){
+                            var settingsHandler = sharedConnectorSettingsHandlers[connectorName];
+                            settingsHandler.loadSettings(apiKeyId, username, connectorName, connectorPrettyName, template);
+                        });
                     });
                 });
             }
@@ -109,11 +124,14 @@ define(function() {
         });
     }
 
-    function toggleSharedConnector(username, connectorName, checked) {
-        if (checked)
+    function toggleSharedConnector(username, connectorName, checkbox) {
+        if (checkbox.checked) {
             addSharedConnector(username, connectorName);
-        else
+            $(checkbox).parent().find(".sharedConnectorSettingsBtn").show();
+        } else {
             removeSharedConnector(username, connectorName);
+            $(checkbox).parent().find(".sharedConnectorSettingsBtn").hide();
+        }
     }
 
     function addSharedConnector(username, connectorName) {

@@ -86,23 +86,6 @@
 </template>
 
 <template id="_timeline_channel_tab_filter_template"><span class="_timeline_channelFilter_label">{{matchingString}}</span> {{value}}</template>
-<template id="timelineExportModal">
-    <div id="timelineExportModal" class="modal hide fade"">
-    <div class="modal-header">
-        <a class="close" data-dismiss="modal">&times;</a>
-        <h3>Export Your Data to CSV</h3>
-    </div>
-    <div class="modal-body">
-        <i>Preparing Download...</i>
-    </div>
-    <div class="modal-footer">
-        <button id="cancel" class="btn" onclick="$('#timelineExportModal').modal('hide');">Cancel</button>
-        {{^noChannels}}
-        <a class="btn btn-primary disabled dataDownloadLink" href="{{downloadLink}}" download="{{filename}}" onclick="$('#timelineExportModal').modal('hide');">Download Data</a>
-        {{/noChannels}}
-    </div>
-    </div>
-</template>
 
 <template id="photoModal">
     <div id="photoModal" class="modal hide fade">

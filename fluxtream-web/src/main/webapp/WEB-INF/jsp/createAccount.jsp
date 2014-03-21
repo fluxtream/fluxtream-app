@@ -1,7 +1,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%><%@ taglib
 	prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%><%@ page
-	isELIgnored="false"%><%@ page import="com.fluxtream.*"%><%@ page
-	import="com.fluxtream.domain.*"%><%@ page import="java.util.*"%><%@ page
+	isELIgnored="false"%><%@ page import="org.fluxtream.*"%><%@ page
+	import="org.fluxtream.domain.*"%><%@ page import="java.util.*"%><%@ page
 	import="net.tanesha.recaptcha.*"%>
 <%
 	List<String> errors = new ArrayList<String>();

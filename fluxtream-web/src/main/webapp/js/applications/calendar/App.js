@@ -798,9 +798,15 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                         newFacet.hasPosition = true;
                         break;
                     case "uri":
-                        var parts = data[member].split("/");
+                        var parts = data.uri.split("/");
                         if (parts.length == 2){
-                            params.iconClass = "-activity " + parts[0];
+                            if (data.source==="MOVES") {
+                                var activityCode = "generic";
+                                if (_.contains(["transport","cycling","running","walking"],parts[0]))
+                                    activityCode = parts[0];
+                                params.iconClass = "-activity " + activityCode;
+                            } else
+                                params.iconClass = "-activity " + parts[0];
                         }
                         break;
                     case "smsType":

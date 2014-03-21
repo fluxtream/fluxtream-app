@@ -49,7 +49,7 @@
 		<beans:constructor-arg value="/welcome"></beans:constructor-arg>
 		<beans:constructor-arg>
 			<beans:array>
-				<beans:bean class="com.fluxtream.auth.FlxLogoutHandler">
+				<beans:bean class="org.fluxtream.auth.FlxLogoutHandler">
 				</beans:bean>
 			</beans:array>
 		</beans:constructor-arg>
@@ -57,11 +57,11 @@
 	</beans:bean>
 
 	<beans:bean id="loginUrlAuthenticationEntryPoint"
-		class="com.fluxtream.auth.FlxLoginUrlAuthenticationEntryPoint">
+		class="org.fluxtream.auth.FlxLoginUrlAuthenticationEntryPoint">
 		<beans:property name="loginFormUrl" value="/welcome" />
 	</beans:bean>
 
-	<beans:bean id="authFilter" class="com.fluxtream.auth.FlxAuthFilter">
+	<beans:bean id="authFilter" class="org.fluxtream.auth.FlxAuthFilter">
 		<beans:property name="authenticationManager" ref="authenticationManager" />
 		<beans:property name="authenticationFailureHandler"
 			ref="failureHandler" />
@@ -71,7 +71,7 @@
 	</beans:bean>
 
 	<beans:bean id="successHandler"
-		class="com.fluxtream.auth.FlxSavedRequestAwareAuthenticationSuccessHandler">
+		class="org.fluxtream.auth.FlxSavedRequestAwareAuthenticationSuccessHandler">
 		<beans:property name="defaultTargetUrl" value="/checkIn" />
 		<beans:property name="alwaysUseDefaultTargetUrl" value="true" />
         <beans:property name="requestCache" ref="requestCache"/>
@@ -83,7 +83,7 @@
         <beans:constructor-arg ref="requestCache"/>
     </beans:bean>
 
-	<beans:bean id="failureHandler" class="com.fluxtream.auth.FlxAuthFailureHandler">
+	<beans:bean id="failureHandler" class="org.fluxtream.auth.FlxAuthFailureHandler">
 		<beans:property name="defaultFailureUrl" value="/welcome" />
 	</beans:bean>
 
@@ -95,7 +95,7 @@
 		</authentication-provider>
 	</authentication-manager>
 
-	<beans:bean id="guestService" class="com.fluxtream.auth.FlxUserDetailsService">
+	<beans:bean id="guestService" class="org.fluxtream.auth.FlxUserDetailsService">
     </beans:bean>
 
 </beans:beans>
