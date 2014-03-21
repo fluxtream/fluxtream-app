@@ -46,7 +46,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -454,11 +453,11 @@ public class MovesUpdater extends AbstractUpdater {
         try {
             // use lastSyncTime to reduce the data returned by this call to contain only stuff that has actually
             // been updated since last time we checked
-            String lastSyncTimeAtt = guestService.getApiKeyAttribute(updateInfo.apiKey, "lastSyncTime");
-            final long millis = ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().parseDateTime(lastSyncTimeAtt).getMillis();
-            final String updatedSinceDate = localTimeStorageFormat.withZoneUTC().print(millis);
+            //String lastSyncTimeAtt = guestService.getApiKeyAttribute(updateInfo.apiKey, "lastSyncTime");
+            //final long millis = ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().parseDateTime(lastSyncTimeAtt).getMillis();
+            //final String updatedSinceDate = localTimeStorageFormat.withZoneUTC().print(millis);
             String fetched = fetchStorylineForDates(updateInfo, TimeUtils.dateFormatterUTC.print(fromDate),
-                                                    fullUpdateStartDate, false, updatedSinceDate);
+                                                    fullUpdateStartDate, false, null);
             if(fetched!=null) {
                 // put the results in ascending order
                 JSONArray storyline = JSONArray.fromObject(fetched);
@@ -1057,7 +1056,7 @@ public class MovesUpdater extends AbstractUpdater {
         boolean needsUpdate = false;
         withMovesActivities:for (int i=0; i<movesActivities.size(); i++) {
             final MovesActivity movesActivity = movesActivities.get(i);
-            for (int j=0; i<activities.size(); i++) {
+            for (int j=0; j<activities.size(); j++) {
                 JSONObject activityData = activities.getJSONObject(j);
                 if (activityData.getBoolean("manual"))
                     continue;
