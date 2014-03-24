@@ -1,12 +1,22 @@
 package org.fluxtream.connectors.moves;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
-import java.util.TimeZone;
+import java.util.TreeMap;
 import java.util.UUID;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.BasicResponseHandler;
 import org.fluxtream.aspects.FlxLogger;
 import org.fluxtream.connectors.Connector;
 import org.fluxtream.connectors.annotations.Updater;
@@ -15,7 +25,6 @@ import org.fluxtream.connectors.updaters.AbstractUpdater;
 import org.fluxtream.connectors.updaters.RateLimitReachedException;
 import org.fluxtream.connectors.updaters.UpdateFailedException;
 import org.fluxtream.connectors.updaters.UpdateInfo;
-import org.fluxtream.domain.AbstractFacet;
 import org.fluxtream.domain.AbstractLocalTimeFacet;
 import org.fluxtream.domain.ApiKey;
 import org.fluxtream.domain.ChannelMapping;
@@ -33,15 +42,6 @@ import org.fluxtream.utils.JPAUtils;
 import org.fluxtream.utils.TimeUtils;
 import org.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import org.fluxtream.utils.Utils;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.BasicResponseHandler;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.format.DateTimeFormat;
@@ -64,15 +64,12 @@ public class MovesUpdater extends AbstractUpdater {
     @Autowired
     BodyTrackHelper bodyTrackHelper;
 
-    final static String host = "https://api.moves-app.com/api/v1";
+    final static String host = "https://api.moves-app.com/api/1.1";
     final static String updateDateKeyName = "lastDate";
 
-    // Fixup the place data for a full week into the past
-    final static int pastDaysToUpdatePlaces = 7;
-
     public static DateTimeFormatter compactDateFormat = DateTimeFormat.forPattern("yyyyMMdd");
-    public static DateTimeFormatter timeStorageFormat = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmss'Z'");
-    public static DateTimeFormatter httpResponseDateFormat = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss ZZZ");
+    public final DateTimeFormatter localTimeStorageFormat = DateTimeFormat.forPattern("yyyyMMdd'T'HHmmssZ");
+    public static final DateTimeFormatter httpResponseDateFormat = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss ZZZ");
 
     // This holds onto the next time that we know quota is available.  The quota for Moves is global
     // across all the instances using a given consumer key.  The MovesUpdater is a singleton, so
@@ -106,7 +103,7 @@ public class MovesUpdater extends AbstractUpdater {
         // of the updater or the user's registration date.
         String updateStartDate = getUpdateStartDate(updateInfo);
 
-        updateMovesData(updateInfo, updateStartDate, 0);
+        updateMovesData(updateInfo, updateStartDate, false);
     }
 
     // Get/update moves data for the range of dates starting from the stored date of the last update.
@@ -117,7 +114,7 @@ public class MovesUpdater extends AbstractUpdater {
         // of the updater or the user's registration date.
         String updateStartDate = getUpdateStartDate(updateInfo);
 
-        updateMovesData(updateInfo, updateStartDate, pastDaysToUpdatePlaces);
+        updateMovesData(updateInfo, updateStartDate, true);
     }
 
     public String getUserRegistrationDate(UpdateInfo updateInfo) throws Exception, UpdateFailedException {
@@ -188,7 +185,7 @@ public class MovesUpdater extends AbstractUpdater {
                         .append(" message=\"exception while retrieving UserRegistrationDate\" connector=")
                         .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
                         .append(updateInfo.apiKey.getGuestId())
-                        .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
+                        .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
                 logger.info(sb.toString());
 
                 reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, currentTime, query, Utils.stackTrace(e), "I/O");
@@ -224,7 +221,7 @@ public class MovesUpdater extends AbstractUpdater {
 
 
     // Get/update moves data for the range of dates start
-    protected void updateMovesData(final UpdateInfo updateInfo, String fullUpdateStartDate, int fixupDateNum) throws Exception {
+    protected void updateMovesData(final UpdateInfo updateInfo, String fullUpdateStartDate, boolean performDataFixup) throws Exception {
         // Calculate the lists of days to update. Moves only updates its data for a given day when either the user
         // manually opens the application or when the phone notices that it's past midnight local time.  The former
         // action generates partial data for the day and the latter generates finalized data for that day with respect
@@ -303,25 +300,227 @@ public class MovesUpdater extends AbstractUpdater {
         // For the dates that aren't yet completed (fullUpdateStartDate through today), createOrUpdate with trackpoints.
         // createOrUpdateData will also update updateDateKeyName to set the start time for the next update as it goes
         // to be the last date that had non-empty data when withTrackpoints is true (meaning we're moving forward in time)
-        String maxDateWithData = createOrUpdateData(fullUpdateDates, updateInfo, true);
+        //String maxDateWithData = createOrUpdateData(fullUpdateDates, updateInfo, true);
+        forwardUpdateDataWithTrackPoints(fullUpdateDates, updateInfo);
 
         // If fixupDateNum>0, do createOrUpdate without trackpoints for the fixupDateNum dates prior to
         // fullUpdateStartDate
-        if(fixupDateNum>0) {
-            final List<String> fixupDates = getDatesBefore(fullUpdateStartDate, fixupDateNum);
-            createOrUpdateData(fixupDates, updateInfo, false);
+        if(performDataFixup) {
+            backwardFixupDataNoTrackPoints(fullUpdateStartDate, updateInfo);
         }
     }
 
-    private String fetchStorylineForDate(final UpdateInfo updateInfo, final String date, final boolean withTrackpoints) throws Exception {
+    /**
+     * Fetches storyLine, including location data (trackPoints), for the <code>fullUpdateDates</code> list
+     * of dates, creating batches of 7 days (max number of days as of v1.1). Upon receiving the data, this method
+     * will reorder the data in asc order and keep track of the last successfully processed day of data to minimize
+     * the amount of API calls in case of a failure and import has to be re-initiated at a later time.
+     * @param fullUpdateDates dates to fetch data for, in ASC order
+     * @param updateInfo
+     */
+    private void forwardUpdateDataWithTrackPoints(final List<String> fullUpdateDates, final UpdateInfo updateInfo) throws Exception {
+        // Create or update the data for a list of dates.  Returns the date of the latest day with non-empty data,
+        // or null if no dates had data
+
+        // Get the user registration date for comparison.  There's no point in trying to update data from before then.
+        String userRegistrationDate = getUserRegistrationDate(updateInfo);
+        String maxDateWithData=getMaxDateWithDataInDB(updateInfo);
+
+        try {
+            List<String> filteredDates = new ArrayList<String>();
+            for (String date : fullUpdateDates) {
+                if(date==null || (userRegistrationDate!=null && date.compareTo(userRegistrationDate)<0)) {
+                    // This date is either invalid or would be before the registration date, skip it
+                    continue;
+                }
+                filteredDates.add(date);
+            }
+            List<List<String>> weeks = subListsOf(filteredDates, 7);
+            for (List<String> week : weeks) {
+                String fromDate = week.get(0);
+                String toDate = week.get(week.size()-1);
+                String fetched = fetchStorylineForDates(updateInfo, fromDate, toDate, true, null);
+                if(fetched!=null) {
+                    // put the results in ascending order
+                    JSONArray storyline = JSONArray.fromObject(fetched);
+                    TreeMap<String, JSONObject> dayStorylines = new TreeMap<String,JSONObject>();
+                    for (int i=0;i<storyline.size();i++) {
+                        JSONObject dayStoryline = storyline.getJSONObject(i);
+                        dayStorylines.put(dayStoryline.getString("date"), dayStoryline);
+                    }
+
+                    for (String date : dayStorylines.keySet()) {
+                        JSONObject dayStoryline = dayStorylines.get(date);
+                        final JSONArray segments = dayStoryline.getJSONArray("segments");
+                        date = toStorageFormat(date);
+                        if(segments!=null && segments.size()>0) {
+                            boolean dateHasData=createOrUpdateDataForDate(updateInfo, segments, date);
+
+                            // Save maxDateWithData only if there was data for this date
+                            if(dateHasData && (maxDateWithData==null || maxDateWithData.compareTo(date)<0)) {
+                                maxDateWithData = date;
+                                saveMaxDateWithData(updateInfo, maxDateWithData);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (UpdateFailedException e) {
+            // The update failed and whoever threw the error knew enough to have all the details.
+            // Rethrow the error
+            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED");
+
+            throw e;
+        }
+        catch (RateLimitReachedException e) {
+            // We reached rate limit and whoever threw the error knew enough to have all the details.
+            // Rethrow the error
+            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", RATE LIMIT REACHED");
+
+            throw e;
+        }
+        catch (Exception e) {
+            StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
+                    .append(" message=\"exception while in createOrUpdateData\" connector=")
+                    .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+                    .append(updateInfo.apiKey.getGuestId())
+                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
+            logger.info(sb.toString());
+
+            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED (don't know why)");
+
+            // The update failed.  We don't know if this is permanent or temporary.
+            // Throw the appropriate exception.
+            throw new UpdateFailedException(e);
+        }
+
+    }
+
+    // In the case that maxDateWithData is set to non-null and we're moving forward in time and we completed successfully,
+    // record the maxDateWithData date to start with next time.  This has the unfortunate effect that we may end up
+    // reading in the dates since the user last had access to wireless or since they gave up on Moves many
+    // times.  The alternative would be to potentially fail to update a range of dates that don't have complete
+    // data on the Moves server.  This may set updateDateKeyName to an earlier date than the place above where updateDateKeyName
+    // is set.  This looks a bit strange, but it's the best I could come up with to both handle the
+    // case where the Moves server doesn't have data for the most recent of days and where the
+    // user registration date is set to way before the earliest real data.  In the former case, the above
+    // set of updateDateKeyName will now be overridden with an earlier date.  In the latter case, the
+    // above set or updateDateKeyName will stand as-is and continue moving forward on restarts until we have
+    // seen a date that really has some data.  To prevent excessive updating in the case where a user
+    // has given up on Moves and is really never going to update, limit the setback to a maximum of 7 days.
+    private void saveMaxDateWithData(final UpdateInfo updateInfo, final String maxDateWithData) {
+        if(maxDateWithData!=null) {
+            String dateToStore = maxDateWithData;
+            DateTime maxDateTimeWithData = TimeUtils.dateFormatterUTC.parseDateTime(maxDateWithData);
+            DateTime nowMinusSevenDays = new DateTime().minusDays(7);
+            if(maxDateTimeWithData.isBefore(nowMinusSevenDays)) {
+                // maxDateWithData is too long ago.  Use 7 days ago instead.
+                dateToStore = TimeUtils.dateFormatterUTC.print(nowMinusSevenDays);
+                System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", maxDateWithData=" + maxDateWithData + " < 7 days ago, using " + dateToStore);
+            }
+            else {
+                System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", storing maxDateWithData=" + maxDateWithData);
+            }
+            guestService.setApiKeyAttribute(updateInfo.apiKey, updateDateKeyName, dateToStore);
+        }
+    }
+
+    List<List<String>> subListsOf(final List<String> filteredDates, final int n) {
+        int nSublists = filteredDates.size()/n;
+        List<List<String>> subLists = new ArrayList<List<String>>();
+        for (int i=0; i<nSublists; i++) {
+            List<String> subList = filteredDates.subList(i*n, (i+1)*n);
+            subLists.add(subList);
+        }
+        int lastItems = filteredDates.size()%n;
+        if (filteredDates.size()%n>0) {
+            List<String> subList = filteredDates.subList(filteredDates.size() - lastItems, filteredDates.size());
+            subLists.add(subList);
+        }
+        return subLists;
+    }
+
+    /**
+     * Retrieves data that was updated since <code>updatedSinceParam</code> for 31 days before <code>fullUpdateStartDate</code>
+     * and uses that data to fixup the data that we already have in store
+     * @param fullUpdateStartDate
+     * @param updateInfo
+     */
+    private void backwardFixupDataNoTrackPoints(final String fullUpdateStartDate, final UpdateInfo updateInfo) throws UpdateFailedException, RateLimitReachedException {
+        DateTime toDate = TimeUtils.dateFormatterUTC.parseDateTime(fullUpdateStartDate);
+        final DateTime fromDate = toDate.minusDays(30);
+        try {
+            // use lastSyncTime to reduce the data returned by this call to contain only stuff that has actually
+            // been updated since last time we checked
+            //String lastSyncTimeAtt = guestService.getApiKeyAttribute(updateInfo.apiKey, "lastSyncTime");
+            //final long millis = ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().parseDateTime(lastSyncTimeAtt).getMillis();
+            //final String updatedSinceDate = localTimeStorageFormat.withZoneUTC().print(millis);
+            String fetched = fetchStorylineForDates(updateInfo, TimeUtils.dateFormatterUTC.print(fromDate),
+                                                    fullUpdateStartDate, false, null);
+            if(fetched!=null) {
+                // put the results in ascending order
+                JSONArray storyline = JSONArray.fromObject(fetched);
+                TreeMap<String, JSONObject> dayStorylines = new TreeMap<String,JSONObject>();
+                for (int i=0;i<storyline.size();i++) {
+                    JSONObject dayStoryline = storyline.getJSONObject(i);
+                    dayStorylines.put(dayStoryline.getString("date"), dayStoryline);
+                }
+
+                for (String date : dayStorylines.keySet()) {
+                    JSONObject dayStoryline = dayStorylines.get(date);
+                    date = toStorageFormat(date);
+                    final JSONArray segments = dayStoryline.getJSONArray("segments");
+                    if(segments!=null && segments.size()>0) {
+                        createOrUpdateDataForDate(updateInfo, segments, date);
+                    }
+                }
+            }
+        }
+        catch (UpdateFailedException e) {
+            // The update failed and whoever threw the error knew enough to have all the details.
+            // Rethrow the error
+            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED");
+
+            throw e;
+        }
+        catch (RateLimitReachedException e) {
+            // We reached rate limit and whoever threw the error knew enough to have all the details.
+            // Rethrow the error
+            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", RATE LIMIT REACHED");
+
+            throw e;
+        }
+        catch (Exception e) {
+            StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
+                    .append(" message=\"exception while in createOrUpdateData\" connector=")
+                    .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+                    .append(updateInfo.apiKey.getGuestId())
+                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
+            logger.info(sb.toString());
+
+            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED (don't know why)");
+
+            // The update failed.  We don't know if this is permanent or temporary.
+            // Throw the appropriate exception.
+            throw new UpdateFailedException(e);
+        }
+    }
+
+    private String fetchStorylineForDates(final UpdateInfo updateInfo, final String fromDate, final String toDate,
+                                          final boolean withTrackpoints, final String updatedSinceDate) throws Exception {
         long then = System.currentTimeMillis();
-        String fetched = null;
-        String compactDate = toCompactDateFormat(date);
+        String fetched;
+        String compactFromDate = toCompactDateFormat(fromDate);
+        String compactToDate = toCompactDateFormat(toDate);
         String fetchUrl = "not set yet";
         try {
             String accessToken = controller.getAccessToken(updateInfo.apiKey);
-            fetchUrl = String.format(host + "/user/storyline/daily/%s?trackPoints=%s&access_token=%s",
-                                            compactDate, withTrackpoints, accessToken);
+            fetchUrl = String.format(host + "/user/storyline/daily?from=%s&to=%s&trackPoints=%s",
+                                            compactFromDate, compactToDate, withTrackpoints);
+            if (updatedSinceDate!=null)
+                fetchUrl += "&updatedSince=" + URLEncoder.encode(updatedSinceDate, "utf-8");
+            fetchUrl += "&access_token=" + accessToken;
             fetched = fetchMovesAPI(updateInfo, fetchUrl);
             countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, fetchUrl);
         } catch (UnexpectedHttpResponseCodeException e) {
@@ -622,19 +821,6 @@ public class MovesUpdater extends AbstractUpdater {
         return compactDate;
     }
 
-
-    // getDatesBefore assumes its argument is in storage format and returns a list of dates in storage format
-    private List<String> getDatesBefore(String date, int nDays) {
-        DateTime initialDate = TimeUtils.dateFormatterUTC.parseDateTime(date);
-        List<String> dates = new ArrayList<String>();
-        for (int i=0; i<nDays; i++) {
-            initialDate = initialDate.minusDays(1);
-            String nextDate = TimeUtils.dateFormatterUTC.print(initialDate);
-            dates.add(nextDate);
-        }
-        return dates;
-    }
-
     private String getMaxDateWithDataInDB(UpdateInfo updateInfo) {
         final String entityName = JPAUtils.getEntityName(MovesPlaceFacet.class);
         final List<MovesPlaceFacet> newest = jpaDaoService.executeQueryWithLimit(
@@ -654,104 +840,6 @@ public class MovesUpdater extends AbstractUpdater {
         }
         return ret;
     }
-
-    private String createOrUpdateData(List<String> dates, UpdateInfo updateInfo, boolean withTrackpoints)
-            throws Exception {
-        // Create or update the data for a list of dates.  Returns the date of the latest day with non-empty data,
-        // or null if no dates had data
-
-        // Get the user registration date for comparison.  There's no point in trying to update data from before then.
-        String userRegistrationDate = getUserRegistrationDate(updateInfo);
-        String maxDateWithData=getMaxDateWithDataInDB(updateInfo);
-
-        try {
-            for (String date : dates) {
-                if(date==null || (userRegistrationDate!=null && date.compareTo(userRegistrationDate)<0)) {
-                    // This date is either invalid or would be before the registration date, skip it
-                    continue;
-                }
-                System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", moves connector: fetching story line for date " + date + ", withTrackPoints is " + withTrackpoints);
-
-                // In the case where we're moving forward in time, record the date we're about to fetch as the
-                // date to start with next time in case we encounter a failure during the update
-                if (withTrackpoints) {
-                   guestService.setApiKeyAttribute(updateInfo.apiKey, updateDateKeyName, date);
-                }
-
-                String fetched = fetchStorylineForDate(updateInfo, date, withTrackpoints);
-
-                if(fetched!=null) {
-                    final JSONArray segments = getSegments(fetched);
-                    if(segments!=null && segments.size()>0) {
-                        boolean dateHasData=createOrUpdateDataForDate(updateInfo, segments, date);
-
-                        // Update maxDateWithData only if there was data for this date
-                        if(dateHasData && (maxDateWithData==null || maxDateWithData.compareTo(date)<0)) {
-                            maxDateWithData = date;
-                        }
-                    }
-                }
-            }
-        }
-        catch (UpdateFailedException e) {
-            // The update failed and whoever threw the error knew enough to have all the details.
-            // Rethrow the error
-            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED");
-
-            throw e;
-        }
-        catch (RateLimitReachedException e) {
-            // We reached rate limit and whoever threw the error knew enough to have all the details.
-            // Rethrow the error
-            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", RATE LIMIT REACHED");
-
-            throw e;
-        }
-        catch (Exception e) {
-            StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=MovesUpdater.getUserRegistrationDate")
-                    .append(" message=\"exception while in createOrUpdateData\" connector=")
-                    .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
-                    .append(updateInfo.apiKey.getGuestId())
-                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
-            logger.info(sb.toString());
-
-            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED (don't know why)");
-
-            // The update failed.  We don't know if this is permanent or temporary.
-            // Throw the appropriate exception.
-            throw new UpdateFailedException(e);
-        }
-
-        // In the case that maxDateWithData is set to non-null and we're moving forward in time and we completed successfully,
-        // record the maxDateWithData date to start with next time.  This has the unfortunate effect that we may end up
-        // reading in the dates since the user last had access to wireless or since they gave up on Moves many
-        // times.  The alternative would be to potentially fail to update a range of dates that don't have complete
-        // data on the Moves server.  This may set updateDateKeyName to an earlier date than the place above where updateDateKeyName
-        // is set.  This looks a bit strange, but it's the best I could come up with to both handle the
-        // case where the Moves server doesn't have data for the most recent of days and where the
-        // user registration date is set to way before the earliest real data.  In the former case, the above
-        // set of updateDateKeyName will now be overridden with an earlier date.  In the latter case, the
-        // above set or updateDateKeyName will stand as-is and continue moving forward on restarts until we have
-        // seen a date that really has some data.  To prevent excessive updating in the case where a user
-        // has given up on Moves and is really never going to update, limit the setback to a maximum of 7 days.
-        if(withTrackpoints && maxDateWithData!=null) {
-            String dateToStore = maxDateWithData;
-            DateTime maxDateTimeWithData = TimeUtils.dateFormatterUTC.parseDateTime(maxDateWithData);
-            DateTime nowMinusSevenDays = new DateTime().minusDays(7);
-            if(maxDateTimeWithData.isBefore(nowMinusSevenDays)) {
-                // maxDateWithData is too long ago.  Use 7 days ago instead.
-                dateToStore = TimeUtils.dateFormatterUTC.print(nowMinusSevenDays);
-                System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", maxDateWithData=" + maxDateWithData + " < 7 days ago, using " + dateToStore);
-            }
-            else {
-                System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", storing maxDateWithData=" + maxDateWithData);
-            }
-            guestService.setApiKeyAttribute(updateInfo.apiKey, updateDateKeyName, dateToStore);
-        }
-
-        return(maxDateWithData);
-    }
-
     private boolean createOrUpdateDataForDate(final UpdateInfo updateInfo, final JSONArray segments,
                                            final String date) throws UpdateFailedException {
         // For a given date, iterate over the JSON array of segments returned by a call to the Moves API and
@@ -784,7 +872,8 @@ public class MovesUpdater extends AbstractUpdater {
     private MovesMoveFacet createOrUpdateMovesMoveFacet(final String date,final JSONObject segment, final UpdateInfo updateInfo)
         throws UpdateFailedException {
         try {
-            final DateTime startTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("startTime"));
+            final String startTimeString = segment.getString("startTime");
+            final DateTime startTime = localTimeStorageFormat.parseDateTime(startTimeString);
             long start = startTime.getMillis();
 
             MovesMoveFacet ret =
@@ -815,6 +904,7 @@ public class MovesUpdater extends AbstractUpdater {
                                                                        // Just update from the segment info
                                                                        needsUpdate = tidyUpMoveFacet(segment, facet);
                                                                        needsUpdate |= tidyUpActivities(updateInfo, segment, facet);
+                                                                       needsUpdate |= replaceManualActivities(updateInfo, segment, facet);
                                                                    }
 
 
@@ -848,7 +938,7 @@ public class MovesUpdater extends AbstractUpdater {
     private MovesPlaceFacet createOrUpdateMovesPlaceFacet(final String date,final JSONObject segment, final UpdateInfo updateInfo)
         throws UpdateFailedException{
         try {
-            final DateTime startTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("startTime"));
+            final DateTime startTime = localTimeStorageFormat.parseDateTime(segment.getString("startTime"));
             final long start = startTime.getMillis();
 
             MovesPlaceFacet ret =
@@ -863,7 +953,7 @@ public class MovesUpdater extends AbstractUpdater {
                                                                // This will abort the transaction
                                                                @Override
                                                                public MovesPlaceFacet createOrModify(MovesPlaceFacet facet, Long apiKeyId) {
-                                                                   boolean needsUpdate = false;
+                                                                   boolean needsUpdate;
                                                                    if (facet == null) {
                                                                        facet = new MovesPlaceFacet(apiKeyId);
                                                                        facet.guestId = updateInfo.apiKey.getGuestId();
@@ -878,6 +968,7 @@ public class MovesUpdater extends AbstractUpdater {
                                                                        // Just update from the segment info
                                                                        needsUpdate = tidyUpPlaceFacet(segment, facet);
                                                                        needsUpdate |= tidyUpActivities(updateInfo, segment, facet);
+                                                                       needsUpdate |= replaceManualActivities(updateInfo, segment, facet);
                                                                    }
 
                                                                    // If the facet changed set timeUpdated
@@ -904,7 +995,42 @@ public class MovesUpdater extends AbstractUpdater {
         }
     }
 
-    @Transactional(readOnly=false)
+    /**
+     * Since there is no way to uniquely identify manual activities, here we bluntly replace all possibly existing such
+     * activities with the new ones, if any. If none pre-existed and no new manual activities were created, this method
+     * is a no-op and return false.
+     * @param updateInfo
+     * @param segment
+     * @param parentFacet
+     * @return
+     */
+    private boolean replaceManualActivities(final UpdateInfo updateInfo, final JSONObject segment, final MovesFacet parentFacet) {
+        final List<MovesActivity> movesActivities = parentFacet.getActivities();
+        if (!segment.has("activities"))
+            return false;
+        List<MovesActivity> oldManualActivities = new ArrayList<MovesActivity>();
+        for (MovesActivity movesActivity : movesActivities) {
+            if (movesActivity.manual) {
+                oldManualActivities.add(movesActivity);
+            }
+        }
+        boolean hasOldManualActivities = oldManualActivities.size()>0;
+        for (MovesActivity oldManualActivity : oldManualActivities)
+            movesActivities.remove(oldManualActivity);
+
+        final JSONArray activities = segment.getJSONArray("activities");
+        boolean hasNewManualActivities = false;
+        for (int i=0; i<activities.size(); i++) {
+            JSONObject jsonActivity = activities.getJSONObject(i);
+            if (jsonActivity.getBoolean("manual")) {
+                hasNewManualActivities = true;
+                final MovesActivity activity = extractActivity(parentFacet.date,updateInfo, jsonActivity);
+                parentFacet.addActivity(activity);
+            }
+        }
+        return hasOldManualActivities||hasNewManualActivities;
+    }
+
     private boolean tidyUpActivities(final UpdateInfo updateInfo, final JSONObject segment, final MovesFacet parentFacet) {
         // Reconcile the stored activities associated with a given parent facet with the contents of a corresponding json
         // object returned by the Moves API.  Returns true if the facet needs update, and false otherwise.
@@ -913,18 +1039,10 @@ public class MovesUpdater extends AbstractUpdater {
             return false;
         final JSONArray activities = segment.getJSONArray("activities");
         boolean needsUpdate = false;
-        // TODO: it's possible that the two lists would be of the same length
-        // yet not have perfectly matching start times.  In that case
-        // this function will fail to behave properly.
-        if (movesActivities.size()<activities.size()) {
-            // identify missing activities and add them to the facet's activities
-            addMissingActivities(updateInfo, movesActivities, activities, parentFacet);
-            needsUpdate = true;
-        } else if (movesActivities.size()>activities.size()) {
-            // find out which activities we need to remove
-            removeActivities(movesActivities, activities, parentFacet);
-            needsUpdate = true;
-        }
+        // identify missing activities and add them to the facet's activities
+        needsUpdate |= addMissingActivities(updateInfo, movesActivities, activities, parentFacet);
+        // identify activities that have been removed
+        needsUpdate |= removeActivities(movesActivities, activities, parentFacet);
         // finally, update activities that need it
         needsUpdate|=updateActivities(updateInfo, movesActivities, activities);
         return(needsUpdate);
@@ -933,18 +1051,24 @@ public class MovesUpdater extends AbstractUpdater {
     // This function compares start times between a list of stored moves activity facets and entries in a JSON array
     // of activity objects returned by the Moves API.  Any items in the list of stored facets which do not have a
     // corresponding item in the JSON array with a matching start time are removed.
-    private void removeActivities(final List<MovesActivity> movesActivities, final JSONArray activities, final MovesFacet facet) {
+    // 2014/03/13: Candide modified so it only affects non-manual entries + return true if modifications occured
+    private boolean removeActivities(final List<MovesActivity> movesActivities, final JSONArray activities, final MovesFacet facet) {
+        boolean needsUpdate = false;
         withMovesActivities:for (int i=0; i<movesActivities.size(); i++) {
             final MovesActivity movesActivity = movesActivities.get(i);
-            for (int j=0; i<activities.size(); i++) {
+            for (int j=0; j<activities.size(); j++) {
                 JSONObject activityData = activities.getJSONObject(j);
-                final long start = timeStorageFormat.withZoneUTC().parseDateTime(activityData.getString("startTime")).getMillis();
+                if (activityData.getBoolean("manual"))
+                    continue;
+                final long start = localTimeStorageFormat.parseDateTime(activityData.getString("startTime")).getMillis();
                 if (movesActivity.start==start) {
                     continue withMovesActivities;
                 }
             }
             facet.removeActivity(movesActivity);
+            needsUpdate = true;
         }
+        return needsUpdate;
     }
 
     // This function reconciles a list of moves activity facets with a JSON array of activity objects returned by the
@@ -961,7 +1085,9 @@ public class MovesUpdater extends AbstractUpdater {
             // their start times are the same.
             JSONObject jsonActivity = activities.getJSONObject(i);
             for (int j=0; j<movesActivities.size(); j++) {
-                final long start = timeStorageFormat.withZoneUTC().parseDateTime(jsonActivity.getString("startTime")).getMillis();
+                if (jsonActivity.getBoolean("manual"))
+                    continue;
+                final long start = localTimeStorageFormat.parseDateTime(jsonActivity.getString("startTime")).getMillis();
                 final MovesActivity storedActivityFacet = movesActivities.get(j);
                 if (storedActivityFacet.start==start) {
                     // Here we know that the storedActivityFacet and jsonActivity started at the same time.
@@ -982,7 +1108,7 @@ public class MovesUpdater extends AbstractUpdater {
                                    final MovesActivity movesActivity,
                                    final JSONObject activityData) {
         boolean needsUpdate = false;
-        final long end = timeStorageFormat.withZoneUTC().parseDateTime(activityData.getString("endTime")).getMillis();
+        final long end = localTimeStorageFormat.parseDateTime(activityData.getString("endTime")).getMillis();
         if (movesActivity.end!=end) {
             needsUpdate = true;
             movesActivity.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.print(end);
@@ -995,12 +1121,31 @@ public class MovesUpdater extends AbstractUpdater {
             movesActivity.activity = activity;
         }
 
+        if (activityData.has("group")) {
+            final String activityGroup = activityData.getString("group");
+            if (movesActivity.activityGroup==null||
+                (!movesActivity.activityGroup.equals(activityGroup))) {
+                needsUpdate = true;
+                movesActivity.activityGroup = activityGroup;
+            }
+        } else if (movesActivity.activityGroup!=null) {
+            movesActivity.activityGroup = null;
+            needsUpdate = true;
+        }
+
+        final String manual = activityData.getString("manual");
+        if (!movesActivity.manual.equals(manual)) {
+            needsUpdate = true;
+            movesActivity.manual = new Boolean(manual);
+        }
+
         if ((activityData.has("steps")&&movesActivity.steps==null)||
             (activityData.has("steps")&&movesActivity.steps!=activityData.getInt("steps"))) {
             needsUpdate = true;
             movesActivity.steps = activityData.getInt("steps");
         }
-        if (activityData.getInt("distance")!=movesActivity.distance) {
+        if (activityData.has("distance")&&
+            activityData.getInt("distance")!=movesActivity.distance) {
             needsUpdate = true;
             movesActivity.distance = activityData.getInt("distance");
         }
@@ -1042,13 +1187,16 @@ public class MovesUpdater extends AbstractUpdater {
             return null;
         }
     }
-    private void addMissingActivities(final UpdateInfo updateInfo,
+
+    // 2014/03/13: Candide modified so it only affects non-manual entries + return true if modifications occured
+    private boolean addMissingActivities(final UpdateInfo updateInfo,
                                       final List<MovesActivity> movesActivities,
                                       final JSONArray activities,
                                       final MovesFacet parentFacet) {
         // Loop over the activities JSON array returned by a recent API call to check if each has a corresponding
         // stored activity facet.  Consider a given stored activity facet and JSON item to match if their
         // start times are the same.
+        boolean needsUpdate = false;
         withApiActivities:for (int i=0; i<activities.size(); i++) {
             JSONObject jsonActivity = activities.getJSONObject(i);
 
@@ -1056,7 +1204,9 @@ public class MovesUpdater extends AbstractUpdater {
             // jsonActivity.  Consider a given stored activity facet and JSON item to match if
             // their start times are the same.
             for (int j=0; j<movesActivities.size(); j++) {
-                final long start = timeStorageFormat.withZoneUTC().parseDateTime(jsonActivity.getString("startTime")).getMillis();
+                if (jsonActivity.getBoolean("manual"))
+                    continue;
+                final long start = localTimeStorageFormat.parseDateTime(jsonActivity.getString("startTime")).getMillis();
                 MovesActivity storedActivityFacet = movesActivities.get(j);
                 if (storedActivityFacet.start==start) {
                     // Here we know that storedActivityFacet and jsonActivity started at the same time.
@@ -1072,7 +1222,9 @@ public class MovesUpdater extends AbstractUpdater {
             // used to make the request to the Moves API.
             final MovesActivity activity = extractActivity(parentFacet.date,updateInfo, jsonActivity);
             parentFacet.addActivity(activity);
+            needsUpdate = true;
         }
+        return needsUpdate;
     }
 
     @Transactional(readOnly=false)
@@ -1080,7 +1232,7 @@ public class MovesUpdater extends AbstractUpdater {
         boolean needsUpdating = false;
 
         // Check for change in the end time
-        final DateTime endTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("endTime"));
+        final DateTime endTime = localTimeStorageFormat.parseDateTime(segment.getString("endTime"));
         if(place.end != endTime.getMillis()) {
             //System.out.println(place.start + ": endTime changed");
             needsUpdating = true;
@@ -1101,6 +1253,7 @@ public class MovesUpdater extends AbstractUpdater {
             needsUpdating = true;
             place.type = placeData.getString("type");
         }
+
         if (placeData.has("name")&&
             (place.name==null || !place.name.equals(placeData.getString("name")))) {
             //System.out.println(place.start + ": place name has changed");
@@ -1108,13 +1261,28 @@ public class MovesUpdater extends AbstractUpdater {
             place.name = placeData.getString("name");
         }
 
+        if (placeData.has("foursquareId")&&place.foursquareId!=null&&
+            !placeData.getString("foursquareId").equals(place.foursquareId)) {
+            place.foursquareId = placeData.getString("foursquareId");
+            needsUpdating = true;
+        }
+
         // if the place wasn't identified previously, store its fourquare info now
         if (!previousPlaceType.equals("foursquare")&&
-            place.type.equals("foursquare")){
+            placeData.getString("type").equals("foursquare")){
             //System.out.println(place.start + ": storing foursquare info");
             needsUpdating = true;
             place.foursquareId = placeData.getString("foursquareId");
         }
+
+        // if the place had wrongly been identified previously and was manually
+        // set to be home/work, set its foursquare id to null
+        if (previousPlaceType.equals("foursquare")&&
+            !placeData.getString("type").equals("foursquare")){
+            needsUpdating = true;
+            place.foursquareId = null;
+        }
+
         JSONObject locationData = placeData.getJSONObject("location");
         float lat = (float) locationData.getDouble("lat");
         float lon = (float) locationData.getDouble("lon");
@@ -1132,61 +1300,13 @@ public class MovesUpdater extends AbstractUpdater {
         boolean needsUpdating = false;
 
         // Check for change in the end time
-        final DateTime endTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("endTime"));
+        final DateTime endTime = localTimeStorageFormat.parseDateTime(segment.getString("endTime"));
         if(moveFacet.end != endTime.getMillis()) {
             needsUpdating = true;
             moveFacet.end = endTime.getMillis();
         }
 
         return(needsUpdating);
-    }
-
-    private JSONArray getSegments(final String json) {
-        JSONArray segments = null;
-        try {
-            JSONArray jsonArray = JSONArray.fromObject(json);
-            JSONObject dayFacetData = jsonArray.getJSONObject(0);
-            segments = dayFacetData.getJSONArray("segments");
-        } catch (Throwable t) {
-            // The above code may fail in the case where a day has
-            // no segments.  That's a legitimate result.
-            // In that case, return null.
-        }
-
-        return segments;
-    }
-
-    private List<AbstractFacet> extractFacets(UpdateInfo updateInfo, String json) throws Exception {
-        List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
-        JSONArray jsonArray = JSONArray.fromObject(json);
-        for (int i=0; i<jsonArray.size(); i++) {
-            JSONObject dayFacetData = jsonArray.getJSONObject(i);
-            String date = dayFacetData.getString("date");
-            String dateStorage = toStorageFormat(date);
-            JSONArray segments = dayFacetData.getJSONArray("segments");
-            for (int j=0; j<segments.size(); j++) {
-                JSONObject segment = segments.getJSONObject(j);
-                if (segment.getString("type").equals("move")) {
-                    facets.add(createOrUpdateMovesMoveFacet(dateStorage, segment, updateInfo));
-                    // Old version:
-//                    facets.add(extractMove(dateStorage, segment, updateInfo));
-                } else if (segment.getString("type").equals("place")) {
-                    facets.add(createOrUpdateMovesPlaceFacet(dateStorage, segment, updateInfo));
-                    // Old version:
-//                    facets.add(extractPlace(dateStorage, segment, updateInfo));
-                }
-            }
-        }
-        return facets;
-    }
-
-    private MovesPlaceFacet extractPlace(final String date, final JSONObject segment, UpdateInfo updateInfo) {
-        MovesPlaceFacet facet = new MovesPlaceFacet(updateInfo.apiKey.getId());
-        facet.guestId=updateInfo.getGuestId();
-        facet.date=date;
-        extractMoveData(date, segment, facet, updateInfo);
-        extractPlaceData(segment, facet);
-        return facet;
     }
 
     private void extractPlaceData(final JSONObject segment, final MovesPlaceFacet facet) {
@@ -1206,19 +1326,11 @@ public class MovesUpdater extends AbstractUpdater {
         facet.longitude = (float) locationData.getDouble("lon");
     }
 
-    private MovesMoveFacet extractMove(final String date, final JSONObject segment, final UpdateInfo updateInfo) {
-        MovesMoveFacet facet = new MovesMoveFacet(updateInfo.apiKey.getId());
-        facet.guestId=updateInfo.getGuestId();
-        facet.date=date;
-        extractMoveData(date, segment, facet, updateInfo);
-        return facet;
-    }
-
     private void extractMoveData(final String date, final JSONObject segment, final MovesFacet facet, UpdateInfo updateInfo) {
         facet.date = date;
         // The times given by Moves are absolute GMT, not local time
-        final DateTime startTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("startTime"));
-        final DateTime endTime = timeStorageFormat.withZoneUTC().parseDateTime(segment.getString("endTime"));
+        final DateTime startTime = localTimeStorageFormat.parseDateTime(segment.getString("startTime"));
+        final DateTime endTime = localTimeStorageFormat.parseDateTime(segment.getString("endTime"));
         facet.start = startTime.getMillis();
         facet.end = endTime.getMillis();
         facet.date=date;
@@ -1242,23 +1354,36 @@ public class MovesUpdater extends AbstractUpdater {
         // Generate a URI of the form '{wlk,cyc,trp}/UUID'.  The activity field must be set before calling createActivityURI
         activity.activityURI = createActivityURI(activity);
 
-        final DateTime startTime = timeStorageFormat.withZoneUTC().parseDateTime(activityData.getString("startTime"));
-        final DateTime endTime = timeStorageFormat.withZoneUTC().parseDateTime(activityData.getString("endTime"));
+        if (activityData.has("startTime") && activityData.has("endTime")) {
+            final DateTime startTime = localTimeStorageFormat.parseDateTime(activityData.getString("startTime"));
+            final DateTime endTime = localTimeStorageFormat.parseDateTime(activityData.getString("endTime"));
 
-        // Note that unlike everywhere else in the sysetm, startTimeStorage and endTimeStorage here are NOT local times.
-        // They are in GMT.
-        activity.startTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.print(startTime);
-        activity.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.print(endTime);
+            // Note that unlike everywhere else in the sysetm, startTimeStorage and endTimeStorage here are NOT local times.
+            // They are in GMT.
+            activity.startTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.print(startTime);
+            activity.endTimeStorage = AbstractLocalTimeFacet.timeStorageFormat.print(endTime);
 
-        activity.start = startTime.getMillis();
-        activity.end = endTime.getMillis();
+            activity.start = startTime.getMillis();
+            activity.end = endTime.getMillis();
+        }
+
+        if (activityData.has("group"))
+            activity.activityGroup = activityData.getString("group");
+
+        if (activityData.has("manual"))
+            activity.manual = activityData.getBoolean("manual");
+
+        if (activityData.has("duration"))
+            activity.duration = activityData.getInt("duration");
 
         // The date we use here is the date which we used to request this activity from the Moves API
         activity.date = date;
 
         if (activityData.has("steps"))
             activity.steps = activityData.getInt("steps");
-        activity.distance = activityData.getInt("distance");
+        if (activityData.has("distance"))
+            activity.distance = activityData.getInt("distance");
+
         extractTrackPoints(activity.activityURI, activityData, updateInfo);
         return activity;
     }
@@ -1271,7 +1396,6 @@ public class MovesUpdater extends AbstractUpdater {
         final JSONArray trackPoints = activityData.getJSONArray("trackPoints");
         List<LocationFacet> locationFacets = new ArrayList<LocationFacet>();
         // timeZone is computed based on first location for each batch of trackPoints
-        TimeZone timeZone = null;
         Connector connector = Connector.getConnector("moves");
         for (int i=0; i<trackPoints.size(); i++) {
             JSONObject trackPoint = trackPoints.getJSONObject(i);
@@ -1282,7 +1406,7 @@ public class MovesUpdater extends AbstractUpdater {
             // timestamps from Moves are already in GMT, so don't mess with the timezone
             //if (timeZone==null)
             //    timeZone = metadataService.getTimeZone(locationFacet.latitude, locationFacet.longitude);
-            final DateTime time = timeStorageFormat.withZoneUTC().parseDateTime(trackPoint.getString("time"));
+            final DateTime time = localTimeStorageFormat.parseDateTime(trackPoint.getString("time"));
             locationFacet.timestampMs = time.getMillis();
             locationFacet.api = connector.value();
             locationFacet.start = locationFacet.timestampMs;

@@ -100,17 +100,22 @@ public abstract class AbstractMovesFacetVO<T extends MovesFacet> extends Abstrac
             // Only include activities which overlap at least part of this date
             // This comparison looks funny, but it is true if there is any overlap
             // between the time range of the activity and this date
-            if(timeInterval.getTimeUnit()== TimeUnit.ARBITRARY || activity.start<dateEnd || activity.end>dateStart) {
-                try {
-                    activities.add(new MovesActivityVO(activity, timeZone,
-                                                    dateStart, dateEnd, settings,
-                                                    timeInterval.getTimeUnit()!= TimeUnit.ARBITRARY));
-                } catch (OutsideTimeBoundariesException e) {
-                    // Don't negate the entire move facet if a particular activity falls outside
-                    // the date boundary, just ignore that individual activity
-                    skippedActivities++;
+            if (activity.manual)
+                // always add manual activities
+                activities.add(new MovesActivityVO(activity, timeZone,
+                                                   dateStart, dateEnd, settings, false));
+            else
+                if(timeInterval.getTimeUnit()== TimeUnit.ARBITRARY || activity.start<dateEnd || activity.end>dateStart) {
+                    try {
+                        activities.add(new MovesActivityVO(activity, timeZone,
+                                                        dateStart, dateEnd, settings,
+                                                        timeInterval.getTimeUnit()!= TimeUnit.ARBITRARY));
+                    } catch (OutsideTimeBoundariesException e) {
+                        // Don't negate the entire move facet if a particular activity falls outside
+                        // the date boundary, just ignore that individual activity
+                        skippedActivities++;
+                    }
                 }
-            }
         }
         hasActivities = facet.getActivities().size()>0;
     }
