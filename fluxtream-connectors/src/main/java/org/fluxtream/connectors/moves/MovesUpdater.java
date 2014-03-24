@@ -351,11 +351,16 @@ public class MovesUpdater extends AbstractUpdater {
 
                     for (String date : dayStorylines.keySet()) {
                         JSONObject dayStoryline = dayStorylines.get(date);
-                        final JSONArray segments = dayStoryline.getJSONArray("segments");
-                        date = toStorageFormat(date);
-                        if(segments!=null && segments.size()>0) {
-                            boolean dateHasData=createOrUpdateDataForDate(updateInfo, segments, date);
+                        final Object segmentsObject = dayStoryline.get("segments");
+                        if (segmentsObject!=null) {
+                            JSONArray segments = new JSONArray();
+                            if (segmentsObject instanceof JSONObject)
+                                segments.add(segmentsObject);
+                            if (segmentsObject instanceof JSONArray)
+                                segments = (JSONArray) segmentsObject;
+                            date = toStorageFormat(date);
 
+                            boolean dateHasData=createOrUpdateDataForDate(updateInfo, segments, date);
                             // Save maxDateWithData only if there was data for this date
                             if(dateHasData && (maxDateWithData==null || maxDateWithData.compareTo(date)<0)) {
                                 maxDateWithData = date;
@@ -470,8 +475,13 @@ public class MovesUpdater extends AbstractUpdater {
                 for (String date : dayStorylines.keySet()) {
                     JSONObject dayStoryline = dayStorylines.get(date);
                     date = toStorageFormat(date);
-                    final JSONArray segments = dayStoryline.getJSONArray("segments");
-                    if(segments!=null && segments.size()>0) {
+                    final Object segmentsObject = dayStoryline.get("segments");
+                    if (segmentsObject!=null) {
+                        JSONArray segments = new JSONArray();
+                        if (segmentsObject instanceof JSONObject)
+                            segments.add(segmentsObject);
+                        if (segmentsObject instanceof JSONArray)
+                            segments = (JSONArray) segmentsObject;
                         createOrUpdateDataForDate(updateInfo, segments, date);
                     }
                 }
