@@ -11,6 +11,7 @@ import org.fluxtream.connectors.ObjectType;
 import org.fluxtream.domain.ApiKey;
 import org.fluxtream.domain.DataUpdate;
 import org.fluxtream.services.GuestService;
+import org.joda.time.format.ISODateTimeFormat;
 
 public class DataUpdateDigestModel {
     Map<String,Map<String,TimeBoundariesModel>> bodytrackData;//a list of all the bodytrack data requests
@@ -18,10 +19,10 @@ public class DataUpdateDigestModel {
     Map<String,Set<String>> bodytrackStyle;
     Boolean notification;
 
-    long generationTimestamp;
+    String generationTimestamp;
 
     public DataUpdateDigestModel(List<DataUpdate> updates, GuestService guestService) throws Exception{
-        generationTimestamp = System.currentTimeMillis();
+        generationTimestamp = ISODateTimeFormat.basicDateTime().print(System.currentTimeMillis());
         for (DataUpdate update : updates){
             switch (update.type){
                 case bodytrackData:

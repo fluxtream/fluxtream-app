@@ -14,6 +14,7 @@ import org.fluxtream.mvc.models.DataUpdateDigestModel;
 import org.fluxtream.mvc.models.StatusModel;
 import org.fluxtream.services.DataUpdateService;
 import org.fluxtream.services.GuestService;
+import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -34,9 +35,9 @@ public class DataUpdateStore {
     @GET
     @Path("/all")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getDataUpdates(@QueryParam("since") long since){
+    public String getDataUpdates(@QueryParam("since") String since){
         try{
-            List<DataUpdate> updates = dataUpdateService.getAllUpdatesSince(AuthHelper.getGuestId(),since);
+            List<DataUpdate> updates = dataUpdateService.getAllUpdatesSince(AuthHelper.getGuestId(), ISODateTimeFormat.basicDateTime().parseMillis(since));
             return gson.toJson(new DataUpdateDigestModel(updates,guestService));
         }
         catch (Exception e){

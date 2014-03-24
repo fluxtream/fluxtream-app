@@ -1061,7 +1061,7 @@ define(
 
 
 
-        var lastCheckTimestamp = new Date().getTime();
+        var lastCheckTimestamp = moment().format("YYYYMMDDTHHmmss.SSSZZ");
 
         function checkForDataUpdates(){
             if (isIdle || new Date().getTime() - lastNonIdleEvent > maxIdleTime){
