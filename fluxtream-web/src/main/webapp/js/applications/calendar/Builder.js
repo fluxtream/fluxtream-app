@@ -238,32 +238,6 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
         $(".menuPrevButton").removeClass("disabled");
     };
 
-	function handleNotifications(digestInfo) {
-		$(".alert").remove();
-        $("#notifications").empty();
-		if (typeof(digestInfo.notifications)!="undefined") {
-			for (var n=0; n<digestInfo.notifications.length; n++) {
-                console.log("showing a notification " + n)
-                showNotification(digestInfo.notifications[n]);
-			}
-            $("#notifications").show();
-		}
-	}
-
-    function showNotification(notification) {
-        App.loadMustacheTemplate("notificationTemplates.html",
-            notification.type+"Notification",
-            function(template) {
-                if ($("#notification-" + notification.id).length==0) {
-                    if (notification.repeated>1) notification.message += " (" + notification.repeated + "x)";
-                    var html = template.render(notification);
-                    $("#notifications").append(html);
-                    $("abbr.timeago").timeago();
-                    $(window).resize();
-                }
-            });
-    }
-	
 	function updateTab(digest, Calendar, force) {
         if (App.activeApp.name != "calendar")
             return;
@@ -330,7 +304,6 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
 	Builder.updateTab = updateTab;
     Builder.isValidTabName = isValidTabName;
     Builder.isValidTimeUnit = isValidTimeUnit;
-    Builder.handleNotifications = handleNotifications;
 
     return Builder;
 	

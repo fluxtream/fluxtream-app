@@ -316,7 +316,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 Builder.updateTab(Calendar.digest, Calendar); //TODO: shouldn't be calling this twice really
                 if (thisFetchId != fetchId)
                     return;
-                Builder.handleNotifications(response);
+                App.handleNotificationList(response.notifications);
                 if (Calendar.timeUnit==="date") {
                     $(".ephemerisWrapper").show();
                     handleCityInfo(response);

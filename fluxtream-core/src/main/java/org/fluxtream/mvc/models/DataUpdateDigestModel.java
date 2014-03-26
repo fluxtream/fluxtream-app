@@ -20,8 +20,10 @@ public class DataUpdateDigestModel {
     Boolean notification;
 
     String generationTimestamp;
+    String queryTimestamp;
 
-    public DataUpdateDigestModel(List<DataUpdate> updates, GuestService guestService) throws Exception{
+    public DataUpdateDigestModel(List<DataUpdate> updates, GuestService guestService, long sinceTime) throws Exception{
+        queryTimestamp = ISODateTimeFormat.basicDateTime().print(sinceTime);
         generationTimestamp = ISODateTimeFormat.basicDateTime().print(System.currentTimeMillis());
         for (DataUpdate update : updates){
             switch (update.type){

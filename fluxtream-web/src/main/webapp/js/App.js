@@ -130,6 +130,12 @@ define(
 
             bindGlobalEventHandlers();
             checkForDataUpdates();
+
+            App.addDataUpdatesListener("AppNotificationsListener",function(updates){
+                if (updates.notification === true){
+                    App.refreshNotifications();
+                }
+            });
         }
 
         function bindGlobalEventHandlers(){
@@ -607,6 +613,41 @@ define(
                 }
             );
         };
+
+        App.handleNotificationList = function(notificatons){
+
+            $(".alert").remove();
+            $("#notifications").empty();
+            if (typeof(notificatons)!="undefined") {
+                for (var n=0; n<notificatons.length; n++) {
+                    console.log("showing a notification " + n);
+                    if ($("#notification-" + notificatons[n].id).length==0) {
+                        (function(n){
+                            App.loadMustacheTemplate("notificationTemplates.html",notificatons[n].type+"Notification",function(template) {
+                                if (notificatons[n].repeated>1) notificatons[n].message += " (" + notificatons[n].repeated + "x)";
+                                var html = template.render(notificatons[n]);
+                                $("#notifications").append(html);
+                                $("abbr.timeago").timeago();
+                                $(window).resize();
+                            });
+                        })(n);
+                    }
+                }
+                $("#notifications").show();
+            }
+
+        }
+
+        App.refreshNotifications = function(){
+            $.ajax("/api/notifications/all",{
+                success:function(result){
+                    App.handleNotificationList(result.notifications);
+                },
+                error: function(){
+                    console.log(arguments);
+                }
+            })
+        }
 
         App.showCarousel = function(photoId) {
             if ($("#photosCarousel").length==0) {
