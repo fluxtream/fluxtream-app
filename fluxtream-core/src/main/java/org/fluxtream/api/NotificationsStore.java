@@ -1,8 +1,10 @@
 package org.fluxtream.api;
 
 import java.io.IOException;
+import java.util.List;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -12,6 +14,7 @@ import javax.ws.rs.core.MediaType;
 import org.fluxtream.auth.AuthHelper;
 import org.fluxtream.domain.Guest;
 import org.fluxtream.domain.Notification;
+import org.fluxtream.mvc.models.NotificationListModel;
 import org.fluxtream.mvc.models.StatusModel;
 import org.fluxtream.services.GuestService;
 import org.fluxtream.services.NotificationsService;
@@ -94,6 +97,20 @@ public class NotificationsStore {
         String json = gson.toJson(status);
 
         return json;
+    }
+
+    @GET
+    @Path("/all")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String getAllNotifications()
+            throws IOException {
+
+        long guestId = AuthHelper.getGuestId();
+
+        List<Notification> notifications = notificationsService.getNotifications(guestId);
+
+
+        return gson.toJson(new NotificationListModel(notifications));
     }
 
 
