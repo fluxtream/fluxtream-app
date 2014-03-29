@@ -45,6 +45,19 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             }
         });
         Builder.init(App, this);
+        App.addDataUpdatesListener("calendarAppApiDataUpdateListener",function(update){
+            if (update.apiData != null && Calendar.digest != null){
+                for (var connector in update.apiData){
+                    for (var objectType in update.apiData[connector]){
+                        if ((update.apiData[connector][objectType].start < Calendar.digest.tbounds.end && update.apiData[connector][objectType].start >= Calendar.digest.tbounds.start) ||
+                            (update.apiData[connector][objectType].end <= Calendar.digest.tbounds.end && update.apiData[connector][objectType].end > Calendar.digest.tbounds.start) ||
+                            (update.apiData[connector][objectType].start <= Calendar.digest.tbounds.start && update.apiData[connector][objectType].end >= Calendar.digest.tbounds.end)){
+                            console.log(connector + "." + objectType + " data updates exist for current timerange");
+                        }
+                    }
+                }
+            }
+        });
 	};
 
 	Calendar.initialize = function () {
