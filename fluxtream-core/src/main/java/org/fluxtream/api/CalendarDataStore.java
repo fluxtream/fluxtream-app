@@ -469,6 +469,17 @@ public class CalendarDataStore {
         }
     }
 
+    private void appendFacetsToConnectorResponseModel(ConnectorResponseModel model, Collection<AbstractFacetVO<AbstractFacet>> facetCollection,Connector connector, ObjectType objectType){
+        if (facetCollection.size() > 0){
+            if (model.facets == null)
+                model.facets = new HashMap<String,Collection<AbstractFacetVO<AbstractFacet>>>();
+            StringBuilder name = new StringBuilder(connector.getName());
+            if (objectType != null)
+                name.append("-").append(objectType.getName());
+            model.facets.put(name.toString(),facetCollection);
+        }
+    }
+
     @SuppressWarnings("rawtypes")
 	@GET
 	@Path("/{connectorName}/date/{date}")
@@ -508,16 +519,11 @@ public class CalendarDataStore {
 
             if (objectTypes != null) {
                 for (ObjectType objectType : objectTypes) {
-                    Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetCollection(dayMetadata,settings,connector,objectType);
-                    if (facetCollection.size() > 0) {
-                        day.payload = facetCollection;
-                    }
+                    appendFacetsToConnectorResponseModel(day,getFacetCollection(dayMetadata, settings, connector, objectType),connector,objectType);
                 }
             }
             else {
-                Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetCollection(dayMetadata, settings, connector, null);
-                if (facetCollection.size() > 0)
-                    day.payload = facetCollection;
+                appendFacetsToConnectorResponseModel(day,getFacetCollection(dayMetadata,settings,connector,null),connector,null);
             }
 
             StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getConnectorData")
@@ -575,16 +581,11 @@ public class CalendarDataStore {
 
             if (objectTypes != null) {
                 for (ObjectType objectType : objectTypes) {
-                    Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetCollection(weekMetadata,settings,connector,objectType);
-                    if (facetCollection.size() > 0) {
-                        day.payload = facetCollection;
-                    }
+                    appendFacetsToConnectorResponseModel(day,getFacetCollection(weekMetadata,settings,connector,objectType),connector,objectType);
                 }
             }
             else {
-                Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetCollection(weekMetadata, settings, connector, null);
-                if (facetCollection.size() > 0)
-                    day.payload = facetCollection;
+                appendFacetsToConnectorResponseModel(day,getFacetCollection(weekMetadata,settings,connector,null),connector,null);
             }
 
             StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getConnectorData")
@@ -643,16 +644,11 @@ public class CalendarDataStore {
 
             if (objectTypes != null) {
                 for (ObjectType objectType : objectTypes) {
-                    Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetCollection(monthMetadata,settings,connector,objectType);
-                    if (facetCollection.size() > 0) {
-                        day.payload = facetCollection;
-                    }
+                    appendFacetsToConnectorResponseModel(day,getFacetCollection(monthMetadata,settings,connector,objectType),connector,objectType);
                 }
             }
             else {
-                Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetCollection(monthMetadata, settings, connector, null);
-                if (facetCollection.size() > 0)
-                    day.payload = facetCollection;
+                appendFacetsToConnectorResponseModel(day,getFacetCollection(monthMetadata,settings,connector,null),connector,null);
             }
 
             StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getConnectorData")
