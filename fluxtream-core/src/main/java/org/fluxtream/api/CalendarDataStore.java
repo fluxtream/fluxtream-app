@@ -416,6 +416,15 @@ public class CalendarDataStore {
         return objectMapper.writeValueAsString(digest);
     }
 
+    private String toJacksonJson(ConnectorResponseModel  connectorResponse) throws IOException {
+        final ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+        objectMapper.setVisibilityChecker(
+                objectMapper.getSerializationConfig().getDefaultVisibilityChecker().
+                        withFieldVisibility(JsonAutoDetect.Visibility.NON_PRIVATE));
+        return objectMapper.writeValueAsString(connectorResponse);
+    }
+
     private void setMetadata(final DigestModel digest, final AbstractTimespanMetadata dayMetadata, String[] dates) {
         digest.metadata.mainCity = new VisitedCityModel(dayMetadata.consensusVisitedCity, env,dates[0]);
         List<VisitedCityModel> cityModels = new ArrayList<VisitedCityModel>();
@@ -533,7 +542,7 @@ public class CalendarDataStore {
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
 
-            String json = gson.toJson(day);
+            String json = toJacksonJson(day);
             return json;
         }
         catch (Exception e){
@@ -596,7 +605,7 @@ public class CalendarDataStore {
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
 
-            String json = gson.toJson(day);
+            String json = toJacksonJson(day);
             return json;
         }
         catch (Exception e){
@@ -659,7 +668,7 @@ public class CalendarDataStore {
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
 
-            String json = gson.toJson(day);
+            String json = toJacksonJson(day);
             return json;
         }
         catch (Exception e){

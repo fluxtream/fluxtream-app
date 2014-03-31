@@ -47,15 +47,41 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         Builder.init(App, this);
         App.addDataUpdatesListener("calendarAppApiDataUpdateListener",function(update){
             if (update.apiData != null && Calendar.digest != null){
+                var digestTimestamp = Calendar.digest.generationTimestamp;
+                var stateToRequest = Calendar.timespanState;
+                var connectorsToRefresh = [];
                 for (var connector in update.apiData){
                     for (var objectType in update.apiData[connector]){
                         if ((update.apiData[connector][objectType].start < Calendar.digest.tbounds.end && update.apiData[connector][objectType].start >= Calendar.digest.tbounds.start) ||
                             (update.apiData[connector][objectType].end <= Calendar.digest.tbounds.end && update.apiData[connector][objectType].end > Calendar.digest.tbounds.start) ||
                             (update.apiData[connector][objectType].start <= Calendar.digest.tbounds.start && update.apiData[connector][objectType].end >= Calendar.digest.tbounds.end)){
-                            console.log(connector + "." + objectType + " data updates exist for current timerange");
+                            connectorsToRefresh.push(connector);
+                            break;
                         }
                     }
                 }
+                var newFacets = {};
+                (function refreshNextConnector(i){
+                    if (digestTimestamp != Calendar.digest.generationTimestamp)//new digest showed up, don't need new data
+                        return;
+                    if (i >= connectorsToRefresh.length){
+                        Calendar.mergeInFacets(newFacets);
+                        return;
+                    }
+                    $.ajax("/api/calendar/" + connectorsToRefresh[i] + "/" + stateToRequest,{
+                        success:function(result){
+                            for (var facetType in result.facets){
+                                newFacets[facetType] = result.facets[facetType];
+                            }
+                            refreshNextConnector(i+1);
+                        },
+                        error:function(){
+                            console.error(arguments);
+                            refreshNextConnector(i+1);
+                        }
+                    })
+
+                })(0);
             }
         });
 	};
@@ -483,18 +509,22 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         if (typeof(digest.settings.messageDisplayCounters)!="undefined") {
             App.setupBeginnersFriendlyUI(digest.settings.messageDisplayCounters, digest.nApis);
         }
-        digest.getConsensusCitiesList = function(){
-            if (digest.metadata.timeUnit === "DAY")
-                return [digest.metadata.mainCity];
-            return digest.metadata.consensusCities;
-        };
-        digest.getCitiesList = function(){
-            if (digest.metadata.timeUnit === "DAY")
-                return [digest.metadata.mainCity];
-            return digest.metadata.cities;
-        };
+        if (digest.getConsensusCitiesList == null){
+            digest.getConsensusCitiesList = function(){
+                if (digest.metadata.timeUnit === "DAY")
+                    return [digest.metadata.mainCity];
+                return digest.metadata.consensusCities;
+            };
+            digest.getCitiesList = function(){
+                if (digest.metadata.timeUnit === "DAY")
+                    return [digest.metadata.mainCity];
+                return digest.metadata.cities;
+            };
+        }
         var templatePath = "applications/calendar/facetTemplates.html";
         function loadTemplate(name) {
+            if (Calendar.detailsTemplates[name] != null)
+                return;
             App.loadMustacheTemplate(templatePath, name, function(template){
                 if (template == null) {
                     console.log("WARNING: no template found for " + name + ".");
@@ -511,6 +541,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         loadTemplate("foursquare-venue");
         loadTemplate("moves-move-activity");
         for (var connectorId in digest.cachedData){
+            if (digest.cachedData[connectorId].processed === true)
+                continue;
+            digest.cachedData[connectorId].processed = true;
             Calendar.processFacets(digest.cachedData[connectorId]);
             digest.cachedData[connectorId].hasImages = false;
             switch (connectorId){
@@ -621,6 +654,43 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
     }
 
+    Calendar.mergeInFacets = function(newFacetsArray){
+        if (newFacetsArray.length == 0)
+            return;
+        for (var facetTypeId in newFacetsArray){//step one is to build the selectedConnectors and add the facets directly in
+            var connectorId = facetTypeId.split("-")[0];
+            var selectedConnectorObject = null;
+            for (var i = 0, li = Calendar.digest.selectedConnectors.length; i < li; i++){
+                var current = Calendar.digest.selectedConnectors[i];
+                if (current.connectorName == connectorId){
+                    selectedConnectorObject = current;
+                    break;
+                }
+            }
+            if (selectedConnectorObject == null){
+                selectedConnectorObject = {
+                    channelNames: [],               //TODO: find a way to determine channels
+                    connectorName: connectorId,
+                    facetTypes: [],
+                    prettyName: connectorId         //TODO: find a way to determine prettyName
+                };
+                Calendar.digest.selectedConnectors.push(selectedConnectorObject);
+                Calendar.digest.nApis++;
+            }
+            var needAddFacetType = true;
+            for (var i = 0, li = selectedConnectorObject.facetTypes.length; i < li && needAddFacetType; i++){
+                needAddFacetType = selectedConnectorObject.facetTypes[i] != facetTypeId;
+            }
+            if (needAddFacetType){
+                selectedConnectorObject.facetTypes.push(facetTypeId);
+            }
+            Calendar.digest.cachedData[facetTypeId] = newFacetsArray[facetTypeId];
+        }
+        enhanceDigest(Calendar.digest);
+        processDigest(Calendar.digest);//this will update the button states for any changes we made
+        Builder.updateTab(Calendar.digest, Calendar);
+    }
+
     function shouldFacetsGroup(facet1, facet2){
         if (facet1.type != facet2.type)
             return false;
@@ -640,12 +710,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     * @param digest
     */
     function processDigest(digest){
-        $.each(Builder.getConnectorNames(), function(i, connectorName) {
-            var buttonLink = Builder.getConnectorButton(connectorName),
+        $.each(digest.selectedConnectors, function(i, connector) {
+            var buttonLink = Builder.getConnectorButton(connector,Calendar),
                 button = buttonLink.parent();
             button.hide();
-        });
-        $.each(digest.selectedConnectors, function(i, connector) {
             var connectorConfig = App.getConnectorConfig(connector.connectorName);
             var connected = _.some(connector.facetTypes, function(facetType) {
                 var hasTypedFacets = digest.cachedData[facetType] != null;
@@ -677,8 +745,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
             filterLabel = filterLabel.replace("_", " ");
 
-            var buttonLink = Builder.getConnectorButton(connector.connectorName),
-                button = buttonLink.parent();
             buttonLink
                 .toggleClass("flx-disconnected", !connected)
                 .text(filterLabel);

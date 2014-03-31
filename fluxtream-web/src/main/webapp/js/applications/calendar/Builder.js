@@ -88,8 +88,15 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
         });
     }
 
-    Builder.getConnectorButton = function(connectorName) {
-        return $("#flx-connector-btn-" + connectorName);
+    Builder.getConnectorButton = function(connector,Calendar) {
+        if (typeof connector === "string"){
+            return $("#flx-connector-btn-" + connector);
+        }
+        if ($("#flx-connector-btn-" + connector.connectorName).length == 0){
+            createConnectorButton(null,Calendar,connector);
+            connectorNames.push(connector.connectorName)
+        }
+        return $("#flx-connector-btn-" + connector.connectorName);
     };
 
     Builder.getConnectorNames = function() {
