@@ -7,6 +7,8 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -489,12 +491,97 @@ public class CalendarDataStore {
         }
     }
 
+    List<ApiKey> getApiKeyListFromConnectorObjectsEncoding(Guest guest, String connectorObjectsEncoded){
+        String[] mainList = connectorObjectsEncoded.split(",");
+        List<ApiKey> apiKeys = guestService.getApiKeys(guest.getId());
+        List<ApiKey> apiKeysToReturn = new LinkedList<ApiKey>();
+        for (String connectorObject : mainList){
+            String connectorIdentifier = connectorObject.split("-")[0];
+            if (connectorIdentifier.matches("[1-9][0-9]*")){//it's an id
+                long apiKeyId = Long.parseLong(connectorIdentifier);
+                for (Iterator<ApiKey> iter = apiKeys.iterator(); iter.hasNext();){
+                    ApiKey apiKey = iter.next();
+                    if (apiKey.getId() == apiKeyId){
+                        apiKeysToReturn.add(apiKey);
+                        iter.remove();
+                        break;
+                    }
+                }
+            }
+            else{
+                for (Iterator<ApiKey> iter = apiKeys.iterator(); iter.hasNext();){
+                    ApiKey apiKey = iter.next();
+                    if (apiKey.getConnector().getName().equals(connectorIdentifier)){
+                        apiKeysToReturn.add(apiKey);
+                        iter.remove();
+                        break;
+                    }
+                }
+
+            }
+
+        }
+        return apiKeysToReturn;
+    }
+
+    Map<ApiKey,List<ObjectType>> getObjectTypesFromConnectorObjectsEncoding(List<ApiKey> apiKeys, String connectorObjectsEncoded){
+        String[] mainList = connectorObjectsEncoded.split(",");
+        Map<ApiKey,List<ObjectType>> result = new HashMap<ApiKey,List<ObjectType>>();
+        for (ApiKey apiKey : apiKeys){
+            result.put(apiKey,new ArrayList<ObjectType>());
+        }
+        for (String connectorObject : mainList){
+            String[] parts = connectorObject.split("-");
+            if (parts.length < 2)
+                continue;
+            String connectorIdentifier = parts[0];
+            String objectTypeName = parts[1];
+            ApiKey apiKey = null;
+            if (connectorIdentifier.matches("[1-9][0-9]*")){//it's an id
+                long apiKeyId = Long.parseLong(connectorIdentifier);
+                for (ApiKey cur : apiKeys) {
+                    if (cur.getId() == apiKeyId) {
+                        apiKey = cur;
+                        break;
+                    }
+                }
+            }
+            else{
+                for (ApiKey cur : apiKeys) {
+                    if (cur.getConnector().getName().equals(connectorIdentifier)) {
+                        apiKey = cur;
+                        break;
+                    }
+                }
+            }
+            if (apiKey != null){
+                ObjectType objectType = null;
+                for (ObjectType objType : apiKey.getConnector().objectTypes()){
+                    if (objType.getName().equals(objectTypeName)){
+                        objectType = objType;
+                    }
+                }
+                if (objectType != null){
+                    result.get(apiKey).add(objectType);
+                }
+            }
+        }
+        for (ApiKey apiKey : apiKeys){
+            List<ObjectType> list = result.get(apiKey);
+            if (list.size() == 0){
+                Collections.addAll(list, apiKey.getConnector().objectTypes());
+            }
+        }
+        return result;
+
+    }
+
     @SuppressWarnings("rawtypes")
 	@GET
-	@Path("/{connectorName}/date/{date}")
+	@Path("/{connectorObjectsEncoded}/date/{date}")
 	@Produces({ MediaType.APPLICATION_JSON })
 	public String getConnectorData(@PathParam("date") String date,
-			@PathParam("connectorName") String connectorName)
+			@PathParam("connectorObjectsEncoded") String connectorObjectsEncoded)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
         try{
@@ -518,26 +605,33 @@ public class CalendarDataStore {
                 guest = guestService.getGuestById(guestId);
             }
 
+            List<ApiKey> apiKeyList = getApiKeyListFromConnectorObjectsEncoding(guest,connectorObjectsEncoded);
+            Map<ApiKey,List<ObjectType>> objectTypesMap = getObjectTypesFromConnectorObjectsEncoding(apiKeyList,connectorObjectsEncoded);
+
             long then = System.currentTimeMillis();
-            Connector connector = Connector.getConnector(connectorName);
+
 
             DayMetadata dayMetadata = metadataService.getDayMetadata(guestId, date);
             GuestSettings settings = settingsService.getSettings(guestId);
             ConnectorResponseModel day = prepareConnectorResponseModel(dayMetadata);
-            ObjectType[] objectTypes = connector.objectTypes();
 
-            if (objectTypes != null) {
-                for (ObjectType objectType : objectTypes) {
-                    appendFacetsToConnectorResponseModel(day,getFacetCollection(dayMetadata, settings, connector, objectType),connector,objectType);
+            for (ApiKey apiKey : apiKeyList){
+                List<ObjectType> objectTypes = objectTypesMap.get(apiKey);
+                if (objectTypes.size() > 0) {
+                    for (ObjectType objectType : objectTypes) {
+                        appendFacetsToConnectorResponseModel(day,getFacetCollection(dayMetadata, settings, apiKey.getConnector(), objectType),apiKey.getConnector(),objectType);
+                    }
+                }
+                else {
+                    appendFacetsToConnectorResponseModel(day,getFacetCollection(dayMetadata,settings,apiKey.getConnector(),null),apiKey.getConnector(),null);
                 }
             }
-            else {
-                appendFacetsToConnectorResponseModel(day,getFacetCollection(dayMetadata,settings,connector,null),connector,null);
-            }
+
+
 
             StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getConnectorData")
                     .append(" date=").append(date)
-                    .append(" connector=").append(connectorName)
+                    .append(" connectorObjectsEncoded=").append(connectorObjectsEncoded)
                     .append(" timeTaken=").append(System.currentTimeMillis()-then)
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
@@ -552,11 +646,11 @@ public class CalendarDataStore {
 
     @SuppressWarnings("rawtypes")
     @GET
-    @Path("/{connectorName}/week/{year}/{week}")
+    @Path("/{connectorObjectsEncoded}/week/{year}/{week}")
     @Produces({ MediaType.APPLICATION_JSON })
     public String getConnectorData(@PathParam("year") final int year,
                                    @PathParam("week") final int week,
-                                   @PathParam("connectorName") String connectorName)
+                                   @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded)
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
         try{
@@ -580,27 +674,30 @@ public class CalendarDataStore {
                 guest = guestService.getGuestById(guestId);
             }
 
+            List<ApiKey> apiKeyList = getApiKeyListFromConnectorObjectsEncoding(guest,connectorObjectsEncoded);
+            Map<ApiKey,List<ObjectType>> objectTypesMap = getObjectTypesFromConnectorObjectsEncoding(apiKeyList,connectorObjectsEncoded);
+
             long then = System.currentTimeMillis();
-            Connector connector = Connector.getConnector(connectorName);
 
             WeekMetadata weekMetadata = metadataService.getWeekMetadata(guestId, year, week);
             GuestSettings settings = settingsService.getSettings(guestId);
             ConnectorResponseModel day = prepareConnectorResponseModel(weekMetadata);
-            ObjectType[] objectTypes = connector.objectTypes();
 
-            if (objectTypes != null) {
-                for (ObjectType objectType : objectTypes) {
-                    appendFacetsToConnectorResponseModel(day,getFacetCollection(weekMetadata,settings,connector,objectType),connector,objectType);
+            for (ApiKey apiKey : apiKeyList){
+                List<ObjectType> objectTypes = objectTypesMap.get(apiKey);
+                if (objectTypes.size() > 0) {
+                    for (ObjectType objectType : objectTypes) {
+                        appendFacetsToConnectorResponseModel(day,getFacetCollection(weekMetadata, settings, apiKey.getConnector(), objectType),apiKey.getConnector(),objectType);
+                    }
+                }
+                else {
+                    appendFacetsToConnectorResponseModel(day,getFacetCollection(weekMetadata,settings,apiKey.getConnector(),null),apiKey.getConnector(),null);
                 }
             }
-            else {
-                appendFacetsToConnectorResponseModel(day,getFacetCollection(weekMetadata,settings,connector,null),connector,null);
-            }
-
             StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getConnectorData")
                     .append(" year=").append(year)
                     .append(" week=").append(week)
-                    .append(" connector=").append(connectorName)
+                    .append(" connectorObjectsEncoded=").append(connectorObjectsEncoded)
                     .append(" timeTaken=").append(System.currentTimeMillis()-then)
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
@@ -615,11 +712,11 @@ public class CalendarDataStore {
 
     @SuppressWarnings("rawtypes")
     @GET
-    @Path("/{connectorName}/month/{year}/{month}")
+    @Path("/{connectorObjectsEncoded}/month/{year}/{month}")
     @Produces({ MediaType.APPLICATION_JSON })
     public String getConnectorDataMonth(@PathParam("year") final int year,
                                    @PathParam("month") final int month,
-                                   @PathParam("connectorName") String connectorName)
+                                   @PathParam("connectorName") String connectorObjectsEncoded)
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
         try{
@@ -643,27 +740,31 @@ public class CalendarDataStore {
                 guest = guestService.getGuestById(guestId);
             }
 
+            List<ApiKey> apiKeyList = getApiKeyListFromConnectorObjectsEncoding(guest,connectorObjectsEncoded);
+            Map<ApiKey,List<ObjectType>> objectTypesMap = getObjectTypesFromConnectorObjectsEncoding(apiKeyList,connectorObjectsEncoded);
+
             long then = System.currentTimeMillis();
-            Connector connector = Connector.getConnector(connectorName);
 
             MonthMetadata monthMetadata = metadataService.getMonthMetadata(guestId, year, month);
             GuestSettings settings = settingsService.getSettings(guestId);
             ConnectorResponseModel day = prepareConnectorResponseModel(monthMetadata);
-            ObjectType[] objectTypes = connector.objectTypes();
 
-            if (objectTypes != null) {
-                for (ObjectType objectType : objectTypes) {
-                    appendFacetsToConnectorResponseModel(day,getFacetCollection(monthMetadata,settings,connector,objectType),connector,objectType);
+            for (ApiKey apiKey : apiKeyList){
+                List<ObjectType> objectTypes = objectTypesMap.get(apiKey);
+                if (objectTypes.size() > 0) {
+                    for (ObjectType objectType : objectTypes) {
+                        appendFacetsToConnectorResponseModel(day,getFacetCollection(monthMetadata, settings, apiKey.getConnector(), objectType),apiKey.getConnector(),objectType);
+                    }
                 }
-            }
-            else {
-                appendFacetsToConnectorResponseModel(day,getFacetCollection(monthMetadata,settings,connector,null),connector,null);
+                else {
+                    appendFacetsToConnectorResponseModel(day,getFacetCollection(monthMetadata,settings,apiKey.getConnector(),null),apiKey.getConnector(),null);
+                }
             }
 
             StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getConnectorData")
                     .append(" year=").append(year)
-                    .append(" month=").append(month)
-                    .append(" connector=").append(connectorName)
+                    .append(" connectorObjectsEncoded=").append(month)
+                    .append(" connector=").append(connectorObjectsEncoded)
                     .append(" timeTaken=").append(System.currentTimeMillis()-then)
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
@@ -919,6 +1020,7 @@ public class CalendarDataStore {
                 model.prettyName = connector.prettyName();
                 model.channelNames = settingsService.getChannelsForConnector(guestId,connector);
                 ObjectType[] objTypes = connector.objectTypes();
+                model.apiKeyId = apiKey.getId();
                 if (objTypes == null)
                     continue;
                 for (ObjectType obj : objTypes){

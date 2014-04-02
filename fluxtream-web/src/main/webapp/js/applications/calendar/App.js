@@ -65,7 +65,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     if (digestTimestamp != Calendar.digest.generationTimestamp)//new digest showed up, don't need new data
                         return;
                     if (i >= connectorsToRefresh.length){
-                        Calendar.mergeInFacets(newFacets);
+                        Calendar.mergeInFacets(newFacets,update.connectorInfo);
                         return;
                     }
                     $.ajax("/api/calendar/" + connectorsToRefresh[i] + "/" + stateToRequest,{
@@ -573,7 +573,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     var filteredOut = config.isFilteredOut(facet, digest.settings.connectorSettings);
                     if (filteredOut) {
                         digest.cachedData[connectorId].splice(i, 1);
-                        i = -1;
+                        i -= 1;
                         continue;
                     }
                 }
@@ -654,36 +654,26 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
     }
 
-    Calendar.mergeInFacets = function(newFacetsArray){
+    Calendar.mergeInFacets = function(newFacetsArray,connectorInfos){
         if (newFacetsArray.length == 0)
             return;
-        for (var facetTypeId in newFacetsArray){//step one is to build the selectedConnectors and add the facets directly in
-            var connectorId = facetTypeId.split("-")[0];
-            var selectedConnectorObject = null;
-            for (var i = 0, li = Calendar.digest.selectedConnectors.length; i < li; i++){
-                var current = Calendar.digest.selectedConnectors[i];
-                if (current.connectorName == connectorId){
-                    selectedConnectorObject = current;
-                    break;
+        //merge in the selected connectors
+        for (var member in connectorInfos){
+            var connectorInfo = connectorInfos[member];
+            var inserted = false;
+            for (var i = 0, li = Calendar.digest.selectedConnectors.length; i < li && !inserted; i++){
+                if (Calendar.digest.selectedConnectors[i].apiKeyId == connectorInfo.apiKeyId){
+                    Calendar.digest.selectedConnectors[i] = connectorInfo;
+                    inserted = true;
                 }
             }
-            if (selectedConnectorObject == null){
-                selectedConnectorObject = {
-                    channelNames: [],               //TODO: find a way to determine channels
-                    connectorName: connectorId,
-                    facetTypes: [],
-                    prettyName: connectorId         //TODO: find a way to determine prettyName
-                };
-                Calendar.digest.selectedConnectors.push(selectedConnectorObject);
+            if (!inserted){
+                Calendar.digest.selectedConnectors.push(connectorInfo);
                 Calendar.digest.nApis++;
             }
-            var needAddFacetType = true;
-            for (var i = 0, li = selectedConnectorObject.facetTypes.length; i < li && needAddFacetType; i++){
-                needAddFacetType = selectedConnectorObject.facetTypes[i] != facetTypeId;
-            }
-            if (needAddFacetType){
-                selectedConnectorObject.facetTypes.push(facetTypeId);
-            }
+
+        }
+        for (var facetTypeId in newFacetsArray){//add all the new facets into the cached data
             Calendar.digest.cachedData[facetTypeId] = newFacetsArray[facetTypeId];
         }
         enhanceDigest(Calendar.digest);

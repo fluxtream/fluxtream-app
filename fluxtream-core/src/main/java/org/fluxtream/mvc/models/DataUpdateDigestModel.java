@@ -11,18 +11,20 @@ import org.fluxtream.connectors.ObjectType;
 import org.fluxtream.domain.ApiKey;
 import org.fluxtream.domain.DataUpdate;
 import org.fluxtream.services.GuestService;
+import org.fluxtream.services.SettingsService;
 import org.joda.time.format.ISODateTimeFormat;
 
 public class DataUpdateDigestModel {
     Map<String,Map<String,TimeBoundariesModel>> bodytrackData;//a list of all the bodytrack data requests
     Map<String,Map<String,TimeBoundariesModel>> apiData;
+    Map<String,ConnectorDigestModel> connectorInfo;
     Map<String,Set<String>> bodytrackStyle;
     Boolean notification;
 
     String generationTimestamp;
     String queryTimestamp;
 
-    public DataUpdateDigestModel(List<DataUpdate> updates, GuestService guestService, long sinceTime) throws Exception{
+    public DataUpdateDigestModel(List<DataUpdate> updates, GuestService guestService, SettingsService settingsService, long sinceTime) throws Exception{
         queryTimestamp = ISODateTimeFormat.basicDateTime().print(sinceTime);
         generationTimestamp = ISODateTimeFormat.basicDateTime().print(System.currentTimeMillis());
         for (DataUpdate update : updates){
@@ -37,7 +39,7 @@ public class DataUpdateDigestModel {
                     addNotificationUpdate(update);
                     break;
                 case apiData:
-                    addApiDataUpdate(update,guestService);
+                    addApiDataUpdate(update,guestService,settingsService);
                     break;
 
                 default:
@@ -79,7 +81,7 @@ public class DataUpdateDigestModel {
         Collections.addAll(channelSet, channelNames);
     }
 
-    private void addApiDataUpdate(DataUpdate update, GuestService guestService){
+    private void addApiDataUpdate(DataUpdate update, GuestService guestService, final SettingsService settingsService){
         ApiKey api = guestService.getApiKey(update.apiKeyId);
         String apiName = api.getConnector().getName();
         List<String> facetNames = new ArrayList<String>();
@@ -106,6 +108,19 @@ public class DataUpdateDigestModel {
         }
         for (String facetName : facetNames){
             connectorMap.put(facetName,new TimeBoundariesModel(update.startTime,update.endTime));
+        }
+        if (connectorInfo == null){
+            connectorInfo = new HashMap<String,ConnectorDigestModel>();
+        }
+        if (connectorInfo.get(apiName) == null){
+            ConnectorDigestModel model = new ConnectorDigestModel();
+            model.apiKeyId = update.apiKeyId;
+            model.channelNames = settingsService.getChannelsForConnector(api.getGuestId(),api.getConnector());
+            model.prettyName = api.getConnector().getPrettyName();
+            model.connectorName = api.getConnector().getName();
+            for (ObjectType objectType : api.getConnector().objectTypes())
+                model.facetTypes.add(model.connectorName + "-" + objectType.getName());
+            connectorInfo.put(apiName,model);
         }
 
     }

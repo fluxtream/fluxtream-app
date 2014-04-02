@@ -14,6 +14,7 @@ import org.fluxtream.mvc.models.DataUpdateDigestModel;
 import org.fluxtream.mvc.models.StatusModel;
 import org.fluxtream.services.DataUpdateService;
 import org.fluxtream.services.GuestService;
+import org.fluxtream.services.SettingsService;
 import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -30,6 +31,9 @@ public class DataUpdateStore {
     GuestService guestService;
 
     @Autowired
+    SettingsService settingsService;
+
+    @Autowired
     DataUpdateService dataUpdateService;
 
     @GET
@@ -38,7 +42,7 @@ public class DataUpdateStore {
     public String getDataUpdates(@QueryParam("since") String since){
         try{
             List<DataUpdate> updates = dataUpdateService.getAllUpdatesSince(AuthHelper.getGuestId(), ISODateTimeFormat.basicDateTime().parseMillis(since));
-            return gson.toJson(new DataUpdateDigestModel(updates,guestService,ISODateTimeFormat.basicDateTime().parseMillis(since)));
+            return gson.toJson(new DataUpdateDigestModel(updates,guestService,settingsService,ISODateTimeFormat.basicDateTime().parseMillis(since)));
         }
         catch (Exception e){
             return gson.toJson(new StatusModel(false,"Failed to fetch updates"));
