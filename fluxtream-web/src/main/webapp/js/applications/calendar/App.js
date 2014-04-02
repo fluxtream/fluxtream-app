@@ -55,33 +55,18 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                         if ((update.apiData[connector][objectType].start < Calendar.digest.tbounds.end && update.apiData[connector][objectType].start >= Calendar.digest.tbounds.start) ||
                             (update.apiData[connector][objectType].end <= Calendar.digest.tbounds.end && update.apiData[connector][objectType].end > Calendar.digest.tbounds.start) ||
                             (update.apiData[connector][objectType].start <= Calendar.digest.tbounds.start && update.apiData[connector][objectType].end >= Calendar.digest.tbounds.end)){
-                            connectorsToRefresh.push(connector);
-                            break;
+                            connectorsToRefresh.push(update.connectorInfo[connector].apiKeyId + "-" + objectType);
                         }
                     }
                 }
-                var newFacets = {};
-                (function refreshNextConnector(i){
-                    if (digestTimestamp != Calendar.digest.generationTimestamp)//new digest showed up, don't need new data
-                        return;
-                    if (i >= connectorsToRefresh.length){
-                        Calendar.mergeInFacets(newFacets,update.connectorInfo);
-                        return;
+                $.ajax("/api/calendar/" + connectorsToRefresh.join(",") + "/" + stateToRequest,{
+                    success:function(result){
+                        Calendar.mergeInFacets(result.facets,update.connectorInfo)
+                    },
+                    error:function(){
+                        console.error(arguments);
                     }
-                    $.ajax("/api/calendar/" + connectorsToRefresh[i] + "/" + stateToRequest,{
-                        success:function(result){
-                            for (var facetType in result.facets){
-                                newFacets[facetType] = result.facets[facetType];
-                            }
-                            refreshNextConnector(i+1);
-                        },
-                        error:function(){
-                            console.error(arguments);
-                            refreshNextConnector(i+1);
-                        }
-                    })
-
-                })(0);
+                });
             }
         });
 	};
