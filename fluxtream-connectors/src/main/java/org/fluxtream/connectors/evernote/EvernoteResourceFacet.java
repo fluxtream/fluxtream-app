@@ -1,7 +1,6 @@
 package org.fluxtream.connectors.evernote;
 
 import javax.persistence.Entity;
-import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import org.fluxtream.connectors.annotations.ObjectTypeSpec;
@@ -34,9 +33,7 @@ public class EvernoteResourceFacet extends EvernoteFacet {
     public Short width, height;
     public String mime;
 
-    @Lob
     public String sourceURL;
-
     public Long timestamp;
     public Double longitude, latitude, altitude;
     public String cameraMake;
