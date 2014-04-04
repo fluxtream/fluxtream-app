@@ -20,6 +20,9 @@ import javax.ws.rs.core.MediaType;
 import com.google.gson.Gson;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiParam;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -78,6 +81,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 @Path("/calendar")
+@Api(value = "/calendar", description = "Main devices and service API facets consumption operations")
 @Component("RESTCalendarDataStore")
 @Scope("request")
 public class CalendarDataStore {
@@ -118,10 +122,11 @@ public class CalendarDataStore {
 
     @GET
     @Path("/all/week/{year}/{week}")
+    @ApiOperation(value = "Get all the user's connectors' data for a specific week", notes = "More notes about this method", response = DigestModel.class)
     @Produces({ MediaType.APPLICATION_JSON })
-    public String getAllConnectorsWeekData(@PathParam("year") final int year,
-                                           @PathParam("week") final int week,
-                                           @QueryParam("filter") String filter) {
+    public String getAllConnectorsWeekData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
+                                           @ApiParam(value="Week", required=true) @PathParam("week") final int week,
+                                           @ApiParam(value="filter JSON", required=true) @QueryParam("filter") String filter) {
         return getWeekData(year, week, filter, false);
     }
 

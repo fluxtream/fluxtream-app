@@ -7,11 +7,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import com.wordnik.swagger.annotations.ApiModel;
+import com.wordnik.swagger.annotations.ApiModelProperty;
 import org.codehaus.jackson.annotate.JsonRawValue;
 import org.fluxtream.Configuration;
 import org.fluxtream.TimeUnit;
 import org.fluxtream.metadata.AbstractTimespanMetadata;
 
+@ApiModel(value = "Generic data model for CalendarData Store operations")
 public class DigestModel {
 
     @JsonRawValue
@@ -19,7 +22,10 @@ public class DigestModel {
 	public TimeBoundariesModel tbounds;
 	public int nApis;
 	public boolean hasPictures;
+
+    @ApiModelProperty(value="Background updates notifications, if any", required=false)
 	public List<NotificationModel> notifications;
+
     public Map<String,Collection> addresses;
 	public SettingsModel settings;
 	public Set<String> haveDataConnectors = new HashSet<String>();
