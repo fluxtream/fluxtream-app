@@ -46,7 +46,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -352,11 +351,16 @@ public class MovesUpdater extends AbstractUpdater {
 
                     for (String date : dayStorylines.keySet()) {
                         JSONObject dayStoryline = dayStorylines.get(date);
-                        final JSONArray segments = dayStoryline.getJSONArray("segments");
-                        date = toStorageFormat(date);
-                        if(segments!=null && segments.size()>0) {
-                            boolean dateHasData=createOrUpdateDataForDate(updateInfo, segments, date);
+                        final Object segmentsObject = dayStoryline.get("segments");
+                        if (segmentsObject!=null) {
+                            JSONArray segments = new JSONArray();
+                            if (segmentsObject instanceof JSONObject)
+                                segments.add(segmentsObject);
+                            if (segmentsObject instanceof JSONArray)
+                                segments = (JSONArray) segmentsObject;
+                            date = toStorageFormat(date);
 
+                            boolean dateHasData=createOrUpdateDataForDate(updateInfo, segments, date);
                             // Save maxDateWithData only if there was data for this date
                             if(dateHasData && (maxDateWithData==null || maxDateWithData.compareTo(date)<0)) {
                                 maxDateWithData = date;
@@ -448,17 +452,20 @@ public class MovesUpdater extends AbstractUpdater {
      * @param fullUpdateStartDate
      * @param updateInfo
      */
-    private void backwardFixupDataNoTrackPoints(final String fullUpdateStartDate, final UpdateInfo updateInfo) throws UpdateFailedException, RateLimitReachedException {
+    private void backwardFixupDataNoTrackPoints(final String fullUpdateStartDate, final UpdateInfo updateInfo) throws Exception {
         DateTime toDate = TimeUtils.dateFormatterUTC.parseDateTime(fullUpdateStartDate);
-        final DateTime fromDate = toDate.minusDays(30);
+        DateTime fromDate = toDate.minusDays(30);
+        final DateTime userRegistrationDate = TimeUtils.dateFormatterUTC.parseDateTime(getUserRegistrationDate(updateInfo));
+        if (userRegistrationDate.isAfter(fromDate))
+            fromDate = userRegistrationDate;
         try {
             // use lastSyncTime to reduce the data returned by this call to contain only stuff that has actually
             // been updated since last time we checked
-            String lastSyncTimeAtt = guestService.getApiKeyAttribute(updateInfo.apiKey, "lastSyncTime");
-            final long millis = ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().parseDateTime(lastSyncTimeAtt).getMillis();
-            final String updatedSinceDate = localTimeStorageFormat.withZoneUTC().print(millis);
+            //String lastSyncTimeAtt = guestService.getApiKeyAttribute(updateInfo.apiKey, "lastSyncTime");
+            //final long millis = ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().parseDateTime(lastSyncTimeAtt).getMillis();
+            //final String updatedSinceDate = localTimeStorageFormat.withZoneUTC().print(millis);
             String fetched = fetchStorylineForDates(updateInfo, TimeUtils.dateFormatterUTC.print(fromDate),
-                                                    fullUpdateStartDate, false, updatedSinceDate);
+                                                    fullUpdateStartDate, false, null);
             if(fetched!=null) {
                 // put the results in ascending order
                 JSONArray storyline = JSONArray.fromObject(fetched);
@@ -471,8 +478,13 @@ public class MovesUpdater extends AbstractUpdater {
                 for (String date : dayStorylines.keySet()) {
                     JSONObject dayStoryline = dayStorylines.get(date);
                     date = toStorageFormat(date);
-                    final JSONArray segments = dayStoryline.getJSONArray("segments");
-                    if(segments!=null && segments.size()>0) {
+                    final Object segmentsObject = dayStoryline.get("segments");
+                    if (segmentsObject!=null) {
+                        JSONArray segments = new JSONArray();
+                        if (segmentsObject instanceof JSONObject)
+                            segments.add(segmentsObject);
+                        if (segmentsObject instanceof JSONArray)
+                            segments = (JSONArray) segmentsObject;
                         createOrUpdateDataForDate(updateInfo, segments, date);
                     }
                 }
@@ -1057,7 +1069,7 @@ public class MovesUpdater extends AbstractUpdater {
         boolean needsUpdate = false;
         withMovesActivities:for (int i=0; i<movesActivities.size(); i++) {
             final MovesActivity movesActivity = movesActivities.get(i);
-            for (int j=0; i<activities.size(); i++) {
+            for (int j=0; j<activities.size(); j++) {
                 JSONObject activityData = activities.getJSONObject(j);
                 if (activityData.getBoolean("manual"))
                     continue;

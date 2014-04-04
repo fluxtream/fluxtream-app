@@ -22,11 +22,14 @@ import com.evernote.edam.notestore.SyncState;
 import com.evernote.edam.type.Data;
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.NoteAttributes;
+import com.evernote.edam.type.NoteSortOrder;
 import com.evernote.edam.type.Notebook;
+import com.evernote.edam.type.Publishing;
 import com.evernote.edam.type.Resource;
 import com.evernote.edam.type.ResourceAttributes;
 import com.evernote.edam.type.Tag;
 import com.evernote.thrift.TException;
+import org.codehaus.plexus.util.ExceptionUtils;
 import org.fluxtream.aspects.FlxLogger;
 import org.fluxtream.connectors.Connector;
 import org.fluxtream.connectors.annotations.Updater;
@@ -571,6 +574,7 @@ public class EvernoteUpdater extends AbstractUpdater implements SettingsAwareUpd
                             facet.htmlContent = htmlContent;
                         } catch (Throwable t) {
                             logger.warn("error parsing enml note: " + t.getMessage());
+                            System.out.println(ExceptionUtils.getStackTrace(t));
                             facet.htmlContent = "Sorry, there was an error parsing this note (" + t.getMessage() +")";
                         }
                     }
@@ -872,8 +876,17 @@ public class EvernoteUpdater extends AbstractUpdater implements SettingsAwareUpd
                 }
                 if (notebook.isSetServiceUpdated())
                     facet.serviceUpdated = notebook.getServiceUpdated();
-                if (notebook.isSetPublishing())
-                    facet.publishing = notebook.getPublishing();
+                if (notebook.isSetPublishing()) {
+                    final Publishing publishing = notebook.getPublishing();
+                    if (publishing.isSetOrder()) {
+                        final NoteSortOrder order = publishing.getOrder();
+                        facet.publishingNoteOrderValue = order.getValue();
+                    }
+                    if (publishing.isSetUri())
+                        facet.publishingUri = publishing.getUri();
+                    if (publishing.isSetPublicDescription())
+                        facet.publishingPublicDescription = publishing.getPublicDescription();
+                }
                 if (notebook.isSetPublished())
                     facet.published = notebook.isPublished();
                 if (notebook.isSetStack())
