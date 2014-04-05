@@ -663,7 +663,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
         enhanceDigest(Calendar.digest);
         processDigest(Calendar.digest);//this will update the button states for any changes we made
+        Calendar.digest.generationTimestamp = new Date().getTime();
+        Calendar.digest.delta = true;
         Builder.updateTab(Calendar.digest, Calendar);
+        Calendar.digest.delta = false;
     }
 
     function shouldFacetsGroup(facet1, facet2){

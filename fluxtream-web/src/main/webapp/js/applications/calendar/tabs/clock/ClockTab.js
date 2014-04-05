@@ -18,6 +18,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     var selectedConnectors;
     var connectorEnabled;
     var dgst;
+    var currentFacetTooltip = null;
 
     var tooltipTemplate;
 
@@ -31,6 +32,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	function render(params) {
         setTabParam = params.setTabParam;
         setTabParam(null);
+        if (Calendar.digest.delta && params.facetToShow == null)
+            params.facetToShow = currentFacetTooltip;
         hideEventInfo();
         this.getTemplate("text!applications/calendar/tabs/clock/clock.html", "clock", function() {
             if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){
@@ -378,6 +381,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	}
 
     function showToolTip(x,y, offX, offY,contents,minute,color,parent,gpsPos,sourceName, channelName,facet,locationInfo){
+        currentFacetTooltip = facet;
         var weatherInfo = getWeatherData(minute);
         var weatherIcon;
         if (solarInfo != null && (minute < solarInfo.sunrise || minute > solarInfo.sunset)){//night
@@ -566,6 +570,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     }
 
 	function hideEventInfo() {
+        currentFacetTooltip = null;
         if (map != null){
             map.executeAfterReady(function(){
                 hideQTipMap();
