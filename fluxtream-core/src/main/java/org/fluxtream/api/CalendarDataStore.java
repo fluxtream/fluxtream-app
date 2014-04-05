@@ -716,7 +716,7 @@ public class CalendarDataStore {
     @Produces({ MediaType.APPLICATION_JSON })
     public String getConnectorDataMonth(@PathParam("year") final int year,
                                    @PathParam("month") final int month,
-                                   @PathParam("connectorName") String connectorObjectsEncoded)
+                                   @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded)
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
         try{
