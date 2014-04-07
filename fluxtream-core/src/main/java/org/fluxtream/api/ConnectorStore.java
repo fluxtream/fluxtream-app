@@ -13,6 +13,18 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiParam;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.annotate.JsonAutoDetect;
+import org.codehaus.jackson.annotate.JsonMethod;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
 import org.fluxtream.Configuration;
 import org.fluxtream.api.gson.UpdateInfoSerializer;
 import org.fluxtream.aspects.FlxLogger;
@@ -37,15 +49,6 @@ import org.fluxtream.services.GuestService;
 import org.fluxtream.services.SettingsService;
 import org.fluxtream.services.SystemService;
 import org.fluxtream.utils.Utils;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.annotate.JsonAutoDetect;
-import org.codehaus.jackson.annotate.JsonMethod;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.BeanFactory;
@@ -58,6 +61,7 @@ import org.springframework.stereotype.Component;
  */
 @Path("/connectors")
 @Component("RESTConnectorStore")
+@Api(value = "/connectors", description = "Connector and connector settings management operations (list, add, remove, etc.)")
 @Scope("request")
 public class ConnectorStore {
 
@@ -97,8 +101,10 @@ public class ConnectorStore {
 
     @POST
     @Produces({ MediaType.APPLICATION_JSON })
+    @ApiOperation(value = "Reset connector settings to their default values", response = StatusModel.class,
+                  notes="A set of default values are stored alongside user modified values for all connector settings")
     @Path("/settings/reset/{apiKeyId}")
-    public String resetConnectorSettings(@PathParam("apiKeyId") long apiKeyId) {
+    public String resetConnectorSettings(@ApiParam(value="The connector's ApiKey ID", required=true) @PathParam("apiKeyId") long apiKeyId) {
         settingsService.resetConnectorSettings(apiKeyId);
         StatusModel status = new StatusModel(true, "connector settings reset!");
         return gson.toJson(status);
@@ -106,8 +112,10 @@ public class ConnectorStore {
 
     @GET
     @Path("/settings/{apiKeyId}")
+    @ApiOperation(value = "Retrieve connector settings", response = StatusModel.class,
+                  notes = "The structure of the returned object is connector dependent")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getConnectorSettings(@PathParam("apiKeyId") long apiKeyId) throws UpdateFailedException, IOException {
+    public String getConnectorSettings(@ApiParam(value="The connector's ApiKey ID", required=true)  @PathParam("apiKeyId") long apiKeyId) throws UpdateFailedException, IOException {
         final ApiKey apiKey = guestService.getApiKey(apiKeyId);
         final long guestId = AuthHelper.getGuestId();
         if (apiKey.getGuestId()!=guestId)
@@ -119,9 +127,11 @@ public class ConnectorStore {
 
     @POST
     @Path("/settings/{apiKeyId}")
+    @ApiOperation(value = "Save user-modified connector settings", response = StatusModel.class,
+                  notes = "The structure of the returned object is connector dependent")
     @Produces({MediaType.APPLICATION_JSON})
-    public StatusModel saveConnectorSettings(@PathParam("apiKeyId") long apiKeyId,
-                                             @FormParam("json") String json) {
+    public StatusModel saveConnectorSettings(@ApiParam(value="The connector's ApiKey ID", required=true)  @PathParam("apiKeyId") long apiKeyId,
+                                             @ApiParam(value="JSON-serialized connector settings object", required=true)  @FormParam("json") String json) {
         final ApiKey apiKey = guestService.getApiKey(apiKeyId);
         final long guestId = AuthHelper.getGuestId();
         try {
@@ -149,6 +159,9 @@ public class ConnectorStore {
 
     @GET
     @Path("/installed")
+    @ApiOperation(value = "Retrieve the list of installed (/added) connectors for the current user",
+                  responseContainer = "Array", response = ConnectorInfo.class,
+                  notes = "WARNING: there is more in the ConnectorInfo 'class' than what's specified here)")
     @Produces({MediaType.APPLICATION_JSON})
     public String getInstalledConnectors(){
         Guest guest = AuthHelper.getGuest();
@@ -232,6 +245,9 @@ public class ConnectorStore {
 
     @GET
     @Path("/uninstalled")
+    @ApiOperation(value = "Retrieve the list of available (/not-yet-added) connectors for the current user",
+                  responseContainer="Array", response = ConnectorInfo.class,
+                  notes = "The structure of the returned object is connector dependent")
     @Produces({MediaType.APPLICATION_JSON})
     public String getUninstalledConnectors(){
         Guest guest = AuthHelper.getGuest();

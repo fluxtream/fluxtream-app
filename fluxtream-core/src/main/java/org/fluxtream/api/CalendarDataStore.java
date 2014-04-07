@@ -113,16 +113,19 @@ public class CalendarDataStore {
 
     @GET
     @Path("/location/week/{year}/{week}")
+    @ApiOperation(value = "Get the user's location data for a specific week", response = DigestModel.class,
+                  notes="Locations can get quite heavy and take a while to parse, so we provide them in a separate call.")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String getLocationConnectorsWeekData(@PathParam("year") final int year,
-                                                @PathParam("week") final int week,
-                                                @QueryParam("filter") String filter) {
+    public String getLocationConnectorsWeekData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
+                                                @ApiParam(value="Week", required=true) @PathParam("week") final int week,
+                                                @ApiParam(value="filter JSON", required=true) @QueryParam("filter") String filter) {
         return getWeekData(year, week, filter, true);
     }
 
     @GET
     @Path("/all/week/{year}/{week}")
-    @ApiOperation(value = "Get all the user's connectors' data for a specific week", notes = "More notes about this method", response = DigestModel.class)
+    @ApiOperation(value = "Get all the user's connectors' data for a specific week", response = DigestModel.class,
+                  notes="Unlike its date-based equivalent, this call will not contain Location data")
     @Produces({ MediaType.APPLICATION_JSON })
     public String getAllConnectorsWeekData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
                                            @ApiParam(value="Week", required=true) @PathParam("week") final int week,
@@ -205,19 +208,23 @@ public class CalendarDataStore {
 
     @GET
     @Path("/location/month/{year}/{month}")
+    @ApiOperation(value = "Get the user's location data for a specific month", response = DigestModel.class,
+                  notes="Locations can get quite heavy and take a while to parse, so we provide them in a separate call.")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String getLocationConnectorsMonthData(@PathParam("year") final int year,
-                                                 @PathParam("month") final int month,
-                                                 @QueryParam("filter") String filter) {
+    public String getLocationConnectorsMonthData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
+                                                 @ApiParam(value="Month", required=true) @PathParam("month") final int month,
+                                                 @ApiParam(value="Filter JSON", required=true) @QueryParam("filter") String filter) {
         return getMonthData(year, month, filter, true);
     }
 
     @GET
     @Path("/all/month/{year}/{month}")
+    @ApiOperation(value = "Get all the user's connectors' data for a specific month", response = DigestModel.class,
+                  notes="Unlike its date-based equivalent, this call will not contain Location data")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String getAllConnectorsMonthData(@PathParam("year") final int year,
-                                            @PathParam("month") final int month,
-                                            @QueryParam("filter") String filter) {
+    public String getAllConnectorsMonthData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
+                                            @ApiParam(value="Month", required=true) @PathParam("month") final int month,
+                                            @ApiParam(value="Filter JSON", required=true) @QueryParam("filter") String filter) {
         return getMonthData(year, month, filter, false);
     }
 
@@ -289,8 +296,9 @@ public class CalendarDataStore {
 
     @GET
     @Path("/weather/date/{date}")
+    @ApiOperation(value = "Get the user's location-based weather data on a specific date", response = WeatherModel.class)
     @Produces({ MediaType.APPLICATION_JSON })
-    public WeatherModel getWeatherDataForADay(@PathParam("date") String date) {
+    public WeatherModel getWeatherDataForADay(@ApiParam(value="Date", required=true) @PathParam("date") String date) {
 
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
@@ -337,9 +345,10 @@ public class CalendarDataStore {
 
 	@GET
 	@Path("/all/date/{date}")
+    @ApiOperation(value = "Get the user's connectors' data for a specific date", response = DigestModel.class)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public String getAllConnectorsDayData(@PathParam("date") String date,
-			@QueryParam("filter") String filter) throws InstantiationException,
+	public String getAllConnectorsDayData(@ApiParam(value="Date", required=true) @PathParam("date") String date,
+                                          @ApiParam(value="Filter JSON", required=true) @QueryParam("filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
         Guest guest;
         long guestId;
@@ -456,9 +465,10 @@ public class CalendarDataStore {
 	@SuppressWarnings("rawtypes")
 	@GET
 	@Path("/{connectorName}/date/{date}")
+    @ApiOperation(value = "Get data from a specific connector at a specific date", response = ConnectorResponseModel.class)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public String getConnectorData(@PathParam("date") String date,
-			@PathParam("connectorName") String connectorName)
+	public String getConnectorData(@ApiParam(value="Date", required=true) @PathParam("date") String date,
+                                   @ApiParam(value="Connector name", required=true) @PathParam("connectorName") String connectorName)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
         try{
@@ -728,9 +738,9 @@ public class CalendarDataStore {
 
 	private void setCurrentAddress(DigestModel digest, long guestId, long start) {
         List<GuestAddress> addresses = settingsService.getAllAddressesForDate(guestId, start);
-		digest.addresses = new HashMap<String,Collection>();
+		digest.addresses = new HashMap<String,List<AddressModel>>();
         for (GuestAddress address : addresses){
-            Collection collection = digest.addresses.get(address.type);
+            List collection = digest.addresses.get(address.type);
             if (collection == null){
                 collection = new ArrayList();
                 digest.addresses.put(address.type,collection);

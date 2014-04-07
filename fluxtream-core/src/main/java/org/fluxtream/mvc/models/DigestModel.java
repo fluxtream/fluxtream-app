@@ -3,15 +3,15 @@ package org.fluxtream.mvc.models;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 import org.codehaus.jackson.annotate.JsonRawValue;
 import org.fluxtream.Configuration;
 import org.fluxtream.TimeUnit;
+import org.fluxtream.connectors.vos.AbstractFacetVO;
+import org.fluxtream.domain.AbstractFacet;
 import org.fluxtream.metadata.AbstractTimespanMetadata;
 
 @ApiModel(value = "Generic data model for CalendarData Store operations")
@@ -21,18 +21,33 @@ public class DigestModel {
     public String calendar;
 	public TimeBoundariesModel tbounds;
 	public int nApis;
-	public boolean hasPictures;
+
+    @ApiModelProperty(value="The list of this user's addresses", required=true)
+    public Map<String,List<AddressModel>> addresses;
+
+    @ApiModelProperty(value="The list of this user's coachees", required=true)
+	public SettingsModel settings;
 
     @ApiModelProperty(value="Background updates notifications, if any", required=false)
-	public List<NotificationModel> notifications;
+    public List<NotificationModel> notifications;
 
-    public Map<String,Collection> addresses;
-	public SettingsModel settings;
-	public Set<String> haveDataConnectors = new HashSet<String>();
-	public Set<String> haveNoDataConnectors = new HashSet<String>();
+    @ApiModelProperty(value="List of names of connectors that have data for the given time boundaries", required=true)
+	public List<String> haveDataConnectors = new ArrayList<String>();
+
+    @ApiModelProperty(value="List of names of connectors that don't have any data for the given time boundaries", required=true)
+	public List<String> haveNoDataConnectors = new ArrayList<String>();
+
+    @ApiModelProperty(value="List of currently selected connectors", required=true)
 	public List<ConnectorDigestModel> selectedConnectors = new ArrayList<ConnectorDigestModel>();
+
+    @ApiModelProperty(value="The list of this user's coachees", required=true)
     public List<GuestModel> coachees;
+
+    @ApiModelProperty(value="UTC timestamp of this model's generation", required=true)
     public long generationTimestamp;
+
+    public Map<String,Collection<AbstractFacetVO<AbstractFacet>>> facets
+            = new HashMap<String,Collection<AbstractFacetVO<AbstractFacet>>>();
 
     public Metadata metadata;
 
@@ -63,10 +78,6 @@ public class DigestModel {
         public VisitedCityModel nextInferredCity;
         public VisitedCityModel mainCity;
     }
-
-	@SuppressWarnings("rawtypes")
-	public Map<String,Collection> facets
-		= new HashMap<String,Collection>();
 
 	public void addNotification(NotificationModel nm) {
 		if (notifications == null)
