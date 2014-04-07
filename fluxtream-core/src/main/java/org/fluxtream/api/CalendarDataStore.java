@@ -576,6 +576,22 @@ public class CalendarDataStore {
 
     }
 
+    /**
+     *
+     * @param date  - the date being queried
+     * @param connectorObjectsEncoded - this is an encoded list of the facet types to be returned the encoded is:
+     *                                <facetType>,<facetType>,...
+     *                                where <facetType> is:
+     *                                <connectorIdentifier>(optionally attached: -<objectTypeName>
+     *                                where <connectorIdentifier> is either the connector name or the apiKey id
+     *                                and objectTypeName is the name of the name of the facet Type
+     *                                example:
+     *                                64-weight,fitbit,withings-heart_pulse
+     * @return
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     * @throws ClassNotFoundException
+     */
     @SuppressWarnings("rawtypes")
 	@GET
 	@Path("/{connectorObjectsEncoded}/date/{date}")
