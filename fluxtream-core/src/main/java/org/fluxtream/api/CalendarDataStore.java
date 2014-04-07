@@ -594,6 +594,7 @@ public class CalendarDataStore {
     }
 
 	@Path("/{connectorObjectsEncoded}/date/{date}")
+    @GET
     @ApiOperation(value = "Get data from a specific connector at a specific date", response = ConnectorResponseModel.class)
 	@Produces({ MediaType.APPLICATION_JSON })
 	public String getConnectorData(@ApiParam(value="Date", required=true) @PathParam("date") String date,
