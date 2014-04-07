@@ -593,7 +593,7 @@ public class CalendarDataStore {
 
     }
 
-	@Path("/{connectorName}/date/{date}")
+	@Path("/{connectorObjectsEncoded}/date/{date}")
     @ApiOperation(value = "Get data from a specific connector at a specific date", response = ConnectorResponseModel.class)
 	@Produces({ MediaType.APPLICATION_JSON })
 	public String getConnectorData(@ApiParam(value="Date", required=true) @PathParam("date") String date,
@@ -663,10 +663,11 @@ public class CalendarDataStore {
     @SuppressWarnings("rawtypes")
     @GET
     @Path("/{connectorObjectsEncoded}/week/{year}/{week}")
+    @ApiOperation(value = "Get data from a specific connector for a specific week", response = ConnectorResponseModel.class)
     @Produces({ MediaType.APPLICATION_JSON })
-    public String getConnectorData(@PathParam("year") final int year,
-                                   @PathParam("week") final int week,
-                                   @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded)
+    public String getConnectorData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
+                                   @ApiParam(value="Week", required=true) @PathParam("week") final int week,
+                                   @ApiParam(value="???", required=true) @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded)
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
         try{
@@ -728,11 +729,12 @@ public class CalendarDataStore {
 
     @SuppressWarnings("rawtypes")
     @GET
+    @ApiOperation(value = "Get data from a specific connector for a specific month", response = ConnectorResponseModel.class)
     @Path("/{connectorObjectsEncoded}/month/{year}/{month}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String getConnectorDataMonth(@PathParam("year") final int year,
-                                   @PathParam("month") final int month,
-                                   @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded)
+    public String getConnectorDataMonth(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
+                                        @ApiParam(value="Month", required=true) @PathParam("month") final int month,
+                                        @ApiParam(value="???", required=true) @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded)
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
         try{
