@@ -22,6 +22,7 @@ import javax.persistence.Query;
 import org.fluxtream.Configuration;
 import org.fluxtream.TimeInterval;
 import org.fluxtream.aspects.FlxLogger;
+import org.fluxtream.connectors.Connector;
 import org.fluxtream.connectors.bodytrackResponders.AbstractBodytrackResponder;
 import org.fluxtream.domain.ApiKey;
 import org.fluxtream.domain.ChannelMapping;
@@ -29,6 +30,7 @@ import org.fluxtream.domain.CoachingBuddy;
 import org.fluxtream.domain.GrapherView;
 import org.fluxtream.domain.Tag;
 import org.fluxtream.services.ApiDataService;
+import org.fluxtream.services.DataUpdateService;
 import org.fluxtream.services.GuestService;
 import org.fluxtream.services.PhotoService;
 import org.fluxtream.utils.JPAUtils;
@@ -74,8 +76,11 @@ public class BodyTrackHelper {
     @PersistenceContext
     EntityManager em;
 
-    static final boolean verboseOutput = true;
-    static final boolean showOutput = true;
+    static final boolean verboseOutput = false;
+    static final boolean showOutput = false;
+
+    @Autowired
+    DataUpdateService dataUpdateService;
 
     @Autowired
     Configuration env;
@@ -231,10 +236,10 @@ public class BodyTrackHelper {
 
             final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("import", new Object[]{guestId, deviceName, tempFile.getAbsolutePath()});
             tempFile.delete();
-            return dataStoreExecutionResult;
+            return new ParsedBodyTrackUploadResult(dataStoreExecutionResult,deviceName,gson);
         } catch (Exception e) {
-            System.out.println("Could not persist to datastore");
-            System.out.println(Utils.stackTrace(e));
+            System.err.println("Could not persist to datastore");
+            System.err.println(Utils.stackTrace(e));
             throw new RuntimeException("Could not persist to datastore");
         }
     }
@@ -251,8 +256,16 @@ public class BodyTrackHelper {
              fos.write(json.getBytes());
              fos.close();
 
-             final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("import",new Object[]{guestId,deviceName,tempFile.getAbsolutePath()});
+             final ParsedBodyTrackUploadResult dataStoreExecutionResult = new ParsedBodyTrackUploadResult(executeDataStore("import", new Object[]{guestId, deviceName, tempFile.getAbsolutePath()}), deviceName, gson);
              tempFile.delete();
+             if (dataStoreExecutionResult.isSuccess()){//log to DataUpdate table //TODO: confirm this works
+                 List<ApiKey> keys = guestService.getApiKeys(guestId,Connector.getConnector("fluxtream_capture"));
+                 long apiKeyId = -1;
+                 if (keys.size() > 0){
+                     apiKeyId = keys.get(0).getId();
+                 }
+                 dataUpdateService.logBodyTrackDataUpdate(guestId,apiKeyId,null,dataStoreExecutionResult);
+             }
              return dataStoreExecutionResult;
          } catch (Exception e) {
              System.out.println("Could not persist to datastore");
@@ -542,6 +555,15 @@ public class BodyTrackHelper {
                 savedStyle.json = style;
                 em.merge(savedStyle);
             }
+
+            List<ApiKey> keys = guestService.getApiKeys(guestId,Connector.getConnector("fluxtream_capture"));
+            long apiKeyId = -1;
+            if (keys.size() > 0){
+                apiKeyId = keys.get(0).getId();
+            }
+            dataUpdateService.logBodyTrackStyleUpdate(guestId,apiKeyId,null,deviceName,new String[]{channelName});
+
+
         }
         catch (Exception e){
 
@@ -1027,6 +1049,62 @@ public class BodyTrackHelper {
         public Integer radius;
         public Boolean fill;
         public Boolean show;
+    }
+
+    public static final class UploadResponseChannelSpecs{
+        ChannelBounds imported_bounds;
+        ChannelBounds channel_bounds;
+
+
+    }
+
+    public static final class UploadResponse{
+        Map<String,UploadResponseChannelSpecs> channel_specs;
+        int failed_records;
+        int successful_records;
+        Double max_time; //seconds
+        Double min_time; //seconds
+
+    }
+
+    public static final class ParsedBodyTrackUploadResult implements BodyTrackUploadResult {
+        private int statusCode;
+        private String responseText;
+        private UploadResponse parsedResponse;
+        private String deviceName;
+
+
+
+        private ParsedBodyTrackUploadResult(BodyTrackUploadResult result, String deviceName,Gson gson){
+            this.statusCode = result.getStatusCode();
+            this.responseText = result.getResponse();
+            this.deviceName = deviceName;
+            this.parsedResponse = gson.fromJson(responseText,UploadResponse.class);
+
+        }
+
+        public UploadResponse getParsedResponse(){
+            return parsedResponse;
+        }
+
+        public String getDeviceName(){
+            return deviceName;
+        }
+
+        @Override
+        public int getStatusCode() {
+            return statusCode;
+        }
+
+        @Override
+        public String getResponse() {
+            return responseText;
+        }
+
+        @Override
+        public boolean isSuccess() {
+            return statusCode == 0;
+        }
     }
 
     public static final class DataStoreExecutionResult implements BodyTrackUploadResult {

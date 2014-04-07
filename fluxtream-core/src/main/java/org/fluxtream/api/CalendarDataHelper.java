@@ -33,7 +33,7 @@ public class CalendarDataHelper {
 	 * This is to let the client discard responses that are coming "too late"
 	 * 
 	 */
-	TimeBoundariesModel getStartEndResponseBoundaries(DayMetadata dayMetadata) {
+	TimeBoundariesModel getStartEndResponseBoundaries(AbstractTimespanMetadata dayMetadata) {
 		TimeBoundariesModel tb = new TimeBoundariesModel();
 		tb.start = dayMetadata.start;
 		tb.end = dayMetadata.end;

@@ -23,10 +23,10 @@ public class JawboneUpMovesIntensityFieldHandler implements FieldHandler {
     BodyTrackHelper bodyTrackHelper;
 
     @Override
-    public void handleField(final long guestId, final AbstractFacet facet) {
+    public List<BodyTrackHelper.BodyTrackUploadResult> handleField(final long guestId, final AbstractFacet facet) {
         JawboneUpMovesFacet movesFacet = (JawboneUpMovesFacet) facet;
         if (movesFacet.intensityStorage==null|| StringUtils.isEmpty(movesFacet.intensityStorage))
-            return;
+            return null;
         JSONArray intensityJson = JSONArray.fromObject(movesFacet.intensityStorage);
         List<List<Object>> data = new ArrayList<List<Object>>();
         for(int i=0; i<intensityJson.size(); i++) {
@@ -41,6 +41,6 @@ public class JawboneUpMovesIntensityFieldHandler implements FieldHandler {
         final List<String> channelNames = Arrays.asList("intensity");
 
         // TODO: check the status code in the BodyTrackUploadResult
-        bodyTrackHelper.uploadToBodyTrack(guestId, "Jawbone_UP", channelNames, data);
+        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(guestId, "Jawbone_UP", channelNames, data));
     }
 }

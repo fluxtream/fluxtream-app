@@ -27,7 +27,17 @@
 
             <table id="{{grapherId}}_timeline_dataTable" class="_timeline_dataTable" border="0" cellpadding="0" cellspacing="0" class="fullHeight">
                 <tr valign="top">
-                    <td id="{{grapherId}}_timeline_addChannelsArea" class="_timeline_pane _timeline_addChannelsArea"></td>
+                    <td id="{{grapherId}}_timeline_addChannelsArea" class="_timeline_pane _timeline_addChannelsArea">
+                        <div class="_timeline_pane_title">Add Channels</div>
+                        <div id="_timeline_sources_find">
+                            <span>
+                              <input type="text" />
+                              <a href="#" class="button" id="_timeline_sources_find_btn">Reset</a>
+                            </span>
+                        </div>
+                        <ul class="_timeline_sources_list">
+                        </ul>
+                    </td>
                     <td id="{{grapherId}}_timeline_dateAxisAndChannelsArea" class="_timeline_dateAxisAndChannelsArea" style="display: none;">
                         <table border="0" cellpadding="0" cellspacing="0">
                             <tr>
@@ -412,29 +422,18 @@
 </div>
 </li>
 </template>
-<template id="sourcesList">
-    <div class="_timeline_pane_title">Add Channels</div>
-    <div id="_timeline_sources_find">
-    <span>
-      <input type="text" />
-      <a href="#" class="button" id="_timeline_sources_find_btn">Reset</a>
-    </span>
-    </div>
-    <ul id="_timeline_sources_list">
-        {{#sources}}
-        <li>
-            <div class="_timeline_sources_name">
-                <span class="_timeline_sources_name_arrow">&#9658;</span>
-                <span>{{ name }}</span>
-            </div>
-            <ul>
-                {{#channels}}
-                <li class="_timeline_sources_channel" id="{{ id }}">{{ name }}</li>
-                {{/channels}}
-            </ul>
-        </li>
-        {{/sources}}
-    </ul>
+<template id="sourceListItem">
+    <li class="_timeline_source_{{name}}">
+        <div class="_timeline_sources_name">
+            <span class="_timeline_sources_name_arrow">&#9658;</span>
+            <span>{{ name }}</span>
+        </div>
+        <ul class="_timeline_channel_list">
+        </ul>
+    </li>
+</template>
+<template id="channelListItem">
+    <li class="_timeline_sources_channel _timeline_channel_{{name}}" id="{{ id }}">{{ name }}</li>
 </template>
 <template id="dataPointValueLabel">
     {{dateString}} {{valueString}}

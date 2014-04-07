@@ -31,6 +31,9 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             parentElement.append(template.render(grapher));
             setup(grapher);
         });
+        App.addDataUpdatesListener("grapherListener-" + this.grapherId, function(data){
+            grapher.onDataUpdate(data);
+        });
     };
 
     var APP 		= BTCore.APP;
@@ -126,7 +129,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         });
 
         // Deal with window resize events
-        TOOLS.onWindowResizeResizeElementHeight("#" + grapher.grapherId + "_timeline_addChannelsArea #_timeline_sources_list");
+        TOOLS.onWindowResizeResizeElementHeight("#" + grapher.grapherId + "_timeline_addChannelsArea ._timeline_sources_list");
         TOOLS.onWindowResizeResizeElementHeight("#" + grapher.grapherId + "_timeline_channelsWrapper");
         TOOLS.onWindowResizeListener(function() {
             // borderOffset is used to account for:
@@ -350,6 +353,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             // Add unique identifier for each source channel
             // and populate sourcesMap
             l = SOURCES.availableList.length;
+            grapher.sourcesMap = {};
             for (i = 0; i < l; i++) {
                 src = SOURCES.availableList[i];
                 m = src.channels.length;
@@ -364,7 +368,8 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                         "max"              : src.channels[j]["max"],
                         "style"            : src.channels[j]["style"],
                         "time_type"        : src.channels[j]["time_type"],
-                        "type"             : src.channels[j]["type"]
+                        "type"             : src.channels[j]["type"],
+                        "usingDefaultStyle": true
                     };
 
                     if ((src.channels[j].hasOwnProperty("min_time")) &&
@@ -380,111 +385,108 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                 SOURCES.initialized = true;
             }
 
-            // Render add channels area
-            App.loadMustacheTemplate("core/grapher/timelineTemplates.html","sourcesList",function(template){
-                $("#" + grapher.grapherId + "_timeline_addChannelsArea").html(template.render({
-                    sources: SOURCES.availableList
-                }));
-            });
+            App.loadMustacheTemplate("core/grapher/timelineTemplates.html","sourceListItem",function(sourceListItemTemplate){
+                App.loadMustacheTemplate("core/grapher/timelineTemplates.html","channelListItem",function(channeListItemTemplate){
+                    var addChannelsArea = $("#" + grapher.grapherId + "_timeline_addChannelsArea");
+                    var deviceRemoveList = addChannelsArea.find("._timeline_sources_list").children();;
+                    for (var i = 0, li = SOURCES.availableList.length; i < li; i++){
+                        var device = SOURCES.availableList[i];
+                        deviceRemoveList = deviceRemoveList.filter(":not(._timeline_source_" + device.name + ")");
+                        var sourceListItem = addChannelsArea.find("._timeline_source_" + device.name);
+                        if (sourceListItem.length == 0){
+                            sourceListItem = $(sourceListItemTemplate.render(device));
+                            addChannelsArea.find("._timeline_sources_list").append(sourceListItem);
+                        }
+                        var channelList = sourceListItem.find("._timeline_channel_list");
+                        var channelRemoveList = channelList.children();
+                        for (var j = 0, lj = device.channels.length; j < lj; j++){
+                            var channel = device.channels[j];
+                            channelRemoveList = channelRemoveList.filter(":not(._timeline_channel_" + channel.name + ")");
+                            var channelListItem = channelList.find("._timeline_channel_" + channel.name);
+                            if (channelListItem.length == 0){
+                                channelListItem = $(channeListItemTemplate.render(channel));
+                                channelList.append(channelListItem);
+                            }
+                        }
+                        channelRemoveList.remove();
 
-            // Drag event handler for channels
-            /*App.loadMustacheTemplate("core/grapher/timelineTemplates.html","channelTemplate",function(template){
-                $("#" + grapher.grapherId + "_timeline_addChannelsArea ul ._timeline_sources_channel").draggable({
-                    connectToSortable : "#" + grapher.grapherId + "_timeline_channels",
-                    revert: "invalid",
-                    helper: function() {
-                        // Create mock grapher widget to show while dragging
-                        var src = grapher.sourcesMap[this.id];
-                        dragSourceId = this.id;
-                        var templateValues = {
-                            "deviceName"       : src["device_name"],
-                            "channelName"      : src["channel_name"],
-                            "plotElementId"    : "_timeline_channel_helper",
-                            "channelElementId" : "_timeline_plot_helper",
-                            "yAxisElementId"   : "_timeline_yAxis_helper",
-                            "showDeleteBtn"    : grapher.showDeleteBtn,
-                            "grapherId"        : grapher.grapherId
-                        };
-                        return template.render(templateValues);
-                    },
-                    start : function(event, ui) {
-                        // Set height to match grapher widget so that hovering
-                        // over channels pane shifts existing widgets by correct amount
-                        $(this).height("74px");
-                    },
-                    stop : function(event, ui) {
-                        // Restore height
-                        $(this).height("16px");
+                    }
+                    deviceRemoveList.remove();
+
+                    //TODO: remove leftover elements for sources that weren't accounted for
+
+                    $("#" + grapher.grapherId + "_timeline_addChannelsArea ul ._timeline_sources_channel").disableSelection();
+
+                    // Create new grapher widget if source receives a click
+                    $("#" + grapher.grapherId + "_timeline_addChannelsArea ul li ._timeline_sources_channel").unbind("click").click(function() {
+                        var c = grapher.sourcesMap[this.id];
+                        grapher.addChannel(c, null);
+                        //$("#" + grapher.grapherId + "_timeline_channelsWrapper").animate({scrollTop:0}, 500);
+                    });
+
+                    // Add channels pane reset button
+                    $("#" + grapher.grapherId + "_timeline_addChannelsArea #_timeline_sources_find_btn").unbind("click").click(function() {
+                        $("#" + grapher.grapherId + "_timeline_addChannelsArea input[type=text]").val("");
+
+                        addPaneRestoreState(grapher);
+                        return false;
+                    });
+
+                    // Add channels pane search functionality
+                    $("#" + grapher.grapherId + "_timeline_addChannelsArea input[type=text]").unbind("keyup").keyup(function(event) {
+                        var search_str = $("#" + grapher.grapherId + "_timeline_addChannelsArea input[type=text]").val();
+                        var regexp = new RegExp(search_str, 'i');
+
+                        if (search_str.length === 0) {
+                            addPaneRestoreState(grapher);
+                            return;
+                        }
+
+                        $("._timeline_sources_name").each(function() {
+                            var ul = $(this).parent().find("ul");
+                            var arrow = $(this).children("._timeline_sources_name_arrow");
+                            if (ul.css("display") === "none") {
+                                ul.show();
+                                arrow.html("&#9660;");
+                            }
+                        });
+
+                        $("#" + grapher.grapherId + "_timeline_addChannelsArea ._timeline_sources_list ._timeline_sources_channel").each(function() {
+                            if ($.trim($(this).html()).search(regexp) == -1) {
+                                $(this).hide();
+                            }
+                            else {
+                                $(this).show();
+                            }
+                        });
+                    }).keyup();
+
+                    // Collapsible devices
+                    $("._timeline_sources_name").unbind("click").click(function() {
+                        var ul = $(this).parent().find("ul");
+                        var arrow = $(this).children("._timeline_sources_name_arrow");
+
+                        if (ul.css("display") === "none") {
+                            ul.show();
+                            arrow.html("&#9660;");
+                        }
+                        else {
+                            ul.hide();
+                            arrow.html("&#9658;");
+                        }
+
+                        addPaneSaveState();
+                    });
+
+                    addPaneSaveState();
+
+                    $(window).resize();//fixes issue where panel wouldn't have a scrollbar
+                    if (typeof callback === "function") {
+                        callback();
                     }
                 });
-            });*/
-            $("#" + grapher.grapherId + "_timeline_addChannelsArea ul ._timeline_sources_channel").disableSelection();
-
-            // Create new grapher widget if source receives a click
-            $("#" + grapher.grapherId + "_timeline_addChannelsArea ul li ._timeline_sources_channel").click(function() {
-                var c = grapher.sourcesMap[this.id];
-                grapher.addChannel(c, null);
-                //$("#" + grapher.grapherId + "_timeline_channelsWrapper").animate({scrollTop:0}, 500);
             });
 
-            // Add channels pane reset button
-            $("#" + grapher.grapherId + "_timeline_addChannelsArea #_timeline_sources_find_btn").click(function() {
-                $("#" + grapher.grapherId + "_timeline_addChannelsArea input[type=text]").val("");
-
-                addPaneRestoreState(grapher);
-                return false;
-            });
-
-            // Add channels pane search functionality
-            $("#" + grapher.grapherId + "_timeline_addChannelsArea input[type=text]").keyup(function(event) {
-                var search_str = $("#" + grapher.grapherId + "_timeline_addChannelsArea input[type=text]").val();
-                var regexp = new RegExp(search_str, 'i');
-
-                if (search_str.length === 0) {
-                    addPaneRestoreState(grapher);
-                    return;
-                }
-
-                $("._timeline_sources_name").each(function() {
-                    var ul = $(this).parent().find("ul");
-                    var arrow = $(this).children("._timeline_sources_name_arrow");
-                    if (ul.css("display") === "none") {
-                        ul.show();
-                        arrow.html("&#9660;");
-                    }
-                });
-
-                $("#" + grapher.grapherId + "_timeline_addChannelsArea #_timeline_sources_list ._timeline_sources_channel").each(function() {
-                    if ($.trim($(this).html()).search(regexp) == -1) {
-                        $(this).hide();
-                    }
-                    else {
-                        $(this).show();
-                    }
-                });
-            });
-
-            // Collapsible devices
-            $("._timeline_sources_name").click(function() {
-                var ul = $(this).parent().find("ul");
-                var arrow = $(this).children("._timeline_sources_name_arrow");
-
-                if (ul.css("display") === "none") {
-                    ul.show();
-                    arrow.html("&#9660;");
-                }
-                else {
-                    ul.hide();
-                    arrow.html("&#9658;");
-                }
-
-                addPaneSaveState();
-            });
-
-            addPaneSaveState();
-            if (typeof callback === "function") {
-                callback();
-            }
         });
     } // getSources
 
@@ -492,7 +494,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         var i = 0;
         var l = addPaneChannelsState.length;
 
-        $("#" + grapher.grapherId + "_timeline_addChannelsArea #_timeline_sources_list ._timeline_sources_channel").each(function() {
+        $("#" + grapher.grapherId + "_timeline_addChannelsArea ._timeline_sources_list ._timeline_sources_channel").each(function() {
             $(this).show();
         });
 
@@ -766,7 +768,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             $("#" + this.grapherId + "_timeline_add_channels_btn").addClass("active");
             area.show();
             $("#" + this.grapherId + "_timeline_dateAxisLabelRegion").addClass("channelAreaShowing");
-            TOOLS.resizeElementHeight($("#" + this.grapherId + "_timeline_addChannelsArea #_timeline_sources_list"));
+            TOOLS.resizeElementHeight($("#" + this.grapherId + "_timeline_addChannelsArea ._timeline_sources_list"));
         }
         else {
             $("#"  + this.grapherId + "_timeline_add_channels_btn").removeClass("active");
@@ -1068,6 +1070,8 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                 // Define a function which handles updating a channel's style
                 // whenever anything in the channel configuration changes
                 var updateDataSeriesPlotChannelConfig = function() {
+                    channel.usingDefaultStyle = false;
+
                     var plot = grapher.plotsMap[channelElementId];
 
                     var newStyle = plot.getStyle();
@@ -1191,129 +1195,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                 // Show DataSeriesPlot config
                 $("#" + channelElementId + " ._timeline_data_series_plot_config").show();
 
-                // First, record whether this is a Zeo plot
-                var isZeo = channel["channel_name"] == "Sleep_Graph";
 
-                // Check for styles array
-                if (!channel["style"].hasOwnProperty("styles")) {
-                    channel["style"]["styles"] = [];
-                }
-                // Check for highlight object
-                if (!channel["style"].hasOwnProperty("highlight")) {
-                    channel["style"]["highlight"] = {};
-                }
-                // Check for highlight styles array
-                if (!channel["style"]["highlight"].hasOwnProperty("styles")) {
-                    channel["style"]["highlight"]["styles"] = [];
-                }
-                // Check for comments object
-                if (!channel["style"].hasOwnProperty("comments")) {
-                    channel["style"]["comments"] = {};
-                }
-                // Check for comments styles array
-                if (!channel["style"]["comments"].hasOwnProperty("styles")) {
-                    channel["style"]["comments"]["styles"] = [];
-                }
-
-                // get the next default color
-                var defaultColor = "#" + jQuery.fn.colorPicker.getNextColor();
-
-                // Load up the existing styles (if any) from the styles array
-                var linesStyle = {"type" : "line", "show" : false, "lineWidth" : 1, "color" : defaultColor};
-                var pointsStyle = {"type" : "point", "show" : false, "radius" : 2, "fill" : true, "color" : defaultColor, "fillColor" : defaultColor};
-                var barsStyle = {"type" : "lollipop", "show" : false, "color" : defaultColor};
-                var valuesStyle1 = {"type" : "value", "show" : false, "fillColor" : defaultColor};
-                var valuesStyle2 = {"type" : "value", "show" : false, "fillColor" : defaultColor};
-                var commentsStyle = {"type" : "point", "show" : true, "radius" : 3, "fill" : true, "color" : defaultColor, "fillColor" : defaultColor};
-
-                for (var styleTypeIndex = 0; styleTypeIndex < channel["style"]["styles"].length; styleTypeIndex++) {
-                    var theStyle = channel["style"]["styles"][styleTypeIndex];
-                    if (typeof theStyle["type"] !== 'undefined') {
-                        if (theStyle["type"] == "line") {
-                            linesStyle = theStyle;
-                        } else if (theStyle["type"] == "point" ||
-                                   theStyle["type"] == "square" ||
-                                   theStyle["type"] == "cross" ||
-                                   theStyle["type"] == "plus") {
-                            // fill defaults to true if unspecified
-                            if (typeof theStyle["fill"] === 'undefined') {
-                                theStyle["fill"] = true;
-                            }
-                            pointsStyle = theStyle;
-                        } else if (theStyle["type"] == "lollipop") {
-                            // fill defaults to true if unspecified
-                            if (typeof theStyle["fill"] === 'undefined') {
-                                theStyle["fill"] = true;
-                            }
-                            barsStyle = theStyle;
-                        } else if (theStyle["type"] == "value") {
-                            valuesStyle1 = theStyle;
-                        }
-
-                        // show defaults to true if unspecified
-                        if (typeof theStyle["show"] === 'undefined') {
-                            theStyle["show"] = true;
-                        }
-                    }
-                }
-
-                // build the type-ui field
-                pointsStyle['type-ui'] = pointsStyle['type'];
-                if (pointsStyle['fill'] && (pointsStyle['type'] == 'point' || pointsStyle['type'] == 'square')) {
-                    pointsStyle['type-ui'] += '-filled';
-                }
-
-                // Load up the existing styles (if any) from the highlight styles array--we currently only support the values style
-                for (var highlightStyleTypeIndex = 0; highlightStyleTypeIndex < channel["style"]["highlight"]["styles"].length; highlightStyleTypeIndex++) {
-                    var theHighlightStyle = channel["style"]["highlight"]["styles"][highlightStyleTypeIndex];
-                    if (theHighlightStyle["type"] == "value") {
-                        valuesStyle2 = theHighlightStyle;
-                    }
-
-                    // show defaults to true if unspecified
-                    if (typeof theHighlightStyle["show"] === 'undefined') {
-                        theHighlightStyle["show"] = true;
-                    }
-                }
-
-                // now merge valuesStyle1 and valuesStyle2 (they should be identical, except for the "show" field)
-                var valuesStyle = jQuery.extend(true, {}, valuesStyle1, valuesStyle2);
-                valuesStyle["show"] = valuesStyle1["show"] || valuesStyle2["show"];
-
-                // map the verticalOffset in valuesStyle to one of the three options we support.
-                valuesStyle["verticalOffset"] = TOOLS.parseInt(valuesStyle["verticalOffset"], 7);
-                if (valuesStyle["verticalOffset"] > -3) {
-                    valuesStyle["verticalOffset"] = 7;
-                } else if (valuesStyle["verticalOffset"] < -3) {
-                    valuesStyle["verticalOffset"] = -13;
-                }
-
-                // determine whether values should always be shown, or only on highlight (mouseover).  Note that the
-                // concatenation here ensures that it's a string, which is required for when we set the selected index
-                // of the select menu below.
-                var showValuesOnlyOnHighlight = "" + (!valuesStyle1["show"] && valuesStyle2["show"]);
-
-                // Load up the existing styles (if any) from the comments styles array--we currently only support a single point style
-                for (var commentsStyleTypeIndex = 0; commentsStyleTypeIndex < channel["style"]["comments"]["styles"].length; commentsStyleTypeIndex++) {
-                    var theCommentsStyle = channel["style"]["comments"]["styles"][commentsStyleTypeIndex];
-                    if (theCommentsStyle["type"] == "point" ||
-                        theCommentsStyle["type"] == "square" ||
-                        theCommentsStyle["type"] == "cross" ||
-                        theCommentsStyle["type"] == "plus") {
-                        commentsStyle = theCommentsStyle;
-                    }
-
-                    // show defaults to true if unspecified
-                    if (typeof commentsStyle["show"] === 'undefined') {
-                        commentsStyle["show"] = true;
-                    }
-                }
-
-                // build the type-ui field
-                commentsStyle['type-ui'] = commentsStyle['type'];
-                if (commentsStyle['fill'] && (commentsStyle['type'] == 'point' || commentsStyle['type'] == 'square')) {
-                    commentsStyle['type-ui'] += '-filled';
-                }
 
                 /* add event handler for the Save As Default Style link --------------------------------------------------- */
                 $("#" + channelElementId + "-save-default-style > a").click(function() {
@@ -1321,6 +1203,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                     $("#" + channelElementId + "-save-default-style-status").html("Saving...").show();
                     saveDefaultChannelStyle(channel, plot.getStyle(), {
                         success : function() {
+                            channel.usingDefaultStyle = true;
                             getSources(grapher);
                             $("#" + channelElementId + "-save-default-style-status").html("Default style saved.").delay(1000).fadeOut(1000,
                                 function() {
@@ -1381,7 +1264,6 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                 });
 
                 //bind dropdown menus
-
                 $("#" + channelElementId + " .configDropdown").each(function(index,dropdown){
                     dropdown = $(dropdown);
                     dropdown.find("a").click(function(event){
@@ -1393,10 +1275,6 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                         updateDataSeriesPlotChannelConfig();
                     });
                 });
-
-
-                /* Configure the Zeo options ------------------------------------------------------------------------------ */
-                $("#" + channelElementId + "-config-zeo-show").prop("checked", isZeo);
 
                 /* Configure the Color Override options ------------------------------------------------------------------- */
                 $("#" + channelElementId + "-config-color-override-color").colorPicker();
@@ -1415,122 +1293,61 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
 
                 /* Configure the Lines options ---------------------------------------------------------------------------- */
 
-                // don't show this section if this is a Zeo plot
-                $("#" + channelElementId + "-config-lines").toggle(!isZeo);
 
                 // Set the initial value of the show checkbox
-                $("#" + channelElementId + "-config-lines-show").prop("checked", linesStyle["show"] && !isZeo);
                 $("#" + channelElementId + "-config-lines-show").change(updateDataSeriesPlotChannelConfig);
 
-                // Set the initial value of the lineWidth select menu
-                $("#" + channelElementId + " .configLineWidth a[value=" + TOOLS.parseInt(linesStyle["lineWidth"], 1) + "]").click();
 
                 // Create the color colorpicker, and set its initial value
                 $("#" + channelElementId + "-config-lines-color").colorPicker();
-                $("#" + channelElementId + "-config-lines-color").val(typeof linesStyle["color"] === 'undefined' ? defaultColor : linesStyle["color"]);
-                $("#" + channelElementId + "-config-lines-color").change();
                 $("#" + channelElementId + "-config-lines-color").change(updateDataSeriesPlotChannelConfig);
 
                 /* Configure the Points options --------------------------------------------------------------------------- */
 
-                // don't show this section if this is a Zeo plot
-                $("#" + channelElementId + "-config-points").toggle(!isZeo);
-
                 // Set the initial value of the show checkbox
-                $("#" + channelElementId + "-config-points-show").prop("checked", pointsStyle["show"] && !isZeo);
                 $("#" + channelElementId + "-config-points-show").change(updateDataSeriesPlotChannelConfig);
-
-                // Set the initial value of the type select menu and the initial state of the fillColor color picker
-                $("#" + channelElementId + " .configPointsType a[value=" + pointsStyle['type-ui'] + "]").click();
-                $("#" + channelElementId + "-config-points-fillColor-container").toggle(pointsStyle['fill']);
-
-                // Set the initial value of the radius select menu
-                $("#" + channelElementId + " .configPointsRadius a[value=" + TOOLS.parseInt(pointsStyle["radius"], 2) + "]").click();
 
                 // Create the color colorpicker, and set its initial value
                 $("#" + channelElementId + "-config-points-color").colorPicker();
-                $("#" + channelElementId + "-config-points-color").val(typeof pointsStyle["color"] === 'undefined' ? defaultColor : pointsStyle["color"]);
-                $("#" + channelElementId + "-config-points-color").change();
                 $("#" + channelElementId + "-config-points-color").change(updateDataSeriesPlotChannelConfig);
 
                 // Create the fillColor colorpicker, and set its initial value
                 $("#" + channelElementId + "-config-points-fillColor").colorPicker();
-                $("#" + channelElementId + "-config-points-fillColor").val(typeof pointsStyle["fillColor"] === 'undefined' ? defaultColor : pointsStyle["fillColor"]);
-                $("#" + channelElementId + "-config-points-fillColor").change();
                 $("#" + channelElementId + "-config-points-fillColor").change(updateDataSeriesPlotChannelConfig);
 
                 /* Configure the Bars options ----------------------------------------------------------------------------- */
 
-                // don't show this section if this is a Zeo plot
-                $("#" + channelElementId + "-config-bars").toggle(!isZeo);
-
                 // Set the initial value of the show checkbox
-                $("#" + channelElementId + "-config-bars-show").prop("checked", barsStyle["show"] && !isZeo);
                 $("#" + channelElementId + "-config-bars-show").change(updateDataSeriesPlotChannelConfig);
-
-                // Set the initial value of the lineWidth select menu
-                $("#" + channelElementId + " .configBarsLineWidth a[value=" + TOOLS.parseInt(barsStyle["lineWidth"], 1) + "]").click();
 
                 // Create the color colorpicker, and set its initial value
                 $("#" + channelElementId + "-config-bars-color").colorPicker();
-                $("#" + channelElementId + "-config-bars-color").val(typeof barsStyle["color"] === 'undefined' ? defaultColor : barsStyle["color"]);
-                $("#" + channelElementId + "-config-bars-color").change();
                 $("#" + channelElementId + "-config-bars-color").change(updateDataSeriesPlotChannelConfig);
 
                 /* Configure the Values options --------------------------------------------------------------------------- */
 
-                // Set the initial value of the show checkbox
-                $("#" + channelElementId + "-config-values-show").prop("checked", valuesStyle["show"]);
+                // Set the initial value of the show checkbo
                 $("#" + channelElementId + "-config-values-show").change(updateDataSeriesPlotChannelConfig);
 
                 // Create the fillColor colorpicker, and set its initial value
                 $("#" + channelElementId + "-config-values-fillColor").colorPicker();
-                $("#" + channelElementId + "-config-values-fillColor").val(typeof valuesStyle["fillColor"] === 'undefined' ? defaultColor : valuesStyle["fillColor"]);
-                $("#" + channelElementId + "-config-values-fillColor").change();
                 $("#" + channelElementId + "-config-values-fillColor").change(updateDataSeriesPlotChannelConfig);
 
-                // Set the initial value of the numberFormat select menu
-                $("#" + channelElementId + " .configValuesNumberFormat a[value=\"" + (typeof valuesStyle["numberFormat"] === 'undefined' ? "###,##0.0##" : valuesStyle["numberFormat"]) + "\"]").click();
-
-                // Set the initial value of the verticalOffset select menu
-                $("#" + channelElementId + " .configValuesVerticalOffset a[value=" + TOOLS.parseInt(valuesStyle["verticalOffset"], 7) + "]").click();
-
                 // Set the initial value of the showOnlyOnHighlight select menu and the initial visibility of the marginWidth select menu
-                $("#" + channelElementId + " .configValuesShowOnlyOnHighlight a[value=" + showValuesOnlyOnHighlight + "]").click();
                 $("#" + channelElementId + "-config-values-showOnlyOnHighlight").msDropDown();
-                var showValuesOnlyOnHighlightBoolean = showValuesOnlyOnHighlight == 'true';
-                $("#" + channelElementId + "-config-values-marginWidth-label-container").toggle(!showValuesOnlyOnHighlightBoolean);
-                $("#" + channelElementId + "-config-values-marginWidth-container").toggle(!showValuesOnlyOnHighlightBoolean);
-
-                // Set the initial value of the marginWidth select menu
-                $("#" + channelElementId + " .configValuesMarginWidth a[value=" + TOOLS.parseInt(valuesStyle["marginWidth"], 5) + "]").click();
 
                 /* Configure the Comments options ------------------------------------------------------------------------- */
 
                 // Set the initial value of the show checkbox
-                $("#" + channelElementId + "-config-comments-show").prop("checked", commentsStyle["show"]);
                 $("#" + channelElementId + "-config-comments-show").change(updateDataSeriesPlotChannelConfig);
-
-                // Set the initial value of the type select menu and the initial state of the fillColor color picker
-                $("#" + channelElementId + " .configCommentsType a[value=" + commentsStyle['type-ui'] + "]").click();
-
-                // Set the initial value of the radius select menu
-                $("#" + channelElementId + " .configCommentsRadius a[value=" + TOOLS.parseInt(commentsStyle["radius"],3) + "]").click();
 
                 // Create the color colorpicker, and set its initial value
                 $("#" + channelElementId + "-config-comments-color").colorPicker();
-                $("#" + channelElementId + "-config-comments-color").val(typeof commentsStyle["color"] === 'undefined' ? defaultColor : commentsStyle["color"]);
-                $("#" + channelElementId + "-config-comments-color").change();
                 $("#" + channelElementId + "-config-comments-color").change(updateDataSeriesPlotChannelConfig);
 
                 // Create the fillColor colorpicker, and set its initial value
                 $("#" + channelElementId + "-config-comments-fillColor").colorPicker();
-                $("#" + channelElementId + "-config-comments-fillColor").val(typeof commentsStyle["fillColor"] === 'undefined' ? defaultColor : commentsStyle["fillColor"]);
-                $("#" + channelElementId + "-config-comments-fillColor").change();
                 $("#" + channelElementId + "-config-comments-fillColor").change(updateDataSeriesPlotChannelConfig);
-
-                // Finally, trigger a call updateDataSeriesPlotChannelConfig() so that the grapher properly represents the config settings
-                $("#" + channelElementId + "-config-comments-fillColor").change();
             } else if (plot instanceof PhotoSeriesPlot) {
 
                 $("#" + channelElementId + " #" + channelElementId + "_btnShowAllY").click(function(event){
@@ -1552,6 +1369,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                 };
 
                 var updatePhotoSeriesPlotChannelConfig = function() {
+                    channel.usingDefaultStyle = false;
                     var channelElement = $(this).parents("._timeline_channel").parent();
                     var plot = grapher.plotsMap[channelElement.attr("id")];
                     var newStyle = plot.getStyle();
@@ -1607,28 +1425,6 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                     ));
                 };
 
-                // Check for filters object
-                if (!channel["style"].hasOwnProperty("filters")) {
-                    channel["style"]["filters"] = {};
-                }
-                // Check for filters.tag object
-                if (!channel["style"]["filters"].hasOwnProperty("tag")) {
-                    channel["style"]["filters"]["tag"] = {};
-                }
-                // Check for filters.tag.tags array
-                if (!channel["style"]["filters"]["tag"].hasOwnProperty("tags")) {
-                    channel["style"]["filters"]["tag"]["tags"] = [];
-                }
-                // Check for filters.tag.matchingStrategy property
-                if (!channel["style"]["filters"]["tag"].hasOwnProperty("matchingStrategy")) {
-                    channel["style"]["filters"]["tag"]["matchingStrategy"] = "any";  // default to joining with OR
-                }
-
-                // Load up the existing tag filter (if any)
-                var tagFilter = channel["style"]["filters"]["tag"];
-
-                // Set the initial value of the matchingStrategy select menu
-                $("#" + channelElementId + "-photo-tags-matching-strategy").val("" + tagFilter["matchingStrategy"]);
                 $("#" + channelElementId + "-photo-tags-matching-strategy").change(updatePhotoSeriesPlotChannelConfig);
                 $("#" + channelElementId + "-photo-tags-matching-strategy").change(function(){
                     // show/hide the tags text box depending on the matching strategy (hidden when the "untagged" strategy is selected)
@@ -1636,43 +1432,9 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                     $("#" + channelElementId + "-photo-tags-filter").toggle(matchingStrategy != "untagged");
                 });
 
-                // seed the tag filter editor with the tags currently saved in the channel (if any)
-                if (tagFilter['tags'].length > 0) {
-                    $.each(tagFilter['tags'], function(index, value) {
-                        var tagHtml = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_tags_editor_tag_template").render({"value" : value});
-                        $("#" + channelElementId + "-photo-tags-filter").append(tagHtml);
-                    });
-                } else {
-                    var tagHtml = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_tags_editor_tag_template").render({"value" : ""});
-                    $("#" + channelElementId + "-photo-tags-filter").append(tagHtml);
-                }
 
-                // construct the tag filter editor
-                var tagFilterOptions = {
-                    autocompleteOptions : {
-                        "minLength" : 0, // TODO: make this 1 or 2 if the list of tags is huge
-                        "delay"     : 0,
-                        "autoFocus" : false,
-                        source      : function(request, response) {
-                            var tagsToExclude = getUserSelectedTags();
-                            var cachedTagsData = TAG_MANAGER.getCachedTagsForTagEditor(tagsToExclude);
-                            return response($.ui.autocomplete.filter(cachedTagsData, request.term));
-                        }
-                    },
-                    // return, comma, space, period, semicolon
-                    breakKeyCodes       : [ 13, 44, 32, 59 ],
-                    additionalListClass : '_timeline_photo_tags_filter',
-                    animSpeed           : 100,
-                    allowAdd            : false,
-                    allowEdit           : false,
-                    allowDelete         : false,
-                    texts               : {
-                        removeLinkTitle    : 'Remove this tag from the list',
-                        saveEditLinkTitle  : 'Save changes',
-                        breakEditLinkTitle : 'Undo changes'
-                    }
-                };
-                $("#" + channelElementId + "-photo-tags-filter input.tag").tagedit(tagFilterOptions);
+
+
                 $("#" + channelElementId + "-photo-tags-filter").bind('tagsChanged', updatePhotoSeriesPlotChannelConfig);
                 //$("#" + channelElementId + "-photo-tags-filter").bind('tagAdded', function(){console.log('tagAdded')});
                 //$("#" + channelElementId + "-photo-tags-filter").bind('tagEdited', function(){console.log('tagEdited')});
@@ -1680,15 +1442,13 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
 
                 // Show PhotoSeriesPlot config
                 $("#" + channelElementId + " ._timeline_photo_series_plot_config").show();
-
-                // Finally, trigger a call updatePhotoSeriesPlotChannelConfig() so that the grapher properly represents the config settings
-                $("#" + channelElementId + "-photo-tags-matching-strategy").change();
             } else if (plot instanceof TimespanSeriesPlot){
                 yAxis.setMaxRange(0,1);
                 $("#" + channelElementId + " #" + channelElementId + "_btnShowAllY").click(function(event){
                     yAxis.setRange(0,1);
                 });
             }
+            grapher.applyChannelStyle(channelElementId,channel.style,true);
 
             // Force initial resize
             resizePlot(grapher, id, 0);
@@ -1698,6 +1458,321 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
 
             return html;
         });
+    }//Grapher.addChannel
+
+    Grapher.prototype.applyChannelStyle = function(channelId,style,silent){
+        var channel = this.channelsMap[channelId];
+        var plot = this.plotsMap[channelId];
+        var usingDefault = channel.usingDefaultStyle;
+        style = TOOLS.clone(style);
+        if (plot instanceof DataSeriesPlot){
+            // First, record whether this is a Zeo plot
+            var isZeo = channel["channel_name"] == "Sleep_Graph";
+
+            // Check for styles array
+            if (!style.hasOwnProperty("styles")) {
+                style["styles"] = [];
+            }
+            // Check for highlight object
+            if (!style.hasOwnProperty("highlight")) {
+                style["highlight"] = {};
+            }
+            // Check for highlight styles array
+            if (!style["highlight"].hasOwnProperty("styles")) {
+                style["highlight"]["styles"] = [];
+            }
+            // Check for comments object
+            if (!style.hasOwnProperty("comments")) {
+                style["comments"] = {};
+            }
+            // Check for comments styles array
+            if (!style["comments"].hasOwnProperty("styles")) {
+                style["comments"]["styles"] = [];
+            }
+
+            // get the next default color
+            var defaultColor = "#" + jQuery.fn.colorPicker.getNextColor();
+
+            // Load up the existing styles (if any) from the styles array
+            var linesStyle = {"type" : "line", "show" : false, "lineWidth" : 1, "color" : defaultColor};
+            var pointsStyle = {"type" : "point", "show" : false, "radius" : 2, "fill" : true, "color" : defaultColor, "fillColor" : defaultColor};
+            var barsStyle = {"type" : "lollipop", "show" : false, "color" : defaultColor};
+            var valuesStyle1 = {"type" : "value", "show" : false, "fillColor" : defaultColor};
+            var valuesStyle2 = {"type" : "value", "show" : false, "fillColor" : defaultColor};
+            var commentsStyle = {"type" : "point", "show" : true, "radius" : 3, "fill" : true, "color" : defaultColor, "fillColor" : defaultColor};
+
+            for (var styleTypeIndex = 0; styleTypeIndex < style["styles"].length; styleTypeIndex++) {
+                var theStyle = style["styles"][styleTypeIndex];
+                if (typeof theStyle["type"] !== 'undefined') {
+                    if (theStyle["type"] == "line") {
+                        linesStyle = theStyle;
+                    } else if (theStyle["type"] == "point" ||
+                               theStyle["type"] == "square" ||
+                               theStyle["type"] == "cross" ||
+                               theStyle["type"] == "plus") {
+                        // fill defaults to true if unspecified
+                        if (typeof theStyle["fill"] === 'undefined') {
+                            theStyle["fill"] = true;
+                        }
+                        pointsStyle = theStyle;
+                    } else if (theStyle["type"] == "lollipop") {
+                        // fill defaults to true if unspecified
+                        if (typeof theStyle["fill"] === 'undefined') {
+                            theStyle["fill"] = true;
+                        }
+                        barsStyle = theStyle;
+                    } else if (theStyle["type"] == "value") {
+                        valuesStyle1 = theStyle;
+                    }
+
+                    // show defaults to true if unspecified
+                    if (typeof theStyle["show"] === 'undefined') {
+                        theStyle["show"] = true;
+                    }
+                }
+            }
+
+            // build the type-ui field
+            pointsStyle['type-ui'] = pointsStyle['type'];
+            if (pointsStyle['fill'] && (pointsStyle['type'] == 'point' || pointsStyle['type'] == 'square')) {
+                pointsStyle['type-ui'] += '-filled';
+            }
+
+            // Load up the existing styles (if any) from the highlight styles array--we currently only support the values style
+            for (var highlightStyleTypeIndex = 0; highlightStyleTypeIndex < style["highlight"]["styles"].length; highlightStyleTypeIndex++) {
+                var theHighlightStyle = style["highlight"]["styles"][highlightStyleTypeIndex];
+                if (theHighlightStyle["type"] == "value") {
+                    valuesStyle2 = theHighlightStyle;
+                }
+
+                // show defaults to true if unspecified
+                if (typeof theHighlightStyle["show"] === 'undefined') {
+                    theHighlightStyle["show"] = true;
+                }
+            }
+
+            // now merge valuesStyle1 and valuesStyle2 (they should be identical, except for the "show" field)
+            var valuesStyle = jQuery.extend(true, {}, valuesStyle1, valuesStyle2);
+            valuesStyle["show"] = valuesStyle1["show"] || valuesStyle2["show"];
+
+            // map the verticalOffset in valuesStyle to one of the three options we support.
+            valuesStyle["verticalOffset"] = TOOLS.parseInt(valuesStyle["verticalOffset"], 7);
+            if (valuesStyle["verticalOffset"] > -3) {
+                valuesStyle["verticalOffset"] = 7;
+            } else if (valuesStyle["verticalOffset"] < -3) {
+                valuesStyle["verticalOffset"] = -13;
+            }
+
+            // determine whether values should always be shown, or only on highlight (mouseover).  Note that the
+            // concatenation here ensures that it's a string, which is required for when we set the selected index
+            // of the select menu below.
+            var showValuesOnlyOnHighlight = "" + (!valuesStyle1["show"] && valuesStyle2["show"]);
+
+
+            // Load up the existing styles (if any) from the comments styles array--we currently only support a single point style
+            for (var commentsStyleTypeIndex = 0; commentsStyleTypeIndex < style["comments"]["styles"].length; commentsStyleTypeIndex++) {
+                var theCommentsStyle = style["comments"]["styles"][commentsStyleTypeIndex];
+                if (theCommentsStyle["type"] == "point" ||
+                    theCommentsStyle["type"] == "square" ||
+                    theCommentsStyle["type"] == "cross" ||
+                    theCommentsStyle["type"] == "plus") {
+                    commentsStyle = theCommentsStyle;
+                }
+
+                // show defaults to true if unspecified
+                if (typeof commentsStyle["show"] === 'undefined') {
+                    commentsStyle["show"] = true;
+                }
+            }
+
+            // build the type-ui field
+            commentsStyle['type-ui'] = commentsStyle['type'];
+            if (commentsStyle['fill'] && (commentsStyle['type'] == 'point' || commentsStyle['type'] == 'square')) {
+                commentsStyle['type-ui'] += '-filled';
+            }
+
+            // don't show this section if this is a Zeo plot
+            $("#" + channelId + "-config-lines").toggle(!isZeo);
+
+            //Line Options--------------------------------------------------------------
+            //set value of show lines
+            $("#" + channelId + "-config-lines-show").prop("checked", linesStyle["show"] && !isZeo);
+
+            // Set the value of the lineWidth select menu
+            $("#" + channelId + " .configLineWidth a[value=" + TOOLS.parseInt(linesStyle["lineWidth"], 1) + "]").click();
+
+            // Create the color colorpicker, and set its initial value
+            $("#" + channelId + "-config-lines-color").val(typeof linesStyle["color"] === 'undefined' ? defaultColor : linesStyle["color"]);
+            $("#" + channelId + "-config-lines-color").change();
+            /* Configure the Points options --------------------------------------------------------------------------- */
+
+            // don't show this section if this is a Zeo plot
+            $("#" + channelId + "-config-points").toggle(!isZeo);
+
+            // Set the initial value of the show checkbox
+            $("#" + channelId + "-config-points-show").prop("checked", pointsStyle["show"] && !isZeo);
+
+            // Set the initial value of the type select menu and the initial state of the fillColor color picker
+            $("#" + channelId + " .configPointsType a[value=" + pointsStyle['type-ui'] + "]").click();
+            $("#" + channelId + "-config-points-fillColor-container").toggle(pointsStyle['fill']);
+
+            // Set the initial value of the radius select menu
+            $("#" + channelId + " .configPointsRadius a[value=" + TOOLS.parseInt(pointsStyle["radius"], 2) + "]").click();
+
+            // Create the color colorpicker, and set its initial value
+            $("#" + channelId + "-config-points-color").val(typeof pointsStyle["color"] === 'undefined' ? defaultColor : pointsStyle["color"]);
+            $("#" + channelId + "-config-points-color").change();
+
+            // Create the fillColor colorpicker, and set its initial value
+            $("#" + channelId + "-config-points-fillColor").val(typeof pointsStyle["fillColor"] === 'undefined' ? defaultColor : pointsStyle["fillColor"]);
+            $("#" + channelId + "-config-points-fillColor").change();
+
+            /* Configure the Bars options ----------------------------------------------------------------------------- */
+
+            // don't show this section if this is a Zeo plot
+            $("#" + channelId + "-config-bars").toggle(!isZeo);
+
+            // Set the initial value of the show checkbox
+            $("#" + channelId + "-config-bars-show").prop("checked", barsStyle["show"] && !isZeo);
+
+            // Set the initial value of the lineWidth select menu
+            $("#" + channelId + " .configBarsLineWidth a[value=" + TOOLS.parseInt(barsStyle["lineWidth"], 1) + "]").click();
+
+            // Create the color colorpicker, and set its initial value
+            $("#" + channelId + "-config-bars-color").val(typeof barsStyle["color"] === 'undefined' ? defaultColor : barsStyle["color"]);
+            $("#" + channelId + "-config-bars-color").change();
+
+            /* Configure the Values options --------------------------------------------------------------------------- */
+
+            // Set the initial value of the show checkbox
+            $("#" + channelId + "-config-values-show").prop("checked", valuesStyle["show"]);
+
+            // Create the fillColor colorpicker, and set its initial value
+            $("#" + channelId + "-config-values-fillColor").val(typeof valuesStyle["fillColor"] === 'undefined' ? defaultColor : valuesStyle["fillColor"]);
+            $("#" + channelId + "-config-values-fillColor").change();
+
+            // Set the initial value of the numberFormat select menu
+            $("#" + channelId + " .configValuesNumberFormat a[value=\"" + (typeof valuesStyle["numberFormat"] === 'undefined' ? "###,##0.0##" : valuesStyle["numberFormat"]) + "\"]").click();
+
+            // Set the initial value of the verticalOffset select menu
+            $("#" + channelId + " .configValuesVerticalOffset a[value=" + TOOLS.parseInt(valuesStyle["verticalOffset"], 7) + "]").click();
+
+            // Set the initial value of the showOnlyOnHighlight select menu and the initial visibility of the marginWidth select menu
+            $("#" + channelId + " .configValuesShowOnlyOnHighlight a[value=" + showValuesOnlyOnHighlight + "]").click();
+            var showValuesOnlyOnHighlightBoolean = showValuesOnlyOnHighlight == 'true';
+            $("#" + channelId + "-config-values-marginWidth-label-container").toggle(!showValuesOnlyOnHighlightBoolean);
+            $("#" + channelId + "-config-values-marginWidth-container").toggle(!showValuesOnlyOnHighlightBoolean);
+
+            // Set the initial value of the marginWidth select menu
+            $("#" + channelId + " .configValuesMarginWidth a[value=" + TOOLS.parseInt(valuesStyle["marginWidth"], 5) + "]").click();
+
+            /* Configure the Comments options ------------------------------------------------------------------------- */
+
+            // Set the initial value of the show checkbox
+            $("#" + channelId + "-config-comments-show").prop("checked", commentsStyle["show"]);
+
+            // Set the initial value of the type select menu and the initial state of the fillColor color picker
+            $("#" + channelId + " .configCommentsType a[value=" + commentsStyle['type-ui'] + "]").click();
+
+            // Set the initial value of the radius select menu
+            $("#" + channelId + " .configCommentsRadius a[value=" + TOOLS.parseInt(commentsStyle["radius"],3) + "]").click();
+
+            // Create the color colorpicker, and set its initial value
+            $("#" + channelId + "-config-comments-color").val(typeof commentsStyle["color"] === 'undefined' ? defaultColor : commentsStyle["color"]);
+            $("#" + channelId + "-config-comments-color").change();
+
+            // Create the fillColor colorpicker, and set its initial value
+            $("#" + channelId + "-config-comments-fillColor").val(typeof commentsStyle["fillColor"] === 'undefined' ? defaultColor : commentsStyle["fillColor"]);
+            $("#" + channelId + "-config-comments-fillColor").change();
+        }
+        else if (plot instanceof PhotoSeriesPlot){
+            // Check for filters object
+            if (!style.hasOwnProperty("filters")) {
+                style["filters"] = {};
+            }
+            // Check for filters.tag object
+            if (!style["filters"].hasOwnProperty("tag")) {
+                style["filters"]["tag"] = {};
+            }
+            // Check for filters.tag.tags array
+            if (!style["filters"]["tag"].hasOwnProperty("tags")) {
+                style["filters"]["tag"]["tags"] = [];
+            }
+            // Check for filters.tag.matchingStrategy property
+            if (!style["filters"]["tag"].hasOwnProperty("matchingStrategy")) {
+                style["filters"]["tag"]["matchingStrategy"] = "any";  // default to joining with OR
+            }
+
+            // Load up the existing tag filter (if any)
+            var tagFilter = style["filters"]["tag"];
+
+            // Set the initial value of the matchingStrategy select menu
+            $("#" + channelId + "-photo-tags-matching-strategy").val("" + tagFilter["matchingStrategy"]);
+
+            // seed the tag filter editor with the tags currently saved in the channel (if any)
+            $("#" + channelId + "-photo-tags-filter").html("");
+            if (tagFilter['tags'].length > 0) {
+                $.each(tagFilter['tags'], function(index, value) {
+                    var tagHtml = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_tags_editor_tag_template").render({"value" : value});
+                    $("#" + channelId + "-photo-tags-filter").append(tagHtml);
+                });
+            } else {
+                var tagHtml = App.fetchCompiledMustacheTemplate("core/grapher/timelineTemplates.html","_timeline_photo_dialog_tags_editor_tag_template").render({"value" : ""});
+                $("#" + channelId + "-photo-tags-filter").append(tagHtml);
+            }
+
+            // returns the array of tags already selected for this photo
+            var getUserSelectedTags = function() {
+                var tags = [];
+                $.each($("#" + channelId + "-photo-tags-filter .tagedit-listelement-old input"),
+                    function(index, inputElement) {
+                        var val = inputElement['value'];
+                        if (typeof val === 'string' && val != '') {
+                            tags[tags.length] = val;
+                        }
+                    }
+                );
+                return tags;
+            };
+
+            // construct the tag filter editor
+            var tagFilterOptions = {
+                autocompleteOptions : {
+                    "minLength" : 0, // TODO: make this 1 or 2 if the list of tags is huge
+                    "delay"     : 0,
+                    "autoFocus" : false,
+                    source      : function(request, response) {
+                        var tagsToExclude = getUserSelectedTags();
+                        var cachedTagsData = TAG_MANAGER.getCachedTagsForTagEditor(tagsToExclude);
+                        return response($.ui.autocomplete.filter(cachedTagsData, request.term));
+                    }
+                },
+                // return, comma, space, period, semicolon
+                breakKeyCodes       : [ 13, 44, 32, 59 ],
+                additionalListClass : '_timeline_photo_tags_filter',
+                animSpeed           : 100,
+                allowAdd            : false,
+                allowEdit           : false,
+                allowDelete         : false,
+                texts               : {
+                    removeLinkTitle    : 'Remove this tag from the list',
+                    saveEditLinkTitle  : 'Save changes',
+                    breakEditLinkTitle : 'Undo changes'
+                }
+            };
+            $("#" + channelId + "-photo-tags-filter input.tag").tagedit(tagFilterOptions);
+
+            // Finally, trigger a call updatePhotoSeriesPlotChannelConfig() so that the grapher properly represents the config settings
+            $("#" + channelId + "-photo-tags-matching-strategy").change();
+        }
+        else if (plot instanceof TimespanSeriesPlot){
+            plot.setStyle(style);
+            channel.style = style;
+        }
+
+        if (silent){
+            channel.usingDefaultStyle = usingDefault;
+        }
     }
 
     // Fetch ordering and latest values from channelsMap and
@@ -2405,6 +2480,51 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
     Grapher.prototype.updateViews = function(){
         updateSaveViewDropdown(this);
         updateLoadViewDropdown(this);
+    }
+
+    Grapher.prototype.onDataUpdate = function(data){
+        var channelName,deviceName;
+        var shouldRefreshSources = data.bodytrackStyle != null; //refreshing sources is the only way to retrieve styles right now
+        if (data.bodytrackData != null){
+            for (var member in this.channelsMap){
+                deviceName = this.channelsMap[member].device_name;
+                channelName = this.channelsMap[member].channel_name;
+                if (data.bodytrackData[deviceName] != null && data.bodytrackData[deviceName][channelName] != null){
+                    var range = data.bodytrackData[deviceName][channelName];
+                    this.plotsMap[member].invalidateTiles(range.start / 1000, range.end / 1000);
+                }
+            }
+            if (!shouldRefreshSources){
+                outerCheck: for (deviceName in data.bodytrackData){
+                    for (channelName in data.bodytrackData[deviceName]){
+                        shouldRefreshSources = getSourceChannelByName(deviceName,channelName) == null;
+                        if (shouldRefreshSources)
+                            break outerCheck;
+                    }
+                }
+            }
+
+        }
+        if (shouldRefreshSources){
+            var grapher = this;
+            getSources(this,function(){
+                if (data.bodytrackStyle == null)
+                    return;
+                for (var member in grapher.channelsMap){
+                    if (!grapher.channelsMap[member].usingDefaultStyle)
+                        continue;
+                    deviceName = grapher.channelsMap[member].device_name;
+                    channelName = grapher.channelsMap[member].channel_name;
+                    if (data.bodytrackStyle[deviceName] != null && data.bodytrackStyle[deviceName].indexOf(channelName) >= 0){
+                        var channel = getSourceChannelByName(deviceName,channelName);
+                        grapher.applyChannelStyle(member,channel.style,true);
+                    }
+
+                }
+
+
+            });
+        }
     }
 
     return Grapher;

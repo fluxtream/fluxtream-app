@@ -1,5 +1,6 @@
 package org.fluxtream.services.impl;
 
+import java.util.List;
 import org.fluxtream.domain.AbstractFacet;
 
 /**
@@ -8,6 +9,6 @@ import org.fluxtream.domain.AbstractFacet;
  */
 public interface FieldHandler {
 
-    void handleField (final long guestId, AbstractFacet facet );
+    List<BodyTrackHelper.BodyTrackUploadResult> handleField (final long guestId, AbstractFacet facet );
 
 }

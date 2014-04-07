@@ -129,14 +129,37 @@ define(
             loadApps();
 
             bindGlobalEventHandlers();
+            checkForDataUpdates();
+
+            App.addDataUpdatesListener("AppNotificationsListener",function(updates){
+                if (updates.notification === true){
+                    App.refreshNotifications();
+                }
+            });
         }
 
         function bindGlobalEventHandlers(){
-            $("body").on("keyup.gloablAppEventHandler",function(event){
+            $(document).on("keyup.gloablAppEventHandler",function(event){
+                nonIdleEventDetected();
                 if (event.keyCode == 27 && App.modals.length > 0){
                     event.preventDefault();
                     App.modals[0].modal("hide");//close the top most modal dialog
                 }
+            });
+            $(document).on("keydown.globalAppEventHandler",function(event){
+                nonIdleEventDetected();
+            });
+            $(document).on("mousemove.globalAppEventHandler",function(event){
+                nonIdleEventDetected();
+            });
+            $(document).on("scroll.globalAppEventHandler",function(event){
+                nonIdleEventDetected();
+            });
+            $(document).on("mouseup.globalAppEventHandler",function(event){
+                nonIdleEventDetected();
+            });
+            $(document).on("mousedown.globalAppEventHandler",function(event){
+                nonIdleEventDetected();
             })
 
         }
@@ -591,6 +614,41 @@ define(
             );
         };
 
+        App.handleNotificationList = function(notificatons){
+
+            $(".alert").remove();
+            $("#notifications").empty();
+            if (typeof(notificatons)!="undefined") {
+                for (var n=0; n<notificatons.length; n++) {
+                    console.log("showing a notification " + n);
+                    if ($("#notification-" + notificatons[n].id).length==0) {
+                        (function(n){
+                            App.loadMustacheTemplate("notificationTemplates.html",notificatons[n].type+"Notification",function(template) {
+                                if (notificatons[n].repeated>1) notificatons[n].message += " (" + notificatons[n].repeated + "x)";
+                                var html = template.render(notificatons[n]);
+                                $("#notifications").append(html);
+                                $("abbr.timeago").timeago();
+                                $(window).resize();
+                            });
+                        })(n);
+                    }
+                }
+                $("#notifications").show();
+            }
+
+        }
+
+        App.refreshNotifications = function(){
+            $.ajax("/api/notifications/all",{
+                success:function(result){
+                    App.handleNotificationList(result.notifications);
+                },
+                error: function(){
+                    console.log(arguments);
+                }
+            })
+        }
+
         App.showCarousel = function(photoId) {
             if ($("#photosCarousel").length==0) {
                 $.ajax({
@@ -1006,6 +1064,72 @@ define(
             App.loadMustacheTemplate("settingsTemplates.html","privacyPolicyDialog",function(template){
                 var html = template.render({release : window.FLX_RELEASE_NUMBER});
                 App.makeModal(html);
+            });
+        }
+
+        var dataUpdateListeners = {};
+
+        App.addDataUpdatesListener = function(name,listener){
+            dataUpdateListeners[name] = listener;
+        }
+
+        App.removeDataUpdatesListener = function(name){
+            delete dataUpdateListeners[name];
+        }
+
+
+        var lastNonIdleEvent = new Date().getTime();
+        var isIdle = false;
+
+        var maxIdleTime = 20000;
+
+
+        var nonIdleMutex = false;
+        var nonIdleMutexDuration = maxIdleTime / 30;
+
+        function nonIdleEventDetected(){
+            if (nonIdleMutex) return; //prevent from unnecessary spamming calls to Date().getTime()
+            nonIdleMutex = true;
+            lastNonIdleEvent = new Date().getTime();
+            if (isIdle){
+                isIdle = false;
+                checkForDataUpdates();
+            }
+            setTimeout(function(){
+                nonIdleMutex = false;
+            },nonIdleMutexDuration);
+        }
+
+
+
+        var lastCheckTimestamp = moment().format("YYYYMMDDTHHmmss.SSSZZ");
+
+        function checkForDataUpdates(){
+            if (isIdle || new Date().getTime() - lastNonIdleEvent > maxIdleTime){
+                isIdle = true;
+                return;
+            }
+            function afterDone(){
+                setTimeout(checkForDataUpdates,30*1000);
+
+            }
+            $.ajax("/api/dataUpdates/all",{
+                type: "GET",
+                dataType: "json",
+                data: {since: lastCheckTimestamp},
+                success: function(data){
+                    lastCheckTimestamp = data.generationTimestamp;
+                    for (var member in dataUpdateListeners){
+                        dataUpdateListeners[member](data);
+                    }
+                    afterDone();
+                },
+                error: function(){
+                    afterDone();
+
+                }
+
+
             });
         }
 

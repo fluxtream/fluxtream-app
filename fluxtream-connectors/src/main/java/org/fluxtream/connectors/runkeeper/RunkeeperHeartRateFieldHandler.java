@@ -22,10 +22,10 @@ public class RunkeeperHeartRateFieldHandler implements FieldHandler {
     BodyTrackHelper bodyTrackHelper;
 
     @Override
-    public void handleField(final long guestId, final AbstractFacet facet) {
+    public List<BodyTrackHelper.BodyTrackUploadResult> handleField(final long guestId, final AbstractFacet facet) {
         RunKeeperFitnessActivityFacet activityFacet = (RunKeeperFitnessActivityFacet) facet;
         if (activityFacet.distanceStorage == null) {
-            return;
+            return Arrays.asList();
         }
         JSONArray heartRateJson = JSONArray.fromObject(activityFacet.heartRateStorage);
         List<List<Object>> data = new ArrayList<List<Object>>();
@@ -42,7 +42,7 @@ public class RunkeeperHeartRateFieldHandler implements FieldHandler {
         final List<String> channelNames = Arrays.asList("heartRate");
 
         // TODO: check the status code in the BodyTrackUploadResult
-        bodyTrackHelper.uploadToBodyTrack(guestId, "runkeeper", channelNames, data);
+        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(guestId, "runkeeper", channelNames, data));
     }
 
 }

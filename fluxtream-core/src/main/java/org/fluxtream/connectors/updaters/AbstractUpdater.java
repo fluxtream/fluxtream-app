@@ -1,6 +1,13 @@
 package org.fluxtream.connectors.updaters;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import org.fluxtream.aspects.FlxLogger;
 import org.fluxtream.connectors.ApiClientSupport;
 import org.fluxtream.connectors.Connector;
@@ -14,6 +21,7 @@ import org.fluxtream.domain.Notification;
 import org.fluxtream.services.ApiDataService;
 import org.fluxtream.services.BodyTrackStorageService;
 import org.fluxtream.services.ConnectorUpdateService;
+import org.fluxtream.services.DataUpdateService;
 import org.fluxtream.services.GuestService;
 import org.fluxtream.services.JPADaoService;
 import org.fluxtream.services.NotificationsService;
@@ -44,11 +52,17 @@ public abstract class AbstractUpdater extends ApiClientSupport {
     @Autowired
 	protected FacetDao facetDao;
 
+    @PersistenceContext
+    protected EntityManager em;
+
     @Autowired
 	protected NotificationsService notificationsService;
 
     @Autowired
 	protected BodyTrackStorageService bodyTrackStorageService;
+
+    @Autowired
+    protected DataUpdateService dataUpdateService;
 
 	private String connectorName;
 
@@ -75,6 +89,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 	}
 
 	public final UpdateResult updateDataHistory(UpdateInfo updateInfo) {
+        final long updateStartTime = System.currentTimeMillis();
         try {
             logger.info("module=updateQueue component=updater action=updateDataHistory" +
                 " guestId=" + updateInfo.getGuestId() + " connector=" + updateInfo.apiKey.getConnector().getName());
@@ -156,6 +171,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
         }
         finally {
             // Update the time bounds no matter how we exit the updater.
+            recordModifiedTimeBounds(updateStartTime,updateInfo);
             updateTimeBounds(updateInfo);
         }
 	}
@@ -184,6 +200,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 			throws Exception;
 
 	public final UpdateResult updateData(UpdateInfo updateInfo) {
+        final long updateStartTime = System.currentTimeMillis();
 		UpdateResult updateResult;
         try {
             updateConnectorData(updateInfo);
@@ -212,11 +229,68 @@ public abstract class AbstractUpdater extends ApiClientSupport {
         }
         finally {
             // Update the time bounds no matter how we exit the updater.
+            recordModifiedTimeBounds(updateStartTime,updateInfo);
             updateTimeBounds(updateInfo);
         }
 
 		return updateResult;
 	}
+
+    private final void recordModifiedTimeBounds(final long startTime, final UpdateInfo updateInfo){
+        List<ObjectType> objectTypes = updateInfo.objectTypes();
+        if (objectTypes.size() == 0){
+            objectTypes = Arrays.asList(updateInfo.apiKey.getConnector().objectTypes());
+        }
+        if (objectTypes.size() > 0){
+            for (ObjectType objectType : objectTypes){
+                try{
+                    if (!objectType.isClientFacet())
+                        continue;
+                    if (!updateInfo.apiKey.getConnector().hasFacets())
+                        continue;
+                    Class<? extends AbstractFacet> facetClass = objectType.facetClass();
+                    final String facetName = facetClass.getAnnotation(Entity.class).name();
+                    String queryString = new StringBuilder("SELECT min(facet.start), max(facet.end) FROM ")
+                            .append(facetName)
+                            .append(" facet WHERE facet.apiKeyId=:apiKeyId AND facet.timeUpdated>=:since")
+                            .toString();
+                    final Query query = em.createQuery(queryString);
+                    query.setParameter("apiKeyId", updateInfo.apiKey.getId());
+                    query.setParameter("since", startTime);
+                    Object[] result = (Object[]) query.getResultList().get(0);
+                    if (result[0] == null)
+                        continue;
+                    dataUpdateService.logApiDataUpdate(updateInfo.apiKey.getGuestId(),updateInfo.apiKey.getId(),(long) objectType.value(),(Long) result[0],(Long) result[1]);
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        }
+        else{        //TODO: determine if this is ever reached
+            try{
+                if (updateInfo.apiKey.getConnector().hasFacets()){
+                    Class<? extends AbstractFacet> facetClass = updateInfo.apiKey.getConnector().facetClass();
+                    final String facetName = facetClass.getAnnotation(Entity.class).name();
+                    String queryString = new StringBuilder("SELECT min(facet.start), max(facet.end) FROM ")
+                            .append(facetName)
+                            .append(" facet WHERE facet.apiKeyId=:apiKeyId AND facet.timeUpdated>=:since")
+                            .toString();
+                    final Query query = em.createQuery(queryString);
+                    query.setParameter("apiKeyId", updateInfo.apiKey.getId());
+                    query.setParameter("since", startTime);
+                    Object[] result = (Object[]) query.getResultList().get(0);
+                    if (result[0] != null)
+                        dataUpdateService.logApiDataUpdate(updateInfo.apiKey.getGuestId(),updateInfo.apiKey.getId(),null,(Long) result[0],(Long) result[1]);
+                }
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+
+
+        }
+    }
 
     private void updateTimeBounds(final UpdateInfo updateInfo) {
         final List<ObjectType> objectTypes = updateInfo.objectTypes();

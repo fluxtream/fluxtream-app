@@ -45,6 +45,30 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             }
         });
         Builder.init(App, this);
+        App.addDataUpdatesListener("calendarAppApiDataUpdateListener",function(update){
+            if (update.apiData != null && Calendar.digest != null){
+                var digestTimestamp = Calendar.digest.generationTimestamp;
+                var stateToRequest = Calendar.timespanState;
+                var connectorsToRefresh = [];
+                for (var connector in update.apiData){
+                    for (var objectType in update.apiData[connector]){
+                        if ((update.apiData[connector][objectType].start < Calendar.digest.tbounds.end && update.apiData[connector][objectType].start >= Calendar.digest.tbounds.start) ||
+                            (update.apiData[connector][objectType].end <= Calendar.digest.tbounds.end && update.apiData[connector][objectType].end > Calendar.digest.tbounds.start) ||
+                            (update.apiData[connector][objectType].start <= Calendar.digest.tbounds.start && update.apiData[connector][objectType].end >= Calendar.digest.tbounds.end)){
+                            connectorsToRefresh.push(update.connectorInfo[connector].apiKeyId + "-" + objectType);
+                        }
+                    }
+                }
+                $.ajax("/api/calendar/" + connectorsToRefresh.join(",") + "/" + stateToRequest,{
+                    success:function(result){
+                        Calendar.mergeInFacets(result.facets,update.connectorInfo)
+                    },
+                    error:function(){
+                        console.error(arguments);
+                    }
+                });
+            }
+        });
 	};
 
 	Calendar.initialize = function () {
@@ -275,7 +299,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 Builder.updateTab(Calendar.digest, Calendar); //TODO: shouldn't be calling this twice really
                 if (thisFetchId != fetchId)
                     return;
-                Builder.handleNotifications(response);
+                App.handleNotificationList(response.notifications);
                 if (Calendar.timeUnit==="date") {
                     $(".ephemerisWrapper").show();
                     handleCityInfo(response);
@@ -465,18 +489,22 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         if (typeof(digest.settings.messageDisplayCounters)!="undefined") {
             App.setupBeginnersFriendlyUI(digest.settings.messageDisplayCounters, digest.nApis);
         }
-        digest.getConsensusCitiesList = function(){
-            if (digest.metadata.timeUnit === "DAY")
-                return [digest.metadata.mainCity];
-            return digest.metadata.consensusCities;
-        };
-        digest.getCitiesList = function(){
-            if (digest.metadata.timeUnit === "DAY")
-                return [digest.metadata.mainCity];
-            return digest.metadata.cities;
-        };
+        if (digest.getConsensusCitiesList == null){
+            digest.getConsensusCitiesList = function(){
+                if (digest.metadata.timeUnit === "DAY")
+                    return [digest.metadata.mainCity];
+                return digest.metadata.consensusCities;
+            };
+            digest.getCitiesList = function(){
+                if (digest.metadata.timeUnit === "DAY")
+                    return [digest.metadata.mainCity];
+                return digest.metadata.cities;
+            };
+        }
         var templatePath = "applications/calendar/facetTemplates.html";
         function loadTemplate(name) {
+            if (Calendar.detailsTemplates[name] != null)
+                return;
             App.loadMustacheTemplate(templatePath, name, function(template){
                 if (template == null) {
                     console.log("WARNING: no template found for " + name + ".");
@@ -493,6 +521,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         loadTemplate("foursquare-venue");
         loadTemplate("moves-move-activity");
         for (var connectorId in digest.facets){
+            if (digest.facets[connectorId].processed === true)
+                continue;
+            digest.facets[connectorId].processed = true;
             Calendar.processFacets(digest.facets[connectorId]);
             digest.facets[connectorId].hasImages = false;
             switch (connectorId){
@@ -603,6 +634,36 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
     }
 
+    Calendar.mergeInFacets = function(newFacetsArray,connectorInfos){
+        if (newFacetsArray.length == 0)
+            return;
+        //merge in the selected connectors
+        for (var member in connectorInfos){
+            var connectorInfo = connectorInfos[member];
+            var inserted = false;
+            for (var i = 0, li = Calendar.digest.selectedConnectors.length; i < li && !inserted; i++){
+                if (Calendar.digest.selectedConnectors[i].apiKeyId == connectorInfo.apiKeyId){
+                    Calendar.digest.selectedConnectors[i] = connectorInfo;
+                    inserted = true;
+                }
+            }
+            if (!inserted){
+                Calendar.digest.selectedConnectors.push(connectorInfo);
+                Calendar.digest.nApis++;
+            }
+
+        }
+        for (var facetTypeId in newFacetsArray){//add all the new facets into the cached data
+            Calendar.digest.cachedData[facetTypeId] = newFacetsArray[facetTypeId];
+        }
+        enhanceDigest(Calendar.digest);
+        processDigest(Calendar.digest);//this will update the button states for any changes we made
+        Calendar.digest.generationTimestamp = new Date().getTime();
+        Calendar.digest.delta = true;
+        Builder.updateTab(Calendar.digest, Calendar);
+        Calendar.digest.delta = false;
+    }
+
     function shouldFacetsGroup(facet1, facet2){
         if (facet1.type != facet2.type)
             return false;
@@ -622,12 +683,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     * @param digest
     */
     function processDigest(digest){
-        $.each(Builder.getConnectorNames(), function(i, connectorName) {
-            var buttonLink = Builder.getConnectorButton(connectorName),
+        $.each(digest.selectedConnectors, function(i, connector) {
+            var buttonLink = Builder.getConnectorButton(connector,Calendar),
                 button = buttonLink.parent();
             button.hide();
-        });
-        $.each(digest.selectedConnectors, function(i, connector) {
             var connectorConfig = App.getConnectorConfig(connector.connectorName);
             var connected = _.some(connector.facetTypes, function(facetType) {
                 var hasTypedFacets = digest.facets[facetType] != null;
@@ -659,8 +718,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
             filterLabel = filterLabel.replace("_", " ");
 
-            var buttonLink = Builder.getConnectorButton(connector.connectorName),
-                button = buttonLink.parent();
             buttonLink
                 .toggleClass("flx-disconnected", !connected)
                 .text(filterLabel);

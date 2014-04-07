@@ -2,6 +2,7 @@ package org.fluxtream.connectors.bodymedia;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import org.fluxtream.domain.AbstractFacet;
 import org.fluxtream.services.impl.BodyTrackHelper;
@@ -22,10 +23,10 @@ public class BodyMediaStepsFieldHandler implements FieldHandler {
     BodyTrackHelper bodyTrackHelper;
 
     @Override
-    public void handleField ( final long guestId, AbstractFacet facet) {
+    public List<BodyTrackHelper.BodyTrackUploadResult> handleField ( final long guestId, AbstractFacet facet) {
         BodymediaStepsFacet stepsFacet = (BodymediaStepsFacet) facet;
         if (stepsFacet.json == null) {
-            return;
+            return Arrays.asList();
         }
         JSONArray stepsJson = JSONArray.fromObject(stepsFacet.json);
         List<List<Object>> data = new ArrayList<List<Object>>();
@@ -45,7 +46,7 @@ public class BodyMediaStepsFieldHandler implements FieldHandler {
         final List<String> channelNames = Arrays.asList("stepsGraph");
 
         // TODO: check the status code in the BodyTrackUploadResult
-        bodyTrackHelper.uploadToBodyTrack(guestId, "BodyMedia", channelNames, data);
+        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(guestId, "BodyMedia", channelNames, data));
     }
 
 }
