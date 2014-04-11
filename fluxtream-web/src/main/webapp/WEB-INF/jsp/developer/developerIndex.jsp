@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<%
-    Boolean tracker = (Boolean)request.getAttribute("tracker");
-%>
+<%--<%--%>
+    <%--Boolean tracker = (Boolean)request.getAttribute("tracker");--%>
+<%--%>--%>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -125,12 +125,12 @@
 </div>
 
 
-<div id="registerModalWrapper">
+<div class="developerAccount" id="registerModalWrapper">
 </div>
 
-<% if (tracker) { %>
-<jsp:include page="tracker.jsp"/>
-<% } %>
+<%--<% if (tracker) { %>--%>
+<%--<jsp:include page="tracker.jsp"/>--%>
+<%--<% } %>--%>
 
 
 </body>

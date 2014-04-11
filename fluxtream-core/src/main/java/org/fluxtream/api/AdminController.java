@@ -381,7 +381,6 @@ public class AdminController {
         return "pong, " + guest.username;
     }
 
-
     @GET
     @Path("/{connector}/oauthTokens")
     @Secured({ "ROLE_ADMIN" })
@@ -491,7 +490,7 @@ public class AdminController {
                                                                        ClassNotFoundException, UsernameAlreadyTakenException, ExistingEmailException {
         try {
             guestService.createGuest(username, firstname, lastname, password,
-                                     email, Guest.RegistrationMethod.REGISTRATION_METHOD_FORM);
+                                     email, Guest.RegistrationMethod.REGISTRATION_METHOD_FORM, false);
             StatusModel result = new StatusModel(true, "User " + username
                                                        + " was successfully created");
             return gson.toJson(result);

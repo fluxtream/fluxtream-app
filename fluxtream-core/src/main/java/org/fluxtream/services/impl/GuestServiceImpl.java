@@ -121,9 +121,11 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
 	}
 
 	@Transactional(readOnly = false)
-	public Guest createGuest(String username, String firstname,
-			String lastname, String password, String email,
-            Guest.RegistrationMethod registrationMethod) throws UsernameAlreadyTakenException, ExistingEmailException {
+	public Guest createGuest(String username, String firstname, String lastname,
+                             String password, String email, Guest.RegistrationMethod registrationMethod,
+                             final boolean isDeveloperAccount)
+            throws UsernameAlreadyTakenException, ExistingEmailException
+    {
 		if (loadUserByUsername(username) != null)
 			throw new UsernameAlreadyTakenException(username + " is already taken");
 		if (loadUserByEmail(email) != null)
@@ -134,6 +136,8 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
 		guest.firstname = firstname;
 		guest.lastname = lastname;
         guest.registrationMethod = registrationMethod;
+        if (isDeveloperAccount)
+            guest.setRoles("ROLE_USER,ROLE_DEVELOPER");
         if (password!=null)
     		setPassword(guest, password);
 		em.persist(guest);

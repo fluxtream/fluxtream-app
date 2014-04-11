@@ -18,6 +18,7 @@
 	<http pattern="/${release}/images/**" security="none" />
     <http pattern="/images/**" security="none" />
     <http pattern="/welcome*" security="none" />
+    <http pattern="/dev*" security="none" />
     <http pattern="/accessDenied*" security="none" />
 	<http pattern="/notSupported" security="none" />
 	<http pattern="/favicon.ico" security="none" />

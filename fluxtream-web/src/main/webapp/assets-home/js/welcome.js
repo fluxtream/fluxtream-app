@@ -37,7 +37,7 @@ function getCookie(c_name) {
         c_start = c_value.indexOf(c_name + "=");
     if (c_start == -1)
         c_value = null;
-    else{
+    else {
         c_start = c_value.indexOf("=", c_start) + 1;
         var c_end = c_value.indexOf(";", c_start);
         if (c_end == -1)
@@ -59,7 +59,8 @@ $(document).ready(function() {
     });
 
     $("#registerShow").click(function() {
-        createAccount();
+        var isDeveloperAccount = $("#registerModalWrapper").hasClass("developerAccount");
+        createAccount(isDeveloperAccount);
     });
 
     $("#registerClose").click(function() {
@@ -120,16 +121,17 @@ function submitCreateAccountForm() {
         var email = $("input#email").val(),
         password = $("input#password").val(),
         password2 = $("input#password2").val(),
+        isDeveloperAccount = $("input#isDeveloperAccount").val(),
         username = $("input#username").val(),
         firstname = $("input#firstname").val(),
-        lastname = $("input#lastname").val()
+        lastname = $("input#lastname").val();
     $.ajax({
         url:"/createAccount",
         type: "POST",
         data: {email: email,
             password1: password, password2: password2,
             username: username, firstname: firstname,
-            lastname: lastname},
+            lastname: lastname, isDeveloperAccount: isDeveloperAccount},
         success: function(html) {
             $(".modal-backdrop").remove();
             $("#registerModal").replaceWith(html);
@@ -139,10 +141,10 @@ function submitCreateAccountForm() {
     });
 }
 
-function createAccount() {
+function createAccount(isDeveloperAccount) {
     $.ajax({
-        url: "/createAccountForm",
-        success: function(html) {
+        url: "/createAccountForm?isDeveloperAccount="+isDeveloperAccount,
+            success: function(html) {
             $("#registerModalWrapper").empty();
             $("#registerModalWrapper").append(html);
             $("#registerModalWrapper").css("display", "block");
