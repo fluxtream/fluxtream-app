@@ -1078,14 +1078,22 @@ define(
         }
 
 
+        //the last time they performed a nonidle event
         var lastNonIdleEvent = new Date().getTime();
+        //the timestamp they went idle
+        var idleStartTime = 0;
+        //whether or not the user is marked idle
         var isIdle = false;
 
-        var maxIdleTime = 20000;
+        //the amount of time a user can be idle before they are marked as idle
+        var maxIdleTime = 1000 * 60 * 20;    //20 minutes
+        //how often updates should be polled
+        var updateCheckInterval = 1000 * 30;//30 seconds
 
-
+        //used to prevent nonidle event spam
         var nonIdleMutex = false;
-        var nonIdleMutexDuration = maxIdleTime / 30;
+        //resolution of nonidle event detection
+        var nonIdleMutexDuration = maxIdleTime / 60;
 
         function nonIdleEventDetected(){
             if (nonIdleMutex) return; //prevent from unnecessary spamming calls to Date().getTime()
@@ -1093,6 +1101,11 @@ define(
             lastNonIdleEvent = new Date().getTime();
             if (isIdle){
                 isIdle = false;
+                //idle to nonidle
+                /*var millisSpentIdle = lastNonIdleEvent - idleStartTime;
+                if (millisSpentIdle > 1000 * 60 * 60){//check if it's been longer than an hour
+                    //do something...
+                }*/
                 checkForDataUpdates();
             }
             setTimeout(function(){
@@ -1107,10 +1120,11 @@ define(
         function checkForDataUpdates(){
             if (isIdle || new Date().getTime() - lastNonIdleEvent > maxIdleTime){
                 isIdle = true;
+                idleStartTime = lastNonIdleEvent;
                 return;
             }
             function afterDone(){
-                setTimeout(checkForDataUpdates,30*1000);
+                setTimeout(checkForDataUpdates,updateCheckInterval);
 
             }
             $.ajax("/api/dataUpdates/all",{
