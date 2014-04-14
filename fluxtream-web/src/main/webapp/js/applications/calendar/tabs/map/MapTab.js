@@ -95,14 +95,14 @@ define(["core/Tab",
         }
         function renderDigest(){
             map.setDigest(digest);
-            $("#mapFit").click(function(){
+            $("#mapFit").unbind("click").click(function(){
                 map.fitBounds(map.gpsBounds);
             });
 
             map.executeAfterReady(function(){
                 showData(connectorEnabled,bounds,function(bounds){
                     if (bounds != null){
-                        map.fitBounds(bounds,map.isPreserveViewChecked());
+                        map.fitBounds(bounds,map.isPreserveViewChecked() || digestData.delta);
                     }
                     else{
                         map.setCenter(new google.maps.LatLng(digest.metadata.mainCity.latitude,digest.metadata.mainCity.longitude));
@@ -154,7 +154,7 @@ define(["core/Tab",
                 }
         }
 
-        doneLoading(map.isPreserveViewChecked() ? bounds : map.gpsBounds);
+        doneLoading((map.isPreserveViewChecked() || digest.delta) ? bounds : map.gpsBounds);
 
     }
 
