@@ -66,7 +66,7 @@ define(["core/Tab",
             }
         }
         else{//recycle old map
-            if (map.isPreserveViewChecked()){
+            if (map.isPreserveViewChecked() || digest.delta){
                 bounds = map.getBounds();
             }
             map.reset();
@@ -82,40 +82,46 @@ define(["core/Tab",
                         digest.cachedData[name] = locationDigest.cachedData[name];
                     }
                     digest.locationFetched = true;
-
-                    map.setDigest(digest);
-                    $("#mapFit").click(function(){
-                        map.fitBounds(map.gpsBounds);
-                    });
-
-                    map.executeAfterReady(function(){
-                        showData(connectorEnabled,bounds,function(bounds){
-                            if (bounds != null){
-                                map.fitBounds(bounds,map.isPreserveViewChecked());
-                            }
-                            else{
-                                map.setCenter(new google.maps.LatLng(digest.metadata.mainCity.latitude,digest.metadata.mainCity.longitude));
-                                map.setZoom(14);
-                            }
-                            map.preserveViewCheckboxChanged = function(){
-                                preserveView = map.isPreserveViewChecked();
-                            }
-                            if (itemToShow != null){
-                                map.zoomOnItemAndClick(itemToShow);
-                            }
-
-                            if (cursorPos != null)
-                                map.setCursorPosition(cursorPos);
-
-                            $("#mapwrapper .noDataOverlay").css("display", map.hasAnyData() ? "none" : "block");
-                            doneLoading();
-
-                        });
-                    });
+                    renderDigest();
                 },
+
                 error: function(status) {
                     Calendar.handleError(status.message);
                 }
+            });
+        }
+        else{
+            renderDigest();
+        }
+        function renderDigest(){
+            map.setDigest(digest);
+            $("#mapFit").click(function(){
+                map.fitBounds(map.gpsBounds);
+            });
+
+            map.executeAfterReady(function(){
+                showData(connectorEnabled,bounds,function(bounds){
+                    if (bounds != null){
+                        map.fitBounds(bounds,map.isPreserveViewChecked());
+                    }
+                    else{
+                        map.setCenter(new google.maps.LatLng(digest.metadata.mainCity.latitude,digest.metadata.mainCity.longitude));
+                        map.setZoom(14);
+                    }
+                    map.preserveViewCheckboxChanged = function(){
+                        preserveView = map.isPreserveViewChecked();
+                    }
+                    if (itemToShow != null){
+                        map.zoomOnItemAndClick(itemToShow);
+                    }
+
+                    if (cursorPos != null)
+                        map.setCursorPosition(cursorPos);
+
+                    $("#mapwrapper .noDataOverlay").css("display", map.hasAnyData() ? "none" : "block");
+                    doneLoading();
+
+                });
             });
         }
 	}
