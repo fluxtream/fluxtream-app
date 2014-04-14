@@ -1,8 +1,8 @@
 package org.fluxtream.connectors.up;
 
 import java.util.Locale;
-import org.fluxtream.connectors.updaters.UpdateFailedException;
-import org.fluxtream.utils.UnexpectedHttpResponseCodeException;
+import org.fluxtream.core.connectors.updaters.UpdateFailedException;
+import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.http.HttpResponse;

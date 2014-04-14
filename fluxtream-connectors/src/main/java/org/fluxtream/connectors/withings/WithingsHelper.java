@@ -1,8 +1,8 @@
 package org.fluxtream.connectors.withings;
 
-import org.fluxtream.connectors.Connector;
-import org.fluxtream.domain.ApiKey;
-import org.fluxtream.services.GuestService;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.services.GuestService;
 
 public class WithingsHelper {
 

@@ -6,7 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 
-import org.fluxtream.domain.AbstractUserProfile;
+import org.fluxtream.core.domain.AbstractUserProfile;
 
 @Entity(name="FitbitUserProfile")
 @NamedQueries ( {

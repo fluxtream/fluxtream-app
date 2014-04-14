@@ -1,25 +1,13 @@
 package org.fluxtream.mvc.controllers;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.servlet.http.HttpServletResponse;
-import org.fluxtream.Configuration;
-import org.fluxtream.connectors.Connector;
-import org.fluxtream.domain.ApiKey;
-import org.fluxtream.domain.ApiUpdate;
-import org.fluxtream.domain.ConnectorInfo;
-import org.fluxtream.domain.Guest;
-import org.fluxtream.domain.UpdateWorkerTask;
-import org.fluxtream.mvc.models.admin.ConnectorInstanceModelFactory;
-import org.fluxtream.services.ConnectorUpdateService;
-import org.fluxtream.services.GuestService;
-import org.fluxtream.services.JPADaoService;
-import org.fluxtream.services.SystemService;
+import org.fluxtream.core.Configuration;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.domain.*;
+import org.fluxtream.core.mvc.models.admin.ConnectorInstanceModelFactory;
+import org.fluxtream.core.services.ConnectorUpdateService;
+import org.fluxtream.core.services.GuestService;
+import org.fluxtream.core.services.JPADaoService;
+import org.fluxtream.core.services.SystemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
@@ -27,6 +15,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpServletResponse;
+import java.util.*;
 
 /**
  * User: candide

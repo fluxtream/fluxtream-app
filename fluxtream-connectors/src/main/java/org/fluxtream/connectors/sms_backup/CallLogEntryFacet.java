@@ -9,8 +9,8 @@ import javax.persistence.NamedQuery;
 
 import org.hibernate.search.annotations.Indexed;
 
-import org.fluxtream.connectors.annotations.ObjectTypeSpec;
-import org.fluxtream.domain.AbstractFacet;
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.domain.AbstractFacet;
 
 @SuppressWarnings("serial")
 @Entity(name="Facet_CallLog")

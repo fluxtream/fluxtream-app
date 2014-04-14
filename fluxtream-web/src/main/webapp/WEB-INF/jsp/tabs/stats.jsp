@@ -1,8 +1,8 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"
         %><%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"
         %><%@ page isELIgnored="false"
-        %><%@ page import="org.fluxtream.*"
-        %><%@ page import="org.fluxtream.mvc.tabs.controllers.DashboardWidgetsHelper"
+        %><%@ page import="org.fluxtream.core.*"
+        %><%@ page import="org.fluxtream.core.mvc.tabs.controllers.DashboardWidgetsHelper"
         %><%@ page import="java.util.*"
         %>
 

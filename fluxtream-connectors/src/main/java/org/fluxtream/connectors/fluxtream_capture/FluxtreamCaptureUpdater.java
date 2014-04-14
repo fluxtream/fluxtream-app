@@ -1,22 +1,22 @@
 package org.fluxtream.connectors.fluxtream_capture;
 
-import org.fluxtream.aspects.FlxLogger;
-import org.fluxtream.connectors.annotations.Updater;
-import org.fluxtream.connectors.location.LocationFacet;
-import org.fluxtream.connectors.updaters.AbstractUpdater;
-import org.fluxtream.connectors.updaters.UpdateInfo;
-import org.fluxtream.domain.ApiKey;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.math.BigDecimal;
-import java.math.BigInteger;
+import org.bodytrack.datastore.DatastoreTile;
+import org.fluxtream.core.aspects.FlxLogger;
+import org.fluxtream.core.connectors.annotations.Updater;
+import org.fluxtream.core.connectors.fluxtream_capture.FluxtreamCapturePhotoFacet;
+import org.fluxtream.core.connectors.location.LocationFacet;
+import org.fluxtream.core.connectors.updaters.AbstractUpdater;
+import org.fluxtream.core.connectors.updaters.UpdateInfo;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.bodytrack.datastore.DatastoreTile;
-
-import org.fluxtream.services.impl.BodyTrackHelper;
 
 /**
  * @author Chris Bartley (bartley@cmu.edu)

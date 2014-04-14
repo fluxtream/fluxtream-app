@@ -1,9 +1,9 @@
 package org.fluxtream.connectors.zeo;
 
-import org.fluxtream.TimeInterval;
-import org.fluxtream.connectors.vos.AbstractLocalTimeTimedFacetVO;
-import org.fluxtream.domain.GuestSettings;
-import org.fluxtream.mvc.models.DurationModel;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.connectors.vos.AbstractLocalTimeTimedFacetVO;
+import org.fluxtream.core.domain.GuestSettings;
+import org.fluxtream.core.mvc.models.DurationModel;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;

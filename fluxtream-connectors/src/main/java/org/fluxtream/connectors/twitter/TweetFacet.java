@@ -6,8 +6,8 @@ import javax.persistence.NamedQuery;
 
 import org.hibernate.search.annotations.Indexed;
 
-import org.fluxtream.connectors.annotations.ObjectTypeSpec;
-import org.fluxtream.domain.AbstractFacet;
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.domain.AbstractFacet;
 
 @Entity(name="Facet_Tweet")
 @ObjectTypeSpec(name = "tweet", value = 1, extractor = TwitterFacetExtractor.class, parallel = true, prettyname = "Tweets")

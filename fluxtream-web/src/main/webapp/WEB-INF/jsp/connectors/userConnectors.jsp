@@ -1,7 +1,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%><%@ taglib
 	prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%><%@ page
-	isELIgnored="false"%><%@ page import="org.fluxtream.*"%><%@ page
-	import="org.fluxtream.domain.*"%><%@ page import="java.util.List"%><%@ page
+	isELIgnored="false"%><%@ page import="org.fluxtream.core.*"%><%@ page
+	import="org.fluxtream.core.domain.*"%><%@ page import="java.util.List"%><%@ page
 	import="java.util.ArrayList"%>
 
 <div class="container-fluid" style="width:530px">

@@ -1,12 +1,12 @@
 package org.fluxtream.connectors.zeo;
 
-import org.fluxtream.aspects.FlxLogger;
-import org.fluxtream.connectors.Connector.UpdateStrategyType;
-import org.fluxtream.connectors.annotations.Updater;
-import org.fluxtream.connectors.updaters.AbstractUpdater;
-import org.fluxtream.connectors.updaters.UpdateInfo;
-import org.fluxtream.services.JPADaoService;
-import org.fluxtream.services.MetadataService;
+import org.fluxtream.core.aspects.FlxLogger;
+import org.fluxtream.core.connectors.Connector.UpdateStrategyType;
+import org.fluxtream.core.connectors.annotations.Updater;
+import org.fluxtream.core.connectors.updaters.AbstractUpdater;
+import org.fluxtream.core.connectors.updaters.UpdateInfo;
+import org.fluxtream.core.services.JPADaoService;
+import org.fluxtream.core.services.MetadataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;

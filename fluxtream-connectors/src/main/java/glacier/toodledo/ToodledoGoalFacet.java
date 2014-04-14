@@ -8,8 +8,8 @@ import javax.persistence.NamedQuery;
 import org.hibernate.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
 
-import org.fluxtream.connectors.annotations.ObjectTypeSpec;
-import org.fluxtream.domain.AbstractFacet;
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.domain.AbstractFacet;
 
 @Entity(name="Facet_ToodledoGoal")
 @ObjectTypeSpec(name = "goal", value = 2, isImageType=false, prettyname = "Goals")

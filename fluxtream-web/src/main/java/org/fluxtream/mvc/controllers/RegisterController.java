@@ -1,13 +1,10 @@
 package org.fluxtream.mvc.controllers;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import org.fluxtream.aspects.FlxLogger;
-import org.fluxtream.domain.Guest;
-import org.fluxtream.services.GuestService;
-import org.fluxtream.services.impl.ExistingEmailException;
-import org.fluxtream.services.impl.UsernameAlreadyTakenException;
+import org.fluxtream.core.aspects.FlxLogger;
+import org.fluxtream.core.domain.Guest;
+import org.fluxtream.core.services.GuestService;
+import org.fluxtream.core.services.impl.ExistingEmailException;
+import org.fluxtream.core.services.impl.UsernameAlreadyTakenException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,7 +13,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import static org.fluxtream.utils.Utils.generateSecureRandomString;
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.fluxtream.core.utils.Utils.generateSecureRandomString;
 
 @Controller
 public class RegisterController {

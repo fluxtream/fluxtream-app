@@ -7,9 +7,9 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
-import org.fluxtream.connectors.Connector;
-import org.fluxtream.connectors.annotations.ObjectTypeSpec;
-import org.fluxtream.connectors.location.LocationFacet;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.connectors.location.LocationFacet;
 
 /**
  * User: candide

@@ -1,10 +1,10 @@
 package org.fluxtream.mvc.controllers;
 
 import javax.servlet.http.HttpServletRequest;
-import org.fluxtream.Configuration;
-import org.fluxtream.services.GuestService;
-import org.fluxtream.utils.RequestUtils;
-import org.fluxtream.aspects.FlxLogger;
+import org.fluxtream.core.Configuration;
+import org.fluxtream.core.services.GuestService;
+import org.fluxtream.core.utils.RequestUtils;
+import org.fluxtream.core.aspects.FlxLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;

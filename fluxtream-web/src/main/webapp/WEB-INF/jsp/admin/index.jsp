@@ -1,8 +1,8 @@
-<%@ page import="org.fluxtream.auth.AuthHelper" %>
+<%@ page import="org.fluxtream.core.auth.AuthHelper" %>
 <%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"%><%@ taglib
         uri="http://granule.com/tags" prefix="g"
         %><%@ page import="java.util.List"
-        %><%@ page import="org.fluxtream.domain.Guest"
+        %><%@ page import="org.fluxtream.core.domain.Guest"
         %><%
     List<Guest> allGuests = (List<Guest>)request.getAttribute("allGuests");%><!DOCTYPE html>
 <html lang="en">

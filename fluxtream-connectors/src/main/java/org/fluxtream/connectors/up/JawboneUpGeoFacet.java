@@ -1,7 +1,7 @@
 package org.fluxtream.connectors.up;
 
 import javax.persistence.MappedSuperclass;
-import org.fluxtream.connectors.Connector;
+import org.fluxtream.core.connectors.Connector;
 
 /**
  * User: candide

@@ -2,11 +2,11 @@ package org.fluxtream.connectors.twitter;
 
 import java.util.Date;
 
-import org.fluxtream.OutsideTimeBoundariesException;
-import org.fluxtream.TimeInterval;
-import org.fluxtream.connectors.vos.AbstractInstantFacetVO;
-import org.fluxtream.domain.GuestSettings;
-import org.fluxtream.utils.SecurityUtils;
+import org.fluxtream.core.OutsideTimeBoundariesException;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.connectors.vos.AbstractInstantFacetVO;
+import org.fluxtream.core.domain.GuestSettings;
+import org.fluxtream.core.utils.SecurityUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 
 public class TwitterDirectMessageFacetVO extends AbstractInstantFacetVO<TwitterDirectMessageFacet> {

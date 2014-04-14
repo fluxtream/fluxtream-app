@@ -1,12 +1,11 @@
 package glacier.instagram;
 
-import static org.fluxtream.utils.HttpUtils.fetch;
-
+import org.fluxtream.core.connectors.annotations.Updater;
+import org.fluxtream.core.connectors.updaters.AbstractUpdater;
+import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.springframework.stereotype.Component;
 
-import org.fluxtream.connectors.annotations.Updater;
-import org.fluxtream.connectors.updaters.AbstractUpdater;
-import org.fluxtream.connectors.updaters.UpdateInfo;
+import static org.fluxtream.core.utils.HttpUtils.fetch;
 
 @Component
 @Updater(prettyName = "Instagram", value = 14, objectTypes={InstagramPhotoFacet.class},

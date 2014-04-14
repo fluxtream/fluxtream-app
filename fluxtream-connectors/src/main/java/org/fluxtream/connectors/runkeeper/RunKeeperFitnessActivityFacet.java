@@ -2,9 +2,9 @@ package org.fluxtream.connectors.runkeeper;
 
 import javax.persistence.Entity;
 import javax.persistence.Lob;
-import org.fluxtream.connectors.annotations.ObjectTypeSpec;
-import org.fluxtream.connectors.location.LocationFacet;
-import org.fluxtream.domain.AbstractFacet;
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.connectors.location.LocationFacet;
+import org.fluxtream.core.domain.AbstractFacet;
 
 /**
  *

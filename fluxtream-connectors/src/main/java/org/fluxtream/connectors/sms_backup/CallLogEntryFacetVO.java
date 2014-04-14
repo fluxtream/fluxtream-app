@@ -1,8 +1,8 @@
 package org.fluxtream.connectors.sms_backup;
 
-import org.fluxtream.TimeInterval;
-import org.fluxtream.connectors.vos.AbstractTimedFacetVO;
-import org.fluxtream.domain.GuestSettings;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.connectors.vos.AbstractTimedFacetVO;
+import org.fluxtream.core.domain.GuestSettings;
 
 public class CallLogEntryFacetVO extends AbstractTimedFacetVO<CallLogEntryFacet>{
 

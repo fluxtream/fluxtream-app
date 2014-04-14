@@ -2,10 +2,10 @@
 %><%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"
 %><%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"
 %><%@ page isELIgnored="false"
-%><%@ page import="org.fluxtream.*"
-%><%@ page import="org.fluxtream.domain.*"
+%><%@ page import="org.fluxtream.core.*"
+%><%@ page import="org.fluxtream.core.domain.*"
 %><%@ page import="java.util.List"
-%><%@ page import="org.fluxtream.services.SettingsService"
+%><%@ page import="org.fluxtream.core.services.SettingsService"
 %><%@ page import="java.util.ArrayList"
 %><%@ page import="java.lang.Object"
 %><%

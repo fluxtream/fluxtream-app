@@ -2,9 +2,9 @@ package org.fluxtream.connectors.fitbit;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.fluxtream.TimeInterval;
-import org.fluxtream.connectors.vos.AbstractLocalTimeInstantFacetVO;
-import org.fluxtream.domain.GuestSettings;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.connectors.vos.AbstractLocalTimeInstantFacetVO;
+import org.fluxtream.core.domain.GuestSettings;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 

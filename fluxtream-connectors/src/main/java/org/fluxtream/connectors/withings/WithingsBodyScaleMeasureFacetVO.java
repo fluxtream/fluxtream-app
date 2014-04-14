@@ -1,12 +1,12 @@
 package org.fluxtream.connectors.withings;
 
 import java.io.Serializable;
-import org.fluxtream.OutsideTimeBoundariesException;
-import org.fluxtream.TimeInterval;
-import org.fluxtream.connectors.vos.AbstractInstantFacetVO;
-import org.fluxtream.domain.GuestSettings;
-import org.fluxtream.domain.GuestSettings.WeightMeasureUnit;
-import org.fluxtream.utils.TimeUtils;
+import org.fluxtream.core.OutsideTimeBoundariesException;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.connectors.vos.AbstractInstantFacetVO;
+import org.fluxtream.core.domain.GuestSettings;
+import org.fluxtream.core.domain.GuestSettings.WeightMeasureUnit;
+import org.fluxtream.core.utils.TimeUtils;
 
 @SuppressWarnings("serial")
 public class WithingsBodyScaleMeasureFacetVO extends

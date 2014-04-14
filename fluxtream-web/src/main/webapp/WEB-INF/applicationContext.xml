@@ -10,8 +10,6 @@
     	http://www.springframework.org/schema/cache/spring-cache.xsd
 		http://www.springframework.org/schema/util
 		http://www.springframework.org/schema/util/spring-util-3.0.xsd
-		http://www.springframework.org/schema/task
-		http://www.springframework.org/schema/task/spring-task-3.0.xsd
 		http://www.springframework.org/schema/tx
 		http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
 		http://www.springframework.org/schema/mvc
@@ -20,15 +18,6 @@
         http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
         http://www.springframework.org/schema/context 
         http://www.springframework.org/schema/context/spring-context-3.0.xsd">
-
-    <task:executor id="AsyncWorker" pool-size="5-25"
-                   rejection-policy="CALLER_RUNS" queue-capacity="100"/>
-
-    <task:executor id="FileUploadWorker" pool-size="5-25"
-                   rejection-policy="CALLER_RUNS" queue-capacity="100"/>
-
-	<task:executor id="updateWorkersExecutor" pool-size="5-25"
-		rejection-policy="CALLER_RUNS" queue-capacity="100" />
 
     <cache:annotation-driven />
 
@@ -42,6 +31,7 @@
         </property>
     </bean>
 
+    <import resource="classpath:org/fluxtream/core/applicationContext.xml" />
 	<import resource="spring-aspects.xml" />
     <import resource="spring-quartz.xml" />
 
@@ -81,7 +71,7 @@
 		</property>
 	</bean>
 
-	<bean id="guestService" class="org.fluxtream.services.impl.GuestServiceImpl" />
+	<bean id="guestService" class="org.fluxtream.core.services.impl.GuestServiceImpl" />
 
 	<bean id="messageSource"
 		class="org.springframework.context.support.ResourceBundleMessageSource">
@@ -121,7 +111,7 @@
 		<constructor-arg value="bodytrack.properties"/>
    	</bean>
 	
-	<bean class="org.fluxtream.Configuration">
+	<bean class="org.fluxtream.core.Configuration">
         <property name="lastCommitProperties" ref="lastCommitProperties"/>
         <property name="commonProperties" ref="commonProperties"/>
 		<property name="targetEnvProperties" ref="targetEnvProperties"/>

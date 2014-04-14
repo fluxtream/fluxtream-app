@@ -7,8 +7,8 @@ import javax.persistence.NamedQuery;
 
 import org.hibernate.search.annotations.Indexed;
 
-import org.fluxtream.connectors.annotations.ObjectTypeSpec;
-import org.fluxtream.domain.AbstractFacet;
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.domain.AbstractFacet;
 
 @Entity(name="Facet_LastFmRecentTrack")
 @ObjectTypeSpec(name = "recent_track", value = 2, extractor=LastFmFacetExtractor.class, parallel=true, prettyname = "Recent Tracks")

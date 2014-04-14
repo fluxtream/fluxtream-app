@@ -1,10 +1,5 @@
 package org.fluxtream.mvc.controllers;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.oltu.oauth2.as.request.OAuthAuthzRequest;
 import org.apache.oltu.oauth2.as.request.OAuthTokenRequest;
 import org.apache.oltu.oauth2.as.response.OAuthASResponse;
@@ -15,13 +10,13 @@ import org.apache.oltu.oauth2.common.message.OAuthResponse;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.apache.oltu.oauth2.common.message.types.ResponseType;
 import org.apache.oltu.oauth2.common.message.types.TokenType;
-import org.fluxtream.auth.AuthHelper;
-import org.fluxtream.domain.Guest;
-import org.fluxtream.domain.oauth2.Application;
-import org.fluxtream.domain.oauth2.AuthorizationCode;
-import org.fluxtream.domain.oauth2.AuthorizationCodeResponse;
-import org.fluxtream.domain.oauth2.AuthorizationToken;
-import org.fluxtream.services.OAuth2MgmtService;
+import org.fluxtream.core.auth.AuthHelper;
+import org.fluxtream.core.domain.Guest;
+import org.fluxtream.core.domain.oauth2.Application;
+import org.fluxtream.core.domain.oauth2.AuthorizationCode;
+import org.fluxtream.core.domain.oauth2.AuthorizationCodeResponse;
+import org.fluxtream.core.domain.oauth2.AuthorizationToken;
+import org.fluxtream.core.services.OAuth2MgmtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,6 +24,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * User: candide

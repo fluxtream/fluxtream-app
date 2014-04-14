@@ -1,11 +1,11 @@
 package org.fluxtream.mvc.views;
 
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.mvc.models.ConnectorModel;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.fluxtream.connectors.Connector;
-import org.fluxtream.domain.ApiKey;
-import org.fluxtream.mvc.models.ConnectorModel;
 
 public class ViewsHelper<T> {
 	
