@@ -13,6 +13,9 @@ define(["core/Tab",
 
     function render(params) {
         itemToShow = params.facetToShow;
+        if (params.digest.delta && map != null && map.selectedMarker != null && map.selectedMarker.item != null){
+            itemToShow = map.selectedMarker.item;
+        }
         params.setTabParam(null);
         this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){
             if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){
@@ -112,7 +115,10 @@ define(["core/Tab",
                         preserveView = map.isPreserveViewChecked();
                     }
                     if (itemToShow != null){
-                        map.zoomOnItemAndClick(itemToShow);
+                        if (!digestData.delta)
+                            map.zoomOnItemAndClick(itemToShow);
+                        else
+                            map.clickOnItem(itemToShow);
                     }
 
                     if (cursorPos != null)
