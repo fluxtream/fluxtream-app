@@ -13,6 +13,9 @@ define(["core/Tab",
 
     function render(params) {
         itemToShow = params.facetToShow;
+        if (params.digest.delta && map != null && map.selectedMarker != null && map.selectedMarker.item != null){
+            itemToShow = map.selectedMarker.item;
+        }
         params.setTabParam(null);
         this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){
             if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){
@@ -66,7 +69,7 @@ define(["core/Tab",
             }
         }
         else{//recycle old map
-            if (map.isPreserveViewChecked()){
+            if (map.isPreserveViewChecked() || digest.delta){
                 bounds = map.getBounds();
             }
             map.reset();
@@ -82,40 +85,49 @@ define(["core/Tab",
                         digest.facets[name] = locationDigest.facets[name];
                     }
                     digest.locationFetched = true;
-
-                    map.setDigest(digest);
-                    $("#mapFit").click(function(){
-                        map.fitBounds(map.gpsBounds);
-                    });
-
-                    map.executeAfterReady(function(){
-                        showData(connectorEnabled,bounds,function(bounds){
-                            if (bounds != null){
-                                map.fitBounds(bounds,map.isPreserveViewChecked());
-                            }
-                            else{
-                                map.setCenter(new google.maps.LatLng(digest.metadata.mainCity.latitude,digest.metadata.mainCity.longitude));
-                                map.setZoom(14);
-                            }
-                            map.preserveViewCheckboxChanged = function(){
-                                preserveView = map.isPreserveViewChecked();
-                            }
-                            if (itemToShow != null){
-                                map.zoomOnItemAndClick(itemToShow);
-                            }
-
-                            if (cursorPos != null)
-                                map.setCursorPosition(cursorPos);
-
-                            $("#mapwrapper .noDataOverlay").css("display", map.hasAnyData() ? "none" : "block");
-                            doneLoading();
-
-                        });
-                    });
+                    renderDigest();
                 },
+
                 error: function(status) {
                     Calendar.handleError(status.message);
                 }
+            });
+        }
+        else{
+            renderDigest();
+        }
+        function renderDigest(){
+            map.setDigest(digest);
+            $("#mapFit").unbind("click").click(function(){
+                map.fitBounds(map.gpsBounds);
+            });
+
+            map.executeAfterReady(function(){
+                showData(connectorEnabled,bounds,function(bounds){
+                    if (bounds != null){
+                        map.fitBounds(bounds,map.isPreserveViewChecked() || digestData.delta);
+                    }
+                    else{
+                        map.setCenter(new google.maps.LatLng(digest.metadata.mainCity.latitude,digest.metadata.mainCity.longitude));
+                        map.setZoom(14);
+                    }
+                    map.preserveViewCheckboxChanged = function(){
+                        preserveView = map.isPreserveViewChecked();
+                    }
+                    if (itemToShow != null){
+                        if (!digestData.delta)
+                            map.zoomOnItemAndClick(itemToShow);
+                        else
+                            map.clickOnItem(itemToShow);
+                    }
+
+                    if (cursorPos != null)
+                        map.setCursorPosition(cursorPos);
+
+                    $("#mapwrapper .noDataOverlay").css("display", map.hasAnyData() ? "none" : "block");
+                    doneLoading();
+
+                });
             });
         }
 	}
@@ -148,7 +160,7 @@ define(["core/Tab",
                 }
         }
 
-        doneLoading(map.isPreserveViewChecked() ? bounds : map.gpsBounds);
+        doneLoading((map.isPreserveViewChecked() || digest.delta) ? bounds : map.gpsBounds);
 
     }
 

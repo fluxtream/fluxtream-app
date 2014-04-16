@@ -1353,16 +1353,16 @@ define(["applications/calendar/tabs/map/MapConfig",
             map.setZoom(map.getZoom()+1);
     }
 
-    function zoomOnItemAndClick(map,item){
+    function zoomOnItemAndClick(map,item,zoom){
         var targetMarker = null;
         for (var i = 0, li = map.markerList.length; i < li && targetMarker == null; i++){
             if (map.markerList[i].item != null && map.markerList[i].item.id == item.id)
                 targetMarker = map.markerList[i];
         }
-        if (targetMarker != null){
+        if (targetMarker != null && zoom){
             map.zoomOnMarker(targetMarker);
-            google.maps.event.trigger(targetMarker,"click");
         }
+        google.maps.event.trigger(targetMarker,"click");
     }
 
     return {
@@ -1470,7 +1470,10 @@ define(["applications/calendar/tabs/map/MapConfig",
             }
             map.isPreserveViewChecked = function(){return false;}
             map.zoomOnItemAndClick = function(item){
-                zoomOnItemAndClick(map,item);
+                zoomOnItemAndClick(map,item,true);
+            }
+            map.clickOnItem = function(item){
+                zoomOnItemAndClick(map,item,false);
             }
             map._oldFitBounds = map.fitBounds;
             map.fitBounds = function(bounds,isPreservedView){

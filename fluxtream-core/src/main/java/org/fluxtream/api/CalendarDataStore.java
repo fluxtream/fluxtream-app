@@ -593,12 +593,34 @@ public class CalendarDataStore {
 
     }
 
+    /**
+     *
+     * @param date  - the date being queried
+     * @param connectorObjectsEncoded - this is an encoded list of the facet types to be returned the encoded is:
+     *                                <facetType>,<facetType>,...
+     *                                where <facetType> is:
+     *                                <connectorIdentifier>(optionally attached: -<objectTypeName>
+     *                                where <connectorIdentifier> is either the connector name or the apiKey id
+     *                                and objectTypeName is the name of the facet Type
+     *                                example:
+     *                                64-weight,fitbit,withings-heart_pulse
+     * @return
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     * @throws ClassNotFoundException
+     */
+    @SuppressWarnings("rawtypes")
+	@GET
 	@Path("/{connectorObjectsEncoded}/date/{date}")
-    @GET
     @ApiOperation(value = "Get data from a specific connector at a specific date", response = ConnectorResponseModel.class)
 	@Produces({ MediaType.APPLICATION_JSON })
 	public String getConnectorData(@ApiParam(value="Date", required=true) @PathParam("date") String date,
-                                   @ApiParam(value="???", required=true) @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded)
+                                   @ApiParam(value="an encoded list of the facet types to be returned. " +
+                                                   "The encoding is <facetType>,<facetType>,... where <facetType> is " +
+                                                   "<connectorIdentifier>(optionally attached: -<objectTypeName> " +
+                                                   "where <connectorIdentifier> is either the connector name or the apiKey id " +
+                                                   "and objectTypeName is the name of the facet Type - example: 64-weight,fitbit,withings-heart_pulse",
+                                           required=true) @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
         try{
@@ -668,7 +690,12 @@ public class CalendarDataStore {
     @Produces({ MediaType.APPLICATION_JSON })
     public String getConnectorData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
                                    @ApiParam(value="Week", required=true) @PathParam("week") final int week,
-                                   @ApiParam(value="???", required=true) @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded)
+                                   @ApiParam(value="an encoded list of the facet types to be returned. " +
+                                                   "The encoding is <facetType>,<facetType>,... where <facetType> is " +
+                                                   "<connectorIdentifier>(optionally attached: -<objectTypeName> " +
+                                                   "where <connectorIdentifier> is either the connector name or the apiKey id " +
+                                                   "and objectTypeName is the name of the facet Type - example: 64-weight,fitbit,withings-heart_pulse",
+                                             required=true) @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded)
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
         try{
@@ -735,7 +762,12 @@ public class CalendarDataStore {
     @Produces({ MediaType.APPLICATION_JSON })
     public String getConnectorDataMonth(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
                                         @ApiParam(value="Month", required=true) @PathParam("month") final int month,
-                                        @ApiParam(value="???", required=true) @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded)
+                                        @ApiParam(value="an encoded list of the facet types to be returned. " +
+                                                        "The encoding is <facetType>,<facetType>,... where <facetType> is " +
+                                                        "<connectorIdentifier>(optionally attached: -<objectTypeName> " +
+                                                        "where <connectorIdentifier> is either the connector name or the apiKey id " +
+                                                        "and objectTypeName is the name of the facet Type - example: 64-weight,fitbit,withings-heart_pulse",
+                                                  required=true) @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded)
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
         try{
