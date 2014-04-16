@@ -17,9 +17,8 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * User: candide
- * Date: 16/04/14
- * Time: 10:18
+ * CRUD operations for Partner Applications. This API resource needs to live inside
+ * of the dev webapp because it uses a separate security context.
  */
 @Path("/apps")
 @Component("RESTPartnerAppsStore")
