@@ -1,0 +1,55 @@
+# Numerous always-ignore extensions
+*.diff
+*.err
+*.orig
+*.log
+*.rej
+*.swo
+*.swp
+*.vi
+*~
+*.sass-cache
+*.iml
+
+# OS or Editor folders
+.DS_Store
+._*
+Thumbs.db
+.cache
+.project
+.settings
+.tmproj
+*.esproj
+nbproject
+*.sublime-project
+*.sublime-workspace
+
+# IntelliJ IDEA files to ignore (see http://devnet.jetbrains.net/message/5252436#5252436)
+workspace.xml
+tasks.xml
+
+# Komodo
+*.komodoproject
+.komodotools
+
+# Folders to ignore
+.hg
+.svn
+.CVS
+
+# Files to ignore
+.idea/workspace.xml
+node_modules
+.Vagrantfile
+
+.idea/
+
+build
+
+src/main/resources/common.properties
+src/main/resources/local.properties
+src/main/resources/rebel.xml
+src/main/resources/log4j.xml
+src/main/resources/lastcommit.properties
+
+target/

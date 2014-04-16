@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/util
+		http://www.springframework.org/schema/util/spring-util-3.0.xsd
+		http://www.springframework.org/schema/tx
+		http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+		http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+    <import resource="classpath:org/fluxtream/core/applicationContext.xml" />
+
+    <!-- generic cache manager -->
+    <bean id="cacheManager" class="org.springframework.cache.support.SimpleCacheManager">
+        <property name="caches">
+            <set>
+                <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean" p:name="defaultCache"/>
+            </set>
+        </property>
+    </bean>
+
+	<context:spring-configured />
+	<context:annotation-config />
+	<context:component-scan base-package="org.fluxtream.mvc;org.fluxtream.api;" />
+	<tx:annotation-driven transaction-manager="transactionManager" />
+
+	<bean id="propertyPlaceholderConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />
+		<property name="locations">
+			<list>
+                <value>classpath:lastcommit.properties</value>
+				<value>classpath:${TARGET_ENV}.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="guestService" class="org.fluxtream.core.services.impl.GuestServiceImpl" />
+
+	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="entityManagerFactory" />
+	</bean>
+
+   	<bean id="autoReloadStrategy" class="org.apache.commons.configuration.reloading.FileChangedReloadingStrategy"></bean>
+
+    <bean id="lastCommitProperties" class="org.apache.commons.configuration.PropertiesConfiguration">
+        <property name="reloadingStrategy" ref="autoReloadStrategy"/>
+        <constructor-arg value="lastcommit.properties"/>
+    </bean>
+    <bean id="commonProperties" class="org.apache.commons.configuration.PropertiesConfiguration">
+        <property name="reloadingStrategy" ref="autoReloadStrategy"/>
+        <constructor-arg value="common.properties"/>
+    </bean>
+    <bean id="targetEnvProperties" class="org.apache.commons.configuration.PropertiesConfiguration">
+		<property name="reloadingStrategy" ref="autoReloadStrategy"/>
+		<constructor-arg value="${TARGET_ENV}.properties"/>
+   	</bean>
+
+	<bean class="org.fluxtream.core.Configuration">
+        <property name="lastCommitProperties" ref="lastCommitProperties"/>
+        <property name="commonProperties" ref="commonProperties"/>
+		<property name="targetEnvProperties" ref="targetEnvProperties"/>
+	</bean>
+
+    <tx:annotation-driven transaction-manager="transactionManager" />
+
+	<mvc:annotation-driven />
+
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+        <property name="driverClass" value="com.mysql.jdbc.Driver" />
+        <property name="jdbcUrl" value="${db.url}" />
+        <property name="user" value="${db.username}" />
+        <property name="password" value="${db.password}" />
+	</bean>
+	
+	<bean id="entityManagerFactory"
+		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"
+		p:packagesToScan="org.fluxtream" p:dataSource-ref="dataSource"
+		p:jpaVendorAdapter-ref="hibernateVendor" p:jpaPropertyMap-ref="jpaPropertyMap" />
+		
+	<bean id="hibernateVendor"
+		class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"
+		p:showSql="false" />
+		
+	<util:map id="jpaPropertyMap">
+		<entry key="connection.provider_class" value="org.hibernate.connection.C3P0ConnectionProvider"/>
+	    <entry key="hibernate.generate_statistics" value="false"/>
+		<entry key="hibernate.cache.region.factory_class"
+			value="net.sf.ehcache.hibernate.EhCacheRegionFactory"/>
+		<entry key="hibernate.cache.region.factory_class"
+			value="net.sf.ehcache.hibernate.SingletonEhCacheRegionFactory"/>
+		<entry key="hibernate.cache.use_second_level_cache"
+			value="true"/>
+		<entry key="hibernate.c3p0.acquire_increment" value="4" />
+		<entry key="hibernate.c3p0.idle_test_period" value="3000" />
+		<entry key="hibernate.c3p0.max_size" value="300" />
+		<entry key="hibernate.c3p0.max_statements" value="50" />
+		<entry key="hibernate.c3p0.min_size" value="5" />
+        <entry key="hibernate.c3p0.initial_pool_size" value="50" />
+        <entry key="hibernate.c3p0.acquire_increment" value="10" />
+        <entry key="hibernate.c3p0.timeout" value="100" />
+		<entry key="hibernate.archive.autodetection" value="class, hbm" />
+		<entry key="hibernate.default_schema " value="flx" />
+		<entry key="hibernate.hbm2ddl.auto" value="update" />
+		<entry key="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect" />
+	</util:map>
+
+</beans>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd">
+
+	<global-method-security secured-annotations="enabled"/>
+
+    <http pattern="/" security="none" />
+    <http pattern="/static/css/*" security="none" />
+    <http pattern="/static/js/*" security="none" />
+    <http pattern="/favicon.ico" security="none" />
+    <http pattern="/apple-touch-icon-precomposed.png" security="none" />
+
+    <http pattern="/accessDenied*" security="none" />
+    <http pattern="/notSupported" security="none" />
+    <http pattern="/createAccount*" security="none" />
+    <http pattern="/register*" security="none" />
+    <http pattern="/createAccountForm*" security="none" />
+
+	<http pattern="/${release}/js/**" security="none" />
+    <http pattern="/${release}/html/**" security="none" />
+	<http pattern="/${release}/css/**" security="none" />
+	<http pattern="/${release}/images/**" security="none" />
+
+    <http pattern="/html/privacyPolicy.html" security="none" />
+
+    <http access-denied-page="/accessDenied" entry-point-ref="loginUrlAuthenticationEntryPoint"
+		use-expressions="true" create-session="ifRequired">
+        <http-basic/>
+		<intercept-url pattern="/**" access="hasRole('ROLE_USER')" />
+        <intercept-url pattern="/signIn" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+
+		<custom-filter position="FORM_LOGIN_FILTER" ref="authFilter" />
+		<custom-filter position="LOGOUT_FILTER" ref="logoutFilter" />
+	</http>
+
+	<beans:bean id="logoutFilter"
+		class="org.springframework.security.web.authentication.logout.LogoutFilter">
+		<beans:constructor-arg value="/"></beans:constructor-arg>
+		<beans:constructor-arg>
+			<beans:array>
+				<beans:bean class="org.fluxtream.core.auth.FlxLogoutHandler">
+				</beans:bean>
+			</beans:array>
+		</beans:constructor-arg>
+		<beans:property name="filterProcessesUrl" value="/logout" />
+	</beans:bean>
+
+	<beans:bean id="loginUrlAuthenticationEntryPoint"
+		class="org.fluxtream.core.auth.FlxLoginUrlAuthenticationEntryPoint">
+		<beans:property name="loginFormUrl" value="/" />
+	</beans:bean>
+
+	<beans:bean id="authFilter" class="org.fluxtream.core.auth.FlxAuthFilter">
+		<beans:property name="authenticationManager" ref="authenticationManager" />
+		<beans:property name="authenticationFailureHandler"
+			ref="failureHandler" />
+		<beans:property name="authenticationSuccessHandler"
+			ref="successHandler" />
+		<beans:property name="filterProcessesUrl" value="/signIn" />
+	</beans:bean>
+
+	<beans:bean id="successHandler"
+		class="org.fluxtream.core.auth.FlxSavedRequestAwareAuthenticationSuccessHandler">
+		<beans:property name="defaultTargetUrl" value="/checkIn" />
+		<beans:property name="alwaysUseDefaultTargetUrl" value="true" />
+        <beans:property name="requestCache" ref="requestCache"/>
+	</beans:bean>
+
+    <beans:bean id="requestCache" class="org.springframework.security.web.savedrequest.HttpSessionRequestCache"/>
+    <beans:bean id="requestCacheAwareFilter"
+          class="org.springframework.security.web.savedrequest.RequestCacheAwareFilter">
+        <beans:constructor-arg ref="requestCache"/>
+    </beans:bean>
+
+	<beans:bean id="failureHandler" class="org.fluxtream.core.auth.FlxAuthFailureHandler">
+		<beans:property name="defaultFailureUrl" value="/?retry" />
+	</beans:bean>
+
+	<authentication-manager alias="authenticationManager">
+		<authentication-provider user-service-ref="guestService">
+			<password-encoder hash="sha">
+				<salt-source user-property="salt" />
+			</password-encoder>
+		</authentication-provider>
+	</authentication-manager>
+
+	<beans:bean id="guestService" class="org.fluxtream.core.auth.FlxUserDetailsService">
+    </beans:bean>
+
+</beans:beans>
