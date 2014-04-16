@@ -1,10 +1,11 @@
 package org.fluxtream.core.domain.oauth2;
 
-import java.util.UUID;
-import javax.persistence.Entity;
-import javax.persistence.Lob;
 import org.fluxtream.core.domain.AbstractEntity;
 import org.hibernate.annotations.Index;
+
+import javax.persistence.Entity;
+import javax.persistence.Lob;
+import java.util.UUID;
 
 /**
  * User: candide
@@ -23,6 +24,8 @@ public class Application extends AbstractEntity {
 
     @Lob
     public String description;
+
+    public Application(){}
 
     public Application(final long guestId, final String name, final String description) {
         this.guestId = guestId;

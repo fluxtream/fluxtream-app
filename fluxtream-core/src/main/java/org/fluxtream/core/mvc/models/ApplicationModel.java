@@ -9,8 +9,10 @@ import org.fluxtream.core.domain.oauth2.Application;
  */
 public class ApplicationModel {
 
-    public final String name;
-    public final String description;
+    public String name;
+    public String description;
+
+    public ApplicationModel() {}
 
     public ApplicationModel(Application app) {
         this.name = app.name;
