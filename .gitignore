@@ -53,3 +53,4 @@ fluxtream-web/src/main/webapp/css/bootstrapCustomizations.css
 fluxtream-web/src/main/webapp/WEB-INF/jsp/intercom.jsp
 
 build
+target/
