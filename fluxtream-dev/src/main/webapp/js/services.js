@@ -2,6 +2,9 @@ var developerWebsiteServices = angular.module('developerWebsiteServices', ['ngRe
 
 developerWebsiteServices.factory('App', ['$resource',
     function($resource){
-        return $resource('/dev/api/apps/:uid', {uid: '@uid'});
+        return $resource(
+            '/dev/api/apps/:uid',
+            {uid: '@uid'}
+        );
     }
 ]);

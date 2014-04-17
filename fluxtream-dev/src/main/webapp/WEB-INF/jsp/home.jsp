@@ -12,7 +12,7 @@
     <meta charset="utf-8">
     <title>Fluxtream Developer Home</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <%--<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.css" rel="stylesheet">--%>
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.css" rel="stylesheet">
     <link href='https://fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'/>
 
     <!-- developer website css (compiled from bootstrap less source) -->
@@ -46,14 +46,7 @@
     </div>
 
     <!-- Page content -->
-    <div id="page-content-wrapper">
-        <div class="content-header">
-            <h1>
-                <a id="menu-toggle" href="#" class="btn btn-default"><i class="icon-reorder"></i></a>
-                Fluxtream Developer
-            </h1>
-        </div>
-        <div ng-view></div>
+    <div id="page-content-wrapper" ng-view class="container">
     </div>
 
 </div>

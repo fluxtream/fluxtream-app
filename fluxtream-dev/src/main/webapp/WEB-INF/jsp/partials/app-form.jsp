@@ -20,8 +20,8 @@
                           ng-model="app.description" rows="3"
                           placeholder="Please describe your app"></textarea>
             </div>
-            <button type="submit" ng-click="create(app)" class="btn btn-default">Submit</button>
+            <button type="submit" ng-click="createOrUpdate(app)" class="btn btn-primary">Submit</button>
+            <a href="#/apps" class="btn btn-default">Cancel</a>
         </form>
-        <pre>form = {{app | json}}</pre>
     </div>
 </div>

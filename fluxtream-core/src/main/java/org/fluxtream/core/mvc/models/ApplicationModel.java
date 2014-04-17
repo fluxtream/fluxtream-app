@@ -11,12 +11,16 @@ public class ApplicationModel {
 
     public String name;
     public String description;
+    public String sharedSecret;
+    public String uid;
 
     public ApplicationModel() {}
 
     public ApplicationModel(Application app) {
         this.name = app.name;
         this.description = app.description;
+        this.sharedSecret = app.sharedSecret;
+        this.uid = app.uid;
     }
 
 }

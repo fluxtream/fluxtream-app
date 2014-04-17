@@ -24,7 +24,7 @@
     <!-- For IE 7 and 8 Media Query Support -->
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
     <script src="static/js/bootstrap-2.0.2.min.js"></script>
-    <script type="text/javascript" src="${release}/js/respond.js"></script>
+    <script type="text/javascript" src="static/js/respond-1.4.2.min.js"></script>
     <script type="text/javascript" src="${release}/js/welcome.js"></script>
 
     <!-- fav icons -->

@@ -32,14 +32,9 @@ public class PartnerAppsServiceImpl implements PartnerAppsService {
     @Override
     @Transactional(readOnly=false)
     public void deleteApplication(final long guestId, final String uid) {
-        final TypedQuery<Application> query = em.createQuery("SELECT app FROM Application app WHERE app.uid=?", Application.class);
-        query.setParameter(1, uid);
-        if (query.getResultList().size()>0) {
-            final Application app = query.getResultList().get(0);
-            if (app.guestId!=guestId)
-                throw new RuntimeException("Could not delete app: guestIds don't match");
+        final Application app = getApplication(guestId, uid);
+        if (app!=null)
             em.remove(app);
-        }
     }
 
     @Override
@@ -47,6 +42,30 @@ public class PartnerAppsServiceImpl implements PartnerAppsService {
         final TypedQuery<Application> query = em.createQuery("SELECT app FROM Application app WHERE app.guestId=?", Application.class);
         query.setParameter(1, guestId);
         return query.getResultList();
+    }
+
+    @Override
+    public Application getApplication(long guestId, String uid) {
+        final TypedQuery<Application> query = em.createQuery("SELECT app FROM Application app WHERE app.uid=?", Application.class);
+        query.setParameter(1, uid);
+        if (query.getResultList().size()>0) {
+            final Application app = query.getResultList().get(0);
+            if (app.guestId!=guestId)
+                throw new RuntimeException("Could not delete app: guestIds don't match");
+            return app;
+        }
+        return null;
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void updateApplication(long guestId, String uid, String name, String description) {
+        final Application app = getApplication(guestId, uid);
+        if (app!=null) {
+            app.name = name;
+            app.description = description;
+            em.persist(app);
+        }
     }
 
 }

@@ -17,4 +17,7 @@ public interface PartnerAppsService {
 
     List<Application> getApplications(final long guestId);
 
+    Application getApplication(final long guestId, final String uid);
+
+    void updateApplication(long guestId, String uid, String name, String description);
 }

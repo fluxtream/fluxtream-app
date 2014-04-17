@@ -11,7 +11,11 @@ developerWebsiteApp.config(['$routeProvider', '$locationProvider',
                 templateUrl: 'partials/apps-list',
                 controller: 'AppsListCtrl'
             }).
-            when('/app-form', {
+            when('/app-edit', {
+                templateUrl: 'partials/app-form',
+                controller: 'AppEditFormCtrl'
+            }).
+            when('/app-create', {
                 templateUrl: 'partials/app-form',
                 controller: 'AppCreateFormCtrl'
             }).

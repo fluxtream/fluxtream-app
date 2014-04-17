@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -31,14 +32,34 @@ public class PartnerAppsStore {
     private final ObjectMapper mapper = new ObjectMapper();
 
     @POST
+    @Path("/{uid}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes(MediaType.APPLICATION_JSON)
+    public StatusModel updateApplication(ApplicationModel appModel,
+                                         @PathParam("uid") String uid) {
+        return createOrUpdateApplication(appModel, uid);
+    }
+
+
+    @POST
     @Path("/")
     @Produces({ MediaType.APPLICATION_JSON })
     @Consumes(MediaType.APPLICATION_JSON)
     public StatusModel createApplication(ApplicationModel appModel) {
+        return createOrUpdateApplication(appModel, null);
+    }
+
+    public StatusModel createOrUpdateApplication(ApplicationModel appModel, String uid) {
         final long guestId = AuthHelper.getGuestId();
         try {
-            partnerAppsService.createApplication(guestId, appModel.name, appModel.description);
-            StatusModel status = new StatusModel(true, String.format("Created app '%s': %s", appModel.name, appModel.description));
+            StatusModel status;
+            if (uid==null) {
+                partnerAppsService.createApplication(guestId, appModel.name, appModel.description);
+                status = new StatusModel(true, String.format("Created app '%s': %s", appModel.name, appModel.description));
+            } else {
+                partnerAppsService.updateApplication(guestId, appModel.uid, appModel.name, appModel.description);
+                status = new StatusModel(true, String.format("Updated app '%s': %s", appModel.name, appModel.description));
+            }
             return status;
         }
         catch (Throwable e) {
@@ -49,10 +70,35 @@ public class PartnerAppsStore {
         }
     }
 
-    @DELETE
-    @Path("/")
+    @GET
+    @Path("/{uid}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public StatusModel incrementCounter(@FormParam("uid") String uid) {
+    public String getApplication(@PathParam("uid") String uid) throws IOException {
+        final long guestId = AuthHelper.getGuestId();
+        try {
+            final Application app = partnerAppsService.getApplication(guestId, uid);
+            if (app!=null) {
+                final String json = mapper.writeValueAsString(new ApplicationModel(app));
+                return json;
+            } else {
+                final StatusModel statusModel = new StatusModel(false, "No such application: " + uid);
+                final String json = mapper.writeValueAsString(statusModel);
+                return json;
+            }
+        }
+        catch (Throwable e) {
+            final String stackTrace = ExceptionUtils.getStackTrace(e);
+            final StatusModel statusModel = new StatusModel(false, "Couldn't list applications for user " + guestId);
+            statusModel.payload = stackTrace;
+            final String json = mapper.writeValueAsString(statusModel);
+            return json;
+        }
+    }
+
+    @DELETE
+    @Path("/{uid}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public StatusModel deleteApplication(@PathParam("uid") String uid) {
         final long guestId = AuthHelper.getGuestId();
         try {
             partnerAppsService.deleteApplication(guestId, uid);
@@ -70,11 +116,16 @@ public class PartnerAppsStore {
     @GET
     @Path("/")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String listApplication() throws IOException {
+    public String listApplications() throws IOException {
         final long guestId = AuthHelper.getGuestId();
         try {
             final List<Application> applications = partnerAppsService.getApplications(guestId);
-            final String json = mapper.writeValueAsString(applications);
+            List<ApplicationModel> apps = new ArrayList<ApplicationModel>();
+            for (Application application : applications) {
+                ApplicationModel app = new ApplicationModel(application);
+                apps.add(app);
+            }
+            final String json = mapper.writeValueAsString(apps);
             return json;
         }
         catch (Throwable e) {
