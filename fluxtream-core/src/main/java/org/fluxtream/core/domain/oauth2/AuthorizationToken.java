@@ -1,10 +1,11 @@
 package org.fluxtream.core.domain.oauth2;
 
-import java.util.UUID;
-import javax.persistence.Entity;
 import org.fluxtream.core.domain.AbstractEntity;
 import org.hibernate.annotations.Index;
 import org.joda.time.DateTime;
+
+import javax.persistence.Entity;
+import java.util.UUID;
 
 /**
  * User: candide
@@ -18,6 +19,9 @@ public class AuthorizationToken extends AbstractEntity {
      * The default number of milliseconds that a token should live.
      */
     public static final long DEFAULT_TOKEN_LIFETIME_MILLIS = 1000 * 60 * 60;
+
+    @Index(name="guestId")
+    public long guestId;
 
     @Index(name="authorizationCodeId")
     public long authorizationCodeId;
@@ -48,12 +52,14 @@ public class AuthorizationToken extends AbstractEntity {
         this.accessToken = UUID.randomUUID().toString();
         this.refreshToken = UUID.randomUUID().toString();
         this.creationTime = DateTime.now().getMillis();
+        this.guestId = response.guestId;
         this.expirationTime =
                 this.creationTime + DEFAULT_TOKEN_LIFETIME_MILLIS;
     }
 
     public AuthorizationToken(final AuthorizationToken oldToken) {
         this.authorizationCodeId = oldToken.authorizationCodeId;
+        this.guestId = oldToken.guestId;
         this.accessToken = UUID.randomUUID().toString();
         this.refreshToken = UUID.randomUUID().toString();
         this.creationTime = DateTime.now().getMillis();

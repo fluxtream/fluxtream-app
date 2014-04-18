@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/security"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd">
 
 	<global-method-security secured-annotations="enabled"/>
@@ -18,7 +19,6 @@
 	<http pattern="/${release}/images/**" security="none" />
     <http pattern="/images/**" security="none" />
     <http pattern="/welcome*" security="none" />
-    <http pattern="/dev*" security="none" />
     <http pattern="/accessDenied*" security="none" />
 	<http pattern="/notSupported" security="none" />
 	<http pattern="/favicon.ico" security="none" />
@@ -43,9 +43,13 @@
         <http-basic/>
 		<intercept-url pattern="/**" access="hasRole('ROLE_USER')" />
 
+        <custom-filter before="PRE_AUTH_FILTER" ref="oauth2ProcessingFilter" />
 		<custom-filter position="FORM_LOGIN_FILTER" ref="authFilter" />
 		<custom-filter position="LOGOUT_FILTER" ref="logoutFilter" />
-	</http>
+    </http>
+
+    <beans:bean id="oauth2ProcessingFilter"
+                class="org.fluxtream.core.auth.FlxOAuth2ProcessingFilter"/>
 
 	<beans:bean id="logoutFilter"
 		class="org.springframework.security.web.authentication.logout.LogoutFilter">

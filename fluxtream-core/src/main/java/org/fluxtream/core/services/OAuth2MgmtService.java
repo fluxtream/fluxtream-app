@@ -1,10 +1,11 @@
 package org.fluxtream.core.services;
 
-import java.util.Set;
 import org.fluxtream.core.domain.oauth2.Application;
 import org.fluxtream.core.domain.oauth2.AuthorizationCode;
 import org.fluxtream.core.domain.oauth2.AuthorizationCodeResponse;
 import org.fluxtream.core.domain.oauth2.AuthorizationToken;
+
+import java.util.Set;
 
 /**
  * User: candide
@@ -28,4 +29,6 @@ public interface OAuth2MgmtService {
     void storeToken(AuthorizationToken token);
 
     AuthorizationToken getTokenFromRefreshToken(String refreshToken);
+
+    AuthorizationToken getTokenFromAccessToken(String accessToken);
 }

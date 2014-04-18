@@ -1,17 +1,18 @@
 package org.fluxtream.core.services.impl;
 
-import java.util.List;
-import java.util.Set;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
+import org.fluxtream.core.domain.oauth2.Application;
 import org.fluxtream.core.domain.oauth2.AuthorizationCode;
 import org.fluxtream.core.domain.oauth2.AuthorizationCodeResponse;
 import org.fluxtream.core.domain.oauth2.AuthorizationToken;
-import org.fluxtream.core.domain.oauth2.Application;
 import org.fluxtream.core.services.OAuth2MgmtService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+import java.util.List;
+import java.util.Set;
 
 /**
  * User: candide
@@ -93,6 +94,20 @@ public class OAuth2MgmtServiceImpl implements OAuth2MgmtService {
         final List<AuthorizationToken> resultList = query.getResultList();
         if (resultList.size()>0)
             return resultList.get(0);
+        return null;
+    }
+
+    @Override
+    public AuthorizationToken getTokenFromAccessToken(String accessToken) {
+        final TypedQuery<AuthorizationToken> query = em.createQuery(
+                "SELECT authorizationToken FROM AuthorizationToken authorizationToken " +
+                        "WHERE authorizationToken.accessToken=?", AuthorizationToken.class);
+        query.setParameter(1, accessToken);
+        final List<AuthorizationToken> resultList = query.getResultList();
+        if (resultList.size()>0) {
+            final AuthorizationToken authorizationToken = resultList.get(0);
+            return authorizationToken;
+        }
         return null;
     }
 
