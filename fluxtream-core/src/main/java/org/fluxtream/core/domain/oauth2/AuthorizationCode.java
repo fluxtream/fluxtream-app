@@ -1,12 +1,13 @@
 package org.fluxtream.core.domain.oauth2;
 
-import java.util.Set;
-import java.util.UUID;
-import javax.persistence.Entity;
-import javax.persistence.Lob;
 import org.apache.commons.lang.StringUtils;
 import org.fluxtream.core.domain.AbstractEntity;
 import org.hibernate.annotations.Index;
+
+import javax.persistence.Entity;
+import javax.persistence.Lob;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * User: candide
@@ -15,6 +16,11 @@ import org.hibernate.annotations.Index;
  */
 @Entity(name="AuthorizationCode")
 public class AuthorizationCode extends AbstractEntity {
+
+    /**
+     * The default number of milliseconds that a token should live.
+     */
+    public static final long DEFAULT_CODE_LIFETIME_MILLIS = 1000 * 60 * 5;
 
     @Index(name="code")
     public String code;
@@ -36,5 +42,6 @@ public class AuthorizationCode extends AbstractEntity {
         this.applicationId = id;
         this.state = state;
         this.creationTime = System.currentTimeMillis();
+        this.expirationTime = this.creationTime + DEFAULT_CODE_LIFETIME_MILLIS;
     }
 }

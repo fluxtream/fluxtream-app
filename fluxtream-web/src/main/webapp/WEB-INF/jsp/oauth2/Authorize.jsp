@@ -92,9 +92,6 @@
         // Do nothing.
     }
 </script>
-<!-- Get the user's credentials. -->
-Username: <input type="text" id="username"><br/>
-Password: <input type="password" id="password"><br/>
 <!--
     Require the user to indicate that they are granting
     authorization.
@@ -131,18 +128,6 @@ Password: <input type="password" id="password"><br/>
         // Build the request.
         var params = "";
 
-        // Add the username.
-        params =
-        params +
-        "username=" +
-        encodeURIComponent(
-                document.getElementById("username").value);
-        // Add the password.
-        params =
-        params +
-        "&password=" +
-        encodeURIComponent(
-                document.getElementById("password").value);
         // Add the granted boolean.
         params =
         params +
@@ -152,8 +137,11 @@ Password: <input type="password" id="password"><br/>
         // Add the code.
         params = params + "&code=" + QueryString['code'][0];
 
+        // Add the redirect uri
+        params = params + "&redirectUri=" + QueryString['redirectUri'][0];
+
         // Make the request.
-        request.open('POST', 'authorization', true);
+        request.open('POST', '/auth/oauth2/authorization', true);
         request
                 .setRequestHeader(
                 "Content-type",

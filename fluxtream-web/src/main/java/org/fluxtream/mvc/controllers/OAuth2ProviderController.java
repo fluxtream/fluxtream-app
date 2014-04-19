@@ -98,12 +98,12 @@ public class OAuth2ProviderController {
             return oauthResponse.getBody();
         }
 
-        // Make sure no redirect URI was given.
-        if (oauthRequest.getRedirectURI() != null) {
+        // Make sure a redirect URI was given.
+        if (oauthRequest.getRedirectURI() == null) {
             // Create the OAuth response.
             OAuthResponse oauthResponse = OAuthASResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST)
                     .setError(OAuthError.CodeResponse.INVALID_REQUEST)
-                    .setErrorDescription("A URI must not be given. Instead, the one given when the account was created will be used.")
+                    .setErrorDescription("A redirect URI must be given.")
                     .setState(oauthRequest.getState())
                     .buildJSONMessage();
 
@@ -139,6 +139,7 @@ public class OAuth2ProviderController {
                                       //.setScope(scopeBuilder.toString())
                                       .setParam("name", application.name)
                                       .setParam("description", application.description)
+                                      .setParam("redirectUri", oauthRequest.getRedirectURI())
                                       .buildQueryMessage().getLocationUri()
         );
         // Since we are redirecting the user, we don't need to return anything.
@@ -146,15 +147,17 @@ public class OAuth2ProviderController {
     }
 
     @RequestMapping(value = "Authorize.html")
-    public ModelAndView getAuthorizeForm(@RequestParam("code") String code, @RequestParam("name") String name,
-                                         @RequestParam("description") String description) {
+    public ModelAndView getAuthorizeForm(@RequestParam(value="code",required=true) String code,
+                                         @RequestParam(value="name",required=true) String name,
+                                         @RequestParam(value="description",required=true) String description,
+                                         @RequestParam(value="redirectUri",required=true) String redirectUri) {
         return new ModelAndView("oauth2/Authorize");
     }
 
     @RequestMapping(value = "/authorization", method = RequestMethod.POST)
     public void authenticateAuthorizationCodeRequest(
             @RequestParam(value = "granted", required = true) final boolean granted,
-            @RequestParam(value = "redirectURi", required = true) final String redirectUri,
+            @RequestParam(value = "redirectUri", required = true) final String redirectUri,
             @RequestParam(value = "code", required = false) final String code,
             final HttpServletRequest request,
             final HttpServletResponse response) throws IOException, OAuthSystemException
