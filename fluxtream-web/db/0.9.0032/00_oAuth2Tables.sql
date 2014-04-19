@@ -41,7 +41,7 @@ CREATE TABLE `AuthorizationCode` (
 CREATE TABLE `AuthorizationCodeResponse` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `authorizationCodeId` bigint(20) NOT NULL,
-  `granted` bit(1) NOT NULL,
+  `granted` char(1) NOT NULL,
   `guestId` bigint(20) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

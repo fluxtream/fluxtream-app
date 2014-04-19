@@ -7,6 +7,7 @@
 
 	<global-method-security secured-annotations="enabled"/>
 
+    <!-- assets -->
 	<http pattern="/support/*" security="none" />
 	<http pattern="/**/notify" security="none" />
 	<http pattern="/${release}/js/**" security="none" />
@@ -23,20 +24,31 @@
 	<http pattern="/notSupported" security="none" />
 	<http pattern="/favicon.ico" security="none" />
 	<http pattern="/apple-touch-icon-precomposed.png" security="none" />
+    <http pattern="/html/privacyPolicy.html" security="none" />
+
+    <!-- registration -->
 	<http pattern="/get-invitation*" security="none" />
     <http pattern="/createAccount*" security="none" />
     <http pattern="/register*" security="none" />
     <http pattern="/createAccountForm*" security="none" />
     <http pattern="/widgets.json" security="none" />
     <http pattern="/widgets/**" security="none" />
+
+    <!-- api ping -->
     <http pattern="/api/test/**" security="none" />
     <http pattern="/api/ping" security="none" />
-    <http pattern="/api/api-docs/**" security="none" />
-    <http pattern="/api/api-docs*" security="none" />
+
+    <!-- facebook login and sharing -->
     <http pattern="/api/facebook/login*" security="none" />
     <http pattern="/openGraph/**" security="none" />
     <http pattern="/channel.html" security="none" />
-    <http pattern="/html/privacyPolicy.html" security="none" />
+
+    <!-- api documentation -->
+    <http pattern="/api/api-docs/**" security="none" />
+    <http pattern="/api/api-docs*" security="none" />
+
+    <!-- oauth2 token exchange -->
+    <http pattern="/auth/oauth2/token*" security="none" />
 
     <http access-denied-page="/accessDenied" entry-point-ref="loginUrlAuthenticationEntryPoint"
 		use-expressions="true" create-session="ifRequired">

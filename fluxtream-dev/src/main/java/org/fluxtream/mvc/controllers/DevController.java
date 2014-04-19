@@ -1,8 +1,11 @@
 package org.fluxtream.mvc.controllers;
 
+import net.sf.json.JSONObject;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.services.GuestService;
+import org.fluxtream.core.utils.HttpUtils;
+import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -12,6 +15,7 @@ import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,6 +24,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * User: candide
@@ -53,6 +59,21 @@ public class DevController {
         String release = env.get("release");
         mav.addObject("release", release);
         return mav;
+    }
+
+    @RequestMapping(value = "/swapToken")
+    public void obtainAccessToken(@RequestParam("code") String code,
+                                  HttpServletResponse response) throws IOException, UnexpectedHttpResponseCodeException {
+        Map<String,String> parameters = new HashMap<String,String>();
+        parameters.put("grant_type", "authorization_code");
+        parameters.put("code", code);
+        parameters.put("client_id", env.get("fluxtreamDev.client.id"));
+        parameters.put("client_secret", env.get("fluxtreamDev.client.secret"));
+        parameters.put("redirect_uri", "somedummyfield");
+        final String json = HttpUtils.fetch("https://fluxtream.me/auth/oauth2/token", parameters);
+        final JSONObject token = JSONObject.fromObject(json);
+        final String accessToken = token.getString("access_token");
+        response.sendRedirect("/api/api-docs?accessToken=" + accessToken);
     }
 
     @RequestMapping(value = "/partials/{partial}")

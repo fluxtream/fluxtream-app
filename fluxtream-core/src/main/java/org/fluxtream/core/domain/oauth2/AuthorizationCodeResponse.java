@@ -1,7 +1,9 @@
 package org.fluxtream.core.domain.oauth2;
 
-import javax.persistence.Entity;
 import org.fluxtream.core.domain.AbstractEntity;
+import org.hibernate.annotations.Type;
+
+import javax.persistence.Entity;
 
 /**
  * User: candide
@@ -13,6 +15,8 @@ public class AuthorizationCodeResponse extends AbstractEntity {
 
     public long guestId;
     public long authorizationCodeId;
+
+    @Type(type="yes_no")
     public boolean granted;
 
     public AuthorizationCodeResponse() {}
