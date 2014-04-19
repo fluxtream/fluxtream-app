@@ -29,7 +29,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * User: candide
@@ -128,53 +127,10 @@ public class OAuth2ProviderController {
             return oauthResponse.getBody();
         }
 
-        // Attempt to get the scopes.
-        Set<String> scopes = oauthRequest.getScopes();
-        if ((scopes == null) || (scopes.size() == 0)) {
-            // Create the OAuth response.
-            OAuthResponse oauthResponse = OAuthASResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST).setError
-                    (OAuthError.CodeResponse.INVALID_SCOPE).setErrorDescription("A scope is required.").setState
-                    (oauthRequest.getState()).buildJSONMessage();
-
-            // Set the status and return the error message.
-            response.setStatus(oauthResponse.getResponseStatus());
-            return oauthResponse.getBody();
-        }
-        //// Validate the scopes.
-        //Registry registry = Registry.getInstance();
-        //for(String scope : scopes) {
-        //    if(registry.getSchemas(scope, null, 0, 1).size() != 1) {
-        //        // Create the OAuth response.
-        //        OAuthResponse oauthResponse =
-        //                OAuthASResponse
-        //                        .errorResponse(HttpServletResponse.SC_BAD_REQUEST)
-        //                        .setError(OAuthError.CodeResponse.INVALID_SCOPE)
-        //                        .setErrorDescription(
-        //                                "Each scope must be a known schema ID: " + scope)
-        //                        .setState(oauthRequest.getState())
-        //                        .buildJSONMessage();
-        //
-        //        // Set the status and return the error message.
-        //        response.setStatus(oauthResponse.getResponseStatus());
-        //        return oauthResponse.getBody();
-        //    }
-        //}
-
         // Create the temporary code to be granted or rejected by the user.
         AuthorizationCode code = oAuth2MgmtService.issueAuthorizationCode(application.getId(),
                                                                           oauthRequest.getScopes(),
                                                                           oauthRequest.getState());
-
-        //// Build the scope as specified by the OAuth specification.
-        //StringBuilder scopeBuilder = new StringBuilder();
-        //for(String scope : code.getScopes()) {
-        //    // Add a space unless it's the first entity.
-        //    if(scopeBuilder.length() != 0) {
-        //        scopeBuilder.append(' ');
-        //    }
-        //    // Add the scope.
-        //    scopeBuilder.append(scope);
-        //}
 
         // Set the redirect.
         response.sendRedirect(OAuthASResponse.authorizationResponse(request, HttpServletResponse.SC_FOUND)

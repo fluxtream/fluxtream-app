@@ -122,28 +122,6 @@ public class AppController {
         return mav;
     }
 
-    @RequestMapping(value = { "/explorer" })
-    public ModelAndView explorer(HttpServletRequest request) {
-
-        long guestId = AuthHelper.getGuestId();
-
-        ModelAndView mav = new ModelAndView("snippets");
-        String targetEnvironment = env.get("environment");
-        mav.addObject("tracker", hasTracker(request));
-        if (request.getSession(false) == null)
-            return mav;
-
-        Authentication auth = SecurityContextHolder.getContext()
-                .getAuthentication();
-        if (auth == null || !auth.isAuthenticated())
-            return mav;
-        mav.setViewName("explorer");
-
-        String release = env.get("release");
-        mav.addObject("release", release);
-        return mav;
-    }
-
     public ModelAndView home(HttpServletRequest request,
                              HttpServletResponse response) {
 		logger.info("action=loggedIn");
@@ -187,10 +165,11 @@ public class AppController {
     @RequestMapping(value = "/checkIn")
     public ModelAndView checkIn(HttpServletRequest request,
                                 HttpServletResponse response) throws IOException, NoSuchAlgorithmException, URISyntaxException {
-        if (!hasTimezoneCookie(request)|| AuthHelper.getGuest()==null)
+        final Guest guest = AuthHelper.getGuest();
+        if (!hasTimezoneCookie(request)|| guest ==null)
             return new ModelAndView("redirect:/welcome");
-        long guestId = AuthHelper.getGuestId();
-        if (AuthHelper.getGuest().hasRole("ROLE_DEVELOPER"))
+        long guestId = guest.getId();
+        if (guest.hasRole("ROLE_DEVELOPER"))
             return new ModelAndView("redirect:/dev/home");
         checkIn(request, guestId);
         final HttpSessionRequestCache requestCache = new HttpSessionRequestCache();

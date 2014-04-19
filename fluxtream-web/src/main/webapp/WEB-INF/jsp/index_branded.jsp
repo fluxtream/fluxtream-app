@@ -11,7 +11,7 @@
     <link href='//fonts.googleapis.com/css?family=Open+Sans:400,700,600' rel='stylesheet' type='text/css'>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
     <script src="/static/js/bootstrap-2.3.2.min.js"></script>
-    <script type="text/javascript" src="/${release}/assets-home/js/welcome.js"></script>
+    <script type="text/javascript" src="/${release}/js/welcome.js"></script>
     <!-- fav icons -->
     <link rel="shortcut icon" href="/favicon.ico">
 </head>

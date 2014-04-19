@@ -8,15 +8,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.List;
 
 /**
  * User: candide
@@ -51,7 +52,7 @@ public class FlxOAuth2ProcessingFilter implements Filter {
         try {
             String tokenValue = parseToken(request);
             if (tokenValue!=null) {
-                request.setAttribute(OAuth2AuthenticationDetails.ACCESS_TOKEN_VALUE, tokenValue);
+//                request.setAttribute(OAuth2AuthenticationDetails.ACCESS_TOKEN_VALUE, tokenValue);
                 AuthorizationToken authToken = oAuth2MgmtService.getTokenFromAccessToken(tokenValue);
                 if (authToken!=null&&authToken.getExpirationIn()>0) {
                     final Guest guest = guestService.getGuestById(authToken.guestId);
@@ -68,9 +69,7 @@ public class FlxOAuth2ProcessingFilter implements Filter {
         }
         catch (Exception failed) {
             SecurityContextHolder.clearContext();
-
-            response.sendError(403, "oAuth2: Sorry, we couldn't authenticate your request");
-
+            response.sendError(403, "oAuth2: Sorry, we couldn't authenticate your request: " + failed.getMessage());
             return;
         }
 
@@ -91,7 +90,7 @@ public class FlxOAuth2ProcessingFilter implements Filter {
 
         // bearer type allows a request parameter as well
         if (token == null) {
-            token = request.getParameter(OAuth2AccessToken.ACCESS_TOKEN);
+            token = request.getParameter("access_token");
         }
 
         return token;
@@ -107,8 +106,8 @@ public class FlxOAuth2ProcessingFilter implements Filter {
         Enumeration<String> headers = request.getHeaders("Authorization");
         while (headers.hasMoreElements()) { // typically there is only one (most servers enforce that)
             String value = headers.nextElement();
-            if ((value.toLowerCase().startsWith(OAuth2AccessToken.BEARER_TYPE.toLowerCase()))) {
-                String authHeaderValue = value.substring(OAuth2AccessToken.BEARER_TYPE.length()).trim();
+            if ((value.toLowerCase().startsWith("Bearer".toLowerCase()))) {
+                String authHeaderValue = value.substring("Bearer".length()).trim();
                 int commaIndex = authHeaderValue.indexOf(',');
                 if (commaIndex > 0) {
                     authHeaderValue = authHeaderValue.substring(0, commaIndex);

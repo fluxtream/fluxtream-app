@@ -19,9 +19,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 public class FlxAuthFilter extends UsernamePasswordAuthenticationFilter {
 
-    FlxLogger logger = FlxLogger
-            .getLogger(UsernamePasswordAuthenticationFilter.class);
-
     @Autowired
     GuestService guestService;
 
