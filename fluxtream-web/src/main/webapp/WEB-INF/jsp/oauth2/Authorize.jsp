@@ -6,148 +6,43 @@
   To change this template use File | Settings | File Templates.
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-
-
 <html>
 <head>
-    <title>Fluxtream Authorization</title>
-
-    <script type="text/javascript">
-        // Decode the query string into its fields.
-        var QueryString = function () {
-            // The map of parameter keys to an array of their values.
-            var result = {};
-
-            // Get the query string portion of the URL.
-            var query = window.location.search.substring(1);
-            // Split each of the parameters.
-            var vars = query.split("&");
-            // For each parameter,
-            for (var i=0;i<vars.length;i++) {
-                // Get the key and value pairs.
-                var pair = vars[i].split("=");
-
-                // If it is not exactly a key-value pair, then skip it.
-                if(pair.length !== 2) {
-                    continue;
-                }
-
-                // Decode the key.
-                var key = decodeURIComponent(pair[0]).replace(/\+/g, " ");
-
-                // Decode the value.
-                var value =
-                        decodeURIComponent(pair[1]).replace(/\+/g, " ");
-
-                // If this is the first parameter with this key, then
-                // create a new array entry and add it.
-                if (typeof result[key] === "undefined") {
-                    result[key] = [ value ];
-                }
-                // Otherwise, just add this parameter to the list.
-                else {
-                    result[key].push(value);
-                }
-            }
-
-            // Return the mapping.
-            return result;
-        }();
-    </script>
+    <title>Fluxtream oAuth2 Authorization</title>
+    <link href="/static/css/bootstrap-2.3.2.min.css" rel="stylesheet">
+    <link href="/static/css/bootstrap-responsive-2.3.2.min.css" rel="stylesheet">
+    <link href='//fonts.googleapis.com/css?family=Open+Sans:400,700,600' rel='stylesheet' type='text/css'>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script src="/static/js/bootstrap-2.3.2.min.js"></script>
+    <!-- fav icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
 </head>
 <body>
-<!-- Add the name and description of the third-party. -->
-<p>Name:
-    <script type="text/javascript">
-        document.write(QueryString['name'][0]);
-    </script>
-</p>
-<p>Description:
-    <script type="text/javascript">
-        document
-                .write(QueryString['description'][0]);
-    </script>
-    <!-- Add the list of desired schema IDs. -->
-<p>Scopes:</p>
-<ul id="scopes"></ul>
-<script type="text/javascript">
-    try {
-        // Get the only "scope" parameter that should be an array
-        // of scopes.
-        var scopes = QueryString['scope'][0].split(" ");
-
-        // Get the list.
-        var scopeList = document.getElementById("scopes");
-
-        // For each scope element, add it to the scopes list.
-        for (var i = 0; i < scopes.length; i++) {
-            var scopeElement =
-                    scopeList
-                            .appendChild(document.createElement("li"));
-            scopeElement
-                    .appendChild(document.createTextNode(scopes[i]));
-        }
-    }
-    catch(e) {
-        // Do nothing.
-    }
-</script>
-<!--
-    Require the user to indicate that they are granting
-    authorization.
- -->
-<input type="checkbox" value="true" id="granted">Grant<br/>
-<!--
-    The submit button. This should probably be broken into two
-    buttons, and the "Grant" check-box should be removed. Both
-    buttons will submit all of the data from the form. But, the
-    "Grant" button will include the 'grant' parameter set to
-    "true", and the "Deny" button will include the 'grant'
-    parameter set to "false".
- -->
-<input type="button" value="Submit" onclick="makeRequest();">
-<p id="error"></p>
-<script type="text/javascript">
-    /**
-     * Makes the request to the server and, if it fails, updates the
-     * error message.
-     */
-    function makeRequest() {
-        // Create the request.
-        var request = new XMLHttpRequest();
-
-        // Set the handler for when the response comes back.
-        request.onreadystatechange =
-        function() {
-            if(request.readyState === 4) {
-                document.getElementById("error").text =
-                request.responseText;
-            }
-        };
-
-        // Build the request.
-        var params = "";
-
-        // Add the granted boolean.
-        params =
-        params +
-        "&granted=" +
-        encodeURIComponent(
-                document.getElementById("granted").checked);
-        // Add the code.
-        params = params + "&code=" + QueryString['code'][0];
-
-        // Add the redirect uri
-        params = params + "&redirectUri=" + QueryString['redirectUri'][0];
-
-        // Make the request.
-        request.open('POST', '/auth/oauth2/authorization', true);
-        request
-                .setRequestHeader(
-                "Content-type",
-                "application/x-www-form-urlencoded");
-        request.send(params);
-    }
-</script>
+    <div class="container">
+        <div class="row">
+            <p>A Third-Party application is requesting access to your Fluxtream data.</p>
+            <dl class="dl-horizontal">
+                <dt>App Name</dt>
+                <dd>${name}</dd>
+                <dt>App Description</dt>
+                <dd>${description}</dd>
+            </dl>
+        </div>
+        <div class="row">
+            <form class="form-horizontal" action="/auth/oauth2/authorization" method="POST">
+                <input type="hidden" name="redirectUri" value="${redirectUri}">
+                <input type="hidden" name="code" value="${code}">
+                <div class="control-group">
+                    <div class="controls">
+                        <label class="checkbox">
+                            <input name="granted" type="checkbox"> Grant Access
+                        </label>
+                        <span class="help-block">Note: you can revoke access to the Third-Party at any time.</span>
+                        <button type="submit" class="btn">Send</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

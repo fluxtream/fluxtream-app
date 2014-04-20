@@ -151,14 +151,19 @@ public class OAuth2ProviderController {
                                          @RequestParam(value="name",required=true) String name,
                                          @RequestParam(value="description",required=true) String description,
                                          @RequestParam(value="redirectUri",required=true) String redirectUri) {
-        return new ModelAndView("oauth2/Authorize");
+        final ModelAndView mav = new ModelAndView("oauth2/Authorize");
+        mav.addObject("code", code);
+        mav.addObject("name", name);
+        mav.addObject("description", description);
+        mav.addObject("redirectUri", redirectUri);
+        return mav;
     }
 
     @RequestMapping(value = "/authorization", method = RequestMethod.POST)
     public void authenticateAuthorizationCodeRequest(
             @RequestParam(value = "granted", required = true) final boolean granted,
             @RequestParam(value = "redirectUri", required = true) final String redirectUri,
-            @RequestParam(value = "code", required = false) final String code,
+            @RequestParam(value = "code", required = true) final String code,
             final HttpServletRequest request,
             final HttpServletResponse response) throws IOException, OAuthSystemException
     {
