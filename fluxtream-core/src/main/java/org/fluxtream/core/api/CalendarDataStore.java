@@ -1,30 +1,12 @@
 package org.fluxtream.core.api;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.TreeSet;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
 import com.google.gson.Gson;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
+import com.wordnik.swagger.annotations.Authorization;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -41,14 +23,7 @@ import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.connectors.updaters.UpdateFailedException;
 import org.fluxtream.core.connectors.vos.AbstractFacetVO;
 import org.fluxtream.core.connectors.vos.AbstractTimedFacetVO;
-import org.fluxtream.core.domain.AbstractFacet;
-import org.fluxtream.core.domain.AbstractRepeatableFacet;
-import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.CoachingBuddy;
-import org.fluxtream.core.domain.Guest;
-import org.fluxtream.core.domain.GuestAddress;
-import org.fluxtream.core.domain.GuestSettings;
-import org.fluxtream.core.domain.Notification;
+import org.fluxtream.core.domain.*;
 import org.fluxtream.core.domain.metadata.City;
 import org.fluxtream.core.domain.metadata.VisitedCity;
 import org.fluxtream.core.domain.metadata.WeatherInfo;
@@ -56,23 +31,8 @@ import org.fluxtream.core.metadata.AbstractTimespanMetadata;
 import org.fluxtream.core.metadata.DayMetadata;
 import org.fluxtream.core.metadata.MonthMetadata;
 import org.fluxtream.core.metadata.WeekMetadata;
-import org.fluxtream.core.mvc.models.AddressModel;
-import org.fluxtream.core.mvc.models.CalendarModel;
-import org.fluxtream.core.mvc.models.ConnectorDigestModel;
-import org.fluxtream.core.mvc.models.ConnectorResponseModel;
-import org.fluxtream.core.mvc.models.DigestModel;
-import org.fluxtream.core.mvc.models.NotificationModel;
-import org.fluxtream.core.mvc.models.SettingsModel;
-import org.fluxtream.core.mvc.models.SolarInfoModel;
-import org.fluxtream.core.mvc.models.StatusModel;
-import org.fluxtream.core.mvc.models.TimeBoundariesModel;
-import org.fluxtream.core.mvc.models.VisitedCityModel;
-import org.fluxtream.core.mvc.models.WeatherModel;
-import org.fluxtream.core.services.CoachingService;
-import org.fluxtream.core.services.GuestService;
-import org.fluxtream.core.services.MetadataService;
-import org.fluxtream.core.services.NotificationsService;
-import org.fluxtream.core.services.SettingsService;
+import org.fluxtream.core.mvc.models.*;
+import org.fluxtream.core.services.*;
 import org.fluxtream.core.utils.TimeUtils;
 import org.fluxtream.core.utils.Utils;
 import org.joda.time.DateTime;
@@ -82,8 +42,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import java.io.IOException;
+import java.util.*;
+
 @Path("/calendar")
-@Api(value = "/calendar", description = "Main devices and service API facets consumption operations")
+@Api(value = "/calendar", description = "Main devices and service API facets consumption operations",
+        authorizations = {@Authorization(value="oauth2")})
 @Component("RESTCalendarDataStore")
 @Scope("request")
 public class CalendarDataStore {

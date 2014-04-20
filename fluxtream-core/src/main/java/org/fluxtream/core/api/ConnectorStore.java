@@ -18,6 +18,7 @@ import com.google.gson.GsonBuilder;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
+import com.wordnik.swagger.annotations.Authorization;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
@@ -61,7 +62,8 @@ import org.springframework.stereotype.Component;
  */
 @Path("/connectors")
 @Component("RESTConnectorStore")
-@Api(value = "/connectors", description = "Connector and connector settings management operations (list, add, remove, etc.)")
+@Api(value = "/connectors", description = "Connector and connector settings management operations (list, add, remove, etc.)",
+        authorizations = {@Authorization(value="oauth2")})
 @Scope("request")
 public class ConnectorStore {
 

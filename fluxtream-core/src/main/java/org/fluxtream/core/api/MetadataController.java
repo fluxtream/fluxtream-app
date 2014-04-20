@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
+import com.wordnik.swagger.annotations.Authorization;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.auth.AuthHelper;
@@ -34,7 +35,8 @@ import java.util.TreeSet;
  * Time: 12:07
  */
 @Path("/metadata")
-@Api(value = "/metadata", description = "Location/Timezone query and disambiguation endpoints.")
+@Api(value = "/metadata", description = "Location/Timezone query and disambiguation endpoints.",
+        authorizations = {@Authorization(value="oauth2")})
 @Component("RESTMetadataController")
 @Scope("request")
 public class MetadataController {
@@ -55,7 +57,8 @@ public class MetadataController {
     @POST
     @Path(value="/mainCity/date/{date}")
     @ApiOperation(value = "Set the main city for a given day using lat/lon coordinates.", response = StatusModel.class,
-            notes="(we figure out the actual city from the coordinates)")
+            notes="(we figure out the actual city from the coordinates)",
+            authorizations = {@Authorization(value="oauth2")})
     @Produces({ MediaType.APPLICATION_JSON } )
     public StatusModel setDayMainCity(@ApiParam(value="Latitude", required=true) @FormParam("latitude") float latitude,
                                       @ApiParam(value="Longitude", required=true) @FormParam("longitude") float longitude,
@@ -70,7 +73,8 @@ public class MetadataController {
 
     @DELETE
     @Path(value="/mainCity/date/{date}")
-    @ApiOperation(value = "Remove cities that have been manually entered by the end-user.", response = StatusModel.class)
+    @ApiOperation(value = "Remove cities that have been manually entered by the end-user.", response = StatusModel.class,
+            authorizations = {@Authorization(value="oauth2")})
     @Produces({ MediaType.APPLICATION_JSON } )
     public StatusModel resetDayMainCity(@ApiParam(value="Date (YYYY-MM-DD)", required=true) @PathParam("date") String date) {
         final long guestId = AuthHelper.getGuestId();
