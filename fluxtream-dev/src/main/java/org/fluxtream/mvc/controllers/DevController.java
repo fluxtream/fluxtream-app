@@ -73,7 +73,7 @@ public class DevController {
         final String json = HttpUtils.fetch("https://fluxtream.me/auth/oauth2/token", parameters);
         final JSONObject token = JSONObject.fromObject(json);
         final String accessToken = token.getString("access_token");
-        response.sendRedirect("/api/api-docs?accessToken=" + accessToken);
+        response.sendRedirect(env.get("homeBaseUrl")+"swagger-ui/index.html?accessToken=" + accessToken);
     }
 
     @RequestMapping(value = "/partials/{partial}")
