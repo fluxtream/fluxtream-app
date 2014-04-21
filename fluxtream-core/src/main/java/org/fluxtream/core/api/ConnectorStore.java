@@ -104,7 +104,8 @@ public class ConnectorStore {
     @POST
     @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "Reset connector settings to their default values", response = StatusModel.class,
-                  notes="A set of default values are stored alongside user modified values for all connector settings")
+                  notes="A set of default values are stored alongside user modified values for all connector settings",
+                  authorizations = {@Authorization(value="oauth2")})
     @Path("/settings/reset/{apiKeyId}")
     public String resetConnectorSettings(@ApiParam(value="The connector's ApiKey ID", required=true) @PathParam("apiKeyId") long apiKeyId) {
         settingsService.resetConnectorSettings(apiKeyId);
@@ -115,7 +116,8 @@ public class ConnectorStore {
     @GET
     @Path("/settings/{apiKeyId}")
     @ApiOperation(value = "Retrieve connector settings", response = StatusModel.class,
-                  notes = "The structure of the returned object is connector dependent")
+                  notes = "The structure of the returned object is connector dependent",
+                  authorizations = {@Authorization(value="oauth2")})
     @Produces({MediaType.APPLICATION_JSON})
     public String getConnectorSettings(@ApiParam(value="The connector's ApiKey ID", required=true)  @PathParam("apiKeyId") long apiKeyId) throws UpdateFailedException, IOException {
         final ApiKey apiKey = guestService.getApiKey(apiKeyId);
@@ -130,7 +132,8 @@ public class ConnectorStore {
     @POST
     @Path("/settings/{apiKeyId}")
     @ApiOperation(value = "Save user-modified connector settings", response = StatusModel.class,
-                  notes = "The structure of the returned object is connector dependent")
+                  notes = "The structure of the returned object is connector dependent",
+                  authorizations = {@Authorization(value="oauth2")})
     @Produces({MediaType.APPLICATION_JSON})
     public StatusModel saveConnectorSettings(@ApiParam(value="The connector's ApiKey ID", required=true)  @PathParam("apiKeyId") long apiKeyId,
                                              @ApiParam(value="JSON-serialized connector settings object", required=true)  @FormParam("json") String json) {
@@ -163,7 +166,8 @@ public class ConnectorStore {
     @Path("/installed")
     @ApiOperation(value = "Retrieve the list of installed (/added) connectors for the current user",
                   responseContainer = "Array", response = ConnectorInfo.class,
-                  notes = "WARNING: there is more in the ConnectorInfo 'class' than what's specified here)")
+                  notes = "WARNING: there is more in the ConnectorInfo 'class' than what's specified here)",
+                  authorizations = {@Authorization(value="oauth2")})
     @Produces({MediaType.APPLICATION_JSON})
     public String getInstalledConnectors(){
         Guest guest = AuthHelper.getGuest();
@@ -249,7 +253,8 @@ public class ConnectorStore {
     @Path("/uninstalled")
     @ApiOperation(value = "Retrieve the list of available (/not-yet-added) connectors for the current user",
                   responseContainer="Array", response = ConnectorInfo.class,
-                  notes = "The structure of the returned object is connector dependent")
+                  notes = "The structure of the returned object is connector dependent",
+                  authorizations = {@Authorization(value="oauth2")})
     @Produces({MediaType.APPLICATION_JSON})
     public String getUninstalledConnectors(){
         Guest guest = AuthHelper.getGuest();

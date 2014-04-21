@@ -56,7 +56,8 @@ public class DevController {
         if (auth != null && auth.isAuthenticated())
             return new ModelAndView("redirect:/home");
         ModelAndView mav = new ModelAndView("index");
-        String release = env.get("release");
+        String release = env.get("release"
+        );
         mav.addObject("release", release);
         return mav;
     }
@@ -70,7 +71,7 @@ public class DevController {
         parameters.put("client_id", env.get("fluxtreamDev.client.id"));
         parameters.put("client_secret", env.get("fluxtreamDev.client.secret"));
         parameters.put("redirect_uri", "somedummyfield");
-        final String json = HttpUtils.fetch("https://fluxtream.me/auth/oauth2/token", parameters);
+        final String json = HttpUtils.fetch(env.get("homeBaseUrl") + "auth/oauth2/token", parameters);
         final JSONObject token = JSONObject.fromObject(json);
         final String accessToken = token.getString("access_token");
         response.sendRedirect(env.get("homeBaseUrl")+"swagger-ui/index.html?accessToken=" + accessToken);
