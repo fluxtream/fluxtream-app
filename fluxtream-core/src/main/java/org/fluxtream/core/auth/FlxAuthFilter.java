@@ -1,11 +1,6 @@
 package org.fluxtream.core.auth;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import javax.servlet.http.HttpServletRequest;
 import org.fluxtream.core.Configuration;
-import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.services.JPADaoService;
@@ -16,6 +11,11 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public class FlxAuthFilter extends UsernamePasswordAuthenticationFilter {
 

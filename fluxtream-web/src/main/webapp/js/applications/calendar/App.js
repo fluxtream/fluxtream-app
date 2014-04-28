@@ -36,7 +36,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     };
 
 	Calendar.setup = function() {
-        $.ajax("/api/connectors/filters", {
+        $.ajax("/api/v1/connectors/filters", {
             async: false,
             success: function(data){
                 for (var member in data){
@@ -59,7 +59,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                         }
                     }
                 }
-                $.ajax("/api/calendar/" + connectorsToRefresh.join(",") + "/" + stateToRequest,{
+                $.ajax("/api/v1/calendar/" + connectorsToRefresh.join(",") + "/" + stateToRequest,{
                     success:function(result){
                         Calendar.mergeInFacets(result.facets,update.connectorInfo)
                     },
@@ -168,7 +168,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function fetchWeatherData() {
-       $.ajax({ url: "/api/calendar/weather/"+Calendar.tabState,
+       $.ajax({ url: "/api/v1/calendar/weather/"+Calendar.tabState,
            success: function(response) {
                // we should check that time boundaries are in line with the digest data
                Calendar.weather = response;
@@ -273,7 +273,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         if (lastFetch != null)
             lastFetch.abort();
         lastFetch = $.ajax({
-            url: "/api/calendar/all/" + state.tabState,
+            url: "/api/v1/calendar/all/" + state.tabState,
 			success : function(response) {
                 if (thisFetchId != fetchId)//we litter the callback with these in case a we got to the callback but a new request started
                     return;
@@ -1068,7 +1068,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     function getFoursquareVenues(details,foursquareVenueIds) {
         for (var i=0; i<foursquareVenueIds.length; i++) {
             $.ajax({
-                url: "/api/metadata/foursquare/venue/" + foursquareVenueIds[i],
+                url: "/api/v1/metadata/foursquare/venue/" + foursquareVenueIds[i],
                 success: function(response) {
                     var html = foursquareVenueTemplate.render(response);
                     var foursquareVenueDiv = details.find("#foursquare-venue-"+response.foursquareId);
@@ -1312,10 +1312,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         var state = App.state.getState("calendar");
         state = state.substring(state.indexOf("/"));
         if ($(evt.target).hasClass("undo")) {
-            removeMainVisitedCity("/api/metadata/mainCity"+state);
+            removeMainVisitedCity("/api/v1/metadata/mainCity"+state);
         } else {
             var visitedCityId = evt.target.id.substring("visitedCity-".length);
-            postMainVisitedCity("/api/metadata/mainCity/"+visitedCityId+state);
+            postMainVisitedCity("/api/v1/metadata/mainCity/"+visitedCityId+state);
         }
     }
 
@@ -1328,7 +1328,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             var longitude = selectedCity.geometry.location.lng();
             var state = App.state.getState("calendar");
             state = state.substring(state.indexOf("/"));
-            postMainCity("/api/metadata/mainCity"+state, {"latitude":latitude,"longitude":longitude});
+            postMainCity("/api/v1/metadata/mainCity"+state, {"latitude":latitude,"longitude":longitude});
         } else {
             console.log("no city (" + timeUnit + ")");
         }
@@ -1561,7 +1561,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         saveButton.click(function(event) {
             event.stopPropagation();
             $.ajax({
-                url: "/api/comments/" + facet.type + "/" + facet.id,
+                url: "/api/v1/comments/" + facet.type + "/" + facet.id,
                 data: {comment: textarea.val()},
                 type: "POST",
                 success: function() {
@@ -1584,7 +1584,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         deleteButton.click(function(event) {
             event.stopPropagation();
             $.ajax({
-                url: "/api/comments/" + facet.type + "/" + facet.id,
+                url: "/api/v1/comments/" + facet.type + "/" + facet.id,
                 data: {comment: textarea.val()},
                 type: "DELETE",
                 success: function() {

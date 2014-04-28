@@ -118,7 +118,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
                 if (member != "default")
                     uploadData[member] = Calendar.connectorEnabled[member];
             }
-            $.ajax("/api/connectors/filters",{
+            $.ajax("/api/v1/connectors/filters",{
                 type:"POST",
                 data:{filterState:JSON.stringify(uploadData)}
             });
@@ -133,7 +133,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
 
     function bindConnectorButtons(App, Calendar) {
         $.ajax({
-            url: "/api/connectors/installed",
+            url: "/api/v1/connectors/installed",
             async: false,
             success: function(response) {
                 $.each(response, function(i, connector) {

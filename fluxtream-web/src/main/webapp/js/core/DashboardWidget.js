@@ -52,7 +52,7 @@ define(function() {
         this.settings = settings;
         var that = this;
         $.ajax({
-            url: "/api/dashboards/" + that.dashboardId + "/widgets/" + that.manifest.WidgetName + "/settings",
+            url: "/api/v1/dashboards/" + that.dashboardId + "/widgets/" + that.manifest.WidgetName + "/settings",
             type: "POST",
             data: {settingsJSON : JSON.stringify(settings)},
             success: function() {
@@ -78,7 +78,7 @@ define(function() {
     DashboardWidget.prototype.loadWidgetSettingsData = function() {
         var that = this;
         $.ajax({
-            url: "/api/dashboards/" + that.dashboardId + "/widgets/" + that.manifest.WidgetName + "/settings",
+            url: "/api/v1/dashboards/" + that.dashboardId + "/widgets/" + that.manifest.WidgetName + "/settings",
             type: "GET",
             success: function(widgetSettings) {
                 that.defaultSettings(widgetSettings);

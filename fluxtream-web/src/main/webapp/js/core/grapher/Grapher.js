@@ -620,7 +620,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             function calculateNext(i){
                 if (i == li){
                     App.loadMustacheTemplate("core/grapher/timelineTemplates.html","timelineExportContent",function(contentTemplate){
-                        var downloadLink = "/api/bodytrack/exportCSV/" + App.getUID() + "/fluxtream-export-from-" + start + "-to-" + end + ".csv?channels=" + encodeURIComponent(JSON.stringify(channelsArray));
+                        var downloadLink = "/api/v1/bodytrack/exportCSV/" + App.getUID() + "/fluxtream-export-from-" + start + "-to-" + end + ".csv?channels=" + encodeURIComponent(JSON.stringify(channelsArray));
                         //update contents and download link and enable the download button
                         modal.find(".dataDownloadLink").attr("href",downloadLink)
                             .removeClass("disabled");
@@ -2110,9 +2110,9 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
 
         return function (pointObj, sourceInfo){
             var timespanObject = sourceInfo.info.timespanInfo;
-            $.ajax("/api/connectors/" + timespanObject.objectType + "/data?start=" + timespanObject.start * 1000 + "&end=" + timespanObject.end * 1000 + "&value=" + encodeURIComponent(timespanObject.value),{
+            $.ajax("/api/v1/connectors/" + timespanObject.objectType + "/data?start=" + timespanObject.start * 1000 + "&end=" + timespanObject.end * 1000 + "&value=" + encodeURIComponent(timespanObject.value),{
                 success: function(facets){
-                    $.ajax("/api/metadata/cities?start=" + timespanObject.start * 1000 + "&end=" + timespanObject.end * 1000,{
+                    $.ajax("/api/v1/metadata/cities?start=" + timespanObject.start * 1000 + "&end=" + timespanObject.end * 1000,{
                         success: function(cities){
                             var plotContainer = $("#" + plot.plotContainer.getPlaceholder());
                             var position = sourceInfo.info.position;
@@ -2190,7 +2190,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             var errorCallback = callbacks['error'];
             var completeCallback = callbacks['complete'];
 
-            var url = "/api/bodytrack/users/" + App.getUID() + "/channels/" + encodeURIComponent(channel["device_name"]) + "." + encodeURIComponent(channel["channel_name"]) + "/set";
+            var url = "/api/v1/bodytrack/users/" + App.getUID() + "/channels/" + encodeURIComponent(channel["device_name"]) + "." + encodeURIComponent(channel["channel_name"]) + "/set";
             $.ajax({
                 cache    : false,
                 type     : "POST",
@@ -2455,7 +2455,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                             grapher.onLoad = null;
                             onload();
                         }
-                        /*$.ajax("/api/timezones/mapping", {success: function(mapping) {    //Disabled for now
+                        /*$.ajax("/api/v1/timezones/mapping", {success: function(mapping) {    //Disabled for now
                             grapher.dateAxis.setTimeZoneMapping(mapping);
                         }});    */
                     }

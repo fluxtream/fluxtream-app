@@ -14,7 +14,7 @@ define(["core/grapher/BTCore",
     };
 
     function show(){
-        $.ajax("/api/connectors/installed",{
+        $.ajax("/api/v1/connectors/installed",{
             success: function(data){
                 dataLoaded(data,false);
             }
@@ -27,7 +27,7 @@ define(["core/grapher/BTCore",
     //with the original full dialog template, the first time through all the cells will be forced to update. However,
     //after that it should in theory properly only update when a change happens in each cell
     function updateContents(){
-        $.ajax("/api/connectors/installed",{
+        $.ajax("/api/v1/connectors/installed",{
             success: function(data){
                 if (hidden)
                     return;
@@ -156,7 +156,7 @@ define(["core/grapher/BTCore",
         syncAllBtn.click(function(){
             setAllToSyncing();
             event.preventDefault();
-            $.ajax("/api/sync/all",{
+            $.ajax("/api/v1/sync/all",{
                 type:"POST"
             });
         });
@@ -183,7 +183,7 @@ define(["core/grapher/BTCore",
         syncNowBtn.click(function(event){
             event.preventDefault();
             setToSyncing(connector.connectorName)
-            $.ajax("/api/sync/" + connector.connectorName,{
+            $.ajax("/api/v1/sync/" + connector.connectorName,{
                 type:"POST"
             });
         });
@@ -314,7 +314,7 @@ define(["core/grapher/BTCore",
                     }
                 }
                 $.ajax({
-                    url:"/api/connectors/" + connector.name + "/channels",
+                    url:"/api/v1/connectors/" + connector.name + "/channels",
                     type:"POST",
                     data:{channels:channelList}
                 })
@@ -335,7 +335,7 @@ define(["core/grapher/BTCore",
     function viewUpdates(template, connector) {
         var connectorName = connector.connectorName.charAt(0).toUpperCase() + connector.connectorName.slice(1);
         $.ajax({
-            url:"/api/updates/" + connector.connectorName + "?page=0&pageSize=50",
+            url:"/api/v1/updates/" + connector.connectorName + "?page=0&pageSize=50",
             success: function(updates) {
                 for (var i=0; i<updates.length; i++)
                     updates[i].time = App.formatDate(updates[i].ts, true);
@@ -433,7 +433,7 @@ define(["core/grapher/BTCore",
 
             confirmDelete.click(function(){
                 $.ajax({
-                    url: "/api/connectors/" + connectors[index].connectorName,
+                    url: "/api/v1/connectors/" + connectors[index].connectorName,
                     type:"DELETE",
                     success: function() {
                         updateContents();
@@ -473,7 +473,7 @@ define(["core/grapher/BTCore",
 
             confirmRenew.click(function(){
                 $.ajax({
-                    url: "/api/connectors/renew/" + connector.apiKeyId,
+                    url: "/api/v1/connectors/renew/" + connector.apiKeyId,
                     type:"POST",
                     success: function(result) {
                         console.log("redirect to: " + result.redirectTo);

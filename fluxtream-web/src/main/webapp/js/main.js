@@ -9,7 +9,7 @@ require(['App', 'Connectors'], function(App, Connectors) {
 
 function setAvatarImage() {
     $.ajax({
-        url: "/api/guest/avatarImage",
+        url: "/api/v1/guest/avatarImage",
         success: function(result) {
             if (result.type!="none") {
                 $("#profileIcon").replaceWith("<img src=\"" + result.url + "\" style=\"display:inline;width:27px;margin: 0 1px 0 4px;\" width=27 height=27>");

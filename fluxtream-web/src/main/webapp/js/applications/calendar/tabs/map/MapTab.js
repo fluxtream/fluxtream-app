@@ -78,7 +78,7 @@ define(["core/Tab",
         if (typeof(digest.locationFetched)=="undefined"){
             Calendar.startLoading();
             $.ajax({
-                url: "/api/calendar/location/" + Calendar.tabState,
+                url: "/api/v1/calendar/location/" + Calendar.tabState,
                 success: function(locationDigest) {
                     for (name in locationDigest.facets) {
                         Calendar.processFacets(locationDigest.facets[name]);

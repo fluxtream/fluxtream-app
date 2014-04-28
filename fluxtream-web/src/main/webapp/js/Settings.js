@@ -1,7 +1,7 @@
 define(function() {
 
     function show(){
-        $.ajax("/api/settings",{
+        $.ajax("/api/v1/settings",{
             success:function(settings){
                 App.loadAllMustacheTemplates("settingsTemplates.html",function(){
                     var dialogTemplate = App.fetchCompiledMustacheTemplate("settingsTemplates.html", "dialog");
@@ -76,7 +76,7 @@ define(function() {
         for (var i = 0; i < formData.length; i++) {
             submitdata[formData[i].name] = formData[i].value;
         }
-        $.ajax("/api/settings/general",{
+        $.ajax("/api/v1/settings/general",{
             type:"POST",
             data:submitdata,
             success:function(status) {
@@ -99,7 +99,7 @@ define(function() {
             submitdata[formData[i].name] = formData[i].value;
         }
         $("#setPasswordError").hide();
-        $.ajax("/api/settings/password",{
+        $.ajax("/api/v1/settings/password",{
             type:"POST",
             data:submitdata,
             success:function(status) {
@@ -121,7 +121,7 @@ define(function() {
         for (var i = 0; i < formData.length; i++) {
             submitdata[formData[i].name] = formData[i].value;
         }
-        $.ajax("/api/settings/units",{
+        $.ajax("/api/v1/settings/units",{
             type:"POST",
             data:submitdata,
             success:function(status) {

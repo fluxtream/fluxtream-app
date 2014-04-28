@@ -429,7 +429,7 @@ define(
             var confirmed = confirm("Are you sure?");
             if (confirmed) {
                 $.ajax({
-                    url: "/api/settings/deleteAccount",
+                    url: "/api/v1/settings/deleteAccount",
                     type: "POST",
                     success: function(status) {
                         if (status.result=="OK") {
@@ -444,7 +444,7 @@ define(
 
         App.as = function(username) {
             $.ajax({
-                url: "/api/coaching/coachees/" + username,
+                url: "/api/v1/coaching/coachees/" + username,
                 type: "POST",
                 success: function(status) {
                     if (status.result=="OK") {
@@ -604,7 +604,7 @@ define(
 
         App.discardNotification = function(notificationId) {
             $.ajax({
-                    url: "/api/notifications/" + notificationId,
+                    url: "/api/v1/notifications/" + notificationId,
                     type: "DELETE",
                     success: function() {
                         $("#notification-" + notificationId).remove();
@@ -639,7 +639,7 @@ define(
         }
 
         App.refreshNotifications = function(){
-            $.ajax("/api/notifications/all",{
+            $.ajax("/api/v1/notifications/all",{
                 success:function(result){
                     App.handleNotificationList(result.notifications);
                 },
@@ -967,7 +967,7 @@ define(
 
         function incrementMessageDisplay(messageName){
             $.ajax({
-                url: "/api/settings/"+messageName+"/increment",
+                url: "/api/v1/settings/"+messageName+"/increment",
                 method: "POST",
                 success: function(status){
                     if (status.result=="OK") {
@@ -1127,7 +1127,7 @@ define(
                 setTimeout(checkForDataUpdates,updateCheckInterval);
 
             }
-            $.ajax("/api/dataUpdates/all",{
+            $.ajax("/api/v1/dataUpdates/all",{
                 type: "GET",
                 dataType: "json",
                 data: {since: lastCheckTimestamp},

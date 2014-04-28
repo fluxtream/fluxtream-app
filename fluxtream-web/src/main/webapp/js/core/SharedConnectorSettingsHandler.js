@@ -7,7 +7,7 @@ define(function() {
     function loadSettings(apiKeyId, username, connectorName, connectorPrettyName, template) {
         var handler = this;
         $.ajax({
-            url: "/api/coaching/sharedConnector/"+apiKeyId+"/"+username,
+            url: "/api/v1/coaching/sharedConnector/"+apiKeyId+"/"+username,
             success: function(settings) {
                 var settingsHtml = template.render({
                     connectorName: connectorName,
@@ -27,7 +27,7 @@ define(function() {
 
     function saveSettings(apiKeyId, username, settings) {
         $.ajax({
-            url: "/api/coaching/sharedConnector/" + apiKeyId + "/" + username,
+            url: "/api/v1/coaching/sharedConnector/" + apiKeyId + "/" + username,
             type: "post",
             data: {json : JSON.stringify(settings)},
             success: function(status){

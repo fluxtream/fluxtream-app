@@ -120,7 +120,7 @@
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>jersey</servlet-name>
-        <url-pattern>/api/*</url-pattern>
+        <url-pattern>/api/v1/*</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

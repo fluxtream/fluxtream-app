@@ -37,7 +37,7 @@ public class SwaggerBootstrapServlet extends HttpServlet {
                 "http://www.apache.org/licences/LICENSE-2.0.html"
         );
         List<GrantType> grantTypes = new ArrayList<GrantType>();
-        LoginEndpoint loginEndpoint = new LoginEndpoint("https://fluxtream.me/auth/oauth2/dialog");
+        LoginEndpoint loginEndpoint = new LoginEndpoint("https://fluxtream.dev/auth/oauth2/dialog");
         ImplicitGrant implicitGrant = new ImplicitGrant(loginEndpoint, "accessToken");
         grantTypes.add(implicitGrant);
         AuthorizationType oauth = new OAuthBuilder().grantTypes(grantTypes).build();

@@ -460,7 +460,7 @@ define(["applications/calendar/tabs/map/MapConfig",
         if (item != null && item.type==="moves-place") {
             if (item.placeType==="foursquare") {
                 $.ajax({
-                    url: "/api/metadata/foursquare/venue/" + item.foursquareId,
+                    url: "/api/v1/metadata/foursquare/venue/" + item.foursquareId,
                     success: function(response) {
                         marker.config.mapicon = {
                             url: response.categoryIconUrlPrefix + "bg_32" + response.categoryIconUrlSuffix,

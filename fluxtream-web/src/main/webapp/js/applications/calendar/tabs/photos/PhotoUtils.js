@@ -388,7 +388,7 @@ define(["core/grapher/BTCore"],function(BTCore){
                         $.ajax({
                             cache    : false,
                             type     : "POST",
-                            url      : "/api/bodytrack/metadata/" + App.getUID() + "/" + compoundPhotoIdComponents[0] + "." + compoundPhotoIdComponents[1] + "/" + compoundPhotoIdComponents[2] + "/set",
+                            url      : "/api/v1/bodytrack/metadata/" + App.getUID() + "/" + compoundPhotoIdComponents[0] + "." + compoundPhotoIdComponents[1] + "/" + compoundPhotoIdComponents[2] + "/set",
                             data     : {
                                 "tags"    : getUserSelectedTags().join(','),
                                 "comment" : $("#photoDialog #_timeline_photo_dialog_comment").val()
@@ -563,7 +563,7 @@ define(["core/grapher/BTCore"],function(BTCore){
 
                     shouldLoadPreviousNeighbor = !!shouldLoadPreviousNeighbor;
 
-                    var url = "/api/bodytrack/photos/" + App.getUID() + "/" + deviceName + "." + channelName + "/" + currentPhotoTimestamp + "/" + cache.NUM_PHOTOS_TO_FETCH;
+                    var url = "/api/v1/bodytrack/photos/" + App.getUID() + "/" + deviceName + "." + channelName + "/" + currentPhotoTimestamp + "/" + cache.NUM_PHOTOS_TO_FETCH;
                     var urlParams = {
                         "isBefore" : shouldLoadPreviousNeighbor
                     };

@@ -4,7 +4,7 @@ define(function() {
 
     function show(dt){
         dashboardsTab = dt;
-        $.ajax("/api/dashboards/" + dashboardsTab.activeDashboard + "/availableWidgets",{
+        $.ajax("/api/v1/dashboards/" + dashboardsTab.activeDashboard + "/availableWidgets",{
             success: function(data, textStatus, jqXHR){
                 var rows = [];
                 var row = {widgets:[]};
@@ -32,7 +32,7 @@ define(function() {
         $("#availableWidgets a").click(function() {
             var widgetName = $(this).attr("name");
             $.ajax({
-                url: "/api/dashboards/" + dashboardsTab.activeDashboard + "/widgets",
+                url: "/api/v1/dashboards/" + dashboardsTab.activeDashboard + "/widgets",
                 type: "POST",
                 data: { widget : widgetName },
                 success: function(dashboards) {

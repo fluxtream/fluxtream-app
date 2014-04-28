@@ -35,19 +35,20 @@
     <http pattern="/widgets/**" security="none" />
 
     <!-- api ping -->
-    <http pattern="/api/test/**" security="none" />
-    <http pattern="/api/ping" security="none" />
+    <http pattern="/api/v1/test/**" security="none" />
+    <http pattern="/api/v1/ping" security="none" />
 
     <!-- facebook login and sharing -->
-    <http pattern="/api/facebook/login*" security="none" />
+    <http pattern="/api/v1/facebook/login*" security="none" />
     <http pattern="/openGraph/**" security="none" />
     <http pattern="/channel.html" security="none" />
 
     <!-- api documentation -->
-    <http pattern="/api/api-docs/**" security="none" />
-    <http pattern="/api/api-docs*" security="none" />
+    <http pattern="/api/v1/api-docs/**" security="none" />
+    <http pattern="/api/v1/api-docs*" security="none" />
 
     <!-- oauth2 token exchange -->
+    <http pattern="/auth/oauth2/token" security="none" />
     <http pattern="/auth/oauth2/token*" security="none" />
 
     <http access-denied-page="/accessDenied" entry-point-ref="loginUrlAuthenticationEntryPoint"

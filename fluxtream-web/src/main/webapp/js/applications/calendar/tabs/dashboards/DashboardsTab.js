@@ -16,7 +16,7 @@ define(["core/Tab",
         _.bindAll(this);
 		digest = params.digest;
         $.ajax({
-                url: "/api/dashboards",
+                url: "/api/v1/dashboards",
                 success: function(dashboards) {
                     if (dashboardsTab.activeDashboard == null){
                         for (var i=0; i<dashboards.length; i++) {
@@ -64,7 +64,7 @@ define(["core/Tab",
    function setActiveDashboard(dashboardId) {
        dashboardsTab.activeDashboard = dashboardId;
        $.ajax({
-                  url: "/api/dashboards/" + dashboardId + "/active",
+                  url: "/api/v1/dashboards/" + dashboardId + "/active",
                   type: "PUT",
                   success: function(dashboards) {
                       dashboardsTab.populateTemplate({dashboards : dashboards});
@@ -99,7 +99,7 @@ define(["core/Tab",
     function removeWidget(widgetName) {
         var that = this;
         $.ajax({
-               url: "/api/dashboards/" + dashboardsTab.activeDashboard + "/widgets/" + widgetName,
+               url: "/api/v1/dashboards/" + dashboardsTab.activeDashboard + "/widgets/" + widgetName,
                type: "DELETE",
                success: function(dashboards) {
                    dashboardsTab.populateTemplate({dashboards : dashboards,
@@ -153,7 +153,7 @@ define(["core/Tab",
         var confirmed = confirm ("Are you sure?");
         if (confirmed) {
             $.ajax({
-                url: "/api/dashboards/" + dashboardId,
+                url: "/api/v1/dashboards/" + dashboardId,
                 type: "DELETE",
                 success: function(dashboards) {
                     setActiveDashboard(dashboards[0].id);
@@ -165,7 +165,7 @@ define(["core/Tab",
 
     function createDashboard(dashboardName) {
         $.ajax({
-            url: "/api/dashboards",
+            url: "/api/v1/dashboards",
             type: "post",
             data: { dashboardName : dashboardName },
             success: function(dashboards) {
@@ -197,7 +197,7 @@ define(["core/Tab",
             tab.click(dashboardTabClickHandler);
         }
         $.ajax({
-            url: "/api/dashboards/reorder",
+            url: "/api/v1/dashboards/reorder",
             type:"post",
             data: {dashboardIds:ordering}
         })

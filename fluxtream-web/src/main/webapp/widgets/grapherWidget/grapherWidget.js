@@ -130,7 +130,7 @@ define(["core/DashboardWidget", "core/widgetComponents/GrapherComponent", "core/
             var lastTile = Math.floor(tbounds.end/1000/tileWidth);
             var tileURIs = [];
             for (var i = firstTile; i <= lastTile; i++){
-                tileURIs[tileURIs.length] = "/api/bodytrack/tiles/" + App.getUID() + "/" + channelName + "/" + level + "." + i + ".json";
+                tileURIs[tileURIs.length] = "/api/v1/bodytrack/tiles/" + App.getUID() + "/" + channelName + "/" + level + "." + i + ".json";
             }
             return tileURIs;
         }

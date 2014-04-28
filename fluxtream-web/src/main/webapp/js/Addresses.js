@@ -50,7 +50,7 @@ define(function() {
             var confirmDelete = $("#confirmDeleteBtn");
 
             confirmDelete.click(function(){
-                $.ajax("/api/addresses/id/" + addresses[index].id,{
+                $.ajax("/api/v1/addresses/id/" + addresses[index].id,{
                     type:"DELETE",
                     success:function(){
                         $("#address-" + index).remove();
@@ -253,7 +253,7 @@ define(function() {
                     hasParams = true;
                 }
                 if (hasParams){
-                    $.ajax("/api/addresses/" + index,{
+                    $.ajax("/api/v1/addresses/" + index,{
                         type:"POST",
                         data:params,
                         success: function(data, textStatus, jqXHR){
@@ -353,7 +353,7 @@ define(function() {
                     longitude:address.geometry.location.lng(), since:sinceInput.val(), radius:radiusInput.val()};
                 if (!presentCheckbox.is(":checked"))
                     params.until = untilInput.val();
-                $.ajax("/api/addresses/" + typeNames[addressTypeSelect[0].selectedIndex],{
+                $.ajax("/api/v1/addresses/" + typeNames[addressTypeSelect[0].selectedIndex],{
                     type: "POST",
                     data:  params,
                     success: function(data, textStatus, jqXHR){
@@ -393,7 +393,7 @@ define(function() {
 
 
     function show(){
-        $.ajax("/api/addresses",{
+        $.ajax("/api/v1/addresses",{
             success: function(data, textStatus, jqXHR){
                     dataLoaded(data);
                 }

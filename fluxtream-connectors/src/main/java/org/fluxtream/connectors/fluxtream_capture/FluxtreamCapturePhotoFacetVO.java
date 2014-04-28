@@ -36,11 +36,11 @@ public class FluxtreamCapturePhotoFacetVO extends AbstractPhotoFacetVO<Fluxtream
         start = facet.start;
 
         final String photoStoreKey = facet.getPhotoStoreKey();
-        photoUrl = "/api/bodytrack/photo/" + photoStoreKey;
+        photoUrl = "/api/v1/bodytrack/photo/" + photoStoreKey;
 
         // build the Map of thumbnail URLS and the SortedMap of thumbnail sizes
         for (int i = 0; i < FluxtreamCapturePhotoFacet.NUM_THUMBNAILS; i++) {
-            thumbnailUrls.put(i, "/api/bodytrack/photoThumbnail/" + facet.getGuestId() + "/" + facet.getId() + "/" + i);
+            thumbnailUrls.put(i, "/api/v1/bodytrack/photoThumbnail/" + facet.getGuestId() + "/" + facet.getId() + "/" + i);
             thumbnailSizes.put(i, facet.getThumbnailSize(i));
         }
         imageOrientation = facet.getOrientation();
