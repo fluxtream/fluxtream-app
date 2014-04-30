@@ -12,6 +12,7 @@ public class ApplicationModel {
     public String name;
     public String description;
     public String sharedSecret;
+    public String website;
     public String uid;
 
     public ApplicationModel() {}
@@ -20,6 +21,7 @@ public class ApplicationModel {
         this.name = app.name;
         this.description = app.description;
         this.sharedSecret = app.sharedSecret;
+        this.website= app.website;
         this.uid = app.uid;
     }
 

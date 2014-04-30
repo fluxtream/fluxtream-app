@@ -193,6 +193,17 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
     }
 
     @Override
+    @Transactional(readOnly=false)
+    public void addDeveloperRole(Long guestId) {
+        Guest guest = getGuestById(guestId);
+        if (guest.hasRole("ROLE_DEVELOPER"))
+            return;
+        List<String> userRoles = guest.getUserRoles();
+        userRoles.add("ROLE_DEVELOPER");
+        persistUserRoles(guest, userRoles);
+    }
+
+    @Override
 	public Guest getGuest(String username) {
         return JPAUtils.findUnique(em, Guest.class,
                 "guest.byUsername", username);

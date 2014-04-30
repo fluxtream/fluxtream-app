@@ -65,19 +65,21 @@ public class RegisterController {
 
 		List<String> required = new ArrayList<String>();
 		List<String> errors = new ArrayList<String>();
-		if (email=="") required.add("email");
-		if (username=="") {
+		if (email.equals("")) required.add("email");
+        if (firstname.equals("")) required.add("firstname");
+		if (username.equals("")) {
 			required.add("username");
 		} else if (guestService.getGuest(username)!=null) {
 			errors.add("usernameTaken");
 		}
-		if (password=="") required.add("password");
-		if (password2=="") required.add("password2");
+		if (password.equals("")) required.add("password");
+		if (password2.equals("")) required.add("password2");
 		if (password.length()<8)
 			errors.add("passwordTooShort");
 		if (!password.equals(password2))
 			errors.add("passwordsDontMatch");
-		if (guestService.getGuestByEmail(email)!=null)
+        final Guest guestByEmail = guestService.getGuestByEmail(email);
+        if (guestByEmail !=null && guestByEmail.getUserRoles().contains("ROLE_USER"))
 			errors.add("userExists");
 					
 //		String remoteAddr = request.getRemoteAddr();

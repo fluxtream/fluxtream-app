@@ -21,18 +21,20 @@ public class Application extends AbstractEntity {
     public String uid;
     public String sharedSecret;
     public String name;
+    public String website;
 
     @Lob
     public String description;
 
     public Application(){}
 
-    public Application(final long guestId, final String name, final String description) {
+    public Application(final long guestId, final String name, final String description, final String website) {
         this.guestId = guestId;
         this.name = name;
         this.description = description;
         this.uid = UUID.randomUUID().toString();
         this.sharedSecret = UUID.randomUUID().toString();
+        this.website = website;
     }
 
 }

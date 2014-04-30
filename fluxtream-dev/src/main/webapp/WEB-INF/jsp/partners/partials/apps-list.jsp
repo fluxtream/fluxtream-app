@@ -7,6 +7,7 @@
         <div ng-repeat="app in apps" class="well">
             <dl class="dl-horizontal">
                 <dt>Name</dt><dd>{{app.name}}</dd>
+                <dt>Website</dt><dd>{{app.website}}</dd>
                 <dt>Description</dt><dd>{{app.description}}</dd>
                 <dt>Client Secret</dt><dd>{{app.sharedSecret}}</dd>
                 <dt>Client ID</dt><dd>{{app.uid}}</dd>

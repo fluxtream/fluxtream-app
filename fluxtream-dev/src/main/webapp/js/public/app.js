@@ -11,9 +11,12 @@ developerWebsiteApp.config(['$routeProvider', '$locationProvider',
                 templateUrl: 'partials/sign-in',
                 controller: 'SignInCtrl'
             }).
+            when('/sign-up', {
+                templateUrl: 'partials/sign-up',
+                controller: 'SignUpCtrl'
+            }).
             when('/api-docs', {
-                templateUrl: 'partials/api-docs',
-                controller: 'ApiDocsCtrl'
+                templateUrl: 'partials/api-docs'
             }).
             otherwise({
                 redirectTo: '/api-docs'

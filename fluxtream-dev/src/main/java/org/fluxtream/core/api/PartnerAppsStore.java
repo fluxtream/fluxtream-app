@@ -54,10 +54,10 @@ public class PartnerAppsStore {
         try {
             StatusModel status;
             if (uid==null) {
-                partnerAppsService.createApplication(guestId, appModel.name, appModel.description);
+                partnerAppsService.createApplication(guestId, appModel.name, appModel.description, appModel.website);
                 status = new StatusModel(true, String.format("Created app '%s': %s", appModel.name, appModel.description));
             } else {
-                partnerAppsService.updateApplication(guestId, appModel.uid, appModel.name, appModel.description);
+                partnerAppsService.updateApplication(guestId, appModel.uid, appModel.name, appModel.description, appModel.website);
                 status = new StatusModel(true, String.format("Updated app '%s': %s", appModel.name, appModel.description));
             }
             return status;

@@ -1,8 +1,5 @@
 package org.fluxtream.core.services;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.domain.AbstractUserProfile;
 import org.fluxtream.core.domain.ApiKey;
@@ -10,6 +7,10 @@ import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.domain.ResetPasswordToken;
 import org.fluxtream.core.services.impl.ExistingEmailException;
 import org.fluxtream.core.services.impl.UsernameAlreadyTakenException;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 public interface GuestService {
 	public void addRole(long guestId, String role);
@@ -91,4 +92,6 @@ public interface GuestService {
     public boolean checkPassword(long guestId, String currentPassword);
 
     void populateApiKey(long apiKeyId);
+
+    void addDeveloperRole(Long guestId);
 }

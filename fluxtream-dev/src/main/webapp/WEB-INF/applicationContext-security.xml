@@ -55,7 +55,7 @@
 		<beans:property name="loginFormUrl" value="/" />
 	</beans:bean>
 
-	<beans:bean id="authFilter" class="org.fluxtream.core.auth.FlxAuthFilter">
+	<beans:bean id="authFilter" class="org.fluxtream.core.auth.FlxDeveloperWebsiteAuthFilter">
 		<beans:property name="authenticationManager" ref="authenticationManager" />
 		<beans:property name="authenticationFailureHandler"
 			ref="failureHandler" />
@@ -65,21 +65,17 @@
 	</beans:bean>
 
 	<beans:bean id="successHandler"
-		class="org.fluxtream.core.auth.FlxSavedRequestAwareAuthenticationSuccessHandler">
-		<beans:property name="defaultTargetUrl" value="/checkIn" />
-		<beans:property name="alwaysUseDefaultTargetUrl" value="true" />
-        <beans:property name="requestCache" ref="requestCache"/>
-	</beans:bean>
+		class="org.fluxtream.core.auth.FlxDeveloperWebsiteAuthenticationSuccessHandler">
+    </beans:bean>
+
+    <beans:bean id="failureHandler" class="org.fluxtream.core.auth.FlxDeveloperWebsiteAuthFailureHandler">
+    </beans:bean>
 
     <beans:bean id="requestCache" class="org.springframework.security.web.savedrequest.HttpSessionRequestCache"/>
     <beans:bean id="requestCacheAwareFilter"
           class="org.springframework.security.web.savedrequest.RequestCacheAwareFilter">
         <beans:constructor-arg ref="requestCache"/>
     </beans:bean>
-
-	<beans:bean id="failureHandler" class="org.fluxtream.core.auth.FlxAuthFailureHandler">
-		<beans:property name="defaultFailureUrl" value="/?retry" />
-	</beans:bean>
 
 	<authentication-manager alias="authenticationManager">
 		<authentication-provider user-service-ref="guestService">

@@ -1,7 +1,7 @@
 <!-- Sidebar -->
 <div id="sidebar-wrapper">
     <ul class="sidebar-nav">
-        <li class="sidebar-brand"><a href="#">&nbsp;</a>
+        <li class="sidebar-brand"><a href="/"><img class="flxLogo" src="/dev/${release}/img/logo.png"/></a>
         </li>
         <li class="active"><a href="#/apps">Applications</a>
         </li>
