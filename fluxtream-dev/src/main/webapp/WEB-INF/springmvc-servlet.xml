@@ -20,7 +20,7 @@
 	</bean>
 
     <mvc:resources mapping="/${release}/js/**" location="/js/" cache-period="31556926" />
-    <mvc:resources mapping="/${release}/less/**" location="/less/" cache-period="31556926" />
+    <mvc:resources mapping="/${release}/img/**" location="/img/" cache-period="31556926" />
     <mvc:resources mapping="/${release}/css/**" location="/css/" cache-period="31556926" />
     <mvc:resources mapping="/static/**" location="/static/" cache-period="31556926" />
     <mvc:resources mapping="/static/css/**" location="/static/css/" cache-period="31556926" />

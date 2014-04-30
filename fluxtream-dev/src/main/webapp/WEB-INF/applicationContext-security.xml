@@ -21,14 +21,17 @@
 	<http pattern="/${release}/js/**" security="none" />
     <http pattern="/${release}/html/**" security="none" />
 	<http pattern="/${release}/css/**" security="none" />
-	<http pattern="/${release}/images/**" security="none" />
+    <http pattern="/${release}/img/**" security="none" />
+
+    <!-- main home page partials -->
+    <http pattern="/partials/*" security="none" />
 
     <http pattern="/html/privacyPolicy.html" security="none" />
 
     <http access-denied-page="/accessDenied" entry-point-ref="loginUrlAuthenticationEntryPoint"
 		use-expressions="true" create-session="ifRequired">
         <http-basic/>
-		<intercept-url pattern="/**" access="hasRole('ROLE_USER')" />
+		<intercept-url pattern="/**" access="hasRole('ROLE_DEVELOPER')" />
         <intercept-url pattern="/signIn" access="IS_AUTHENTICATED_ANONYMOUSLY" />
 
 		<custom-filter position="FORM_LOGIN_FILTER" ref="authFilter" />

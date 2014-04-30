@@ -22,28 +22,14 @@
     <script src="static/js/angular-1.2.16.min.js"></script>
     <script src="static/js/angular-route-1.2.16.min.js"></script>
     <script src="static/js/angular-resource-1.2.16.min.js"></script>
-    <script src="${release}/js/app.js"></script>
-    <script src="${release}/js/controllers.js"></script>
-    <script src="${release}/js/services.js"></script>
+    <script src="${release}/js/public/app.js"></script>
+    <script src="${release}/js/public/controllers.js"></script>
+    <script src="${release}/js/public/services.js"></script>
 
 </head>
 <body>
 
 <div id="wrapper">
-
-    <!-- Sidebar -->
-    <div id="sidebar-wrapper">
-        <ul class="sidebar-nav">
-            <li class="sidebar-brand"><a href="#">&nbsp;</a>
-            </li>
-            <li class="active"><a href="#/apps">Applications</a>
-            </li>
-            <li><a href="#/api-docs">Api Docs</a>
-            </li>
-            <li><a href="logout">Sign Out</a>
-            </li>
-        </ul>
-    </div>
 
     <!-- Page content -->
     <div id="page-content-wrapper" ng-view class="container">
