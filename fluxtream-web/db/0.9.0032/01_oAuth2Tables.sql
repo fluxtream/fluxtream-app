@@ -18,6 +18,7 @@ CREATE TABLE `Application` (
   `description` longtext,
   `guestId` bigint(20) NOT NULL,
   `name` varchar(255) DEFAULT NULL,
+  `website` varchar(255) DEFAULT NULL,
   `sharedSecret` varchar(255) DEFAULT NULL,
   `uid` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),

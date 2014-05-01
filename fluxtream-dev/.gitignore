@@ -49,7 +49,5 @@ build
 src/main/resources/common.properties
 src/main/resources/local.properties
 src/main/resources/rebel.xml
-src/main/resources/log4j.xml
-src/main/resources/lastcommit.properties
 
 target/
