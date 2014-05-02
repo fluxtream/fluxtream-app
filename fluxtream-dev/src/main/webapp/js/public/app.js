@@ -15,6 +15,9 @@ developerWebsiteApp.config(['$routeProvider', '$locationProvider',
                 templateUrl: 'partials/sign-up',
                 controller: 'SignUpCtrl'
             }).
+            when('/user-manual', {
+                templateUrl: 'partials/user-manual'
+            }).
             when('/api-docs', {
                 templateUrl: 'partials/api-docs'
             }).

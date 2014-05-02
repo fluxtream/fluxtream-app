@@ -19,6 +19,9 @@ developerWebsiteApp.config(['$routeProvider', '$locationProvider',
                 templateUrl: 'partners/partials/app-form',
                 controller: 'AppCreateFormCtrl'
             }).
+            when('/user-manual', {
+                templateUrl: 'partials/user-manual'
+            }).
             when('/api-docs', {
                 templateUrl: 'partials/api-docs',
                 controller: 'ApiDocsCtrl'

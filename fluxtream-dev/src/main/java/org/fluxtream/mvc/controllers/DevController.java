@@ -10,6 +10,7 @@ import org.fluxtream.core.services.impl.ExistingEmailException;
 import org.fluxtream.core.services.impl.UsernameAlreadyTakenException;
 import org.fluxtream.core.utils.HttpUtils;
 import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
+import org.markdown4j.Markdown4jProcessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -23,6 +24,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -91,6 +93,18 @@ public class DevController {
     public ModelAndView partial(@PathVariable("partial") String partial) {
         ModelAndView mav = new ModelAndView("/public/partials/" + partial);
         String release = env.get("release");
+        mav.addObject("release", release);
+        return mav;
+    }
+
+    @RequestMapping(value = "/partials/user-manual")
+    public ModelAndView userManual() throws IOException {
+        ModelAndView mav = new ModelAndView("/public/partials/user-manual");
+        String release = env.get("release");
+        final String userManualLocation = env.get("userManual.location");
+        Markdown4jProcessor processor = new Markdown4jProcessor();
+        String manual = processor.process(new File(userManualLocation));
+        mav.addObject("manual", manual);
         mav.addObject("release", release);
         return mav;
     }
