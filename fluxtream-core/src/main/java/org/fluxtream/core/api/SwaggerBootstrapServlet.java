@@ -14,6 +14,9 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,11 +29,15 @@ public class SwaggerBootstrapServlet extends HttpServlet {
 
     public void init(final ServletConfig config) throws ServletException {
         super.init(config);
-        WebApplicationContext webContext = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
-        Configuration env = webContext.getBean(org.fluxtream.core.Configuration.class);
-
-        System.out.println("ApplicationContext started, setting up REST API info");
         ConfigFactory.setConfig(new WebXMLReader(config));
+        reload();
+    }
+
+    private void reload() {
+        System.out.println("ApplicationContext started, setting up REST API info");
+        WebApplicationContext webContext = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
+
+        Configuration env = webContext.getBean(Configuration.class);
         ScannerFactory.setScanner(new DefaultJaxrsScanner());
         ClassReaders.setReader(new JerseyApiReader());
         ApiInfo apiInfo = new ApiInfo(
@@ -42,11 +49,20 @@ public class SwaggerBootstrapServlet extends HttpServlet {
                 "http://www.apache.org/licences/LICENSE-2.0.html"
         );
         List<GrantType> grantTypes = new ArrayList<GrantType>();
-        LoginEndpoint loginEndpoint = new LoginEndpoint(String.format("%sauth/oauth2/dialog", env.get("homeBaseUrl")));
-        ImplicitGrant implicitGrant = new ImplicitGrant(loginEndpoint, "accessToken");
-        grantTypes.add(implicitGrant);
+        TokenRequestEndpoint tokenRequestEndpoint = new TokenRequestEndpoint(String.format("%sauth/oauth2/authorize", env.get("homeBaseUrl")),
+                "client_id",
+                "client_secret");
+        TokenEndpoint tokenEndpoint = new TokenEndpoint(String.format("%sauth/oauth2/token", env.get("homeBaseUrl")), "access_code");
+        AuthorizationCodeGrant authCodeGrant = new AuthorizationCodeGrant(tokenRequestEndpoint, tokenEndpoint);
+        grantTypes.add(authCodeGrant);
         AuthorizationType oauth = new OAuthBuilder().grantTypes(grantTypes).build();
         ConfigFactory.config().addAuthorization(oauth);
         ConfigFactory.config().setApiInfo(apiInfo);
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        reload();
+        resp.getWriter().write("oauth config reloaded");
     }
 }

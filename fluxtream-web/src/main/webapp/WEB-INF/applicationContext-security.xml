@@ -46,6 +46,7 @@
     <!-- api documentation -->
     <http pattern="/api/v1/api-docs/**" security="none" />
     <http pattern="/api/v1/api-docs*" security="none" />
+    <http pattern="/bootstrap/*" security="none" />
 
     <!-- oauth2 token exchange -->
     <http pattern="/auth/oauth2/token" security="none" />
