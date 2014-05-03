@@ -655,11 +655,6 @@
         </dependency>
         <dependency>
             <groupId>com.wordnik</groupId>
-            <artifactId>swagger-oauth2-server_2.10</artifactId>
-            <version>1.3.5</version>
-        </dependency>
-        <dependency>
-            <groupId>com.wordnik</groupId>
             <artifactId>swagger-jersey-jaxrs_2.10</artifactId>
             <version>1.3.5</version>
         </dependency>
