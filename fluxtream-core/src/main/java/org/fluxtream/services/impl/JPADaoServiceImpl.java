@@ -1,11 +1,5 @@
 package org.fluxtream.services.impl;
 
-import java.util.List;
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
 import org.fluxtream.connectors.Connector;
 import org.fluxtream.connectors.ObjectType;
 import org.fluxtream.domain.AbstractFacet;
@@ -14,6 +8,9 @@ import org.fluxtream.utils.JPAUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.*;
+import java.util.List;
 
 @Transactional(readOnly = true)
 @Service
@@ -28,7 +25,19 @@ public class JPADaoServiceImpl implements JPADaoService {
 		return JPAUtils.find(em, clazz, queryName, params);
 	}
 
-	@Override
+    @Override
+    public <T> List<T> findWithQuery(String queryString, Class<T> clazz, Object... params) {
+        TypedQuery<T> query = em.createQuery(queryString, clazz);
+        int i=1;
+        if (params!=null) {
+            for (Object param : params) {
+                query.setParameter(i++, param);
+            }
+        }
+        return query.getResultList();
+    }
+
+    @Override
 	public <T> T findOne(String queryName, Class<T> clazz, Object... params) {
 		return JPAUtils.findUnique(em, clazz, queryName, params);
 	}

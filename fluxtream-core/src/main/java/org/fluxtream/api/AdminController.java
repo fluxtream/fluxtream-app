@@ -188,6 +188,28 @@ public class AdminController {
 
     @POST
     @Secured({ "ROLE_ADMIN" })
+    @Path("/up/expireTokens")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String expireJawboneUPAccessTokens()
+            throws InstantiationException, IllegalAccessException,
+            ClassNotFoundException {
+        try {
+            final List<ApiKey> upKeys = jpaDaoService.findWithQuery("SELECT apiKey FROM ApiKey apiKey WHERE apiKey.api=?", ApiKey.class, Connector.getConnector("up").value());
+            int i=0;
+            for (ApiKey upKey : upKeys) {
+                i++;
+                guestService.setApiKeyAttribute(upKey, "tokenExpires", String.valueOf(System.currentTimeMillis()));
+            }
+            StatusModel success = new StatusModel(true, i + " (up) tokens have been expired.");
+            return gson.toJson(success);
+        } catch (Throwable t) {
+            StatusModel failure = new StatusModel(false, ExceptionUtils.getStackTrace(t));
+            return gson.toJson(failure);
+        }
+    }
+
+    @POST
+    @Secured({ "ROLE_ADMIN" })
     @Path("/executeUpdate")
     @Produces({ MediaType.APPLICATION_JSON })
     public String executeUpdate(@FormParam("jpql") String jpql)
