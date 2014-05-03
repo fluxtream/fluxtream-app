@@ -761,12 +761,19 @@ public class JawboneUpUpdater extends AbstractUpdater {
         Map<String,String> parameters = new HashMap<String,String>();
         parameters.put("grant_type", "refresh_token");
         parameters.put("refresh_token", refreshToken);
+        // using "default" client_id and secret to comply with a security requirement to fix heartbleed issues
+        // as soon as all clients been fixed (after 5/5/2014) this should be replaced with:
+//        parameters.put("client_id", guestService.getApiKeyAttribute(updateInfo.apiKey, "jawboneUp.client.id"));
+//        parameters.put("client_secret", guestService.getApiKeyAttribute(updateInfo.apiKey, "jawboneUp.client.secret"));
         parameters.put("client_id", env.get("jawboneUp.client.id"));
         parameters.put("client_secret", env.get("jawboneUp.client.secret"));
         final String json = HttpUtils.fetch("https://jawbone.com/auth/oauth2/token", parameters);
 
         JSONObject token = JSONObject.fromObject(json);
         final String accessToken = token.getString("access_token");
+        // store the new secret
+        guestService.setApiKeyAttribute(updateInfo.apiKey,
+                "jawboneUp.client.secret", env.get("jawboneUp.client.secret"));
         guestService.setApiKeyAttribute(updateInfo.apiKey,
                 "accessToken", accessToken);
         guestService.setApiKeyAttribute(updateInfo.apiKey,
