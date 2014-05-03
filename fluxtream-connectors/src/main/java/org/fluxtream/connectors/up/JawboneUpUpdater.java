@@ -1,15 +1,16 @@
 package org.fluxtream.connectors.up;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.TreeSet;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.log4j.Logger;
 import org.fluxtream.core.TimezoneMap;
 import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.connectors.annotations.Updater;
@@ -23,19 +24,9 @@ import org.fluxtream.core.services.ApiDataService;
 import org.fluxtream.core.services.JPADaoService;
 import org.fluxtream.core.services.MetadataService;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
+import org.fluxtream.core.utils.HttpUtils;
 import org.fluxtream.core.utils.TimespanSegment;
 import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.log4j.Logger;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
@@ -44,6 +35,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * User: candide
@@ -733,6 +730,9 @@ public class JawboneUpUpdater extends AbstractUpdater {
         final HttpClient client = env.getHttpClient();
         final long then = System.currentTimeMillis();
         try {
+            long tokenExpires = Long.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, "tokenExpires"));
+            if (tokenExpires<System.currentTimeMillis())
+                refreshToken(updateInfo);
             HttpGet get = new HttpGet(url);
             get.setHeader("Authorization", "Bearer " + updateInfo.getContext("accessToken"));
             HttpResponse response = client.execute(get);
@@ -750,6 +750,26 @@ public class JawboneUpUpdater extends AbstractUpdater {
             client.getConnectionManager().shutdown();
         }
         throw new RuntimeException("Error calling Jawbone API: this statement should have never been reached");
+    }
+
+    private void refreshToken(UpdateInfo updateInfo) throws IOException, UnexpectedHttpResponseCodeException {
+        String refreshToken = guestService.getApiKeyAttribute(updateInfo.apiKey, "refreshToken");
+        Map<String,String> parameters = new HashMap<String,String>();
+        parameters.put("grant_type", "refresh_token");
+        parameters.put("refresh_token", refreshToken);
+        parameters.put("client_id", env.get("jawboneUp.client.id"));
+        parameters.put("client_secret", env.get("jawboneUp.client.secret"));
+        final String json = HttpUtils.fetch("https://jawbone.com/auth/oauth2/token", parameters);
+
+        JSONObject token = JSONObject.fromObject(json);
+        final String accessToken = token.getString("access_token");
+        guestService.setApiKeyAttribute(updateInfo.apiKey,
+                "accessToken", accessToken);
+        guestService.setApiKeyAttribute(updateInfo.apiKey,
+                "tokenExpires", String.valueOf(System.currentTimeMillis() + DateTimeConstants.MILLIS_PER_DAY * 365));
+        guestService.setApiKeyAttribute(updateInfo.apiKey,
+                "refreshToken", token.getString("refresh_token"));
+        updateInfo.setContext("accessToken", accessToken);
     }
 
     private void handleErrors(final int statusCode, final HttpResponse response, final String message) throws Exception {

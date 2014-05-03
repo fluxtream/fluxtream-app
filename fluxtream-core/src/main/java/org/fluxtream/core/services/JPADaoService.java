@@ -2,13 +2,14 @@ package org.fluxtream.core.services;
 
 import java.util.List;
 import org.fluxtream.core.connectors.Connector;
-
 public interface JPADaoService {
 
     @SuppressWarnings("unused")
 	public <T> List<T> findWithLimit(String queryName, Class<T> clazz, int firstResult, int maxResults, Object... params);
 
 	public <T> List<T> find(String queryName, Class<T> clazz, Object... params);
+
+    public <T> List<T> findWithQuery(String query, Class<T> clazz, Object... params);
 
 	public <T> T findOne(String queryName, Class<T> clazz, Object... params);
 

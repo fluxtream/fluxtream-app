@@ -1,5 +1,28 @@
 package org.fluxtream.connectors.up;
 
+import net.coobird.thumbnailator.Thumbnailator;
+import net.sf.json.JSONObject;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.fluxtream.connectors.controllers.ControllerSupport;
+import org.fluxtream.core.Configuration;
+import org.fluxtream.core.auth.AuthHelper;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.Guest;
+import org.fluxtream.core.domain.Notification;
+import org.fluxtream.core.services.GuestService;
+import org.fluxtream.core.services.NotificationsService;
+import org.fluxtream.core.utils.HttpUtils;
+import org.joda.time.DateTimeConstants;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -7,28 +30,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.fluxtream.core.Configuration;
-import org.fluxtream.core.auth.AuthHelper;
-import org.fluxtream.core.connectors.Connector;
-import org.fluxtream.connectors.controllers.ControllerSupport;
-import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.Guest;
-import org.fluxtream.core.domain.Notification;
-import org.fluxtream.core.services.GuestService;
-import org.fluxtream.core.services.NotificationsService;
-import org.fluxtream.core.utils.HttpUtils;
-import net.coobird.thumbnailator.Thumbnailator;
-import net.sf.json.JSONObject;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTimeConstants;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * User: candide
@@ -166,6 +167,7 @@ public class JawboneUpController {
         else
             return "redirect:/app/from/up";
     }
+
 
     @RequestMapping(value="/img/{guestId}/{apiKeyId}/**")
     public void getSnapshotImage(@PathVariable("guestId") long guestId,

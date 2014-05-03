@@ -28,7 +28,19 @@ public class JPADaoServiceImpl implements JPADaoService {
 		return JPAUtils.find(em, clazz, queryName, params);
 	}
 
-	@Override
+    @Override
+    public <T> List<T> findWithQuery(String queryString, Class<T> clazz, Object... params) {
+        TypedQuery<T> query = em.createQuery(queryString, clazz);
+        int i=1;
+        if (params!=null) {
+            for (Object param : params) {
+                query.setParameter(i++, param);
+            }
+        }
+        return query.getResultList();
+    }
+
+    @Override
 	public <T> T findOne(String queryName, Class<T> clazz, Object... params) {
 		return JPAUtils.findUnique(em, clazz, queryName, params);
 	}
