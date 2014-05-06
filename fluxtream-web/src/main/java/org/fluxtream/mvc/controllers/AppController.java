@@ -169,8 +169,6 @@ public class AppController {
         if (!hasTimezoneCookie(request)|| guest ==null)
             return new ModelAndView("redirect:/welcome");
         long guestId = guest.getId();
-        if (guest.hasRole("ROLE_DEVELOPER"))
-            return new ModelAndView("redirect:/dev/home");
         checkIn(request, guestId);
         final HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
         SavedRequest savedRequest =
@@ -187,8 +185,6 @@ public class AppController {
 	@RequestMapping(value = { "/app*", "/app/**" })
 	public ModelAndView welcomeHome(HttpServletRequest request, HttpServletResponse response)
 			throws IOException, NoSuchAlgorithmException {
-        if (AuthHelper.getGuest().hasRole("ROLE_DEVELOPER"))
-            return new ModelAndView("redirect:/dev/home");
 		if (!hasTimezoneCookie(request)|| AuthHelper.getGuest()==null)
 			return new ModelAndView("redirect:/welcome");
         SavedRequest savedRequest =

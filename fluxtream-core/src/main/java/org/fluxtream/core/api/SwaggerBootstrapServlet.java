@@ -48,16 +48,9 @@ public class SwaggerBootstrapServlet extends HttpServlet {
                 "Apache 2.0",
                 "http://www.apache.org/licences/LICENSE-2.0.html"
         );
-        List<GrantType> grantTypes = new ArrayList<GrantType>();
-        TokenRequestEndpoint tokenRequestEndpoint = new TokenRequestEndpoint(String.format("%sauth/oauth2/authorize", env.get("homeBaseUrl")),
-                "client_id",
-                "client_secret");
-        TokenEndpoint tokenEndpoint = new TokenEndpoint(String.format("%sauth/oauth2/token", env.get("homeBaseUrl")), "access_code");
-        AuthorizationCodeGrant authCodeGrant = new AuthorizationCodeGrant(tokenRequestEndpoint, tokenEndpoint);
-        grantTypes.add(authCodeGrant);
-        AuthorizationType oauth = new OAuthBuilder().grantTypes(grantTypes).build();
-        ConfigFactory.config().addAuthorization(oauth);
+        ConfigFactory.config().setBasePath(env.get("homeBaseUrl")+"api/v1");
         ConfigFactory.config().setApiInfo(apiInfo);
+        ConfigFactory.config().setApiVersion("v1");
     }
 
     @Override
