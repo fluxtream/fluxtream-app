@@ -29,7 +29,8 @@ public class ErrorController {
     public String accessDenied(HttpServletRequest request,
                                      HttpServletResponse response) throws IOException {
         if (request.getParameter("json")!=null) {
-            response.getWriter().write("{\"result\":\"KO\",\"message\":\"Access Denied\"}");
+            String baseUrl = env.get("homeBaseUrl");
+            response.getWriter().write(String.format("{\"result\":\"KO\",\"message\":\"Access Denied. Please log in to your Fluxtream account (%s) to access this resource\"}", baseUrl));
             return null;
         }
         else return "accessDenied";
