@@ -2,11 +2,11 @@
 
 ## Create a developer account
 
-If you don’t already have an API account, please [apply for one](https://staging.fluxtream.org/dev).
+If you don’t already have an API account, please [apply for one](https://staging.fluxtream.org/dev/#/sign-up).
 
 ## Create app keys
 
-Once in the developer console, you will be able to create an app instance. Fluxtream will provide you with a `client_id` and `client_secret`.
+Once in the developer console, you will be able to create an app instance. Fluxtream will provide you with a `client_id` and a `client_secret`.
 
 ## Request authorization from the user
 
@@ -28,7 +28,7 @@ You should extract the `code` parameter from the request and make a HTTP `POST` 
     client_secret: <your_client_secret>
     redirect_uri: <your_redirect_uri>
 
-The server will reply with a json object containing the following information:
+The server will reply with a JSON object containing the following information:
 
     access_token: a token that you will use to authenticate your requests
     refresh_token: a token that you will use to refresh your access_token when it expires
@@ -42,7 +42,7 @@ To authenticate your requests, just add the following header:
 
 ## Refresh your access token
 
-When your access token has expire, refresh it by sending a HTTP `POST` to Fluxtream's `/token` with the following parameters:
+When your access token has expired, refresh it by sending a HTTP `POST` to Fluxtream's `/token` endpoint with the following parameters:
 
     grant_type: "refresh_token"
     refresh_token: <your_refresh_token>
