@@ -24,7 +24,6 @@ public class SystemController {
 
     FlxLogger logger = FlxLogger.getLogger(SystemController.class);
 
-    @Qualifier("connectorUpdateServiceImpl")
     @Autowired
     ConnectorUpdateService connectorUpdateService;
 

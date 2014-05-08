@@ -62,8 +62,7 @@ import org.springframework.stereotype.Component;
  */
 @Path("/connectors")
 @Component("RESTConnectorStore")
-@Api(value = "/connectors", description = "Connector and connector settings management operations (list, add, remove, etc.)",
-        authorizations = {@Authorization(value="oauth2")})
+@Api(value = "/connectors", description = "Connector and connector settings management operations (list, add, remove, etc.)")
 @Scope("request")
 public class ConnectorStore {
 

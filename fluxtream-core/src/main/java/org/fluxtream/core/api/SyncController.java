@@ -8,6 +8,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiParam;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.updaters.ScheduleResult;
@@ -36,6 +40,7 @@ import org.springframework.stereotype.Component;
  */
 @Path("/sync")
 @Component("RESTSyncController")
+@Api(value = "/sync", description = "Retrieve information about connector state and schedule connector synchronization")
 @Scope("request")
 public class SyncController {
 
@@ -45,7 +50,6 @@ public class SyncController {
     @Autowired
     SystemService sysService;
 
-    @Qualifier("connectorUpdateServiceImpl")
     @Autowired
     ConnectorUpdateService connectorUpdateService;
 
@@ -55,8 +59,9 @@ public class SyncController {
 
     @POST
     @Path("/{connector}")
+    @ApiOperation(value = "Update a connector", response = StatusModel.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public String updateConnector(@PathParam("connector") String connectorName){
+    public String updateConnector(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName){
         return sync(connectorName, true);
     }
 
@@ -80,9 +85,10 @@ public class SyncController {
 
     @POST
     @Path("/{connector}/{objectTypes}")
+    @ApiOperation(value = "Update a connector's object types", response = StatusModel.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public String updateConnectorObjectType(@PathParam("connector") String connectorName,
-                                            @PathParam("objectTypes") int objectTypes){
+    public String updateConnectorObjectType(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName,
+                                            @ApiParam(value="Bit mask of object types that have to be updated", required=true) @PathParam("objectTypes") int objectTypes){
         return syncConnectorObjectType(connectorName, objectTypes, false);
     }
 
@@ -103,6 +109,7 @@ public class SyncController {
 
     @POST
     @Path("/all")
+    @ApiOperation(value = "Update all of the logged in guest's connectors", response = StatusModel.class)
     @Produces({MediaType.APPLICATION_JSON})
     public String updateAllConnectors(){
         try {
@@ -126,9 +133,10 @@ public class SyncController {
     }
 
     @POST
+    @ApiOperation(value = "Check if a connector's history update is complete", response = String.class)
     @Path("/{connector}/historyComplete")
-    public String isHistoryComplete(@PathParam("connector") String connectorName,
-                                    @FormParam("objectTypes") int objectTypes) {
+    public String isHistoryComplete(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName,
+                                    @ApiParam(value="Bit mask of the connector's object types", required=true) @FormParam("objectTypes") int objectTypes) {
         final long guestId = AuthHelper.getGuestId();
         final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
         final boolean historyUpdateCompleted = connectorUpdateService.isHistoryUpdateCompleted(apiKey, objectTypes);
@@ -138,8 +146,9 @@ public class SyncController {
     }
 
     @POST
+    @ApiOperation(value = "Check if a connector's currently synching", response = String.class)
     @Path("/{connector}/isSynching")
-    public String isSynching(@PathParam("connector") String connectorName) {
+    public String isSynching(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName) {
         final long guestId = AuthHelper.getGuestId();
         final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
         final Collection<UpdateWorkerTask> scheduledUpdates = connectorUpdateService.getUpdatingUpdateTasks(apiKey);
@@ -149,8 +158,9 @@ public class SyncController {
     }
 
     @POST
+    @ApiOperation(value = "Retrieve a connector's last successful update time", response = String.class)
     @Path("/{connector}/lastSuccessfulUpdate")
-    public String lastSuccessfulUpdate(@PathParam("connector") String connectorName) {
+    public String lastSuccessfulUpdate(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName) {
         Connector connector = Connector.getConnector(connectorName);
         Guest guest = AuthHelper.getGuest();
         final ApiKey apiKey = guestService.getApiKey(guest.getId(), connector);
@@ -163,8 +173,9 @@ public class SyncController {
 
     @POST
     @Path("/{connector}/reset")
+    @ApiOperation(value = "Un-schedule pending updates of the given connector", response = StatusModel.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public StatusModel resetConnector(@PathParam("connector") String connectorName) {
+    public StatusModel resetConnector(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName) {
         final long guestId = AuthHelper.getGuestId();
         final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
         connectorUpdateService.flushUpdateWorkerTasks(apiKey, true);
@@ -172,8 +183,9 @@ public class SyncController {
     }
 
     @POST
+    @ApiOperation(value = "Retrieve a connector's last attempted update time (successful or failed)", response = String.class)
     @Path("/{connector}/lastUpdate")
-    public String lastUpdate(@PathParam("connector") String connectorName) {
+    public String lastUpdate(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName) {
         Connector connector = Connector.getConnector(connectorName);
         Guest guest = AuthHelper.getGuest();
         final ApiKey apiKey = guestService.getApiKey(guest.getId(), connector);

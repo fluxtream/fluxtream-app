@@ -1,19 +1,14 @@
 package org.fluxtream.core.api;
 
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.SortedSet;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import com.google.gson.Gson;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiParam;
 import org.fluxtream.core.OutsideTimeBoundariesException;
 import org.fluxtream.core.SimpleTimeInterval;
 import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.TimeUnit;
+import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.metadata.DayMetadata;
@@ -23,13 +18,24 @@ import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.services.MetadataService;
 import org.fluxtream.core.services.PhotoService;
 import org.fluxtream.core.services.SettingsService;
-import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.SortedSet;
+
 @Path("/guest/{username}/photo")
 @Component("RESTPhotoStore")
+@Api(value = "/guest/{username}/photo", description = "Retrieve the user's photos")
 @Scope("request")
 public class PhotoStore {
 
@@ -50,9 +56,13 @@ public class PhotoStore {
     @GET
     @Path("/date/{date}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getPhotosForDate(@PathParam("username") String username, @PathParam("date") String date){
+    @ApiOperation(value = "Get the user's photos for a specific date", responseContainer = "array", response = PhotoModel.class)
+    public String getPhotosForDate(@ApiParam(value="Username (must be currently logged in user's username)", required=true) @PathParam("username") String username,
+                                   @ApiParam(value="Date (yyyy-mm-dd)", required=true) @PathParam("date") String date){
         try{
             Guest guest = guestService.getGuest(username);
+            if (AuthHelper.getGuest().getId()!=guest.getId())
+                throw new RuntimeException("Attempt to access another user's photos");
             DayMetadata dayMeta = metadataService.getDayMetadata(guest.getId(), date);
             return gson.toJson(getPhotos(guest, dayMeta.getTimeInterval()));
         } catch (Exception e){
@@ -64,13 +74,18 @@ public class PhotoStore {
     @GET
     @Path("/week/{year}/{week}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getPhotosForWeek(@PathParam("username") String username, @PathParam("year") int year, @PathParam("week") int week){
+    @ApiOperation(value = "Get the user's photos for a specific date", responseContainer = "array", response = PhotoModel.class)
+    public String getPhotosForWeek(@ApiParam(value="Username (must be currently logged in user's username)", required=true) @PathParam("username") String username,
+                                   @ApiParam(value="Year", required=true) @PathParam("year") int year,
+                                   @ApiParam(value="Week", required=true) @PathParam("week") int week){
         try{
             Calendar c = Calendar.getInstance();
             c.set(Calendar.YEAR,year);
             c.set(Calendar.WEEK_OF_YEAR,week);
             c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
             Guest guest = guestService.getGuest(username);
+            if (AuthHelper.getGuest().getId()!=guest.getId())
+                throw new RuntimeException("Attempt to access another user's photos");
             DecimalFormat datePartFormat = new DecimalFormat("00");
             DayMetadata dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-" + datePartFormat.format(c.get(Calendar.MONTH) + 1) +
                                                                                           "-" + datePartFormat.format(c.get(Calendar.DAY_OF_MONTH)));
@@ -93,10 +108,14 @@ public class PhotoStore {
     @GET
     @Path("/year/{year}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getPhotosForYear(@PathParam("username") String username, @PathParam("year") int year){
+    @ApiOperation(value = "Get the user's photos for an entire year", responseContainer = "array", response = PhotoModel.class)
+    public String getPhotosForYear(@ApiParam(value="Username (must be currently logged in user's username)", required=true) @PathParam("username") String username,
+                                   @ApiParam(value="Year", required=true) @PathParam("year") int year){
         try{
 
             Guest guest = guestService.getGuest(username);
+            if (AuthHelper.getGuest().getId()!=guest.getId())
+                throw new RuntimeException("Attempt to access another user's photos");
             DayMetadata dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-01-01");
 
             DayMetadata dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-12-31");

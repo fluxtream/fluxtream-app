@@ -1,32 +1,16 @@
 package org.fluxtream.core.api;
 
-import java.lang.reflect.Type;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TimeZone;
-import java.util.TreeSet;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.CacheControl;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
+import com.google.gson.*;
+import com.google.gson.annotations.Expose;
+import com.google.gson.reflect.TypeToken;
+import com.sun.jersey.core.header.ContentDisposition;
+import com.sun.jersey.multipart.BodyPart;
+import com.sun.jersey.multipart.BodyPartEntity;
+import com.sun.jersey.multipart.MultiPart;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiParam;
+import org.apache.commons.io.IOUtils;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.SimpleTimeInterval;
 import org.fluxtream.core.TimeInterval;
@@ -39,37 +23,15 @@ import org.fluxtream.core.connectors.bodytrackResponders.AbstractBodytrackRespon
 import org.fluxtream.core.connectors.fluxtream_capture.FluxtreamCapturePhoto;
 import org.fluxtream.core.connectors.fluxtream_capture.FluxtreamCapturePhotoStore;
 import org.fluxtream.core.connectors.vos.AbstractPhotoFacetVO;
-import org.fluxtream.core.domain.AbstractFacet;
-import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.CoachingBuddy;
-import org.fluxtream.core.domain.Guest;
-import org.fluxtream.core.domain.Tag;
-import org.fluxtream.core.domain.TagFilter;
+import org.fluxtream.core.domain.*;
 import org.fluxtream.core.images.ImageOrientation;
 import org.fluxtream.core.mvc.models.DimensionModel;
 import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.mvc.models.TimespanModel;
-import org.fluxtream.core.services.ApiDataService;
-import org.fluxtream.core.services.BodyTrackStorageService;
-import org.fluxtream.core.services.CoachingService;
-import org.fluxtream.core.services.DataUpdateService;
-import org.fluxtream.core.services.GuestService;
-import org.fluxtream.core.services.PhotoService;
+import org.fluxtream.core.services.*;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.utils.ConnectorUtils;
 import org.fluxtream.core.utils.HashUtils;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSyntaxException;
-import com.google.gson.annotations.Expose;
-import com.google.gson.reflect.TypeToken;
-import com.sun.jersey.core.header.ContentDisposition;
-import com.sun.jersey.multipart.BodyPart;
-import com.sun.jersey.multipart.BodyPartEntity;
-import com.sun.jersey.multipart.MultiPart;
-import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.DateTime;
@@ -78,10 +40,19 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Component;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import java.lang.reflect.Type;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
 
 @Path("/bodytrack")
 @Component("RESTBodytrackController")
+@Api(value = "/bodytrack", description = "CSV export and import, timeline-related operations")
 @Scope("request")
 public class BodyTrackController {
 
@@ -125,7 +96,12 @@ public class BodyTrackController {
 
     @GET
     @Path("/exportCSV/{UID}/fluxtream-export-from-{start}-to-{end}.csv")
-    public void exportCSV(@QueryParam("channels") String channels,@PathParam("start") Long start, @PathParam("end") Long end, @PathParam("UID") Long uid, @Context HttpServletResponse response){
+    @ApiOperation(value = "CSV export <startTime -> endTime", response = String.class)
+    public void exportCSV(@ApiParam(value="Channels", required=true) @QueryParam("channels") String channels,
+                          @ApiParam(value="Start time (epoch seconds)", required=true) @PathParam("start") Long start,
+                          @ApiParam(value="End time (epoch seconds)", required=true) @PathParam("end") Long end,
+                          @ApiParam(value="User ID (must be ID of loggedIn user)", required=true) @PathParam("UID") Long uid,
+                          @Context HttpServletResponse response){
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
@@ -159,25 +135,37 @@ public class BodyTrackController {
 
     @GET
     @Path("/exportCSV/{UID}/fluxtream-export-from-{start}.csv")
-    public void exportCSVStartOnly(@QueryParam("channels") String channels,@PathParam("start") Long start, @PathParam("UID") Long uid, @Context HttpServletResponse response){
+    @ApiOperation(value = "CSV export <startTime", response = String.class)
+    public void exportCSVStartOnly(@ApiParam(value="Channels", required=true) @QueryParam("channels") String channels,
+                                   @ApiParam(value="Start time (epoch seconds)", required=true) @PathParam("start") Long start,
+                                   @ApiParam(value="User ID (must be ID of loggedIn user)", required=true) @PathParam("UID") Long uid,
+                                   @Context HttpServletResponse response){
         exportCSV(channels,start,null,uid,response);
     }
 
     @GET
     @Path("/exportCSV/{UID}/fluxtream-export-to-{end}.csv")
-    public void exportCSVEndOnly(@QueryParam("channels") String channels,@PathParam("end") Long end, @PathParam("UID") Long uid, @Context HttpServletResponse response){
+    @ApiOperation(value = "CSV export <startTime", response = String.class)
+    public void exportCSVEndOnly(@ApiParam(value="Channels", required=true) @QueryParam("channels") String channels,
+                                 @ApiParam(value="End time (epoch seconds)", required=true) @PathParam("end") Long end,
+                                 @ApiParam(value="User ID (must be ID of loggedIn user)", required=true) @PathParam("UID") Long uid,
+                                 @Context HttpServletResponse response){
         exportCSV(channels,null,end,uid,response);
     }
 
     @GET
     @Path("/exportCSV/{UID}/fluxtream-export.csv")
-    public void exportCSVNoParams(@QueryParam("channels") String channels, @PathParam("UID") Long uid, @Context HttpServletResponse response){
+    @ApiOperation(value = "CSV export all data for given user id", response = String.class)
+    public void exportCSVNoParams(@ApiParam(value="Channels", required=true) @QueryParam("channels") String channels,
+                                  @ApiParam(value="User ID (must be ID of loggedIn user)", required=true) @PathParam("UID") Long uid,
+                                  @Context HttpServletResponse response){
         exportCSV(channels,null,null,uid,response);
     }
 
 
     @POST
 	@Path("/uploadHistory")
+    @Secured("ROLE_ADMIN")
 	@Produces({ MediaType.APPLICATION_JSON })
 	public String loadHistory(@QueryParam("username") String username,
 			@QueryParam("connectorName") String connectorName) throws InstantiationException,
@@ -203,8 +191,10 @@ public class BodyTrackController {
 
     @DELETE
     @Path("/users/{UID}/views/{id}")
+    @ApiOperation(value = "Delete a view", response = String.class)
     @Produces({ MediaType.APPLICATION_JSON })
-    public String deleteBodytrackView(@PathParam("UID") Long uid, @PathParam("id") long viewId){
+    public String deleteBodytrackView(@ApiParam(value="User ID (must be ID of loggedIn user)", required=true) @PathParam("UID") Long uid,
+                                      @ApiParam(value="View ID", required=true) @PathParam("id") long viewId){
         StatusModel status;
         try{
             if (!checkForPermissionAccess(uid)){

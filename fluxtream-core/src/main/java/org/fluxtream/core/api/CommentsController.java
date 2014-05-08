@@ -7,6 +7,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiParam;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.services.ApiDataService;
@@ -22,6 +26,7 @@ import org.springframework.stereotype.Component;
  */
 @Path("/comments")
 @Component("RESTCommentsController")
+@Api(value = "/comments", description = "Set/delete user comments on individual facets")
 @Scope("request")
 public class CommentsController {
 
@@ -38,9 +43,10 @@ public class CommentsController {
     @POST
     @Path("/{facetType}/{facetId}")
     @Produces({MediaType.APPLICATION_JSON})
-    public StatusModel setComment(@PathParam("facetType") String facetType,
-                                  @PathParam("facetId") long facetId,
-                                  @FormParam("comment") String comment) {
+    @ApiOperation(value = "Set a facet's user comment", response = StatusModel.class)
+    public StatusModel setComment(@ApiParam(value="The type (<connectorName>-<objectTypeName>) of the facet", required=true) @PathParam("facetType") String facetType,
+                                  @ApiParam(value="Facet ID", required=true) @PathParam("facetId") long facetId,
+                                  @ApiParam(value="Comment", required=true) @FormParam("comment") String comment) {
         final long guestId = AuthHelper.getGuestId();
         String connectorName, objectTypeName = null;
         if (facetType.indexOf("-")==-1)
@@ -66,9 +72,10 @@ public class CommentsController {
      */
     @DELETE
     @Path("/{facetType}/{facetId}")
+    @ApiOperation(value = "Delete a facet's user comment", response = StatusModel.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public StatusModel deleteComment(@PathParam("facetType") String facetType,
-                                     @PathParam("facetId") long facetId) {
+    public StatusModel deleteComment(@ApiParam(value="The type (<connectorName>-<objectTypeName>) of the facet", required=true) @PathParam("facetType") String facetType,
+                                     @ApiParam(value="Facet ID", required=true) @PathParam("facetId") long facetId) {
         final long guestId = AuthHelper.getGuestId();
         String connectorName, objectTypeName = null;
         if (facetType.indexOf("-")!=-1)

@@ -8,9 +8,14 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiParam;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.domain.GuestSettings;
+import org.fluxtream.core.mvc.models.PhotoModel;
 import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.services.SettingsService;
@@ -27,6 +32,7 @@ import org.springframework.stereotype.Component;
 
 @Path("/settings")
 @Component("RESTSettingsStore")
+@Api(value = "/settings", description = "Set and retrieve the user's preferences")
 @Scope("request")
 public class SettingsStore {
 
@@ -40,6 +46,7 @@ public class SettingsStore {
 
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
+    @ApiOperation(value = "Get the user's settings", response = String.class)
     public String getSettings(){
         final long guestId = AuthHelper.getGuestId();
         final Guest guest = guestService.getGuestById(guestId);
@@ -72,6 +79,7 @@ public class SettingsStore {
     @POST
     @Path("/deleteAccount")
     @Produces({ MediaType.APPLICATION_JSON })
+    @ApiOperation(value = "Delete the user's account (this is irreversible)", response = StatusModel.class)
     public StatusModel eraseEverything() {
         final long guestId = AuthHelper.getGuestId();
         try {
@@ -89,7 +97,9 @@ public class SettingsStore {
     @POST
     @Path("/general")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String saveSettings(@FormParam("guest_firstname") String firstName, @FormParam("guest_lastname") String lastName) {
+    @ApiOperation(value = "Set the user's first name and last name", response = StatusModel.class)
+    public String saveSettings(@ApiParam(value="First name", required=true) @FormParam("guest_firstname") String firstName,
+                               @ApiParam(value="Last name", required=true) @FormParam("guest_lastname") String lastName) {
         try {
             Guest guest = AuthHelper.getGuest();
 
@@ -108,8 +118,11 @@ public class SettingsStore {
     @POST
     @Path("/units")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String saveSettings(@FormParam("length_measure_unit") String lengthUnit, @FormParam("distance_measure_unit") String distanceUnit,
-                               @FormParam("weight_measure_unit") String weightUnit, @FormParam("temperature_unit") String temperatureUnit) {
+    @ApiOperation(value = "Set the user's preferred units of measure", response = StatusModel.class)
+    public String saveSettings(@ApiParam(value="Length measure unit", allowableValues = "SI, FEET_INCHES", required=true) @FormParam("length_measure_unit") String lengthUnit,
+                               @ApiParam(value="Distance measure unit", allowableValues = "SI, MILES_YARDS", required=true) @FormParam("distance_measure_unit") String distanceUnit,
+                               @ApiParam(value="Weight measure unit", allowableValues = "SI, POUNDS, STONES", required=true) @FormParam("weight_measure_unit") String weightUnit,
+                               @ApiParam(value="Temperature unit", allowableValues = "CELSIUS, FAHRENHEIT", required=true) @FormParam("temperature_unit") String temperatureUnit) {
         try{
 
             Guest guest = AuthHelper.getGuest();
@@ -136,9 +149,11 @@ public class SettingsStore {
 
     @POST
     @Path("/password")
+    @ApiOperation(value = "Reset password", response = StatusModel.class)
     @Produces({ MediaType.APPLICATION_JSON })
-    public String saveSettings(@FormParam("currentPassword") String currentPassword,
-                               @FormParam("password1") String password1, @FormParam("password2") String password2)
+    public String saveSettings(@ApiParam(value="Current password", required=true) @FormParam("currentPassword") String currentPassword,
+                               @ApiParam(value="New password", required=true) @FormParam("password1") String password1,
+                               @ApiParam(value="New password (repeat)", required=true) @FormParam("password2") String password2)
             throws IOException {
         try{
             Guest guest = AuthHelper.getGuest();

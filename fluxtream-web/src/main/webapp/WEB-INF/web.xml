@@ -23,18 +23,6 @@
         <param-name>webAppRootKey</param-name>
         <param-value>webapp.root.fluxtream</param-value>
     </context-param>
-    <error-page>
-        <exception-type>java.lang.Throwable</exception-type>
-        <location>/errors/500.html</location>
-    </error-page>
-    <error-page>
-        <error-code>500</error-code>
-        <location>/errors/500.html</location>
-    </error-page>
-    <error-page>
-        <error-code>404</error-code>
-        <location>/errors/404.html</location>
-    </error-page>
     <listener>
         <listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
     </listener>

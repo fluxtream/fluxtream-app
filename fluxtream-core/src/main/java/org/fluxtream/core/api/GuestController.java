@@ -1,6 +1,9 @@
 package org.fluxtream.core.api;
 
 import com.google.gson.Gson;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.Authorization;
 import net.sf.json.JSONObject;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -32,6 +35,7 @@ import static org.fluxtream.core.utils.Utils.hash;
 
 @Path("/guest")
 @Component("RESTGuestController")
+@Api(value = "/guest", description = "Retrieve guest information")
 @Scope("request")
 public class GuestController {
 
@@ -49,6 +53,7 @@ public class GuestController {
     @GET
 	@Path("/")
 	@Produces({ MediaType.APPLICATION_JSON })
+    @ApiOperation(value = "Retrieve information on the currently logged in's guest", response = GuestModel.class)
 	public String getCurrentGuest() throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
         try{
@@ -67,6 +72,7 @@ public class GuestController {
     @GET
     @Path("/avatarImage")
     @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Retrieve the avatar (gravatar) of the currently logged in's guest", response = String.class)
     public String getAvatarImage() {
         Guest guest = AuthHelper.getGuest();
         JSONObject json = new JSONObject();
@@ -130,6 +136,8 @@ public class GuestController {
     @GET
     @Path("/coachees")
     @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Retrieve the currently logged in guest's list of coachees", responseContainer = "array",
+            response = GuestModel.class)
     public List<GuestModel> getCoachees() {
         Guest guest = AuthHelper.getGuest();
         final List<Guest> coachees = coachingService.getCoachees(guest.getId());

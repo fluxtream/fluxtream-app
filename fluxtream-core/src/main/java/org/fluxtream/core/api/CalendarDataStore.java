@@ -7,6 +7,7 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
 import com.wordnik.swagger.annotations.Authorization;
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -48,8 +49,7 @@ import java.io.IOException;
 import java.util.*;
 
 @Path("/calendar")
-@Api(value = "/calendar", description = "Main devices and service API facets consumption operations",
-        authorizations = {@Authorization(value="oauth2")})
+@Api(value = "/calendar", description = "Main devices and service API facets consumption operations")
 @Component("RESTCalendarDataStore")
 @Scope("request")
 public class CalendarDataStore {
@@ -315,9 +315,11 @@ public class CalendarDataStore {
 	@Path("/all/date/{date}")
     @ApiOperation(value = "Get the user's connectors' data for a specific date", response = DigestModel.class)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public String getAllConnectorsDayData(@ApiParam(value="Date", required=true) @PathParam("date") String date,
-                                          @ApiParam(value="Filter JSON", required=true) @QueryParam("filter") String filter) throws InstantiationException,
+	public String getAllConnectorsDayData(@ApiParam(value="Date (YYYY-MM-DD)", required=true) @PathParam("date") String date,
+                                          @ApiParam(value="Filter JSON", required=false) @QueryParam(value="filter") String filter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
+        if (StringUtils.isEmpty(filter))
+            filter = "{}";
         Guest guest;
         long guestId;
         try {

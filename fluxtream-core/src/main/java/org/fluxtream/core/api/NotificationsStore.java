@@ -11,11 +11,16 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiParam;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.domain.Notification;
 import org.fluxtream.core.mvc.models.NotificationListModel;
 import org.fluxtream.core.mvc.models.StatusModel;
+import org.fluxtream.core.mvc.models.guest.GuestModel;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.services.NotificationsService;
 import com.google.gson.Gson;
@@ -31,6 +36,7 @@ import org.springframework.stereotype.Component;
 
 @Path("/notifications")
 @Component("RESTNotificationsStore")
+@Api(value = "/notifications", description = "Post a notification to a guest (admins only), retrieve and discard notifications")
 @Scope("request")
 public class NotificationsStore {
 
@@ -42,13 +48,17 @@ public class NotificationsStore {
 
     private final Gson gson = new Gson();
 
+
     @POST
     @Path("/{username}")
     @Produces({ MediaType.APPLICATION_JSON })
+    @ApiOperation(value = "Post a notification (admins only)", response = StatusModel.class)
     @Secured("ROLE_ADMIN")
-    public String addNotification(@PathParam("username") String username,
-                                  @FormParam("message") String message,
-                                  @FormParam("type") String type)
+    public String addNotification(@ApiParam(value="Guest's username", required=true) @PathParam("username") String username,
+                                  @ApiParam(value="Message", required=true) @FormParam("message") String message,
+                                  @ApiParam(value="Notification type",
+                                          allowableValues = "INFO, WARNING, ERROR",
+                                          required=true) @FormParam("type") String type)
             throws IOException {
 
         final Guest guest = guestService.getGuest(username);
@@ -65,8 +75,9 @@ public class NotificationsStore {
 
     @DELETE
     @Path("/{id}")
+    @ApiOperation(value = "Delete a notification", response = StatusModel.class)
     @Produces({ MediaType.APPLICATION_JSON })
-    public String discardNotification(@PathParam("id") String idString)
+    public String discardNotification(@ApiParam(value="Notification ID", required=true) @PathParam("id") String idString)
             throws IOException {
 
         long guestId = AuthHelper.getGuestId();
@@ -81,8 +92,9 @@ public class NotificationsStore {
     }
 
     @DELETE
+    @ApiOperation(value = "Delete a list of notifications", response = StatusModel.class, responseContainer = "array")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String discardNotifications(@QueryParam("ids") String ids)
+    public String discardNotifications(@ApiParam(value="Comma-separated list of notification ids", required=true) @QueryParam("ids") String ids)
             throws IOException {
 
         long guestId = AuthHelper.getGuestId();
@@ -101,6 +113,7 @@ public class NotificationsStore {
 
     @GET
     @Path("/all")
+    @ApiOperation(value = "Retrieve all current guest's notifications", response = NotificationListModel.class)
     @Produces({ MediaType.APPLICATION_JSON })
     public String getAllNotifications()
             throws IOException {
