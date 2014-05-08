@@ -2,7 +2,7 @@
 
 ## Create a developer account
 
-If you don’t already have an API account, please [apply for one](https://staging.fluxtream.org/dev/#/sign-up).
+If you don’t already have an API account, please [register for one](https://staging.fluxtream.org/dev/#/sign-up).
 
 ## Create app keys
 
