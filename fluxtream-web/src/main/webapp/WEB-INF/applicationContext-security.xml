@@ -52,6 +52,9 @@
     <http pattern="/auth/oauth2/token" security="none" />
     <http pattern="/auth/oauth2/token*" security="none" />
 
+    <!-- CORS -->
+    <http pattern="/cors" security="none" />
+
     <http access-denied-page="/accessDenied" entry-point-ref="loginUrlAuthenticationEntryPoint"
 		use-expressions="true" create-session="ifRequired">
         <http-basic/>

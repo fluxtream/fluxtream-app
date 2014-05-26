@@ -3,7 +3,7 @@ require.config({
 });
 
 require(['App', 'Connectors'], function(App, Connectors) {
-	App.initialize();
+    App.initialize();
     setAvatarImage();
 });
 

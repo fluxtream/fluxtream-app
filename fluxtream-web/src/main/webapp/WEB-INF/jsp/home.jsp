@@ -99,7 +99,8 @@
                                     </ul></li>
                                 <li class="divider-vertical"></li>
 							<li class="dropdown"><a href="#" class="dropdown-toggle" onclick="$('#connectorsDropdownToggle').popover('destroy');" id="loggedInUser" <%if(AuthHelper.getCoachee()!=null){%>style="text-shadow:0 0 10px white; color:white"<%}%>
-								data-toggle="dropdown" self="<%=request.getAttribute("fullname")%>">${vieweeFullname}<span id="profileIcon">&nbsp;</span> <b id="profileIconCaret" class="caret"></b></a>
+								data-toggle="dropdown" self="<%=request.getAttribute("fullname")%>">${vieweeFullname}<span id="profileIcon">&nbsp;</span> <b
+   id="profileIconCaret" class="caret"></b></a>
 								<ul class="dropdown-menu">
 									<li><a href="javascript:App.settings()"><i class="mainmenu-icon icon-cog icon-large pull-right"></i>Settings</a></li>
                                     <%--<li><a href="javascript:App.addresses()"><i class="mainmenu-icon icon-home icon-large pull-right"></i>Addresses</a></li>--%>
