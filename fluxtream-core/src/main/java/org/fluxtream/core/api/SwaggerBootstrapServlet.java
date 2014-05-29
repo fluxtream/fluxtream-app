@@ -5,7 +5,7 @@ import com.wordnik.swagger.config.ScannerFactory;
 import com.wordnik.swagger.jaxrs.config.DefaultJaxrsScanner;
 import com.wordnik.swagger.jaxrs.config.WebXMLReader;
 import com.wordnik.swagger.jersey.JerseyApiReader;
-import com.wordnik.swagger.model.*;
+import com.wordnik.swagger.model.ApiInfo;
 import com.wordnik.swagger.reader.ClassReaders;
 import org.fluxtream.core.Configuration;
 import org.springframework.web.context.WebApplicationContext;
@@ -17,8 +17,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * User: candide

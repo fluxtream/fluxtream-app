@@ -22,8 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -54,8 +52,8 @@ public class GuestController {
     @GET
 	@Path("/")
 	@Produces({ MediaType.APPLICATION_JSON })
-    @ApiOperation(value = "Retrieve information on the currently logged in's guest", response = GuestModel.class)
-	public String getCurrentGuest() throws InstantiationException,
+    @ApiOperation(value = "Retrieve information on the currently logged in's guest", response = StatusModel.class)
+	public Object getCurrentGuest() throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
         try{
             long guestId = AuthHelper.getGuestId();
@@ -63,10 +61,10 @@ public class GuestController {
             Guest guest = guestService.getGuestById(guestId);
             GuestModel guestModel = new GuestModel(guest);
 
-            return gson.toJson(guestModel);
+            return guestModel;
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to get current guest: " + e.getMessage()));
+            return new StatusModel(false,"Failed to get current guest: " + e.getMessage());
         }
 	}
 

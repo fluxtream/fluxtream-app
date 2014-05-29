@@ -1,5 +1,6 @@
 package org.fluxtream.mvc.controllers;
 
+import org.fluxtream.core.Configuration;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.services.GuestService;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
@@ -29,6 +31,24 @@ public class RegisterController {
 	
 	@Autowired
 	GuestService guestService;
+
+    @Autowired
+    Configuration env;
+
+    @RequestMapping("/mobile/signIn")
+    public String login(HttpServletRequest request,
+                        ModelMap model) {
+        String redirect_uri = request.getParameter("r");
+        model.addAttribute("redirect_uri", redirect_uri);
+        model.addAttribute("release", env.get("release"));
+        return "mobile/signIn";
+    }
+
+    @RequestMapping("/mobile/register")
+    public String mobileRegister(ModelMap model) {
+        model.addAttribute("release", env.get("release"));
+        return "mobile/register";
+    }
 
     @RequestMapping("/register")
     public String register() {

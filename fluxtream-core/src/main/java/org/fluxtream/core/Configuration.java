@@ -1,17 +1,18 @@
 package org.fluxtream.core;
 
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.lang.WordUtils;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.fluxtream.core.aspects.FlxLogger;
+import org.fluxtream.core.utils.DesEncrypter;
+import org.springframework.beans.factory.InitializingBean;
+
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
-import org.fluxtream.core.aspects.FlxLogger;
-import org.fluxtream.core.utils.DesEncrypter;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.lang.WordUtils;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.springframework.beans.factory.InitializingBean;
 
 public class Configuration implements InitializingBean {
 
@@ -90,6 +91,21 @@ public class Configuration implements InitializingBean {
 	public String decrypt(String s) {
 		return encrypter.decrypt(s);
 	}
+
+    public Object getProperty(final String key) {
+        Object property = commonProperties.getProperty(key);
+        if (property==null)
+            property = lastCommitProperties.getProperty(key);
+        if (property==null)
+            property = targetEnvironmentProps.getProperty(key);
+        if (property==null)
+            property = oauth.getProperty(key);
+        if (property==null)
+            property = connectors.getProperty(key);
+        if (property==null)
+            property = bodytrackProperties.getProperty(key);
+        return property;
+    }
 
     public String get(String key) {
         String property = getAsString(commonProperties, key);

@@ -24,6 +24,7 @@
     <mvc:resources mapping="/${release}/css/**" location="/css/" cache-period="31556926" />
     <mvc:resources mapping="/${release}/assets-home/**" location="/assets-home/" cache-period="31556926" />
     <mvc:resources mapping="/css/**" location="/css/" cache-period="31556926" />
+    <mvc:resources mapping="/static/mobile/css/**" location="/static/mobile/css" cache-period="31556926" />
     <mvc:resources mapping="/static/css/**" location="/static/css/" cache-period="31556926" />
     <mvc:resources mapping="/static/font/**" location="/static/font/" cache-period="31556926" />
     <mvc:resources mapping="/static/grapher4/**" location="/static/grapher4/" cache-period="31556926" />

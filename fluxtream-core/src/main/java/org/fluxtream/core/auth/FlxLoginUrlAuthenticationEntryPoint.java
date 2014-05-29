@@ -15,28 +15,23 @@
 
 package org.fluxtream.core.auth;
 
-import java.io.IOException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.fluxtream.core.Configuration;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.*;
+import org.springframework.security.web.util.RedirectUrlBuilder;
+import org.springframework.security.web.util.UrlUtils;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.DefaultRedirectStrategy;
-import org.springframework.security.web.PortMapper;
-import org.springframework.security.web.PortMapperImpl;
-import org.springframework.security.web.PortResolver;
-import org.springframework.security.web.PortResolverImpl;
-import org.springframework.security.web.RedirectStrategy;
-import org.springframework.security.web.util.RedirectUrlBuilder;
-import org.springframework.security.web.util.UrlUtils;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
+import java.io.IOException;
 
 public class FlxLoginUrlAuthenticationEntryPoint implements AuthenticationEntryPoint, InitializingBean {
     //~ Static fields/initializers =====================================================================================
@@ -56,6 +51,9 @@ public class FlxLoginUrlAuthenticationEntryPoint implements AuthenticationEntryP
     private boolean useForward = false;
 
     private final RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
+
+    @Autowired
+    Configuration env;
 
     /**
      * @deprecated Use constructor injection
@@ -94,10 +92,14 @@ public class FlxLoginUrlAuthenticationEntryPoint implements AuthenticationEntryP
      * @return the URL (cannot be null or empty; defaults to {@link #getLoginFormUrl()})
      */
     protected String determineUrlToUseForThisRequest(HttpServletRequest request, HttpServletResponse response,
-                                                     AuthenticationException exception) {
+                                                     AuthenticationException exception) throws IOException {
         final String requestURI = request.getRequestURI();
-        if (requestURI.startsWith("/api"))
-            return "/accessDenied?json=true";
+        if (requestURI.startsWith("/api")) {
+            response.setContentType("application/json");
+            response.sendError(401);
+            response.getWriter().write(String.format("{\"result\":\"KO\",\"message\":\"Access Denied. Please log in to your Fluxtream account (%s) to access this resource\"}", env.get("homeBaseUrl")));
+            return null;
+        }
         return getLoginFormUrl();
     }
 
@@ -141,7 +143,7 @@ public class FlxLoginUrlAuthenticationEntryPoint implements AuthenticationEntryP
     }
 
     protected String buildRedirectUrlToLoginPage(HttpServletRequest request, HttpServletResponse response,
-                                                 AuthenticationException authException) {
+                                                 AuthenticationException authException) throws IOException {
 
         String loginForm = determineUrlToUseForThisRequest(request, response, authException);
 

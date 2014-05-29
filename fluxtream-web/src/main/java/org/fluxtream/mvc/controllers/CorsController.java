@@ -1,6 +1,7 @@
 package org.fluxtream.mvc.controllers;
 
 import org.fluxtream.core.Configuration;
+import org.fluxtream.core.cors.SimpleCORSFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,9 +21,13 @@ public class CorsController {
     @Autowired
     Configuration env;
 
+    @Autowired
+    SimpleCORSFilter corsFilter;
+
     @RequestMapping(value = "/cors", method= RequestMethod.POST, produces = "text/html; charset=utf-8")
     public void getCorsHeaders(HttpServletRequest request,
                                HttpServletResponse response) {
+        corsFilter.setCORSHeaders(request, response);
     }
 
 }

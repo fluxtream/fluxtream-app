@@ -55,7 +55,11 @@
     <!-- CORS -->
     <http pattern="/cors" security="none" />
 
-    <http access-denied-page="/accessDenied" entry-point-ref="loginUrlAuthenticationEntryPoint"
+    <!-- mobile register & signIn -->
+    <http pattern="/mobile/signIn" security="none" />
+    <http pattern="/mobile/register" security="none" />
+
+    <http entry-point-ref="daep"
 		use-expressions="true" create-session="ifRequired">
         <http-basic/>
 		<intercept-url pattern="/**" access="hasRole('ROLE_USER')" />
@@ -79,6 +83,15 @@
 		</beans:constructor-arg>
 		<beans:property name="filterProcessesUrl" value="/logout" />
 	</beans:bean>
+
+    <beans:bean id="daep" class="org.fluxtream.core.auth.FlxAuthenticationEntryPoint">
+        <beans:property name="restApiEntryPoint" ref="restApiEntryPoint"/>
+        <beans:property name="defaultEntryPoint" ref="loginUrlAuthenticationEntryPoint"/>
+    </beans:bean>
+
+    <beans:bean id="restApiEntryPoint"
+                class="org.fluxtream.core.auth.FlxRestApiEntryPoint">
+    </beans:bean>
 
 	<beans:bean id="loginUrlAuthenticationEntryPoint"
 		class="org.fluxtream.core.auth.FlxLoginUrlAuthenticationEntryPoint">
