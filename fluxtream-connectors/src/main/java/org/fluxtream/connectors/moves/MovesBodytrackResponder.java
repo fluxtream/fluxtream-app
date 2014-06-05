@@ -1,9 +1,6 @@
 package org.fluxtream.connectors.moves;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.TimeZone;
+import org.fluxtream.core.Configuration;
 import org.fluxtream.core.SimpleTimeInterval;
 import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.TimeUnit;
@@ -16,10 +13,19 @@ import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.GuestSettings;
 import org.fluxtream.core.mvc.models.TimespanModel;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.TimeZone;
 
 @Component
 public class MovesBodytrackResponder extends AbstractBodytrackResponder {
+
+    @Autowired
+    Configuration env;
 
     @Override
     public List<TimespanModel> getTimespans(final long startMillis, final long endMillis, final ApiKey apiKey, final String channelName) {
@@ -35,7 +41,7 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
                     MovesMoveFacet moveFacet = (MovesMoveFacet) facet;
                     for (MovesActivity activity : moveFacet.getActivities()){
                         BodyTrackHelper.TimespanStyle style = new BodyTrackHelper.TimespanStyle();
-                        style.iconURL = "/images/moves/" + activity.activity + ".png";
+                        style.iconURL = String.format("/images/moves/" + activity.activity + ".png", env.get("release"));
                         final TimespanModel moveTimespanModel = new TimespanModel(activity.start, activity.end, activity.activity, objectTypeName, style);
                         items.add(moveTimespanModel);
                     }
