@@ -1471,6 +1471,11 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             updateDisplays(state);
             updated = true;
         }
+        if (state.tabState !== Calendar.tabState) {
+            Calendar.tabState = state.tabState;
+            fetchTimespan(state);
+            updated = true;
+        }
         if (updated) {
             setDocumentTitle();
             updateDatepicker(state);
@@ -1484,6 +1489,30 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             FlxState.saveState("calendar", Calendar.toStateURL(state));
         }
     };
+
+   function fetchTimespan(state,doneLoadingId) {
+       $.ajax({
+           url: "/api/v1/calendar/nav/model",
+           async: false,
+           type: "GET",
+           data: {state: state.tabState},
+           dataType: "JSON",
+           success: function(response) {
+               if (response.result == "KO"){//signifies error was returned
+                   handleError("You aren't logged in!")();
+                   return;
+               }
+               Calendar.timeRange.start = response.start;
+               Calendar.timeRange.end = response.end;
+               if (Calendar.dateAxisCursorPosition * 1000 < Calendar.timeRange.start || Calendar.dateAxisCursorPosition * 1000 > Calendar.timeRange.end)
+                   Calendar.dateAxisCursorPosition = null;
+               updateTimespan(response.currentTimespanLabel,state.tabState);
+               Calendar.timeRange.updated = true;
+               stopLoading(doneLoadingId);
+           },
+           error: handleError("failed to fetch timespan label!")
+       });
+   }
 
     function getTabState(){
         if (Calendar.tabState != null)

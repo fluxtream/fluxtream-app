@@ -62,7 +62,8 @@ define([], function() {
 
     function getWeekNumber(year, month, date) {
         var week = moment().year(year).month(month).date(date).week();
-        return week;
+        var year = moment().year(year).month(month).date(date).year();
+        return [year, week];
     }
 
     function getDateRangeForWeek(year, week) {
