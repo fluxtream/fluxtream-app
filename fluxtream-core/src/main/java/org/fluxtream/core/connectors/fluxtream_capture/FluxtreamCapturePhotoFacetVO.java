@@ -1,4 +1,4 @@
-package org.fluxtream.connectors.fluxtream_capture;
+package org.fluxtream.core.connectors.fluxtream_capture;
 
 import java.awt.Dimension;
 import java.util.ArrayList;
