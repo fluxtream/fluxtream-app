@@ -1,15 +1,13 @@
 package org.fluxtream.connectors.flickr;
 
-import java.awt.Dimension;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.connectors.vos.AbstractPhotoFacetVO;
 import org.fluxtream.core.domain.GuestSettings;
 import org.fluxtream.core.mvc.models.DimensionModel;
+
+import java.awt.*;
+import java.util.*;
+import java.util.List;
 
 public class FlickrPhotoFacetVO extends
 		AbstractPhotoFacetVO<FlickrPhotoFacet> {
@@ -70,7 +68,7 @@ public class FlickrPhotoFacetVO extends
 
         this.photoUrl = "https://farm" + facet.farm + ".static.flickr.com/"
                         + facet.server + "/" + facet.flickrId + "_" + facet.secret
-                        + "_z.jpg";
+                        + "_b.jpg";
 		description = facet.title;
 
         if (facet.longitude!=null && facet.latitude!=null){
