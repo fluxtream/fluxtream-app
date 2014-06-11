@@ -20,6 +20,7 @@ public class Application extends AbstractEntity {
     @Index(name="uid")
     public String uid;
     public String sharedSecret;
+    public String organization;
     public String name;
     public String website;
 
@@ -28,8 +29,9 @@ public class Application extends AbstractEntity {
 
     public Application(){}
 
-    public Application(final long guestId, final String name, final String description, final String website) {
+    public Application(final long guestId, final String organization, final String name, final String description, final String website) {
         this.guestId = guestId;
+        this.organization = organization;
         this.name = name;
         this.description = description;
         this.uid = UUID.randomUUID().toString();

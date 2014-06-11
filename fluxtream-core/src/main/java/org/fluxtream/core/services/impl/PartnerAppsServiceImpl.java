@@ -24,8 +24,8 @@ public class PartnerAppsServiceImpl implements PartnerAppsService {
 
     @Override
     @Transactional(readOnly=false)
-    public void createApplication(final long guestId, final String name, final String description, final String website) {
-        Application app = new Application(guestId, name, description, website);
+    public void createApplication(final long guestId, String organization, final String name, final String description, final String website) {
+        Application app = new Application(guestId, organization, name, description, website);
         em.persist(app);
     }
 
@@ -59,10 +59,11 @@ public class PartnerAppsServiceImpl implements PartnerAppsService {
 
     @Override
     @Transactional(readOnly=false)
-    public void updateApplication(long guestId, String uid, String name, String description, final String website) {
+    public void updateApplication(final long guestId, final String organization, final String uid, final String name, final String description, final String website) {
         final Application app = getApplication(guestId, uid);
         if (app!=null) {
             app.name = name;
+            app.organization = organization;
             app.description = description;
             app.website = website;
             em.persist(app);

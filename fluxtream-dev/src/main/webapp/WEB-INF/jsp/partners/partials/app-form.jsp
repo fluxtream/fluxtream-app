@@ -15,9 +15,14 @@
                        id="appName" placeholder="Enter your app's name">
             </div>
             <div class="form-group">
+                <label for="appOrg">Organization / Developer Name</label>
+                <input type="text" class="form-control" ng-model="app.organization"
+                       id="appOrg" placeholder="Your (organization) name">
+            </div>
+            <div class="form-group">
                 <label for="appName">Website (optional)</label>
                 <input type="text" class="form-control" ng-model="app.website"
-                       placeholder="Your app's website, if any">
+                       id="appWebsite" placeholder="Your app's website, if any">
             </div>
             <div class="form-group">
                 <label for="appDescription">Description</label>

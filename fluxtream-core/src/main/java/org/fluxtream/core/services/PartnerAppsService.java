@@ -11,7 +11,7 @@ import java.util.List;
  */
 public interface PartnerAppsService {
 
-    void createApplication(final long guestId, String name, String description, String website);
+    void createApplication(final long guestId, final String organization, String name, String description, String website);
 
     void deleteApplication(final long guestId, final String uid);
 
@@ -19,5 +19,5 @@ public interface PartnerAppsService {
 
     Application getApplication(final long guestId, final String uid);
 
-    void updateApplication(long guestId, String uid, String name, String description, String website);
+    void updateApplication(final long guestId, final String uid, final String organization, final String name, final String description, final String website);
 }

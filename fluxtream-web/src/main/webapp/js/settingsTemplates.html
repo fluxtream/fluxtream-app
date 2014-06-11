@@ -15,6 +15,9 @@
                     <li id="passwordSettings">
                         <a href="javascript:void(0);" onclick="$(this).tab('show');" data-target="#password-settings" data-toggle="tab">Password</a>
                     </li>
+                    <li id="appsSettings">
+                        <a href="javascript:void(0);" onclick="$(this).tab('show');" data-target="#apps-settings" data-toggle="tab">Apps</a>
+                    </li>
                     <li id="moreSettings">
                         <a href="javascript:void(0);" onclick="$(this).tab('show');" data-target="#more-settings" data-toggle="tab">More</a>
                     </li>
@@ -81,6 +84,8 @@
                     </div>
                     <div class="tab-pane settings-tab" id="password-settings">
                     </div>
+                    <div class="tab-pane settings-tab" id="apps-settings">
+                    </div>
                     <div class="tab-pane settings-tab" id="more-settings">
                         <h3>Delete my account</h3>
                         <a href="javascript:App.eraseEverything();"
@@ -94,6 +99,30 @@
             <button class="btn" onclick="App.closeModal()">Close</button>
         </div>
     </div>
+</template>
+<template id="linkedApps">
+    <h3>Applications</h3>
+    <small>You have given the following apps access to your data:</small>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>App Name</th>
+            <th>Organization</th>
+            <th>Date</th>
+            <th>&nbsp;</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#accessTokens}}
+        <tr>
+            <td><a href="{{website}}" target="_blank">{{name}}</a></td>
+            <td>{{organization}}</td>
+            <td>{{created_at}}</td>
+            <td><a href="javascript:void(0)">Revoke Access</a></td>
+        </tr>
+        {{/accessTokens}}
+        </tbody>
+    </table>
 </template>
 <template id="resetPassword">
     <h3>Change Your Password</h3>

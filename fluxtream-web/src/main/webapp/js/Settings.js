@@ -17,8 +17,11 @@ define(function() {
     }
 
     function bindMainSettingsTemplate(template, passwordTemplate, settings){
+        var linkedAppsTemplate = App.fetchCompiledMustacheTemplate("settingsTemplates.html", "linkedApps");
         var html = template.render();
         App.makeModal(html);
+        console.log(settings["accessTokens"]);
+        $("#apps-settings").append(linkedAppsTemplate.render(settings));
         $("#password-settings").append(passwordTemplate.render());
         $("#username-uneditable").html(settings.username);
         $("#guest_username").val(settings.username);

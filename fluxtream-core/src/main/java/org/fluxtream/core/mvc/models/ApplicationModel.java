@@ -10,6 +10,7 @@ import org.fluxtream.core.domain.oauth2.Application;
 public class ApplicationModel {
 
     public String name;
+    public String organization;
     public String description;
     public String sharedSecret;
     public String website;
@@ -19,6 +20,7 @@ public class ApplicationModel {
 
     public ApplicationModel(Application app) {
         this.name = app.name;
+        this.organization = app.organization;
         this.description = app.description;
         this.sharedSecret = app.sharedSecret;
         this.website= app.website;

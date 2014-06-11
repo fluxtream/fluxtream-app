@@ -4,7 +4,9 @@ import org.fluxtream.core.domain.oauth2.Application;
 import org.fluxtream.core.domain.oauth2.AuthorizationCode;
 import org.fluxtream.core.domain.oauth2.AuthorizationCodeResponse;
 import org.fluxtream.core.domain.oauth2.AuthorizationToken;
+import org.fluxtream.core.mvc.models.AuthorizationTokenModel;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -31,4 +33,6 @@ public interface OAuth2MgmtService {
     AuthorizationToken getTokenFromRefreshToken(String refreshToken);
 
     AuthorizationToken getTokenFromAccessToken(String accessToken);
+
+    List<AuthorizationTokenModel> getTokens(final long guestId);
 }

@@ -4,13 +4,16 @@ import org.fluxtream.core.domain.oauth2.Application;
 import org.fluxtream.core.domain.oauth2.AuthorizationCode;
 import org.fluxtream.core.domain.oauth2.AuthorizationCodeResponse;
 import org.fluxtream.core.domain.oauth2.AuthorizationToken;
+import org.fluxtream.core.mvc.models.AuthorizationTokenModel;
 import org.fluxtream.core.services.OAuth2MgmtService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -82,6 +85,10 @@ public class OAuth2MgmtServiceImpl implements OAuth2MgmtService {
     @Override
     @Transactional(readOnly=false)
     public void storeToken(final AuthorizationToken token) {
+        // discard old tokens with the same authorization code
+        final Query query = em.createQuery("DELETE FROM AuthorizationToken token WHERE token.authorizationCodeId=?");
+        query.setParameter(1, token.authorizationCodeId);
+        query.executeUpdate();
         em.persist(token);
     }
 
@@ -109,6 +116,24 @@ public class OAuth2MgmtServiceImpl implements OAuth2MgmtService {
             return authorizationToken;
         }
         return null;
+    }
+
+    @Override
+    public List<AuthorizationTokenModel> getTokens(long guestId) {
+        final TypedQuery<AuthorizationToken> query = em.createQuery(
+                "SELECT authorizationToken FROM AuthorizationToken authorizationToken " +
+                        "WHERE authorizationToken.guestId=?", AuthorizationToken.class);
+        query.setParameter(1, guestId);
+        final List<AuthorizationToken> resultList = query.getResultList();
+        final List<AuthorizationTokenModel> tokenModels = new ArrayList<AuthorizationTokenModel>();
+        for (AuthorizationToken authorizationToken : resultList) {
+            AuthorizationCode authCode = em.find(AuthorizationCode.class, authorizationToken.authorizationCodeId);
+            Application application = em.find(Application.class, authCode.applicationId);
+            AuthorizationTokenModel tokenModel = new AuthorizationTokenModel(application.name,
+                    application.organization, application.website, authCode.creationTime);
+            tokenModels.add(tokenModel);
+        }
+        return tokenModels;
     }
 
     @Override

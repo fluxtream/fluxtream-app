@@ -1,29 +1,26 @@
 package org.fluxtream.core.api;
 
-import java.io.IOException;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-
+import com.google.gson.Gson;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.domain.GuestSettings;
-import org.fluxtream.core.mvc.models.PhotoModel;
+import org.fluxtream.core.mvc.models.AuthorizationTokenModel;
+import org.fluxtream.core.mvc.models.GuestSettingsModel;
 import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.services.GuestService;
+import org.fluxtream.core.services.OAuth2MgmtService;
 import org.fluxtream.core.services.SettingsService;
-import com.google.gson.Gson;
-import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import java.io.IOException;
+import java.util.List;
 
 /**
  *
@@ -42,21 +39,22 @@ public class SettingsStore {
     @Autowired
     SettingsService settingsService;
 
+    @Autowired
+    OAuth2MgmtService oAuth2MgmtService;
+
     private final Gson gson = new Gson();
 
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    @ApiOperation(value = "Get the user's settings", response = String.class)
-    public String getSettings(){
+    @ApiOperation(value = "Get the user's settings", response = GuestSettingsModel.class)
+    public GuestSettingsModel getSettings(){
         final long guestId = AuthHelper.getGuestId();
         final Guest guest = guestService.getGuestById(guestId);
         final GuestSettings settings = settingsService.getSettings(guestId);
-        JSONObject jsonObject = JSONObject.fromObject(gson.toJson(settings));
-        jsonObject.put("firstName", guest.firstname);
-        jsonObject.put("lastName", guest.lastname);
-        jsonObject.put("registrationMethod", guest.registrationMethod.name());
-        jsonObject.put("username", guest.username);
-        return jsonObject.toString();
+        final List<AuthorizationTokenModel> accessTokens = oAuth2MgmtService.getTokens(guestId);
+        GuestSettingsModel settingsModel = new GuestSettingsModel(settings, guest.username,
+                guest.firstname, guest.lastname, guest.registrationMethod, accessTokens);
+        return settingsModel;
     }
 
     @POST
