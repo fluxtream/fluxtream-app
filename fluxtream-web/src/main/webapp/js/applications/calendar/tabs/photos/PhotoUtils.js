@@ -855,7 +855,7 @@ define(["core/grapher/BTCore"],function(BTCore){
         var result = {};
         result.transformations = orientationStyles[photoMetadata.orientation - 1];
         result.orientation = photoMetadata.orientation;
-        result.photoUrl = $(image).attr("src");
+        result.photoUrl = photoMetadata.url||photoMetadata.photoUrl;
         return result;
 
     }
