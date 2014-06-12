@@ -7,10 +7,12 @@ package org.fluxtream.core.mvc.models;
  */
 public class AuthorizationTokenModel {
 
-    public String name, organization, website;
+    public String accessToken, name, organization, website;
     public long creationTime;
 
-    public AuthorizationTokenModel(final String name, final String organization, final String website, final long creationTime) {
+    public AuthorizationTokenModel(final String accessToken, final String name, final String organization,
+                                   final String website, final long creationTime) {
+        this.accessToken = accessToken;
         this.name = name;
         this.organization = organization;
         this.website = website;

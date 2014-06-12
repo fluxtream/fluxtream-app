@@ -129,11 +129,22 @@ public class OAuth2MgmtServiceImpl implements OAuth2MgmtService {
         for (AuthorizationToken authorizationToken : resultList) {
             AuthorizationCode authCode = em.find(AuthorizationCode.class, authorizationToken.authorizationCodeId);
             Application application = em.find(Application.class, authCode.applicationId);
-            AuthorizationTokenModel tokenModel = new AuthorizationTokenModel(application.name,
-                    application.organization, application.website, authCode.creationTime);
+            AuthorizationTokenModel tokenModel = new AuthorizationTokenModel(authorizationToken.accessToken,
+                    application.name, application.organization, application.website, authCode.creationTime);
             tokenModels.add(tokenModel);
         }
         return tokenModels;
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void revokeAccessToken(final long guestId, final String accessToken) {
+        final AuthorizationToken authorizationToken = getTokenFromAccessToken(accessToken);
+        if (authorizationToken.guestId!=guestId)
+            throw new RuntimeException("Attempt to revoke an authorizationToken by another user");
+        final Query query = em.createNativeQuery("DELETE FROM AuthorizationToken WHERE accessToken=?");
+        query.setParameter(1, accessToken);
+        query.executeUpdate();
     }
 
     @Override

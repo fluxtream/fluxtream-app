@@ -16,12 +16,19 @@ define(function() {
         });
     }
 
-    function bindMainSettingsTemplate(template, passwordTemplate, settings){
+    function renderLinkedAppsTemplate(settings) {
         var linkedAppsTemplate = App.fetchCompiledMustacheTemplate("settingsTemplates.html", "linkedApps");
+        var accessTokens = settings["accessTokens"];
+        for (var i=0; i<accessTokens.length; i++)
+            accessTokens[i].createdAt = moment(accessTokens[i]["creationTime"]).calendar();
+        return linkedAppsTemplate.render(settings);
+    }
+
+    function bindMainSettingsTemplate(template, passwordTemplate, settings){
         var html = template.render();
         App.makeModal(html);
-        console.log(settings["accessTokens"]);
-        $("#apps-settings").append(linkedAppsTemplate.render(settings));
+        var renderedLinkedAppsTemplate = renderLinkedAppsTemplate(settings);
+        $("#apps-settings").append(renderedLinkedAppsTemplate);
         $("#password-settings").append(passwordTemplate.render());
         $("#username-uneditable").html(settings.username);
         $("#guest_username").val(settings.username);
@@ -70,7 +77,36 @@ define(function() {
                     break;
             }
         });
+        bindLinkedAppsTemplate();
         $("#settingsTabs").tab();
+    }
+
+    function bindLinkedAppsTemplate() {
+        $(".revokeAccessToken").unbind();
+        $(".revokeAccessToken").click(function(event){
+            var accessToken = $(event.target).attr("data-accessToken");
+            $.ajax({
+                url: "/api/v1/settings/accessTokens/" + accessToken,
+                type: "DELETE",
+                success: function(status) {
+                    console.log(status);
+                    if (status.result==="OK") {
+                        $.ajax("/api/v1/settings",{
+                            success: function(settings) {
+                                var renderedLinkedAppsTemplate = renderLinkedAppsTemplate(settings);
+                                $("#apps-settings").empty().append(renderedLinkedAppsTemplate);
+                                bindLinkedAppsTemplate();
+                            }
+                        });
+                    } else {
+                        $("#apps-settings").empty().append("<h4>Something went wrong... please contact us</h1>")
+                    }
+                },
+                error: function() {
+                    $("#apps-settings").empty().append("<h4>Something went wrong... please contact us</h1>")
+                }
+            });
+        });
     }
 
     function saveGeneralSettings(settings) {

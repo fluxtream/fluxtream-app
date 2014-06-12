@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
+import org.codehaus.plexus.util.ExceptionUtils;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.domain.GuestSettings;
@@ -43,6 +44,21 @@ public class SettingsStore {
     OAuth2MgmtService oAuth2MgmtService;
 
     private final Gson gson = new Gson();
+
+    @DELETE
+    @Path("/accessTokens/{accessToken}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    @ApiOperation(value = "Get the user's settings", response = GuestSettingsModel.class)
+    public StatusModel revokeAccessToken(@PathParam("accessToken") final String accessToken){
+        final long guestId = AuthHelper.getGuestId();
+        try {
+            oAuth2MgmtService.revokeAccessToken(guestId, accessToken);
+            return new StatusModel(true, "Successfully delete authToken with accessToken " + accessToken);
+        } catch (Throwable t) {
+            final String stackTrace = ExceptionUtils.getStackTrace(t);
+            return StatusModel.failure("Couldn't remove accessToken", stackTrace);
+        }
+    }
 
     @GET
     @Produces({ MediaType.APPLICATION_JSON })

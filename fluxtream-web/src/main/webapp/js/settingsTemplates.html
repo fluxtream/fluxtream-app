@@ -102,6 +102,7 @@
 </template>
 <template id="linkedApps">
     <h3>Applications</h3>
+    {{#accessTokens}}
     <small>You have given the following apps access to your data:</small>
     <table class="table">
         <thead>
@@ -115,14 +116,23 @@
         <tbody>
         {{#accessTokens}}
         <tr>
-            <td><a href="{{website}}" target="_blank">{{name}}</a></td>
-            <td>{{organization}}</td>
-            <td>{{created_at}}</td>
-            <td><a href="javascript:void(0)">Revoke Access</a></td>
+            {{#website}}
+                <td><a href="{{website}}" target="_blank">{{name}}</a></td>
+            {{/website}}
+            {{^website}}
+                <td>{{name}}</td>
+            {{/website}}
+            <td>{{#organization}}{{organization}}{{/organization}}{{^organization}}none{{/organization}}</td>
+            <td>{{createdAt}}</td>
+            <td><a href="javascript:void(0)" class="revokeAccessToken" data-accessToken="{{accessToken}}">Revoke Access</a></td>
         </tr>
         {{/accessTokens}}
         </tbody>
     </table>
+    {{/accessTokens}}
+    {{^accessTokens}}
+    <small>Currently, you haven't given access to your data to any app.</small>
+    {{/accessTokens}}
 </template>
 <template id="resetPassword">
     <h3>Change Your Password</h3>
