@@ -59,6 +59,10 @@
     <http pattern="/mobile/signIn" security="none" />
     <http pattern="/mobile/register" security="none" />
 
+    <!-- developer website -->
+    <http pattern="/dev/partials/*" security="none" />
+    <http pattern="/dev/*" security="none" />
+
     <http entry-point-ref="daep"
 		use-expressions="true" create-session="ifRequired">
         <http-basic/>

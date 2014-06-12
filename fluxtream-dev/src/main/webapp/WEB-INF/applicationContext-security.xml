@@ -34,6 +34,7 @@
 		<intercept-url pattern="/**" access="hasRole('ROLE_DEVELOPER')" />
         <intercept-url pattern="/signIn" access="IS_AUTHENTICATED_ANONYMOUSLY" />
 
+        <custom-filter before="PRE_AUTH_FILTER" ref="oauth2ProcessingFilter" />
 		<custom-filter position="FORM_LOGIN_FILTER" ref="authFilter" />
 		<custom-filter position="LOGOUT_FILTER" ref="logoutFilter" />
 	</http>
