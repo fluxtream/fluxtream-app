@@ -43,7 +43,12 @@ public class SimpleCORSFilter implements Filter {
     public void destroy() {}
 
     public String getAllowedOrigin(String origin) {
-        final ArrayList<String> allowedOrigins = (ArrayList<String>) env.getProperty("allowedOrigins");
+        final Object envProperty = env.getProperty("allowedOrigins");
+        final ArrayList<String> allowedOrigins = new ArrayList<String>();
+        if (envProperty instanceof String)
+            allowedOrigins.add((String)envProperty);
+        else
+            allowedOrigins.addAll((ArrayList<String>) envProperty);
         if (allowedOrigins.contains(origin))
             return origin;
         return allowedOrigins.iterator().next();
