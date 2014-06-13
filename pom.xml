@@ -9,7 +9,6 @@
 		<module>maven</module>
 		<module>fluxtream-core</module>
 		<module>fluxtream-connectors</module>
-		<!--<module>fluxtream-dev</module>-->
 		<module>fluxtream-web</module>
 	</modules>
 	<build>

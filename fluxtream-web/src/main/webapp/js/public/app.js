@@ -1,4 +1,4 @@
-var developerWebsiteApp = angular.module('developerWebsiteApp', [
+    var developerWebsiteApp = angular.module('developerWebsiteApp', [
     'ngRoute',
     'developerWebsiteControllers',
     'developerWebsiteServices'
@@ -15,8 +15,11 @@ developerWebsiteApp.config(['$routeProvider', '$locationProvider',
                 templateUrl: 'partials/sign-up',
                 controller: 'SignUpCtrl'
             }).
-            when('/user-manual', {
-                templateUrl: 'partials/user-manual'
+            when('/general', {
+                templateUrl: 'partials/manuals/general'
+            }).
+            when('/authorization', {
+                templateUrl: 'partials/manuals/authorization'
             }).
             when('/api-docs', {
                 templateUrl: 'partials/api-docs'

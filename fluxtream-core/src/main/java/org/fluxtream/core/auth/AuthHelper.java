@@ -1,14 +1,15 @@
 package org.fluxtream.core.auth;
 
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.Set;
 import org.fluxtream.core.domain.CoachingBuddy;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.services.CoachingService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Set;
 
 public class AuthHelper {
 
@@ -97,11 +98,14 @@ public class AuthHelper {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if (auth==null)
 			return null;
-        final FlxUserDetails principal = (FlxUserDetails)auth.getPrincipal();
-        Guest guest = principal.getGuest();
-        // set the guest's ID in case we got an instance that was deserialized from
-        // disk (in which case it will be null)
-        guest.setId(principal.guestId);
-		return guest;
+        final Object authPrincipal = auth.getPrincipal();
+        if (authPrincipal instanceof FlxUserDetails) {
+            final FlxUserDetails principal = (FlxUserDetails) authPrincipal;
+            Guest guest = principal.getGuest();
+            // set the guest's ID in case we got an instance that was deserialized from
+            // disk (in which case it will be null)
+            guest.setId(principal.guestId);
+            return guest;
+        } else return null;
 	}
 }

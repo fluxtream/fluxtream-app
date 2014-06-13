@@ -127,7 +127,7 @@
                     <a href="${release}/html/privacyPolicy.html" class="policyLink">Privacy policy and terms of use</a>
                 </li>
                 <li>
-                    <a href="https://github.com/fluxtream/fluxtream-app/wiki" class="developerLink">Developers: join our open-source team!</a>
+                    <a href="/dev/" class="developerLink">For Developers: API & Build Instructions</a>
                 </li>
 
 <!-- Comment this out until we have something good to point a learn more link at.  

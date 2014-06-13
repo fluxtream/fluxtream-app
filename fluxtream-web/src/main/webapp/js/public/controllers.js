@@ -40,7 +40,10 @@ developerWebsiteControllers.controller('SignInCtrl', ['$scope', '$http', '$parse
             $http({
                 url: "signIn",
                 method: "POST",
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                headers: {
+                    'Content-Type' : 'application/x-www-form-urlencoded',
+                    'X-DEV-WEBSITE' : 'true'
+                },
                 data: $.param(credentials)
             }).success(function(data) {
                 if (data.authd) {

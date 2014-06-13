@@ -20,7 +20,7 @@
                        id="appOrg" placeholder="Your (organization) name">
             </div>
             <div class="form-group">
-                <label for="appName">Website (optional)</label>
+                <label for="appWebsite">Website (optional)</label>
                 <input type="text" class="form-control" ng-model="app.website"
                        id="appWebsite" placeholder="Your app's website, if any">
             </div>
