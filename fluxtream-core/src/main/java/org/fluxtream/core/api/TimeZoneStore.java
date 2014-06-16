@@ -1,23 +1,24 @@
 package org.fluxtream.core.api;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TimeZone;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import com.google.gson.Gson;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.metadata.DayMetadata;
 import org.fluxtream.core.mvc.models.TimeZoneMappingModel;
 import org.fluxtream.core.mvc.models.TimeZoneSegmentModel;
 import org.fluxtream.core.services.MetadataService;
-import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-@Path("/timezones")
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TimeZone;
+
+@Path("/v1/timezones")
 @Component("RESTTimeZoneStore")
 @Scope("request")
 public class TimeZoneStore {

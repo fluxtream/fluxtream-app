@@ -21,6 +21,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import static org.fluxtream.core.utils.Utils.generateSecureRandomString;
 
@@ -29,7 +30,7 @@ import static org.fluxtream.core.utils.Utils.generateSecureRandomString;
  * Date: 09/09/13
  * Time: 12:13
  */
-@Path("/facebook")
+@Path("/v1/facebook")
 @Component("RESTFacebookLoginController")
 @Scope("request")
 public class FacebookLoginController {
@@ -45,7 +46,7 @@ public class FacebookLoginController {
     @POST
     @Produces({ MediaType.APPLICATION_JSON })
     @Path("/login")
-    public StatusModel facebookLogin(@QueryParam("access_token") String access_token) {
+    public Response facebookLogin(@QueryParam("access_token") String access_token) {
         String appId = env.get("facebook.appId");
         String appSecret = env.get("facebook.appSecret");
         try {
@@ -78,16 +79,16 @@ public class FacebookLoginController {
                 guestService.setApiKeyAttribute(apiKey, "me", me);
 
                 final String message = "Facebook guest creation success!";
-                return getStatusModel(guest, autoLoginToken, message);
+                return Response.ok(getStatusModel(guest, autoLoginToken, message)).build();
             } else {
                 final String message = "Facebook auto-login success!";
-                return getStatusModel(guest, autoLoginToken, message);
+                return Response.ok(getStatusModel(guest, autoLoginToken, message)).build();
 
             }
         } catch(ExistingEmailException e) {
-            return new StatusModel(false, "We already have a user under this email address.");
+            return Response.status(Response.Status.BAD_REQUEST).entity("We already have a user under this email address.").build();
         } catch(UsernameAlreadyTakenException e) {
-            return new StatusModel(false, "Sorry, this username is already taken");
+            return Response.status(Response.Status.BAD_REQUEST).entity("Sorry, this username is already taken").build();
         }
     }
 

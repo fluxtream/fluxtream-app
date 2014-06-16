@@ -50,13 +50,13 @@ import java.lang.reflect.Type;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-@Path("/v1/bodytrack")
-@Component("RESTBodytrackController")
-@Api(value = "/v1/bodytrack", description = "CSV export and import, timeline-related operations")
+@Path("/bodytrack")
+@Component("RESTLegacyBodytrackController")
+@Api(value = "/bodytrack", description = "CSV export and import, timeline-related operations")
 @Scope("request")
-public class BodyTrackController {
+public class LegacyBodyTrackController {
 
-    private static final FlxLogger LOG = FlxLogger.getLogger(BodyTrackController.class);
+    private static final FlxLogger LOG = FlxLogger.getLogger(LegacyBodyTrackController.class);
     private static final FlxLogger LOG_DEBUG = FlxLogger.getLogger("Fluxtream");
     private static final int ONE_WEEK_IN_SECONDS = 604800;
 

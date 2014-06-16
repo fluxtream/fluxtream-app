@@ -116,7 +116,7 @@
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>jersey</servlet-name>
-        <url-pattern>/api/v1/*</url-pattern>
+        <url-pattern>/api/*</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

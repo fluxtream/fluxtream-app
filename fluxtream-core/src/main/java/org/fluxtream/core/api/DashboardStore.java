@@ -1,42 +1,35 @@
 package org.fluxtream.core.api;
 
+import com.google.gson.Gson;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.velocity.util.StringUtils;
+import org.fluxtream.core.aspects.FlxLogger;
+import org.fluxtream.core.auth.AuthHelper;
+import org.fluxtream.core.domain.Dashboard;
+import org.fluxtream.core.domain.DashboardWidget;
+import org.fluxtream.core.domain.WidgetSettings;
+import org.fluxtream.core.services.DashboardsService;
+import org.fluxtream.core.services.WidgetsService;
+import org.fluxtream.core.utils.Utils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import org.fluxtream.core.auth.AuthHelper;
-import org.fluxtream.core.domain.Dashboard;
-import org.fluxtream.core.domain.DashboardWidget;
-import org.fluxtream.core.domain.WidgetSettings;
-import org.fluxtream.core.mvc.models.StatusModel;
-import org.fluxtream.core.services.DashboardsService;
-import org.fluxtream.core.services.WidgetsService;
-import org.fluxtream.core.utils.Utils;
-import com.google.gson.Gson;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import org.fluxtream.core.aspects.FlxLogger;
-import org.apache.velocity.util.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Candide Kemmler (candide@fluxteam.com)
  */
-@Path("/dashboards")
+@Path("/v1/dashboards")
 @Component("RESTDashboardStore")
 @Scope("request")
     public class DashboardStore {
@@ -53,7 +46,7 @@ import org.springframework.stereotype.Component;
 
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public String getDashboards() {
+    public Response getDashboards() {
         long guestId = AuthHelper.getGuestId();
         try {
             List<Dashboard> dashboards = dashboardsService.getDashboards(guestId);
@@ -67,10 +60,10 @@ import org.springframework.stereotype.Component;
             StringBuilder sb = new StringBuilder("module=API component=dashboardStore action=getDashboards")
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
-            return jsonArray.toString();
+            return Response.ok(jsonArray.toString()).build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to get dashboards: " + e.getMessage()));
+            return Response.serverError().entity("Failed to get dashboards: " + e.getMessage()).build();
         }
     }
 
@@ -127,7 +120,7 @@ import org.springframework.stereotype.Component;
 
     @POST
     @Produces({ MediaType.APPLICATION_JSON })
-    public String addDashboard(@FormParam("dashboardName") String dashboardName) throws UnsupportedEncodingException {
+    public Response addDashboard(@FormParam("dashboardName") String dashboardName) throws UnsupportedEncodingException {
         long guestId = AuthHelper.getGuestId();
         try {
             dashboardsService.addDashboard(guestId, dashboardName);
@@ -141,14 +134,14 @@ import org.springframework.stereotype.Component;
                     .append(" guestId=").append(guestId)
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.warn(sb.toString());
-            return gson.toJson(new StatusModel(false,"Failed to add dashboard: " + e.getMessage()));
+            return Response.serverError().entity("Failed to add dashboard: " + e.getMessage()).build();
         }
     }
 
     @DELETE
     @Path("/{dashboardId}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String removeDashboard(@PathParam("dashboardId") long dashboardId) throws UnsupportedEncodingException {
+    public Response removeDashboard(@PathParam("dashboardId") long dashboardId) throws UnsupportedEncodingException {
         long guestId = AuthHelper.getGuestId();
         try {
             dashboardsService.removeDashboard(guestId, dashboardId);
@@ -162,14 +155,14 @@ import org.springframework.stereotype.Component;
                     .append(" guestId=").append(guestId)
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.warn(sb.toString());
-            return gson.toJson(new StatusModel(false,"Failed to delete dashboard: " + e.getMessage()));
+            return Response.serverError().entity("Failed to delete dashboard: " + e.getMessage()).build();
         }
     }
 
     @GET
     @Path("/{dashboardId}/availableWidgets")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String getAvailableWidgets(@PathParam("dashboardId") long dashboardId) {
+    public Response getAvailableWidgets(@PathParam("dashboardId") long dashboardId) {
         long guestId = AuthHelper.getGuestId();
         try {
             final List<DashboardWidget> availableWidgetsList = widgetsService.getAvailableWidgetsList(guestId);
@@ -186,21 +179,21 @@ import org.springframework.stereotype.Component;
             StringBuilder sb = new StringBuilder("module=API component=dashboardStore action=getAvailableWidgets")
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
-            return gson.toJson(widgetsNotYetInDashboard);
+            return Response.ok(widgetsNotYetInDashboard).build();
         }
         catch (Exception e) {
             StringBuilder sb = new StringBuilder("module=API component=dashboardStore action=getAvailableWidgets")
                     .append(" guestId=").append(guestId)
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.warn(sb.toString());
-            return gson.toJson(new StatusModel(false,"Failed to get availableWidgets: " + e.getMessage()));
+            return Response.serverError().entity("Failed to get availableWidgets: " + e.getMessage()).build();
         }
     }
 
     @PUT
     @Path("/{dashboardId}/name")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String renameDashboard(@PathParam("dashboardId") long dashboardId,
+    public Response renameDashboard(@PathParam("dashboardId") long dashboardId,
                                   @QueryParam("name") String newName) throws UnsupportedEncodingException {
         long guestId = AuthHelper.getGuestId();
         try {
@@ -216,14 +209,14 @@ import org.springframework.stereotype.Component;
                     .append(" guestId=").append(guestId)
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.warn(sb.toString());
-            return gson.toJson(new StatusModel(false,"Failed to rename dashboard: " + e.getMessage()));
+            return Response.serverError().entity("Failed to rename dashboard: " + e.getMessage()).build();
         }
     }
 
     @PUT
     @Path("/{dashboardId}/active")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String setActiveDashboard(@PathParam("dashboardId") long dashboardId)
+    public Response setActiveDashboard(@PathParam("dashboardId") long dashboardId)
             throws UnsupportedEncodingException {
         long guestId = AuthHelper.getGuestId();
         try {
@@ -238,14 +231,14 @@ import org.springframework.stereotype.Component;
                     .append(" guestId=").append(guestId)
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.warn(sb.toString());
-            return gson.toJson(new StatusModel(false,"Failed to set active dashboard: " + e.getMessage()));
+            return Response.serverError().entity("Failed to set active dashboard: " + e.getMessage()).build();
         }
     }
 
     @POST
     @Path("/{dashboardId}/widgets")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String addWidget(@PathParam("dashboardId") long dashboardId,
+    public Response addWidget(@PathParam("dashboardId") long dashboardId,
                             @FormParam("widget") String widgetJson) throws UnsupportedEncodingException {
         long guestId = AuthHelper.getGuestId();
         try {
@@ -261,14 +254,14 @@ import org.springframework.stereotype.Component;
                     .append(" guestId=").append(guestId)
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.warn(sb.toString());
-            return gson.toJson(new StatusModel(false,"Failed to add widget: " + e.getMessage()));
+            return Response.serverError().entity("Failed to add widget: " + e.getMessage()).build();
         }
     }
 
     @DELETE
     @Path("/{dashboardId}/widgets/{widgetName}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String removeWidget(@PathParam("dashboardId") long dashboardId,
+    public Response removeWidget(@PathParam("dashboardId") long dashboardId,
                                @PathParam("widgetName") String widgetName) throws UnsupportedEncodingException {
         long guestId = AuthHelper.getGuestId();
         try {
@@ -284,14 +277,14 @@ import org.springframework.stereotype.Component;
                     .append(" guestId=").append(guestId)
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.warn(sb.toString());
-            return gson.toJson(new StatusModel(false,"failed to remove widget: " + e.getMessage()));
+            return Response.serverError().entity("Failed to remove widget: " + e.getMessage()).build();
         }
     }
 
     @POST
     @Path("/{dashboardId}/widgets/reorder")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String setWidgetsOrder(@PathParam("dashboardId") long dashboardId,
+    public Response setWidgetsOrder(@PathParam("dashboardId") long dashboardId,
                                   @FormParam("widgetNames") String widgetNames) throws UnsupportedEncodingException {
         long guestId = AuthHelper.getGuestId();
         try {
@@ -307,14 +300,14 @@ import org.springframework.stereotype.Component;
                     .append(" guestId=").append(guestId)
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.warn(sb.toString());
-            return gson.toJson(new StatusModel(false,"Failed to set widget order: " + e.getMessage()));
+            return Response.serverError().entity("Failed to set widget order: " + e.getMessage()).build();
         }
     }
 
     @POST
     @Path("/reorder")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String setDashboardsOrder(@FormParam("dashboardIds") String dashboardIds) throws UnsupportedEncodingException {
+    public Response setDashboardsOrder(@FormParam("dashboardIds") String dashboardIds) throws UnsupportedEncodingException {
         long guestId = AuthHelper.getGuestId();
         try {
             //dashboardIds = URLDecoder.decode(dashboardIds, "UTF-8");
@@ -335,39 +328,38 @@ import org.springframework.stereotype.Component;
                     .append(" guestId=").append(guestId)
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.warn(sb.toString());
-            return gson.toJson(new StatusModel(false,"Failed to set dashboard order: " + e.getMessage()));
+            return Response.serverError().entity("Failed to set dashboard order: " + e.getMessage()).build();
         }
     }
 
     @POST
     @Path("/{dashboardId}/widgets/{widgetName}/settings")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String saveWidgetSettings(@PathParam("dashboardId") long dashboardId,
+    public Response saveWidgetSettings(@PathParam("dashboardId") long dashboardId,
                                      @PathParam("widgetName") String widgetName,
                                      @FormParam("settingsJSON") String settingsJSON) throws UnsupportedEncodingException {
         long guestId = AuthHelper.getGuestId();
         try {
             widgetName = URLDecoder.decode(widgetName, "UTF-8");
             widgetsService.saveWidgetSettings(guestId, dashboardId, widgetName, settingsJSON);
-            StatusModel statusModel = new StatusModel(true, "Successfully saved widget settings");
             StringBuilder sb = new StringBuilder("module=API component=dashboardStore action=saveWidgetSettings")
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
-            return gson.toJson(statusModel);
+            return Response.ok("Successfully saved widget settings").build();
         }
         catch (Exception e) {
             StringBuilder sb = new StringBuilder("module=API component=dashboardStore action=saveWidgetSettings")
                     .append(" guestId=").append(guestId)
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.warn(sb.toString());
-            return gson.toJson(new StatusModel(false,"Failed to save widget settings: " + e.getMessage()));
+            return Response.serverError().entity("Failed to save widget settings: " + e.getMessage()).build();
         }
     }
 
     @GET
     @Path("/{dashboardId}/widgets/{widgetName}/settings")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String getWidgetSettings(@PathParam("dashboardId") long dashboardId,
+    public Response getWidgetSettings(@PathParam("dashboardId") long dashboardId,
                                     @PathParam("widgetName") String widgetName) throws UnsupportedEncodingException {
         long guestId = AuthHelper.getGuestId();
         try{
@@ -377,14 +369,14 @@ import org.springframework.stereotype.Component;
             StringBuilder sb = new StringBuilder("module=API component=dashboardStore action=getWidgetSettings")
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
-            return jsonSettings.toString();
+            return Response.ok(jsonSettings.toString()).build();
         }
         catch (Exception e){
             StringBuilder sb = new StringBuilder("module=API component=dashboardStore action=getWidgetSettings")
                     .append(" guestId=").append(guestId)
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.warn(sb.toString());
-            return gson.toJson(new StatusModel(false,"Failed to get widget settings: " + e.getMessage()));
+            return Response.serverError().entity("Failed to get widget settings: " + e.getMessage()).build();
         }
     }
 

@@ -1,17 +1,10 @@
 package org.fluxtream.core.api;
 
-import java.util.Collection;
-import java.util.List;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-
+import com.google.gson.Gson;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
+import net.sf.json.JSONObject;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.updaters.ScheduleResult;
@@ -24,23 +17,25 @@ import org.fluxtream.core.services.ConnectorUpdateService;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.services.SystemService;
 import org.fluxtream.core.updaters.quartz.Producer;
-import com.google.gson.Gson;
-import net.sf.json.JSONObject;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import java.util.Collection;
+import java.util.List;
 
 /**
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
-@Path("/sync")
+@Path("/v1/sync")
 @Component("RESTSyncController")
-@Api(value = "/sync", description = "Retrieve information about connector state and schedule connector synchronization")
+@Api(value = "/v1/sync", description = "Retrieve information about connector state and schedule connector synchronization")
 @Scope("request")
 public class SyncController {
 

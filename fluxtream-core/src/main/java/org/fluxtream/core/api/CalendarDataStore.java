@@ -6,12 +6,10 @@ import com.luckycatlabs.sunrisesunset.dto.Location;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
-import com.wordnik.swagger.annotations.Authorization;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.plexus.util.ExceptionUtils;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.OutsideTimeBoundariesException;
 import org.fluxtream.core.TimeInterval;
@@ -45,11 +43,12 @@ import org.springframework.stereotype.Component;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.*;
 
-@Path("/calendar")
-@Api(value = "/calendar", description = "Main devices and service API facets consumption operations")
+@Path("/v1/calendar")
+@Api(value = "/v1/calendar", description = "Main devices and service API facets consumption operations")
 @Component("RESTCalendarDataStore")
 @Scope("request")
 public class CalendarDataStore {
@@ -84,7 +83,7 @@ public class CalendarDataStore {
     @ApiOperation(value = "Get the user's location data for a specific week", response = DigestModel.class,
                   notes="Locations can get quite heavy and take a while to parse, so we provide them in a separate call.")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String getLocationConnectorsWeekData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
+    public Response getLocationConnectorsWeekData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
                                                 @ApiParam(value="Week", required=true) @PathParam("week") final int week,
                                                 @ApiParam(value="filter JSON", required=true) @QueryParam("filter") String filter) {
         return getWeekData(year, week, filter, true);
@@ -95,13 +94,13 @@ public class CalendarDataStore {
     @ApiOperation(value = "Get all the user's connectors' data for a specific week", response = DigestModel.class,
                   notes="Unlike its date-based equivalent, this call will not contain Location data")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String getAllConnectorsWeekData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
+    public Response getAllConnectorsWeekData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
                                            @ApiParam(value="Week", required=true) @PathParam("week") final int week,
                                            @ApiParam(value="filter JSON", required=true) @QueryParam("filter") String filter) {
         return getWeekData(year, week, filter, false);
     }
 
-	public String getWeekData(final int year,
+	public Response getWeekData(final int year,
 			                  final int week,
                               String filter,
                               boolean locationDataOnly) {
@@ -111,7 +110,7 @@ public class CalendarDataStore {
         try {
             coachee = AuthHelper.getCoachee();
         } catch (CoachRevokedException e) {
-            return gson.toJson(new StatusModel(false, "Sorry, permission to access this data has been revoked."));
+            return Response.status(403).entity("Sorry, permission to access this data has been revoked.").build();
         }
         if (coachee!=null) {
             guestId = coachee.guestId;
@@ -160,8 +159,7 @@ public class CalendarDataStore {
 
             digest.generationTimestamp = new java.util.Date().getTime();
 
-            final String s = toJacksonJson(digest);
-            return s;
+            return Response.ok(toJacksonJson(digest)).build();
         }
         catch (Exception e){
             StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsWeekData")
@@ -170,7 +168,7 @@ public class CalendarDataStore {
                     .append(" guestId=").append(guestId)
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.warn(sb.toString());
-            return gson.toJson(new StatusModel(false,"Failed to get digest: " + e.getMessage()));
+            return Response.serverError().entity(sb.toString()).build();
         }
 	}
 
@@ -179,7 +177,7 @@ public class CalendarDataStore {
     @ApiOperation(value = "Get the user's location data for a specific month", response = DigestModel.class,
                   notes="Locations can get quite heavy and take a while to parse, so we provide them in a separate call.")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String getLocationConnectorsMonthData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
+    public Response getLocationConnectorsMonthData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
                                                  @ApiParam(value="Month", required=true) @PathParam("month") final int month,
                                                  @ApiParam(value="Filter JSON", required=true) @QueryParam("filter") String filter) {
         return getMonthData(year, month, filter, true);
@@ -190,20 +188,20 @@ public class CalendarDataStore {
     @ApiOperation(value = "Get all the user's connectors' data for a specific month", response = DigestModel.class,
                   notes="Unlike its date-based equivalent, this call will not contain Location data")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String getAllConnectorsMonthData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
+    public Response getAllConnectorsMonthData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
                                             @ApiParam(value="Month", required=true) @PathParam("month") final int month,
                                             @ApiParam(value="Filter JSON", required=true) @QueryParam("filter") String filter) {
         return getMonthData(year, month, filter, false);
     }
 
-    private String getMonthData(final int year, final int month, String filter, boolean locationDataOnly) {
+    private Response getMonthData(final int year, final int month, String filter, boolean locationDataOnly) {
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
         CoachingBuddy coachee;
         try {
             coachee = AuthHelper.getCoachee();
         } catch (CoachRevokedException e) {
-            return gson.toJson(new StatusModel(false, "Sorry, permission to access this data has been revoked."));
+            return Response.status(403).entity("Sorry, permission to access this data has been revoked.").build();
         }
         if (coachee!=null) {
             guestId = coachee.guestId;
@@ -249,7 +247,7 @@ public class CalendarDataStore {
             digest.generationTimestamp = new java.util.Date().getTime();
 
             final String s = toJacksonJson(digest);
-            return s;
+            return Response.ok(s).build();
         }
         catch (Exception e){
             StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsMonthData")
@@ -258,7 +256,7 @@ public class CalendarDataStore {
                     .append(" guestId=").append(guestId)
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.warn(sb.toString());
-            return gson.toJson(new StatusModel(false,"Failed to get digest: " + e.getMessage()));
+            return Response.serverError().entity("Failed to get digest: " + e.getMessage()).build();
         }
     }
 
@@ -315,9 +313,9 @@ public class CalendarDataStore {
 	@Path("/all/date/{date}")
     @ApiOperation(value = "Get the user's connectors' data for a specific date", response = DigestModel.class)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public String getAllConnectorsDayData(@ApiParam(value="Date (YYYY-MM-DD)", required=true) @PathParam("date") String date,
+	public Response getAllConnectorsDayData(@ApiParam(value="Date (YYYY-MM-DD)", required=true) @PathParam("date") String date,
                                           @ApiParam(value="Filter JSON", required=false) @QueryParam(value="filter") String filter) throws InstantiationException,
-			IllegalAccessException, ClassNotFoundException {
+            IllegalAccessException, ClassNotFoundException, UpdateFailedException, OutsideTimeBoundariesException, IOException {
         if (StringUtils.isEmpty(filter))
             filter = "{}";
         Guest guest;
@@ -326,72 +324,60 @@ public class CalendarDataStore {
             guest = AuthHelper.getGuest();
             guestId = guest.getId();
         } catch (Throwable e) {
-            return gson.toJson(new StatusModel(false, "You are no longer logged in. Please reload your browser window"));
+            return Response.status(401).entity("You are no longer logged in. Please reload your browser window").build();
         }
 
         CoachingBuddy coachee;
         try {
             coachee = AuthHelper.getCoachee();
         } catch (CoachRevokedException e) {
-            return gson.toJson(new StatusModel(false, "Sorry, permission to access this data has been revoked. Please reload your browser window"));
+            return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();
         }
         if (coachee!=null) {
             guestId = coachee.guestId;
             guest = guestService.getGuestById(guestId);
         }
-        try{
-            long then = System.currentTimeMillis();
-            DayMetadata dayMetadata = metadataService.getDayMetadata(guestId, date);
-            CalendarModel calendarModel = CalendarModel.fromState(guestId, metadataService, "date/" + date);
-            DigestModel digest = new DigestModel(TimeUnit.DAY, dayMetadata, env, calendarModel);
+        long then = System.currentTimeMillis();
+        DayMetadata dayMetadata = metadataService.getDayMetadata(guestId, date);
+        CalendarModel calendarModel = CalendarModel.fromState(guestId, metadataService, "date/" + date);
+        DigestModel digest = new DigestModel(TimeUnit.DAY, dayMetadata, env, calendarModel);
 
-            digest.metadata.timeUnit = "DAY";
-            if (filter == null) {
-                filter = "";
-            }
-
-            digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
-                    dayMetadata.end);
-
-            setMetadata(digest, dayMetadata, new String[]{date});
-
-            if (digest.metadata.mainCity!=null)
-                setSolarInfo(digest, dayMetadata.consensusVisitedCity.city, guestId, dayMetadata);
-
-            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, coachee);
-            digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
-            List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
-            allApiKeys = removeConnectorsWithoutFacets(allApiKeys, coachee);
-            digest.nApis = allApiKeys.size();
-            GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
-
-            Map<Long,Object> connectorSettings = new HashMap<Long,Object>();
-            setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection, dayMetadata, false);
-
-            setNotifications(digest, AuthHelper.getGuestId());
-            setCurrentAddress(digest, guestId, dayMetadata.start);
-            digest.settings = new SettingsModel(settings, connectorSettings, guest);
-
-            StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsDayData")
-                    .append(" date=").append(date)
-                    .append(" timeTaken=").append(System.currentTimeMillis()-then)
-                    .append(" guestId=").append(guestId);
-            logger.info(sb.toString());
-
-            digest.generationTimestamp = new java.util.Date().getTime();
-
-            final String s = toJacksonJson(digest);
-            return s;
+        digest.metadata.timeUnit = "DAY";
+        if (filter == null) {
+            filter = "";
         }
-        catch (Exception e){
-            StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsDayData")
-                    .append(" date=").append(date)
-                    .append(" guestId=").append(guestId);
-            logger.warn(sb.toString());
-            final StatusModel src = new StatusModel(false, "Failed to get digest: " + e.getMessage());
-            src.payload = ExceptionUtils.getStackTrace(e);
-            return gson.toJson(src);
-        }
+
+        digest.tbounds = getStartEndResponseBoundaries(dayMetadata.start,
+                dayMetadata.end);
+
+        setMetadata(digest, dayMetadata, new String[]{date});
+
+        if (digest.metadata.mainCity!=null)
+            setSolarInfo(digest, dayMetadata.consensusVisitedCity.city, guestId, dayMetadata);
+
+        List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, coachee);
+        digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
+        List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
+        allApiKeys = removeConnectorsWithoutFacets(allApiKeys, coachee);
+        digest.nApis = allApiKeys.size();
+        GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
+
+        Map<Long,Object> connectorSettings = new HashMap<Long,Object>();
+        setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection, dayMetadata, false);
+
+        setNotifications(digest, AuthHelper.getGuestId());
+        setCurrentAddress(digest, guestId, dayMetadata.start);
+        digest.settings = new SettingsModel(settings, connectorSettings, guest);
+
+        StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsDayData")
+                .append(" date=").append(date)
+                .append(" timeTaken=").append(System.currentTimeMillis()-then)
+                .append(" guestId=").append(guestId);
+        logger.info(sb.toString());
+
+        digest.generationTimestamp = new java.util.Date().getTime();
+
+        return Response.ok(toJacksonJson(digest)).build();
 	}
 
     private String toJacksonJson(final DigestModel digest) throws IOException {
@@ -582,7 +568,7 @@ public class CalendarDataStore {
 	@Path("/{connectorObjectsEncoded}/date/{date}")
     @ApiOperation(value = "Get data from a specific connector at a specific date", response = ConnectorResponseModel.class)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public String getConnectorData(@ApiParam(value="Date", required=true) @PathParam("date") String date,
+	public Response getConnectorData(@ApiParam(value="Date", required=true) @PathParam("date") String date,
                                    @ApiParam(value="an encoded list of the facet types to be returned. " +
                                                    "The encoding is <facetType>,<facetType>,... where <facetType> is " +
                                                    "<connectorIdentifier>(optionally attached: -<objectTypeName> " +
@@ -599,13 +585,13 @@ public class CalendarDataStore {
                 guest = AuthHelper.getGuest();
                 guestId = guest.getId();
             } catch (Throwable e) {
-                return gson.toJson(new StatusModel(false, "You are no longer logged in. Please reload your browser window"));
+                return Response.status(401).entity("You are no longer logged in. Please reload your browser window").build();
             }
             CoachingBuddy coachee = null;
             try {
                 coachee = AuthHelper.getCoachee();
             } catch (CoachRevokedException e) {
-                return gson.toJson(new StatusModel(false, "Sorry, permission to access this data has been revoked."));
+                return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();
             }
             if (coachee!=null) {
                 guestId = coachee.guestId;
@@ -643,11 +629,10 @@ public class CalendarDataStore {
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
 
-            String json = toJacksonJson(day);
-            return json;
+            return Response.ok(toJacksonJson(day)).build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to get digest: " + e.getMessage()));
+            return Response.serverError().entity("Failed to get digest: " + e.getMessage()).build();
         }
 	}
 
@@ -656,7 +641,7 @@ public class CalendarDataStore {
     @Path("/{connectorObjectsEncoded}/week/{year}/{week}")
     @ApiOperation(value = "Get data from a specific connector for a specific week", response = ConnectorResponseModel.class)
     @Produces({ MediaType.APPLICATION_JSON })
-    public String getConnectorData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
+    public Response getConnectorData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
                                    @ApiParam(value="Week", required=true) @PathParam("week") final int week,
                                    @ApiParam(value="an encoded list of the facet types to be returned. " +
                                                    "The encoding is <facetType>,<facetType>,... where <facetType> is " +
@@ -674,13 +659,13 @@ public class CalendarDataStore {
                 guest = AuthHelper.getGuest();
                 guestId = guest.getId();
             } catch (Throwable e) {
-                return gson.toJson(new StatusModel(false, "You are no longer logged in. Please reload your browser window"));
+                return Response.status(401).entity("You are no longer logged in. Please reload your browser window").build();
             }
             CoachingBuddy coachee = null;
             try {
                 coachee = AuthHelper.getCoachee();
             } catch (CoachRevokedException e) {
-                return gson.toJson(new StatusModel(false, "Sorry, permission to access this data has been revoked."));
+                return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();
             }
             if (coachee!=null) {
                 guestId = coachee.guestId;
@@ -715,11 +700,10 @@ public class CalendarDataStore {
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
 
-            String json = toJacksonJson(day);
-            return json;
+            return Response.ok(toJacksonJson(day)).build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to get digest: " + e.getMessage()));
+            return Response.serverError().entity("Failed to get digest: " + e.getMessage()).build();
         }
     }
 
@@ -728,7 +712,7 @@ public class CalendarDataStore {
     @ApiOperation(value = "Get data from a specific connector for a specific month", response = ConnectorResponseModel.class)
     @Path("/{connectorObjectsEncoded}/month/{year}/{month}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String getConnectorDataMonth(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
+    public Response getConnectorDataMonth(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
                                         @ApiParam(value="Month", required=true) @PathParam("month") final int month,
                                         @ApiParam(value="an encoded list of the facet types to be returned. " +
                                                         "The encoding is <facetType>,<facetType>,... where <facetType> is " +
@@ -746,13 +730,13 @@ public class CalendarDataStore {
                 guest = AuthHelper.getGuest();
                 guestId = guest.getId();
             } catch (Throwable e) {
-                return gson.toJson(new StatusModel(false, "You are no longer logged in. Please reload your browser window"));
+                return Response.status(401).entity("You are no longer logged in. Please reload your browser window").build();
             }
             CoachingBuddy coachee = null;
             try {
                 coachee = AuthHelper.getCoachee();
             } catch (CoachRevokedException e) {
-                return gson.toJson(new StatusModel(false, "Sorry, permission to access this data has been revoked."));
+                return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();
             }
             if (coachee!=null) {
                 guestId = coachee.guestId;
@@ -788,11 +772,10 @@ public class CalendarDataStore {
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
 
-            String json = toJacksonJson(day);
-            return json;
+            return Response.ok(toJacksonJson(day)).build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to get digest: " + e.getMessage()));
+            return Response.serverError().entity("Failed to get digest: " + e.getMessage()).build();
         }
     }
 

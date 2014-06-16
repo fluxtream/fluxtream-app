@@ -1,18 +1,5 @@
 package org.fluxtream.core.api;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ResourceBundle;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.wordnik.swagger.annotations.Api;
@@ -36,19 +23,8 @@ import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.connectors.bodytrackResponders.AbstractBodytrackResponder;
 import org.fluxtream.core.connectors.updaters.UpdateFailedException;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
-import org.fluxtream.core.domain.AbstractFacet;
-import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.ApiKeyAttribute;
-import org.fluxtream.core.domain.ApiUpdate;
-import org.fluxtream.core.domain.CoachingBuddy;
-import org.fluxtream.core.domain.ConnectorInfo;
-import org.fluxtream.core.domain.Guest;
-import org.fluxtream.core.mvc.models.StatusModel;
-import org.fluxtream.core.services.ApiDataService;
-import org.fluxtream.core.services.ConnectorUpdateService;
-import org.fluxtream.core.services.GuestService;
-import org.fluxtream.core.services.SettingsService;
-import org.fluxtream.core.services.SystemService;
+import org.fluxtream.core.domain.*;
+import org.fluxtream.core.services.*;
 import org.fluxtream.core.utils.Utils;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
@@ -57,12 +33,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ResourceBundle;
+
 /**
  *
  */
-@Path("/connectors")
+@Path("/v1/connectors")
 @Component("RESTConnectorStore")
-@Api(value = "/connectors", description = "Connector and connector settings management operations (list, add, remove, etc.)")
+@Api(value = "/v1/connectors", description = "Connector and connector settings management operations (list, add, remove, etc.)")
 @Scope("request")
 public class ConnectorStore {
 
@@ -102,19 +86,18 @@ public class ConnectorStore {
 
     @POST
     @Produces({ MediaType.APPLICATION_JSON })
-    @ApiOperation(value = "Reset connector settings to their default values", response = StatusModel.class,
+    @ApiOperation(value = "Reset connector settings to their default values", response = String.class,
                   notes="A set of default values are stored alongside user modified values for all connector settings",
                   authorizations = {@Authorization(value="oauth2")})
     @Path("/settings/reset/{apiKeyId}")
-    public String resetConnectorSettings(@ApiParam(value="The connector's ApiKey ID", required=true) @PathParam("apiKeyId") long apiKeyId) {
+    public Response resetConnectorSettings(@ApiParam(value="The connector's ApiKey ID", required=true) @PathParam("apiKeyId") long apiKeyId) {
         settingsService.resetConnectorSettings(apiKeyId);
-        StatusModel status = new StatusModel(true, "connector settings reset!");
-        return gson.toJson(status);
+        return Response.ok("connector settings reset!").build();
     }
 
     @GET
     @Path("/settings/{apiKeyId}")
-    @ApiOperation(value = "Retrieve connector settings", response = StatusModel.class,
+    @ApiOperation(value = "Retrieve connector settings", response = Object.class,
                   notes = "The structure of the returned object is connector dependent",
                   authorizations = {@Authorization(value="oauth2")})
     @Produces({MediaType.APPLICATION_JSON})
@@ -130,11 +113,11 @@ public class ConnectorStore {
 
     @POST
     @Path("/settings/{apiKeyId}")
-    @ApiOperation(value = "Save user-modified connector settings", response = StatusModel.class,
+    @ApiOperation(value = "Save user-modified connector settings", response = String.class,
                   notes = "The structure of the returned object is connector dependent",
                   authorizations = {@Authorization(value="oauth2")})
     @Produces({MediaType.APPLICATION_JSON})
-    public StatusModel saveConnectorSettings(@ApiParam(value="The connector's ApiKey ID", required=true)  @PathParam("apiKeyId") long apiKeyId,
+    public Response saveConnectorSettings(@ApiParam(value="The connector's ApiKey ID", required=true)  @PathParam("apiKeyId") long apiKeyId,
                                              @ApiParam(value="JSON-serialized connector settings object", required=true)  @FormParam("json") String json) {
         final ApiKey apiKey = guestService.getApiKey(apiKeyId);
         final long guestId = AuthHelper.getGuestId();
@@ -143,9 +126,9 @@ public class ConnectorStore {
                 throw new RuntimeException("attempt to retrieve ApiKey from another guest!");
             settingsService.saveConnectorSettings(apiKey.getId(), json);
         } catch (Throwable e) {
-            return new StatusModel(false, e.getMessage());
+            return Response.serverError().entity(e.getMessage()).build();
         }
-        return new StatusModel(true, "saved connector settings");
+        return Response.ok("saved connector settings").build();
     }
 
     @POST
@@ -168,11 +151,11 @@ public class ConnectorStore {
                   notes = "WARNING: there is more in the ConnectorInfo 'class' than what's specified here)",
                   authorizations = {@Authorization(value="oauth2")})
     @Produces({MediaType.APPLICATION_JSON})
-    public String getInstalledConnectors(){
+    public Response getInstalledConnectors(){
         Guest guest = AuthHelper.getGuest();
         // If no guest is logged in, return empty array
         if(guest==null)
-            return "[]";
+            return Response.status(401).entity("You are no longer logged in").build();
         ResourceBundle res = ResourceBundle.getBundle("messages/connectors");
         try {
             List<ConnectorInfo> connectors =  sysService.getConnectors();
@@ -236,7 +219,7 @@ public class ConnectorStore {
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getInstalledConnectors")
                     .append(" guestId=").append(guest.getId());
             logger.info(sb.toString());
-            return connectorsArray.toString();
+            return Response.ok(connectorsArray.toString()).build();
         }
         catch (Exception e) {
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getInstalledConnectors")
@@ -244,7 +227,7 @@ public class ConnectorStore {
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             System.out.println(sb.toString());
             logger.warn(sb.toString());
-            return gson.toJson(new StatusModel(false,"Failed to get installed connectors: " + e.getMessage()));
+            return Response.serverError().entity("Failed to get installed connectors: " + e.getMessage()).build();
         }
     }
 
@@ -255,11 +238,11 @@ public class ConnectorStore {
                   notes = "The structure of the returned object is connector dependent",
                   authorizations = {@Authorization(value="oauth2")})
     @Produces({MediaType.APPLICATION_JSON})
-    public String getUninstalledConnectors(){
+    public Response getUninstalledConnectors(){
         Guest guest = AuthHelper.getGuest();
         // If no guest is logged in, return empty array
         if(guest==null)
-            return "[]";
+            return Response.status(401).entity("You are no longer logged in").build();
         try {
             List<ConnectorInfo> allConnectors =  sysService.getConnectors();
             List<ConnectorInfo> connectors = new ArrayList<ConnectorInfo>();
@@ -274,14 +257,14 @@ public class ConnectorStore {
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getUninstalledConnectors")
                     .append(" guestId=").append(guest.getId());
             logger.info(sb.toString());
-            return gson.toJson(connectors);
+            return Response.ok(gson.toJson(connectors)).build();
         }
         catch (Exception e) {
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getUninstalledConnectors")
                     .append(" guestId=").append(guest.getId())
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.warn(sb.toString());
-            return gson.toJson(new StatusModel(false,"Failed to get uninstalled connectors: " + e.getMessage()));
+            return Response.serverError().entity("Failed to get uninstalled connectors: " + e.getMessage()).build();
         }
     }
 
@@ -343,16 +326,16 @@ public class ConnectorStore {
     @DELETE
     @Path("/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String deleteConnector(@PathParam("connector") String connector){
-        StatusModel result;
+    public Response deleteConnector(@PathParam("connector") String connector){
+        Response response = null;
         Guest guest = AuthHelper.getGuest();
         // If no guest is logged in, return empty array
         if(guest==null)
-            return "{}";
+            return Response.status(401).entity("You are no longer logged in").build();
         try{
             Connector apiToRemove = Connector.fromString(connector);
             guestService.removeApiKeys(guest.getId(), apiToRemove);
-            result = new StatusModel(true,"Successfully removed " + connector + ".");
+            response = Response.ok("Successfully removed " + connector + ".").build();
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=deleteConnector")
                     .append(" connector=").append(connector)
                     .append(" guestId=").append(guest.getId());
@@ -364,24 +347,24 @@ public class ConnectorStore {
                     .append(" guestId=").append(guest.getId())
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.warn(sb.toString());
-            result = new StatusModel(false,"Failed to remove " + connector + ".");
+            response = Response.serverError().entity("Failed to remove " + connector + ".").build();
         }
-        return gson.toJson(result);
+        return response;
     }
 
     @POST
     @Path("/{connector}/channels")
     @Produces({MediaType.APPLICATION_JSON})
-    public String setConnectorChannels(@PathParam("connector") String connectorName, @FormParam("channels") String channels){
-        StatusModel result;
+    public Response setConnectorChannels(@PathParam("connector") String connectorName, @FormParam("channels") String channels){
+        Response response = null;
         Guest guest = AuthHelper.getGuest();
         // If no guest is logged in, return empty array
         if(guest==null)
-            return "{}";
+            return Response.status(401).entity("You are no longer logged in").build();
         try {
             ApiKey apiKey = guestService.getApiKey(guest.getId(), Connector.getConnector(connectorName));
             settingsService.setChannelsForConnector(guest.getId(),apiKey.getConnector(),channels.split(","));
-            result = new StatusModel(true,"Successfully updated channels for " + connectorName + ".");
+            response = Response.ok("Successfully updated channels for " + connectorName + ".").build();
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=setConnectorChannels")
                     .append(" connector=").append(connectorName)
                     .append(" channels=").append(channels)
@@ -394,46 +377,47 @@ public class ConnectorStore {
                     .append(" guestId=").append(guest.getId())
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.warn(sb.toString());
-            result = new StatusModel(false,"Failed to set channels for " + connectorName + ".");
+            response = Response.serverError().entity("Failed to set channels for " + connectorName + ".").build();
         }
-        return gson.toJson(result);
+        return response;
     }
 
     @GET
     @Path("/filters")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getConnectorFilterState(){
+    public Response getConnectorFilterState(){
         long vieweeId = AuthHelper.getGuestId();
         try {
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getConnectorFilterState")
                     .append(" guestId=").append(vieweeId);
             logger.info(sb.toString());
-            return settingsService.getConnectorFilterState(vieweeId);
+            return Response.ok(settingsService.getConnectorFilterState(vieweeId)).build();
         }
         catch (Exception e) {
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getConnectorFilterState")
                     .append(" guestId=").append(vieweeId)
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.warn(sb.toString());
-            return gson.toJson(new StatusModel(false,"Failed to get filters: " + e.getMessage()));
+            return Response.serverError().entity("Failed to get filters: " + e.getMessage()).build();
         }
     }
 
     @POST
     @Path("/filters")
     @Produces({MediaType.APPLICATION_JSON})
-    public String setConnectorFilterState(@FormParam("filterState") String stateJSON){
-        StatusModel result;
+    public Response setConnectorFilterState(@FormParam("filterState") String stateJSON){
+        Response response = null;
         Guest guest = AuthHelper.getGuest();
+        // If no guest is logged in, return empty array
         if(guest==null)
-            return "{}";
+            return Response.status(401).entity("You are no longer logged in").build();
         try {
             settingsService.setConnectorFilterState(guest.getId(), stateJSON);
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=setConnectorFilterState")
                     .append(" filterState=").append(stateJSON)
                     .append(" guestId=").append(guest.getId());
             logger.info(sb.toString());
-            result = new StatusModel(true,"Successfully updated filters state!");
+            response = Response.ok("Successfully updated filters state!").build();
         }
         catch (Exception e) {
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=setConnectorFilterState")
@@ -441,24 +425,24 @@ public class ConnectorStore {
                     .append(" filterState=").append(stateJSON)
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.warn(sb.toString());
-            result = new StatusModel(false,"Failed to udpate filters state!");
+            response = Response.serverError().entity("Failed to udpate filters state!").build();
         }
-        return gson.toJson(result);
+        return response;
     }
 
     @GET
     @Path("/{objectTypeName}/data")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getData(@PathParam("objectTypeName") String objectTypeName, @QueryParam("start") long start, @QueryParam("end") long end, @QueryParam("value") String value){
+    public Response getData(@PathParam("objectTypeName") String objectTypeName, @QueryParam("start") long start, @QueryParam("end") long end, @QueryParam("value") String value){
         Guest guest = AuthHelper.getGuest();
         if(guest==null)
-            return "[]";
+            return Response.status(401).entity("You are no longer logged in").build();
 
         CoachingBuddy coachee;
         try {
             coachee = AuthHelper.getCoachee();
         } catch (CoachRevokedException e) {
-            return gson.toJson(new StatusModel(false, "Sorry, permission to access this data has been revoked. Please reload your browser window"));
+            return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();
         }
         if (coachee!=null) {
             guest = guestService.getGuestById(coachee.guestId);
@@ -469,7 +453,7 @@ public class ConnectorStore {
         Connector connector = apiKey.getConnector();
 
         final AbstractBodytrackResponder bodytrackResponder = connector.getBodytrackResponder(beanFactory);
-        return gson.toJson(bodytrackResponder.getFacetVOs(settingsService.getSettings(guest.getId()), apiKey, objectTypeName, start, end, value));
+        return Response.ok(bodytrackResponder.getFacetVOs(settingsService.getSettings(guest.getId()), apiKey, objectTypeName, start, end, value)).build();
 
     }
 }

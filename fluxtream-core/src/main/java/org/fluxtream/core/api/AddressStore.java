@@ -1,16 +1,7 @@
 package org.fluxtream.core.api;
 
-import java.net.URLEncoder;
-import java.util.List;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.domain.Guest;
@@ -21,13 +12,16 @@ import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.services.MetadataService;
 import org.fluxtream.core.services.SettingsService;
 import org.fluxtream.core.utils.HttpUtils;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-@Path("/addresses")
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import java.net.URLEncoder;
+import java.util.List;
+
+@Path("/v1/addresses")
 @Component("RESTAddressStore")
 @Scope("request")
 public class AddressStore {

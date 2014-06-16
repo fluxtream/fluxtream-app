@@ -618,7 +618,7 @@ define(
 
             $(".alert").remove();
             $("#notifications").empty();
-            if (typeof(notificatons)!="undefined") {
+            if (typeof(notificatons)!="undefined"&&notificatons!=null) {
                 for (var n=0; n<notificatons.length; n++) {
                     console.log("showing a notification " + n);
                     if ($("#notification-" + notificatons[n].id).length==0) {

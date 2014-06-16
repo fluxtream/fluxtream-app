@@ -28,9 +28,9 @@ import java.util.List;
  * @author Candide Kemmler (candide@fluxtream.com)
  */
 
-@Path("/settings")
+@Path("/v1/settings")
 @Component("RESTSettingsStore")
-@Api(value = "/settings", description = "Set and retrieve the user's preferences")
+@Api(value = "/v1/settings", description = "Set and retrieve the user's preferences")
 @Scope("request")
 public class SettingsStore {
 

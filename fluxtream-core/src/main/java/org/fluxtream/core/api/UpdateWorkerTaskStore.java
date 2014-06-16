@@ -1,13 +1,9 @@
 package org.fluxtream.core.api;
 
-import java.util.Collection;
-import java.util.List;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.ObjectType;
@@ -16,10 +12,6 @@ import org.fluxtream.core.domain.UpdateWorkerTask;
 import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.services.ConnectorUpdateService;
 import org.fluxtream.core.services.GuestService;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -28,11 +20,16 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import java.util.Collection;
+import java.util.List;
+
 /**
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
-@Path("/updateTasks")
+@Path("/v1/updateTasks")
 @Component("RESTUpdateWorkerTaskStore")
 @Scope("request")
 public class UpdateWorkerTaskStore {

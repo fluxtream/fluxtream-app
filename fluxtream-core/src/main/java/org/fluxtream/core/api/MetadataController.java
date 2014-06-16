@@ -10,7 +10,6 @@ import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.domain.metadata.FoursquareVenue;
 import org.fluxtream.core.domain.metadata.VisitedCity;
-import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.mvc.models.VisitedCityModel;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.services.MetadataService;
@@ -34,8 +33,8 @@ import java.util.TreeSet;
  * Date: 05/06/13
  * Time: 12:07
  */
-@Path("/metadata")
-@Api(value = "/metadata", description = "Location/Timezone query and disambiguation endpoints.",
+@Path("/v1/metadata")
+@Api(value = "/v1/metadata", description = "Location/Timezone query and disambiguation endpoints.",
         authorizations = {@Authorization(value="oauth2")})
 @Component("RESTMetadataController")
 @Scope("request")
@@ -56,11 +55,11 @@ public class MetadataController {
 
     @POST
     @Path(value="/mainCity/date/{date}")
-    @ApiOperation(value = "Set the main city for a given day using lat/lon coordinates.", response = StatusModel.class,
+    @ApiOperation(value = "Set the main city for a given day using lat/lon coordinates.", response = String.class,
             notes="(we figure out the actual city from the coordinates)",
             authorizations = {@Authorization(value="oauth2")})
     @Produces({ MediaType.APPLICATION_JSON } )
-    public StatusModel setDayMainCity(@ApiParam(value="Latitude", required=true) @FormParam("latitude") float latitude,
+    public Response setDayMainCity(@ApiParam(value="Latitude", required=true) @FormParam("latitude") float latitude,
                                       @ApiParam(value="Longitude", required=true) @FormParam("longitude") float longitude,
                                       @ApiParam(value="Date (YYYY-MM-DD)", required=true) @PathParam("date") String date) {
         final long guestId = AuthHelper.getGuestId();
@@ -68,35 +67,35 @@ public class MetadataController {
                 .append(" guestId=").append(guestId);
         logger.info(sb.toString());
         metadataService.setDayMainCity(guestId, latitude, longitude, date);
-        return new StatusModel(true, "OK");
+        return Response.ok("OK").build();
     }
 
     @DELETE
     @Path(value="/mainCity/date/{date}")
-    @ApiOperation(value = "Remove cities that have been manually entered by the end-user.", response = StatusModel.class,
+    @ApiOperation(value = "Remove cities that have been manually entered by the end-user.", response = String.class,
             authorizations = {@Authorization(value="oauth2")})
     @Produces({ MediaType.APPLICATION_JSON } )
-    public StatusModel resetDayMainCity(@ApiParam(value="Date (YYYY-MM-DD)", required=true) @PathParam("date") String date) {
+    public Response resetDayMainCity(@ApiParam(value="Date (YYYY-MM-DD)", required=true) @PathParam("date") String date) {
         final long guestId = AuthHelper.getGuestId();
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=resetDayMainCity")
                 .append(" guestId=").append(guestId);
         logger.info(sb.toString());
         metadataService.resetDayMainCity(guestId, date);
-        return new StatusModel(true, "OK");
+        return Response.ok("OK").build();
     }
 
     @POST
     @Path(value="/mainCity/{visitedCityId}/date/{date}")
-    @ApiOperation(value = "Set a given city and associated timezone to be the reference for a given day.", response = StatusModel.class)
+    @ApiOperation(value = "Set a given city and associated timezone to be the reference for a given day.", response = String.class)
     @Produces({ MediaType.APPLICATION_JSON } )
-    public StatusModel setDayMainCity(@ApiParam(value="ID of the city (as in /metadata/cities)", required=true) @PathParam("visitedCityId") long visitedCityId,
+    public Response setDayMainCity(@ApiParam(value="ID of the city (as in /metadata/cities)", required=true) @PathParam("visitedCityId") long visitedCityId,
                                       @ApiParam(value="Date (YYYY-MM-DD)", required=true) @PathParam("date") String date) {
         final long guestId = AuthHelper.getGuestId();
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=setDayMainCity")
                 .append(" guestId=").append(guestId);
         logger.info(sb.toString());
         metadataService.setDayMainCity(guestId, visitedCityId, date);
-        return new StatusModel(true, "OK");
+        return Response.ok("OK").build();
     }
 
     @GET
@@ -118,17 +117,17 @@ public class MetadataController {
 
     @GET
     @Path(value = "/checkIn/{ipAddress}")
-    @ApiOperation(value = "Use ip2location lookup to guess the user's location based on his IP address", response = StatusModel.class,
+    @ApiOperation(value = "Use ip2location lookup to guess the user's location based on his IP address", response = String.class,
         notes="The resulting location will interpreted as a place the user was at at that moment")
     @Produces({MediaType.APPLICATION_JSON})
-    public StatusModel checkIn(@ApiParam(value="The end-users terminal IP address", required=true) @PathParam("ipAddress") String ipAddress){
+    public Response checkIn(@ApiParam(value="The end-users terminal IP address", required=true) @PathParam("ipAddress") String ipAddress){
         final long guestId = AuthHelper.getGuestId();
         try {
             guestService.checkIn(guestId, ipAddress);
-            return new StatusModel(true, "Guest successfully checked in");
+            return Response.ok("Guest successfully checked in").build();
         }
         catch (IOException e) {
-            return new StatusModel(false, "Unexpected error while checking in: " + e.getMessage());
+            return Response.serverError().entity("Unexpected error while checking in: " + e.getMessage()).build();
         }
     }
 

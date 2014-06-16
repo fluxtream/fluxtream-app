@@ -1,8 +1,5 @@
 package org.fluxtream.connectors.moves;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TimeZone;
 import org.fluxtream.core.OutsideTimeBoundariesException;
 import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.TimeUnit;
@@ -14,6 +11,10 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.format.ISODateTimeFormat;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TimeZone;
+
 /**
  * User: candide
  * Date: 20/06/13
@@ -21,7 +22,7 @@ import org.joda.time.format.ISODateTimeFormat;
  */
 public abstract class AbstractMovesFacetVO<T extends MovesFacet> extends AbstractTimedFacetVO<T> {
 
-    List<MovesActivityVO> activities = new ArrayList<MovesActivityVO>();
+    public List<MovesActivityVO> activities = new ArrayList<MovesActivityVO>();
     public boolean hasActivities = false;
 
     protected void fromFacetBase(final MovesFacet facet, final TimeInterval timeInterval, final GuestSettings settings) throws OutsideTimeBoundariesException {

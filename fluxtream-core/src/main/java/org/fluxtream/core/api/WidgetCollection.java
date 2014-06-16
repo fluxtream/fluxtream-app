@@ -1,25 +1,26 @@
 package org.fluxtream.core.api;
 
-import java.util.List;
+import com.google.gson.Gson;
+import org.fluxtream.core.auth.AuthHelper;
+import org.fluxtream.core.domain.DashboardWidget;
+import org.fluxtream.core.mvc.models.StatusModel;
+import org.fluxtream.core.services.WidgetsService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import org.fluxtream.core.auth.AuthHelper;
-import org.fluxtream.core.domain.DashboardWidget;
-import org.fluxtream.core.mvc.models.StatusModel;
-import org.fluxtream.core.services.WidgetsService;
-import com.google.gson.Gson;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
+import java.util.List;
 
 /**
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
-@Path("/widgets")
+@Path("/v1/widgets")
 @Component("RESTWidgetCollection")
 @Scope("request")
 public class WidgetCollection {

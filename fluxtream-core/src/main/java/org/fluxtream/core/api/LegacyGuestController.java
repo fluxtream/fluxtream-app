@@ -13,6 +13,7 @@ import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.CoachingBuddy;
 import org.fluxtream.core.domain.Guest;
+import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.mvc.models.guest.GuestModel;
 import org.fluxtream.core.services.CoachingService;
 import org.fluxtream.core.services.GuestService;
@@ -25,18 +26,17 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.fluxtream.core.utils.Utils.hash;
 
-@Path("/v1/guest")
-@Component("RESTGuestController")
-@Api(value = "/v1/guest", description = "Retrieve guest information")
+@Path("/guest")
+@Component("RESTLegacyGuestController")
+@Api(value = "/guest", description = "Retrieve guest information")
 @Scope("request")
-public class GuestController {
+public class LegacyGuestController {
 
 	@Autowired
 	GuestService guestService;
@@ -52,8 +52,8 @@ public class GuestController {
     @GET
 	@Path("/")
 	@Produces({ MediaType.APPLICATION_JSON })
-    @ApiOperation(value = "Retrieve information on the currently logged in's guest", response = GuestModel.class)
-	public Response getCurrentGuest() throws InstantiationException,
+    @ApiOperation(value = "Retrieve information on the currently logged in's guest", response = StatusModel.class)
+	public Object getCurrentGuest() throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
         try{
             long guestId = AuthHelper.getGuestId();
@@ -61,10 +61,10 @@ public class GuestController {
             Guest guest = guestService.getGuestById(guestId);
             GuestModel guestModel = new GuestModel(guest);
 
-            return Response.ok(guestModel).build();
+            return guestModel;
         }
         catch (Exception e){
-            return Response.serverError().entity("Failed to get current guest: " + e.getMessage()).build();
+            return new StatusModel(false,"Failed to get current guest: " + e.getMessage());
         }
 	}
 

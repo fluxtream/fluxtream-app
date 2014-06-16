@@ -1,16 +1,8 @@
 package org.fluxtream.core.api;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import com.sun.jersey.api.Responses;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
@@ -20,21 +12,25 @@ import org.fluxtream.core.domain.CoachingBuddy;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.domain.SharedConnector;
 import org.fluxtream.core.mvc.models.GuestModel;
-import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.services.CoachingService;
 import org.fluxtream.core.services.GuestService;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 /**
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
-@Path("/coaching")
+@Path("/v1/coaching")
 @Component("RESTCoachingController")
 @Scope("request")
 public class CoachingController {
@@ -51,36 +47,34 @@ public class CoachingController {
     @POST
     @Path("/coaches/find")
     @Produces({MediaType.APPLICATION_JSON})
-    public StatusModel findCoach(@FormParam("username") String username) {
+    public Response findCoach(@FormParam("username") String username) {
         final Guest guest = guestService.getGuest(username);
         final List<Guest> coaches = coachingService.getCoaches(AuthHelper.getGuestId());
         if (coaches.contains(guest))
-            return new StatusModel(false, username + " is already in you coaching buddies list");
+            return Responses.notFound().entity(username + " is already in you coaching buddies list").build();
         if (guest!=null) {
-            StatusModel statusModel = new StatusModel(true, "Found user!");
-            statusModel.payload = new GuestModel(guest);
-            return statusModel;
+            return Response.ok(new GuestModel(guest)).build();
         } else
-            return new StatusModel(false, "No Such User: " + username + ". Please try again.");
+            return Responses.notFound().entity("No Such User: " + username + ". Please try again.").build();
     }
 
     @POST
     @Path("/coachees/{username}")
     @Produces({MediaType.APPLICATION_JSON})
-    public StatusModel getCoaches(@PathParam("username") String username){
+    public Response getCoaches(@PathParam("username") String username){
         if (username.equals("self")) {
             AuthHelper.as(null);
-            return new StatusModel(true, "Viewing own data");
+            return Response.ok("Viewing own data").build();
         }
         final long guestId = AuthHelper.getGuestId();
         final CoachingBuddy coachee = coachingService.getCoachee(guestId, username);
         if (coachee==null) {
-            return new StatusModel(false, "Could not view " + username +
+            return Response.status(403).entity("Could not view " + username +
                                           "'s data. Please refresh the page and " +
-                                          "check that you still have access to their data.");
+                                          "check that you still have access to their data.").build();
         }
         AuthHelper.as(coachee);
-        return new StatusModel(true, "Viewing " + guestService.getGuestById(coachee.guestId).getGuestName() + "'s data");
+        return Response.ok("Viewing " + guestService.getGuestById(coachee.guestId).getGuestName() + "'s data").build();
     }
 
     @DELETE
@@ -165,8 +159,8 @@ public class CoachingController {
     @POST
     @Path("/coaches/{username}/connectors/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
-    public StatusModel addSharedConnector(@PathParam("username") String username,
-                                          @PathParam("connector") String connectorName) {
+    public Response addSharedConnector(@PathParam("username") String username,
+                                       @PathParam("connector") String connectorName) {
         final SharedConnector sharedConnector = coachingService.addSharedConnector(AuthHelper.getGuestId(), username, connectorName, "{}");
         final ApiKey apiKey = guestService.getApiKey(AuthHelper.getGuestId(), Connector.getConnector(connectorName));
         final Class<? extends AbstractUpdater> updaterClass = apiKey.getConnector().getUpdaterClass();
@@ -174,16 +168,16 @@ public class CoachingController {
             final SharedConnectorSettingsAwareUpdater updater = (SharedConnectorSettingsAwareUpdater) beanFactory.getBean(updaterClass);
             updater.syncSharedConnectorSettings(apiKey.getId(), sharedConnector);
         }
-        return new StatusModel(true, "Successfully added a connector (" + username + "/" + connectorName + ")");
+        return Response.ok("Successfully added a connector (" + username + "/" + connectorName + ")").build();
     }
 
     @DELETE
     @Path("/coaches/{username}/connectors/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
-    public StatusModel removeSharedConnector(@PathParam("username") String username,
-                                             @PathParam("connector") String connectorName) {
+    public Response removeSharedConnector(@PathParam("username") String username,
+                                          @PathParam("connector") String connectorName) {
         coachingService.removeSharedConnector(AuthHelper.getGuestId(), username, connectorName);
-        return new StatusModel(true, "Successfully removed a connector (" + username + "/" + connectorName + ")");
+        return Response.ok().entity("Successfully removed a connector (" + username + "/" + connectorName + ")").build();
     }
 
     @GET
@@ -199,7 +193,7 @@ public class CoachingController {
     @POST
     @Path("/sharedConnector/{apiKeyId}/{username}")
     @Produces({MediaType.APPLICATION_JSON})
-    public StatusModel saveSharedConnectorSettingsFilter(@PathParam("apiKeyId") long apiKeyId,
+    public Response saveSharedConnectorSettingsFilter(@PathParam("apiKeyId") long apiKeyId,
                                                          @PathParam("username") String username,
                                                          @FormParam("json") String json) {
         final ApiKey apiKey = guestService.getApiKey(apiKeyId);
@@ -211,9 +205,9 @@ public class CoachingController {
             final SharedConnector sharedConnector = coachingService.getSharedConnector(apiKeyId, buddyId);
             coachingService.setSharedConnectorFilter(sharedConnector.getId(), json);
         } catch (Throwable e) {
-            return new StatusModel(false, e.getMessage());
+            return Response.serverError().entity(e.getMessage()).build();
         }
-        return new StatusModel(true, "saved shared connector filter object");
+        return Response.ok("saved shared connector filter object").build();
     }
 
 }

@@ -20,7 +20,7 @@ import static org.fluxtream.core.api.RESTUtils.handleRuntimeException;
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
-@Path("/repositories")
+@Path("/v1/repositories")
 @Component("RESTWidgetRepositoryStore")
 @Scope("request")
 public class WidgetRepositoryStore {

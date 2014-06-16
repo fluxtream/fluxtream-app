@@ -6,7 +6,6 @@ import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.mvc.models.CalendarModel;
-import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.services.MetadataService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +24,7 @@ import java.io.IOException;
  * @author Candide Kemmler (candide@fluxtream.com)
  */
 
-@Path("/calendar/nav")
+@Path("/v1/calendar/nav")
 @Component("RESTCalendarController")
 @Scope("request")
 public class CalendarController {
@@ -48,12 +47,8 @@ public class CalendarController {
     @Produces({ MediaType.APPLICATION_JSON } )
     public String getModel(@QueryParam("state") String state) throws IOException {
         long guestId;
-        try {
-            Guest guest = AuthHelper.getGuest();
-            guestId = guest.getId();
-        } catch (Throwable e) {
-            return gson.toJson(new StatusModel(false,"Access Denied"));
-        }
+        Guest guest = AuthHelper.getGuest();
+        guestId = guest.getId();
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=getModel")
                 .append(" guestId=").append(guestId);
         logger.info(sb.toString());

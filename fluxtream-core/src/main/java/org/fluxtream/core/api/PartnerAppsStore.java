@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +22,7 @@ import java.util.List;
  * CRUD operations for Partner Applications. This API resource needs to live inside
  * of the dev webapp because it uses a separate security context.
  */
-@Path("/apps")
+@Path("/v1/apps")
 @Component("RESTPartnerAppsStore")
 @Scope("request")
 public class PartnerAppsStore {
@@ -35,7 +36,7 @@ public class PartnerAppsStore {
     @Path("/{uid}")
     @Produces({ MediaType.APPLICATION_JSON })
     @Consumes(MediaType.APPLICATION_JSON)
-    public StatusModel updateApplication(ApplicationModel appModel,
+    public Response updateApplication(ApplicationModel appModel,
                                          @PathParam("uid") String uid) {
         return createOrUpdateApplication(appModel, uid);
     }
@@ -45,71 +46,55 @@ public class PartnerAppsStore {
     @Path("/")
     @Produces({ MediaType.APPLICATION_JSON })
     @Consumes(MediaType.APPLICATION_JSON)
-    public StatusModel createApplication(ApplicationModel appModel) {
+    public Response createApplication(ApplicationModel appModel) {
         return createOrUpdateApplication(appModel, null);
     }
 
-    public StatusModel createOrUpdateApplication(ApplicationModel appModel, String uid) {
+    public Response createOrUpdateApplication(ApplicationModel appModel, String uid) {
         final long guestId = AuthHelper.getGuestId();
         try {
-            StatusModel status;
             if (uid==null) {
                 partnerAppsService.createApplication(guestId, appModel.organization, appModel.name, appModel.description, appModel.website);
-                status = new StatusModel(true, String.format("Created app '%s': %s", appModel.name, appModel.description));
+                return Response.ok(String.format("Created app '%s': %s", appModel.name, appModel.description)).build();
             } else {
                 partnerAppsService.updateApplication(guestId, appModel.organization, appModel.uid, appModel.name, appModel.description, appModel.website);
-                status = new StatusModel(true, String.format("Updated app '%s': %s", appModel.name, appModel.description));
+                return Response.ok(String.format("Updated app '%s': %s", appModel.name, appModel.description)).build();
             }
-            return status;
         }
         catch (Throwable e) {
-            final String stackTrace = ExceptionUtils.getStackTrace(e);
-            final StatusModel statusModel = new StatusModel(false, String.format("Could not create app '%s'", appModel.name));
-            statusModel.payload = stackTrace;
-            return statusModel;
+            return Response.serverError().entity(String.format("Could not create app '%s'", appModel.name)).build();
         }
     }
 
     @GET
     @Path("/{uid}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String getApplication(@PathParam("uid") String uid) throws IOException {
+    public Response getApplication(@PathParam("uid") String uid) throws IOException {
         final long guestId = AuthHelper.getGuestId();
         try {
             final Application app = partnerAppsService.getApplication(guestId, uid);
             if (app!=null) {
-                final String json = mapper.writeValueAsString(new ApplicationModel(app));
-                return json;
+                return Response.ok(mapper.writeValueAsString(new ApplicationModel(app))).build();
             } else {
-                final StatusModel statusModel = new StatusModel(false, "No such application: " + uid);
-                final String json = mapper.writeValueAsString(statusModel);
-                return json;
+                return Response.status(Response.Status.BAD_REQUEST).entity("No such application: " + uid).build();
             }
         }
         catch (Throwable e) {
-            final String stackTrace = ExceptionUtils.getStackTrace(e);
-            final StatusModel statusModel = new StatusModel(false, "Couldn't list applications for user " + guestId);
-            statusModel.payload = stackTrace;
-            final String json = mapper.writeValueAsString(statusModel);
-            return json;
+            return Response.serverError().entity("Couldn't list applications for user " + guestId).build();
         }
     }
 
     @DELETE
     @Path("/{uid}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public StatusModel deleteApplication(@PathParam("uid") String uid) {
+    public Response deleteApplication(@PathParam("uid") String uid) {
         final long guestId = AuthHelper.getGuestId();
         try {
             partnerAppsService.deleteApplication(guestId, uid);
-            StatusModel status = new StatusModel(true, String.format("Deleted app '%s'", uid));
-            return status;
+            return Response.ok(String.format("Deleted app '%s'", uid)).build();
         }
         catch (Throwable e) {
-            final String stackTrace = ExceptionUtils.getStackTrace(e);
-            final StatusModel statusModel = new StatusModel(false, String.format("Could not delete app '%s'", uid));
-            statusModel.payload = stackTrace;
-            return statusModel;
+            return Response.serverError().entity(String.format("Could not delete app '%s'", uid)).build();
         }
     }
 
