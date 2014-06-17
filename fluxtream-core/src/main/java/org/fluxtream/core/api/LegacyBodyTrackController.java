@@ -89,7 +89,7 @@ public class LegacyBodyTrackController {
     @Autowired
 	protected ApiDataService apiDataService;
 
-    @Autowired JsonResponseHelper jsonResponseHelper;
+    @Autowired LegacyJsonResponseHelper jsonResponseHelper;
 
     @Autowired
     BeanFactory beanFactory;

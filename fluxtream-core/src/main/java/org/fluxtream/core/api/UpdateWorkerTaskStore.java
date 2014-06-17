@@ -9,7 +9,6 @@ import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.UpdateWorkerTask;
-import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.services.ConnectorUpdateService;
 import org.fluxtream.core.services.GuestService;
 import org.joda.time.DateTimeZone;
@@ -22,6 +21,7 @@ import org.springframework.stereotype.Component;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.Collection;
 import java.util.List;
 
@@ -48,7 +48,7 @@ public class UpdateWorkerTaskStore {
     @GET
     @Path("/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getUpdateTasks(@PathParam("connector") String connectorName) {
+    public Response getUpdateTasks(@PathParam("connector") String connectorName) {
         try{
             long guestId = AuthHelper.getGuestId();
 
@@ -59,17 +59,17 @@ public class UpdateWorkerTaskStore {
             for (UpdateWorkerTask scheduledUpdate : scheduledUpdates) {
                 array.add(toJSON(scheduledUpdate));
             }
-            return array.toString();
+            return Response.ok(array.toString()).build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to get udpate tasks: " + e.getMessage()));
+            return Response.serverError().entity("Failed to get udpate tasks: " + e.getMessage()).build();
         }
     }
 
     @GET
     @Path("/all")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getUpdateTasksAll() {
+    public Response getUpdateTasksAll() {
         try{
             long guestId = AuthHelper.getGuestId();
             final Collection<Connector> connectors = Connector.getAllConnectors();
@@ -88,10 +88,10 @@ public class UpdateWorkerTaskStore {
                 connectorStatus.accumulate("status", array);
                 res.add(connectorStatus);
             }
-            return res.toString();
+            return Response.ok(res.toString()).build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to get update tasks: " + e.getMessage()));
+            return Response.serverError().entity("Failed to get update tasks: " + e.getMessage()).build();
         }
     }
 
@@ -110,7 +110,7 @@ public class UpdateWorkerTaskStore {
     @GET
     @Path("/{connector}/{objectType}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getObjectTypeUpdateTasks(@PathParam("connector") String connectorName, @PathParam("objectType") String objectTypeName) {
+    public Response getObjectTypeUpdateTasks(@PathParam("connector") String connectorName, @PathParam("objectType") String objectTypeName) {
         try{
             long guestId = AuthHelper.getGuestId();
             final Connector connector = Connector.getConnector(connectorName);
@@ -118,27 +118,25 @@ public class UpdateWorkerTaskStore {
             ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
             final UpdateWorkerTask scheduledUpdate =
                     connectorUpdateService.getUpdateWorkerTask(apiKey, objectType.value());
-            return scheduledUpdate!=null?toJSON(scheduledUpdate).toString():"{}";
+            return Response.ok(scheduledUpdate!=null?toJSON(scheduledUpdate).toString():"{}").build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to get update tasks: " + e.getMessage()));
+            return Response.serverError().entity("Failed to get update tasks: " + e.getMessage()).build();
         }
     }
 
     @DELETE
     @Path("/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String deleteUpdateTasks(@PathParam("connector") String connectorName) {
+    public Response deleteUpdateTasks(@PathParam("connector") String connectorName) {
         try{
             long guestId = AuthHelper.getGuestId();
-            final Connector connector = Connector.getConnector(connectorName);
             ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
             connectorUpdateService.flushUpdateWorkerTasks(apiKey, false);
-            StatusModel statusModel = new StatusModel(true, "successfully deleted pending update tasks for " + connectorName);
-            return gson.toJson(statusModel);
+            return Response.ok("successfully deleted pending update tasks for " + connectorName).build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to get update tasks: " + e.getMessage()));
+            return Response.serverError().entity("Failed to get update tasks: " + e.getMessage()).build();
         }
     }
 

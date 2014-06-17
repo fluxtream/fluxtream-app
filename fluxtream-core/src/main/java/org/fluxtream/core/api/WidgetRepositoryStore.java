@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import net.sf.json.JSONArray;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.domain.DashboardWidgetsRepository;
-import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.services.WidgetsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -12,9 +11,8 @@ import org.springframework.stereotype.Component;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.List;
-
-import static org.fluxtream.core.api.RESTUtils.handleRuntimeException;
 
 /**
  *
@@ -33,7 +31,7 @@ public class WidgetRepositoryStore {
     @GET
     @Path("/")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String getWidgetRepositories() {
+    public Response getWidgetRepositories() {
         try{
             long guestId = AuthHelper.getGuestId();
             final List<DashboardWidgetsRepository> repositories = widgetsService.getWidgetRepositories(guestId);
@@ -41,39 +39,38 @@ public class WidgetRepositoryStore {
             for (DashboardWidgetsRepository repository : repositories) {
                 result.add(repository.url);
             }
-            return result.toString();
+            return Response.ok(result.toString()).build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to get widget repositories: " + e.getMessage()));
+            return Response.serverError().entity("Failed to get widget repositories: " + e.getMessage()).build();
         }
     }
 
     @POST
     @Path("/")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String addWidgetRepositoryURL(@FormParam("url") String url) {
+    public Response addWidgetRepositoryURL(@FormParam("url") String url) {
         try{
             long guestId = AuthHelper.getGuestId();
-            try { widgetsService.addWidgetRepositoryURL(guestId, url); }
-            catch (RuntimeException rte) { return handleRuntimeException(rte); }
-            return gson.toJson(new StatusModel(true, "added widget repository"));
+            widgetsService.addWidgetRepositoryURL(guestId, url);
+            return Response.ok("added widget repository").build();
         }
-        catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to add widget repository: " + e.getMessage()));
+        catch (Throwable e){
+            return Response.serverError().entity("Failed to add widget repository: " + e.getMessage()).build();
         }
     }
 
     @DELETE
     @Produces({ MediaType.APPLICATION_JSON })
     @Path("/")
-    public String removeWidgetRepositoryURL(@QueryParam("url") String url) {
+    public Response removeWidgetRepositoryURL(@QueryParam("url") String url) {
         try{
             long guestId = AuthHelper.getGuestId();
             widgetsService.removeWidgetRepositoryURL(guestId, url);
-            return gson.toJson(new StatusModel(true, "removed widget repository"));
+            return Response.ok("removed widget repository").build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to delete widget repository: " + e.getMessage()));
+            return Response.serverError().entity("Failed to delete widget repository: " + e.getMessage()).build();
         }
     }
 }

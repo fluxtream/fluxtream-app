@@ -26,7 +26,6 @@ import org.fluxtream.core.connectors.vos.AbstractPhotoFacetVO;
 import org.fluxtream.core.domain.*;
 import org.fluxtream.core.images.ImageOrientation;
 import org.fluxtream.core.mvc.models.DimensionModel;
-import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.mvc.models.TimespanModel;
 import org.fluxtream.core.services.*;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
@@ -167,55 +166,55 @@ public class BodyTrackController {
 	@Path("/uploadHistory")
     @Secured("ROLE_ADMIN")
 	@Produces({ MediaType.APPLICATION_JSON })
-	public String loadHistory(@QueryParam("username") String username,
+	public Response loadHistory(@QueryParam("username") String username,
 			@QueryParam("connectorName") String connectorName) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
-        StatusModel status;
+        Response response;
         try{
             Guest guest = guestService.getGuest(username);
 
             if (!checkForPermissionAccess(guest.getId())){
-                status = new StatusModel(false, "Failure!");
+                response = Response.ok("Failure!").build();
             }
             else {
                 final ApiKey apiKey = guestService.getApiKey(guest.getId(), Connector.getConnector(connectorName));
                 bodytrackStorageService.storeInitialHistory(apiKey);
-                status = new StatusModel(true, "Success!");
+                response = Response.ok("Success!").build();
             }
         }
         catch (Exception e){
-            status = new StatusModel(false,"Failure!");
+            response = Response.serverError().entity("Failure!").build();
         }
-        return gson.toJson(status);
+        return response;
     }
 
     @DELETE
     @Path("/users/{UID}/views/{id}")
     @ApiOperation(value = "Delete a view", response = String.class)
     @Produces({ MediaType.APPLICATION_JSON })
-    public String deleteBodytrackView(@ApiParam(value="User ID (must be ID of loggedIn user)", required=true) @PathParam("UID") Long uid,
+    public Response deleteBodytrackView(@ApiParam(value="User ID (must be ID of loggedIn user)", required=true) @PathParam("UID") Long uid,
                                       @ApiParam(value="View ID", required=true) @PathParam("id") long viewId){
-        StatusModel status;
+        Response response;
         try{
             if (!checkForPermissionAccess(uid)){
                 uid = null;
             }
             bodyTrackHelper.deleteView(uid, viewId);
-            status = new StatusModel(true,"successfully deleted view " + viewId);
+            response = Response.ok("successfully deleted view " + viewId).build();
         }
         catch (Exception e){
-            status = new StatusModel(false,"failed to delete view " + viewId);
+            response = Response.serverError().entity("failed to delete view " + viewId).build();
         }
-        return gson.toJson(status);
+        return response;
     }
 
     @POST
     @Path("/upload")
     @Consumes({MediaType.MULTIPART_FORM_DATA,MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})
-    public String uploadToBodytrack(@FormParam("dev_nickname") String deviceNickname, @FormParam("channel_names") String channels,
+    public Response uploadToBodytrack(@FormParam("dev_nickname") String deviceNickname, @FormParam("channel_names") String channels,
                                     @FormParam("data") String data){
-        StatusModel status;
+        Response response;
         try{
             long guestId = AuthHelper.getGuestId();
             Type channelsType =  new TypeToken<Collection<String>>(){}.getType();
@@ -253,38 +252,38 @@ public class BodyTrackController {
                 }
                 dataUpdateService.logBodyTrackDataUpdate(guestId,apiKeyId,null,parsedResult);
             }
-            status = createStatusModelFromBodyTrackUploadResult(uploadResult);
+            response = createResponseFromBodyTrackUploadResult(uploadResult);
         }
         catch (Exception e){
-            status = new StatusModel(false,"Upload failed!");
+            response = Response.serverError().entity("Upload failed!").build();
         }
-        return gson.toJson(status);
+        return response;
     }
 
     @POST
     @Path("/jupload")
     @Produces({MediaType.APPLICATION_JSON})
-    public String uploadJsonToBodytrack(@QueryParam("dev_nickname")  String deviceNickname, String body){
-        StatusModel status;
+    public Response uploadJsonToBodytrack(@QueryParam("dev_nickname")  String deviceNickname, String body){
+        Response response;
         try{
             long uid = AuthHelper.getGuestId();
-            status = createStatusModelFromBodyTrackUploadResult(bodyTrackHelper.uploadJsonToBodyTrack(uid, deviceNickname, body));
+            response = createResponseFromBodyTrackUploadResult(bodyTrackHelper.uploadJsonToBodyTrack(uid, deviceNickname, body));
         }
         catch (Exception e){
-            status = new StatusModel(false,"Upload failed!");
+            response = Response.serverError().entity("Upload failed!").build();
         }
-        return gson.toJson(status);
+        return response;
     }
 
-    private StatusModel createStatusModelFromBodyTrackUploadResult(final BodyTrackHelper.BodyTrackUploadResult uploadResult) {
+    private Response createResponseFromBodyTrackUploadResult(final BodyTrackHelper.BodyTrackUploadResult uploadResult) {
 
-        // check the uploadResult for success, and create a new StatusModel accordingly
-        final StatusModel status;
+        // check the uploadResult for success, and create a new Response accordingly
+        Response response;
         if (uploadResult.isSuccess()) {
-            status = new StatusModel(true, "Upload successful!");
+            response = Response.ok("Upload successful!").build();
         }
         else {
-            status = new StatusModel(false, "Upload failed!");
+            response = Response.serverError().entity("Upload failed!").build();
         }
 
         // Now try to parse the response in the uploadResult as JSON, inflating it into a BodyTrackUploadResponse
@@ -298,9 +297,9 @@ public class BodyTrackController {
 
         // add the response to the payload if non-null
         if (bodyTrackUploadResponse != null) {
-            status.payload = bodyTrackUploadResponse;
+            response = Response.ok(bodyTrackUploadResponse).build();
         }
-        return status;
+        return response;
     }
 
     // Based on code from http://aruld.info/handling-multiparts-in-restful-applications-using-jersey/ and http://stackoverflow.com/a/4687942
@@ -367,7 +366,7 @@ public class BodyTrackController {
                                 final String photoStoreKey = result.getData().getPhotoStoreKey();
                                 final Long databaseRecordId = result.getDatabaseRecordId();
                                 LOG.info("BodyTrackController.handlePhotoUpload(): photo [" + photoStoreKey + "] " + result.getOperation() + " sucessfully!");
-                                response = jsonResponseHelper.ok("photo " + result.getOperation() + " sucessfully!", new PhotoUploadResponsePayload(result.getOperation(), databaseRecordId, photoStoreKey));
+                                response = Response.ok(new PhotoUploadResponsePayload(result.getOperation(), databaseRecordId, photoStoreKey)).build();
                             }
                             catch (FluxtreamCapturePhotoStore.UnsupportedImageFormatException e) {
                                 final String message = "UnsupportedImageFormatException while trying to save the photo";
@@ -549,7 +548,7 @@ public class BodyTrackController {
     @GET
     @Path("/tiles/{UID}/{DeviceNickname}.{ChannelName}/{Level}.{Offset}.json")
     @Produces({MediaType.APPLICATION_JSON})
-    public String fetchTile(@PathParam("UID") Long uid, @PathParam("DeviceNickname") String deviceNickname,
+    public Response fetchTile(@PathParam("UID") Long uid, @PathParam("DeviceNickname") String deviceNickname,
                                    @PathParam("ChannelName") String channelName, @PathParam("Level") int level, @PathParam("Offset") long offset){
         try{
             long loggedInUserId = AuthHelper.getGuestId();
@@ -558,16 +557,16 @@ public class BodyTrackController {
             if (!accessAllowed&&coachee==null){
                 uid = null;
             }
-            return bodyTrackHelper.fetchTile(uid, deviceNickname, channelName, level, offset);
+            return Response.ok(bodyTrackHelper.fetchTile(uid, deviceNickname, channelName, level, offset)).build();
         } catch (Exception e){
-            return gson.toJson(new StatusModel(false, "Access Denied"));
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
         }
     }
 
     @GET
     @Path("/users/{UID}/views")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getViews(@PathParam("UID") Long uid) {
+    public Response getViews(@PathParam("UID") Long uid) {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
@@ -575,17 +574,17 @@ public class BodyTrackController {
             if (!accessAllowed&&coachee==null){
                 uid = null;
             }
-            return bodyTrackHelper.listViews(uid);
+            return Response.ok(bodyTrackHelper.listViews(uid)).build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Access Denied"));
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
         }
     }
 
     @GET
     @Path("/users/{UID}/views/{id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String bodyTrackView(@PathParam("UID") Long uid, @PathParam("id") long id) {
+    public Response bodyTrackView(@PathParam("UID") Long uid, @PathParam("id") long id) {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
@@ -595,17 +594,20 @@ public class BodyTrackController {
                 uid = null;
             }
             String result = bodyTrackHelper.getView(uid,id);
-            return result == null ? gson.toJson(new StatusModel(false,"Failed to get view")) : result;
+            if (result!=null)
+                return Response.ok(result).build();
+            else
+                return Response.serverError().entity("Failed to get view").build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Access Denied"));
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
         }
     }
 
     @POST
     @Path("/users/{UID}/views")
     @Produces({MediaType.APPLICATION_JSON})
-    public String setView(@PathParam("UID") Long uid, @FormParam("name") String name, @FormParam("data") String data) {
+    public Response setView(@PathParam("UID") Long uid, @FormParam("name") String name, @FormParam("data") String data) {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
@@ -614,17 +616,17 @@ public class BodyTrackController {
             if (!accessAllowed && coachee==null) {
                 uid = null;
             }
-            return bodyTrackHelper.saveView(uid, name, data);
+            return Response.ok(bodyTrackHelper.saveView(uid, name, data)).build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Access Denied"));
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
         }
     }
 
     @GET
     @Path("/users/{UID}/sources/list")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getSourceList(@PathParam("UID") Long uid) {
+    public Response getSourceList(@PathParam("UID") Long uid) {
         try{
             final long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
@@ -636,17 +638,17 @@ public class BodyTrackController {
             if (!accessAllowed){
                 uid = null;
             }
-            return bodyTrackHelper.listSources(uid, coachee);
+            return Response.ok(bodyTrackHelper.listSources(uid, coachee)).build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Access Denied"));
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
         }
     }
 
     @GET
     @Path(value = "/users/{UID}/sources/{source}/default_graph_specs")
     @Produces({MediaType.APPLICATION_JSON})
-    public String bodyTrackGetDefaultGraphSpecs(@PathParam("UID") Long uid, @PathParam("source") String name) {
+    public Response bodyTrackGetDefaultGraphSpecs(@PathParam("UID") Long uid, @PathParam("source") String name) {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
@@ -655,17 +657,17 @@ public class BodyTrackController {
             if (!accessAllowed && coachee==null) {
                 uid = null;
             }
-            return bodyTrackHelper.getSourceInfo(uid, name);
+            return Response.ok(bodyTrackHelper.getSourceInfo(uid, name)).build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Access Denied"));
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
         }
     }
 
     @GET
     @Path(value = "/users/{UID}/tags")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getAllTagsForUser(@PathParam("UID") Long uid) {
+    public Response getAllTagsForUser(@PathParam("UID") Long uid) {
         try {
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
@@ -673,34 +675,34 @@ public class BodyTrackController {
             if (!accessAllowed && coachee == null) {
                 uid = null;
             }
-            return bodyTrackHelper.getAllTagsForUser(uid);
+            return Response.ok(bodyTrackHelper.getAllTagsForUser(uid)).build();
         }
         catch (Exception e) {
-            return gson.toJson(new StatusModel(false, "Access Denied"));
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
         }
     }
 
     @POST
     @Path("/users/{UID}/channels/{DeviceNickname}.{ChannelName}/set")
     @Produces({MediaType.APPLICATION_JSON})
-    public String setDefaultStyle(@PathParam("UID") Long uid, @PathParam("DeviceNickname") String deviceNickname,
+    public Response setDefaultStyle(@PathParam("UID") Long uid, @PathParam("DeviceNickname") String deviceNickname,
                                 @PathParam("ChannelName") String channelName, @FormParam("user_default_style") String style) {
         try{
             if (!checkForPermissionAccess(uid)){
                 uid = null;
             }
             bodyTrackHelper.setDefaultStyle(uid,deviceNickname,channelName,style);
-            return gson.toJson(new StatusModel(true, "Channel style set"));
+            return Response.ok("Channel style set").build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Access Denied"));
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
         }
     }
 
     @GET
     @Path("/timespans/{UID}/{ConnectorName}.{ObjectTypeName}/{Level}.{Offset}.json")
     @Produces({MediaType.APPLICATION_JSON})
-    public String fetchTimespanTile(@PathParam("UID") Long uid,
+    public Response fetchTimespanTile(@PathParam("UID") Long uid,
                                  @PathParam("ConnectorName") String connectorName,
                                  @PathParam("ObjectTypeName") String objectTypeName,
                                  @PathParam("Level") int level,
@@ -715,7 +717,7 @@ public class BodyTrackController {
             }
 
             if (uid == null) {
-                return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
+                return Response.status(Response.Status.BAD_REQUEST).entity("Invalid User ID (null)").build();
             }
 
             List<ApiKey> keys = guestService.getApiKeys(uid);
@@ -731,7 +733,7 @@ public class BodyTrackController {
             }
 
             if (api == null) {
-                return gson.toJson(new StatusModel(false, "Invalid Channel (null)"));
+                return Response.status(Response.Status.BAD_REQUEST).entity("Invalid Channel (null)").build();
             }
 
 
@@ -741,12 +743,12 @@ public class BodyTrackController {
             final AbstractBodytrackResponder bodytrackResponder = api.getConnector().getBodytrackResponder(beanFactory);
             final List<TimespanModel> timespans = bodytrackResponder.getTimespans(startTimeMillis, endTimeMillis, api, objectTypeName);
             TimespanTileResponse response = new TimespanTileResponse(timespans);
-            return gson.toJson(response);
+            return Response.ok(gson.toJson(response)).build();
 
         }
         catch (Exception e) {
             LOG.error("BodyTrackController.fetchTimespanTile(): Exception while trying to fetch timespans: ", e);
-            return gson.toJson(new StatusModel(false, "Access Denied"));
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
         }
 
     }
@@ -765,7 +767,7 @@ public class BodyTrackController {
     @GET
     @Path("/photos/{UID}/{ConnectorPrettyName}.{ObjectTypeName}/{Level}.{Offset}.json")
     @Produces({MediaType.APPLICATION_JSON})
-    public String fetchPhotoTile(@PathParam("UID") Long uid,
+    public Response fetchPhotoTile(@PathParam("UID") Long uid,
                                  @PathParam("ConnectorPrettyName") String connectorPrettyName,
                                  @PathParam("ObjectTypeName") String objectTypeName,
                                  @PathParam("Level") int level,
@@ -784,7 +786,7 @@ public class BodyTrackController {
             }
 
             if (uid == null) {
-                return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
+                return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid User ID (null)").build();
             }
 
             // first use Level and Offset to calculate the desired start and end times
@@ -832,18 +834,18 @@ public class BodyTrackController {
                 LOG_DEBUG.debug("BodyTrackController.fetchPhotoTile(): num photos filtered from " + photos.size() + " to " + filteredPhotos.size());
             }
 
-            return gson.toJson(filteredPhotos);
+            return Response.ok(gson.toJson(filteredPhotos)).build();
         }
         catch (Exception e) {
             LOG.error("BodyTrackController.fetchPhotoTile(): Exception while trying to fetch photos: ", e);
-            return gson.toJson(new StatusModel(false, "Access Denied"));
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
         }
     }
 
     @GET
     @Path("/photos/{UID}/{ConnectorPrettyName}.{ObjectTypeName}/{unixTime}/{count}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getPhotosBeforeOrAfterTime(@PathParam("UID") long uid,
+    public Response getPhotosBeforeOrAfterTime(@PathParam("UID") long uid,
                                              @PathParam("ConnectorPrettyName") String connectorPrettyName,
                                              @PathParam("ObjectTypeName") String objectTypeName,
                                              @PathParam("unixTime") double unixTimeInSecs,
@@ -860,7 +862,7 @@ public class BodyTrackController {
             final TagFilter.FilteringStrategy tagFilteringStrategy = TagFilter.FilteringStrategy.findByName(tagMatchingStrategyName);
 
             if (!accessAllowed && coachee==null) {
-                return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
+                return Response.status(Response.Status.BAD_REQUEST).entity("Invalid User ID (null)").build();
              }
 
             final TagFilter tagFilter = TagFilter.create(Tag.parseTagsIntoStrings(tagsStr, Tag.COMMA_DELIMITER), tagFilteringStrategy);
@@ -871,11 +873,11 @@ public class BodyTrackController {
             for (final PhotoService.Photo photo : photos) {
                 photoItems.add(new PhotoItem(photo));
             }
-            return gson.toJson(photoItems);
+            return Response.ok(gson.toJson(photoItems)).build();
         }
         catch (Exception e) {
             LOG.error("BodyTrackController.getPhotosBeforeOrAfterTime(): Exception while trying to fetch log items: ", e);
-            return gson.toJson(new StatusModel(false, "Access Denied"));
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
         }
     }
 
@@ -920,7 +922,7 @@ public class BodyTrackController {
                     final AbstractFacet modifiedFacet = apiDataService.createOrReadModifyWrite(facet.getClass(), facetMetadataModifier.getFacetFinderQuery(), facetMetadataModifier, facet.apiKeyId);
 
                     if (modifiedFacet != null) {
-                        return jsonResponseHelper.ok("Metadata updated successfully!", new FacetMetadata(modifiedFacet));
+                        return Response.ok(new FacetMetadata(modifiedFacet)).build();
                     }
 
                     return jsonResponseHelper.forbidden("User [" + uid + "] is not allowed to set metadata for facet [" + facetId + "] for connector [" + connectorName + "] and object type [" + objectTypeName + "]");

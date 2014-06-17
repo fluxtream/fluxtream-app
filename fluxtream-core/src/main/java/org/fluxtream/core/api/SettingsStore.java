@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
-import org.codehaus.plexus.util.ExceptionUtils;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.domain.GuestSettings;
@@ -20,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.List;
 
@@ -49,14 +49,13 @@ public class SettingsStore {
     @Path("/accessTokens/{accessToken}")
     @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "Get the user's settings", response = GuestSettingsModel.class)
-    public StatusModel revokeAccessToken(@PathParam("accessToken") final String accessToken){
+    public Response revokeAccessToken(@PathParam("accessToken") final String accessToken){
         final long guestId = AuthHelper.getGuestId();
         try {
             oAuth2MgmtService.revokeAccessToken(guestId, accessToken);
-            return new StatusModel(true, "Successfully delete authToken with accessToken " + accessToken);
+            return Response.ok("Successfully delete authToken with accessToken " + accessToken).build();
         } catch (Throwable t) {
-            final String stackTrace = ExceptionUtils.getStackTrace(t);
-            return StatusModel.failure("Couldn't remove accessToken", stackTrace);
+            return Response.serverError().entity(("Couldn't remove accessToken")).build();
         }
     }
 
@@ -76,43 +75,43 @@ public class SettingsStore {
     @POST
     @Path("/{messageName}/increment")
     @Produces({ MediaType.APPLICATION_JSON })
-    public StatusModel incrementCounter(@PathParam("messageName") String messageName) {
+    public Response incrementCounter(@PathParam("messageName") String messageName) {
         final long guestId = AuthHelper.getGuestId();
         try {
             final int count = settingsService.incrementDisplayCounter(guestId, messageName);
             StatusModel status = new StatusModel(true, String.format("incremented message '%s' to %s", messageName, count));
             status.payload = count;
-            return status;
+            return Response.ok(status).build();
         }
         catch (Throwable e) {
             e.printStackTrace();
-            return new StatusModel(false, String.format("Could not increment counter for message '%s'", messageName));
+            return Response.serverError().entity(String.format("Could not increment counter for message '%s'", messageName)).build();
         }
     }
 
     @POST
     @Path("/deleteAccount")
     @Produces({ MediaType.APPLICATION_JSON })
-    @ApiOperation(value = "Delete the user's account (this is irreversible)", response = StatusModel.class)
-    public StatusModel eraseEverything() {
+    @ApiOperation(value = "Delete the user's account (this is irreversible)", response = String.class)
+    public Response eraseEverything() {
         final long guestId = AuthHelper.getGuestId();
         try {
             guestService.eraseGuestInfo(guestId);
         }
         catch (Throwable e) {
             e.printStackTrace();
-            return new StatusModel(false, "There was an unexpected error " +
-                                          "while deleting your account: " + e.getMessage() +
-                                          " - Please contact your administrator");
+            return Response.serverError().entity("There was an unexpected error " +
+                    "while deleting your account: " + e.getMessage() +
+                    " - Please contact your administrator").build();
         }
-        return new StatusModel(true, "Successfully deleted account");
+        return Response.ok("Successfully deleted account").build();
     }
 
     @POST
     @Path("/general")
     @Produces({ MediaType.APPLICATION_JSON })
-    @ApiOperation(value = "Set the user's first name and last name", response = StatusModel.class)
-    public String saveSettings(@ApiParam(value="First name", required=true) @FormParam("guest_firstname") String firstName,
+    @ApiOperation(value = "Set the user's first name and last name", response = String.class)
+    public Response saveSettings(@ApiParam(value="First name", required=true) @FormParam("guest_firstname") String firstName,
                                @ApiParam(value="Last name", required=true) @FormParam("guest_lastname") String lastName) {
         try {
             Guest guest = AuthHelper.getGuest();
@@ -120,11 +119,10 @@ public class SettingsStore {
             settingsService.setFirstname(guest.getId(), firstName);
             settingsService.setLastname(guest.getId(), lastName);
 
-            StatusModel status = new StatusModel(true, "settings updated!");
-            return gson.toJson(status);
+            return Response.ok("settings updated!").build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to save settings: " + e.getMessage()));
+            return Response.serverError().entity("Failed to save settings: " + e.getMessage()).build();
         }
     }
 
@@ -132,8 +130,8 @@ public class SettingsStore {
     @POST
     @Path("/units")
     @Produces({ MediaType.APPLICATION_JSON })
-    @ApiOperation(value = "Set the user's preferred units of measure", response = StatusModel.class)
-    public String saveSettings(@ApiParam(value="Length measure unit", allowableValues = "SI, FEET_INCHES", required=true) @FormParam("length_measure_unit") String lengthUnit,
+    @ApiOperation(value = "Set the user's preferred units of measure", response = String.class)
+    public Response saveSettings(@ApiParam(value="Length measure unit", allowableValues = "SI, FEET_INCHES", required=true) @FormParam("length_measure_unit") String lengthUnit,
                                @ApiParam(value="Distance measure unit", allowableValues = "SI, MILES_YARDS", required=true) @FormParam("distance_measure_unit") String distanceUnit,
                                @ApiParam(value="Weight measure unit", allowableValues = "SI, POUNDS, STONES", required=true) @FormParam("weight_measure_unit") String weightUnit,
                                @ApiParam(value="Temperature unit", allowableValues = "CELSIUS, FAHRENHEIT", required=true) @FormParam("temperature_unit") String temperatureUnit) {
@@ -153,11 +151,10 @@ public class SettingsStore {
             settingsService.setWeightMeasureUnit(guest.getId(), whtUnt);
             settingsService.setTemperatureUnit(guest.getId(), tempUnt);
 
-            StatusModel status = new StatusModel(true, "settings updated!");
-            return gson.toJson(status);
+            return Response.ok("settings updated!").build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to save settings: " + e.getMessage()));
+            return Response.serverError().entity("Failed to save settings: " + e.getMessage()).build();
         }
     }
 
@@ -165,7 +162,7 @@ public class SettingsStore {
     @Path("/password")
     @ApiOperation(value = "Reset password", response = StatusModel.class)
     @Produces({ MediaType.APPLICATION_JSON })
-    public String saveSettings(@ApiParam(value="Current password", required=true) @FormParam("currentPassword") String currentPassword,
+    public Response saveSettings(@ApiParam(value="Current password", required=true) @FormParam("currentPassword") String currentPassword,
                                @ApiParam(value="New password", required=true) @FormParam("password1") String password1,
                                @ApiParam(value="New password (repeat)", required=true) @FormParam("password2") String password2)
             throws IOException {
@@ -175,28 +172,27 @@ public class SettingsStore {
             if (currentPassword!=null) {
                 boolean passwordMatched = guestService.checkPassword(guest.getId(), currentPassword);
                 if (!passwordMatched) {
-                    return gson.toJson(new StatusModel(false, "Wrong Password"));
+                    return Response.ok(gson.toJson(new StatusModel(false, "Wrong Password"))).build();
                 }
             }
 
             if (password1.length()==0 || password2.length()==0)
-                return gson.toJson(new StatusModel(false, "Please fill in both password fields"));
+                return Response.ok(gson.toJson(new StatusModel(false, "Please fill in both password fields"))).build();
             else {
                 if (!password1.equals(password2)) {
-                    return gson.toJson(new StatusModel(false, "Passwords don't match"));
+                    return Response.ok(gson.toJson(new StatusModel(false, "Passwords don't match"))).build();
                 }
                 if (password1.length()<8) {
-                    return gson.toJson(new StatusModel(false, "Your password should be at least 8 characters long"));
+                    return Response.ok(gson.toJson(new StatusModel(false, "Your password should be at least 8 characters long"))).build();
                 } else {
                     guestService.setPassword(guest.getId(), password1);
                 }
             }
 
-            StatusModel status = new StatusModel(true, "settings updated!");
-            return gson.toJson(status);
+            return Response.ok("settings updated!").build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to save settings: " + e.getMessage()));
+            return Response.serverError().entity("Failed to save settings: " + e.getMessage()).build();
         }
     }
 

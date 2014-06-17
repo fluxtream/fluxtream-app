@@ -6,7 +6,6 @@ import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.ApiUpdate;
-import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.services.ConnectorUpdateService;
 import org.fluxtream.core.services.GuestService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.List;
 
 /**
@@ -37,17 +37,17 @@ public class UpdateStore {
     @GET
     @Path("/{connector}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getUpdates(@PathParam("connector") String connectorName,
+    public Response getUpdates(@PathParam("connector") String connectorName,
                              @QueryParam("pageSize") int pageSize,
                              @QueryParam("page") int page) {
         try{
             long guestId = AuthHelper.getGuestId();
             final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
             final List<ApiUpdate> updates = connectorUpdateService.getUpdates(apiKey, pageSize, page);
-            return gson.toJson(updates);
+            return Response.ok(gson.toJson(updates)).build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to get updates: " + e.getMessage()));
+            return Response.serverError().entity("Failed to get updates: " + e.getMessage()).build();
         }
     }
 

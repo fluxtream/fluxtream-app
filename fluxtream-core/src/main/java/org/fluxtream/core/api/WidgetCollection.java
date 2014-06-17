@@ -3,7 +3,6 @@ package org.fluxtream.core.api;
 import com.google.gson.Gson;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.domain.DashboardWidget;
-import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.services.WidgetsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -14,6 +13,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.List;
 
 /**
@@ -32,28 +32,28 @@ public class WidgetCollection {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public String getAvailableWidgetsList() {
+    public Response getAvailableWidgetsList() {
         try{
             long guestId = AuthHelper.getGuestId();
             List<DashboardWidget> widgets = widgetsService.getAvailableWidgetsList(guestId);
-            return gson.toJson(widgets);
+            return Response.ok(gson.toJson(widgets)).build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to get available widgets: " + e.getMessage()));
+            return Response.serverError().entity("Failed to get available widgets: " + e.getMessage()).build();
         }
     }
 
     @POST
     @Path("/refresh")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String refreshWidgets() {
+    public Response refreshWidgets() {
         try{
             long guestId = AuthHelper.getGuestId();
             widgetsService.refreshWidgets(guestId);
-            return gson.toJson(new StatusModel(true, "widgets refreshed"));
+            return Response.ok("widgets refreshed").build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to regresh widgets: " + e.getMessage()));
+            return Response.serverError().entity("Failed to regresh widgets: " + e.getMessage()).build();
         }
     }
 

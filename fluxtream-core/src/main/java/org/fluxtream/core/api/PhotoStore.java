@@ -13,7 +13,6 @@ import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.metadata.DayMetadata;
 import org.fluxtream.core.mvc.models.PhotoModel;
-import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.services.MetadataService;
 import org.fluxtream.core.services.PhotoService;
@@ -27,6 +26,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -57,17 +57,16 @@ public class PhotoStore {
     @Path("/date/{date}")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Get the user's photos for a specific date", responseContainer = "array", response = PhotoModel.class)
-    public String getPhotosForDate(@ApiParam(value="Username (must be currently logged in user's username)", required=true) @PathParam("username") String username,
+    public Response getPhotosForDate(@ApiParam(value="Username (must be currently logged in user's username)", required=true) @PathParam("username") String username,
                                    @ApiParam(value="Date (yyyy-mm-dd)", required=true) @PathParam("date") String date){
         try{
             Guest guest = guestService.getGuest(username);
             if (AuthHelper.getGuest().getId()!=guest.getId())
                 throw new RuntimeException("Attempt to access another user's photos");
             DayMetadata dayMeta = metadataService.getDayMetadata(guest.getId(), date);
-            return gson.toJson(getPhotos(guest, dayMeta.getTimeInterval()));
+            return Response.ok(gson.toJson(getPhotos(guest, dayMeta.getTimeInterval()))).build();
         } catch (Exception e){
-            StatusModel result = new StatusModel(false, "Could not get guest addresses: " + e.getMessage());
-            return gson.toJson(result);
+            return Response.serverError().entity("Could not get guest addresses: " + e.getMessage()).build();
         }
     }
 
@@ -75,7 +74,7 @@ public class PhotoStore {
     @Path("/week/{year}/{week}")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Get the user's photos for a specific date", responseContainer = "array", response = PhotoModel.class)
-    public String getPhotosForWeek(@ApiParam(value="Username (must be currently logged in user's username)", required=true) @PathParam("username") String username,
+    public Response getPhotosForWeek(@ApiParam(value="Username (must be currently logged in user's username)", required=true) @PathParam("username") String username,
                                    @ApiParam(value="Year", required=true) @PathParam("year") int year,
                                    @ApiParam(value="Week", required=true) @PathParam("week") int week){
         try{
@@ -98,10 +97,9 @@ public class PhotoStore {
             c.set(Calendar.DAY_OF_YEAR,newDay);
             DayMetadata dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-" + datePartFormat.format(c.get(Calendar.MONTH) + 1) +
                                                                                           "-" + datePartFormat.format(c.get(Calendar.DAY_OF_MONTH)));
-            return gson.toJson(getPhotos(guest, new SimpleTimeInterval(dayMetaStart.start,dayMetaEnd.end,TimeUnit.WEEK,dayMetaStart.getTimeInterval().getMainTimeZone())));
+            return Response.ok(gson.toJson(getPhotos(guest, new SimpleTimeInterval(dayMetaStart.start,dayMetaEnd.end,TimeUnit.WEEK,dayMetaStart.getTimeInterval().getMainTimeZone())))).build();
         } catch (Exception e){
-            StatusModel result = new StatusModel(false, "Could not get photos: " + e.getMessage());
-            return gson.toJson(result);
+            return Response.serverError().entity("Could not get photos: " + e.getMessage()).build();
         }
     }
 
@@ -109,7 +107,7 @@ public class PhotoStore {
     @Path("/year/{year}")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Get the user's photos for an entire year", responseContainer = "array", response = PhotoModel.class)
-    public String getPhotosForYear(@ApiParam(value="Username (must be currently logged in user's username)", required=true) @PathParam("username") String username,
+    public Response getPhotosForYear(@ApiParam(value="Username (must be currently logged in user's username)", required=true) @PathParam("username") String username,
                                    @ApiParam(value="Year", required=true) @PathParam("year") int year){
         try{
 
@@ -119,10 +117,9 @@ public class PhotoStore {
             DayMetadata dayMetaStart = metadataService.getDayMetadata(guest.getId(), year + "-01-01");
 
             DayMetadata dayMetaEnd = metadataService.getDayMetadata(guest.getId(), year + "-12-31");
-            return gson.toJson(getPhotos(guest, new SimpleTimeInterval(dayMetaStart.start,dayMetaEnd.end,TimeUnit.YEAR,dayMetaStart.getTimeInterval().getMainTimeZone())));
+            return Response.ok(gson.toJson(getPhotos(guest, new SimpleTimeInterval(dayMetaStart.start,dayMetaEnd.end,TimeUnit.YEAR,dayMetaStart.getTimeInterval().getMainTimeZone())))).build();
         } catch (Exception e){
-            StatusModel result = new StatusModel(false, "Could not get photos: " + e.getMessage());
-            return gson.toJson(result);
+            return Response.serverError().entity("Could not get photos: " + e.getMessage()).build();
         }
 
     }

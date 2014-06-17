@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.Collection;
 import java.util.List;
 
@@ -56,25 +57,23 @@ public class SyncController {
     @Path("/{connector}")
     @ApiOperation(value = "Update a connector", response = StatusModel.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public String updateConnector(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName){
+    public Response updateConnector(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName){
         return sync(connectorName, true);
     }
 
-    private String sync(final String connectorName, final boolean force) {
+    private Response sync(final String connectorName, final boolean force) {
         try{
             final long guestId = AuthHelper.getGuestId();
             final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
             guestService.setApiKeyToSynching(apiKey.getId(), true);
             if (apiKey==null) {
-                return gson.toJson(new StatusModel(false, "we don't have an ApiKey for this connector"));
+                return Response.status(Response.Status.BAD_REQUEST).entity("we don't have an ApiKey for this connector").build();
             }
             final List<ScheduleResult> scheduleResults = connectorUpdateService.updateConnector(apiKey, force);
-            StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
-            statusModel.payload = scheduleResults;
-            return gson.toJson(scheduleResults);
+            return Response.ok(gson.toJson(scheduleResults)).build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to schedule update: " + e.getMessage()));
+            return Response.serverError().entity("Failed to schedule update: " + e.getMessage()).build();
         }
     }
 
@@ -82,23 +81,21 @@ public class SyncController {
     @Path("/{connector}/{objectTypes}")
     @ApiOperation(value = "Update a connector's object types", response = StatusModel.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public String updateConnectorObjectType(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName,
+    public Response updateConnectorObjectType(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName,
                                             @ApiParam(value="Bit mask of object types that have to be updated", required=true) @PathParam("objectTypes") int objectTypes){
         return syncConnectorObjectType(connectorName, objectTypes, false);
     }
 
-    private String syncConnectorObjectType(final String connectorName, final int objectTypes, final boolean force) {
+    private Response syncConnectorObjectType(final String connectorName, final int objectTypes, final boolean force) {
         try {
             final long guestId = AuthHelper.getGuestId();
             final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
             final List<ScheduleResult> scheduleResults = connectorUpdateService.updateConnectorObjectType(
                     apiKey, objectTypes, force, false);
-            StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
-            statusModel.payload = scheduleResults;
-            return gson.toJson(scheduleResults);
+            return Response.ok(gson.toJson(scheduleResults)).build();
         }
         catch (Exception e) {
-            return gson.toJson(new StatusModel(false,"Failed to schedule update: " + e.getMessage()));
+            return Response.serverError().entity("Failed to schedule update: " + e.getMessage()).build();
         }
     }
 
@@ -106,15 +103,13 @@ public class SyncController {
     @Path("/all")
     @ApiOperation(value = "Update all of the logged in guest's connectors", response = StatusModel.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public String updateAllConnectors(){
+    public Response updateAllConnectors(){
         try {
             final List<ScheduleResult> scheduleResults = connectorUpdateService.updateAllConnectors(AuthHelper.getGuestId(), true);
-            StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
-            statusModel.payload = scheduleResults;
-            return gson.toJson(scheduleResults);
+            return Response.ok(gson.toJson(scheduleResults)).build();
         }
         catch (Exception e){
-            return gson.toJson(new StatusModel(false,"Failed to schedule udpates: " + e.getMessage()));
+            return Response.serverError().entity("Failed to schedule udpates: " + e.getMessage()).build();
         }
     }
 
@@ -130,32 +125,32 @@ public class SyncController {
     @POST
     @ApiOperation(value = "Check if a connector's history update is complete", response = String.class)
     @Path("/{connector}/historyComplete")
-    public String isHistoryComplete(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName,
+    public Response isHistoryComplete(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName,
                                     @ApiParam(value="Bit mask of the connector's object types", required=true) @FormParam("objectTypes") int objectTypes) {
         final long guestId = AuthHelper.getGuestId();
         final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
         final boolean historyUpdateCompleted = connectorUpdateService.isHistoryUpdateCompleted(apiKey, objectTypes);
         JSONObject response = new JSONObject();
         response.accumulate("historyUpdateCompleted", historyUpdateCompleted);
-        return response.toString();
+        return Response.ok(response.toString()).build();
     }
 
     @POST
     @ApiOperation(value = "Check if a connector's currently synching", response = String.class)
     @Path("/{connector}/isSynching")
-    public String isSynching(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName) {
+    public Response isSynching(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName) {
         final long guestId = AuthHelper.getGuestId();
         final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
         final Collection<UpdateWorkerTask> scheduledUpdates = connectorUpdateService.getUpdatingUpdateTasks(apiKey);
         JSONObject response = new JSONObject();
         response.accumulate("synching", scheduledUpdates.size()>0);
-        return response.toString();
+        return Response.ok(response.toString()).build();
     }
 
     @POST
     @ApiOperation(value = "Retrieve a connector's last successful update time", response = String.class)
     @Path("/{connector}/lastSuccessfulUpdate")
-    public String lastSuccessfulUpdate(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName) {
+    public Response lastSuccessfulUpdate(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName) {
         Connector connector = Connector.getConnector(connectorName);
         Guest guest = AuthHelper.getGuest();
         final ApiKey apiKey = guestService.getApiKey(guest.getId(), connector);
@@ -163,24 +158,24 @@ public class SyncController {
         JSONObject response = new JSONObject();
         response.accumulate("lastSuccessfulUpdate", lastSuccessfulUpdate!=null
             ? fmt.print(lastSuccessfulUpdate.ts) : "never");
-        return response.toString();
+        return Response.ok(response.toString()).build();
     }
 
     @POST
     @Path("/{connector}/reset")
     @ApiOperation(value = "Un-schedule pending updates of the given connector", response = StatusModel.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public StatusModel resetConnector(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName) {
+    public Response resetConnector(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName) {
         final long guestId = AuthHelper.getGuestId();
         final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
         connectorUpdateService.flushUpdateWorkerTasks(apiKey, true);
-        return new StatusModel(true, "reset controller " + connectorName);
+        return Response.ok("reset controller " + connectorName).build();
     }
 
     @POST
     @ApiOperation(value = "Retrieve a connector's last attempted update time (successful or failed)", response = String.class)
     @Path("/{connector}/lastUpdate")
-    public String lastUpdate(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName) {
+    public Response lastUpdate(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName) {
         Connector connector = Connector.getConnector(connectorName);
         Guest guest = AuthHelper.getGuest();
         final ApiKey apiKey = guestService.getApiKey(guest.getId(), connector);
@@ -188,7 +183,7 @@ public class SyncController {
         JSONObject response = new JSONObject();
         response.accumulate("lastUpdate", lastUpdate!=null
                                                     ? fmt.print(lastUpdate.ts) : "never");
-        return response.toString();
+        return Response.ok(response.toString()).build();
     }
 
 }

@@ -1,11 +1,9 @@
 package org.fluxtream.core.api;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.domain.oauth2.Application;
 import org.fluxtream.core.mvc.models.ApplicationModel;
-import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.services.PartnerAppsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -101,7 +99,7 @@ public class PartnerAppsStore {
     @GET
     @Path("/")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String listApplications() throws IOException {
+    public Response listApplications() throws IOException {
         final long guestId = AuthHelper.getGuestId();
         try {
             final List<Application> applications = partnerAppsService.getApplications(guestId);
@@ -111,14 +109,10 @@ public class PartnerAppsStore {
                 apps.add(app);
             }
             final String json = mapper.writeValueAsString(apps);
-            return json;
+            return Response.ok(json).build();
         }
         catch (Throwable e) {
-            final String stackTrace = ExceptionUtils.getStackTrace(e);
-            final StatusModel statusModel = new StatusModel(false, "Couldn't list applications for user " + guestId);
-            statusModel.payload = stackTrace;
-            final String json = mapper.writeValueAsString(statusModel);
-            return json;
+            return Response.serverError().entity("Couldn't list applications for user " + guestId).build();
         }
     }
 
