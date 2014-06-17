@@ -466,29 +466,6 @@ define(
             ManageConnectors.show();
         };
 
-        App.removeConnector = function(api) {
-            if (typeof(ga)!='undefined') {ga('send', 'event', 'button', 'click', 'removeConnector', 1);}
-            var c = confirm("If you wrote comments on events related to this connector, "
-                                + "you will lose them forever.\n"
-                                + "Are your sure you want to continue?");
-            if (c) {
-                if (typeof(ga)!='undefined') {ga('send', 'event', 'button', 'click', 'removeConnectorConfirmed', 1);}
-                $.ajax({
-                           url : "/connectors/removeConnector?api=" + api,
-                           dataType : "json",
-                           success : function(data) {
-                               if (data.result == "ok") {
-                                   $("#userConnectors").load(
-                                       "/connectors/userConnectors");
-                                   $("#availableConnectors").load(
-                                       "/connectors/availableConnectors");
-                                   App.showConnectorsPage(0);
-                               }
-                           }
-                       });
-            }
-        };
-
         App.getConnectorSettings = function(connectorId) {
             console.log("getting connector settings: " + connectorId);
         };
@@ -594,11 +571,6 @@ define(
                 setTimeout("window.location='" + url + "'", 500);
             }
             if (typeof(ga)!='undefined') {ga('send', 'event', 'button', 'click', 'addConnector', 1);}
-        };
-
-        App.showConnectorsPage = function(page) {
-            $("#availableConnectors").load(
-                "/connectors/availableConnectors?page=" + page);
         };
 
         App.discardNotification = function(notificationId) {
