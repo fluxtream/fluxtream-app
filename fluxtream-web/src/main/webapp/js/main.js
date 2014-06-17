@@ -40,7 +40,6 @@ if (aggressiveLoading) {
     require([
         "text!notificationTemplates.html",
         "text!connectorMgmtTemplates.html",
-        "text!addressesTemplate.html",
         "text!applications/calendar/facetTemplates.html",
         "text!applications/calendar/tabs/clock/clockTemplate.html",
         "text!applications/calendar/tabs/photos/photosTemplate.html",

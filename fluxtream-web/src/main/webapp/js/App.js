@@ -111,9 +111,9 @@ Date.prototype.format = function (mask, utc) {
 };
 
 define(
-    [ "core/FlxState", "Addresses", "ManageConnectors", "AddConnectors", "ConnectorConfig", "Settings", "SharingDialog",
+    [ "core/FlxState", "ManageConnectors", "AddConnectors", "ConnectorConfig", "Settings", "SharingDialog",
       "libs/jquery.form", "libs/jquery.jeditable.mini", "libs/jquery.timeago" ],
-    function(FlxState, Addresses, ManageConnectors, AddConnectors, ConnectorConfig, Settings,
+    function(FlxState, ManageConnectors, AddConnectors, ConnectorConfig, Settings,
         SharingDialog ) {
 
         var App = {};
@@ -457,10 +457,6 @@ define(
 
         App.connectors = function() {
             AddConnectors.show();
-        };
-
-        App.addresses = function() {
-            Addresses.show();
         };
 
         App.manageConnectors = function(){

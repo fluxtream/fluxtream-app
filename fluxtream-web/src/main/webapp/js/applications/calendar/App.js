@@ -517,7 +517,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 loadTemplate(facetType);
             });
         });
-        loadTemplate("fluxtream-address");
         loadTemplate("foursquare-venue");
         loadTemplate("moves-move-activity");
         for (var connectorId in digest.facets){
@@ -625,13 +624,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             }
         }
 
-        for (var addressType in digest.addresses){
-            $.each(digest.addresses[addressType], function(i, address) {
-                address.getDetails = function(){
-                    return buildAddressDetails(digest,this);
-                };
-            });
-        }
     }
 
     Calendar.mergeInFacets = function(newFacetsArray,connectorInfos){
