@@ -91,7 +91,6 @@ public class SettingsStore {
 
     @POST
     @Path("/deleteAccount")
-    @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "Delete the user's account (this is irreversible)", response = String.class)
     public Response eraseEverything() {
         final long guestId = AuthHelper.getGuestId();

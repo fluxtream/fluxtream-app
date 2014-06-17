@@ -431,12 +431,11 @@ define(
                 $.ajax({
                     url: "/api/v1/settings/deleteAccount",
                     type: "POST",
-                    success: function(status) {
-                        if (status.result=="OK") {
-                            window.location = "/logout";
-                        } else {
-                            alert(status.message);
-                        }
+                    success: function(body, statusText, jqXHR) {
+                        console.log(statusText  + ":" + body);
+                        window.location = "/logout";
+                    }, error: function(jqXHR, statusText, errorThrown) {
+                        alert("Could not delete account: " + statusText+" (" + errorThrown + ") " + ". Please contact us!");
                     }
                 });
             }
@@ -446,14 +445,18 @@ define(
             $.ajax({
                 url: "/api/v1/coaching/coachees/" + username,
                 type: "POST",
-                success: function(status) {
-                    if (status.result=="OK") {
-                        location.reload();
-                    } else
-                        alert(status.message);
+                success: function(body, statusText, jqXHR) {
+                    location.reload();
+                }, error: function(jqXHR, statusText, errorThrown) {
+                    App.logError(jqXHR, statusText, errorThrown);
                 }
             });
         };
+
+        App.logError = function(jqXHR, statusText, errorThrown) {
+            console.log(statusText+" (" + errorThrown + ") ");
+            console.log(jqXHR.responseText);
+        }
 
         App.connectors = function() {
             AddConnectors.show();
