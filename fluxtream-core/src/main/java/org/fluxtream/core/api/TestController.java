@@ -1,15 +1,5 @@
 package org.fluxtream.core.api;
 
-import java.io.IOException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.Guest;
@@ -20,11 +10,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+
 /**
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
-@Path("/test")
+@Path("/v1/test")
 @Component("RESTTestController")
 @Scope("request")
 public class TestController {
@@ -93,6 +91,13 @@ public class TestController {
     @Produces({MediaType.TEXT_PLAIN})
     public String ping() throws IOException {
         return "pong";
+    }
+
+    @GET
+    @Path("/statusCode/{statusCode}")
+    @Produces({MediaType.TEXT_PLAIN})
+    public Response testStatusCode(@PathParam("statusCode") int statusCode) throws IOException {
+        return Response.status(statusCode).entity("Some human-readable message").build();
     }
 
 }

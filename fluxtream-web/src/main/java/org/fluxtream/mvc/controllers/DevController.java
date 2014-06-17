@@ -54,6 +54,13 @@ public class DevController {
         return mav;
     }
 
+    @RequestMapping("/test")
+    public ModelAndView testPage(HttpServletResponse response) {
+        noCache(response);
+        final ModelAndView mav = new ModelAndView("developer/testPage", "release", env.get("release"));
+        return mav;
+    }
+
     @RequestMapping(value = "/home")
     public ModelAndView partnersHome(HttpServletResponse response) {
         noCache(response);
