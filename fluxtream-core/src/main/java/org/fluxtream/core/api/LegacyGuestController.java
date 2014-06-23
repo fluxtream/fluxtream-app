@@ -82,7 +82,9 @@ public class LegacyGuestController {
             if (coachee!=null)
                 guest = guestService.getGuestById(coachee.guestId);
         }
-        catch (CoachRevokedException e) {}
+        catch (CoachRevokedException e) {
+            // TODO: do something about this
+        }
         if (guest.registrationMethod == Guest.RegistrationMethod.REGISTRATION_METHOD_FACEBOOK||
             guest.registrationMethod == Guest.RegistrationMethod.REGISTRATION_METHOD_FACEBOOK_WITH_PASSWORD) {
             url = getFacebookAvatarImageURL(guest);
