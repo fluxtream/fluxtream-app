@@ -192,7 +192,6 @@ public class CoachingController {
 
     @POST
     @Path("/sharedConnector/{apiKeyId}/{username}")
-    @Produces({MediaType.APPLICATION_JSON})
     public Response saveSharedConnectorSettingsFilter(@PathParam("apiKeyId") long apiKeyId,
                                                          @PathParam("username") String username,
                                                          @FormParam("json") String json) {
