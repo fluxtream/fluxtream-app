@@ -53,10 +53,10 @@ define(function() {
             url: "/api/v1/connectors/settings/" + apiKeyId,
             type: "post",
             data: {json : JSON.stringify(settings)},
-            success: function(status){
-                if(!status.result) {
-                    alert("Oops, we could not save your settings:" + status.message);
-                }
+            error: function(jqXHR, statusText, errorThrown) {
+                var errorMessage = errorThrown + ": " + jqXHR.responseText;
+                console.log(errorMessage);
+                alert("Could upload data: " + jqXHR.responseText);
             }
         });
     }

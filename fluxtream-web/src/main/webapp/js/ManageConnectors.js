@@ -364,19 +364,14 @@ define(["core/grapher/BTCore",
                 data: formData,
                 processData: false,
                 contentType: false,
-                success: function(response){
-                    var status;
-                    try { status = JSON.parse(response); }
-                    catch(err) { alert("Couldn't upload data:" + err); }
-                    if (status.result==="OK") {
-                        $("#uploadModal").modal("hide");
-                        App.activeApp.renderState(App.state.getState(App.activeApp.name),true);
-                    }
-                    else {
-                        if (typeof(status.stackTrace)!="undefined")
-                            console.log(status.stackTrace);
-                        alert("Could upload data: " + status.message);
-                    }
+                success: function(response, statusText, jqXHR){
+                    $("#uploadModal").modal("hide");
+                    App.activeApp.renderState(App.state.getState(App.activeApp.name),true);
+                },
+                error: function(jqXHR, statusText, errorThrown) {
+                    var errorMessage = errorThrown + ": " + jqXHR.responseText;
+                    console.log(errorMessage);
+                    alert("Could upload data: " + jqXHR.responseText);
                 }
             });
             console.log("we should send this file now...");

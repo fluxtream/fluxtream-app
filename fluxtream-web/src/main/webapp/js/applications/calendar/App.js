@@ -97,12 +97,11 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         $(window).resize();
     }
 
-    function handleError(msg) {
-        return function(xhr, status, error) {
-            stopLoading();
-            console.log(xhr, status, error);
-            alert(msg);
-        }
+    function handleError(jqXHR, status, errorThrown) {
+        stopLoading();
+        var errorMessage = errorThrown + ": " + jqXHR.responseText;
+        console.log(errorMessage);
+        alert(errorMessage);
     }
 
     Calendar.stopLoading = stopLoading;
@@ -278,10 +277,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 if (thisFetchId != fetchId)//we litter the callback with these in case a we got to the callback but a new request started
                     return;
                 latestFetchFinished = thisFetchId;
-                if (response.result === "KO") {
-                    handleError(response.message)();
-                    return;
-                }
                 Calendar.digest = response;
                 updateTimeRange(response, state);
                 Calendar.digestTabState = state.tabState;
@@ -310,11 +305,12 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     $("#visitedCitiesDetails").hide();
                 }
 			},
-			error: function(){
+            error: function(jqXHR, statusText, errorThrown) {
                 if (thisFetchId != fetchId)//we don't really care about errors on old fetches
                     return;
                 latestFetchFinished = thisFetchId;
-                handleError("failed to fetch calendar data!")
+                var errorMessage = errorThrown + ": " + jqXHR.responseText;
+                console.log(errorMessage);
             }
 		});
 	}
@@ -1490,10 +1486,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
            data: {state: state.tabState},
            dataType: "JSON",
            success: function(response) {
-               if (response.result == "KO"){//signifies error was returned
-                   handleError("You aren't logged in!")();
-                   return;
-               }
                Calendar.timeRange.start = response.start;
                Calendar.timeRange.end = response.end;
                if (Calendar.dateAxisCursorPosition * 1000 < Calendar.timeRange.start || Calendar.dateAxisCursorPosition * 1000 > Calendar.timeRange.end)
@@ -1502,7 +1494,9 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                Calendar.timeRange.updated = true;
                stopLoading(doneLoadingId);
            },
-           error: handleError("failed to fetch timespan label!")
+           error: function(jqXHR, statusText, errorThrown){
+               alert("failed to fetch timespan label!")
+           }
        });
    }
 

@@ -47,13 +47,12 @@ public class SettingsStore {
 
     @DELETE
     @Path("/accessTokens/{accessToken}")
-    @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "Get the user's settings", response = GuestSettingsModel.class)
     public Response revokeAccessToken(@PathParam("accessToken") final String accessToken){
         final long guestId = AuthHelper.getGuestId();
         try {
             oAuth2MgmtService.revokeAccessToken(guestId, accessToken);
-            return Response.ok("Successfully delete authToken with accessToken " + accessToken).build();
+            return Response.ok("Successfully deleted authToken with accessToken " + accessToken).build();
         } catch (Throwable t) {
             return Response.serverError().entity(("Couldn't remove accessToken")).build();
         }
@@ -108,7 +107,6 @@ public class SettingsStore {
 
     @POST
     @Path("/general")
-    @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "Set the user's first name and last name", response = String.class)
     public Response saveSettings(@ApiParam(value="First name", required=true) @FormParam("guest_firstname") String firstName,
                                @ApiParam(value="Last name", required=true) @FormParam("guest_lastname") String lastName) {
@@ -128,7 +126,6 @@ public class SettingsStore {
 
     @POST
     @Path("/units")
-    @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "Set the user's preferred units of measure", response = String.class)
     public Response saveSettings(@ApiParam(value="Length measure unit", allowableValues = "SI, FEET_INCHES", required=true) @FormParam("length_measure_unit") String lengthUnit,
                                @ApiParam(value="Distance measure unit", allowableValues = "SI, MILES_YARDS", required=true) @FormParam("distance_measure_unit") String distanceUnit,
@@ -188,7 +185,7 @@ public class SettingsStore {
                 }
             }
 
-            return Response.ok("settings updated!").build();
+            return Response.ok(new StatusModel(true, "settings updated!")).build();
         }
         catch (Exception e){
             return Response.serverError().entity("Failed to save settings: " + e.getMessage()).build();

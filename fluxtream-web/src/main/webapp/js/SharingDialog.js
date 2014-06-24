@@ -52,18 +52,24 @@ define(["sharedConnectorSettings/evernote", "sharedConnectorSettings/google_cale
             url: "/api/v1/coaching/coaches/find",
             data: {username : username},
             type: "POST",
-            success: function(status) {
-                $(".loading-animation").hide();
-                $("#findUserMessage").removeAttr("class");
-                if (status.result=="OK") {
-                    var message = "<i class=\"icon-ok\"></i> " + status.message + " Is " + status.payload.fullname
-                                      + " the person you're looking for? "
+            statusCode: {
+                200: function(guest, statusText, jqXHR) {
+                    $(".loading-animation").hide();
+                    $("#findUserMessage").removeAttr("class");
+                    var message = "<i class=\"icon-ok\"></i> Found User! Is " + guest["fullname"]
+                        + " the person you are looking for? "
                         +  "If yes, please hit the 'Add Buddy' button below";
                     $("#findUserMessage").html(message);
                     $("#findUserMessage").addClass("alert alert-success");
                     $("#shareMyDataButton").removeClass("disabled");
-                } else {
-                    $("#findUserMessage").html("<i class=\"icon-exclamation-sign\"></i> " + status.message);
+                },
+                404: function(jqXHR, statusText, errorThrown) {
+                    $("#findUserMessage").html("<i class=\"icon-exclamation-sign\"></i> " + errorThrown + ": " + jqXHR.responseText);
+                    $("#findUserMessage").addClass("alert alert-error");
+                    $("#shareMyDataButton").addClass("disabled");
+                },
+                400: function(jqXHR, statusText, errorThrown) {
+                    $("#findUserMessage").html("<i class=\"icon-exclamation-sign\"></i> " + errorThrown + ": " + jqXHR.responseText);
                     $("#findUserMessage").addClass("alert alert-error");
                     $("#shareMyDataButton").addClass("disabled");
                 }

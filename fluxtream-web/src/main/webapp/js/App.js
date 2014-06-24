@@ -549,19 +549,12 @@ define(
                     url : "/upload/addConnector",
                     type: "POST",
                     data: {connectorName : connectorName},
-                    success : function(response) {
-                        var status;
-                        try { status = JSON.parse(response); }
-                        catch(err) { alert("Couldn't add upload-only connector:" + err); }
-                        if (status.result==="OK") {
-                            $("#modal").modal("hide");
-                            App.activeApp.renderState(App.state.getState(App.activeApp.name),true);
-                        }
-                        else {
-                            if (typeof(status.stackTrace)!="undefined")
-                                console.log(status.stackTrace);
-                            alert("Could not add upload-only connector: " + status.message);
-                        }
+                    success : function(body, statusText, jqXHR) {
+                        $("#modal").modal("hide");
+                        App.activeApp.renderState(App.state.getState(App.activeApp.name),true);
+                    },
+                    error: function(jqXHR, statusText, errorThrown) {
+                        alert("Could not add upload-only connector: " + jqXHR.responseText);
                     }
                 });
             } else {
@@ -940,12 +933,12 @@ define(
             $.ajax({
                 url: "/api/v1/settings/"+messageName+"/increment",
                 method: "POST",
-                success: function(status){
-                    if (status.result=="OK") {
-                        var count =parseInt(status.payload,10);
-                        App.messageDisplayCounters[messageName] = count;
-                    } else
-                        console.log("Couldn't increment message display for " + messageName)
+                success: function(status, statusText, jqXHR){
+                    var count =parseInt(status["payload"],10);
+                    App.messageDisplayCounters[messageName] = count;
+                },
+                error: function(jqXHR, statusText, errorThrown) {
+                    console.log("Couldn't increment message display for " + messageName);
                 }
             });
         }

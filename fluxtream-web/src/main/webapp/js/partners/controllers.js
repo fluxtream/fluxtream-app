@@ -4,8 +4,6 @@ developerWebsiteControllers.controller('AppsListCtrl', ['$scope', 'App',
     function ($scope, App) {
         $scope.delete = function(app) {
             app.$delete(function(status){
-                if (status.result!="OK")
-                    alert("Oops, something went wrong: " + status.message);
                 $scope.refresh();
             });
         };
@@ -26,8 +24,6 @@ developerWebsiteControllers.controller('AppEditFormCtrl', ['$scope', 'App', '$ro
     function($scope, App, $routeParams, $location) {
         $scope.createOrUpdate = function(app) {
             app.$save(function(status){
-                if (status.result!="OK")
-                    alert("Oops, something went wrong: " + status.message);
                 $location.path("#/apps");
             });
         };
@@ -42,8 +38,6 @@ developerWebsiteControllers.controller('AppCreateFormCtrl', ['$scope', 'App', '$
         $scope.createOrUpdate = function(app) {
             var newApp = new App(app);
             newApp.$save(function(status){
-                if (status.result!="OK")
-                    alert("Oops, something went wrong: " + status.message);
                 $location.path("#/apps");
             });
         };

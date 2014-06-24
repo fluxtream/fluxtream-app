@@ -291,14 +291,9 @@ define([], function() {
                     type : "DELETE",
                     url  : "/api/v1/bodytrack/users/" + App.getUID() + "/views/" + id,
                     success: function(data, textStatus, jqXHR){
-                        if (data.result != "OK")
-                            callback(false);
-                        else{
-                            VIEWS.getAvailableList(function(){
-                                callback(true);
-                            });
-                        }
-
+                        VIEWS.getAvailableList(function(){
+                            callback(true);
+                        });
                     },
                     error : function (jqXHR, textStatus, errorThrown){
                         callback(false);

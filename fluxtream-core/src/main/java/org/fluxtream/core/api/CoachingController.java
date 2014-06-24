@@ -51,7 +51,7 @@ public class CoachingController {
         final Guest guest = guestService.getGuest(username);
         final List<Guest> coaches = coachingService.getCoaches(AuthHelper.getGuestId());
         if (coaches.contains(guest))
-            return Responses.notFound().entity(username + " is already in you coaching buddies list").build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(username + " is already in you coaching buddies list").build();
         if (guest!=null) {
             return Response.ok(new GuestModel(guest)).build();
         } else

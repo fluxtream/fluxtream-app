@@ -142,7 +142,22 @@ public class OAuth2MgmtServiceImpl implements OAuth2MgmtService {
         final AuthorizationToken authorizationToken = getTokenFromAccessToken(accessToken);
         if (authorizationToken.guestId!=guestId)
             throw new RuntimeException("Attempt to revoke an authorizationToken by another user");
-        final Query query = em.createNativeQuery("DELETE FROM AuthorizationToken WHERE accessToken=?");
+
+        // erase the token's associated authorization code response, if there is one
+        Query query = em.createQuery("SELECT response FROM AuthorizationCodeResponse response WHERE authorizationCodeId=?");
+        query.setParameter(1, authorizationToken.authorizationCodeId);
+        List resultList = query.getResultList();
+        if (resultList.size()>0)
+            em.remove(resultList.get(0));
+
+        // erase the token's associated authorization code, if there is one
+        query = em.createQuery("SELECT code FROM AuthorizationCode code WHERE id=?");
+        query.setParameter(1, authorizationToken.authorizationCodeId);
+        resultList = query.getResultList();
+        if (resultList.size()>0)
+            em.remove(resultList.get(0));
+
+        query = em.createNativeQuery("DELETE FROM AuthorizationToken WHERE accessToken=?");
         query.setParameter(1, accessToken);
         query.executeUpdate();
     }

@@ -7,7 +7,7 @@ define(function() {
                     var dialogTemplate = App.fetchCompiledMustacheTemplate("settingsTemplates.html", "dialog");
                     var setPasswordTemplate = App.fetchCompiledMustacheTemplate("settingsTemplates.html", "setPassword");
                     var resetPasswordTemplate = App.fetchCompiledMustacheTemplate("settingsTemplates.html", "resetPassword");
-                    if (settings.registrationMethod==="REGISTRATION_METHOD_FACEBOOK")
+                    if (settings["registrationMethod"]==="REGISTRATION_METHOD_FACEBOOK")
                         bindMainSettingsTemplate(dialogTemplate, setPasswordTemplate, settings);
                     else
                         bindMainSettingsTemplate(dialogTemplate, resetPasswordTemplate, settings);
@@ -30,10 +30,10 @@ define(function() {
         var renderedLinkedAppsTemplate = renderLinkedAppsTemplate(settings);
         $("#apps-settings").append(renderedLinkedAppsTemplate);
         $("#password-settings").append(passwordTemplate.render());
-        $("#username-uneditable").html(settings.username);
-        $("#guest_username").val(settings.username);
-        $("#guest_firstname").val(settings.firstName);
-        $("#guest_lastname").val(settings.lastName);
+        $("#username-uneditable").html(settings["username"]);
+        $("#guest_username").val(settings["username"]);
+        $("#guest_firstname").val(settings["firstName"]);
+        $("#guest_lastname").val(settings["lastName"]);
         var lengthOptions = $("#length_measure_unit").children();
         for (var i = 0; i < lengthOptions.length; i++){
             if ($(lengthOptions[i]).attr("value") == settings.lengthMeasureUnit){
@@ -88,21 +88,24 @@ define(function() {
             $.ajax({
                 url: "/api/v1/settings/accessTokens/" + accessToken,
                 type: "DELETE",
-                success: function(status) {
-                    console.log(status);
-                    if (status.result==="OK") {
-                        $.ajax("/api/v1/settings",{
-                            success: function(settings) {
-                                var renderedLinkedAppsTemplate = renderLinkedAppsTemplate(settings);
-                                $("#apps-settings").empty().append(renderedLinkedAppsTemplate);
-                                bindLinkedAppsTemplate();
-                            }
-                        });
-                    } else {
-                        $("#apps-settings").empty().append("<h4>Something went wrong... please contact us</h1>")
-                    }
+                success: function(body, statusText, jqXHR) {
+                    console.log(body);
+                    $.ajax("/api/v1/settings",{
+                        success: function(settings, statusText, jqXHR) {
+                            var renderedLinkedAppsTemplate = renderLinkedAppsTemplate(settings);
+                            $("#apps-settings").empty().append(renderedLinkedAppsTemplate);
+                            bindLinkedAppsTemplate();
+                        },
+                        error: function(jqXHR, statusText, errorThrown) {
+                            var errorMessage = errorThrown + ": " + jqXHR.responseText;
+                            console.log(errorMessage);
+                            alert("Could load settings: " + errorMessage);
+                        }
+                    });
                 },
-                error: function() {
+                error: function(jqXHR, statusText, errorThrown) {
+                    var errorMessage = errorThrown + ": " + jqXHR.responseText;
+                    console.log(errorMessage);
                     $("#apps-settings").empty().append("<h4>Something went wrong... please contact us</h1>")
                 }
             });
@@ -118,16 +121,18 @@ define(function() {
         $.ajax("/api/v1/settings/general",{
             type:"POST",
             data:submitdata,
-            success:function(status) {
-                if (status.result=="OK"){
-                    App.closeModal();
-                    var nameDisplay = $("#loggedInUser");
-                    var newNameEncoded = App.htmlEscape($("#guest_firstname").val() + " " + $("#guest_lastname").val());
-                    var oldNameEncoded = App.htmlEscape(settings.firstName + " " + settings.lastName);
-                    nameDisplay.html(nameDisplay.html().replace(oldNameEncoded, newNameEncoded));
-                }
+            success: function(body, statusText, jqXHR) {
+                App.closeModal();
+                var nameDisplay = $("#loggedInUser");
+                var newNameEncoded = App.htmlEscape($("#guest_firstname").val() + " " + $("#guest_lastname").val());
+                var oldNameEncoded = App.htmlEscape(settings["firstName"] + " " + settings["lastName"]);
+                nameDisplay.html(nameDisplay.html().replace(oldNameEncoded, newNameEncoded));
             },
-            error:App.closeModal
+            error: function(jqXHR, statusText, errorThrown) {
+                var errorMessage = errorThrown + ": " + jqXHR.responseText;
+                console.log(errorMessage);
+                App.closeModal();
+            }
         });
     }
 
@@ -142,7 +147,7 @@ define(function() {
             type:"POST",
             data:submitdata,
             success:function(status) {
-                if (status.result=="OK"){
+                if (status.result==="OK"){
                     App.closeModal();
                 }
                 else {
@@ -150,7 +155,11 @@ define(function() {
                     $("#setPasswordError").html(status.message);
                 }
             },
-            error:App.closeModal
+            error: function(jqXHR, statusText, errorThrown) {
+                var errorMessage = errorThrown + ": " + jqXHR.responseText;
+                console.log(errorMessage);
+                App.closeModal();
+            }
         });
     }
 
@@ -163,12 +172,14 @@ define(function() {
         $.ajax("/api/v1/settings/units",{
             type:"POST",
             data:submitdata,
-            success:function(status) {
-                if (status.result=="OK"){
+            success: function(body, statusText, jqXHR) {
                     App.closeModal();
-                }
             },
-            error:App.closeModal
+            error: function(jqXHR, statusText, errorThrown) {
+                var errorMessage = errorThrown + ": " + jqXHR.responseText;
+                console.log(errorMessage);
+                App.closeModal();
+            }
         });
     }
 
