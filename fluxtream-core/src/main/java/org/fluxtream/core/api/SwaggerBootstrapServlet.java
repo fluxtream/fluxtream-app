@@ -46,7 +46,7 @@ public class SwaggerBootstrapServlet extends HttpServlet {
                 "Apache 2.0",
                 "http://www.apache.org/licences/LICENSE-2.0.html"
         );
-        ConfigFactory.config().setBasePath(env.get("homeBaseUrl")+"api/v1");
+        ConfigFactory.config().setBasePath(env.get("homeBaseUrl")+"api");
         ConfigFactory.config().setApiInfo(apiInfo);
         ConfigFactory.config().setApiVersion("v1");
     }

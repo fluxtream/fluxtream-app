@@ -48,7 +48,7 @@ import java.io.IOException;
 import java.util.*;
 
 @Path("/v1/calendar")
-@Api(value = "/v1/calendar", description = "Main devices and service API facets consumption operations")
+@Api(value = "/calendar", description = "Main devices and service API facets consumption operations")
 @Component("RESTCalendarDataStore")
 @Scope("request")
 public class CalendarDataStore {

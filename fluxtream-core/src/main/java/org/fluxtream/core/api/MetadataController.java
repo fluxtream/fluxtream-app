@@ -34,7 +34,7 @@ import java.util.TreeSet;
  * Time: 12:07
  */
 @Path("/v1/metadata")
-@Api(value = "/v1/metadata", description = "Location/Timezone query and disambiguation endpoints.",
+@Api(value = "/metadata", description = "Location/Timezone query and disambiguation endpoints.",
         authorizations = {@Authorization(value="oauth2")})
 @Component("RESTMetadataController")
 @Scope("request")

@@ -2,11 +2,7 @@ package org.fluxtream.core.api;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiParam;
-import com.wordnik.swagger.annotations.Authorization;
-import net.sf.json.JSONArray;
+import com.wordnik.swagger.annotations.*;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
@@ -24,6 +20,7 @@ import org.fluxtream.core.connectors.bodytrackResponders.AbstractBodytrackRespon
 import org.fluxtream.core.connectors.updaters.UpdateFailedException;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.*;
+import org.fluxtream.core.mvc.models.ConnectorModelFull;
 import org.fluxtream.core.services.*;
 import org.fluxtream.core.utils.Utils;
 import org.joda.time.DateTime;
@@ -46,7 +43,7 @@ import java.util.ResourceBundle;
  */
 @Path("/v1/connectors")
 @Component("RESTConnectorStore")
-@Api(value = "/v1/connectors", description = "Connector and connector settings management operations (list, add, remove, etc.)")
+@Api(value = "/connectors", description = "Connector and connector settings management operations (list, add, remove, etc.)")
 @Scope("request")
 public class ConnectorStore {
 
@@ -87,8 +84,7 @@ public class ConnectorStore {
     @POST
     @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "Reset connector settings to their default values", response = String.class,
-                  notes="A set of default values are stored alongside user modified values for all connector settings",
-                  authorizations = {@Authorization(value="oauth2")})
+                  notes="A set of default values are stored alongside user modified values for all connector settings")
     @Path("/settings/reset/{apiKeyId}")
     public Response resetConnectorSettings(@ApiParam(value="The connector's ApiKey ID", required=true) @PathParam("apiKeyId") long apiKeyId) {
         settingsService.resetConnectorSettings(apiKeyId);
@@ -98,14 +94,16 @@ public class ConnectorStore {
     @GET
     @Path("/settings/{apiKeyId}")
     @ApiOperation(value = "Retrieve connector settings", response = Object.class,
-                  notes = "The structure of the returned object is connector dependent",
-                  authorizations = {@Authorization(value="oauth2")})
+                  notes = "The structure of the returned object is connector dependent")
     @Produces({MediaType.APPLICATION_JSON})
+    @ApiResponses({
+            @ApiResponse(code = 403, message = "If the supplied ApiKey doesn't belong to the logged-in user")
+    })
     public String getConnectorSettings(@ApiParam(value="The connector's ApiKey ID", required=true)  @PathParam("apiKeyId") long apiKeyId) throws UpdateFailedException, IOException {
         final ApiKey apiKey = guestService.getApiKey(apiKeyId);
         final long guestId = AuthHelper.getGuestId();
         if (apiKey.getGuestId()!=guestId)
-            throw new RuntimeException("attempt to retrieve ApiKey from another guest!");
+            Response.status(Response.Status.FORBIDDEN).build();
         final Object settings = settingsService.getConnectorSettings(apiKey.getId());
         String json = mapper.writeValueAsString(settings);
         return json;
@@ -114,21 +112,23 @@ public class ConnectorStore {
     @POST
     @Path("/settings/{apiKeyId}")
     @ApiOperation(value = "Save user-modified connector settings", response = String.class,
-                  notes = "The structure of the returned object is connector dependent",
-                  authorizations = {@Authorization(value="oauth2")})
-    @Produces({MediaType.APPLICATION_JSON})
+                  notes = "The structure of the returned object is connector dependent")
+    @Produces({MediaType.TEXT_PLAIN})
+    @ApiResponses({
+            @ApiResponse(code = 403, message = "If the supplied ApiKey doesn't belong to the logged-in user")
+    })
     public Response saveConnectorSettings(@ApiParam(value="The connector's ApiKey ID", required=true)  @PathParam("apiKeyId") long apiKeyId,
                                              @ApiParam(value="JSON-serialized connector settings object", required=true)  @FormParam("json") String json) {
         final ApiKey apiKey = guestService.getApiKey(apiKeyId);
         final long guestId = AuthHelper.getGuestId();
         try {
             if (apiKey.getGuestId()!=guestId)
-                throw new RuntimeException("attempt to retrieve ApiKey from another guest!");
+                Response.status(Response.Status.FORBIDDEN).build();
             settingsService.saveConnectorSettings(apiKey.getId(), json);
         } catch (Throwable e) {
             return Response.serverError().entity(e.getMessage()).build();
         }
-        return Response.ok("saved connector settings").build();
+        return Response.ok("Saved connector settings").build();
     }
 
     @POST
@@ -147,10 +147,12 @@ public class ConnectorStore {
     @GET
     @Path("/installed")
     @ApiOperation(value = "Retrieve the list of installed (/added) connectors for the current user",
-                  responseContainer = "Array", response = ConnectorInfo.class,
-                  notes = "WARNING: there is more in the ConnectorInfo 'class' than what's specified here)",
+                  responseContainer = "Array", response = ConnectorModelFull.class,
                   authorizations = {@Authorization(value="oauth2")})
     @Produces({MediaType.APPLICATION_JSON})
+    @ApiResponses({
+            @ApiResponse(code = 401, message = "You are no longer logged in")
+    })
     public Response getInstalledConnectors(){
         Guest guest = AuthHelper.getGuest();
         // If no guest is logged in, return empty array
@@ -159,7 +161,7 @@ public class ConnectorStore {
         ResourceBundle res = ResourceBundle.getBundle("messages/connectors");
         try {
             List<ConnectorInfo> connectors =  sysService.getConnectors();
-            JSONArray connectorsArray = new JSONArray();
+            List<ConnectorModelFull> connectorsArray = new ArrayList<ConnectorModelFull>();
             for (int i = 0; i < connectors.size(); i++) {
                 final ConnectorInfo connectorInfo = connectors.get(i);
                 final Connector api = connectorInfo.getApi();
@@ -173,11 +175,11 @@ public class ConnectorStore {
                 }
                 else {
                     ConnectorInfo connector = connectorInfo;
-                    JSONObject connectorJson = new JSONObject();
+                    ConnectorModelFull connectorJson = new ConnectorModelFull();
                     Connector conn = Connector.fromValue(connector.api);
                     ApiKey apiKey = guestService.getApiKey(guest.getId(), conn);
 
-                    connectorJson.accumulate("prettyName", conn.prettyName());
+                    connectorJson.prettyName = conn.prettyName();
                     List<String> facetTypes = new ArrayList<String>();
                     ObjectType[] objTypes = conn.objectTypes();
                     if (objTypes != null) {
@@ -185,33 +187,33 @@ public class ConnectorStore {
                             facetTypes.add(connector.connectorName + "-" + obj.getName());
                         }
                     }
-                    connectorJson.accumulate("facetTypes", facetTypes);
-                    connectorJson.accumulate("status", apiKey.status!=null?apiKey.status.toString():"NA");
-                    connectorJson.accumulate("name", connector.name);
-                    connectorJson.accumulate("connectUrl", connector.connectUrl);
-                    connectorJson.accumulate("image", connector.image);
-                    connectorJson.accumulate("connectorName", connector.connectorName);
-                    connectorJson.accumulate("enabled", connector.enabled);
-                    connectorJson.accumulate("manageable", connector.manageable);
-                    connectorJson.accumulate("text", connector.text);
-                    connectorJson.accumulate("api", connector.api);
-                    connectorJson.accumulate("apiKeyId", apiKey.getId());
-                    connectorJson.accumulate("lastSync", connector.supportsSync?getLastSync(apiKey):Long.MAX_VALUE);
-                    connectorJson.accumulate("latestData", getLatestData(apiKey));
+                    connectorJson.facetTypes = facetTypes;
+                    connectorJson.status = apiKey.status!=null?apiKey.status.toString():"NA";
+                    connectorJson.name = connector.name;
+                    connectorJson.connectUrl = connector.connectUrl;
+                    connectorJson.image = connector.image;
+                    connectorJson.connectorName = connector.connectorName;
+                    connectorJson.enabled = connector.enabled;
+                    connectorJson.manageable = connector.manageable;
+                    connectorJson.text = connector.text;
+                    connectorJson.api = connector.api;
+                    connectorJson.apiKeyId = apiKey.getId();
+                    connectorJson.lastSync = connector.supportsSync?getLastSync(apiKey):Long.MAX_VALUE;
+                    connectorJson.latestData = getLatestData(apiKey);
                     final String auditTrail = checkForErrors(apiKey);
-                    connectorJson.accumulate("errors", auditTrail!=null);
-                    connectorJson.accumulate("auditTrail", auditTrail!=null?auditTrail:"");
-                    connectorJson.accumulate("syncing", checkIfSyncInProgress(guest.getId(), conn));
-                    connectorJson.accumulate("channels", settingsService.getChannelsForConnector(guest.getId(), conn));
-                    connectorJson.accumulate("sticky", connector.connectorName.equals("fluxtream_capture"));
-                    connectorJson.accumulate("supportsRenewToken", connector.supportsRenewTokens);
-                    connectorJson.accumulate("supportsSync", connector.supportsSync);
-                    connectorJson.accumulate("supportsFileUpload", connector.supportsFileUpload);
-                    connectorJson.accumulate("prettyName", conn.prettyName());
+                    connectorJson.errors = auditTrail!=null;
+                    connectorJson.auditTrail = auditTrail!=null?auditTrail:"";
+                    connectorJson.syncing = checkIfSyncInProgress(guest.getId(), conn);
+                    connectorJson.channels = settingsService.getChannelsForConnector(guest.getId(), conn);
+                    connectorJson.sticky = connector.connectorName.equals("fluxtream_capture");
+                    connectorJson.supportsRenewToken = connector.supportsRenewTokens;
+                    connectorJson.supportsSync = connector.supportsSync;
+                    connectorJson.supportsFileUpload = connector.supportsFileUpload;
+                    connectorJson.prettyName = conn.prettyName();
                     final String uploadMessageKey = conn.getName() + ".upload";
                     if (res.containsKey(uploadMessageKey)) {
                         final String uploadMessage = res.getString(uploadMessageKey);
-                        connectorJson.accumulate("uploadMessage", uploadMessage);
+                        connectorJson.uploadMessage = uploadMessage;
                     }
                     connectorsArray.add(connectorJson);
                 }
@@ -219,7 +221,7 @@ public class ConnectorStore {
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getInstalledConnectors")
                     .append(" guestId=").append(guest.getId());
             logger.info(sb.toString());
-            return Response.ok(connectorsArray.toString()).build();
+            return Response.ok(connectorsArray).build();
         }
         catch (Exception e) {
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getInstalledConnectors")
@@ -235,8 +237,10 @@ public class ConnectorStore {
     @Path("/uninstalled")
     @ApiOperation(value = "Retrieve the list of available (/not-yet-added) connectors for the current user",
                   responseContainer="Array", response = ConnectorInfo.class,
-                  notes = "The structure of the returned object is connector dependent",
-                  authorizations = {@Authorization(value="oauth2")})
+                  notes = "The structure of the returned object is connector dependent")
+    @ApiResponses({
+            @ApiResponse(code = 401, message = "If the guest is no longer logged in")
+    })
     @Produces({MediaType.APPLICATION_JSON})
     public Response getUninstalledConnectors(){
         Guest guest = AuthHelper.getGuest();
@@ -325,7 +329,10 @@ public class ConnectorStore {
 
     @DELETE
     @Path("/{connector}")
-    @Produces({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.TEXT_PLAIN})
+    @ApiResponses({
+            @ApiResponse(code = 401, message = "If the guest is no longer logged in")
+    })
     public Response deleteConnector(@PathParam("connector") String connector){
         Response response = null;
         Guest guest = AuthHelper.getGuest();
@@ -354,7 +361,10 @@ public class ConnectorStore {
 
     @POST
     @Path("/{connector}/channels")
-    @Produces({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.TEXT_PLAIN})
+    @ApiResponses({
+            @ApiResponse(code = 401, message = "If the guest is no longer logged in")
+    })
     public Response setConnectorChannels(@PathParam("connector") String connectorName, @FormParam("channels") String channels){
         Response response = null;
         Guest guest = AuthHelper.getGuest();
@@ -404,7 +414,10 @@ public class ConnectorStore {
 
     @POST
     @Path("/filters")
-    @Produces({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.TEXT_PLAIN})
+    @ApiResponses({
+        @ApiResponse(code = 401, message = "If the guest is no longer logged in")
+    })
     public Response setConnectorFilterState(@FormParam("filterState") String stateJSON){
         Response response = null;
         Guest guest = AuthHelper.getGuest();
@@ -433,6 +446,10 @@ public class ConnectorStore {
     @GET
     @Path("/{objectTypeName}/data")
     @Produces({MediaType.APPLICATION_JSON})
+    @ApiResponses({
+        @ApiResponse(code = 401, message = "If the guest is no longer logged in"),
+        @ApiResponse(code = 403, message = "If this call is made by a coach and the coachee revoked access to this object type")
+    })
     public Response getData(@PathParam("objectTypeName") String objectTypeName, @QueryParam("start") long start, @QueryParam("end") long end, @QueryParam("value") String value){
         Guest guest = AuthHelper.getGuest();
         if(guest==null)

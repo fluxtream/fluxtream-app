@@ -34,7 +34,7 @@ import static org.fluxtream.core.utils.Utils.hash;
 
 @Path("/v1/guest")
 @Component("RESTGuestController")
-@Api(value = "/v1/guest", description = "Retrieve guest information")
+@Api(value = "/guest", description = "Retrieve guest information")
 @Scope("request")
 public class GuestController {
 

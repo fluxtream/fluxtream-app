@@ -36,7 +36,7 @@ import java.util.List;
  */
 @Path("/v1/sync")
 @Component("RESTSyncController")
-@Api(value = "/v1/sync", description = "Retrieve information about connector state and schedule connector synchronization")
+@Api(value = "/sync", description = "Retrieve information about connector state and schedule connector synchronization")
 @Scope("request")
 public class SyncController {
 

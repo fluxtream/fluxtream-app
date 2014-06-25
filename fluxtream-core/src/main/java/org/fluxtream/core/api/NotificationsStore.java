@@ -28,7 +28,7 @@ import java.util.List;
 
 @Path("/v1/notifications")
 @Component("RESTNotificationsStore")
-@Api(value = "/v1/notifications", description = "Post a notification to a guest (admins only), retrieve and discard notifications")
+@Api(value = "/notifications", description = "Post a notification to a guest (admins only), retrieve and discard notifications")
 @Scope("request")
 public class NotificationsStore {
 

@@ -51,7 +51,7 @@ import java.util.*;
 
 @Path("/v1/bodytrack")
 @Component("RESTBodytrackController")
-@Api(value = "/v1/bodytrack", description = "CSV export and import, timeline-related operations")
+@Api(value = "/bodytrack", description = "CSV export and import, timeline-related operations")
 @Scope("request")
 public class BodyTrackController {
 

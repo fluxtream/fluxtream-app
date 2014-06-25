@@ -30,7 +30,7 @@ import java.util.List;
 
 @Path("/v1/settings")
 @Component("RESTSettingsStore")
-@Api(value = "/v1/settings", description = "Set and retrieve the user's preferences")
+@Api(value = "/settings", description = "Set and retrieve the user's preferences")
 @Scope("request")
 public class SettingsStore {
 

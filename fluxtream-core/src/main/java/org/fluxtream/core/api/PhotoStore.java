@@ -35,7 +35,7 @@ import java.util.SortedSet;
 
 @Path("/v1/guest/{username}/photo")
 @Component("RESTPhotoStore")
-@Api(value = "/v1/guest/{username}/photo", description = "Retrieve the user's photos")
+@Api(value = "/guest/{username}/photo", description = "Retrieve the user's photos")
 @Scope("request")
 public class PhotoStore {
 

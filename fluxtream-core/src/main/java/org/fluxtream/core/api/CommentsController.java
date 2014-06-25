@@ -21,7 +21,7 @@ import javax.ws.rs.core.Response;
  */
 @Path("/v1/comments")
 @Component("RESTCommentsController")
-@Api(value = "/v1/comments", description = "Set/delete user comments on individual facets")
+@Api(value = "/comments", description = "Set/delete user comments on individual facets")
 @Scope("request")
 public class CommentsController {
 
