@@ -1297,6 +1297,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function selectVisitedCity(evt) {
+        console.log("select visited city");
         var state = App.state.getState("calendar");
         state = state.substring(state.indexOf("/"));
         if ($(evt.target).hasClass("undo")) {
@@ -1308,6 +1309,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function selectMainCity(timeUnit) {
+        console.log("select main city");
         var selectedIndex = $("#mainCitySelect")[0].selectedIndex-1;
         var selectedCity = currentCityPool[selectedIndex];
         if(typeof(selectedCity.geometry)!="undefined"&&
@@ -1327,7 +1329,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
        $.ajax({
            url: url,
            type: "DELETE",
-           success: function(status) {
+           success: function(body, statusText, jqXHR) {
                $("#visitedCitiesDialog").modal('hide');
                App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
            }
@@ -1339,7 +1341,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
            url: url,
            type: "POST",
            data: data,
-           success: function(status) {
+           success: function(body, statusText, jqXHR) {
                $("#visitedCitiesDialog").modal('hide');
                App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
            }
@@ -1350,7 +1352,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
        $.ajax({
            url: url,
            type: "POST",
-           success: function(status) {
+           success: function(body, statusText, jqXHR) {
                $("#visitedCitiesDialog").modal('hide');
                App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
            }

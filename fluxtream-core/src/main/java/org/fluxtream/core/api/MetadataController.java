@@ -74,7 +74,6 @@ public class MetadataController {
     @Path(value="/mainCity/date/{date}")
     @ApiOperation(value = "Remove cities that have been manually entered by the end-user.", response = String.class,
             authorizations = {@Authorization(value="oauth2")})
-    @Produces({ MediaType.APPLICATION_JSON } )
     public Response resetDayMainCity(@ApiParam(value="Date (YYYY-MM-DD)", required=true) @PathParam("date") String date) {
         final long guestId = AuthHelper.getGuestId();
         StringBuilder sb = new StringBuilder("module=API component=calendarController action=resetDayMainCity")
@@ -87,7 +86,6 @@ public class MetadataController {
     @POST
     @Path(value="/mainCity/{visitedCityId}/date/{date}")
     @ApiOperation(value = "Set a given city and associated timezone to be the reference for a given day.", response = String.class)
-    @Produces({ MediaType.APPLICATION_JSON } )
     public Response setDayMainCity(@ApiParam(value="ID of the city (as in /metadata/cities)", required=true) @PathParam("visitedCityId") long visitedCityId,
                                       @ApiParam(value="Date (YYYY-MM-DD)", required=true) @PathParam("date") String date) {
         final long guestId = AuthHelper.getGuestId();
@@ -119,7 +117,6 @@ public class MetadataController {
     @Path(value = "/checkIn/{ipAddress}")
     @ApiOperation(value = "Use ip2location lookup to guess the user's location based on his IP address", response = String.class,
         notes="The resulting location will interpreted as a place the user was at at that moment")
-    @Produces({MediaType.APPLICATION_JSON})
     public Response checkIn(@ApiParam(value="The end-users terminal IP address", required=true) @PathParam("ipAddress") String ipAddress){
         final long guestId = AuthHelper.getGuestId();
         try {
