@@ -92,7 +92,7 @@
     <div  class="container-fluid">
 
         <div class="dropdown">
-            <a class="dropdown-toggle" data-toggle="dropdown" href="#">&lt;Please choose a Guest&gt;</a>
+            <a class="dropdown-toggle" data-toggle="dropdown" href="javascript:void(0)">&lt;Please choose a Guest&gt;</a>
             <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                 <%if (allGuests!=null) {for (Guest guest : allGuests){ %>
                 <li><a href="/admin/<%=guest.getId()%>"><%=guest.username%> (<%=guest.getGuestName()%>)</a></li>

@@ -1016,7 +1016,7 @@
                             <br>
                             <select id="mainCitySelect" disabled class="input-xlarge">
                                 <option style="display: none;">Select a city</option>
-                            </select>&nbsp;&nbsp;&nbsp;<a id="selectMainCity" href="#" class="disabled">select</a>
+                            </select>&nbsp;&nbsp;&nbsp;<a id="selectMainCity" href="javascript:void(0)" class="disabled">select</a>
                         </div>
                     </div>
                 </fieldset>
@@ -1036,7 +1036,7 @@
                     <td>{{timezone}}</td>
                     <td>{{source}}</td>
                     <td>{{when}}</td>
-                    {{^consensus}}<td><a href="#" class="selectVisitedCity enabled" id="visitedCity-{{visitedCityId}}">select</a></td>{{/consensus}}
+                    {{^consensus}}<td><a href="javascript:void(0)" class="selectVisitedCity enabled" id="visitedCity-{{visitedCityId}}">select</a></td>{{/consensus}}
                     {{#consensus}}<td>&nbsp;</td>{{/consensus}}
                 </tr>
                 {{/cities}}
@@ -1061,9 +1061,9 @@
                     <td>{{lastSeenHere}}</td>
                     <td>{{count}}</td>
                     <td>{{source}}</td>
-                    {{#isUser}}<td><a href="#" class="selectVisitedCity enabled undo" id="visitedCity-{{visitedCityId}}">reset</a></td>{{/isUser}}
+                    {{#isUser}}<td><a href="javascript:void(0)" class="selectVisitedCity enabled undo" id="visitedCity-{{visitedCityId}}">reset</a></td>{{/isUser}}
                     {{^isUser}}
-                        {{^consensus}}<td><a href="#" class="selectVisitedCity enabled" id="visitedCity-{{visitedCityId}}">select</a></td>{{/consensus}}
+                        {{^consensus}}<td><a href="javascript:void(0)" class="selectVisitedCity enabled" id="visitedCity-{{visitedCityId}}">select</a></td>{{/consensus}}
                         {{#consensus}}<td>&nbsp;</td>{{/consensus}}
                     {{/isUser}}
                 </tr>

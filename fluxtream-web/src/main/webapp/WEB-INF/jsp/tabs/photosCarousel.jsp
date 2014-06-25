@@ -14,7 +14,7 @@ if (facets.size()>0) {
 
 <div class="modal fade" id="modal">
 	<div class="modal-header">
-		<a href="#" class="close" data-dismiss="modal">&times;</a>
+		<a href="javascript:void(0)" class="close" data-dismiss="modal">&times;</a>
 	</div>
 	<div class="modal-body" style="overflow:hidden">
 		<div id="photosCarousel" class="carousel">

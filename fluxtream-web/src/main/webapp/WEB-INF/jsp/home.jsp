@@ -83,14 +83,14 @@
                             <ul class="nav pull-right">
                                 <li class="divider-vertical"></li>
                                 <li class="dropdown" id="helpDropdownToggle" data-container="body">
-                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Help <i class="icon-lightbulb icon-large"></i></a>
+                                    <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown">Help <i class="icon-lightbulb icon-large"></i></a>
                                     <ul class="dropdown-menu">
                                         <li><a href="javascript:App.quickStart();">Quick Start</a></li>
                                         <li><a href="javascript:App.privacyPolicy();">Privacy Policy</a></li>
                                     </ul>
                                 </li>
                                 <li class="dropdown" id="connectorsDropdownToggle" data-container="body">
-                                    <a href="#" class="dropdown-toggle" onclick="$('#connectorsDropdownToggle').popover('destroy');"
+                                    <a href="javascript:void(0)" class="dropdown-toggle" onclick="$('#connectorsDropdownToggle').popover('destroy');"
                                                         data-toggle="dropdown">Connectors
                                     <i class="icon-random icon-large"></i> <b class="caret"></b></a>
                                     <ul class="dropdown-menu">
@@ -98,7 +98,7 @@
                                         <li id="manageConnectorsMenuItem"><a href="javascript:App.manageConnectors()"><i class="mainmenu-icon icon-list icon-large pull-right"></i>Manage</a></li>
                                     </ul></li>
                                 <li class="divider-vertical"></li>
-							<li class="dropdown"><a href="#" class="dropdown-toggle" onclick="$('#connectorsDropdownToggle').popover('destroy');" id="loggedInUser" <%if(AuthHelper.getCoachee()!=null){%>style="text-shadow:0 0 10px white; color:white"<%}%>
+							<li class="dropdown"><a href="javascript:void(0)" class="dropdown-toggle" onclick="$('#connectorsDropdownToggle').popover('destroy');" id="loggedInUser" <%if(AuthHelper.getCoachee()!=null){%>style="text-shadow:0 0 10px white; color:white"<%}%>
 								data-toggle="dropdown" self="<%=request.getAttribute("fullname")%>">${vieweeFullname}<span id="profileIcon">&nbsp;</span> <b
    id="profileIconCaret" class="caret"></b></a>
 								<ul class="dropdown-menu">

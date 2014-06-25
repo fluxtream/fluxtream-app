@@ -159,7 +159,7 @@
             <input type="hidden" name="recover[_csrf_token]" value="ebb981ef2ee1ad730d0e676d2af2336c" id="recover__csrf_token" />
         </form>
         <p id="recoverPasswordFeedback" style="display:none;" class="sysInfo">A confirmation link has been emailed to you_XXX</p>
-        <p><a href="#" id="lostPasswdLink">Lost password?</a></p>
+        <p><a href="javascript:void(0)" id="lostPasswdLink">Lost password?</a></p>
     </div>
 </div>
 
@@ -181,12 +181,12 @@
 
         <div id="login-collapse">
             <div class="cont">
-                <a href="#" id="toggleLoginPanel"><span>Login</span></a>
+                <a href="javascript:void(0)" id="toggleLoginPanel"><span>Login</span></a>
             </div>
         </div>
 
         <div class="logo">
-            <a href="#"><img src="/${release}/assets-home/img/logo-fulltext2.png"></a>
+            <a href="javascript:void(0)"><img src="/${release}/assets-home/img/logo-fulltext2.png"></a>
         </div>
 
         <!-- register modal -->
@@ -302,7 +302,7 @@
         </div>
     </div>
     <div class="modal-footer">
-        <a href="#" class="btn" data-dismiss="modal">Ok</a>
+        <a href="javascript:void(0)" class="btn" data-dismiss="modal">Ok</a>
     </div>
 </div>
 
@@ -317,7 +317,7 @@
         </div>
     </div>
     <div class="modal-footer">
-        <a href="#" class="btn" data-dismiss="modal">Ok</a>
+        <a href="javascript:void(0)" class="btn" data-dismiss="modal">Ok</a>
     </div>
 </div>
 
@@ -330,7 +330,7 @@
         <strong>Thanks for subscribing!</strong> We'll send you an email when we (re-)open the doors to the website and you'll be among the first to know.
     </div>
     <div class="modal-footer">
-        <a href="#" class="btn" data-dismiss="modal">Ok</a>
+        <a href="javascript:void(0)" class="btn" data-dismiss="modal">Ok</a>
     </div>
 </div>
 
@@ -347,7 +347,7 @@
         </div>
     </div>
     <div class="modal-footer">
-        <a href="#" class="btn" data-dismiss="modal">Ok</a>
+        <a href="javascript:void(0)" class="btn" data-dismiss="modal">Ok</a>
     </div>
 </div>
 
