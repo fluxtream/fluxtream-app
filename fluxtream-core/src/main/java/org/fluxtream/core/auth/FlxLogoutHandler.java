@@ -21,15 +21,23 @@ public class FlxLogoutHandler implements LogoutHandler {
 	@Override
 	public void logout(HttpServletRequest request,
 			HttpServletResponse response, Authentication authentication) {
-		if (authentication!=null)
-			authentication.setAuthenticated(false);
-		SecurityContextHolder.getContext().setAuthentication(null);
-        if (request.getParameter("r")!=null)
+        if (authentication != null)
+            authentication.setAuthenticated(false);
+        SecurityContextHolder.getContext().setAuthentication(null);
+        if (request.getParameter("r") != null) {
             try {
                 response.sendRedirect(request.getParameter("r"));
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+        else if (request.getHeader("User-Agent").indexOf("Mobile") != -1) {
+            try {
+                response.sendRedirect("/mobile/signIn");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }

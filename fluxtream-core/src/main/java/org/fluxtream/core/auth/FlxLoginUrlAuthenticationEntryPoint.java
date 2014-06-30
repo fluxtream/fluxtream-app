@@ -94,7 +94,9 @@ public class FlxLoginUrlAuthenticationEntryPoint implements AuthenticationEntryP
     protected String determineUrlToUseForThisRequest(HttpServletRequest request, HttpServletResponse response,
                                                      AuthenticationException exception) throws IOException {
         final String requestURI = request.getRequestURI();
-        if (requestURI.startsWith("/api")) {
+        if (request.getParameter("r")!=null) {
+            return request.getParameter("r");
+        } else if (requestURI.startsWith("/api")) {
             response.setContentType("application/json");
             response.sendError(401);
             response.getWriter().write(String.format("{\"result\":\"KO\",\"message\":\"Access Denied. Please log in to your Fluxtream account (%s) to access this resource\"}", env.get("homeBaseUrl")));

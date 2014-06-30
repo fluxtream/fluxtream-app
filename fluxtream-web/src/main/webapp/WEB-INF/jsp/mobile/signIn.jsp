@@ -8,11 +8,21 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
 <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="yes" />
     <title>Sign In</title>
     <link href="/static/css/bootstrap-3.1.1.min.css" rel="stylesheet">
     <link href="/static/css/bootstrap-theme-3.1.1.min.css" rel="stylesheet">
     <link href="/${release}/css/mobile.css" rel="stylesheet">
 </head>
+<%
+    final String redirect_uri = (String) request.getAttribute("redirect_uri");
+    String signInURL = redirect_uri !=null
+                     ? "/signIn?r=" + redirect_uri
+                     : "/signIn";
+%>
 <body>
     <div class="site-wrapper">
         <div class="site-wrapper-inner">
@@ -20,7 +30,7 @@
                 <div class="innner cover">
                     <div class="row">
                         <div class="col-md-4 col-md-offset-4 sireg-form-wrapper">
-                            <form role="form" class="form-horizontal" action="/signIn?r=${redirect_uri}" method="POST">
+                            <form role="form" class="form-horizontal" action="<%=signInURL%>" method="POST">
                                 <div class="form-group">
                                     <label for="f_username" class="col-sm-4 control-label">Username (or email)</label>
                                     <div class="col-sm-8">

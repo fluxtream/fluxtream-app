@@ -72,6 +72,7 @@
         <custom-filter before="PRE_AUTH_FILTER" ref="oauth2ProcessingFilter" />
 		<custom-filter position="FORM_LOGIN_FILTER" ref="authFilter" />
 		<custom-filter position="LOGOUT_FILTER" ref="logoutFilter" />
+        <custom-filter after="LOGOUT_FILTER" ref="requestCacheAwareFilter" />
     </http>
 
     <beans:bean id="oauth2ProcessingFilter"
@@ -91,17 +92,24 @@
 
     <beans:bean id="daep" class="org.fluxtream.core.auth.FlxAuthenticationEntryPoint">
         <beans:property name="restApiEntryPoint" ref="restApiEntryPoint"/>
+        <beans:property name="mobileEntryPoint" ref="mobileEntryPoint"/>
         <beans:property name="defaultEntryPoint" ref="loginUrlAuthenticationEntryPoint"/>
+    </beans:bean>
+
+    <beans:bean id="mobileEntryPoint"
+                class="org.fluxtream.core.auth.FlxLoginUrlAuthenticationEntryPoint">
+        <beans:property name="loginFormUrl" value="/mobile/signIn" />
+    </beans:bean>
+
+    <beans:bean id="loginUrlAuthenticationEntryPoint"
+                class="org.fluxtream.core.auth.FlxLoginUrlAuthenticationEntryPoint">
+        <beans:property name="loginFormUrl" value="/welcome" />
     </beans:bean>
 
     <beans:bean id="restApiEntryPoint"
                 class="org.fluxtream.core.auth.FlxRestApiEntryPoint">
     </beans:bean>
 
-	<beans:bean id="loginUrlAuthenticationEntryPoint"
-		class="org.fluxtream.core.auth.FlxLoginUrlAuthenticationEntryPoint">
-		<beans:property name="loginFormUrl" value="/welcome" />
-	</beans:bean>
 
 	<beans:bean id="authFilter" class="org.fluxtream.core.auth.FlxAuthFilter">
 		<beans:property name="authenticationManager" ref="authenticationManager" />

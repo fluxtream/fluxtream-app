@@ -26,6 +26,7 @@ import java.io.IOException;
 public class FlxAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private AuthenticationEntryPoint defaultEntryPoint;
+    private AuthenticationEntryPoint mobileEntryPoint;
     private FlxRestApiEntryPoint restApiEntryPoint;
 
     public void commence(HttpServletRequest request,
@@ -34,7 +35,9 @@ public class FlxAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
         if (request.getRequestURI().startsWith("/api"))
             restApiEntryPoint.commence(request, response, authException);
-        else
+        else if (request.getHeader("User-Agent").indexOf("Mobile") != -1) {
+            mobileEntryPoint.commence(request, response, authException);
+        } else
             defaultEntryPoint.commence(request, response, authException);
     }
 
@@ -43,6 +46,10 @@ public class FlxAuthenticationEntryPoint implements AuthenticationEntryPoint {
      */
     public void setDefaultEntryPoint(AuthenticationEntryPoint defaultEntryPoint) {
         this.defaultEntryPoint = defaultEntryPoint;
+    }
+
+    public void setMobileEntryPoint(AuthenticationEntryPoint mobileEntryPoint) {
+        this.mobileEntryPoint = mobileEntryPoint;
     }
 
     public void setRestApiEntryPoint(FlxRestApiEntryPoint restApiEntryPoint) {
