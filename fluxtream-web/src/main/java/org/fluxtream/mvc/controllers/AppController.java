@@ -182,6 +182,24 @@ public class AppController {
         return new ModelAndView("redirect:/app");
     }
 
+    @RequestMapping(value = "/mobile/checkIn")
+    public ModelAndView mobileCheckIn(HttpServletRequest request,
+                                      HttpServletResponse response) throws IOException, NoSuchAlgorithmException, URISyntaxException {
+        final Guest guest = AuthHelper.getGuest();
+        long guestId = guest.getId();
+        checkIn(request, guestId);
+        final HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
+        SavedRequest savedRequest =
+                requestCache.getRequest(request, response);
+        if (savedRequest!=null) {
+            final String redirectUrl = savedRequest.getRedirectUrl();
+            requestCache.removeRequest(request, response);
+            final URI uri = new URI(redirectUrl);
+            return new ModelAndView("redirect:" + uri.getPath());
+        }
+        return new ModelAndView("redirect:/app");
+    }
+
 	@RequestMapping(value = { "/app*", "/app/**" })
 	public ModelAndView welcomeHome(HttpServletRequest request, HttpServletResponse response)
 			throws IOException, NoSuchAlgorithmException {

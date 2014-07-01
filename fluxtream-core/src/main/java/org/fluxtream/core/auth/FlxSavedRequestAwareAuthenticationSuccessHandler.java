@@ -29,6 +29,7 @@ public class FlxSavedRequestAwareAuthenticationSuccessHandler extends SimpleUrlA
     private RequestCache requestCache = new HttpSessionRequestCache();
 
     private ObjectMapper objectMapper = new ObjectMapper();
+    private String mobileDefaultTargetUrl;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -37,11 +38,14 @@ public class FlxSavedRequestAwareAuthenticationSuccessHandler extends SimpleUrlA
         SavedRequest savedRequest = requestCache.getRequest(request, response);
 
         if (request.getHeader("X-DEV-WEBSITE")!=null) {
-            Map<String,Object> status = new HashMap<String,Object>();
+            Map<String, Object> status = new HashMap<String, Object>();
             status.put("authd", new Boolean(true));
             response.setContentType("application/json");
             response.getWriter().write(objectMapper.writeValueAsString(status));
             return;
+        } else if (request.getHeader("User-Agent").indexOf("Mobile") != -1) {
+            logger.debug("Redirecting to mobile default target URL: " + mobileDefaultTargetUrl);
+            getRedirectStrategy().sendRedirect(request, response, mobileDefaultTargetUrl);
         } else if (requestRedirect !=null) {
             // if there's an explicit redirect parameter it takes precedence over any saved request
             logger.debug("Redirecting to request redirection parameter: " + requestRedirect);
@@ -75,6 +79,10 @@ public class FlxSavedRequestAwareAuthenticationSuccessHandler extends SimpleUrlA
 
     public void setRequestCache(RequestCache requestCache) {
         this.requestCache = requestCache;
+    }
+
+    public void setMobileDefaultTargetUrl(String mobileDefaultTargetUrl) {
+        this.mobileDefaultTargetUrl = mobileDefaultTargetUrl;
     }
 
 }

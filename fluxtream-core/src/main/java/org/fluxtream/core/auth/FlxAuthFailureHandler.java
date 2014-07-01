@@ -20,11 +20,13 @@ public class FlxAuthFailureHandler extends SimpleUrlAuthenticationFailureHandler
 			HttpServletResponse response, AuthenticationException exception)
 			throws IOException, ServletException {
         if (request.getHeader("X-DEV-WEBSITE")!=null) {
-            Map<String,Object> status = new HashMap<String,Object>();
+            Map<String, Object> status = new HashMap<String, Object>();
             status.put("authd", new Boolean(false));
             status.put("message", exception.getMessage());
             response.setContentType("application/json");
             response.getWriter().write(objectMapper.writeValueAsString(status));
+        } else if (request.getHeader("User-Agent").indexOf("Mobile") != -1) {
+            setDefaultFailureUrl("/mobile/signIn?username=" + request.getParameter("f_username"));
         } else {
             setUseForward(false);
             setDefaultFailureUrl("/welcome?username=" + request.getParameter("f_username"));
