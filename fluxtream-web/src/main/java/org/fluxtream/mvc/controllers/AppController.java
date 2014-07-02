@@ -177,7 +177,7 @@ public class AppController {
             final String redirectUrl = savedRequest.getRedirectUrl();
             requestCache.removeRequest(request, response);
             final URI uri = new URI(redirectUrl);
-            return new ModelAndView("redirect:" + uri.getPath());
+            return new ModelAndView("redirect:" + redirectUrl);
         }
         return new ModelAndView("redirect:/app");
     }
@@ -194,8 +194,7 @@ public class AppController {
         if (savedRequest!=null) {
             final String redirectUrl = savedRequest.getRedirectUrl();
             requestCache.removeRequest(request, response);
-            final URI uri = new URI(redirectUrl);
-            return new ModelAndView("redirect:" + uri.getPath());
+            return new ModelAndView("redirect:" + redirectUrl);
         }
         return new ModelAndView("redirect:/app");
     }
