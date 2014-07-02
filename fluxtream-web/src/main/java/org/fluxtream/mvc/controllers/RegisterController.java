@@ -35,7 +35,31 @@ public class RegisterController {
     @Autowired
     Configuration env;
 
+    @RequestMapping("/mobile/oauth2/authorize")
+    /**
+     * A simple login form without register button
+     */
+    public String oauth2Authorize(ModelMap model) {
+        model.addAttribute("release", env.get("release"));
+        model.addAttribute("name", "The Upgrade");
+        model.addAttribute("description", "The Upgrade brings together self trackers and personal data specialists in a unique platform to build the knowledge that will one day empower every human on earth to realize their full potential.");
+        return "oauth2/Authorize";
+    }
+
+
+    @RequestMapping("/mobile/authenticate")
+    /**
+     * A simple login form without register button
+     */
+    public String authenticate(ModelMap model) {
+        model.addAttribute("release", env.get("release"));
+        return "mobile/authenticate";
+    }
+
     @RequestMapping("/mobile/signIn")
+    /**
+     * Mobile landing page with login and register buttons
+     */
     public String login(HttpServletRequest request,
                         ModelMap model) {
         String redirect_uri = request.getParameter("r");
