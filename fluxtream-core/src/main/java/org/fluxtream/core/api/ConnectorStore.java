@@ -73,6 +73,9 @@ public class ConnectorStore {
     Gson gson;
     ObjectMapper mapper = new ObjectMapper();
 
+    @Autowired
+    private CoachingService coachingService;
+
     public ConnectorStore() {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(UpdateInfo.class, new UpdateInfoSerializer());
@@ -450,14 +453,18 @@ public class ConnectorStore {
         @ApiResponse(code = 401, message = "If the guest is no longer logged in"),
         @ApiResponse(code = 403, message = "If this call is made by a coach and the coachee revoked access to this object type")
     })
-    public Response getData(@PathParam("objectTypeName") String objectTypeName, @QueryParam("start") long start, @QueryParam("end") long end, @QueryParam("value") String value){
+    public Response getData(@PathParam("objectTypeName") String objectTypeName,
+                            @QueryParam("start") long start,
+                            @QueryParam("end") long end,
+                            @QueryParam("value") String value,
+                            @ApiParam(value="Coachee username Header (" + CoachingService.COACHEE_USERNAME_HEADER + ")", required=false) @HeaderParam(CoachingService.COACHEE_USERNAME_HEADER) String coacheeUsernameHeader){
         Guest guest = AuthHelper.getGuest();
         if(guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
 
         CoachingBuddy coachee;
         try {
-            coachee = AuthHelper.getCoachee();
+            coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
         } catch (CoachRevokedException e) {
             return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();
         }
