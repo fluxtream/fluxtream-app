@@ -314,7 +314,8 @@ public class CalendarDataStore {
     @ApiOperation(value = "Get the user's connectors' data for a specific date", response = DigestModel.class)
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Response getAllConnectorsDayData(@ApiParam(value="Date (YYYY-MM-DD)", required=true) @PathParam("date") String date,
-                                          @ApiParam(value="Filter JSON", required=false) @QueryParam(value="filter") String filter) throws InstantiationException,
+                                            @ApiParam(value="Filter JSON", required=false) @QueryParam(value="filter") String filter,
+                                            @ApiParam(value="Coachee username Header (" + CoachingService.COACHEE_USERNAME_HEADER + ")", required=false) @HeaderParam(CoachingService.COACHEE_USERNAME_HEADER) String coacheeUsernameHeader) throws InstantiationException,
             IllegalAccessException, ClassNotFoundException, UpdateFailedException, OutsideTimeBoundariesException, IOException {
         if (StringUtils.isEmpty(filter))
             filter = "{}";
@@ -329,7 +330,7 @@ public class CalendarDataStore {
 
         CoachingBuddy coachee;
         try {
-            coachee = AuthHelper.getCoachee();
+            coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
         } catch (CoachRevokedException e) {
             return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();
         }

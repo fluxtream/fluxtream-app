@@ -1,17 +1,16 @@
 package org.fluxtream.core.services;
 
+import org.fluxtream.core.domain.*;
+
 import java.util.List;
-import org.fluxtream.core.domain.AbstractFacet;
-import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.CoachingBuddy;
-import org.fluxtream.core.domain.Guest;
-import org.fluxtream.core.domain.SharedConnector;
 
 /**
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
 public interface CoachingService {
+
+    public static final String COACHEE_USERNAME_HEADER = "X-FLX-COACHEE-USERNAME";
 
     public void addCoach(long guestId, String username);
 
