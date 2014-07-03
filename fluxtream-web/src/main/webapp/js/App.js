@@ -442,15 +442,17 @@ define(
         };
 
         App.as = function(username) {
-            $.ajax({
-                url: "/api/v1/coaching/coachees/" + username,
-                type: "POST",
-                success: function(body, statusText, jqXHR) {
-                    location.reload();
-                }, error: function(jqXHR, statusText, errorThrown) {
-                    App.logError(jqXHR, statusText, errorThrown);
-                }
-            });
+//            $.ajax({
+//                url: "/api/v1/coaching/coachees/" + username,
+//                type: "POST",
+//                success: function(body, statusText, jqXHR) {
+//                    location.reload();
+//                }, error: function(jqXHR, statusText, errorThrown) {
+//                    App.logError(jqXHR, statusText, errorThrown);
+//                }
+//            });
+            App.viewee = username;
+            App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
         };
 
         App.logError = function(jqXHR, statusText, errorThrown) {
@@ -1120,6 +1122,7 @@ define(
         App.invalidPath = invalidPath;
         App.geocoder = new google.maps.Geocoder();
         App.sharingDialog = SharingDialog;
+        App.COACHEE_USERNAME_HEADER = "X-FLX-COACHEE-USERNAME";
         window.App = App;
         return App;
 
