@@ -1,8 +1,6 @@
 package org.fluxtream.core.api;
 
 import com.sun.jersey.api.Responses;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
@@ -11,7 +9,9 @@ import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.CoachingBuddy;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.domain.SharedConnector;
+import org.fluxtream.core.mvc.models.CoachModel;
 import org.fluxtream.core.mvc.models.GuestModel;
+import org.fluxtream.core.mvc.models.SharedConnectorModel;
 import org.fluxtream.core.services.CoachingService;
 import org.fluxtream.core.services.GuestService;
 import org.springframework.beans.factory.BeanFactory;
@@ -69,8 +69,8 @@ public class CoachingController {
         final CoachingBuddy coachee = coachingService.getCoachee(guestId, username);
         if (coachee==null) {
             return Response.status(403).entity("Could not view " + username +
-                                          "'s data. Please refresh the page and " +
-                                          "check that you still have access to their data.").build();
+                    "'s data. Please refresh the page and " +
+                    "check that you still have access to their data.").build();
         }
         AuthHelper.as(coachee);
         return Response.ok("Viewing " + guestService.getGuestById(coachee.guestId).getGuestName() + "'s data").build();
@@ -107,15 +107,15 @@ public class CoachingController {
     }
 
     @GET
-    @Path("/coaches/{username}")
+    @Path("/coaches/{username}/connectors")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getConnectorSharingInfo(@PathParam("username") String username) {
+    public CoachModel getConnectorSharingInfo(@PathParam("username") String username) {
         final long guestId = AuthHelper.getGuestId();
         final CoachingBuddy coachingBuddy = coachingService.getCoach(guestId, username);
         final Set<SharedConnector> sharedConnectors = coachingBuddy.sharedConnectors;
         final List<ApiKey> apiKeys = guestService.getApiKeys(guestId);
-        JSONObject coach = new JSONObject();
-        JSONArray connectors = new JSONArray();
+        CoachModel coach = new CoachModel();
+        List<SharedConnectorModel> connectors = new ArrayList<SharedConnectorModel>();
         for (ApiKey apiKey : apiKeys) {
             boolean isShared = false;
             // Make sure this apiKey is valid, skip if not
@@ -129,20 +129,30 @@ public class CoachingController {
                     break;
                 }
             }
-            JSONObject connector = new JSONObject();
-            connector.accumulate("prettyName", apiKey.getConnector().prettyName());
-            connector.accumulate("connectorName", connectorName);
-            connector.accumulate("shared", isShared);
-            connector.accumulate("apiKeyId", apiKey.getId());
+            SharedConnectorModel connector = new SharedConnectorModel();
+            connector.prettyName = apiKey.getConnector().prettyName();
+            connector.connectorName = connectorName;
+            connector.shared = isShared;
+            connector.apiKeyId = apiKey.getId();
             if (SharedConnectorSettingsAwareUpdater.class.isAssignableFrom(apiKey.getConnector().getUpdaterClass()))
-                connector.accumulate("hasSettings", true);
+                connector.hasSettings = true;
             connectors.add(connector);
         }
-        coach.accumulate("sharedConnectors", connectors);
+        coach.sharedConnectors  = connectors;
         Guest buddyGuest = guestService.getGuest(username);
-        coach.accumulate("username", buddyGuest.username);
-        coach.accumulate("fullname", buddyGuest.getGuestName());
-        return coach.toString();
+        coach.username = buddyGuest.username;
+        coach.fullname = buddyGuest.getGuestName();
+        return coach;
+    }
+
+    @GET
+    @Path("/coachees")
+    @Produces({MediaType.APPLICATION_JSON})
+    public List<GuestModel> getCoachees(){
+        Guest guest = AuthHelper.getGuest();
+        final List<Guest> coachees = coachingService.getCoachees(guest.getId());
+        final List<GuestModel> guestModels = toGuestModels(coachees);
+        return guestModels;
     }
 
     @GET
