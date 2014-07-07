@@ -93,7 +93,7 @@
 	</beans:bean>
 
     <beans:bean id="daep" class="org.fluxtream.core.auth.FlxAuthenticationEntryPoint">
-        <beans:property name="restApiEntryPoint" ref="restApiEntryPoint"/>
+        <!--<beans:property name="restApiEntryPoint" ref="restApiEntryPoint"/>-->
         <beans:property name="mobileEntryPoint" ref="mobileEntryPoint"/>
         <beans:property name="defaultEntryPoint" ref="loginUrlAuthenticationEntryPoint"/>
     </beans:bean>
@@ -108,9 +108,9 @@
         <beans:property name="loginFormUrl" value="/welcome" />
     </beans:bean>
 
-    <beans:bean id="restApiEntryPoint"
-                class="org.fluxtream.core.auth.FlxRestApiEntryPoint">
-    </beans:bean>
+    <!--<beans:bean id="restApiEntryPoint"-->
+                <!--class="org.fluxtream.core.auth.FlxRestApiEntryPoint">-->
+    <!--</beans:bean>-->
 
 
 	<beans:bean id="authFilter" class="org.fluxtream.core.auth.FlxAuthFilter">

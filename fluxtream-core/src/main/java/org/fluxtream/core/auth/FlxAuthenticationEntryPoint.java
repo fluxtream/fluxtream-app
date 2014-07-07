@@ -15,6 +15,7 @@
  */
 package org.fluxtream.core.auth;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
@@ -27,7 +28,9 @@ public class FlxAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private AuthenticationEntryPoint defaultEntryPoint;
     private AuthenticationEntryPoint mobileEntryPoint;
-    private FlxRestApiEntryPoint restApiEntryPoint;
+
+    @Autowired
+    FlxRestApiEntryPoint restApiEntryPoint;
 
     public void commence(HttpServletRequest request,
                          HttpServletResponse response, AuthenticationException authException)
@@ -52,8 +55,5 @@ public class FlxAuthenticationEntryPoint implements AuthenticationEntryPoint {
         this.mobileEntryPoint = mobileEntryPoint;
     }
 
-    public void setRestApiEntryPoint(FlxRestApiEntryPoint restApiEntryPoint) {
-        this.restApiEntryPoint = restApiEntryPoint;
-    }
 }
 
