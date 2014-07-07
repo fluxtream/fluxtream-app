@@ -167,7 +167,6 @@ public class CoachingController {
 
     @POST
     @Path("/coaches/{username}/connectors/{connector}")
-    @Produces({MediaType.APPLICATION_JSON})
     public Response addSharedConnector(@PathParam("username") String username,
                                        @PathParam("connector") String connectorName) {
         final SharedConnector sharedConnector = coachingService.addSharedConnector(AuthHelper.getGuestId(), username, connectorName, "{}");
@@ -182,7 +181,6 @@ public class CoachingController {
 
     @DELETE
     @Path("/coaches/{username}/connectors/{connector}")
-    @Produces({MediaType.APPLICATION_JSON})
     public Response removeSharedConnector(@PathParam("username") String username,
                                           @PathParam("connector") String connectorName) {
         coachingService.removeSharedConnector(AuthHelper.getGuestId(), username, connectorName);
@@ -202,8 +200,8 @@ public class CoachingController {
     @POST
     @Path("/sharedConnector/{apiKeyId}/{username}")
     public Response saveSharedConnectorSettingsFilter(@PathParam("apiKeyId") long apiKeyId,
-                                                         @PathParam("username") String username,
-                                                         @FormParam("json") String json) {
+                                                      @PathParam("username") String username,
+                                                      @FormParam("json") String json) {
         final ApiKey apiKey = guestService.getApiKey(apiKeyId);
         final long guestId = AuthHelper.getGuestId();
         final long buddyId = guestService.getGuest(username).getId();
