@@ -3,6 +3,7 @@ package org.fluxtream.core.api;
 import com.google.gson.Gson;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiParam;
 import net.sf.json.JSONObject;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -22,6 +23,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -72,13 +74,13 @@ public class GuestController {
     @Path("/avatarImage")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Retrieve the avatar (gravatar) of the currently logged in's guest", response = String.class)
-    public String getAvatarImage() {
+    public String getAvatarImage(@ApiParam(value="Coachee username Header (" + CoachingService.COACHEE_USERNAME_HEADER + ")", required=false) @HeaderParam(CoachingService.COACHEE_USERNAME_HEADER) String coacheeUsernameHeader) {
         Guest guest = AuthHelper.getGuest();
         JSONObject json = new JSONObject();
         String type = "none";
         String url;
         try {
-            final CoachingBuddy coachee = AuthHelper.getCoachee();
+            final CoachingBuddy coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
             if (coachee!=null)
                 guest = guestService.getGuestById(coachee.guestId);
         }

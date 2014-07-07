@@ -78,7 +78,7 @@ define(["sharedConnectorSettings/evernote", "sharedConnectorSettings/google_cale
     }
 
     function showCoach(username) {
-        $.ajax("/api/v1/coaching/coaches/" + username,{
+        $.ajax("/api/v1/coaching/coaches/" + username + "/connectors",{
             success:function(coach) {
                 App.loadMustacheTemplate("settingsTemplates.html","sharedConnectors",function(template){
                     updateCoachesDropdown(username);

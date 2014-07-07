@@ -273,6 +273,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             lastFetch.abort();
         lastFetch = $.ajax({
             url: "/api/v1/calendar/all/" + state.tabState,
+            beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_USERNAME_HEADER, App.viewee);}},
 			success : function(response) {
                 if (thisFetchId != fetchId)//we litter the callback with these in case a we got to the callback but a new request started
                     return;

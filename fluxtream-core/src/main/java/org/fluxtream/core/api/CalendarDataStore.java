@@ -84,9 +84,10 @@ public class CalendarDataStore {
                   notes="Locations can get quite heavy and take a while to parse, so we provide them in a separate call.")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getLocationConnectorsWeekData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
-                                                @ApiParam(value="Week", required=true) @PathParam("week") final int week,
-                                                @ApiParam(value="filter JSON", required=true) @QueryParam("filter") String filter) {
-        return getWeekData(year, week, filter, true);
+                                                  @ApiParam(value="Week", required=true) @PathParam("week") final int week,
+                                                  @ApiParam(value="filter JSON", required=true) @QueryParam("filter") String filter,
+                                                  @ApiParam(value="Coachee username Header (" + CoachingService.COACHEE_USERNAME_HEADER + ")", required=false) @HeaderParam(CoachingService.COACHEE_USERNAME_HEADER) String coacheeUsernameHeader) {
+        return getWeekData(year, week, filter, true, coacheeUsernameHeader);
     }
 
     @GET
@@ -95,20 +96,22 @@ public class CalendarDataStore {
                   notes="Unlike its date-based equivalent, this call will not contain Location data")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getAllConnectorsWeekData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
-                                           @ApiParam(value="Week", required=true) @PathParam("week") final int week,
-                                           @ApiParam(value="filter JSON", required=true) @QueryParam("filter") String filter) {
-        return getWeekData(year, week, filter, false);
+                                             @ApiParam(value="Week", required=true) @PathParam("week") final int week,
+                                             @ApiParam(value="filter JSON", required=true) @QueryParam("filter") String filter,
+                                             @ApiParam(value="Coachee username Header (" + CoachingService.COACHEE_USERNAME_HEADER + ")", required=false) @HeaderParam(CoachingService.COACHEE_USERNAME_HEADER) String coacheeUsernameHeader) {
+        return getWeekData(year, week, filter, false, coacheeUsernameHeader);
     }
 
 	public Response getWeekData(final int year,
 			                  final int week,
                               String filter,
-                              boolean locationDataOnly) {
+                              boolean locationDataOnly,
+                              final String coacheeUsernameHeader) {
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
         CoachingBuddy coachee = null;
         try {
-            coachee = AuthHelper.getCoachee();
+            coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
         } catch (CoachRevokedException e) {
             return Response.status(403).entity("Sorry, permission to access this data has been revoked.").build();
         }
@@ -178,9 +181,10 @@ public class CalendarDataStore {
                   notes="Locations can get quite heavy and take a while to parse, so we provide them in a separate call.")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getLocationConnectorsMonthData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
-                                                 @ApiParam(value="Month", required=true) @PathParam("month") final int month,
-                                                 @ApiParam(value="Filter JSON", required=true) @QueryParam("filter") String filter) {
-        return getMonthData(year, month, filter, true);
+                                                   @ApiParam(value="Month", required=true) @PathParam("month") final int month,
+                                                   @ApiParam(value="Filter JSON", required=true) @QueryParam("filter") String filter,
+                                                   @ApiParam(value="Coachee username Header (" + CoachingService.COACHEE_USERNAME_HEADER + ")", required=false) @HeaderParam(CoachingService.COACHEE_USERNAME_HEADER) String coacheeUsernameHeader) {
+        return getMonthData(year, month, filter, true, coacheeUsernameHeader);
     }
 
     @GET
@@ -189,17 +193,18 @@ public class CalendarDataStore {
                   notes="Unlike its date-based equivalent, this call will not contain Location data")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getAllConnectorsMonthData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
-                                            @ApiParam(value="Month", required=true) @PathParam("month") final int month,
-                                            @ApiParam(value="Filter JSON", required=true) @QueryParam("filter") String filter) {
-        return getMonthData(year, month, filter, false);
+                                              @ApiParam(value="Month", required=true) @PathParam("month") final int month,
+                                              @ApiParam(value="Filter JSON", required=true) @QueryParam("filter") String filter,
+                                              @ApiParam(value="Coachee username Header (" + CoachingService.COACHEE_USERNAME_HEADER + ")", required=false) @HeaderParam(CoachingService.COACHEE_USERNAME_HEADER) String coacheeUsernameHeader) {
+        return getMonthData(year, month, filter, false, coacheeUsernameHeader);
     }
 
-    private Response getMonthData(final int year, final int month, String filter, boolean locationDataOnly) {
+    private Response getMonthData(final int year, final int month, String filter, boolean locationDataOnly, String coacheeUsernameHeader) {
         Guest guest = AuthHelper.getGuest();
         long guestId = guest.getId();
         CoachingBuddy coachee;
         try {
-            coachee = AuthHelper.getCoachee();
+            coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
         } catch (CoachRevokedException e) {
             return Response.status(403).entity("Sorry, permission to access this data has been revoked.").build();
         }
@@ -314,7 +319,8 @@ public class CalendarDataStore {
     @ApiOperation(value = "Get the user's connectors' data for a specific date", response = DigestModel.class)
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Response getAllConnectorsDayData(@ApiParam(value="Date (YYYY-MM-DD)", required=true) @PathParam("date") String date,
-                                          @ApiParam(value="Filter JSON", required=false) @QueryParam(value="filter") String filter) throws InstantiationException,
+                                            @ApiParam(value="Filter JSON", required=false) @QueryParam(value="filter") String filter,
+                                            @ApiParam(value="Coachee username Header (" + CoachingService.COACHEE_USERNAME_HEADER + ")", required=false) @HeaderParam(CoachingService.COACHEE_USERNAME_HEADER) String coacheeUsernameHeader) throws InstantiationException,
             IllegalAccessException, ClassNotFoundException, UpdateFailedException, OutsideTimeBoundariesException, IOException {
         if (StringUtils.isEmpty(filter))
             filter = "{}";
@@ -329,7 +335,7 @@ public class CalendarDataStore {
 
         CoachingBuddy coachee;
         try {
-            coachee = AuthHelper.getCoachee();
+            coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
         } catch (CoachRevokedException e) {
             return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();
         }
@@ -569,12 +575,13 @@ public class CalendarDataStore {
     @ApiOperation(value = "Get data from a specific connector at a specific date", response = ConnectorResponseModel.class)
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Response getConnectorData(@ApiParam(value="Date", required=true) @PathParam("date") String date,
-                                   @ApiParam(value="an encoded list of the facet types to be returned. " +
+                                     @ApiParam(value="an encoded list of the facet types to be returned. " +
                                                    "The encoding is <facetType>,<facetType>,... where <facetType> is " +
                                                    "<connectorIdentifier>(optionally attached: -<objectTypeName> " +
                                                    "where <connectorIdentifier> is either the connector name or the apiKey id " +
                                                    "and objectTypeName is the name of the facet Type - example: 64-weight,fitbit,withings-heart_pulse",
-                                           required=true) @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded)
+                                           required=true) @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded,
+                                     @ApiParam(value="Coachee username Header (" + CoachingService.COACHEE_USERNAME_HEADER + ")", required=false) @HeaderParam(CoachingService.COACHEE_USERNAME_HEADER) String coacheeUsernameHeader)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
         try{
@@ -589,7 +596,7 @@ public class CalendarDataStore {
             }
             CoachingBuddy coachee = null;
             try {
-                coachee = AuthHelper.getCoachee();
+                coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
             } catch (CoachRevokedException e) {
                 return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();
             }
@@ -642,13 +649,14 @@ public class CalendarDataStore {
     @ApiOperation(value = "Get data from a specific connector for a specific week", response = ConnectorResponseModel.class)
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getConnectorData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
-                                   @ApiParam(value="Week", required=true) @PathParam("week") final int week,
-                                   @ApiParam(value="an encoded list of the facet types to be returned. " +
+                                     @ApiParam(value="Week", required=true) @PathParam("week") final int week,
+                                     @ApiParam(value="an encoded list of the facet types to be returned. " +
                                                    "The encoding is <facetType>,<facetType>,... where <facetType> is " +
                                                    "<connectorIdentifier>(optionally attached: -<objectTypeName> " +
                                                    "where <connectorIdentifier> is either the connector name or the apiKey id " +
                                                    "and objectTypeName is the name of the facet Type - example: 64-weight,fitbit,withings-heart_pulse",
-                                             required=true) @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded)
+                                             required=true) @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded,
+                                     @ApiParam(value="Coachee username Header (" + CoachingService.COACHEE_USERNAME_HEADER + ")", required=false) @HeaderParam(CoachingService.COACHEE_USERNAME_HEADER) String coacheeUsernameHeader)
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
         try{
@@ -663,7 +671,7 @@ public class CalendarDataStore {
             }
             CoachingBuddy coachee = null;
             try {
-                coachee = AuthHelper.getCoachee();
+                coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
             } catch (CoachRevokedException e) {
                 return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();
             }
@@ -713,13 +721,14 @@ public class CalendarDataStore {
     @Path("/{connectorObjectsEncoded}/month/{year}/{month}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getConnectorDataMonth(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
-                                        @ApiParam(value="Month", required=true) @PathParam("month") final int month,
-                                        @ApiParam(value="an encoded list of the facet types to be returned. " +
+                                          @ApiParam(value="Month", required=true) @PathParam("month") final int month,
+                                          @ApiParam(value="an encoded list of the facet types to be returned. " +
                                                         "The encoding is <facetType>,<facetType>,... where <facetType> is " +
                                                         "<connectorIdentifier>(optionally attached: -<objectTypeName> " +
                                                         "where <connectorIdentifier> is either the connector name or the apiKey id " +
                                                         "and objectTypeName is the name of the facet Type - example: 64-weight,fitbit,withings-heart_pulse",
-                                                  required=true) @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded)
+                                                  required=true) @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded,
+                                          @ApiParam(value="Coachee username Header (" + CoachingService.COACHEE_USERNAME_HEADER + ")", required=false) @HeaderParam(CoachingService.COACHEE_USERNAME_HEADER) String coacheeUsernameHeader)
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
         try{
@@ -734,7 +743,7 @@ public class CalendarDataStore {
             }
             CoachingBuddy coachee = null;
             try {
-                coachee = AuthHelper.getCoachee();
+                coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
             } catch (CoachRevokedException e) {
                 return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();
             }

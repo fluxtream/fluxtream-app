@@ -1,17 +1,10 @@
 package org.fluxtream.core.services.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import org.apache.log4j.Logger;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.SharedConnectorFilter;
-import org.fluxtream.core.domain.AbstractFacet;
-import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.CoachingBuddy;
-import org.fluxtream.core.domain.Guest;
-import org.fluxtream.core.domain.SharedConnector;
+import org.fluxtream.core.domain.*;
 import org.fluxtream.core.services.CoachingService;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.utils.JPAUtils;
@@ -20,6 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *
  * @author Candide Kemmler (candide@fluxtream.com)
@@ -27,6 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(readOnly=true)
 public class CoachingServiceImpl implements CoachingService {
+
+    Logger logger = Logger.getLogger(CoachingServiceImpl.class);
 
     @Autowired
     GuestService guestService;
@@ -41,10 +41,14 @@ public class CoachingServiceImpl implements CoachingService {
     @Transactional(readOnly=false)
     public void addCoach(final long guestId, final String username) {
         final Guest buddyGuest = guestService.getGuest(username);
-        CoachingBuddy buddy = new CoachingBuddy();
-        buddy.guestId = guestId;
-        buddy.buddyId = buddyGuest.getId();
-        em.persist(buddy);
+        if (getCoach(guestId, username)==null) {
+            CoachingBuddy buddy = new CoachingBuddy();
+            buddy.guestId = guestId;
+            buddy.buddyId = buddyGuest.getId();
+            em.persist(buddy);
+        } else {
+            logger.warn("attempt to add a coach that's already in the guest's coaching buddies list");
+        }
     }
 
     @Override
