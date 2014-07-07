@@ -7,14 +7,14 @@ define(["core/DashboardWidget","core/widgetComponents/averageSteps"], function(D
 
         var stepsArray = null;
         var stepsName = ""
-        if (typeof(this.digest.cachedData["bodymedia-steps"])!="undefined" &&
-            typeof(this.digest.cachedData["bodymedia-steps"][0])!="undefined"){
-            stepsArray = this.digest.cachedData["bodymedia-steps"];
+        if (typeof(this.digest.facets["bodymedia-steps"])!="undefined" &&
+            typeof(this.digest.facets["bodymedia-steps"][0])!="undefined"){
+            stepsArray = this.digest.facets["bodymedia-steps"];
             stepsName = "totalSteps";
         }
-        else if (typeof(this.digest.cachedData["fitbit-activity_summary"])!="undefined" &&
-            typeof(this.digest.cachedData["fitbit-activity_summary"][0])!="undefined"){
-            stepsArray = this.digest.cachedData["fitbit-activity_summary"];
+        else if (typeof(this.digest.facets["fitbit-activity_summary"])!="undefined" &&
+            typeof(this.digest.facets["fitbit-activity_summary"][0])!="undefined"){
+            stepsArray = this.digest.facets["fitbit-activity_summary"];
             stepsName = "steps";
         }
 
