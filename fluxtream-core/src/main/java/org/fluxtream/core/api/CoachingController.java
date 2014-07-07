@@ -60,7 +60,6 @@ public class CoachingController {
 
     @POST
     @Path("/coachees/{username}")
-    @Produces({MediaType.APPLICATION_JSON})
     public Response getCoaches(@PathParam("username") String username){
         if (username.equals("self")) {
             AuthHelper.as(null);

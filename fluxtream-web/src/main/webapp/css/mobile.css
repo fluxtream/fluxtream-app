@@ -94,13 +94,14 @@ body {
 .site-wrapper {
     display: table;
     width: 100%;
+    height: 100%;
 }
 .site-wrapper-inner {
     display: table-cell;
     vertical-align: middle;
 }
 .cover-container {
-    margin-top: 20%;
+    /*margin-top: 20%;*/
     margin-right: auto;
     margin-left: auto;
 }
@@ -128,14 +129,27 @@ body {
 }
 
 .sireg-form-wrapper {
-    padding: 0 35px;
+   /* padding: 0 35px;*/
 }
 
 body {
-    padding-top: 70px;
+    /*padding-top: 70px;*/
 }
 
 a {
     cursor: pointer;
 }
 /* END MAIN MENU AND NAVIGATION */
+
+.logo {
+  background: transparent url(../images/logo-fluxtream@2x.png) no-repeat center center;
+  min-height: 40px;
+  width: 200px;
+  margin: 0 0 20px -3px;
+  background-size: 100%;
+}
+
+dd { 
+  margin-bottom: 1rem;
+}
+dl  {  margin-bottom: 0;}

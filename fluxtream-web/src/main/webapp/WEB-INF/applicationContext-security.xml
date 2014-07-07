@@ -57,7 +57,9 @@
     <http pattern="/cors" security="none" />
 
     <!-- mobile register & signIn -->
+    <http pattern="/mobile/oauth2/authorize" security="none" /> <!-- TODO: REMOVE THIS -->
     <http pattern="/mobile/signIn" security="none" />
+    <http pattern="/mobile/authenticate" security="none" />
     <http pattern="/mobile/register" security="none" />
 
     <!-- developer website -->
@@ -98,7 +100,7 @@
 
     <beans:bean id="mobileEntryPoint"
                 class="org.fluxtream.core.auth.FlxLoginUrlAuthenticationEntryPoint">
-        <beans:property name="loginFormUrl" value="/mobile/signIn" />
+        <beans:property name="loginFormUrl" value="/mobile/authenticate" />
     </beans:bean>
 
     <beans:bean id="loginUrlAuthenticationEntryPoint"
@@ -123,6 +125,7 @@
 	<beans:bean id="successHandler"
 		class="org.fluxtream.core.auth.FlxSavedRequestAwareAuthenticationSuccessHandler">
 		<beans:property name="defaultTargetUrl" value="/checkIn" />
+        <beans:property name="mobileDefaultTargetUrl" value="/mobile/checkIn" />
 		<beans:property name="alwaysUseDefaultTargetUrl" value="true" />
         <beans:property name="requestCache" ref="requestCache"/>
 	</beans:bean>
