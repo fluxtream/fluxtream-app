@@ -457,7 +457,7 @@ public class ConnectorStore {
                             @QueryParam("start") long start,
                             @QueryParam("end") long end,
                             @QueryParam("value") String value,
-                            @ApiParam(value="Coachee username Header (" + CoachingService.COACHEE_USERNAME_HEADER + ")", required=false) @HeaderParam(CoachingService.COACHEE_USERNAME_HEADER) String coacheeUsernameHeader){
+                            @ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader){
         Guest guest = AuthHelper.getGuest();
         if(guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
