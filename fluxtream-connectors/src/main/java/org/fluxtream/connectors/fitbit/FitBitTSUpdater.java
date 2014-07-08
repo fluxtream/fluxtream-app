@@ -1,11 +1,7 @@
 package org.fluxtream.connectors.fitbit;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.connectors.Autonomous;
 import org.fluxtream.core.connectors.ObjectType;
@@ -24,20 +20,16 @@ import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.utils.JPAUtils;
 import org.fluxtream.core.utils.TimeUtils;
 import org.fluxtream.core.utils.Utils;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Days;
-import org.joda.time.DurationFieldType;
-import org.joda.time.LocalDate;
+import org.joda.time.*;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.lang.reflect.Field;
+import java.util.*;
 
 /**
  * @author candide
