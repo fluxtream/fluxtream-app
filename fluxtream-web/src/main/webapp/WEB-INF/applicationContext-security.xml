@@ -45,8 +45,8 @@
     <http pattern="/channel.html" security="none" />
 
     <!-- api documentation -->
-    <http pattern="/api/v1/api-docs/**" security="none" />
-    <http pattern="/api/v1/api-docs*" security="none" />
+    <http pattern="/api/api-docs/**" security="none" />
+    <http pattern="/api/api-docs*" security="none" />
     <http pattern="/bootstrap/*" security="none" />
 
     <!-- oauth2 token exchange -->

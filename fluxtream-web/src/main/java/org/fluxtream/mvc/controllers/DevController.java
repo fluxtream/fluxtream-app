@@ -1,5 +1,7 @@
 package org.fluxtream.mvc.controllers;
 
+import com.wordnik.swagger.config.ConfigFactory;
+import com.wordnik.swagger.config.SwaggerConfig;
 import net.sf.json.JSONObject;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.aspects.FlxLogger;
@@ -95,6 +97,9 @@ public class DevController {
         ModelAndView mav = new ModelAndView("/developer/public/partials/" + partial);
         String release = env.get("release");
         mav.addObject("release", release);
+        final SwaggerConfig config = ConfigFactory.config();
+        final String apiDocsURL = config.getBasePath()+"/api-docs";
+        mav.addObject("apiDocsURL", apiDocsURL);
         return mav;
     }
 

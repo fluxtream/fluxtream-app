@@ -8,7 +8,7 @@
 
 <div class="page-content inset">
     <div class="row">
-        <iframe src="/swagger-ui/index.html" style="width:100%; height:100%; border: 0">
+        <iframe src="/swagger-ui/index.html?apiDocsURL=${apiDocsURL}" style="width:100%; height:100%; border: 0">
         </iframe>
     </div>
 </div>
