@@ -10,7 +10,7 @@ import java.util.List;
  */
 public interface CoachingService {
 
-    public static final String COACHEE_USERNAME_HEADER = "X-FLX-COACHEE-USERNAME";
+    public static final String BUDDY_TO_ACCESS_HEADER = "X-FLX-BUDDY-TO-ACCESS";
 
     public void addCoach(long guestId, String username);
 
