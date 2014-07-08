@@ -124,6 +124,7 @@ define(
 
         function initialize() {
             _.bindAll(this);
+            fetchGuestInfo();
             // start loading all applications
             checkScreenDensity();
             loadApps();
@@ -444,9 +445,48 @@ define(
         App.as = function(username) {
             if (!_.isUndefined(username)) {
                 App.viewee = username;
+                fetchGuestInfo();
                 App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
             }
         };
+
+        function fetchGuestInfo() {
+            $.ajax({
+                url: "/api/v1/guest?includeAvatar=true",
+                beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_USERNAME_HEADER, App.viewee);}},
+                success: function(guestInfo) {
+                    App.buddyToAccess = guestInfo;
+                    var loggedInUser = $("#loggedInUser");
+                    loggedInUser.attr("self", guestInfo["fullname"]);
+                    loggedInUser.html(guestInfo["fullname"] + "<span id=\"profileIcon\">&nbsp;</span> <b id=\"profileIconCaret\" class=\"caret\"></b>");
+                    if (App.viewee!=null&&App.viewee!="self") {
+                        loggedInUser.css("text-shadow", "0 0 10px white");
+                        loggedInUser.css("color", "#FFFEFD");
+                        $("#addConnectorLink").addClass("disabled-link").unbind().click(function(evt){evt.preventDefault()});
+                    }
+                    else {
+                        loggedInUser.css("text-shadow", "");
+                        loggedInUser.css("color", "");
+                        $("#addConnectorLink").removeClass("disabled-link").unbind().click(function(){App.connectors();});
+                    }
+                    if (guestInfo["avatar"]!=null) {
+                        if (guestInfo["avatar"].type!="none") {
+                            $("#profileIcon").replaceWith("<img src=\"" + guestInfo.avatar.url + "\" style=\"display:inline;width:27px;margin: 0 1px 0 4px;\" width=27 height=27>");
+                            $("#profileIconCaret").css("margin-top", "10px");
+                            $("#helpDropdownToggle").css("margin-top", "3px");
+                            $("#connectorsDropdownToggle").css("margin-top", "3px");
+                            $("#appsMenuWrapper").css("margin-top", "4px");
+                            $(".brand").css("margin-top", "3px");
+                        } else {
+                            $("#profileIcon").replaceWith("<i class=\"icon-user icon-large\"></i>");
+                        }
+                    }
+                },
+                error: function(jqXHR, statusText, errorThrown) {
+                    App.logError(jqXHR, statusText, errorThrown);
+                }
+            });
+        }
 
         App.logError = function(jqXHR, statusText, errorThrown) {
             console.log(statusText+" (" + errorThrown + ") ");
@@ -1115,7 +1155,7 @@ define(
         App.invalidPath = invalidPath;
         App.geocoder = new google.maps.Geocoder();
         App.sharingDialog = SharingDialog;
-        App.COACHEE_USERNAME_HEADER = "X-FLX-COACHEE-USERNAME";
+        App.COACHEE_USERNAME_HEADER = "X-FLX-BUDDY-TO-ACCESS";
         window.App = App;
         return App;
 
