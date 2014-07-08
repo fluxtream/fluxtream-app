@@ -4,30 +4,7 @@ require.config({
 
 require(['App', 'Connectors'], function(App, Connectors) {
     App.initialize();
-    setAvatarImage();
 });
-
-function setAvatarImage() {
-    $.ajax({
-        url: "/api/v1/guest/avatarImage",
-        success: function(result) {
-            if (result.type!="none") {
-                $("#profileIcon").replaceWith("<img src=\"" + result.url + "\" style=\"display:inline;width:27px;margin: 0 1px 0 4px;\" width=27 height=27>");
-                $("#profileIconCaret").css("margin-top", "10px");
-                $("#helpDropdownToggle").css("margin-top", "3px");
-                $("#connectorsDropdownToggle").css("margin-top", "3px");
-                $("#appsMenuWrapper").css("margin-top", "4px");
-                $(".brand").css("margin-top", "3px");
-            } else {
-                $("#profileIcon").replaceWith("<i class=\"icon-user icon-large\"></i>");
-            }
-        },
-        error: function() {
-            $("#profileIcon").replaceWith("<i class=\"icon-user icon-large\"></i>");
-        }
-    });
-}
-
 
 //below are require statements for all dynamically required files.
 //this allows for the optimizer to properly package all the files together
