@@ -16,9 +16,9 @@ define(["core/DashboardWidget","core/widgetComponents/averageBloodPressure"], fu
         var bloodPressureArray = null;
         var systolicParam = ""
         var diastolicParam = ""
-        if (typeof(this.digest.cachedData["withings-blood_pressure"])!="undefined" &&
-            typeof(this.digest.cachedData["withings-blood_pressure"][0])!="undefined") {
-            bloodPressureArray = this.digest.cachedData["withings-blood_pressure"];
+        if (typeof(this.digest.facets["withings-blood_pressure"])!="undefined" &&
+            typeof(this.digest.facets["withings-blood_pressure"][0])!="undefined") {
+            bloodPressureArray = this.digest.facets["withings-blood_pressure"];
             systolicParam = "systolic";
             diastolicParam = "diastolic";
         }

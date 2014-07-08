@@ -643,7 +643,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
         }
         for (var facetTypeId in newFacetsArray){//add all the new facets into the cached data
-            Calendar.digest.cachedData[facetTypeId] = newFacetsArray[facetTypeId];
+            Calendar.digest.facets[facetTypeId] = newFacetsArray[facetTypeId];
         }
         enhanceDigest(Calendar.digest);
         processDigest(Calendar.digest);//this will update the button states for any changes we made

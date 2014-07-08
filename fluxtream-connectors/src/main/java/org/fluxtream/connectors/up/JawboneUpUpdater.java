@@ -150,17 +150,27 @@ public class JawboneUpUpdater extends AbstractUpdater {
         setChannelMapping(updateInfo);
         updateInfo.setContext("accessToken", guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken"));
 
+        // To be conservative, we need to store the time *just before* we request a sync for when to start again next time.
+        // This risks potentially getting duplicate updates in the case that data comes into the Jawbone
+        // servers between the time we initially ask and when the update completes but, more importantly,
+        // properly handles the case where data comes in just after we start asking but before we finish the
+        // update.  If we stored the time *after* each update phase completes, we risk potentially irretrievably missing
+        // such data.
+        long lastSyncTime = System.currentTimeMillis();
         updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, MOVES_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpMovesFacet.class));
-        guestService.setApiKeyAttribute(updateInfo.apiKey, MOVES_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
+        guestService.setApiKeyAttribute(updateInfo.apiKey, MOVES_LAST_SYNC_TIME, String.valueOf(lastSyncTime));
 
+        lastSyncTime = System.currentTimeMillis();
         updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, SLEEPS_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpSleepFacet.class));
-        guestService.setApiKeyAttribute(updateInfo.apiKey, SLEEPS_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
+        guestService.setApiKeyAttribute(updateInfo.apiKey, SLEEPS_LAST_SYNC_TIME, String.valueOf(lastSyncTime));
 
+        lastSyncTime = System.currentTimeMillis();
         updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, MEALS_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpMealFacet.class));
-        guestService.setApiKeyAttribute(updateInfo.apiKey, MEALS_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
+        guestService.setApiKeyAttribute(updateInfo.apiKey, MEALS_LAST_SYNC_TIME, String.valueOf(lastSyncTime));
 
+        lastSyncTime = System.currentTimeMillis();
         updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, WORKOUTS_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpWorkoutFacet.class));
-        guestService.setApiKeyAttribute(updateInfo.apiKey, WORKOUTS_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
+        guestService.setApiKeyAttribute(updateInfo.apiKey, WORKOUTS_LAST_SYNC_TIME, String.valueOf(lastSyncTime));
 
         // not updating moods because the API doesn't allow getting updated_after values...
     }
@@ -180,7 +190,7 @@ public class JawboneUpUpdater extends AbstractUpdater {
     private void updateJawboneUpDataSince(final UpdateInfo updateInfo, long lastSyncTime, int objectTypeValue) throws Exception {
         final HttpClient client = env.getHttpClient();
         try {
-            // get moves since lastSyncTime
+            // get data since lastSyncTime
             String endpoint = endpointDict.get(objectTypeValue);
             String url = getBeginningOfTime()==lastSyncTime
                          ? endpoint + "?start_time=" + getBeginningOfTime()/1000
@@ -485,6 +495,13 @@ public class JawboneUpUpdater extends AbstractUpdater {
                     } catch (Throwable t) {
                         logger.warn("could not import Jawbone UP sleep phases records: " + t.getMessage());
                     }
+
+                    // Record that this facet has been updated at this time.  This isn't quite right because
+                    // we really need to record the time closer to when it ends up in the DB, but this is
+                    // better than not setting timeUpdated at all, which was the previous behavior.
+                    // Putting this logic here in the createOrModify handler  also allows a possible future
+                    // where we notice if the data really did change and only set timeUpdated if it really did.
+                    facet.timeUpdated = System.currentTimeMillis();
 
                     return facet;
                 } catch (Throwable t) {

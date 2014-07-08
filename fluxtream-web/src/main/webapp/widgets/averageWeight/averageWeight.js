@@ -15,9 +15,9 @@ define(["core/DashboardWidget","core/widgetComponents/averageWeight"], function(
         $("#averageWeight-widget .flx-body").append(html.render({}))
         var weightArray = null;
         var weightParam = ""
-        if (typeof(this.digest.cachedData["withings-weight"])!="undefined" &&
-            typeof(this.digest.cachedData["withings-weight"][0])!="undefined") {
-            weightArray = this.digest.cachedData["withings-weight"];
+        if (typeof(this.digest.facets["withings-weight"])!="undefined" &&
+            typeof(this.digest.facets["withings-weight"][0])!="undefined") {
+            weightArray = this.digest.facets["withings-weight"];
             weightParam = "weight"
         }
         new AverageWeightComponent(this,$("#averageWeightWidget"),weightArray,weightParam);
