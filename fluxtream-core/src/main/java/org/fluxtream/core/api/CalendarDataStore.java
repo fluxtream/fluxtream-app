@@ -92,6 +92,10 @@ public class CalendarDataStore {
     @Path("/all/week/{year}/{week}")
     @ApiOperation(value = "Get all the user's connectors' data for a specific week", response = DigestModel.class,
                   notes="Unlike its date-based equivalent, this call will not contain Location data")
+    @ApiResponses({
+            @ApiResponse(code=401, message="The user is no longer logged in"),
+            @ApiResponse(code=403, message="Buddy-to-access authorization has been revoked")
+    })
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getAllConnectorsWeekData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
                                              @ApiParam(value="Week", required=true) @PathParam("week") final int week,
@@ -185,6 +189,10 @@ public class CalendarDataStore {
     @ApiOperation(value = "Get all the user's connectors' data for a specific month", response = DigestModel.class,
                   notes="Unlike its date-based equivalent, this call will not contain Location data")
     @Produces({ MediaType.APPLICATION_JSON })
+    @ApiResponses({
+            @ApiResponse(code=401, message="The user is no longer logged in"),
+            @ApiResponse(code=403, message="Buddy-to-access authorization has been revoked")
+    })
     public Response getAllConnectorsMonthData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
                                               @ApiParam(value="Month", required=true) @PathParam("month") final int month,
                                               @ApiParam(value="Filter JSON", required=true) @QueryParam("filter") String filter,
@@ -258,7 +266,8 @@ public class CalendarDataStore {
     @Path("/weather/date/{date}")
     @ApiOperation(value = "Get the user's location-based weather data on a specific date", response = WeatherModel.class)
     @ApiResponses({
-            @ApiResponse(code=401, message="The user is no longer logged in")
+            @ApiResponse(code=401, message="The user is no longer logged in"),
+            @ApiResponse(code=403, message="Buddy-to-access authorization has been revoked")
     })
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getWeatherDataForADay(@ApiParam(value="Date", required=true) @PathParam("date") String date,
@@ -326,7 +335,8 @@ public class CalendarDataStore {
     @ApiOperation(value = "Get the user's connectors' data for a specific date", response = DigestModel.class)
 	@Produces({ MediaType.APPLICATION_JSON })
     @ApiResponses({
-            @ApiResponse(code=401, message="The user is no longer logged in")
+            @ApiResponse(code=401, message="The user is no longer logged in"),
+            @ApiResponse(code=403, message="Buddy-to-access authorization has been revoked")
     })
 	public Response getAllConnectorsDayData(@ApiParam(value="Date (YYYY-MM-DD)", required=true) @PathParam("date") String date,
                                             @ApiParam(value="Filter JSON", required=false) @QueryParam(value="filter") String filter,
@@ -572,7 +582,8 @@ public class CalendarDataStore {
 	@Path("/{connectorObjectsEncoded}/date/{date}")
     @ApiOperation(value = "Get data from a specific connector at a specific date", response = ConnectorResponseModel.class)
     @ApiResponses({
-            @ApiResponse(code=401, message="The user is no longer logged in")
+            @ApiResponse(code=401, message="The user is no longer logged in"),
+            @ApiResponse(code=403, message="Buddy-to-access authorization has been revoked")
     })
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Response getConnectorData(@ApiParam(value="Date", required=true) @PathParam("date") String date,
@@ -637,7 +648,8 @@ public class CalendarDataStore {
     @Path("/{connectorObjectsEncoded}/week/{year}/{week}")
     @ApiOperation(value = "Get data from a specific connector for a specific week", response = ConnectorResponseModel.class)
     @ApiResponses({
-            @ApiResponse(code=401, message="The user is no longer logged in")
+            @ApiResponse(code=401, message="The user is no longer logged in"),
+            @ApiResponse(code=403, message="Buddy-to-access authorization has been revoked")
     })
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getConnectorData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
@@ -713,7 +725,8 @@ public class CalendarDataStore {
     @Path("/{connectorObjectsEncoded}/month/{year}/{month}")
     @Produces({ MediaType.APPLICATION_JSON })
     @ApiResponses({
-            @ApiResponse(code=401, message="The user is no longer logged in")
+            @ApiResponse(code=401, message="The user is no longer logged in"),
+            @ApiResponse(code=403, message="Buddy-to-access authorization has been revoked")
     })
     public Response getConnectorDataMonth(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
                                           @ApiParam(value="Month", required=true) @PathParam("month") final int month,
