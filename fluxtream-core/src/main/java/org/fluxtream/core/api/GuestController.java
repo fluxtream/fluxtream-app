@@ -60,7 +60,7 @@ public class GuestController {
             CoachingBuddy coachee;
             try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
             } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-            Guest guest = getBuddyToAccess(coachee);
+            Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
             if (guest==null)
                 return Response.status(401).entity("You are no longer logged in").build();
             GuestModel guestModel = new GuestModel(guest);
@@ -72,16 +72,6 @@ public class GuestController {
             return Response.serverError().entity("Failed to get current guest: " + e.getMessage()).build();
         }
 	}
-
-    private Guest getBuddyToAccess(CoachingBuddy coachee) {
-        Guest guest = AuthHelper.getGuest();
-        if (guest==null)
-            return null;
-        if (coachee!=null)
-            return guestService.getGuestById(coachee.guestId);
-        return guest;
-    }
-
 
     @GET
     @Path("/avatarImage")

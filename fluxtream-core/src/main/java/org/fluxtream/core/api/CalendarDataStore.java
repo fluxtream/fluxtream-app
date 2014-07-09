@@ -112,7 +112,7 @@ public class CalendarDataStore {
         CoachingBuddy coachee;
         try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
         } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-        Guest guest = getBuddyToAccess(coachee);
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
         if (guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
         long guestId = guest.getId();
@@ -204,7 +204,7 @@ public class CalendarDataStore {
         CoachingBuddy coachee;
         try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
         } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-        Guest guest = getBuddyToAccess(coachee);
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
         if (guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
         long guestId = guest.getId();
@@ -276,7 +276,7 @@ public class CalendarDataStore {
         CoachingBuddy coachee;
         try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
         } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-        Guest guest = getBuddyToAccess(coachee);
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
         if (guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
         long guestId = guest.getId();
@@ -321,15 +321,6 @@ public class CalendarDataStore {
         }
     }
 
-    private Guest getBuddyToAccess(CoachingBuddy coachee) {
-        Guest guest = AuthHelper.getGuest();
-        if (guest==null)
-            return null;
-        if (coachee!=null)
-            return guestService.getGuestById(coachee.guestId);
-        return guest;
-    }
-
 	@GET
 	@Path("/all/date/{date}")
     @ApiOperation(value = "Get the user's connectors' data for a specific date", response = DigestModel.class)
@@ -346,7 +337,7 @@ public class CalendarDataStore {
         CoachingBuddy coachee;
         try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
         } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-        Guest guest = getBuddyToAccess(coachee);
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
         if (guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
         long guestId = guest.getId();
@@ -600,7 +591,7 @@ public class CalendarDataStore {
             CoachingBuddy coachee;
             try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
             } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-            Guest guest = getBuddyToAccess(coachee);
+            Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
             if (guest==null)
                 return Response.status(401).entity("You are no longer logged in").build();
             long guestId = guest.getId();
@@ -743,7 +734,7 @@ public class CalendarDataStore {
             CoachingBuddy coachee;
             try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
             } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-            Guest guest = getBuddyToAccess(coachee);
+            Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
             if (guest==null)
                 return Response.status(401).entity("You are no longer logged in").build();
             long guestId = guest.getId();
