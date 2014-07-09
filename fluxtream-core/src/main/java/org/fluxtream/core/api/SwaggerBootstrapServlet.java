@@ -70,10 +70,13 @@ public class SwaggerBootstrapServlet extends HttpServlet {
         };
         ScannerFactory.setScanner(jaxrsScanner);
         ClassReaders.setReader(new JerseyApiReader());
+        String docsBaseURL = env.get("docsHomeBaseUrl")!=null
+                           ? env.get("docsHomeBaseUrl")
+                           : env.get("homeBaseUrl");
         ApiInfo apiInfo = new ApiInfo(
                 "Fluxtream Public REST API",
                 "",
-                String.format("%shtml/privacyPolicy.html", env.get("homeBaseUrl")),
+                String.format("%shtml/privacyPolicy.html", docsBaseURL),
                 "info@fluxtream.org",
                 "Apache 2.0",
                 "http://www.apache.org/licences/LICENSE-2.0.html"
