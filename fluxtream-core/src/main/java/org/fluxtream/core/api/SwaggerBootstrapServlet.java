@@ -4,6 +4,7 @@ import com.wordnik.swagger.config.ConfigFactory;
 import com.wordnik.swagger.config.ScannerFactory;
 import com.wordnik.swagger.jaxrs.config.DefaultJaxrsScanner;
 import com.wordnik.swagger.jaxrs.config.WebXMLReader;
+import com.wordnik.swagger.jaxrs.listing.ApiListingCache;
 import com.wordnik.swagger.jersey.JerseyApiReader;
 import com.wordnik.swagger.model.ApiInfo;
 import com.wordnik.swagger.reader.ClassReaders;
@@ -54,6 +55,8 @@ public class SwaggerBootstrapServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         reload();
-        resp.getWriter().write("oauth config reloaded");
+        com.wordnik.swagger.jersey.listing.ApiListingCache.invalidateCache();
+        ApiListingCache.invalidateCache();
+        resp.getWriter().write("oauth config reloaded - cache invalidated twice");
     }
 }
