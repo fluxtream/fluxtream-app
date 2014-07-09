@@ -102,7 +102,7 @@ public class AuthHelper {
     public static CoachingBuddy getCoachee() throws CoachRevokedException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         final FlxUserDetails principal = (FlxUserDetails) auth.getPrincipal();
-        if (principal.coachee!=null)
+        if (principal.coachee!=null && viewees.size()>0)
             if (viewees.get(principal.guestId).contains(principal.coachee))
                 return principal.coachee;
             else {
