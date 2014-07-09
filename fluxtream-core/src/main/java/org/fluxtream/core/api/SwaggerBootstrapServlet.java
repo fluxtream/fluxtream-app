@@ -1,23 +1,28 @@
 package org.fluxtream.core.api;
 
-import com.wordnik.swagger.config.ConfigFactory;
-import com.wordnik.swagger.config.ScannerFactory;
-import com.wordnik.swagger.jaxrs.config.DefaultJaxrsScanner;
-import com.wordnik.swagger.jaxrs.config.WebXMLReader;
-import com.wordnik.swagger.jaxrs.listing.ApiListingCache;
-import com.wordnik.swagger.jersey.JerseyApiReader;
-import com.wordnik.swagger.model.ApiInfo;
-import com.wordnik.swagger.reader.ClassReaders;
-import org.fluxtream.core.Configuration;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
+        import com.wordnik.swagger.config.ConfigFactory;
+        import com.wordnik.swagger.config.ScannerFactory;
+        import com.wordnik.swagger.jaxrs.config.DefaultJaxrsScanner;
+        import com.wordnik.swagger.jaxrs.config.WebXMLReader;
+        import com.wordnik.swagger.jaxrs.listing.ApiListingCache;
+        import com.wordnik.swagger.jersey.JerseyApiReader;
+        import com.wordnik.swagger.model.ApiInfo;
+        import com.wordnik.swagger.reader.ClassReaders;
+        import org.fluxtream.core.Configuration;
+        import org.springframework.web.context.WebApplicationContext;
+        import org.springframework.web.context.support.WebApplicationContextUtils;
+        import scala.collection.Iterator;
+        import scala.collection.JavaConversions;
+        import scala.collection.immutable.List;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+        import javax.servlet.ServletConfig;
+        import javax.servlet.ServletException;
+        import javax.servlet.http.HttpServlet;
+        import javax.servlet.http.HttpServletRequest;
+        import javax.servlet.http.HttpServletResponse;
+        import javax.ws.rs.core.Application;
+        import java.io.IOException;
+        import java.util.ArrayList;
 
 /**
  * User: candide
@@ -37,7 +42,33 @@ public class SwaggerBootstrapServlet extends HttpServlet {
         WebApplicationContext webContext = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
 
         Configuration env = webContext.getBean(Configuration.class);
-        ScannerFactory.setScanner(new DefaultJaxrsScanner());
+        final DefaultJaxrsScanner jaxrsScanner = new DefaultJaxrsScanner(){
+
+            @Override
+            public List<Class<?>> classesFromContext(Application app, ServletConfig sc) {
+                final List<Class<?>> classes = super.classesFromContext(app, sc);
+                return filterClasses(classes);
+            }
+
+            private List<Class<?>> filterClasses(final List<Class<?>> classes) {
+                final Iterator<Class<?>> eachClass = classes.iterator();
+                final ArrayList<Class<?>> filteredClasses = new ArrayList<Class<?>>();
+                while(eachClass.hasNext()) {
+                    Class clazz = eachClass.next();
+//                    if (clazz.getName().indexOf("fluxtream")!=-1)
+//                        continue;
+                    filteredClasses.add(clazz);
+                }
+                return JavaConversions.asScalaBuffer(filteredClasses).toList();
+            }
+
+            @Override
+            public List<Class<?>> classes() {
+                final List<Class<?>> classes = super.classes();
+                return filterClasses(classes);
+            }
+        };
+        ScannerFactory.setScanner(jaxrsScanner);
         ClassReaders.setReader(new JerseyApiReader());
         ApiInfo apiInfo = new ApiInfo(
                 "Fluxtream Public REST API",
