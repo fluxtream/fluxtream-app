@@ -1,28 +1,38 @@
 package org.fluxtream.core.connectors.updaters;
 
-import java.util.List;
+import com.google.gson.annotations.Expose;
+import com.wordnik.swagger.annotations.ApiModel;
+import com.wordnik.swagger.annotations.ApiModelProperty;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.ObjectType;
-import com.google.gson.annotations.Expose;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
+import java.util.List;
+
+@ApiModel(value = "Update schedule info")
 public class ScheduleResult {
 
     @Expose
-    String when;
+    @ApiModelProperty(value="When is the update going to happen", required=true)
+    public String when;
 
     @Expose
-    String connectorName;
+    @ApiModelProperty(value="The connector's 'technical' name", required=true)
+    public String connectorName;
 
     @Expose
-    List<ObjectType> types;
+    @ApiModelProperty(value="The list of object types to be updated", required=true)
+    public List<ObjectType> types;
 
     @Expose
-    long apiKeyId;
+    @ApiModelProperty(value="The ID of the API key", required=true)
+    public long apiKeyId;
 
     @Expose
+    @ApiModelProperty(value="The result of the scheduling operation", required=true, allowableValues = "NO_RESULT, ALREADY_SCHEDULED, " +
+            "SCHEDULED_UPDATE_DEFERRED, SCHEDULED_UPDATE_IMMEDIATE, SYSTEM_IS_SHUTTING_DOWN")
     public ResultType type = ResultType.NO_RESULT;
 
     private static final DateTimeFormatter fmt = ISODateTimeFormat.dateTime().withZone(DateTimeZone.forID("UTC"));
