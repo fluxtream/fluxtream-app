@@ -160,6 +160,7 @@ define(["core/grapher/BTCore",
             setAllToSyncing();
             event.preventDefault();
             $.ajax("/api/v1/sync/all",{
+                beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
                 type:"POST"
             });
         });
@@ -187,6 +188,7 @@ define(["core/grapher/BTCore",
             event.preventDefault();
             setToSyncing(connector.connectorName)
             $.ajax("/api/v1/sync/" + connector.connectorName,{
+                beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
                 type:"POST"
             });
         });
