@@ -39,6 +39,7 @@ define(["core/grapher/BTCore",
                             if (data[i].manageable){
                                 var row = $("#connector-" + data[i].connectorName);
                                 var params = getConnectorParams(data[i]);
+                                params.isBuddy= !_.isUndefined(App.viewee)&& !_.isNull(App.viewee)&& App.viewee!="self";
                                 var html = $(noImageTemplate.render(params));
                                 if (row.length == 0){
                                     $("#connectorInfoTable").append(imageTemplate.render(params));
@@ -115,7 +116,7 @@ define(["core/grapher/BTCore",
                 params[i] = getConnectorParams(data[i])
                 params[i].hasSettings = hasTimelineSettings||hasGeneralSettings;
             }
-            var html = template.render({connectors:params});
+            var html = template.render({connectors:params, buddyToAccess: App.buddyToAccess, isBuddy: !_.isUndefined(App.viewee)&& !_.isNull(App.viewee)&& App.viewee!="self"});
             if (update){
                 var scrollTop = $("#modal .modal-body").scrollTop();
                 $("#modal").html($(html).html());
