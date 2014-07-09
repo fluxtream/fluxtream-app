@@ -105,18 +105,13 @@ public class CalendarDataStore {
                               String filter,
                               boolean locationDataOnly,
                               final String coacheeUsernameHeader) {
-        Guest guest = AuthHelper.getGuest();
+        CoachingBuddy coachee;
+        try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
+        } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+        Guest guest = getBuddyToAccess(coachee);
+        if (guest==null)
+            return Response.status(401).entity("You are no longer logged in").build();
         long guestId = guest.getId();
-        CoachingBuddy coachee = null;
-        try {
-            coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
-        } catch (CoachRevokedException e) {
-            return Response.status(403).entity("Sorry, permission to access this data has been revoked.").build();
-        }
-        if (coachee!=null) {
-            guestId = coachee.guestId;
-            guest = guestService.getGuestById(guestId);
-        }
 
         try{
             long then = System.currentTimeMillis();
@@ -198,18 +193,14 @@ public class CalendarDataStore {
     }
 
     private Response getMonthData(final int year, final int month, String filter, boolean locationDataOnly, String coacheeUsernameHeader) {
-        Guest guest = AuthHelper.getGuest();
-        long guestId = guest.getId();
         CoachingBuddy coachee;
-        try {
-            coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
-        } catch (CoachRevokedException e) {
-            return Response.status(403).entity("Sorry, permission to access this data has been revoked.").build();
-        }
-        if (coachee!=null) {
-            guestId = coachee.guestId;
-            guest = guestService.getGuestById(guestId);
-        }
+        try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
+        } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+        Guest guest = getBuddyToAccess(coachee);
+        if (guest==null)
+            return Response.status(401).entity("You are no longer logged in").build();
+        long guestId = guest.getId();
+
         try{
             long then = System.currentTimeMillis();
             MonthMetadata monthMetadata = metadataService.getMonthMetadata(guestId, year, month);
@@ -595,25 +586,13 @@ public class CalendarDataStore {
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
         try{
-            Guest guest;
-            long guestId;
-
-            try {
-                guest = AuthHelper.getGuest();
-                guestId = guest.getId();
-            } catch (Throwable e) {
-                return Response.status(401).entity("You are no longer logged in. Please reload your browser window").build();
-            }
-            CoachingBuddy coachee = null;
-            try {
-                coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
-            } catch (CoachRevokedException e) {
-                return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();
-            }
-            if (coachee!=null) {
-                guestId = coachee.guestId;
-                guest = guestService.getGuestById(guestId);
-            }
+            CoachingBuddy coachee;
+            try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
+            } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+            Guest guest = getBuddyToAccess(coachee);
+            if (guest==null)
+                return Response.status(401).entity("You are no longer logged in").build();
+            long guestId = guest.getId();
 
             List<ApiKey> apiKeyList = getApiKeyListFromConnectorObjectsEncoding(guest,connectorObjectsEncoded);
             Map<ApiKey,List<ObjectType>> objectTypesMap = getObjectTypesFromConnectorObjectsEncoding(apiKeyList,connectorObjectsEncoded);
@@ -748,25 +727,13 @@ public class CalendarDataStore {
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
         try{
-            Guest guest;
-            long guestId;
-
-            try {
-                guest = AuthHelper.getGuest();
-                guestId = guest.getId();
-            } catch (Throwable e) {
-                return Response.status(401).entity("You are no longer logged in. Please reload your browser window").build();
-            }
-            CoachingBuddy coachee = null;
-            try {
-                coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
-            } catch (CoachRevokedException e) {
-                return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();
-            }
-            if (coachee!=null) {
-                guestId = coachee.guestId;
-                guest = guestService.getGuestById(guestId);
-            }
+            CoachingBuddy coachee;
+            try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
+            } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+            Guest guest = getBuddyToAccess(coachee);
+            if (guest==null)
+                return Response.status(401).entity("You are no longer logged in").build();
+            long guestId = guest.getId();
 
             List<ApiKey> apiKeyList = getApiKeyListFromConnectorObjectsEncoding(guest,connectorObjectsEncoded);
             Map<ApiKey,List<ObjectType>> objectTypesMap = getObjectTypesFromConnectorObjectsEncoding(apiKeyList,connectorObjectsEncoded);
