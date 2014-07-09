@@ -7,17 +7,7 @@
     Boolean tracker = (Boolean)request.getAttribute("tracker");
     Boolean intercom = (Boolean)request.getAttribute("intercom");
     Boolean useMinifiedJs = (Boolean)request.getAttribute("useMinifiedJs");
-    List<Guest> coachees = (List<Guest>)request.getAttribute("coachees");
-    String vieweeFullname = (String)request.getAttribute("fullname");
-    if (AuthHelper.getCoachee()!=null) {
-        for (Guest coachee : coachees) {
-            if (coachee.getId()==AuthHelper.getCoachee().guestId) {
-                vieweeFullname = coachee.username;
-                break;
-            }
-        }
-    }
-    request.setAttribute("vieweeFullname", vieweeFullname);%><!DOCTYPE html>
+    List<Guest> coachees = (List<Guest>)request.getAttribute("coachees");%><!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -94,13 +84,11 @@
                                                         data-toggle="dropdown">Connectors
                                     <i class="icon-random icon-large"></i> <b class="caret"></b></a>
                                     <ul class="dropdown-menu">
-                                        <li><a href="javascript:App.connectors()"><i class="mainmenu-icon icon-plus icon-large pull-right"></i>Add</a></li>
+                                        <li><a id="addConnectorLink"><i class="mainmenu-icon icon-plus icon-large pull-right"></i>Add</a></li>
                                         <li id="manageConnectorsMenuItem"><a href="javascript:App.manageConnectors()"><i class="mainmenu-icon icon-list icon-large pull-right"></i>Manage</a></li>
                                     </ul></li>
                                 <li class="divider-vertical"></li>
-							<li class="dropdown"><a href="javascript:void(0)" class="dropdown-toggle" onclick="$('#connectorsDropdownToggle').popover('destroy');" id="loggedInUser" <%if(AuthHelper.getCoachee()!=null){%>style="text-shadow:0 0 10px white; color:white"<%}%>
-								data-toggle="dropdown" self="<%=request.getAttribute("fullname")%>">${vieweeFullname}<span id="profileIcon">&nbsp;</span> <b
-   id="profileIconCaret" class="caret"></b></a>
+							<li class="dropdown"><a href="javascript:void(0)" class="dropdown-toggle" onclick="$('#connectorsDropdownToggle').popover('destroy');" id="loggedInUser" data-toggle="dropdown" self="<%=request.getAttribute("fullname")%>"></a>
 								<ul class="dropdown-menu">
 									<li><a href="javascript:App.settings()"><i class="mainmenu-icon icon-cog icon-large pull-right"></i>Settings</a></li>
                                     <%--<li><a href="javascript:App.addresses()"><i class="mainmenu-icon icon-home icon-large pull-right"></i>Addresses</a></li>--%>

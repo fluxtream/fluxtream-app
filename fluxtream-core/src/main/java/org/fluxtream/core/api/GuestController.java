@@ -1,9 +1,7 @@
 package org.fluxtream.core.api;
 
 import com.google.gson.Gson;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiParam;
+import com.wordnik.swagger.annotations.*;
 import net.sf.json.JSONObject;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -14,6 +12,7 @@ import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.CoachingBuddy;
 import org.fluxtream.core.domain.Guest;
+import org.fluxtream.core.mvc.models.AvatarImageModel;
 import org.fluxtream.core.mvc.models.guest.GuestModel;
 import org.fluxtream.core.services.CoachingService;
 import org.fluxtream.core.services.GuestService;
@@ -22,10 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
@@ -54,15 +50,24 @@ public class GuestController {
     @GET
 	@Path("/")
 	@Produces({ MediaType.APPLICATION_JSON })
+    @ApiResponses({
+            @ApiResponse(code=401, message="The user is no longer logged in"),
+            @ApiResponse(code=403, message="Buddy-to-access authorization has been revoked")
+    })
     @ApiOperation(value = "Retrieve information on the currently logged in's guest", response = GuestModel.class)
-	public Response getCurrentGuest() throws InstantiationException,
+	public Response getCurrentGuest(@ApiParam(value="Include the guest's avatar?") @QueryParam("includeAvatar") final boolean includeAvatar,
+                                    @ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
         try{
-            long guestId = AuthHelper.getGuestId();
-
-            Guest guest = guestService.getGuestById(guestId);
+            CoachingBuddy coachee;
+            try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
+            } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+            Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
+            if (guest==null)
+                return Response.status(401).entity("You are no longer logged in").build();
             GuestModel guestModel = new GuestModel(guest);
-
+            if (includeAvatar)
+                guestModel.avatar = getAvatarImageModel(coacheeUsernameHeader, guest);
             return Response.ok(guestModel).build();
         }
         catch (Exception e){
@@ -73,10 +78,19 @@ public class GuestController {
     @GET
     @Path("/avatarImage")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Retrieve the avatar (gravatar) of the currently logged in's guest", response = String.class)
-    public String getAvatarImage(@ApiParam(value="Coachee username Header (" + CoachingService.COACHEE_USERNAME_HEADER + ")", required=false) @HeaderParam(CoachingService.COACHEE_USERNAME_HEADER) String coacheeUsernameHeader) {
+    @ApiResponses({
+            @ApiResponse(code=401, message="The user is no longer logged in"),
+            @ApiResponse(code=403, message="Buddy-to-access authorization has been revoked")
+    })
+    @ApiOperation(value = "Retrieve the avatar (gravatar) of the currently logged in's guest", response = AvatarImageModel.class)
+    public Response getAvatarImage(@ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader) {
         Guest guest = AuthHelper.getGuest();
-        JSONObject json = new JSONObject();
+        AvatarImageModel avatarImage = getAvatarImageModel(coacheeUsernameHeader, guest);
+        return Response.ok(avatarImage).build();
+    }
+
+    private AvatarImageModel getAvatarImageModel(String coacheeUsernameHeader, Guest guest) {
+        AvatarImageModel avatarImage = new AvatarImageModel();
         String type = "none";
         String url;
         try {
@@ -95,10 +109,9 @@ public class GuestController {
             if (url!=null)
                 type = "gravatar";
         }
-        json.put("type", type);
-        json.put("url", url);
-        final String jsonString = json.toString();
-        return jsonString;
+        avatarImage.type = type;
+        avatarImage.url = url;
+        return avatarImage;
     }
 
     private String getGravatarImageURL(Guest guest) {

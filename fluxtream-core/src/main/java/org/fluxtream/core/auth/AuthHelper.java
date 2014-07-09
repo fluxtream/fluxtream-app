@@ -82,6 +82,8 @@ public class AuthHelper {
     }
 
     public static CoachingBuddy getCoachee(String coacheeUsernameHeader, CoachingService coachingService) throws CoachRevokedException {
+        if (coacheeUsernameHeader!=null&&coacheeUsernameHeader.equals("self"))
+            as(null);
         if (coacheeUsernameHeader !=null&&!coacheeUsernameHeader.equals("self")) {
             final CoachingBuddy coachee = coachingService.getCoachee(getGuestId(), coacheeUsernameHeader);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
