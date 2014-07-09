@@ -266,6 +266,9 @@ public class CalendarDataStore {
     @GET
     @Path("/weather/date/{date}")
     @ApiOperation(value = "Get the user's location-based weather data on a specific date", response = WeatherModel.class)
+    @ApiResponses({
+            @ApiResponse(code=401, message="The user is no longer logged in")
+    })
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getWeatherDataForADay(@ApiParam(value="Date", required=true) @PathParam("date") String date,
                                               @ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader) {
@@ -331,6 +334,9 @@ public class CalendarDataStore {
 	@Path("/all/date/{date}")
     @ApiOperation(value = "Get the user's connectors' data for a specific date", response = DigestModel.class)
 	@Produces({ MediaType.APPLICATION_JSON })
+    @ApiResponses({
+            @ApiResponse(code=401, message="The user is no longer logged in")
+    })
 	public Response getAllConnectorsDayData(@ApiParam(value="Date (YYYY-MM-DD)", required=true) @PathParam("date") String date,
                                             @ApiParam(value="Filter JSON", required=false) @QueryParam(value="filter") String filter,
                                             @ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader) throws InstantiationException,
@@ -574,6 +580,9 @@ public class CalendarDataStore {
 	@GET
 	@Path("/{connectorObjectsEncoded}/date/{date}")
     @ApiOperation(value = "Get data from a specific connector at a specific date", response = ConnectorResponseModel.class)
+    @ApiResponses({
+            @ApiResponse(code=401, message="The user is no longer logged in")
+    })
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Response getConnectorData(@ApiParam(value="Date", required=true) @PathParam("date") String date,
                                      @ApiParam(value="an encoded list of the facet types to be returned. " +
@@ -648,6 +657,9 @@ public class CalendarDataStore {
     @GET
     @Path("/{connectorObjectsEncoded}/week/{year}/{week}")
     @ApiOperation(value = "Get data from a specific connector for a specific week", response = ConnectorResponseModel.class)
+    @ApiResponses({
+            @ApiResponse(code=401, message="The user is no longer logged in")
+    })
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getConnectorData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
                                      @ApiParam(value="Week", required=true) @PathParam("week") final int week,
@@ -721,6 +733,9 @@ public class CalendarDataStore {
     @ApiOperation(value = "Get data from a specific connector for a specific month", response = ConnectorResponseModel.class)
     @Path("/{connectorObjectsEncoded}/month/{year}/{month}")
     @Produces({ MediaType.APPLICATION_JSON })
+    @ApiResponses({
+            @ApiResponse(code=401, message="The user is no longer logged in")
+    })
     public Response getConnectorDataMonth(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
                                           @ApiParam(value="Month", required=true) @PathParam("month") final int month,
                                           @ApiParam(value="an encoded list of the facet types to be returned. " +
