@@ -56,6 +56,9 @@
     <!-- CORS -->
     <http pattern="/cors" security="none" />
 
+    <!-- swagger ui -->
+    <http pattern="/swagger-ui/**" security="none" />
+
     <!-- mobile register & signIn -->
     <http pattern="/mobile/oauth2/authorize" security="none" /> <!-- TODO: REMOVE THIS -->
     <http pattern="/mobile/signIn" security="none" />
