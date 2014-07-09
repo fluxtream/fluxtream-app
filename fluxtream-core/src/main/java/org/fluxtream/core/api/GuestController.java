@@ -1,9 +1,7 @@
 package org.fluxtream.core.api;
 
 import com.google.gson.Gson;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiParam;
+import com.wordnik.swagger.annotations.*;
 import net.sf.json.JSONObject;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -52,6 +50,10 @@ public class GuestController {
     @GET
 	@Path("/")
 	@Produces({ MediaType.APPLICATION_JSON })
+    @ApiResponses({
+            @ApiResponse(code=401, message="The user is no longer logged in"),
+            @ApiResponse(code=403, message="Buddy-to-access authorization has been revoked")
+    })
     @ApiOperation(value = "Retrieve information on the currently logged in's guest", response = GuestModel.class)
 	public Response getCurrentGuest(@ApiParam(value="Include the guest's avatar?") @QueryParam("includeAvatar") final boolean includeAvatar,
                                     @ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader) throws InstantiationException,
@@ -76,6 +78,10 @@ public class GuestController {
     @GET
     @Path("/avatarImage")
     @Produces({MediaType.APPLICATION_JSON})
+    @ApiResponses({
+            @ApiResponse(code=401, message="The user is no longer logged in"),
+            @ApiResponse(code=403, message="Buddy-to-access authorization has been revoked")
+    })
     @ApiOperation(value = "Retrieve the avatar (gravatar) of the currently logged in's guest", response = AvatarImageModel.class)
     public Response getAvatarImage(@ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader) {
         Guest guest = AuthHelper.getGuest();
