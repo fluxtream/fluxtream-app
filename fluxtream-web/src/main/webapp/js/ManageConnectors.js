@@ -15,6 +15,7 @@ define(["core/grapher/BTCore",
 
     function show(){
         $.ajax("/api/v1/connectors/installed",{
+            beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
             success: function(data){
                 dataLoaded(data,false);
             }
@@ -28,6 +29,7 @@ define(["core/grapher/BTCore",
     //after that it should in theory properly only update when a change happens in each cell
     function updateContents(){
         $.ajax("/api/v1/connectors/installed",{
+            beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
             success: function(data){
                 if (hidden)
                     return;

@@ -153,13 +153,17 @@ public class ConnectorStore {
                   responseContainer = "Array", response = ConnectorModelFull.class)
     @Produces({MediaType.APPLICATION_JSON})
     @ApiResponses({
-            @ApiResponse(code = 401, message = "You are no longer logged in")
+            @ApiResponse(code = 401, message = "You are no longer logged in"),
+            @ApiResponse(code = 403, message = "Buddy-to-access authorization has been revoked")
     })
     public Response getInstalledConnectors(@ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader){
-        Guest guest = AuthHelper.getGuest();
-        // If no guest is logged in, return empty array
-        if(guest==null)
+        CoachingBuddy coachee;
+        try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
+        } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
+        if (guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
+
         ResourceBundle res = ResourceBundle.getBundle("messages/connectors");
         try {
             List<ConnectorInfo> connectors =  sysService.getConnectors();

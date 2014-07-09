@@ -453,7 +453,7 @@ define(
         function fetchGuestInfo() {
             $.ajax({
                 url: "/api/v1/guest?includeAvatar=true",
-                beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_USERNAME_HEADER, App.viewee);}},
+                beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
                 success: function(guestInfo) {
                     App.buddyToAccess = guestInfo;
                     var loggedInUser = $("#loggedInUser");
@@ -1155,7 +1155,7 @@ define(
         App.invalidPath = invalidPath;
         App.geocoder = new google.maps.Geocoder();
         App.sharingDialog = SharingDialog;
-        App.COACHEE_USERNAME_HEADER = "X-FLX-BUDDY-TO-ACCESS";
+        App.COACHEE_BUDDY_TO_ACCESS_HEADER = "X-FLX-BUDDY-TO-ACCESS";
         window.App = App;
         return App;
 
