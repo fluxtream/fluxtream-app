@@ -3,9 +3,7 @@ package org.fluxtream.core.api;
 import com.google.gson.Gson;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiParam;
+import com.wordnik.swagger.annotations.*;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -269,9 +267,15 @@ public class CalendarDataStore {
     @Path("/weather/date/{date}")
     @ApiOperation(value = "Get the user's location-based weather data on a specific date", response = WeatherModel.class)
     @Produces({ MediaType.APPLICATION_JSON })
-    public WeatherModel getWeatherDataForADay(@ApiParam(value="Date", required=true) @PathParam("date") String date) {
+    public Response getWeatherDataForADay(@ApiParam(value="Date", required=true) @PathParam("date") String date,
+                                              @ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader) {
 
-        Guest guest = AuthHelper.getGuest();
+        CoachingBuddy coachee;
+        try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
+        } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+        Guest guest = getBuddyToAccess(coachee);
+        if (guest==null)
+            return Response.status(401).entity("You are no longer logged in").build();
         long guestId = guest.getId();
 
         GuestSettings settings = settingsService.getSettings(guestId);
@@ -289,7 +293,7 @@ public class CalendarDataStore {
             model.solarInfo = getSolarInfo(city.geo_latitude, city.geo_longitude, dayMetadata);
         }
 
-        return model;
+        return Response.ok(model).build();
     }
 
     public void setMinMaxTemperatures(WeatherModel info,

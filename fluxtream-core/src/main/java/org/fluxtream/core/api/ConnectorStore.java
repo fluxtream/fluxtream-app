@@ -150,13 +150,12 @@ public class ConnectorStore {
     @GET
     @Path("/installed")
     @ApiOperation(value = "Retrieve the list of installed (/added) connectors for the current user",
-                  responseContainer = "Array", response = ConnectorModelFull.class,
-                  authorizations = {@Authorization(value="oauth2")})
+                  responseContainer = "Array", response = ConnectorModelFull.class)
     @Produces({MediaType.APPLICATION_JSON})
     @ApiResponses({
             @ApiResponse(code = 401, message = "You are no longer logged in")
     })
-    public Response getInstalledConnectors(){
+    public Response getInstalledConnectors(@ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader){
         Guest guest = AuthHelper.getGuest();
         // If no guest is logged in, return empty array
         if(guest==null)
@@ -178,11 +177,11 @@ public class ConnectorStore {
                 }
                 else {
                     ConnectorInfo connector = connectorInfo;
-                    ConnectorModelFull connectorJson = new ConnectorModelFull();
+                    ConnectorModelFull connectorModel = new ConnectorModelFull();
                     Connector conn = Connector.fromValue(connector.api);
                     ApiKey apiKey = guestService.getApiKey(guest.getId(), conn);
 
-                    connectorJson.prettyName = conn.prettyName();
+                    connectorModel.prettyName = conn.prettyName();
                     List<String> facetTypes = new ArrayList<String>();
                     ObjectType[] objTypes = conn.objectTypes();
                     if (objTypes != null) {
@@ -190,35 +189,35 @@ public class ConnectorStore {
                             facetTypes.add(connector.connectorName + "-" + obj.getName());
                         }
                     }
-                    connectorJson.facetTypes = facetTypes;
-                    connectorJson.status = apiKey.status!=null?apiKey.status.toString():"NA";
-                    connectorJson.name = connector.name;
-                    connectorJson.connectUrl = connector.connectUrl;
-                    connectorJson.image = connector.image;
-                    connectorJson.connectorName = connector.connectorName;
-                    connectorJson.enabled = connector.enabled;
-                    connectorJson.manageable = connector.manageable;
-                    connectorJson.text = connector.text;
-                    connectorJson.api = connector.api;
-                    connectorJson.apiKeyId = apiKey.getId();
-                    connectorJson.lastSync = connector.supportsSync?getLastSync(apiKey):Long.MAX_VALUE;
-                    connectorJson.latestData = getLatestData(apiKey);
+                    connectorModel.facetTypes = facetTypes;
+                    connectorModel.status = apiKey.status!=null?apiKey.status.toString():"NA";
+                    connectorModel.name = connector.name;
+                    connectorModel.connectUrl = connector.connectUrl;
+                    connectorModel.image = connector.image;
+                    connectorModel.connectorName = connector.connectorName;
+                    connectorModel.enabled = connector.enabled;
+                    connectorModel.manageable = connector.manageable;
+                    connectorModel.text = connector.text;
+                    connectorModel.api = connector.api;
+                    connectorModel.apiKeyId = apiKey.getId();
+                    connectorModel.lastSync = connector.supportsSync?getLastSync(apiKey):Long.MAX_VALUE;
+                    connectorModel.latestData = getLatestData(apiKey);
                     final String auditTrail = checkForErrors(apiKey);
-                    connectorJson.errors = auditTrail!=null;
-                    connectorJson.auditTrail = auditTrail!=null?auditTrail:"";
-                    connectorJson.syncing = checkIfSyncInProgress(guest.getId(), conn);
-                    connectorJson.channels = settingsService.getChannelsForConnector(guest.getId(), conn);
-                    connectorJson.sticky = connector.connectorName.equals("fluxtream_capture");
-                    connectorJson.supportsRenewToken = connector.supportsRenewTokens;
-                    connectorJson.supportsSync = connector.supportsSync;
-                    connectorJson.supportsFileUpload = connector.supportsFileUpload;
-                    connectorJson.prettyName = conn.prettyName();
+                    connectorModel.errors = auditTrail!=null;
+                    connectorModel.auditTrail = auditTrail!=null?auditTrail:"";
+                    connectorModel.syncing = checkIfSyncInProgress(guest.getId(), conn);
+                    connectorModel.channels = settingsService.getChannelsForConnector(guest.getId(), conn);
+                    connectorModel.sticky = connector.connectorName.equals("fluxtream_capture");
+                    connectorModel.supportsRenewToken = connector.supportsRenewTokens;
+                    connectorModel.supportsSync = connector.supportsSync;
+                    connectorModel.supportsFileUpload = connector.supportsFileUpload;
+                    connectorModel.prettyName = conn.prettyName();
                     final String uploadMessageKey = conn.getName() + ".upload";
                     if (res.containsKey(uploadMessageKey)) {
                         final String uploadMessage = res.getString(uploadMessageKey);
-                        connectorJson.uploadMessage = uploadMessage;
+                        connectorModel.uploadMessage = uploadMessage;
                     }
-                    connectorsArray.add(connectorJson);
+                    connectorsArray.add(connectorModel);
                 }
             }
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getInstalledConnectors")
