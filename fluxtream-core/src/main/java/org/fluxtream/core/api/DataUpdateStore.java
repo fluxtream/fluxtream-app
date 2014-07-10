@@ -55,8 +55,8 @@ public class DataUpdateStore {
             if (guest==null)
                 return Response.status(401).entity("You are no longer logged in").build();
             long guestId = guest.getId();
-            List<DataUpdate> updates = dataUpdateService.getAllUpdatesSince(guestId, ISODateTimeFormat.basicDateTime().parseMillis(since));
-            return Response.ok(gson.toJson(new DataUpdateDigestModel(updates,guestService,settingsService,ISODateTimeFormat.basicDateTime().parseMillis(since)))).build();
+            List<DataUpdate> updates = dataUpdateService.getAllUpdatesSince(guestId, ISODateTimeFormat.dateTime().parseMillis(since));
+            return Response.ok(gson.toJson(new DataUpdateDigestModel(updates,guestService,settingsService,ISODateTimeFormat.dateTime().parseMillis(since)))).build();
         }
         catch (Exception e){
             return Response.serverError().entity("Failed to fetch updates").build();

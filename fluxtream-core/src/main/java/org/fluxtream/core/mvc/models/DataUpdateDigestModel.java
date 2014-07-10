@@ -1,18 +1,13 @@
 package org.fluxtream.core.mvc.models;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.DataUpdate;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.services.SettingsService;
 import org.joda.time.format.ISODateTimeFormat;
+
+import java.util.*;
 
 public class DataUpdateDigestModel {
     Map<String,Map<String,TimeBoundariesModel>> bodytrackData;//a list of all the bodytrack data requests
@@ -25,8 +20,8 @@ public class DataUpdateDigestModel {
     String queryTimestamp;
 
     public DataUpdateDigestModel(List<DataUpdate> updates, GuestService guestService, SettingsService settingsService, long sinceTime) throws Exception{
-        queryTimestamp = ISODateTimeFormat.basicDateTime().print(sinceTime);
-        generationTimestamp = ISODateTimeFormat.basicDateTime().print(System.currentTimeMillis());
+        queryTimestamp = ISODateTimeFormat.dateTime().print(sinceTime);
+        generationTimestamp = ISODateTimeFormat.dateTime().print(System.currentTimeMillis());
         for (DataUpdate update : updates){
             switch (update.type){
                 case bodytrackData:
