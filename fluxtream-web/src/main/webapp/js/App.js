@@ -1128,6 +1128,7 @@ define(
             }
             $.ajax("/api/v1/dataUpdates/all",{
                 type: "GET",
+                beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
                 dataType: "json",
                 data: {since: lastCheckTimestamp},
                 success: function(data){

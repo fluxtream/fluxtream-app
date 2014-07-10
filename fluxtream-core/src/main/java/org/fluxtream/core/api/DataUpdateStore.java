@@ -2,9 +2,14 @@ package org.fluxtream.core.api;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.wordnik.swagger.annotations.ApiParam;
 import org.fluxtream.core.auth.AuthHelper;
+import org.fluxtream.core.auth.CoachRevokedException;
+import org.fluxtream.core.domain.CoachingBuddy;
 import org.fluxtream.core.domain.DataUpdate;
+import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.mvc.models.DataUpdateDigestModel;
+import org.fluxtream.core.services.CoachingService;
 import org.fluxtream.core.services.DataUpdateService;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.services.SettingsService;
@@ -13,10 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
@@ -37,12 +39,23 @@ public class DataUpdateStore {
     @Autowired
     DataUpdateService dataUpdateService;
 
+    @Autowired
+    CoachingService coachingService;
+
     @GET
     @Path("/all")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getDataUpdates(@QueryParam("since") String since){
+    public Response getDataUpdates(@QueryParam("since") String since,
+                                   @ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader){
         try{
-            List<DataUpdate> updates = dataUpdateService.getAllUpdatesSince(AuthHelper.getGuestId(), ISODateTimeFormat.basicDateTime().parseMillis(since));
+            CoachingBuddy coachee;
+            try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
+            } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+            Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
+            if (guest==null)
+                return Response.status(401).entity("You are no longer logged in").build();
+            long guestId = guest.getId();
+            List<DataUpdate> updates = dataUpdateService.getAllUpdatesSince(guestId, ISODateTimeFormat.basicDateTime().parseMillis(since));
             return Response.ok(gson.toJson(new DataUpdateDigestModel(updates,guestService,settingsService,ISODateTimeFormat.basicDateTime().parseMillis(since)))).build();
         }
         catch (Exception e){
