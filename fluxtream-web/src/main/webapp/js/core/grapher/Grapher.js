@@ -620,7 +620,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             function calculateNext(i){
                 if (i == li){
                     App.loadMustacheTemplate("core/grapher/timelineTemplates.html","timelineExportContent",function(contentTemplate){
-                        var downloadLink = "/api/v1/bodytrack/exportCSV/" + App.getUID() + "/fluxtream-export-from-" + start + "-to-" + end + ".csv?channels=" + encodeURIComponent(JSON.stringify(channelsArray));
+                        var downloadLink = "/api/v1/bodytrack/exportCSV/" + App.buddyToAccess.id + "/fluxtream-export-from-" + start + "-to-" + end + ".csv?channels=" + encodeURIComponent(JSON.stringify(channelsArray));
                         //update contents and download link and enable the download button
                         modal.find(".dataDownloadLink").attr("href",downloadLink)
                             .removeClass("disabled");
@@ -970,7 +970,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
 
             var plot = null;
             if ("timespan" == channel["type"]){
-                plot = new TimespanSeriesPlot(timespanDatasource(App.getUID(), channel["device_name"], channel["channel_name"]), grapher.dateAxis,
+                plot = new TimespanSeriesPlot(timespanDatasource(App.buddyToAccess.id, channel["device_name"], channel["channel_name"]), grapher.dateAxis,
                     yAxis,
                     {"style": channel["style"], "localDisplay": channel["time_type"] == "local"});
                 plot.addDataPointListener(timespanDataPointListener(grapher,plot));
@@ -990,10 +990,10 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                 }
                 // if defined, we must use the object_type_name here and not the channel_name!
                 var objectTypeOrChannelName = (typeof channel["object_type_name"] === 'undefined' ? channel["channel_name"] : channel["object_type_name"]);
-                plot = new PhotoSeriesPlot(photoDatasource(App.getUID(), channel["device_name"], objectTypeOrChannelName, tags, matchingStrategy),
+                plot = new PhotoSeriesPlot(photoDatasource(App.buddyToAccess.id, channel["device_name"], objectTypeOrChannelName, tags, matchingStrategy),
                     grapher.dateAxis,
                     yAxis,
-                    App.getUID(),
+                    App.buddyToAccess.id,
                     {"style": channel["style"], "localDisplay": channel["time_type"] == "local"});
                 plot.addDataPointListener(photoDataPointListener(grapher, channel, channelElementId));
             } else if ("comments" == channel["channel_name"]) {
@@ -1008,19 +1008,19 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                     matchingStrategy = commentStyle['filters']['tag']['matchingStrategy'];
                 }
                 alert("Implement commentDatasource and CommentSeriesPlot");
-                //			var commentDatasource = commentDatasource(App.getUID(),
+                //			var commentDatasource = commentDatasource(App.buddyToAccess.id,
                 //			channel["device_name"],
                 //			tags,
                 //			matchingStrategy);
                 //			plot = new CommentSeriesPlot(commentDatasource,
                 //			dateAxis,
                 //			yAxis,
-                //			App.getUID(),
+                //			App.buddyToAccess.id,
                 //			channel["style"]);
                 //			plot.addDataPointListener(commentDataPointListener(channelElementId));
             } else {
                 // Set up the plot and axes for this channel using the grapher API
-                plot = new DataSeriesPlot(channelDatasource(App.getUID(), channel["device_name"], channel["channel_name"]),
+                plot = new DataSeriesPlot(channelDatasource(App.buddyToAccess.id, channel["device_name"], channel["channel_name"]),
                     grapher.dateAxis,
                     yAxis,
                     {"style": channel["style"], "localDisplay": channel["time_type"] == "local"});
@@ -1417,7 +1417,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
 
                     // we must use the object_type_name here and not the channel_name!
                     var objectTypeOrChannelName = (typeof channel["object_type_name"] === 'undefined' ? channel["channel_name"] : channel["object_type_name"]);
-                    plot.setDatasource(photoDatasource(App.getUID(),
+                    plot.setDatasource(photoDatasource(App.buddyToAccess.id,
                         channel["device_name"],
                         objectTypeOrChannelName,
                         newStyle['filters']["tag"]["tags"],
@@ -2099,7 +2099,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         logrecId = TOOLS.parseInt(logrecId, -1);
         if (logrecId >= 0) {
 
-            var url = "/bodytrack/users/" + App.getUID() + "/logrecs/" + logrecId + "/get";
+            var url = "/bodytrack/users/" + App.buddyToAccess.id + "/logrecs/" + logrecId + "/get";
 
             TOOLS.loadJson(url, {}, callbacks);
         }
@@ -2190,7 +2190,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
             var errorCallback = callbacks['error'];
             var completeCallback = callbacks['complete'];
 
-            var url = "/api/v1/bodytrack/users/" + App.getUID() + "/channels/" + encodeURIComponent(channel["device_name"]) + "." + encodeURIComponent(channel["channel_name"]) + "/set";
+            var url = "/api/v1/bodytrack/users/" + App.buddyToAccess.id + "/channels/" + encodeURIComponent(channel["device_name"]) + "." + encodeURIComponent(channel["channel_name"]) + "/set";
             $.ajax({
                 cache    : false,
                 type     : "POST",
