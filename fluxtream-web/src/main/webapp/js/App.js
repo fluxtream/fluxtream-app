@@ -124,7 +124,6 @@ define(
 
         function initialize() {
             _.bindAll(this);
-            fetchGuestInfo();
             // start loading all applications
             checkScreenDensity();
             loadApps();
@@ -219,6 +218,7 @@ define(
                     apps[i].setup();
                 }
                 setupURLRouting();
+                fetchGuestInfo();
             });
         }
 
