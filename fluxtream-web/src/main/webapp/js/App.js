@@ -994,14 +994,6 @@ define(
             });
         }
 
-        function getUsername(){
-            return $("#flxUsername").html();
-        }
-
-        function getUID(){
-            return $("#flxUID").html();
-        }
-
         window.FlxUtils = {};
         FlxUtils.rowsOf = function(array, size) {
             if (array.length==0) return [[]];
@@ -1143,12 +1135,9 @@ define(
 
                 }
 
-
             });
         }
 
-        App.getUsername = getUsername;
-        App.getUID = getUID;
         App.initialize = initialize;
         App.renderApp = renderApp;
         App.state = FlxState;
