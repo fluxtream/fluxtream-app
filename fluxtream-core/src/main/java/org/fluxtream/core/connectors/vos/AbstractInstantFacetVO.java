@@ -20,17 +20,17 @@ public abstract class AbstractInstantFacetVO<T extends AbstractFacet> extends
         this.start = facet.start;
         if (facet instanceof AbstractLocalTimeFacet) {
             AbstractLocalTimeFacet ltf = (AbstractLocalTimeFacet) facet;
-            this.eventStart = ISODateTimeFormat.basicDateTime().withZone(DateTimeZone.forTimeZone(timeInterval.getTimeZone(ltf.date))).print(facet.start);
+            this.eventStart = ISODateTimeFormat.dateTime().withZone(DateTimeZone.forTimeZone(timeInterval.getTimeZone(ltf.date))).print(facet.start);
         } else {
-            this.eventStart = ISODateTimeFormat.basicDateTime().withZoneUTC().print(facet.start);
+            this.eventStart = ISODateTimeFormat.dateTime().withZoneUTC().print(facet.start);
         }
 		super.extractValues(facet, timeInterval, settings);
     }
 	
 	@Override
 	public int compareTo(AbstractInstantFacetVO<T> other) {
-        DateTime thisStart = ISODateTimeFormat.basicDate().parseDateTime(this.eventStart);
-        DateTime otherStart = ISODateTimeFormat.basicDate().parseDateTime(other.eventStart);
+        DateTime thisStart = ISODateTimeFormat.date().parseDateTime(this.eventStart);
+        DateTime otherStart = ISODateTimeFormat.date().parseDateTime(other.eventStart);
 		return thisStart.isAfter(otherStart) ? 1 : -1;
 	}
 

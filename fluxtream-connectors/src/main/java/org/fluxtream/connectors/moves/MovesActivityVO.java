@@ -1,15 +1,16 @@
 package org.fluxtream.connectors.moves;
 
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.TimeZone;
 import org.codehaus.plexus.util.StringUtils;
 import org.fluxtream.core.OutsideTimeBoundariesException;
 import org.fluxtream.core.domain.GuestSettings;
 import org.fluxtream.core.mvc.models.DurationModel;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
+
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.TimeZone;
 
 /**
  * User: candide
@@ -40,8 +41,8 @@ public class MovesActivityVO {
         else if (activity.activityGroup==null&&validActivityCodes.contains(activity.activity))
             this.activityCode = activity.activity;
         this.date = activity.date;
-        this.eventStart = ISODateTimeFormat.basicDateTime().withZone(DateTimeZone.forTimeZone(timeZone)).print(activity.start);
-        this.eventEnd = ISODateTimeFormat.basicDateTime().withZone(DateTimeZone.forTimeZone(timeZone)).print(activity.end);
+        this.eventStart = ISODateTimeFormat.dateTime().withZone(DateTimeZone.forTimeZone(timeZone)).print(activity.start);
+        this.eventEnd = ISODateTimeFormat.dateTime().withZone(DateTimeZone.forTimeZone(timeZone)).print(activity.end);
         this.activityGroup = activity.activityGroup;
         this.manual = activity.manual!=null?activity.manual:false;
 
