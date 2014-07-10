@@ -1,4 +1,3 @@
-<%@ page import="org.fluxtream.core.auth.AuthHelper" %>
 <%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"%><%@ taglib
 	uri="http://granule.com/tags" prefix="g"
 %><%@ page import="java.util.List"
@@ -46,8 +45,6 @@
 </head>
 
 <body>
-    <div id="flxUsername" style="display:none;"><%=AuthHelper.getGuest().username%></div>
-    <div id="flxUID" style="display:none;"><%=AuthHelper.getVieweeId()%></div>
 
 	<div id="content">
 
