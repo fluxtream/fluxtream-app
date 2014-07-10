@@ -111,6 +111,11 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         });
     }
 
+    Grapher.prototype.reload = function() {
+        SOURCES.initialized = false;
+        init(this);
+    }
+
     function init(grapher, callback) {
         // Unsaved changes dialog handler
         $(window).bind("beforeunload", function() {
