@@ -1,7 +1,6 @@
 package org.fluxtream.core.api;
 
 import com.google.gson.Gson;
-import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
 import org.fluxtream.core.OutsideTimeBoundariesException;
@@ -35,7 +34,7 @@ import java.util.SortedSet;
 
 @Path("/v1/guest/{username}/photo")
 @Component("RESTPhotoStore")
-@Api(value = "/guest/{username}/photo", description = "Retrieve the user's photos")
+// WARNING: WE CAN'T DOCUMENT AN API WITH A WILDCARD IN ITS BASE PATH WITH SWAGGER-UI APPARENTLY
 @Scope("request")
 public class PhotoStore {
 
@@ -58,7 +57,7 @@ public class PhotoStore {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Get the user's photos for a specific date", responseContainer = "array", response = PhotoModel.class)
     public Response getPhotosForDate(@ApiParam(value="Username (must be currently logged in user's username)", required=true) @PathParam("username") String username,
-                                   @ApiParam(value="Date (yyyy-mm-dd)", required=true) @PathParam("date") String date){
+                                     @ApiParam(value="Date (yyyy-mm-dd)", required=true) @PathParam("date") String date){
         try{
             Guest guest = guestService.getGuest(username);
             if (AuthHelper.getGuest().getId()!=guest.getId())

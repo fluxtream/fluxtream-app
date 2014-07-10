@@ -1,16 +1,18 @@
 package org.fluxtream.core.connectors;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
+import com.wordnik.swagger.annotations.ApiModel;
+import com.wordnik.swagger.annotations.ApiModelProperty;
 import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 import org.fluxtream.core.domain.AbstractFacet;
 
+import java.util.*;
+
+@ApiModel("Each Connector maintains bags of facets of different types. An ObjectType is the description of such a facet type.")
 public class ObjectType {
 
+    @ApiModelProperty(value="The name of the object type", required=true)
     String name;
+    @ApiModelProperty(value="The pretty name of the object type", required=true)
     String prettyname;
     boolean isDateBased;
     boolean isMixedType;
@@ -84,10 +86,12 @@ public class ObjectType {
 		return result;
 	}
 
+    @ApiModelProperty(value="Is data referred to by this object type (local) date based?", required=true)
     public boolean isDateBased() {
         return isDateBased;
     }
 
+    @ApiModelProperty(value="Is it a client, non-technical, facet, of the type that mean something to the end-user?", required=true)
     public boolean isClientFacet() {
         return isClientFacet;
     }
@@ -114,11 +118,13 @@ public class ObjectType {
 	public String name() {
 		return name;
 	}
-	
+
+    @ApiModelProperty(value="The bitmask value for this ObjectType", required=true)
 	public int value() {
 		return value;
 	}
-	
+
+    @ApiModelProperty(value="Does the data this object type refers to contain an image?", required=true)
 	public boolean isImageType() {
 		return isImageType;
 	}
@@ -127,6 +133,7 @@ public class ObjectType {
 		return prettyname;
 	}
 
+    @ApiModelProperty(hidden=true)
     public String visibleClause() {
         return visibleClause;
     }
@@ -176,6 +183,7 @@ public class ObjectType {
         return result;
     }
 
+    @ApiModelProperty(value="Can this object type refer both to date-based data and epoch time-based intervals?", required=true)
     public boolean isMixedType() {
         return isMixedType;
     }
