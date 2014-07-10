@@ -446,7 +446,6 @@ define(
             if (!_.isUndefined(username)) {
                 App.viewee = username;
                 fetchGuestInfo();
-                App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
             }
         };
 
@@ -481,6 +480,8 @@ define(
                             $("#profileIcon").replaceWith("<i class=\"icon-user icon-large\"></i>");
                         }
                     }
+                    App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
+                    checkForDataUpdates();
                 },
                 error: function(jqXHR, statusText, errorThrown) {
                     App.logError(jqXHR, statusText, errorThrown);
