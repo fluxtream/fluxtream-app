@@ -57,6 +57,16 @@ public class AuthorizationToken extends AbstractEntity {
                 this.creationTime + DEFAULT_TOKEN_LIFETIME_MILLIS;
     }
 
+    public AuthorizationToken(final long guestId) {
+        this.authorizationCodeId = -1;
+        this.guestId = guestId;
+        this.accessToken = UUID.randomUUID().toString();
+        this.refreshToken = UUID.randomUUID().toString();
+        this.creationTime = DateTime.now().getMillis();
+        this.expirationTime =
+                this.creationTime + DEFAULT_TOKEN_LIFETIME_MILLIS;
+    }
+
     public AuthorizationToken(final AuthorizationToken oldToken) {
         this.authorizationCodeId = oldToken.authorizationCodeId;
         this.guestId = oldToken.guestId;
