@@ -53,16 +53,16 @@ public class PartnerAppsRegisterController {
         if (!application.registrationAllowed)
             return Response.status(Response.Status.FORBIDDEN).build();
         try {
-            guestService.createGuest(username, firstname, lastname, null, email, Guest.RegistrationMethod.REGISTRATION_METHOD_API, application.uid);
+            final Guest guest = guestService.createGuest(username, firstname, lastname, null, email, Guest.RegistrationMethod.REGISTRATION_METHOD_API, application.uid);
+            AuthorizationToken authorizationToken = new AuthorizationToken(AuthHelper.getGuestId());
+            oAuth2MgmtService.storeToken(authorizationToken);
+            TechnicalAuthorizationTokenModel authorizationTokenModel = new TechnicalAuthorizationTokenModel(authorizationToken, guest);
+            return Response.ok(authorizationTokenModel).build();
         } catch (UsernameAlreadyTakenException e) {
             return Response.status(Response.Status.BAD_REQUEST).entity("This username is already taken").build();
         } catch (ExistingEmailException e) {
             return Response.status(Response.Status.BAD_REQUEST).entity("This e-mail address is already used").build();
         }
-        AuthorizationToken authorizationToken = new AuthorizationToken(AuthHelper.getGuestId());
-        oAuth2MgmtService.storeToken(authorizationToken);
-        TechnicalAuthorizationTokenModel authorizationTokenModel = new TechnicalAuthorizationTokenModel(authorizationToken);
-        return Response.ok(authorizationTokenModel).build();
     }
 
 }
