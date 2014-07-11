@@ -1,7 +1,7 @@
 package org.fluxtream.core.api;
 
 import com.sun.jersey.api.Responses;
-import org.fluxtream.core.auth.AuthHelper;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.domain.oauth2.Application;
 import org.fluxtream.core.domain.oauth2.AuthorizationToken;
@@ -20,6 +20,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 
 /**
  * User: candide
@@ -46,7 +47,7 @@ public class PartnerAppsRegisterController {
                              @FormParam("email") final String email,
                              @FormParam("username") final String username,
                              @FormParam("firstname") final String firstname,
-                             @FormParam("lastname") final String lastname) {
+                             @FormParam("lastname") final String lastname) throws IOException {
         final Application application = partnerAppsService.getApplication(appSecret);
         if (application==null)
             return Responses.notFound().build();
@@ -54,10 +55,11 @@ public class PartnerAppsRegisterController {
             return Response.status(Response.Status.FORBIDDEN).build();
         try {
             final Guest guest = guestService.createGuest(username, firstname, lastname, null, email, Guest.RegistrationMethod.REGISTRATION_METHOD_API, application.uid);
-            AuthorizationToken authorizationToken = new AuthorizationToken(AuthHelper.getGuestId());
+            AuthorizationToken authorizationToken = new AuthorizationToken(guest.getId());
             oAuth2MgmtService.storeToken(authorizationToken);
             TechnicalAuthorizationTokenModel authorizationTokenModel = new TechnicalAuthorizationTokenModel(authorizationToken, guest);
-            return Response.ok(authorizationTokenModel).build();
+            final String json = (new ObjectMapper()).writeValueAsString(authorizationTokenModel);
+            return Response.ok(json).build();
         } catch (UsernameAlreadyTakenException e) {
             return Response.status(Response.Status.BAD_REQUEST).entity("This username is already taken").build();
         } catch (ExistingEmailException e) {
