@@ -2,6 +2,7 @@ package org.fluxtream.core.domain.oauth2;
 
 import org.fluxtream.core.domain.AbstractEntity;
 import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.Entity;
 import javax.persistence.Lob;
@@ -23,6 +24,8 @@ public class Application extends AbstractEntity {
     public String organization;
     public String name;
     public String website;
+    @Type(type="yes_no")
+    public boolean registrationAllowed;
 
     @Lob
     public String description;
