@@ -19,5 +19,7 @@ public interface PartnerAppsService {
 
     Application getApplication(final long guestId, final String uid);
 
+    Application getApplication(final String appSecret);
+
     void updateApplication(final long guestId, final String uid, final String organization, final String name, final String description, final String website);
 }

@@ -58,6 +58,17 @@ public class PartnerAppsServiceImpl implements PartnerAppsService {
     }
 
     @Override
+    public Application getApplication(String appSecret) {
+        final TypedQuery<Application> query = em.createQuery("SELECT app FROM Application app WHERE app.sharedSecret=?", Application.class);
+        query.setParameter(1, appSecret);
+        if (query.getResultList().size()>0) {
+            final Application app = query.getResultList().get(0);
+            return app;
+        }
+        return null;
+    }
+
+    @Override
     @Transactional(readOnly=false)
     public void updateApplication(final long guestId, final String organization, final String uid, final String name, final String description, final String website) {
         final Application app = getApplication(guestId, uid);
