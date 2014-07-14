@@ -37,7 +37,8 @@ public class AuthorizationCode extends AbstractEntity {
     public AuthorizationCode() {}
 
     public AuthorizationCode(final Long id, final Set<String> scopes, final String state) {
-        this.scopes = StringUtils.join(scopes, ",");
+        if (scopes!=null)
+            this.scopes = StringUtils.join(scopes, ",");
         this.code = UUID.randomUUID().toString();
         this.applicationId = id;
         this.state = state;
