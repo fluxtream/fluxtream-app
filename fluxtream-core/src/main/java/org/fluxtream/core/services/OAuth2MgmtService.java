@@ -30,6 +30,8 @@ public interface OAuth2MgmtService {
 
     void storeToken(AuthorizationToken token);
 
+    AuthorizationToken issueAuthorizationToken(long guestId, long applicationId);
+
     AuthorizationToken getTokenFromRefreshToken(String refreshToken);
 
     AuthorizationToken getTokenFromAccessToken(String accessToken);

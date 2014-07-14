@@ -93,6 +93,19 @@ public class OAuth2MgmtServiceImpl implements OAuth2MgmtService {
     }
 
     @Override
+    @Transactional(readOnly=false)
+    public AuthorizationToken issueAuthorizationToken(long guestId, long applicationId)
+    {
+        AuthorizationCode code = new AuthorizationCode(guestId, null, null);
+        code.applicationId = applicationId;
+        em.persist(code);
+        AuthorizationToken token = new AuthorizationToken(guestId);
+        token.authorizationCodeId = code.getId();
+        em.persist(token);
+        return token;
+    }
+
+    @Override
     public AuthorizationToken getTokenFromRefreshToken(final String refreshToken) {
         final TypedQuery<AuthorizationToken> query = em.createQuery(
                 "SELECT authorizationToken FROM AuthorizationToken authorizationToken " +
