@@ -22,14 +22,14 @@ public abstract class AbstractLocalTimeInstantFacetVO<T extends AbstractLocalTim
     public void extractValues(T facet, TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
         super.extractValues(facet, timeInterval, settings);
         this.date = facet.date;
-        this.eventStart = ISODateTimeFormat.basicDateTime().withZone(DateTimeZone.forTimeZone(timeInterval.getTimeZone(facet.date))).print(facet.start);
+        this.eventStart = ISODateTimeFormat.dateTime().withZone(DateTimeZone.forTimeZone(timeInterval.getTimeZone(facet.date))).print(facet.start);
         localTime = true;
     }
 
     @Override
     public int compareTo(final AbstractInstantFacetVO<T> other) {
-        final DateTime thisStart = ISODateTimeFormat.basicDate().parseDateTime(this.eventStart);
-        DateTime otherStart = ISODateTimeFormat.basicDate().parseDateTime(other.eventStart);
+        final DateTime thisStart = ISODateTimeFormat.date().parseDateTime(this.eventStart);
+        DateTime otherStart = ISODateTimeFormat.date().parseDateTime(other.eventStart);
         return thisStart.isAfter(otherStart) ? 1 : -1;
     }
 

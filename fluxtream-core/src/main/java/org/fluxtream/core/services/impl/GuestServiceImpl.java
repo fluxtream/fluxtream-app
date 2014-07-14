@@ -1,48 +1,20 @@
 package org.fluxtream.core.services.impl;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import org.fluxtream.core.Configuration;
-import org.fluxtream.core.aspects.FlxLogger;
-import org.fluxtream.core.auth.FlxUserDetails;
-import org.fluxtream.core.connectors.Connector;
-import org.fluxtream.core.connectors.OAuth2Helper;
-import org.fluxtream.core.connectors.location.LocationFacet;
-import org.fluxtream.core.domain.AbstractUserProfile;
-import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.ApiKeyAttribute;
-import org.fluxtream.core.domain.CoachingBuddy;
-import org.fluxtream.core.domain.ConnectorInfo;
-import org.fluxtream.core.domain.Guest;
-import org.fluxtream.core.domain.ResetPasswordToken;
-import org.fluxtream.core.services.ApiDataService;
-import org.fluxtream.core.services.ConnectorUpdateService;
-import org.fluxtream.core.services.GuestService;
-import org.fluxtream.core.services.MetadataService;
-import org.fluxtream.core.services.SettingsService;
-import org.fluxtream.core.services.SystemService;
-import org.fluxtream.core.utils.HttpUtils;
-import org.fluxtream.core.utils.JPAUtils;
-import org.fluxtream.core.utils.RandomString;
-import org.fluxtream.core.utils.SecurityUtils;
-import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
 import com.maxmind.geoip.Location;
 import com.maxmind.geoip.LookupService;
 import net.sf.json.JSONObject;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.fluxtream.core.Configuration;
+import org.fluxtream.core.aspects.FlxLogger;
+import org.fluxtream.core.auth.FlxUserDetails;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.connectors.OAuth2Helper;
+import org.fluxtream.core.connectors.location.LocationFacet;
+import org.fluxtream.core.domain.*;
+import org.fluxtream.core.services.*;
+import org.fluxtream.core.utils.*;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +26,16 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.io.IOException;
+import java.util.*;
 
 @Service
 @Transactional(readOnly=true)
@@ -123,7 +105,7 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
 	@Transactional(readOnly = false)
 	public Guest createGuest(String username, String firstname, String lastname,
                              String password, String email, Guest.RegistrationMethod registrationMethod,
-                             final boolean isDeveloperAccount)
+                             final String appId)
             throws UsernameAlreadyTakenException, ExistingEmailException
     {
 		if (loadUserByUsername(username) != null)
@@ -136,10 +118,14 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
 		guest.firstname = firstname;
 		guest.lastname = lastname;
         guest.registrationMethod = registrationMethod;
-        if (isDeveloperAccount)
-            guest.setRoles("ROLE_USER,ROLE_DEVELOPER");
+        guest.setRoles("ROLE_USER");
         if (password!=null)
     		setPassword(guest, password);
+        if (appId!=null) {
+            // enforce API registration method
+            guest.registrationMethod = Guest.RegistrationMethod.REGISTRATION_METHOD_API;
+            guest.appId = appId;
+        }
 		em.persist(guest);
 
 		return guest;

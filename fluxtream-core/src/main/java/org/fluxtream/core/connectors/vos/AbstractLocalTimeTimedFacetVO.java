@@ -20,7 +20,7 @@ public abstract class AbstractLocalTimeTimedFacetVO<T extends AbstractLocalTimeF
             throws OutsideTimeBoundariesException
     {
         super.extractValues(facet, timeInterval, settings);
-        this.eventStart = ISODateTimeFormat.basicDateTime().withZone(DateTimeZone.forTimeZone(timeInterval.getTimeZone(facet.date))).print(facet.start);
-        this.eventEnd = ISODateTimeFormat.basicDateTime().withZone(DateTimeZone.forTimeZone(timeInterval.getTimeZone(facet.date))).print(facet.end);
+        this.eventStart = ISODateTimeFormat.dateTime().withZone(DateTimeZone.forTimeZone(timeInterval.getTimeZone(facet.date))).print(facet.start);
+        this.eventEnd = ISODateTimeFormat.dateTime().withZone(DateTimeZone.forTimeZone(timeInterval.getTimeZone(facet.date))).print(facet.end);
     }
 }

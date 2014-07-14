@@ -1,12 +1,13 @@
 define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
-        "applications/calendar/App"],
-    function(Tab, FlxState, Grapher, Calendar) {
+        "applications/calendar/App", "core/grapher/BTCore"],
+    function(Tab, FlxState, Grapher, Calendar, BTCore) {
 
     var timelineTab = new Tab("calendar", "timeline", "Candide Kemmler", "icon-film", false);
     var digest;
     var grapher = null;
     var connectorEnabled;
     var channelStates = {};
+    var lastGuestId;
 
     function connectorDisplayable(connector){
         return connector.channelNames.length != 0;
@@ -19,6 +20,9 @@ define(["core/Tab", "core/FlxState", "core/grapher/Grapher",
     var targetTime = null;
 
     function render(params) {
+        if (lastGuestId!=null&&App.buddyToAccess.id!==lastGuestId)
+            grapher.reload();
+        lastGuestId = App.buddyToAccess.id;
         targetTime = null;
         if (params.facetToShow != null){
             targetTime = (params.facetToShow.start + (params.facetToShow.end != null ? params.facetToShow.end : params.facetToShow.start)) / 2

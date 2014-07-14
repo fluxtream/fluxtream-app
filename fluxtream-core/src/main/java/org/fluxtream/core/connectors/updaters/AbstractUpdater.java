@@ -352,7 +352,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                 .append(" objectTypes=" + objectTypes)
                 .append(" apiKeyId=").append(apiKey.getId())
                 .append(" guestId=").append(apiKey.getGuestId())
-                .append(" time=").append(ISODateTimeFormat.basicDateTimeNoMillis().print(then))
+                .append(" time=").append(ISODateTimeFormat.dateTimeNoMillis().print(then))
                 .append(" query=").append(query)
                 .append(" reason=\"").append(reason).append("\"")
                 .append(" stackTrace=<![CDATA[").append(stackTrace).append("]]>");

@@ -68,7 +68,8 @@ public class FlxOAuth2ProcessingFilter implements Filter {
         }
         catch (Exception failed) {
             SecurityContextHolder.clearContext();
-            response.sendError(403, "oAuth2: Sorry, we couldn't authenticate your request: " + failed.getMessage());
+            // cf: http://tools.ietf.org/html/rfc6749 5.2
+            response.sendError(401, "oAuth2: Sorry, we couldn't authenticate your request: " + failed.getMessage());
             return;
         }
 

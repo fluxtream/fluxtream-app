@@ -124,7 +124,6 @@ define(
 
         function initialize() {
             _.bindAll(this);
-            fetchGuestInfo();
             // start loading all applications
             checkScreenDensity();
             loadApps();
@@ -219,6 +218,7 @@ define(
                     apps[i].setup();
                 }
                 setupURLRouting();
+                fetchGuestInfo();
             });
         }
 
@@ -446,7 +446,6 @@ define(
             if (!_.isUndefined(username)) {
                 App.viewee = username;
                 fetchGuestInfo();
-                App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
             }
         };
 
@@ -481,6 +480,8 @@ define(
                             $("#profileIcon").replaceWith("<i class=\"icon-user icon-large\"></i>");
                         }
                     }
+                    App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
+                    checkForDataUpdates();
                 },
                 error: function(jqXHR, statusText, errorThrown) {
                     App.logError(jqXHR, statusText, errorThrown);
@@ -994,14 +995,6 @@ define(
             });
         }
 
-        function getUsername(){
-            return $("#flxUsername").html();
-        }
-
-        function getUID(){
-            return $("#flxUID").html();
-        }
-
         window.FlxUtils = {};
         FlxUtils.rowsOf = function(array, size) {
             if (array.length==0) return [[]];
@@ -1114,7 +1107,7 @@ define(
 
 
 
-        var lastCheckTimestamp = moment().format("YYYYMMDDTHHmmss.SSSZZ");
+        var lastCheckTimestamp = moment().format("YYYY-MM-DDThh:mm:ss.SSSZZ");
 
         function checkForDataUpdates(){
             if (isIdle || new Date().getTime() - lastNonIdleEvent > maxIdleTime){
@@ -1128,6 +1121,7 @@ define(
             }
             $.ajax("/api/v1/dataUpdates/all",{
                 type: "GET",
+                beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
                 dataType: "json",
                 data: {since: lastCheckTimestamp},
                 success: function(data){
@@ -1142,12 +1136,9 @@ define(
 
                 }
 
-
             });
         }
 
-        App.getUsername = getUsername;
-        App.getUID = getUID;
         App.initialize = initialize;
         App.renderApp = renderApp;
         App.state = FlxState;

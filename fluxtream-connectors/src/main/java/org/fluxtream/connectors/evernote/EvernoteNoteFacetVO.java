@@ -1,13 +1,14 @@
 package org.fluxtream.connectors.evernote;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import org.fluxtream.core.OutsideTimeBoundariesException;
 import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.connectors.vos.AbstractInstantFacetVO;
 import org.fluxtream.core.domain.GuestSettings;
 import org.joda.time.format.ISODateTimeFormat;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * User: candide
@@ -31,7 +32,7 @@ public class EvernoteNoteFacetVO extends AbstractInstantFacetVO<EvernoteNoteFace
         this.notebookGuid = facet.notebookGuid;
         this.apiKeyId = facet.apiKeyId;
         if (facet.created!=null)
-            created = ISODateTimeFormat.basicDateTimeNoMillis().print(facet.created);
+            created = ISODateTimeFormat.dateTimeNoMillis().print(facet.created);
         if (facet.htmlContent!=null) {
             content = facet.htmlContent;
         }

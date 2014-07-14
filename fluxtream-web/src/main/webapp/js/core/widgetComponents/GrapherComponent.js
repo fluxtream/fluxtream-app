@@ -123,7 +123,7 @@ define(["core/grapher/BTCore"],function(BTCore){
             }
         }
 
-        component.plot = new DataSeriesPlot(channelDatasource(App.getUID(), deviceName, subChannelName),
+        component.plot = new DataSeriesPlot(channelDatasource(App.buddyToAccess.id, deviceName, subChannelName),
             component.xAxis,
             component.yAxis,
             {"style": grapherStyle, "localDisplay": localDisplay});

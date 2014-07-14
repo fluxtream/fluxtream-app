@@ -65,6 +65,9 @@
     <http pattern="/mobile/authenticate" security="none" />
     <http pattern="/mobile/register" security="none" />
 
+    <!-- partner app user registration -->
+    <http pattern="/api/v1/partners/apps/*/guest*" security="none" />
+
     <!-- developer website -->
     <http pattern="/dev/partials/*" security="none" />
 

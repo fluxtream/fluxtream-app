@@ -19,7 +19,7 @@ public interface GuestService {
 
 	public List<Guest> getAllGuests();
 	
-	public Guest createGuest(String username, String firstname, String lastname, String password, String email, Guest.RegistrationMethod registrationMethod, final boolean isDeveloperAccount) throws UsernameAlreadyTakenException, ExistingEmailException;
+	public Guest createGuest(String username, String firstname, String lastname, String password, String email, Guest.RegistrationMethod registrationMethod, final String appId) throws UsernameAlreadyTakenException, ExistingEmailException;
 
 	public void eraseGuestInfo(String username) throws Exception;
 

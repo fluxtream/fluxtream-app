@@ -96,7 +96,6 @@ public class RegisterController {
 		@RequestParam("lastname") String lastname,
 		@RequestParam("password1") String password,
 		@RequestParam("password2") String password2,
-        @RequestParam(value="isDeveloperAccount",required=false, defaultValue = "false") boolean isDeveloperAccount,
 //		@RequestParam("recaptchaChallenge") String challenge,
 //		@RequestParam("recaptchaResponse") String uresponse,
 		HttpServletRequest request) throws Exception, UsernameAlreadyTakenException, ExistingEmailException {
@@ -137,7 +136,7 @@ public class RegisterController {
 		
 		if (errors.size()==0&&required.size()==0) {
 			logger.info("action=register success=true username="+username + " email=" + email);
-            final Guest guest = guestService.createGuest(username, firstname, lastname, password, email, Guest.RegistrationMethod.REGISTRATION_METHOD_FORM, isDeveloperAccount);
+            final Guest guest = guestService.createGuest(username, firstname, lastname, password, email, Guest.RegistrationMethod.REGISTRATION_METHOD_FORM, null);
             final String autoLoginToken = generateSecureRandomString();
             guestService.setAutoLoginToken(guest.getId(), autoLoginToken);
 			request.setAttribute("autoLoginToken", autoLoginToken);

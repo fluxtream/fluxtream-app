@@ -112,8 +112,8 @@ public abstract class AbstractMovesFacetVO<T extends MovesFacet> extends Abstrac
                 }
         }
         hasActivities = facet.getActivities().size()>0;
-        this.eventStart = ISODateTimeFormat.basicDateTime().withZone(DateTimeZone.forTimeZone(timeInterval.getTimeZone(facet.start))).print(facet.start);
-        this.eventEnd = ISODateTimeFormat.basicDateTime().withZone(DateTimeZone.forTimeZone(timeInterval.getTimeZone(facet.end))).print(facet.end);
+        this.eventStart = ISODateTimeFormat.dateTime().withZone(DateTimeZone.forTimeZone(timeInterval.getTimeZone(facet.start))).print(facet.start);
+        this.eventEnd = ISODateTimeFormat.dateTime().withZone(DateTimeZone.forTimeZone(timeInterval.getTimeZone(facet.end))).print(facet.end);
     }
 
 }
