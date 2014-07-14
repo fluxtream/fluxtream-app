@@ -55,8 +55,7 @@ public class PartnerAppsRegisterController {
             return Response.status(Response.Status.FORBIDDEN).build();
         try {
             final Guest guest = guestService.createGuest(username, firstname, lastname, null, email, Guest.RegistrationMethod.REGISTRATION_METHOD_API, application.uid);
-            AuthorizationToken authorizationToken = new AuthorizationToken(guest.getId());
-            oAuth2MgmtService.storeToken(authorizationToken);
+            final AuthorizationToken authorizationToken = oAuth2MgmtService.issueAuthorizationToken(guest.getId(), application.getId());
             TechnicalAuthorizationTokenModel authorizationTokenModel = new TechnicalAuthorizationTokenModel(authorizationToken, guest);
             final String json = (new ObjectMapper()).writeValueAsString(authorizationTokenModel);
             return Response.ok(json).build();
