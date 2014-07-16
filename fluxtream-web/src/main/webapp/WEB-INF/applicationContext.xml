@@ -19,6 +19,19 @@
         http://www.springframework.org/schema/context 
         http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
+    <bean id="viewResolver"
+          class="org.fluxtream.core.mvc.view.UrlBasedViewResolver">
+        <property name="viewClass"
+                  value="org.springframework.web.servlet.view.JstlView" />
+        <property name="prefix" value="/WEB-INF/jsp/" />
+        <property name="suffix" value=".jsp" />
+    </bean>
+
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!-- maximum file size in bytes: thats 100Mb -->
+        <property name="maxUploadSize" value="104857600"/>
+    </bean>
+
     <cache:annotation-driven />
 
     <!-- generic cache manager -->
