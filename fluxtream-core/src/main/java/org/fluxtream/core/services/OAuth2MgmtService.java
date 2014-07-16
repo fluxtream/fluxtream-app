@@ -18,7 +18,7 @@ public interface OAuth2MgmtService {
 
     Application getApplicationForClientId(final String clientId);
 
-    Long getApplicationIdForToken(AuthorizationToken token);
+    Application getApplicationForToken(AuthorizationToken token);
 
     AuthorizationCode issueAuthorizationCode(Long id, Set<String> scopes, String state);
 

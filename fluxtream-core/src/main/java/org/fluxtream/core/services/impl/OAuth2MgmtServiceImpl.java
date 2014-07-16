@@ -176,10 +176,12 @@ public class OAuth2MgmtServiceImpl implements OAuth2MgmtService {
     }
 
     @Override
-    public Long getApplicationIdForToken(final AuthorizationToken token) {
+    public Application getApplicationForToken(final AuthorizationToken token) {
         final AuthorizationCode authorizationCode = em.find(AuthorizationCode.class, token.authorizationCodeId);
-        if (authorizationCode!=null)
-            return authorizationCode.applicationId;
+        if (authorizationCode!=null) {
+            Application application = em.find(Application.class, authorizationCode.applicationId);
+            return application;
+        }
         return null;
     }
 }

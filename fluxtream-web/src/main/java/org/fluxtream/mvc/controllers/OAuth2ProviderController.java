@@ -454,7 +454,7 @@ public class OAuth2ProviderController {
             // that was issued the refresh token.
             // This is probably a very serious offense and should probably
             // raise some serious red flags!
-            if (!oAuth2MgmtService.getApplicationIdForToken(currentToken).equals(application.getId())) {
+            if (!oAuth2MgmtService.getApplicationForToken(currentToken).getId().equals(application.getId())) {
 
                 // Create the OAuth response.
                 OAuthResponse oauthResponse = OAuthASResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST)
