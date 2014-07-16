@@ -27,6 +27,8 @@ public class Application extends AbstractEntity {
     @Type(type="yes_no")
     public boolean registrationAllowed;
 
+    public String addConnectorCallbackURL;
+
     @Lob
     public String description;
 
