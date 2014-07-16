@@ -43,7 +43,6 @@ public class NotificationsStore {
 
     @POST
     @Path("/{username}")
-    @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "Post a notification (admins only)", response = String.class)
     @Secured("ROLE_ADMIN")
     public Response addNotification(@ApiParam(value="Guest's username", required=true) @PathParam("username") String username,
@@ -65,7 +64,6 @@ public class NotificationsStore {
     @DELETE
     @Path("/{id}")
     @ApiOperation(value = "Delete a notification", response = String.class)
-    @Produces({ MediaType.APPLICATION_JSON })
     public Response discardNotification(@ApiParam(value="Notification ID", required=true) @PathParam("id") String idString)
             throws IOException {
 
@@ -79,7 +77,6 @@ public class NotificationsStore {
 
     @DELETE
     @ApiOperation(value = "Delete a list of notifications", response = String.class)
-    @Produces({ MediaType.APPLICATION_JSON })
     public Response discardNotifications(@ApiParam(value="Comma-separated list of notification ids", required=true) @QueryParam("ids") String ids)
             throws IOException {
 
