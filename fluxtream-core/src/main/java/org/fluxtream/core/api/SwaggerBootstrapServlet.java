@@ -84,6 +84,7 @@ public class SwaggerBootstrapServlet extends HttpServlet {
         ConfigFactory.config().setBasePath(docsBaseURL+"api");
         ConfigFactory.config().setApiInfo(apiInfo);
         ConfigFactory.config().setApiVersion("v1");
+        env.reload();
     }
 
     @Override
