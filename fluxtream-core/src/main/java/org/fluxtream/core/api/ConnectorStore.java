@@ -197,7 +197,7 @@ public class ConnectorStore {
                     connectorModel.status = apiKey.status!=null?apiKey.status.toString():"NA";
                     connectorModel.name = connector.name;
                     connectorModel.connectUrl = connector.connectUrl;
-                    connectorModel.image = connector.image;
+                    connectorModel.image = env.get("homeBaseUrl") + connector.image.substring(1);
                     connectorModel.connectorName = connector.connectorName;
                     connectorModel.enabled = connector.enabled;
                     connectorModel.manageable = connector.manageable;
@@ -257,8 +257,10 @@ public class ConnectorStore {
             List<ConnectorInfo> allConnectors =  sysService.getConnectors();
             List<ConnectorInfo> connectors = new ArrayList<ConnectorInfo>();
             for (ConnectorInfo connector : allConnectors) {
-                if (connector.enabled&&!connector.connectorName.equals("facebook"))
+                if (connector.enabled&&!connector.connectorName.equals("facebook")) {
+                    connector.image = env.get("homeBaseUrl") + connector.image.substring(1);
                     connectors.add(connector);
+                }
             }
             for (int i = 0; i < connectors.size(); i++){
                 if (guestService.hasApiKey(guest.getId(), connectors.get(i).getApi()))

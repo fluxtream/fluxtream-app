@@ -56,7 +56,7 @@ public class FlxOAuth2ProcessingFilter implements Filter {
                 if (authToken!=null&&authToken.getExpirationIn()>0) {
                     final Guest guest = guestService.getGuestById(authToken.guestId);
                     final FlxUserDetails userDetails = new FlxUserDetails(guest);
-                    PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(userDetails, tokenValue,
+                    PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(userDetails, authToken,
                             getAuthorities(guest));
                     authentication.setDetails(userDetails);
                     authentication.setAuthenticated(true);
