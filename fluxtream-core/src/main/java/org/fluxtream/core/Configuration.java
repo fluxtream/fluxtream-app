@@ -1,5 +1,6 @@
 package org.fluxtream.core;
 
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.WordUtils;
 import org.apache.http.client.HttpClient;
@@ -37,6 +38,31 @@ public class Configuration implements InitializingBean {
 	private Map<String,String> countryCodes;
 
     public Map<String,String> bodytrackToFluxtreamConnectorNames;
+
+
+    public void reload() {
+        commonProperties.configurationChanged();
+        targetEnvironmentProps.configurationChanged();
+        connectors.configurationChanged();
+        oauth.configurationChanged();
+        lastCommitProperties.configurationChanged();
+        bodytrackProperties.configurationChanged();
+
+        try {
+            commonProperties.refresh();
+            targetEnvironmentProps.refresh();
+            connectors.refresh();
+            oauth.refresh();
+            lastCommitProperties.refresh();
+            bodytrackProperties.refresh();
+            setBodytrackProperties(bodytrackProperties);
+        } catch (ConfigurationException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public void setLastCommitProperties(PropertiesConfiguration properties) throws IOException {
         this.lastCommitProperties = properties;
