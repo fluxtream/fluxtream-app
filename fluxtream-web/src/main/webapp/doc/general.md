@@ -2,7 +2,7 @@
 
 #### Github
 
-The source code for the project is hosted on [github](https://github.com/fluxtream).
+The source code for the project is hosted on [github](https://github.com/fluxtream/fluxtream-app).
 
 #### Wiki
 
