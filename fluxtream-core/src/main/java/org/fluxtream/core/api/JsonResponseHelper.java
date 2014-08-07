@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
@@ -20,17 +21,6 @@ import javax.ws.rs.core.Response;
 public final class JsonResponseHelper {
 
     private final Gson gson = new Gson();
-
-    /**
-     * Creates a {@link Response} with an HTTP 200 OK status code and a JSON body consisting of a success
-     * {@link StatusModel} containing the given <code>message</code>.
-     *
-     * @see StatusModel#success(String)
-     */
-    @NotNull
-    public Response ok(@Nullable final String message) {
-        return ok(message);
-    }
 
     /**
      * Creates a {@link Response} with an HTTP 400 Bad Request status code and a JSON body consisting of a failure
@@ -90,5 +80,21 @@ public final class JsonResponseHelper {
     @NotNull
     private Response buildResponse(@NotNull final Response.Status status, @NotNull final String message) {
         return Response.status(status).entity(message).build();
+    }
+
+    /**
+     * Creates a {@link Response} with an HTTP 200 OK status code and a JSON body consisting of a success
+     * {@link StatusModel} containing the given <code>message</code> and <code>payload</code>.
+     *
+     * @see StatusModel#success(String, Object)
+     */
+    @NotNull
+    public Response ok(@Nullable final Object payload) {
+        return buildResponse(Response.Status.OK, payload);
+    }
+
+    @NotNull
+    private Response buildResponse(@NotNull final Response.Status status, @NotNull final Object object) {
+        return Response.status(status).entity(gson.toJson(object)).type(MediaType.APPLICATION_JSON).build();
     }
 }

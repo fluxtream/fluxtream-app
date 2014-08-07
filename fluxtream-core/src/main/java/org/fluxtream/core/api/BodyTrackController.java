@@ -366,7 +366,7 @@ public class BodyTrackController {
                                 final String photoStoreKey = result.getData().getPhotoStoreKey();
                                 final Long databaseRecordId = result.getDatabaseRecordId();
                                 LOG.info("BodyTrackController.handlePhotoUpload(): photo [" + photoStoreKey + "] " + result.getOperation() + " sucessfully!");
-                                response = Response.ok(new PhotoUploadResponsePayload(result.getOperation(), databaseRecordId, photoStoreKey)).build();
+                                response = jsonResponseHelper.ok(new PhotoUploadResponsePayload(result.getOperation(), databaseRecordId, photoStoreKey));
                             }
                             catch (FluxtreamCapturePhotoStore.UnsupportedImageFormatException e) {
                                 final String message = "UnsupportedImageFormatException while trying to save the photo";
