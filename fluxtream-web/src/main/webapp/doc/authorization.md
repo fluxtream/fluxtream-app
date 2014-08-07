@@ -1,12 +1,12 @@
 ### OAuth 2 3-legged authorization
 
-#### Create a developer account
+#### Create a Fluxtream account
 
-If you don’t already have an API account, please [register for one](https://staging.fluxtream.org/dev/#/sign-up).
+If you don’t already have a Fluxtream account, please [register for one](https://staging.fluxtream.org/dev/#/sign-up).
 
 #### Create app keys
 
-Once in the developer console, you will be able to create an app instance. Fluxtream will provide you with a `client_id` and a `client_secret`.
+Once logged in the developer console, you will be able to create an app instance. Fluxtream will provide you with a `client_id` and a `client_secret`.
 
 #### Request authorization from the user
 
