@@ -1,33 +1,16 @@
 package org.fluxtream.services.impl;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import org.fluxtream.aspects.FlxLogger;
 import org.fluxtream.connectors.Connector;
 import org.fluxtream.connectors.updaters.AbstractUpdater;
 import org.fluxtream.connectors.updaters.ScheduleResult;
 import org.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
-import org.fluxtream.domain.ApiKey;
-import org.fluxtream.domain.ApiNotification;
-import org.fluxtream.domain.ApiUpdate;
-import org.fluxtream.domain.ConnectorInfo;
-import org.fluxtream.domain.UpdateWorkerTask;
+import org.fluxtream.domain.*;
 import org.fluxtream.domain.UpdateWorkerTask.Status;
-import org.fluxtream.services.ApiDataService;
-import org.fluxtream.services.ConnectorUpdateService;
-import org.fluxtream.services.GuestService;
-import org.fluxtream.services.MetadataService;
-import org.fluxtream.services.SystemService;
+import org.fluxtream.services.*;
 import org.fluxtream.utils.JPAUtils;
 import org.joda.time.DateTimeConstants;
+import org.joda.time.DateTimeUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -37,6 +20,11 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import java.util.*;
 
 @Service
 @Component
@@ -258,8 +246,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
      * @param guestId
      * @param force if true then delete all pending updates for the connectors, otherwise respect
      *              any pending updates and return ALREADY_SCHEDULED if present
-     * @param updateTime (optional) if present schedule the connector updates to occur at the
-     *                   specified time.  If not present then schedule the updates to occur immediately
      * * @return a list of objects that describe worker tasks that have been either modified or added
      * to the update queue
      */
@@ -363,6 +349,9 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         }
         else {
             updt.status = status;
+            if (status==Status.DONE||status==Status.FAILED) {
+                updt.endTime = DateTimeUtils.currentTimeMillis();
+            }
 
             // If the status is in_progress, set serverUUID to the current one.
             // For anything other than IN_PROGRESS, set the serverUUID to null to reflect that it's not claimed
@@ -396,8 +385,8 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
         StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=pollScheduleUpdates")
             .append(" availableThreads="+availableThreads)
-            .append(" message=\"adding " + updateWorkerTasks.size() + " update worker tasks\"");
-
+            .append(" message=\"adding " + updateWorkerTasks.size() + " update worker tasks\"")
+            .append(" activeCount=\" + executor.getActiveCount() + \" maxPoolSize=\" + executor.getMaxPoolSize()");
         logger.info(sb);
 
         for (int i=0; i<updateWorkerTasks.size(); i++) {
@@ -409,12 +398,14 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
             // Claim can return false if the task with that ID has been deleted, such as in the case
             // of connector deletion.  In that case just skip this task.  If it returns true then
             // continue with task execution
-            if(claim(updateWorkerTask.getId()) == true){
+            if(claimForDispatch(updateWorkerTask.getId()) == true){
                 UpdateWorker updateWorker = beanFactory.getBean(UpdateWorker.class);
                 updateWorker.task = updateWorkerTask;
                 try {
                     executor.execute(updateWorker);
                 } catch (Throwable t) {
+                    unclaim(updateWorkerTask.getId());
+                    logger.warn("executor.execute failed. activeCount=" + executor.getActiveCount() + " maxPoolSize=" + executor.getMaxPoolSize());
                     t.printStackTrace();
                 }
             }
@@ -708,20 +699,23 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
     @Override
     @Transactional(readOnly=false)
-    public boolean claim(final long taskId) {
+    public boolean claimForDispatch(final long taskId) {
         UpdateWorkerTask task = em.find(UpdateWorkerTask.class, taskId);
 
         // Check if task is null.  This can happen if we were in the process of updating a
         // connector instance which was subsequently deleted.  In that case, print a message
         // and return
         if(task==null) {
-            StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=claim")
+            StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=claimForDispatch")
                         .append(" updateWorkerTaskId="+taskId)
-                        .append(" message=\"Ignoring claim request for an update task which is no longer in the system (deleted connector?)");
+                        .append(" message=\"Ignoring claimForDispatch request for an update task which is no longer in the system (deleted connector?)");
             logger.info(sb);
             return false;
 
         } else {
+            task.startTime = null;
+            task.endTime = null;
+            task.workerThreadName = null;
             task.serverUUID = SERVER_UUID;
             task.status = Status.IN_PROGRESS;
             task.addAuditTrailEntry(new UpdateWorkerTask.AuditTrailEntry(new java.util.Date(), SERVER_UUID));
@@ -729,6 +723,53 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
             return true;
         }
 
+    }
+
+    @Transactional(readOnly=false)
+    public boolean unclaim(final long taskId) {
+        UpdateWorkerTask task = em.find(UpdateWorkerTask.class, taskId);
+
+        // Check if task is null.  This can happen if we were in the process of updating a
+        // connector instance which was subsequently deleted.  In that case, print a message
+        // and return
+        if(task==null) {
+            StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=claimForDispatch")
+                    .append(" updateWorkerTaskId="+taskId)
+                    .append(" message=\"Ignoring claimForDispatch request for an update task which is no longer in the system (deleted connector?)");
+            logger.info(sb);
+            return false;
+
+        } else {
+            task.serverUUID = null;
+            task.status = Status.SCHEDULED;
+            task.addAuditTrailEntry(new UpdateWorkerTask.AuditTrailEntry(new java.util.Date(), SERVER_UUID));
+            em.persist(task);
+            return true;
+        }
+
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public boolean claimForExecution(final long taskId, final String workerThreadName) {
+        UpdateWorkerTask task = em.find(UpdateWorkerTask.class, taskId);
+
+        // Check if task is null.  This can happen if we were in the process of updating a
+        // connector instance which was subsequently deleted.  In that case, print a message
+        // and return
+        if(task==null) {
+            StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=claimForDispatch")
+                    .append(" updateWorkerTaskId="+taskId)
+                    .append(" message=\"Ignoring claimForDispatch request for an update task which is no longer in the system (deleted connector?)");
+            logger.info(sb);
+            return false;
+
+        } else {
+            task.workerThreadName = workerThreadName;
+            task.startTime = DateTimeUtils.currentTimeMillis();
+            em.persist(task);
+            return true;
+        }
     }
 
     @Override
