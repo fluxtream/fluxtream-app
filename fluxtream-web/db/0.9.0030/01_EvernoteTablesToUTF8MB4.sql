@@ -1,0 +1,11 @@
+ALTER TABLE Facet_EvernoteNote MODIFY author longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER TABLE Facet_EvernoteNote MODIFY content longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER TABLE Facet_EvernoteNote MODIFY htmlContent longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER TABLE Facet_EvernoteNote MODIFY title longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER TABLE Facet_EvernoteNote MODIFY fullTextDescription longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER TABLE Facet_EvernoteNotebook MODIFY name varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER TABLE Facet_EvernoteNotebook MODIFY stack varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER TABLE Facet_EvernoteNotebook MODIFY fullTextDescription longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER TABLE Facet_EvernoteTag MODIFY name varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER TABLE Facet_EvernoteTag MODIFY tags longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER TABLE Facet_EvernoteTag MODIFY fullTextDescription longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

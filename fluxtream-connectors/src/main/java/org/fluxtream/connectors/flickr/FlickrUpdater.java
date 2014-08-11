@@ -347,7 +347,7 @@ public class FlickrUpdater extends AbstractUpdater {
 
         final String api_sig = sign(updateInfo.apiKey, params);
 
-        final StringBuilder urlBuilder = new StringBuilder("http://api.flickr.com/services/rest/?");
+        final StringBuilder urlBuilder = new StringBuilder("https://api.flickr.com/services/rest/?");
 
         for (Map.Entry<String, String> parameter : params.entrySet())
             urlBuilder.append(parameter.getKey()).append("=").append(parameter.getValue()).append("&");

@@ -243,8 +243,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             bodyTrackStorageService.storeInitialHistory(updateInfo.apiKey);
             initChannelMapping(updateInfo);
         } catch (UnexpectedResponseCodeException e) {
-            // Check for response code 409 which is Fitbit's over rate limit error
-            if(e.responseCode == 409) {
+            // Check for response code 429 which is Fitbit's over rate limit error
+            if(e.responseCode == 429) {
                 throw new RateLimitReachedException(e);
             }
             else{
@@ -622,8 +622,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             }
             initChannelMapping(updateInfo);
         } catch (UnexpectedResponseCodeException e) {
-            // Check for response code 409 which is Fitbit's over rate limit error
-            if(e.responseCode == 409) {
+            // Check for response code 429 which is Fitbit's over rate limit error
+            if(e.responseCode == 429) {
                 throw new RateLimitReachedException(e);
             }
             else{

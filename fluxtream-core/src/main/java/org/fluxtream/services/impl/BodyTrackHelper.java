@@ -74,8 +74,8 @@ public class BodyTrackHelper {
     @PersistenceContext
     EntityManager em;
 
-    static final boolean verboseOutput = true;
-    static final boolean showOutput = true;
+    static final boolean verboseOutput = false;
+    static final boolean showOutput = false;
 
     @Autowired
     Configuration env;
@@ -161,7 +161,7 @@ public class BodyTrackHelper {
             return exitValue;
         }
         catch (Exception e){
-            if (showOutput)
+            //if (showOutput)
                 System.out.println("BTDataStore: datastore execution failed!");
             throw new RuntimeException("Datastore execution failed");
         }

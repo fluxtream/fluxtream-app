@@ -23,6 +23,7 @@ import org.fluxtream.services.ApiDataService;
 import org.fluxtream.services.JPADaoService;
 import org.fluxtream.services.MetadataService;
 import org.fluxtream.services.impl.BodyTrackHelper;
+import org.fluxtream.utils.HttpUtils;
 import org.fluxtream.utils.TimespanSegment;
 import org.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONArray;
@@ -733,6 +734,9 @@ public class JawboneUpUpdater extends AbstractUpdater {
         final HttpClient client = env.getHttpClient();
         final long then = System.currentTimeMillis();
         try {
+            long tokenExpires = Long.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, "tokenExpires"));
+            if (tokenExpires<System.currentTimeMillis())
+                refreshToken(updateInfo);
             HttpGet get = new HttpGet(url);
             get.setHeader("Authorization", "Bearer " + updateInfo.getContext("accessToken"));
             HttpResponse response = client.execute(get);
@@ -750,6 +754,33 @@ public class JawboneUpUpdater extends AbstractUpdater {
             client.getConnectionManager().shutdown();
         }
         throw new RuntimeException("Error calling Jawbone API: this statement should have never been reached");
+    }
+
+    private void refreshToken(UpdateInfo updateInfo) throws IOException, UnexpectedHttpResponseCodeException {
+        String refreshToken = guestService.getApiKeyAttribute(updateInfo.apiKey, "refreshToken");
+        Map<String,String> parameters = new HashMap<String,String>();
+        parameters.put("grant_type", "refresh_token");
+        parameters.put("refresh_token", refreshToken);
+        // using "default" client_id and secret to comply with a security requirement to fix heartbleed issues
+        // as soon as all clients been fixed (after 5/5/2014) this should be replaced with:
+//        parameters.put("client_id", guestService.getApiKeyAttribute(updateInfo.apiKey, "jawboneUp.client.id"));
+//        parameters.put("client_secret", guestService.getApiKeyAttribute(updateInfo.apiKey, "jawboneUp.client.secret"));
+        parameters.put("client_id", env.get("jawboneUp.client.id"));
+        parameters.put("client_secret", env.get("jawboneUp.client.secret"));
+        final String json = HttpUtils.fetch("https://jawbone.com/auth/oauth2/token", parameters);
+
+        JSONObject token = JSONObject.fromObject(json);
+        final String accessToken = token.getString("access_token");
+        // store the new secret
+        guestService.setApiKeyAttribute(updateInfo.apiKey,
+                "jawboneUp.client.secret", env.get("jawboneUp.client.secret"));
+        guestService.setApiKeyAttribute(updateInfo.apiKey,
+                "accessToken", accessToken);
+        guestService.setApiKeyAttribute(updateInfo.apiKey,
+                "tokenExpires", String.valueOf(System.currentTimeMillis() + DateTimeConstants.MILLIS_PER_DAY * 365));
+        guestService.setApiKeyAttribute(updateInfo.apiKey,
+                "refreshToken", token.getString("refresh_token"));
+        updateInfo.setContext("accessToken", accessToken);
     }
 
     private void handleErrors(final int statusCode, final HttpResponse response, final String message) throws Exception {

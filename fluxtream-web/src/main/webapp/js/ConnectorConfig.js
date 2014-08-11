@@ -646,6 +646,20 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
                 },
                 "location":{
                     getCustomColor: function(type) {
+                        switch(type){
+                            case "wlk":
+                                type="walking";
+                                break;
+                            case "trp":
+                                type="transport";
+                                break;
+                            case "run":
+                                type="running";
+                                break;
+                            case "cyc":
+                                type="cycling";
+                                break;
+                        }
                         for (var i=0;i<MovesColors.activities.length;i++) {
                             if (type.toLowerCase()===MovesColors.activities[i].group||
                                 type.toLowerCase()===MovesColors.activities[i].activity){

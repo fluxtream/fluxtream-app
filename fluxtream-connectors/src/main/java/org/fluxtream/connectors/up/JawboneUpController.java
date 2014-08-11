@@ -167,6 +167,7 @@ public class JawboneUpController {
             return "redirect:/app/from/up";
     }
 
+
     @RequestMapping(value="/img/{guestId}/{apiKeyId}/**")
     public void getSnapshotImage(@PathVariable("guestId") long guestId,
                                  @PathVariable("apiKeyId") long apiKeyId,
