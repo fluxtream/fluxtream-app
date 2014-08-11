@@ -3,9 +3,9 @@ package org.fluxtream.connectors.zeo;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.fluxtream.domain.AbstractFacet;
-import org.fluxtream.services.impl.BodyTrackHelper;
-import org.fluxtream.services.impl.FieldHandler;
+import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.services.impl.BodyTrackHelper;
+import org.fluxtream.core.services.impl.FieldHandler;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +22,7 @@ public class ZeoRiseTimeFieldHandler implements FieldHandler {
     BodyTrackHelper bodyTrackHelper;
 
     @Override
-    public void handleField ( final long guestId, AbstractFacet facet) {
+    public List<BodyTrackHelper.BodyTrackUploadResult> handleField ( final long guestId, AbstractFacet facet) {
         ZeoSleepStatsFacet sleepStatsFacet = (ZeoSleepStatsFacet) facet;
         DateTime riseTimeJoda = new DateTime(facet.end,DateTimeZone.UTC);
         int rtHour = riseTimeJoda.getHourOfDay();
@@ -36,6 +36,6 @@ public class ZeoRiseTimeFieldHandler implements FieldHandler {
         data.add(record);
 
         // TODO: check the status code in the BodyTrackUploadResult
-        bodyTrackHelper.uploadToBodyTrack(guestId, "Zeo", Arrays.asList("riseTime"), data);
+        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(guestId, "Zeo", Arrays.asList("riseTime"), data));
     }
 }

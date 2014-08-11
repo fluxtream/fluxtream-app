@@ -1,6 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%><%@ taglib
 	prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%><%@ page
-	isELIgnored="false"%><%@ page import="org.fluxtream.*"%>
+	isELIgnored="false"%><%@ page import="org.fluxtream.core.*"%>
 	
 <div class="statsWell span{{caloriesBurned.columns}}">
 

@@ -2,7 +2,7 @@ package org.fluxtream.connectors.bodymedia;
 
 import javax.persistence.Lob;
 import javax.persistence.MappedSuperclass;
-import org.fluxtream.domain.AbstractFacet;
+import org.fluxtream.core.domain.AbstractFacet;
 
 /**
  * <p>

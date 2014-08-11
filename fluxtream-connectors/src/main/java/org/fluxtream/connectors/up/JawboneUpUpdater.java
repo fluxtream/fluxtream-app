@@ -1,31 +1,5 @@
 package org.fluxtream.connectors.up;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.TreeSet;
-import org.fluxtream.TimezoneMap;
-import org.fluxtream.connectors.ObjectType;
-import org.fluxtream.connectors.annotations.Updater;
-import org.fluxtream.connectors.location.LocationFacet;
-import org.fluxtream.connectors.updaters.AbstractUpdater;
-import org.fluxtream.connectors.updaters.UpdateFailedException;
-import org.fluxtream.connectors.updaters.UpdateInfo;
-import org.fluxtream.domain.AbstractFacet;
-import org.fluxtream.domain.ChannelMapping;
-import org.fluxtream.services.ApiDataService;
-import org.fluxtream.services.JPADaoService;
-import org.fluxtream.services.MetadataService;
-import org.fluxtream.services.impl.BodyTrackHelper;
-import org.fluxtream.utils.HttpUtils;
-import org.fluxtream.utils.TimespanSegment;
-import org.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
@@ -37,6 +11,22 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.log4j.Logger;
+import org.fluxtream.core.TimezoneMap;
+import org.fluxtream.core.connectors.ObjectType;
+import org.fluxtream.core.connectors.annotations.Updater;
+import org.fluxtream.core.connectors.location.LocationFacet;
+import org.fluxtream.core.connectors.updaters.AbstractUpdater;
+import org.fluxtream.core.connectors.updaters.UpdateFailedException;
+import org.fluxtream.core.connectors.updaters.UpdateInfo;
+import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.ChannelMapping;
+import org.fluxtream.core.services.ApiDataService;
+import org.fluxtream.core.services.JPADaoService;
+import org.fluxtream.core.services.MetadataService;
+import org.fluxtream.core.services.impl.BodyTrackHelper;
+import org.fluxtream.core.utils.HttpUtils;
+import org.fluxtream.core.utils.TimespanSegment;
+import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
@@ -45,6 +35,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * User: candide
@@ -154,17 +150,27 @@ public class JawboneUpUpdater extends AbstractUpdater {
         setChannelMapping(updateInfo);
         updateInfo.setContext("accessToken", guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken"));
 
+        // To be conservative, we need to store the time *just before* we request a sync for when to start again next time.
+        // This risks potentially getting duplicate updates in the case that data comes into the Jawbone
+        // servers between the time we initially ask and when the update completes but, more importantly,
+        // properly handles the case where data comes in just after we start asking but before we finish the
+        // update.  If we stored the time *after* each update phase completes, we risk potentially irretrievably missing
+        // such data.
+        long lastSyncTime = System.currentTimeMillis();
         updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, MOVES_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpMovesFacet.class));
-        guestService.setApiKeyAttribute(updateInfo.apiKey, MOVES_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
+        guestService.setApiKeyAttribute(updateInfo.apiKey, MOVES_LAST_SYNC_TIME, String.valueOf(lastSyncTime));
 
+        lastSyncTime = System.currentTimeMillis();
         updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, SLEEPS_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpSleepFacet.class));
-        guestService.setApiKeyAttribute(updateInfo.apiKey, SLEEPS_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
+        guestService.setApiKeyAttribute(updateInfo.apiKey, SLEEPS_LAST_SYNC_TIME, String.valueOf(lastSyncTime));
 
+        lastSyncTime = System.currentTimeMillis();
         updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, MEALS_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpMealFacet.class));
-        guestService.setApiKeyAttribute(updateInfo.apiKey, MEALS_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
+        guestService.setApiKeyAttribute(updateInfo.apiKey, MEALS_LAST_SYNC_TIME, String.valueOf(lastSyncTime));
 
+        lastSyncTime = System.currentTimeMillis();
         updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, WORKOUTS_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpWorkoutFacet.class));
-        guestService.setApiKeyAttribute(updateInfo.apiKey, WORKOUTS_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
+        guestService.setApiKeyAttribute(updateInfo.apiKey, WORKOUTS_LAST_SYNC_TIME, String.valueOf(lastSyncTime));
 
         // not updating moods because the API doesn't allow getting updated_after values...
     }
@@ -184,7 +190,7 @@ public class JawboneUpUpdater extends AbstractUpdater {
     private void updateJawboneUpDataSince(final UpdateInfo updateInfo, long lastSyncTime, int objectTypeValue) throws Exception {
         final HttpClient client = env.getHttpClient();
         try {
-            // get moves since lastSyncTime
+            // get data since lastSyncTime
             String endpoint = endpointDict.get(objectTypeValue);
             String url = getBeginningOfTime()==lastSyncTime
                          ? endpoint + "?start_time=" + getBeginningOfTime()/1000
@@ -490,6 +496,13 @@ public class JawboneUpUpdater extends AbstractUpdater {
                         logger.warn("could not import Jawbone UP sleep phases records: " + t.getMessage());
                     }
 
+                    // Record that this facet has been updated at this time.  This isn't quite right because
+                    // we really need to record the time closer to when it ends up in the DB, but this is
+                    // better than not setting timeUpdated at all, which was the previous behavior.
+                    // Putting this logic here in the createOrModify handler  also allows a possible future
+                    // where we notice if the data really did change and only set timeUpdated if it really did.
+                    facet.timeUpdated = System.currentTimeMillis();
+
                     return facet;
                 } catch (Throwable t) {
                     logger.warn("could not import a Jawbone UP sleep record: " + t.getMessage());
@@ -761,19 +774,12 @@ public class JawboneUpUpdater extends AbstractUpdater {
         Map<String,String> parameters = new HashMap<String,String>();
         parameters.put("grant_type", "refresh_token");
         parameters.put("refresh_token", refreshToken);
-        // using "default" client_id and secret to comply with a security requirement to fix heartbleed issues
-        // as soon as all clients been fixed (after 5/5/2014) this should be replaced with:
-//        parameters.put("client_id", guestService.getApiKeyAttribute(updateInfo.apiKey, "jawboneUp.client.id"));
-//        parameters.put("client_secret", guestService.getApiKeyAttribute(updateInfo.apiKey, "jawboneUp.client.secret"));
         parameters.put("client_id", env.get("jawboneUp.client.id"));
         parameters.put("client_secret", env.get("jawboneUp.client.secret"));
         final String json = HttpUtils.fetch("https://jawbone.com/auth/oauth2/token", parameters);
 
         JSONObject token = JSONObject.fromObject(json);
         final String accessToken = token.getString("access_token");
-        // store the new secret
-        guestService.setApiKeyAttribute(updateInfo.apiKey,
-                "jawboneUp.client.secret", env.get("jawboneUp.client.secret"));
         guestService.setApiKeyAttribute(updateInfo.apiKey,
                 "accessToken", accessToken);
         guestService.setApiKeyAttribute(updateInfo.apiKey,

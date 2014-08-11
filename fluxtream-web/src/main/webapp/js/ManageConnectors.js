@@ -14,7 +14,8 @@ define(["core/grapher/BTCore",
     };
 
     function show(){
-        $.ajax("/api/connectors/installed",{
+        $.ajax("/api/v1/connectors/installed",{
+            beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
             success: function(data){
                 dataLoaded(data,false);
             }
@@ -27,7 +28,8 @@ define(["core/grapher/BTCore",
     //with the original full dialog template, the first time through all the cells will be forced to update. However,
     //after that it should in theory properly only update when a change happens in each cell
     function updateContents(){
-        $.ajax("/api/connectors/installed",{
+        $.ajax("/api/v1/connectors/installed",{
+            beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
             success: function(data){
                 if (hidden)
                     return;
@@ -37,6 +39,7 @@ define(["core/grapher/BTCore",
                             if (data[i].manageable){
                                 var row = $("#connector-" + data[i].connectorName);
                                 var params = getConnectorParams(data[i]);
+                                params.isBuddy= !_.isUndefined(App.viewee)&& !_.isNull(App.viewee)&& App.viewee!="self";
                                 var html = $(noImageTemplate.render(params));
                                 if (row.length == 0){
                                     $("#connectorInfoTable").append(imageTemplate.render(params));
@@ -113,7 +116,7 @@ define(["core/grapher/BTCore",
                 params[i] = getConnectorParams(data[i])
                 params[i].hasSettings = hasTimelineSettings||hasGeneralSettings;
             }
-            var html = template.render({connectors:params});
+            var html = template.render({connectors:params, buddyToAccess: App.buddyToAccess, isBuddy: !_.isUndefined(App.viewee)&& !_.isNull(App.viewee)&& App.viewee!="self"});
             if (update){
                 var scrollTop = $("#modal .modal-body").scrollTop();
                 $("#modal").html($(html).html());
@@ -156,7 +159,8 @@ define(["core/grapher/BTCore",
         syncAllBtn.click(function(){
             setAllToSyncing();
             event.preventDefault();
-            $.ajax("/api/sync/all",{
+            $.ajax("/api/v1/sync/all",{
+                beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
                 type:"POST"
             });
         });
@@ -183,7 +187,8 @@ define(["core/grapher/BTCore",
         syncNowBtn.click(function(event){
             event.preventDefault();
             setToSyncing(connector.connectorName)
-            $.ajax("/api/sync/" + connector.connectorName,{
+            $.ajax("/api/v1/sync/" + connector.connectorName,{
+                beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
                 type:"POST"
             });
         });
@@ -314,7 +319,7 @@ define(["core/grapher/BTCore",
                     }
                 }
                 $.ajax({
-                    url:"/api/connectors/" + connector.name + "/channels",
+                    url:"/api/v1/connectors/" + connector.name + "/channels",
                     type:"POST",
                     data:{channels:channelList}
                 })
@@ -335,7 +340,7 @@ define(["core/grapher/BTCore",
     function viewUpdates(template, connector) {
         var connectorName = connector.connectorName.charAt(0).toUpperCase() + connector.connectorName.slice(1);
         $.ajax({
-            url:"/api/updates/" + connector.connectorName + "?page=0&pageSize=50",
+            url:"/api/v1/updates/" + connector.connectorName + "?page=0&pageSize=50",
             success: function(updates) {
                 for (var i=0; i<updates.length; i++)
                     updates[i].time = App.formatDate(updates[i].ts, true);
@@ -364,19 +369,14 @@ define(["core/grapher/BTCore",
                 data: formData,
                 processData: false,
                 contentType: false,
-                success: function(response){
-                    var status;
-                    try { status = JSON.parse(response); }
-                    catch(err) { alert("Couldn't upload data:" + err); }
-                    if (status.result==="OK") {
-                        $("#uploadModal").modal("hide");
-                        App.activeApp.renderState(App.state.getState(App.activeApp.name),true);
-                    }
-                    else {
-                        if (typeof(status.stackTrace)!="undefined")
-                            console.log(status.stackTrace);
-                        alert("Could upload data: " + status.message);
-                    }
+                success: function(response, statusText, jqXHR){
+                    $("#uploadModal").modal("hide");
+                    App.activeApp.renderState(App.state.getState(App.activeApp.name),true);
+                },
+                error: function(jqXHR, statusText, errorThrown) {
+                    var errorMessage = errorThrown + ": " + jqXHR.responseText;
+                    console.log(errorMessage);
+                    alert("Could upload data: " + jqXHR.responseText);
                 }
             });
             console.log("we should send this file now...");
@@ -433,7 +433,7 @@ define(["core/grapher/BTCore",
 
             confirmDelete.click(function(){
                 $.ajax({
-                    url: "/api/connectors/" + connectors[index].connectorName,
+                    url: "/api/v1/connectors/" + connectors[index].connectorName,
                     type:"DELETE",
                     success: function() {
                         updateContents();
@@ -473,7 +473,7 @@ define(["core/grapher/BTCore",
 
             confirmRenew.click(function(){
                 $.ajax({
-                    url: "/api/connectors/renew/" + connector.apiKeyId,
+                    url: "/api/v1/connectors/renew/" + connector.apiKeyId,
                     type:"POST",
                     success: function(result) {
                         console.log("redirect to: " + result.redirectTo);

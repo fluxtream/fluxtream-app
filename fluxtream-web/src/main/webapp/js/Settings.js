@@ -1,13 +1,13 @@
 define(function() {
 
     function show(){
-        $.ajax("/api/settings",{
+        $.ajax("/api/v1/settings",{
             success:function(settings){
                 App.loadAllMustacheTemplates("settingsTemplates.html",function(){
                     var dialogTemplate = App.fetchCompiledMustacheTemplate("settingsTemplates.html", "dialog");
                     var setPasswordTemplate = App.fetchCompiledMustacheTemplate("settingsTemplates.html", "setPassword");
                     var resetPasswordTemplate = App.fetchCompiledMustacheTemplate("settingsTemplates.html", "resetPassword");
-                    if (settings.registrationMethod==="REGISTRATION_METHOD_FACEBOOK")
+                    if (settings["registrationMethod"]==="REGISTRATION_METHOD_FACEBOOK")
                         bindMainSettingsTemplate(dialogTemplate, setPasswordTemplate, settings);
                     else
                         bindMainSettingsTemplate(dialogTemplate, resetPasswordTemplate, settings);
@@ -16,14 +16,24 @@ define(function() {
         });
     }
 
+    function renderLinkedAppsTemplate(settings) {
+        var linkedAppsTemplate = App.fetchCompiledMustacheTemplate("settingsTemplates.html", "linkedApps");
+        var accessTokens = settings["accessTokens"];
+        for (var i=0; i<accessTokens.length; i++)
+            accessTokens[i].createdAt = moment(accessTokens[i]["creationTime"]).calendar();
+        return linkedAppsTemplate.render(settings);
+    }
+
     function bindMainSettingsTemplate(template, passwordTemplate, settings){
         var html = template.render();
         App.makeModal(html);
+        var renderedLinkedAppsTemplate = renderLinkedAppsTemplate(settings);
+        $("#apps-settings").append(renderedLinkedAppsTemplate);
         $("#password-settings").append(passwordTemplate.render());
-        $("#username-uneditable").html(settings.username);
-        $("#guest_username").val(settings.username);
-        $("#guest_firstname").val(settings.firstName);
-        $("#guest_lastname").val(settings.lastName);
+        $("#username-uneditable").html(settings["username"]);
+        $("#guest_username").val(settings["username"]);
+        $("#guest_firstname").val(settings["firstName"]);
+        $("#guest_lastname").val(settings["lastName"]);
         var lengthOptions = $("#length_measure_unit").children();
         for (var i = 0; i < lengthOptions.length; i++){
             if ($(lengthOptions[i]).attr("value") == settings.lengthMeasureUnit){
@@ -67,7 +77,39 @@ define(function() {
                     break;
             }
         });
+        bindLinkedAppsTemplate();
         $("#settingsTabs").tab();
+    }
+
+    function bindLinkedAppsTemplate() {
+        $(".revokeAccessToken").unbind();
+        $(".revokeAccessToken").click(function(event){
+            var accessToken = $(event.target).attr("data-accessToken");
+            $.ajax({
+                url: "/api/v1/settings/accessTokens/" + accessToken,
+                type: "DELETE",
+                success: function(body, statusText, jqXHR) {
+                    console.log(body);
+                    $.ajax("/api/v1/settings",{
+                        success: function(settings, statusText, jqXHR) {
+                            var renderedLinkedAppsTemplate = renderLinkedAppsTemplate(settings);
+                            $("#apps-settings").empty().append(renderedLinkedAppsTemplate);
+                            bindLinkedAppsTemplate();
+                        },
+                        error: function(jqXHR, statusText, errorThrown) {
+                            var errorMessage = errorThrown + ": " + jqXHR.responseText;
+                            console.log(errorMessage);
+                            alert("Could load settings: " + errorMessage);
+                        }
+                    });
+                },
+                error: function(jqXHR, statusText, errorThrown) {
+                    var errorMessage = errorThrown + ": " + jqXHR.responseText;
+                    console.log(errorMessage);
+                    $("#apps-settings").empty().append("<h4>Something went wrong... please contact us</h1>")
+                }
+            });
+        });
     }
 
     function saveGeneralSettings(settings) {
@@ -76,19 +118,21 @@ define(function() {
         for (var i = 0; i < formData.length; i++) {
             submitdata[formData[i].name] = formData[i].value;
         }
-        $.ajax("/api/settings/general",{
+        $.ajax("/api/v1/settings/general",{
             type:"POST",
             data:submitdata,
-            success:function(status) {
-                if (status.result=="OK"){
-                    App.closeModal();
-                    var nameDisplay = $("#loggedInUser");
-                    var newNameEncoded = App.htmlEscape($("#guest_firstname").val() + " " + $("#guest_lastname").val());
-                    var oldNameEncoded = App.htmlEscape(settings.firstName + " " + settings.lastName);
-                    nameDisplay.html(nameDisplay.html().replace(oldNameEncoded, newNameEncoded));
-                }
+            success: function(body, statusText, jqXHR) {
+                App.closeModal();
+                var nameDisplay = $("#loggedInUser");
+                var newNameEncoded = App.htmlEscape($("#guest_firstname").val() + " " + $("#guest_lastname").val());
+                var oldNameEncoded = App.htmlEscape(settings["firstName"] + " " + settings["lastName"]);
+                nameDisplay.html(nameDisplay.html().replace(oldNameEncoded, newNameEncoded));
             },
-            error:App.closeModal
+            error: function(jqXHR, statusText, errorThrown) {
+                var errorMessage = errorThrown + ": " + jqXHR.responseText;
+                console.log(errorMessage);
+                App.closeModal();
+            }
         });
     }
 
@@ -99,11 +143,11 @@ define(function() {
             submitdata[formData[i].name] = formData[i].value;
         }
         $("#setPasswordError").hide();
-        $.ajax("/api/settings/password",{
+        $.ajax("/api/v1/settings/password",{
             type:"POST",
             data:submitdata,
             success:function(status) {
-                if (status.result=="OK"){
+                if (status.result==="OK"){
                     App.closeModal();
                 }
                 else {
@@ -111,7 +155,11 @@ define(function() {
                     $("#setPasswordError").html(status.message);
                 }
             },
-            error:App.closeModal
+            error: function(jqXHR, statusText, errorThrown) {
+                var errorMessage = errorThrown + ": " + jqXHR.responseText;
+                console.log(errorMessage);
+                App.closeModal();
+            }
         });
     }
 
@@ -121,15 +169,17 @@ define(function() {
         for (var i = 0; i < formData.length; i++) {
             submitdata[formData[i].name] = formData[i].value;
         }
-        $.ajax("/api/settings/units",{
+        $.ajax("/api/v1/settings/units",{
             type:"POST",
             data:submitdata,
-            success:function(status) {
-                if (status.result=="OK"){
+            success: function(body, statusText, jqXHR) {
                     App.closeModal();
-                }
             },
-            error:App.closeModal
+            error: function(jqXHR, statusText, errorThrown) {
+                var errorMessage = errorThrown + ": " + jqXHR.responseText;
+                console.log(errorMessage);
+                App.closeModal();
+            }
         });
     }
 

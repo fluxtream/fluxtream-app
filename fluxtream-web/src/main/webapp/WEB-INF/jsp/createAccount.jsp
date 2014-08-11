@@ -1,7 +1,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%><%@ taglib
 	prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%><%@ page
 	isELIgnored="false"%><%@ page import="org.fluxtream.*"%><%@ page
-	import="org.fluxtream.domain.*"%><%@ page import="java.util.*"%><%@ page
+	import="org.fluxtream.core.domain.*"%><%@ page import="java.util.*"%><%@ page
 	import="net.tanesha.recaptcha.*"%>
 <%
 	List<String> errors = new ArrayList<String>();
@@ -32,13 +32,23 @@
 	String lastname = "";
 	if (request.getAttribute("lastname") != null)
 		lastname = (String) request.getAttribute("lastname");
+
+    boolean isDeveloperAccount = (Boolean) request.getAttribute("developerAccount");
 %>
 <div class="modal" id="registerModal">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <h3 id="myModalLabel">Register</h3>
+        <c:choose>
+            <c:when test="${isDeveloperAccount}">
+                <h3 id="myModalLabel">Register as a Developer</h3>
+            </c:when>
+            <c:otherwise>
+                <h3 id="myModalLabel">Register</h3>
+            </c:otherwise>
+        </c:choose>
     </div>
     <form class="form-horizontal" action="javascript:void(0)">
+        <input type="hidden" name="isDeveloperAccount" id="isDeveloperAccount" value="${isDeveloperAccount}">
         <div class="modal-body">
             <div class="control-group">
                 <label class="control-label" for="email">Email</label>

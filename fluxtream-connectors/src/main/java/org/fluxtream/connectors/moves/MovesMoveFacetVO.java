@@ -1,8 +1,8 @@
 package org.fluxtream.connectors.moves;
 
-import org.fluxtream.OutsideTimeBoundariesException;
-import org.fluxtream.TimeInterval;
-import org.fluxtream.domain.GuestSettings;
+import org.fluxtream.core.OutsideTimeBoundariesException;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.domain.GuestSettings;
 
 /**
  * User: candide

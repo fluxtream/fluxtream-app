@@ -6,10 +6,10 @@ import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import org.fluxtream.connectors.Connector;
-import org.fluxtream.connectors.SignpostOAuthHelper;
-import org.fluxtream.domain.ApiKey;
-import org.fluxtream.services.GuestService;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.connectors.SignpostOAuthHelper;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.services.GuestService;
 
 @Component(value="fitbitHelper")
 public class FitbitAdminHelper {

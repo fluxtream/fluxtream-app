@@ -7,27 +7,37 @@
       <span id="{{grapherId}}_timeline_viewName" class="_timeline_viewName" style="font-size:18px; color:#333;"></span>
 
         <div class="btn-group" style="display:inline-block; vertical-align:middle;">
-            <a href="#" class="btn" id="{{grapherId}}_timeline_new_view_btn">New View</a>
+            <a href="javascript:void(0)" class="btn" id="{{grapherId}}_timeline_new_view_btn">New View</a>
         </div>
         <div class="btn-group" style="display:inline-block; vertical-align:middle;">
-            <a href="#" class="btn dropdown-toggle" data-toggle="dropdown" id="{{grapherId}}_timeline_load_view_btn">Load View <span class="caret"></span></a>
+            <a href="javascript:void(0)" class="btn dropdown-toggle" data-toggle="dropdown" id="{{grapherId}}_timeline_load_view_btn">Load View <span class="caret"></span></a>
             <ul class="dropdown-menu load-view-subMenu" id="{{grapherId}}_timeline_load_view_submenu">
             </ul>
         </div>
         <div class="btn-group dropdown save-view-subMenu" style="display:inline-block; vertical-align:middle;">
-            <a href="#" id="{{grapherId}}_timeline_save_view_btn" class="btn">Save view</a>
-            <a href="#" id="{{grapherId}}_timeline_save_view_dropdown" class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
+            <a href="javascript:void(0)" id="{{grapherId}}_timeline_save_view_btn" class="btn">Save view</a>
+            <a href="javascript:void(0)" id="{{grapherId}}_timeline_save_view_dropdown" class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
             <ul id="{{grapherId}}_timeline_save_view_dropdown-submenu" class="dropdown-menu">
             </ul>
         </div>
-      <a href="#" class="btn disabled" id="{{grapherId}}_timeline_add_channels_btn">Add Channels</a>
+      <a href="javascript:void(0)" class="btn disabled" id="{{grapherId}}_timeline_add_channels_btn">Add Channels</a>
         <a href="javascript:void(0)" class="btn" id="{{grapherId}}_timeline_export_to_csv">Export Data to CSV</a>
     </span>
             <div id="{{grapherId}}_timeline_view_dialog"></div>
 
             <table id="{{grapherId}}_timeline_dataTable" class="_timeline_dataTable" border="0" cellpadding="0" cellspacing="0" class="fullHeight">
                 <tr valign="top">
-                    <td id="{{grapherId}}_timeline_addChannelsArea" class="_timeline_pane _timeline_addChannelsArea"></td>
+                    <td id="{{grapherId}}_timeline_addChannelsArea" class="_timeline_pane _timeline_addChannelsArea">
+                        <div class="_timeline_pane_title">Add Channels</div>
+                        <div id="_timeline_sources_find">
+                            <span>
+                              <input type="text" />
+                              <a href="javascript:void(0)" class="button" id="_timeline_sources_find_btn">Reset</a>
+                            </span>
+                        </div>
+                        <ul class="_timeline_sources_list">
+                        </ul>
+                    </td>
                     <td id="{{grapherId}}_timeline_dateAxisAndChannelsArea" class="_timeline_dateAxisAndChannelsArea" style="display: none;">
                         <table border="0" cellpadding="0" cellspacing="0">
                             <tr>
@@ -36,14 +46,14 @@
                                         <div class="flx-channel-navigation">
                                             <div class="btn-toolbar" style="position:relative">
                                                 <div class="btn-group _timeline_zoom">
-                                                    <a id="{{grapherId}}_timeline_new_zoomIn_button" href="#" class="btn"> <i class="icon-zoom-in"></i> </a>
-                                                    <a id="{{grapherId}}_timeline_new_zoomOut_button" href="#" class="btn"> <i class="icon-zoom-out"></i> </a>
+                                                    <a id="{{grapherId}}_timeline_new_zoomIn_button" href="javascript:void(0)" class="btn"> <i class="icon-zoom-in"></i> </a>
+                                                    <a id="{{grapherId}}_timeline_new_zoomOut_button" href="javascript:void(0)" class="btn"> <i class="icon-zoom-out"></i> </a>
                                                 </div>
                                                 <div class="btn-group _timeline_goto">
-                                                    <a id="{{grapherId}}_timeline_new_gotoBeginning_button" href="#" class="btn"> <i class="icon-fast-backward"></i> </a>
-                                                    <a id="{{grapherId}}_timeline_new_gotoBack_button" href="#" class="btn"> <i class="icon-step-backward"></i> </a>
-                                                    <a id="{{grapherId}}_timeline_new_gotoForward_button" href="#" class="btn"> <i class="icon-step-forward"></i> </a>
-                                                    <a id="{{grapherId}}_timeline_new_gotoEnd_button" href="#" class="btn"> <i class="icon-fast-forward"></i> </a>
+                                                    <a id="{{grapherId}}_timeline_new_gotoBeginning_button" href="javascript:void(0)" class="btn"> <i class="icon-fast-backward"></i> </a>
+                                                    <a id="{{grapherId}}_timeline_new_gotoBack_button" href="javascript:void(0)" class="btn"> <i class="icon-step-backward"></i> </a>
+                                                    <a id="{{grapherId}}_timeline_new_gotoForward_button" href="javascript:void(0)" class="btn"> <i class="icon-step-forward"></i> </a>
+                                                    <a id="{{grapherId}}_timeline_new_gotoEnd_button" href="javascript:void(0)" class="btn"> <i class="icon-fast-forward"></i> </a>
                                                 </div>
                                             </div>
                                         </div>
@@ -87,14 +97,14 @@
         {{/first}}
         <li class="flx-clearfix">
             <div class="flx-floatL view-id">
-                <a viewId="{{id}}" href="#" class="_timeline_load_link">
+                <a viewId="{{id}}" href="javascript:void(0)" class="_timeline_load_link">
                     <h4>{{name}}</h4>
                     <p>{{description}}</p>
                 </a>
             </div>
             <ul class="flx-floater view-filters">
-                <li><a viewId="{{id}}" href="#" class="_timeline_load_link _timeline_time_only">Time only <i class="icon-time"></i></a></li>
-                <li><a viewId="{{id}}" href="#" class="_timeline_load_link _timeline_channel_only">Channel only <i class="icon-list"></i></a></li>
+                <li><a viewId="{{id}}" href="javascript:void(0)" class="_timeline_load_link _timeline_time_only">Time only <i class="icon-time"></i></a></li>
+                <li><a viewId="{{id}}" href="javascript:void(0)" class="_timeline_load_link _timeline_channel_only">Channel only <i class="icon-list"></i></a></li>
             </ul>
         </li>
         {{/availableList}}
@@ -105,7 +115,7 @@
         <li>
             <form>
                 <input id="{{grapherId}}_timeline_save_view_dropdown_name" type="text" title="insert view name" style="display:inline">
-                <a id="{{grapherId}}_timeline_save_view_dropdown_save_btn" href="#" class="btn btn-mini">save</a>
+                <a id="{{grapherId}}_timeline_save_view_dropdown_save_btn" href="javascript:void(0)" class="btn btn-mini">save</a>
             </form>
             {{#viewsPresent}}
             <h5>Or save as one of the views below</h5>
@@ -114,7 +124,7 @@
         {{#availableList}}
         <li class="divider"></li>
         <li>
-            <a viewname="{{name}}" class="_timeline_save_view_dropdown_save_link" class="savedView" href="#">
+            <a viewname="{{name}}" class="_timeline_save_view_dropdown_save_link" class="savedView" href="javascript:void(0)">
                 <div><h4>{{name}}</h4><p>{{last_used}}</p></div>
                 <div>{{description}}</div>
             </a>
@@ -131,7 +141,7 @@
             <td class="_timeline_channeltd flx-channel">
                 <table class="flx-channel-tab" border="0" cellpadding="0" cellspacing="0" id="_timeline_channelTab_{{plotId}}">
                     <tr valign="middle">
-                        {{#showDeleteBtn}}<td style="width:25px"><div class="flx-remove-channel" id="{{channelElementId}}_delete_btn"><a href="#"><i class="icon-remove-sign"></i></a></div></td>{{/showDeleteBtn}}
+                        {{#showDeleteBtn}}<td style="width:25px"><div class="flx-remove-channel" id="{{channelElementId}}_delete_btn"><a href="javascript:void(0)"><i class="icon-remove-sign"></i></a></div></td>{{/showDeleteBtn}}
                         <td>
                             <div class="flx-channel-name{{^showDeleteBtn}}-nodeletebutton{{/showDeleteBtn}}">
                                 <h4 title="{{deviceName}}">{{deviceName}}</h4>
@@ -141,8 +151,8 @@
                         </td>
                         <td style="width:25px">
                             <ul class="flx-channel-controls">
-                                <li><a href="#" id="{{channelElementId}}_btnShowAllY"><i class="icon-resize-vertical"></i></a></li>
-                                <li><a href="#" id="{{channelElementId}}_btnGear" class="_grapher_btnGear"><i class="icon-pencil"></i></a></li>
+                                <li><a href="javascript:void(0)" id="{{channelElementId}}_btnShowAllY"><i class="icon-resize-vertical"></i></a></li>
+                                <li><a href="javascript:void(0)" id="{{channelElementId}}_btnGear" class="_grapher_btnGear"><i class="icon-pencil"></i></a></li>
                             </ul>
                         </td>
                     </tr>
@@ -214,11 +224,11 @@
                         <div class="btn-group configDropdown configLineWidth">
                             <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="1"><img style="display:inline;" src="/static/images/msdropdown/lineWidth1.png"> <span class="caret"></span></button>
                             <ul class="dropdown-menu">
-                                <li><a href="#" value="1"><img style="display:inline;" src="/static/images/msdropdown/lineWidth1.png"></a></li>
-                                <li><a href="#" value="2"><img style="display:inline;" src="/static/images/msdropdown/lineWidth2.png"></a></li>
-                                <li><a href="#" value="3"><img style="display:inline;" src="/static/images/msdropdown/lineWidth3.png"></a></li>
-                                <li><a href="#" value="4"><img style="display:inline;" src="/static/images/msdropdown/lineWidth4.png"></a></li>
-                                <li><a href="#" value="5"><img style="display:inline;" src="/static/images/msdropdown/lineWidth5.png"></a></li>
+                                <li><a href="javascript:void(0)" value="1"><img style="display:inline;" src="/static/images/msdropdown/lineWidth1.png"></a></li>
+                                <li><a href="javascript:void(0)" value="2"><img style="display:inline;" src="/static/images/msdropdown/lineWidth2.png"></a></li>
+                                <li><a href="javascript:void(0)" value="3"><img style="display:inline;" src="/static/images/msdropdown/lineWidth3.png"></a></li>
+                                <li><a href="javascript:void(0)" value="4"><img style="display:inline;" src="/static/images/msdropdown/lineWidth4.png"></a></li>
+                                <li><a href="javascript:void(0)" value="5"><img style="display:inline;" src="/static/images/msdropdown/lineWidth5.png"></a></li>
                             </ul>
                         </div>
                     </td>
@@ -236,11 +246,11 @@
                         <div class="btn-group configDropdown configPointsRadius">
                             <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="1"><img style="display:inline;" src="/static/images/msdropdown/pointSize1.png"> <span class="caret"></span></button>
                             <ul class="dropdown-menu">
-                                <li><a href="#" value="1"><img style="display:inline;" src="/static/images/msdropdown/pointSize1.png"></a></li>
-                                <li><a href="#" value="2"><img style="display:inline;" src="/static/images/msdropdown/pointSize2.png"></a></li>
-                                <li><a href="#" value="3"><img style="display:inline;" src="/static/images/msdropdown/pointSize3.png"></a></li>
-                                <li><a href="#" value="4"><img style="display:inline;" src="/static/images/msdropdown/pointSize4.png"></a></li>
-                                <li><a href="#" value="5"><img style="display:inline;" src="/static/images/msdropdown/pointSize5.png"></a></li>
+                                <li><a href="javascript:void(0)" value="1"><img style="display:inline;" src="/static/images/msdropdown/pointSize1.png"></a></li>
+                                <li><a href="javascript:void(0)" value="2"><img style="display:inline;" src="/static/images/msdropdown/pointSize2.png"></a></li>
+                                <li><a href="javascript:void(0)" value="3"><img style="display:inline;" src="/static/images/msdropdown/pointSize3.png"></a></li>
+                                <li><a href="javascript:void(0)" value="4"><img style="display:inline;" src="/static/images/msdropdown/pointSize4.png"></a></li>
+                                <li><a href="javascript:void(0)" value="5"><img style="display:inline;" src="/static/images/msdropdown/pointSize5.png"></a></li>
                             </ul>
                         </div>
                     </td>
@@ -252,12 +262,12 @@
                                     <div class="btn-group configDropdown configPointsType">
                                         <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="point-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircleFilled.png"> <span class="caret"></span></button>
                                         <ul class="dropdown-menu">
-                                            <li><a href="#" value="point-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircleFilled.png"></a></li>
-                                            <li><a href="#" value="square-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleSquareFilled.png"></a></li>
-                                            <li><a href="#" value="point"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircle.png"></a></li>
-                                            <li><a href="#" value="square"><img style="display:inline;" src="/static/images/msdropdown/pointStyleSquare.png"></a></li>
-                                            <li><a href="#" value="cross"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCross.png"></a></li>
-                                            <li><a href="#" value="plus"><img style="display:inline;" src="/static/images/msdropdown/pointStylePlus.png"></a></li>
+                                            <li><a href="javascript:void(0)" value="point-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircleFilled.png"></a></li>
+                                            <li><a href="javascript:void(0)" value="square-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleSquareFilled.png"></a></li>
+                                            <li><a href="javascript:void(0)" value="point"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircle.png"></a></li>
+                                            <li><a href="javascript:void(0)" value="square"><img style="display:inline;" src="/static/images/msdropdown/pointStyleSquare.png"></a></li>
+                                            <li><a href="javascript:void(0)" value="cross"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCross.png"></a></li>
+                                            <li><a href="javascript:void(0)" value="plus"><img style="display:inline;" src="/static/images/msdropdown/pointStylePlus.png"></a></li>
                                         </ul>
                                     </div>
                                 </td>
@@ -279,11 +289,11 @@
                         <div class="btn-group configDropdown configBarsLineWidth">
                             <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="1"><img style="display:inline;" src="/static/images/msdropdown/barWidth1.png"> <span class="caret"></span></button>
                             <ul class="dropdown-menu">
-                                <li><a href="#" value="1"><img style="display:inline;" src="/static/images/msdropdown/barWidth1.png"></a></li>
-                                <li><a href="#" value="2"><img style="display:inline;" src="/static/images/msdropdown/barWidth2.png"></a></li>
-                                <li><a href="#" value="3"><img style="display:inline;" src="/static/images/msdropdown/barWidth3.png"></a></li>
-                                <li><a href="#" value="4"><img style="display:inline;" src="/static/images/msdropdown/barWidth4.png"></a></li>
-                                <li><a href="#" value="5"><img style="display:inline;" src="/static/images/msdropdown/barWidth5.png"></a></li>
+                                <li><a href="javascript:void(0)" value="1"><img style="display:inline;" src="/static/images/msdropdown/barWidth1.png"></a></li>
+                                <li><a href="javascript:void(0)" value="2"><img style="display:inline;" src="/static/images/msdropdown/barWidth2.png"></a></li>
+                                <li><a href="javascript:void(0)" value="3"><img style="display:inline;" src="/static/images/msdropdown/barWidth3.png"></a></li>
+                                <li><a href="javascript:void(0)" value="4"><img style="display:inline;" src="/static/images/msdropdown/barWidth4.png"></a></li>
+                                <li><a href="javascript:void(0)" value="5"><img style="display:inline;" src="/static/images/msdropdown/barWidth5.png"></a></li>
                             </ul>
                         </div>
                     </td>
@@ -301,10 +311,10 @@
                         <div class="btn-group configDropdown configValuesNumberFormat">
                             <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="###,##0.0##">#.### <span class="caret"></span></button>
                             <ul class="dropdown-menu">
-                                <li><a href="#" value="###,##0.0##">#.###</a></li>
-                                <li><a href="#" value="###,##0.0#">#.##</a></li>
-                                <li><a href="#" value="###,##0.0">#.#</a></li>
-                                <li><a href="#" value="###,##0">#</a></li>
+                                <li><a href="javascript:void(0)" value="###,##0.0##">#.###</a></li>
+                                <li><a href="javascript:void(0)" value="###,##0.0#">#.##</a></li>
+                                <li><a href="javascript:void(0)" value="###,##0.0">#.#</a></li>
+                                <li><a href="javascript:void(0)" value="###,##0">#</a></li>
                             </ul>
                         </div>
                     </td>
@@ -317,9 +327,9 @@
                                     <div class="btn-group configDropdown configValuesVerticalOffset">
                                         <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="7">Above <span class="caret"></span></button>
                                         <ul class="dropdown-menu">
-                                            <li><a href="#" value="7">Above</a></li>
-                                            <li><a href="#" value="-3">On</a></li>
-                                            <li><a href="#" value="-13">Below</a></li>
+                                            <li><a href="javascript:void(0)" value="7">Above</a></li>
+                                            <li><a href="javascript:void(0)" value="-3">On</a></li>
+                                            <li><a href="javascript:void(0)" value="-13">Below</a></li>
                                         </ul>
                                     </div>
                                 </td>
@@ -328,8 +338,8 @@
                                     <div class="btn-group configDropdown configValuesShowOnlyOnHighlight">
                                         <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="false">Always <span class="caret"></span></button>
                                         <ul class="dropdown-menu">
-                                            <li><a href="#" value="false">Always</a></li>
-                                            <li><a href="#" value="true">Mouseover</a></li>
+                                            <li><a href="javascript:void(0)" value="false">Always</a></li>
+                                            <li><a href="javascript:void(0)" value="true">Mouseover</a></li>
                                         </ul>
                                     </div>
                                 </td>
@@ -338,11 +348,11 @@
                                     <div class="btn-group configDropdown configValuesMarginWidth">
                                         <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="5">5 <span class="caret"></span></button>
                                         <ul class="dropdown-menu">
-                                            <li><a href="#" value="5">5</a></li>
-                                            <li><a href="#" value="10">10</a></li>
-                                            <li><a href="#" value="15">15</a></li>
-                                            <li><a href="#" value="20">20</a></li>
-                                            <li><a href="#" value="25">25</a></li>
+                                            <li><a href="javascript:void(0)" value="5">5</a></li>
+                                            <li><a href="javascript:void(0)" value="10">10</a></li>
+                                            <li><a href="javascript:void(0)" value="15">15</a></li>
+                                            <li><a href="javascript:void(0)" value="20">20</a></li>
+                                            <li><a href="javascript:void(0)" value="25">25</a></li>
                                         </ul>
                                     </div>
                                 </td>
@@ -361,11 +371,11 @@
                         <div class="btn-group configDropdown configCommentsRadius">
                             <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="1"><img style="display:inline;" src="/static/images/msdropdown/pointSize1.png"> <span class="caret"></span></button>
                             <ul class="dropdown-menu">
-                                <li><a href="#" value="1"><img style="display:inline;" src="/static/images/msdropdown/pointSize1.png"></a></li>
-                                <li><a href="#" value="2"><img style="display:inline;" src="/static/images/msdropdown/pointSize2.png"></a></li>
-                                <li><a href="#" value="3"><img style="display:inline;" src="/static/images/msdropdown/pointSize3.png"></a></li>
-                                <li><a href="#" value="4"><img style="display:inline;" src="/static/images/msdropdown/pointSize4.png"></a></li>
-                                <li><a href="#" value="5"><img style="display:inline;" src="/static/images/msdropdown/pointSize5.png"></a></li>
+                                <li><a href="javascript:void(0)" value="1"><img style="display:inline;" src="/static/images/msdropdown/pointSize1.png"></a></li>
+                                <li><a href="javascript:void(0)" value="2"><img style="display:inline;" src="/static/images/msdropdown/pointSize2.png"></a></li>
+                                <li><a href="javascript:void(0)" value="3"><img style="display:inline;" src="/static/images/msdropdown/pointSize3.png"></a></li>
+                                <li><a href="javascript:void(0)" value="4"><img style="display:inline;" src="/static/images/msdropdown/pointSize4.png"></a></li>
+                                <li><a href="javascript:void(0)" value="5"><img style="display:inline;" src="/static/images/msdropdown/pointSize5.png"></a></li>
                             </ul>
                         </div>
                     </td>
@@ -377,12 +387,12 @@
                                     <div class="btn-group configDropdown configCommentsType">
                                         <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown" value="point-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircleFilled.png"> <span class="caret"></span></button>
                                         <ul class="dropdown-menu">
-                                            <li><a href="#" value="point-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircleFilled.png"></a></li>
-                                            <li><a href="#" value="square-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleSquareFilled.png"></a></li>
-                                            <li><a href="#" value="point"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircle.png"></a></li>
-                                            <li><a href="#" value="square"><img style="display:inline;" src="/static/images/msdropdown/pointStyleSquare.png"></a></li>
-                                            <li><a href="#" value="cross"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCross.png"></a></li>
-                                            <li><a href="#" value="plus"><img style="display:inline;" src="/static/images/msdropdown/pointStylePlus.png"></a></li>
+                                            <li><a href="javascript:void(0)" value="point-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircleFilled.png"></a></li>
+                                            <li><a href="javascript:void(0)" value="square-filled"><img style="display:inline;" src="/static/images/msdropdown/pointStyleSquareFilled.png"></a></li>
+                                            <li><a href="javascript:void(0)" value="point"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCircle.png"></a></li>
+                                            <li><a href="javascript:void(0)" value="square"><img style="display:inline;" src="/static/images/msdropdown/pointStyleSquare.png"></a></li>
+                                            <li><a href="javascript:void(0)" value="cross"><img style="display:inline;" src="/static/images/msdropdown/pointStyleCross.png"></a></li>
+                                            <li><a href="javascript:void(0)" value="plus"><img style="display:inline;" src="/static/images/msdropdown/pointStylePlus.png"></a></li>
                                         </ul>
                                     </div>
                                 </td>
@@ -412,29 +422,18 @@
 </div>
 </li>
 </template>
-<template id="sourcesList">
-    <div class="_timeline_pane_title">Add Channels</div>
-    <div id="_timeline_sources_find">
-    <span>
-      <input type="text" />
-      <a href="#" class="button" id="_timeline_sources_find_btn">Reset</a>
-    </span>
-    </div>
-    <ul id="_timeline_sources_list">
-        {{#sources}}
-        <li>
-            <div class="_timeline_sources_name">
-                <span class="_timeline_sources_name_arrow">&#9658;</span>
-                <span>{{ name }}</span>
-            </div>
-            <ul>
-                {{#channels}}
-                <li class="_timeline_sources_channel" id="{{ id }}">{{ name }}</li>
-                {{/channels}}
-            </ul>
-        </li>
-        {{/sources}}
-    </ul>
+<template id="sourceListItem">
+    <li class="_timeline_source_{{name}}">
+        <div class="_timeline_sources_name">
+            <span class="_timeline_sources_name_arrow">&#9658;</span>
+            <span>{{ name }}</span>
+        </div>
+        <ul class="_timeline_channel_list">
+        </ul>
+    </li>
+</template>
+<template id="channelListItem">
+    <li class="_timeline_sources_channel _timeline_channel_{{name}}" id="{{ id }}">{{ name }}</li>
 </template>
 <template id="dataPointValueLabel">
     {{dateString}} {{valueString}}

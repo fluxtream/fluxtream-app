@@ -1,14 +1,20 @@
 <template id="manageConnectors">
     <div class="modal fade manageConnectors" id="modal">
         <div class="modal-header">
-            <h3>Manage Connectors<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
+            <h3>Manage Connectors<a href="javascript:void(0)" class="close" data-dismiss="modal">&times;</a></h3>
         </div>
+        {{#isBuddy}}{{#buddyToAccess}}
+        <div class="alert alert-block">
+            <h4>You are currently looking at the data of {{buddyToAccess.fullname}} (username: {{buddyToAccess.username}})</h4>
+            <small>You can sync services, but you can't change settings, revoke or renew connector tokens</small>
+        </div>
+        {{/buddyToAccess}}{{/isBuddy}}
         <div class="modal-body">
             <div class="content">
                 <div>
                     <div>
                         <div class="synchAll">
-                            <span>Though your data should be up to date, you might want to <a id="sync-all" href="#" class="btn btn-info">sync all your devices now <i class="icon-refresh"></i></a></span>
+                            <span>Though your data should be up to date, you might want to <a id="sync-all" href="javascript:void(0)" class="btn btn-info">sync all your devices now <i class="icon-refresh"></i></a></span>
                         </div>
                     </div>
                 </div>
@@ -37,22 +43,22 @@
                                         <i class="icon-refresh icon-spin" style="font-size:30px"></i>
                                     </span>
                                     {{/syncing}}
-                                    <br/>{{#supportsSync}}<a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a> {{/supportsSync}}
-                                    {{#supportsFileUpload}}<a class="upload-{{connectorName}}" id="{{connectorName}}-{{apiKeyId}}" title="upload data" href="#"><i class="icon-arrow-up"></i></a> {{/supportsFileUpload}}
+                                    <br/>{{#supportsSync}}<a id="syncNow-{{connectorName}}" title="sync now" href="javascript:void(0)" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a> {{/supportsSync}}
+                                    {{#supportsFileUpload}}{{^isBuddy}}<a class="upload-{{connectorName}}" id="{{connectorName}}-{{apiKeyId}}" title="upload data" href="javascript:void(0)"><i class="icon-arrow-up"></i></a> {{/isBuddy}}{{/supportsFileUpload}}
                                 </td>
                                 <td class="connectors" style="width: 158px; background:inherit; vertical-align: middle; width: 158px">
                                     <img src="{{image}}" width=158 height=89 alt="{{connectorName}}">
                                 </td>
                                 <td class="desc" style="width: 121px; background:inherit">
                                     <p style=""><b>{{name}}</b></p><br/>
-                                    {{#hasSettings}}<a href="#" id="settings-{{connectorName}}">Settings <i class="icon-cog"></i></a>{{/hasSettings}}
+                                    {{#hasSettings}}{{^isBuddy}}<a href="javascript:void(0)" id="settings-{{connectorName}}">Settings <i class="icon-cog"></i></a>{{/isBuddy}}{{/hasSettings}}
                                 </td>
                                 <td class="lastSync" style="width: 137px; background:inherit">
                                     <p id="lastSync-{{connectorName}}" {{#syncing}}style="display:none;"{{/syncing}}>{{lastSync}}</p>
                                     {{#syncing}}
                                     <p>Now synchronizing</p>
                                     {{/syncing}}
-                                    <a href="#" id="viewUpdates-{{connectorName}}">View Updates <i class="icon-table"></i></a><br/>
+                                    {{^isBuddy}}<a href="javascript:void(0)" id="viewUpdates-{{connectorName}}">View Updates <i class="icon-table"></i></a><br/>{{/isBuddy}}
                                 </td>
                                 <td class="latestData" style="width: 138px; background:inherit">
                                     <p>{{latestData}}</p>
@@ -60,11 +66,11 @@
                                     <!-- <a href="javascript:App.renderApp('bodytrack','/grapher/source/{{name}}'); App.closeModal();" id="viewData-{{connectorName}}">View graph <i class="icon-bar-chart"></i></a><br/> -->
                                 </td>
                                 <td class="renew" style="width: 57px; background:inherit">
-                                    {{#supportsRenewToken}}<a id="renew-{{connectorName}}" href="#"><i class="icon-resize-small icon-large" style="padding-top:18px"></i></a>{{/supportsRenewToken}}
+                                    {{#supportsRenewToken}}{{^isBuddy}}<a id="renew-{{connectorName}}" href="javascript:void(0)"><i class="icon-resize-small icon-large" style="padding-top:18px"></i></a>{{/isBuddy}}{{/supportsRenewToken}}
                                     {{^supportsRenewToken}}<br><p></p>{{/supportsRenewToken}}
                                 </td>
                                 <td class="remove" style="width: 66px; background:inherit">
-                                    <a {{#sticky}}style="display:none;"{{/sticky}} id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a>
+                                    {{^isBuddy}}<a {{#sticky}}style="display:none;"{{/sticky}} id="remove-{{connectorName}}" href="javascript:void(0)"><i class="icon-trash"></i></a>{{/isBuddy}}
                                 </td>
                             </tr>
                             {{/connectors}}
@@ -88,22 +94,22 @@
                                     <i class="icon-refresh icon-spin" style="font-size:30px"></i>
                                 </span>
                                 {{/syncing}}
-                                <br/>{{#supportsSync}}<a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a>{{/supportsSync}}
-                                {{#supportsFileUpload}}<a class="upload-{{connectorName}}" id="{{connectorName}}-{{apiKeyId}}" title="upload data" href="#"><i class="icon-arrow-up"></i></a> {{/supportsFileUpload}}
+                                <br/>{{#supportsSync}}<a id="syncNow-{{connectorName}}" title="sync now" href="javascript:void(0)" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a>{{/supportsSync}}
+                                {{#supportsFileUpload}}{{^isBuddy}}<a class="upload-{{connectorName}}" id="{{connectorName}}-{{apiKeyId}}" title="upload data" href="javascript:void(0)"><i class="icon-arrow-up"></i></a> {{/isBuddy}}{{/supportsFileUpload}}
                             </td>
                             <td class="connectors" style="background:inherit; vertical-align: middle; width: 158px">
                                 <img src="{{image}}" width=158 height=89 alt="{{connectorName}}">
                             </td>
                             <td class="desc" style="background:inherit">
                                 <p style=""><b>{{name}}</b></p><br/>
-                                {{#hasSettings}}<a href="#" id="settings-{{connectorName}}">Settings <i class="icon-cog"></i></a>{{/hasSettings}}
+                                {{#hasSettings}}{{^isBuddy}}<a href="javascript:void(0)" id="settings-{{connectorName}}">Settings <i class="icon-cog"></i></a>{{/isBuddy}}{{/hasSettings}}
                             </td>
                             <td class="lastSync" style="background:inherit">
                                 <p id="lastSync-{{connectorName}}" {{#syncing}}style="display:none;"{{/syncing}}>{{lastSync}}</p>
                                 {{#syncing}}
                                 <p>Now synchronizing</p>
                                 {{/syncing}}
-                                <a href="#" id="viewUpdates-{{connectorName}}">View Updates <i class="icon-table"></i></a><br/>
+                                {{^isBuddy}}<a href="javascript:void(0)" id="viewUpdates-{{connectorName}}">View Updates <i class="icon-table"></i></a><br/>{{/isBuddy}}
                             </td>
                             <td class="latestData" style="background:inherit">
                                 <p>{{latestData}}</p>
@@ -111,11 +117,11 @@
                                 <!-- <a href="javascript:App.renderApp('bodytrack','/grapher/source/{{name}}'); App.closeModal();" id="viewData-{{connectorName}}">View graph <i class="icon-bar-chart"></i></a><br/> -->
                             </td>
                             <td class="renew" style="background:inherit">
-                                {{#supportsRenewToken}}<a id="renew-{{connectorName}}" href="#"><i class="icon-resize-small icon-large" style="padding-top:18px"></i></a>{{/supportsRenewToken}}
+                                {{#supportsRenewToken}}{{^isBuddy}}<a id="renew-{{connectorName}}" href="javascript:void(0)"><i class="icon-resize-small icon-large" style="padding-top:18px"></i></a{{/isBuddy}}>{{/supportsRenewToken}}
                                 {{^supportsRenewToken}}<br><p></p>{{/supportsRenewToken}}
                             </td>
                             <td class="remove" style="background:inherit">
-                                <a {{#sticky}}style="display:none;"{{/sticky}} id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a>
+                                {{^isBuddy}}<a {{#sticky}}style="display:none;"{{/sticky}} id="remove-{{connectorName}}" href="javascript:void(0)"><i class="icon-trash"></i></a>{{/isBuddy}}
                             </td>
                         </tr>
 </template>
@@ -128,21 +134,21 @@
             <i class="icon-refresh icon-spin" style="font-size:30px"></i>
         </span>
         {{/syncing}}
-        <br/>{{#supportsSync}}<a id="syncNow-{{connectorName}}" title="sync now" href="#" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a>{{/supportsSync}}
-        {{#supportsFileUpload}}<a class="upload-{{connectorName}}" id="{{connectorName}}-{{apiKeyId}}" title="upload data" href="#"><i class="icon-arrow-up"></i></a> {{/supportsFileUpload}}
+        <br/>{{#supportsSync}}<a id="syncNow-{{connectorName}}" title="sync now" href="javascript:void(0)" {{#syncing}}style="display:none;"{{/syncing}}><i class="icon-refresh"></i></a>{{/supportsSync}}
+        {{#supportsFileUpload}}{{^isBuddy}}<a class="upload-{{connectorName}}" id="{{connectorName}}-{{apiKeyId}}" title="upload data" href="javascript:void(0)"><i class="icon-arrow-up"></i></a> {{/isBuddy}}{{/supportsFileUpload}}
     </td>
     <td class="connectors" style="background:inherit; vertical-align: middle; width: 158px" nocompare="true">
     </td>
     <td class="desc" style="background:inherit">
         <p style=""><b>{{name}}</b></p><br/>
-        {{#hasSettings}}<a href="#" id="settings-{{connectorName}}">Settings <i class="icon-cog"></i></a>{{/hasSettings}}
+        {{#hasSettings}}{{^isBuddy}}<a href="javascript:void(0)" id="settings-{{connectorName}}">Settings <i class="icon-cog"></i></a>{{/isBuddy}}{{/hasSettings}}
     </td>
     <td class="lastSync" style="background:inherit">
         <p id="lastSync-{{connectorName}}" {{#syncing}}style="display:none;"{{/syncing}}>{{lastSync}}</p>
         {{#syncing}}
         <p>Now synchronizing</p>
         {{/syncing}}
-        <a href="#" id="viewUpdates-{{connectorName}}">View Updates <i class="icon-table"></i></a><br/>
+        {{^isBuddy}}<a href="javascript:void(0)" id="viewUpdates-{{connectorName}}">View Updates <i class="icon-table"></i></a><br/>{{/isBuddy}}
     </td>
     <td class="latestData" style="background:inherit">
         <p>{{latestData}}</p>
@@ -150,18 +156,18 @@
         <!-- <a href="javascript:App.renderApp('bodytrack','/grapher/source/{{name}}'); App.closeModal();" id="viewData-{{connectorName}}">View graph <i class="icon-bar-chart"></i></a><br/> -->
     </td>
     <td class="renew" style="background:inherit">
-        {{#supportsRenewToken}}<a id="renew-{{connectorName}}" href="#"><i class="icon-resize-small icon-large" style="padding-top:18px"></i></a>{{/supportsRenewToken}}
+        {{#supportsRenewToken}}{{^isBuddy}}<a id="renew-{{connectorName}}" href="javascript:void(0)"><i class="icon-resize-small icon-large" style="padding-top:18px"></i></a>{{/isBuddy}}{{/supportsRenewToken}}
         {{^supportsRenewToken}}<br></be><p></p>{{/supportsRenewToken}}
     </td>
     <td class="remove" style="background:inherit">
-        <a {{#sticky}}style="display:none;"{{/sticky}} id="remove-{{connectorName}}" href="#"><i class="icon-trash"></i></a>
+        {{^isBuddy}}<a {{#sticky}}style="display:none;"{{/sticky}} id="remove-{{connectorName}}" href="javascript:void(0)"><i class="icon-trash"></i></a>{{/isBuddy}}
     </td>
     </tr>
 </template>
 <template id="deleteConnectorConfirm">
     <div class="modal fade" id="deleteConnectorConfirm">
         <div class="modal-header">
-            <h3>Confirm Removal<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
+            <h3>Confirm Removal<a href="javascript:void(0)" class="close" data-dismiss="modal">&times;</a></h3>
         </div>
         <div class="modal-body" style="overflow:hidden">
             <div class="alert alert-block"><h4 class="alert-heading">Warning!</h4>
@@ -177,7 +183,7 @@
 <template id="renewConnectorConfirm">
     <div class="modal fade" id="renewConnectorConfirm">
         <div class="modal-header">
-            <h3>Confirm Authorization Renewal<a href="#" class="close" data-dismiss="modal">&times;</a></h3>
+            <h3>Confirm Authorization Renewal<a href="javascript:void(0)" class="close" data-dismiss="modal">&times;</a></h3>
         </div>
         <div class="modal-body" style="overflow:hidden">
             <div class="alert alert-block"><h4 class="alert-heading">Warning!</h4>
@@ -278,12 +284,12 @@
                         {{#config}}
                         {{#hasGeneralSettings}}
                         <li>
-                            <a href="#" id="generalSettingsLink">General settings</a>
+                            <a href="javascript:void(0)" id="generalSettingsLink">General settings</a>
                         </li>
                         {{/hasGeneralSettings}}
                         {{#hasTimelineSettings}}
                         <li>
-                            <a href="#" id="timelineSettingsLink">Timeline Settings</a>
+                            <a href="javascript:void(0)" id="timelineSettingsLink">Timeline Settings</a>
                         </li>
                         {{/hasTimelineSettings}}
                         {{/config}}
@@ -427,7 +433,7 @@
                 </div>
                 <div class="control-group">
                     <div class="controls">
-                        <a href="#" id="submitFileUploadForm" class="btn btn-primary">Upload</a>
+                        <a href="javascript:void(0)" id="submitFileUploadForm" class="btn btn-primary">Upload</a>
                     </div>
                 </div>
             </form>

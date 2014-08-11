@@ -3,9 +3,9 @@ package org.fluxtream.connectors.zeo;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.fluxtream.domain.AbstractFacet;
-import org.fluxtream.services.impl.BodyTrackHelper;
-import org.fluxtream.services.impl.FieldHandler;
+import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.services.impl.BodyTrackHelper;
+import org.fluxtream.core.services.impl.FieldHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.joda.time.DateTimeZone;
@@ -24,10 +24,10 @@ public class ZeoSleepGraphFieldHandler implements FieldHandler {
     BodyTrackHelper bodyTrackHelper;
 
     @Override
-    public void handleField ( final long guestId, AbstractFacet facet) {
+    public List<BodyTrackHelper.BodyTrackUploadResult> handleField ( final long guestId, AbstractFacet facet) {
         ZeoSleepStatsFacet sleepStatsFacet = (ZeoSleepStatsFacet) facet;
         if (sleepStatsFacet.sleepGraph==null)
-            return;
+            return Arrays.asList();
         int graphSize = sleepStatsFacet.sleepGraph.length();
         // To be consistent with the Zeo web site, round the start time down to the previous
         // 5-minute boundary to compute the graph start time to use.
@@ -51,7 +51,7 @@ public class ZeoSleepGraphFieldHandler implements FieldHandler {
         }
 
         // TODO: check the status code in the BodyTrackUploadResult
-        bodyTrackHelper.uploadToBodyTrack(guestId , "Zeo", Arrays.asList("Sleep_Graph"), data);
+        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(guestId , "Zeo", Arrays.asList("Sleep_Graph"), data));
     }
 
     private void addSleepGraphColumn(final List<List<Object>> data, final String sleepGraph, final long time, final int i) {

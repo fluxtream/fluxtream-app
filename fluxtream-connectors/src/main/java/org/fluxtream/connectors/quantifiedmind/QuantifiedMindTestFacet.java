@@ -1,8 +1,8 @@
 package org.fluxtream.connectors.quantifiedmind;
 
 import javax.persistence.Entity;
-import org.fluxtream.connectors.annotations.ObjectTypeSpec;
-import org.fluxtream.domain.AbstractFacet;
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.domain.AbstractFacet;
 
 /**
  *

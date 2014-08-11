@@ -2,17 +2,6 @@ package org.fluxtream.connectors.twitter;
 
 import java.util.HashMap;
 import java.util.List;
-import org.fluxtream.aspects.FlxLogger;
-import org.fluxtream.connectors.ObjectType;
-import org.fluxtream.connectors.annotations.Updater;
-import org.fluxtream.connectors.updaters.AbstractUpdater;
-import org.fluxtream.connectors.updaters.RateLimitReachedException;
-import org.fluxtream.connectors.updaters.UpdateFailedException;
-import org.fluxtream.connectors.updaters.UpdateInfo;
-import org.fluxtream.domain.ApiKey;
-import org.fluxtream.domain.ChannelMapping;
-import org.fluxtream.services.impl.BodyTrackHelper;
-import org.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
@@ -23,13 +12,25 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
+import org.fluxtream.core.aspects.FlxLogger;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.connectors.ObjectType;
+import org.fluxtream.core.connectors.annotations.Updater;
+import org.fluxtream.core.connectors.updaters.AbstractUpdater;
+import org.fluxtream.core.connectors.updaters.RateLimitReachedException;
+import org.fluxtream.core.connectors.updaters.UpdateFailedException;
+import org.fluxtream.core.connectors.updaters.UpdateInfo;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
+import org.fluxtream.core.services.impl.BodyTrackHelper;
+import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 
 @Component
 @Updater(prettyName = "Twitter", value = 12,
-updateStrategyType= org.fluxtream.connectors.Connector.UpdateStrategyType.INCREMENTAL,
+updateStrategyType= Connector.UpdateStrategyType.INCREMENTAL,
 bodytrackResponder = TwitterBodytrackResponder.class,
 objectTypes={TweetFacet.class,
 	TwitterDirectMessageFacet.class, TwitterMentionFacet.class},

@@ -1,11 +1,10 @@
 package glacier.github;
 
-import java.util.Date;
-import org.fluxtream.TimeInterval;
-import org.fluxtream.connectors.vos.AbstractInstantFacetVO;
-import org.fluxtream.domain.GuestSettings;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.connectors.vos.AbstractInstantFacetVO;
+import org.fluxtream.core.domain.GuestSettings;
 
 /**
  *
@@ -18,8 +17,6 @@ public class GithubPushFacetVO extends AbstractInstantFacetVO<GithubPushFacet> {
 
     @Override
     protected void fromFacet(final GithubPushFacet facet, final TimeInterval timeInterval, final GuestSettings settings) {
-        startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getMainTimeZone());
-        this.start = facet.start;
         this.repoName = facet.repoName;
         this.repoURL = facet.repoURL;
         JSONArray jsonCommits = JSONArray.fromObject(facet.commitsJSON);

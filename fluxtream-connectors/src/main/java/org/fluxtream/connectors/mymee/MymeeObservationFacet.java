@@ -3,8 +3,8 @@ package org.fluxtream.connectors.mymee;
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import org.fluxtream.connectors.annotations.ObjectTypeSpec;
-import org.fluxtream.domain.AbstractFacet;
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.domain.AbstractFacet;
 
 /**
  *

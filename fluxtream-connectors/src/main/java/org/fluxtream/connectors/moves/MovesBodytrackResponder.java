@@ -1,25 +1,31 @@
 package org.fluxtream.connectors.moves;
 
+import org.fluxtream.core.Configuration;
+import org.fluxtream.core.SimpleTimeInterval;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.TimeUnit;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.connectors.ObjectType;
+import org.fluxtream.core.connectors.bodytrackResponders.AbstractBodytrackResponder;
+import org.fluxtream.core.connectors.vos.AbstractFacetVO;
+import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.GuestSettings;
+import org.fluxtream.core.mvc.models.TimespanModel;
+import org.fluxtream.core.services.impl.BodyTrackHelper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
-import org.fluxtream.SimpleTimeInterval;
-import org.fluxtream.TimeInterval;
-import org.fluxtream.TimeUnit;
-import org.fluxtream.connectors.Connector;
-import org.fluxtream.connectors.ObjectType;
-import org.fluxtream.connectors.bodytrackResponders.AbstractBodytrackResponder;
-import org.fluxtream.connectors.vos.AbstractFacetVO;
-import org.fluxtream.domain.AbstractFacet;
-import org.fluxtream.domain.ApiKey;
-import org.fluxtream.domain.GuestSettings;
-import org.fluxtream.mvc.models.TimespanModel;
-import org.fluxtream.services.impl.BodyTrackHelper;
-import org.springframework.stereotype.Component;
 
 @Component
 public class MovesBodytrackResponder extends AbstractBodytrackResponder {
+
+    @Autowired
+    Configuration env;
 
     @Override
     public List<TimespanModel> getTimespans(final long startMillis, final long endMillis, final ApiKey apiKey, final String channelName) {
@@ -35,7 +41,7 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
                     MovesMoveFacet moveFacet = (MovesMoveFacet) facet;
                     for (MovesActivity activity : moveFacet.getActivities()){
                         BodyTrackHelper.TimespanStyle style = new BodyTrackHelper.TimespanStyle();
-                        style.iconURL = "/images/moves/" + activity.activity + ".png";
+                        style.iconURL = String.format("/images/moves/" + activity.activity + ".png", env.get("release"));
                         final TimespanModel moveTimespanModel = new TimespanModel(activity.start, activity.end, activity.activity, objectTypeName, style);
                         items.add(moveTimespanModel);
                     }

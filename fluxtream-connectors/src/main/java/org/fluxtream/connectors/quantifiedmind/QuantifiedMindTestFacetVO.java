@@ -1,10 +1,9 @@
 package org.fluxtream.connectors.quantifiedmind;
 
-import java.util.Date;
-import org.fluxtream.OutsideTimeBoundariesException;
-import org.fluxtream.TimeInterval;
-import org.fluxtream.connectors.vos.AbstractInstantFacetVO;
-import org.fluxtream.domain.GuestSettings;
+import org.fluxtream.core.OutsideTimeBoundariesException;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.connectors.vos.AbstractInstantFacetVO;
+import org.fluxtream.core.domain.GuestSettings;
 
 /**
  *
@@ -19,8 +18,6 @@ public class QuantifiedMindTestFacetVO extends AbstractInstantFacetVO<Quantified
 
     @Override
     protected void fromFacet(final QuantifiedMindTestFacet facet, final TimeInterval timeInterval, final GuestSettings settings) throws OutsideTimeBoundariesException {
-        startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getTimeZone(facet.start));
-        this.start = facet.start;
         this.test_name = facet.test_name;
         this.result_name = facet.result_name;
         this.session_timestamp = facet.session_timestamp;

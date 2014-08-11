@@ -10,8 +10,6 @@
     	http://www.springframework.org/schema/cache/spring-cache.xsd
 		http://www.springframework.org/schema/util
 		http://www.springframework.org/schema/util/spring-util-3.0.xsd
-		http://www.springframework.org/schema/task
-		http://www.springframework.org/schema/task/spring-task-3.0.xsd
 		http://www.springframework.org/schema/tx
 		http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
 		http://www.springframework.org/schema/mvc
@@ -21,14 +19,18 @@
         http://www.springframework.org/schema/context 
         http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
-    <task:executor id="AsyncWorker" pool-size="5-25"
-                   rejection-policy="CALLER_RUNS" queue-capacity="100"/>
+    <bean id="viewResolver"
+          class="org.fluxtream.core.mvc.view.UrlBasedViewResolver">
+        <property name="viewClass"
+                  value="org.springframework.web.servlet.view.JstlView" />
+        <property name="prefix" value="/WEB-INF/jsp/" />
+        <property name="suffix" value=".jsp" />
+    </bean>
 
-    <task:executor id="FileUploadWorker" pool-size="5-25"
-                   rejection-policy="CALLER_RUNS" queue-capacity="100"/>
-
-	<task:executor id="updateWorkersExecutor" pool-size="5-25"
-		rejection-policy="CALLER_RUNS" queue-capacity="100" />
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!-- maximum file size in bytes: thats 100Mb -->
+        <property name="maxUploadSize" value="104857600"/>
+    </bean>
 
     <cache:annotation-driven />
 
@@ -42,6 +44,7 @@
         </property>
     </bean>
 
+    <import resource="classpath:org/fluxtream/core/applicationContext.xml" />
 	<import resource="spring-aspects.xml" />
     <import resource="spring-quartz.xml" />
 
@@ -81,7 +84,7 @@
 		</property>
 	</bean>
 
-	<bean id="guestService" class="org.fluxtream.services.impl.GuestServiceImpl" />
+	<bean id="guestService" class="org.fluxtream.core.services.impl.GuestServiceImpl" />
 
 	<bean id="messageSource"
 		class="org.springframework.context.support.ResourceBundleMessageSource">
@@ -121,7 +124,7 @@
 		<constructor-arg value="bodytrack.properties"/>
    	</bean>
 	
-	<bean class="org.fluxtream.Configuration">
+	<bean class="org.fluxtream.core.Configuration">
         <property name="lastCommitProperties" ref="lastCommitProperties"/>
         <property name="commonProperties" ref="commonProperties"/>
 		<property name="targetEnvProperties" ref="targetEnvProperties"/>
@@ -175,7 +178,7 @@
         <entry key="hibernate.c3p0.timeout" value="100" />
 		<entry key="hibernate.archive.autodetection" value="class, hbm" />
 		<entry key="hibernate.default_schema " value="flx" />
-		<entry key="hibernate.hbm2ddl.auto" value="none" />
+		<entry key="hibernate.hbm2ddl.auto" value="update" />
 		<entry key="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect" />
 	</util:map>
 

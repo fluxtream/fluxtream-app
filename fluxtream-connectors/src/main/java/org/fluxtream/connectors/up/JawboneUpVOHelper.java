@@ -1,7 +1,7 @@
 package org.fluxtream.connectors.up;
 
-import org.fluxtream.Configuration;
-import org.fluxtream.domain.AbstractFacet;
+import org.fluxtream.core.Configuration;
+import org.fluxtream.core.domain.AbstractFacet;
 
 /**
  * User: candide

@@ -111,9 +111,9 @@ Date.prototype.format = function (mask, utc) {
 };
 
 define(
-    [ "core/FlxState", "Addresses", "ManageConnectors", "AddConnectors", "ConnectorConfig", "Settings", "SharingDialog",
+    [ "core/FlxState", "ManageConnectors", "AddConnectors", "ConnectorConfig", "Settings", "SharingDialog",
       "libs/jquery.form", "libs/jquery.jeditable.mini", "libs/jquery.timeago" ],
-    function(FlxState, Addresses, ManageConnectors, AddConnectors, ConnectorConfig, Settings,
+    function(FlxState, ManageConnectors, AddConnectors, ConnectorConfig, Settings,
         SharingDialog ) {
 
         var App = {};
@@ -129,14 +129,37 @@ define(
             loadApps();
 
             bindGlobalEventHandlers();
+            checkForDataUpdates();
+
+            App.addDataUpdatesListener("AppNotificationsListener",function(updates){
+                if (updates.notification === true){
+                    App.refreshNotifications();
+                }
+            });
         }
 
         function bindGlobalEventHandlers(){
-            $("body").on("keyup.gloablAppEventHandler",function(event){
+            $(document).on("keyup.gloablAppEventHandler",function(event){
+                nonIdleEventDetected();
                 if (event.keyCode == 27 && App.modals.length > 0){
                     event.preventDefault();
                     App.modals[0].modal("hide");//close the top most modal dialog
                 }
+            });
+            $(document).on("keydown.globalAppEventHandler",function(event){
+                nonIdleEventDetected();
+            });
+            $(document).on("mousemove.globalAppEventHandler",function(event){
+                nonIdleEventDetected();
+            });
+            $(document).on("scroll.globalAppEventHandler",function(event){
+                nonIdleEventDetected();
+            });
+            $(document).on("mouseup.globalAppEventHandler",function(event){
+                nonIdleEventDetected();
+            });
+            $(document).on("mousedown.globalAppEventHandler",function(event){
+                nonIdleEventDetected();
             })
 
         }
@@ -195,6 +218,7 @@ define(
                     apps[i].setup();
                 }
                 setupURLRouting();
+                fetchGuestInfo();
             });
         }
 
@@ -406,65 +430,76 @@ define(
             var confirmed = confirm("Are you sure?");
             if (confirmed) {
                 $.ajax({
-                    url: "/api/settings/deleteAccount",
+                    url: "/api/v1/settings/deleteAccount",
                     type: "POST",
-                    success: function(status) {
-                        if (status.result=="OK") {
-                            window.location = "/logout";
-                        } else {
-                            alert(status.message);
-                        }
+                    success: function(body, statusText, jqXHR) {
+                        console.log(statusText  + ":" + body);
+                        window.location = "/logout";
+                    }, error: function(jqXHR, statusText, errorThrown) {
+                        alert("Could not delete account: " + statusText+" (" + errorThrown + ") " + ". Please contact us!");
                     }
                 });
             }
         };
 
         App.as = function(username) {
+            if (!_.isUndefined(username)) {
+                App.viewee = username;
+                fetchGuestInfo();
+            }
+        };
+
+        function fetchGuestInfo() {
             $.ajax({
-                url: "/api/coaching/coachees/" + username,
-                type: "POST",
-                success: function(status) {
-                    if (status.result=="OK") {
-                        location.reload();
-                    } else
-                        alert(status.message);
+                url: "/api/v1/guest?includeAvatar=true",
+                beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
+                success: function(guestInfo) {
+                    App.buddyToAccess = guestInfo;
+                    var loggedInUser = $("#loggedInUser");
+                    loggedInUser.attr("self", guestInfo["fullname"]);
+                    loggedInUser.html(guestInfo["fullname"] + "<span id=\"profileIcon\">&nbsp;</span> <b id=\"profileIconCaret\" class=\"caret\"></b>");
+                    if (App.viewee!=null&&App.viewee!="self") {
+                        loggedInUser.css("text-shadow", "0 0 10px white");
+                        loggedInUser.css("color", "#FFFEFD");
+                        $("#addConnectorLink").addClass("disabled-link").unbind().click(function(evt){evt.preventDefault()});
+                    }
+                    else {
+                        loggedInUser.css("text-shadow", "");
+                        loggedInUser.css("color", "");
+                        $("#addConnectorLink").removeClass("disabled-link").unbind().click(function(){App.connectors();});
+                    }
+                    if (guestInfo["avatar"]!=null) {
+                        if (guestInfo["avatar"].type!="none") {
+                            $("#profileIcon").replaceWith("<img src=\"" + guestInfo.avatar.url + "\" style=\"display:inline;width:27px;margin: 0 1px 0 4px;\" width=27 height=27>");
+                            $("#profileIconCaret").css("margin-top", "10px");
+                            $("#helpDropdownToggle").css("margin-top", "3px");
+                            $("#connectorsDropdownToggle").css("margin-top", "3px");
+                            $("#appsMenuWrapper").css("margin-top", "4px");
+                            $(".brand").css("margin-top", "3px");
+                        } else {
+                            $("#profileIcon").replaceWith("<i class=\"icon-user icon-large\"></i>");
+                        }
+                    }
+                    App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
+                    checkForDataUpdates();
+                },
+                error: function(jqXHR, statusText, errorThrown) {
+                    App.logError(jqXHR, statusText, errorThrown);
                 }
             });
-        };
+        }
+
+        App.logError = function(jqXHR, statusText, errorThrown) {
+            console.log(statusText+" (" + errorThrown + ") ");
+            console.log(jqXHR.responseText);
+        }
 
         App.connectors = function() {
             AddConnectors.show();
         };
 
-        App.addresses = function() {
-            Addresses.show();
-        };
-
         App.manageConnectors = function(){
             ManageConnectors.show();
-        };
-
-        App.removeConnector = function(api) {
-            if (typeof(ga)!='undefined') {ga('send', 'event', 'button', 'click', 'removeConnector', 1);}
-            var c = confirm("If you wrote comments on events related to this connector, "
-                                + "you will lose them forever.\n"
-                                + "Are your sure you want to continue?");
-            if (c) {
-                if (typeof(ga)!='undefined') {ga('send', 'event', 'button', 'click', 'removeConnectorConfirmed', 1);}
-                $.ajax({
-                           url : "/connectors/removeConnector?api=" + api,
-                           dataType : "json",
-                           success : function(data) {
-                               if (data.result == "ok") {
-                                   $("#userConnectors").load(
-                                       "/connectors/userConnectors");
-                                   $("#availableConnectors").load(
-                                       "/connectors/availableConnectors");
-                                   App.showConnectorsPage(0);
-                               }
-                           }
-                       });
-            }
         };
 
         App.getConnectorSettings = function(connectorId) {
@@ -550,19 +585,12 @@ define(
                     url : "/upload/addConnector",
                     type: "POST",
                     data: {connectorName : connectorName},
-                    success : function(response) {
-                        var status;
-                        try { status = JSON.parse(response); }
-                        catch(err) { alert("Couldn't add upload-only connector:" + err); }
-                        if (status.result==="OK") {
-                            $("#modal").modal("hide");
-                            App.activeApp.renderState(App.state.getState(App.activeApp.name),true);
-                        }
-                        else {
-                            if (typeof(status.stackTrace)!="undefined")
-                                console.log(status.stackTrace);
-                            alert("Could not add upload-only connector: " + status.message);
-                        }
+                    success : function(body, statusText, jqXHR) {
+                        $("#modal").modal("hide");
+                        App.activeApp.renderState(App.state.getState(App.activeApp.name),true);
+                    },
+                    error: function(jqXHR, statusText, errorThrown) {
+                        alert("Could not add upload-only connector: " + jqXHR.responseText);
                     }
                 });
             } else {
@@ -574,14 +602,9 @@ define(
             if (typeof(ga)!='undefined') {ga('send', 'event', 'button', 'click', 'addConnector', 1);}
         };
 
-        App.showConnectorsPage = function(page) {
-            $("#availableConnectors").load(
-                "/connectors/availableConnectors?page=" + page);
-        };
-
         App.discardNotification = function(notificationId) {
             $.ajax({
-                    url: "/api/notifications/" + notificationId,
+                    url: "/api/v1/notifications/" + notificationId,
                     type: "DELETE",
                     success: function() {
                         $("#notification-" + notificationId).remove();
@@ -590,6 +613,41 @@ define(
                 }
             );
         };
+
+        App.handleNotificationList = function(notificatons){
+
+            $(".alert").remove();
+            $("#notifications").empty();
+            if (typeof(notificatons)!="undefined"&&notificatons!=null) {
+                for (var n=0; n<notificatons.length; n++) {
+                    console.log("showing a notification " + n);
+                    if ($("#notification-" + notificatons[n].id).length==0) {
+                        (function(n){
+                            App.loadMustacheTemplate("notificationTemplates.html",notificatons[n].type+"Notification",function(template) {
+                                if (notificatons[n].repeated>1) notificatons[n].message += " (" + notificatons[n].repeated + "x)";
+                                var html = template.render(notificatons[n]);
+                                $("#notifications").append(html);
+                                $("abbr.timeago").timeago();
+                                $(window).resize();
+                            });
+                        })(n);
+                    }
+                }
+                $("#notifications").show();
+            }
+
+        }
+
+        App.refreshNotifications = function(){
+            $.ajax("/api/v1/notifications/all",{
+                success:function(result){
+                    App.handleNotificationList(result.notifications);
+                },
+                error: function(){
+                    console.log(arguments);
+                }
+            })
+        }
 
         App.showCarousel = function(photoId) {
             if ($("#photosCarousel").length==0) {
@@ -909,14 +967,14 @@ define(
 
         function incrementMessageDisplay(messageName){
             $.ajax({
-                url: "/api/settings/"+messageName+"/increment",
+                url: "/api/v1/settings/"+messageName+"/increment",
                 method: "POST",
-                success: function(status){
-                    if (status.result=="OK") {
-                        var count =parseInt(status.payload,10);
-                        App.messageDisplayCounters[messageName] = count;
-                    } else
-                        console.log("Couldn't increment message display for " + messageName)
+                success: function(status, statusText, jqXHR){
+                    var count =parseInt(status["payload"],10);
+                    App.messageDisplayCounters[messageName] = count;
+                },
+                error: function(jqXHR, statusText, errorThrown) {
+                    console.log("Couldn't increment message display for " + messageName);
                 }
             });
         }
@@ -935,14 +993,6 @@ define(
                 $(".application").addClass("dormant");
                 $("#applications").append(html);
             });
-        }
-
-        function getUsername(){
-            return $("#flxUsername").html();
-        }
-
-        function getUID(){
-            return $("#flxUID").html();
         }
 
         window.FlxUtils = {};
@@ -1009,8 +1059,86 @@ define(
             });
         }
 
-        App.getUsername = getUsername;
-        App.getUID = getUID;
+        var dataUpdateListeners = {};
+
+        App.addDataUpdatesListener = function(name,listener){
+            dataUpdateListeners[name] = listener;
+        }
+
+        App.removeDataUpdatesListener = function(name){
+            delete dataUpdateListeners[name];
+        }
+
+
+        //the last time they performed a nonidle event
+        var lastNonIdleEvent = new Date().getTime();
+        //the timestamp they went idle
+        var idleStartTime = 0;
+        //whether or not the user is marked idle
+        var isIdle = false;
+
+        //the amount of time a user can be idle before they are marked as idle
+        var maxIdleTime = 1000 * 60 * 20;    //20 minutes
+        //how often updates should be polled
+        var updateCheckInterval = 1000 * 30;//30 seconds
+
+        //used to prevent nonidle event spam
+        var nonIdleMutex = false;
+        //resolution of nonidle event detection
+        var nonIdleMutexDuration = maxIdleTime / 60;
+
+        function nonIdleEventDetected(){
+            if (nonIdleMutex) return; //prevent from unnecessary spamming calls to Date().getTime()
+            nonIdleMutex = true;
+            lastNonIdleEvent = new Date().getTime();
+            if (isIdle){
+                isIdle = false;
+                //idle to nonidle
+                /*var millisSpentIdle = lastNonIdleEvent - idleStartTime;
+                if (millisSpentIdle > 1000 * 60 * 60){//check if it's been longer than an hour
+                    //do something...
+                }*/
+                checkForDataUpdates();
+            }
+            setTimeout(function(){
+                nonIdleMutex = false;
+            },nonIdleMutexDuration);
+        }
+
+
+
+        var lastCheckTimestamp = moment().format("YYYY-MM-DDThh:mm:ss.SSSZZ");
+
+        function checkForDataUpdates(){
+            if (isIdle || new Date().getTime() - lastNonIdleEvent > maxIdleTime){
+                isIdle = true;
+                idleStartTime = lastNonIdleEvent;
+                return;
+            }
+            function afterDone(){
+                setTimeout(checkForDataUpdates,updateCheckInterval);
+
+            }
+            $.ajax("/api/v1/dataUpdates/all",{
+                type: "GET",
+                beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
+                dataType: "json",
+                data: {since: lastCheckTimestamp},
+                success: function(data){
+                    lastCheckTimestamp = data.generationTimestamp;
+                    for (var member in dataUpdateListeners){
+                        dataUpdateListeners[member](data);
+                    }
+                    afterDone();
+                },
+                error: function(){
+                    afterDone();
+
+                }
+
+            });
+        }
+
         App.initialize = initialize;
         App.renderApp = renderApp;
         App.state = FlxState;
@@ -1018,6 +1146,7 @@ define(
         App.invalidPath = invalidPath;
         App.geocoder = new google.maps.Geocoder();
         App.sharingDialog = SharingDialog;
+        App.COACHEE_BUDDY_TO_ACCESS_HEADER = "X-FLX-BUDDY-TO-ACCESS";
         window.App = App;
         return App;
 

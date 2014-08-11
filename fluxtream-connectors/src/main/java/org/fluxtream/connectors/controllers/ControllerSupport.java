@@ -1,7 +1,7 @@
 package org.fluxtream.connectors.controllers;
 
 import javax.servlet.http.HttpServletRequest;
-import org.fluxtream.Configuration;
+import org.fluxtream.core.Configuration;
 
 public class ControllerSupport {
 

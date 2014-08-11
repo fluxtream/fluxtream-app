@@ -2,9 +2,9 @@ package org.fluxtream.connectors.evernote;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.fluxtream.connectors.SharedConnectorFilter;
-import org.fluxtream.domain.AbstractFacet;
-import org.fluxtream.domain.SharedConnector;
+import org.fluxtream.core.connectors.SharedConnectorFilter;
+import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.SharedConnector;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.springframework.stereotype.Component;

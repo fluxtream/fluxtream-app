@@ -1,18 +1,18 @@
 package org.fluxtream.mvc.controllers;
 
-import java.io.IOException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.fluxtream.aspects.FlxLogger;
+import org.fluxtream.core.Configuration;
+import org.fluxtream.core.aspects.FlxLogger;
+import org.fluxtream.core.cors.SimpleCORSFilter;
+import org.fluxtream.core.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
-import org.fluxtream.Configuration;
-import org.fluxtream.utils.Utils;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 @Controller
 public class ErrorController {
@@ -22,15 +22,21 @@ public class ErrorController {
 	@Autowired
 	Configuration env;
 
+    @Autowired
+    SimpleCORSFilter corsFilter;
+
 	public final static String SERVLET_EXCEPTION_ATTR = "javax.servlet.error.exception";
 
 	public final static String JSP_EXCEPTION_ATTR = "javax.servlet.jsp.jspException";
 
     @RequestMapping(value = "/accessDenied")
     public String accessDenied(HttpServletRequest request,
-                                     HttpServletResponse response) throws IOException {
+                               HttpServletResponse response) throws IOException {
         if (request.getParameter("json")!=null) {
-            response.getWriter().write("{\"result\":\"KO\",\"message\":\"Access Denied\"}");
+            response.setContentType("application/json");
+            corsFilter.setCORSHeaders(request, response);
+            String baseUrl = env.get("homeBaseUrl");
+            response.getWriter().write(String.format("{\"result\":\"KO\",\"message\":\"Access Denied. Please log in to your Fluxtream account (%s) to access this resource\"}", baseUrl));
             return null;
         }
         else return "accessDenied";

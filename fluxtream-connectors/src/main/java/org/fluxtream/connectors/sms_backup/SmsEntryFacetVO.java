@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.fluxtream.TimeInterval;
-import org.fluxtream.connectors.vos.AbstractPhotoFacetVO;
-import org.fluxtream.domain.GuestSettings;
-import org.fluxtream.mvc.models.DimensionModel;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.connectors.vos.AbstractPhotoFacetVO;
+import org.fluxtream.core.domain.GuestSettings;
+import org.fluxtream.core.mvc.models.DimensionModel;
 
 public class SmsEntryFacetVO extends AbstractPhotoFacetVO<SmsEntryFacet> {
 
@@ -28,7 +28,6 @@ public class SmsEntryFacetVO extends AbstractPhotoFacetVO<SmsEntryFacet> {
 	
 	@Override
 	public void fromFacet(SmsEntryFacet sms, TimeInterval timeInterval, GuestSettings settings) {
-		this.startMinute = toMinuteOfDay(sms.dateReceived, timeInterval.getMainTimeZone());
 		this.personName = sms.personName;
         this.smsType = sms.smsType.toString();
         this.personNumber = sms.personNumber;

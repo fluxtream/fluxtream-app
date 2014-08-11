@@ -11,14 +11,14 @@
     <link href='//fonts.googleapis.com/css?family=Open+Sans:400,700,600' rel='stylesheet' type='text/css'>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
     <script src="/static/js/bootstrap-2.3.2.min.js"></script>
-    <script type="text/javascript" src="/${release}/assets-home/js/welcome.js"></script>
+    <script type="text/javascript" src="/${release}/js/welcome.js"></script>
     <!-- fav icons -->
     <link rel="shortcut icon" href="/favicon.ico">
 </head>
 <body>
 <div id="wrapper">
     <div id="header">
-        <a href="#"><div class="logo"></div></a>
+        <a href="javascript:void(0)"><div class="logo"></div></a>
         <div class="login_container">
             <form method="post" action="signIn" id="loginForm">
                 <table>
@@ -33,7 +33,7 @@
                     </tr>
                     <tr>
                         <td></td>
-                        <td><a href="#" class="forgotPassword" id="lostPasswdLink">Forgot password?</a></td>
+                        <td><a href="javascript:void(0)" class="forgotPassword" id="lostPasswdLink">Forgot password?</a></td>
                     </tr>
                 </table>
             </form>
@@ -47,7 +47,7 @@
                         <td><input class="recover_email_input" title="Enter your email" type="text" name="recover[email]" id="recover_email"></td>
                     </tr>
                     <tr>
-                        <td><a href="#" class="forgotPassword" id="cancelRecoverPassword">cancel</a></td>
+                        <td><a href="javascript:void(0)" class="forgotPassword" id="cancelRecoverPassword">cancel</a></td>
                         <td></td>
                     </tr>
                 </table>
@@ -127,13 +127,13 @@
                     <a href="${release}/html/privacyPolicy.html" class="policyLink">Privacy policy and terms of use</a>
                 </li>
                 <li>
-                    <a href="https://github.com/fluxtream/fluxtream-app/wiki" class="developerLink">Developers: join our open-source team!</a>
+                    <a href="/dev/" class="developerLink">For Developers: API & Build Instructions</a>
                 </li>
 
 <!-- Comment this out until we have something good to point a learn more link at.  
      Modify guideLink and developerLink in index.css when this is added back in -->
 <!--                <li> -->
-<!--                    <a href="#" class="learnMoreLink">Learn more</a> -->
+<!--                    <a href="javascript:void(0)" class="learnMoreLink">Learn more</a> -->
 <!--                </li> -->
 
             </ul>
@@ -141,7 +141,7 @@
     </div>
     <div id="footerBar">
         <div id="footer">
-            <a href="#"><div class="createLab_logo"></div></a>
+            <a href="javascript:void(0)"><div class="createLab_logo"></div></a>
             <div class="creator">
                 The BodyTrack Team @ CMU CREATE Lab & Candide Kemmler.
             </div>
@@ -162,7 +162,7 @@
         </div>
     </div>
     <div class="modal-footer">
-        <a href="#" class="btn" data-dismiss="modal">Ok</a>
+        <a href="javascript:void(0)" class="btn" data-dismiss="modal">Ok</a>
     </div>
 </div>
 
@@ -177,7 +177,7 @@
         </div>
     </div>
     <div class="modal-footer">
-        <a href="#" class="btn" data-dismiss="modal">Ok</a>
+        <a href="javascript:void(0)" class="btn" data-dismiss="modal">Ok</a>
     </div>
 </div>
 
@@ -190,7 +190,7 @@
         <strong>Thanks for subscribing!</strong> We'll send you an email when we (re-)open the doors to the website and you'll be among the first to know.
     </div>
     <div class="modal-footer">
-        <a href="#" class="btn" data-dismiss="modal">Ok</a>
+        <a href="javascript:void(0)" class="btn" data-dismiss="modal">Ok</a>
     </div>
 </div>
 
@@ -207,7 +207,7 @@
         </div>
     </div>
     <div class="modal-footer">
-        <a href="#" class="btn" data-dismiss="modal">Ok</a>
+        <a href="javascript:void(0)" class="btn" data-dismiss="modal">Ok</a>
     </div>
 </div>
 
@@ -244,7 +244,7 @@
         </div>
     </div>
     <div class="modal-footer">
-        <a href="#" class="btn" data-dismiss="modal">Dismiss</a>
+        <a href="javascript:void(0)" class="btn" data-dismiss="modal">Dismiss</a>
     </div>
 </div>
 

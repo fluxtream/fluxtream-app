@@ -1,12 +1,13 @@
 package org.fluxtream.connectors.google_latitude;
 
-import java.io.StringReader;
-import java.util.ArrayList;
-import org.fluxtream.connectors.location.LocationFacet;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
+import org.fluxtream.core.connectors.location.LocationFacet;
 import org.junit.Test;
+
+import java.io.StringReader;
+import java.util.ArrayList;
 
 import static org.junit.Assert.assertTrue;
 

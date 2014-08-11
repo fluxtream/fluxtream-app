@@ -1,10 +1,10 @@
 package org.fluxtream.connectors.up;
 
-import org.fluxtream.OutsideTimeBoundariesException;
-import org.fluxtream.TimeInterval;
-import org.fluxtream.connectors.vos.AbstractFacetVO;
-import org.fluxtream.connectors.vos.TimeOfDayVO;
-import org.fluxtream.domain.GuestSettings;
+import org.fluxtream.core.OutsideTimeBoundariesException;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.connectors.vos.AbstractFacetVO;
+import org.fluxtream.core.connectors.vos.TimeOfDayVO;
+import org.fluxtream.core.domain.GuestSettings;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.codehaus.jackson.annotate.JsonRawValue;

@@ -4,11 +4,11 @@ import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import org.fluxtream.connectors.annotations.ObjectTypeSpec;
-import org.fluxtream.connectors.updaters.AbstractUpdater;
-import org.fluxtream.domain.AbstractLocalTimeFacet;
-import org.fluxtream.domain.ApiKey;
-import org.fluxtream.domain.Updatable;
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.connectors.updaters.AbstractUpdater;
+import org.fluxtream.core.domain.AbstractLocalTimeFacet;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.Updatable;
 import org.hibernate.search.annotations.Indexed;
 
 @Entity(name="Facet_FitbitActivity")

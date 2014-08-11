@@ -5,8 +5,8 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
-import org.fluxtream.connectors.annotations.ObjectTypeSpec;
-import org.fluxtream.connectors.location.LocationFacet;
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.connectors.location.LocationFacet;
 
 /**
  * User: candide

@@ -1,16 +1,16 @@
 package org.fluxtream.connectors.moves;
 
+import org.codehaus.plexus.util.StringUtils;
+import org.fluxtream.core.OutsideTimeBoundariesException;
+import org.fluxtream.core.domain.GuestSettings;
+import org.fluxtream.core.mvc.models.DurationModel;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.ISODateTimeFormat;
+
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.TimeZone;
-import org.codehaus.plexus.util.StringUtils;
-import org.fluxtream.OutsideTimeBoundariesException;
-import org.fluxtream.connectors.vos.AbstractTimedFacetVO;
-import org.fluxtream.connectors.vos.TimeOfDayVO;
-import org.fluxtream.domain.GuestSettings;
-import org.fluxtream.mvc.models.DurationModel;
 
 /**
  * User: candide
@@ -19,18 +19,16 @@ import org.fluxtream.mvc.models.DurationModel;
  */
 public class MovesActivityVO {
 
-    public int startMinute;
-    public int endMinute;
+    public String eventStart;
+    public String eventEnd;
     public boolean manual;
     public String activity, activityCode = "generic";
     public String activityGroup;
     public String distance;
     public Integer steps;
     public DurationModel duration;
-    public TimeOfDayVO startTime, endTime;
     public String date;
     public final String type = "moves-move-activity";
-    public long start, end;
 
     private static final ArrayList<String> validActivityCodes = new ArrayList<String>(Arrays.asList(new String[]{"running", "walking", "cycling", "transport"}));
 
@@ -43,8 +41,8 @@ public class MovesActivityVO {
         else if (activity.activityGroup==null&&validActivityCodes.contains(activity.activity))
             this.activityCode = activity.activity;
         this.date = activity.date;
-        this.start = activity.start;
-        this.end = activity.end;
+        this.eventStart = ISODateTimeFormat.dateTime().withZone(DateTimeZone.forTimeZone(timeZone)).print(activity.start);
+        this.eventEnd = ISODateTimeFormat.dateTime().withZone(DateTimeZone.forTimeZone(timeZone)).print(activity.end);
         this.activityGroup = activity.activityGroup;
         this.manual = activity.manual!=null?activity.manual:false;
 
@@ -76,13 +74,6 @@ public class MovesActivityVO {
         if (this.manual) {
             this.duration = new DurationModel(activity.duration);
         } else {
-            // Calculate start/end Minute and Time based on truncated millisecond time
-            this.startMinute = AbstractTimedFacetVO.toMinuteOfDay(new Date(truncStartMilli), timeZone);
-            this.endMinute = AbstractTimedFacetVO.toMinuteOfDay(new Date(truncEndMilli), timeZone);
-
-            this.startTime = new TimeOfDayVO(this.startMinute, true);
-            this.endTime = new TimeOfDayVO(this.endMinute, true);
-
             // The args for creating a DurationModel are in seconds.
             // The units of start and end are milliseconds, so divide by 1000 to
             // calculate the duration in seconds to pass to the Duration Model.

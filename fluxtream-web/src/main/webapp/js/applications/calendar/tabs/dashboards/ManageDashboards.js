@@ -8,7 +8,7 @@ define(["App"], function(App) {
     }
 
     function update() {
-        $.ajax("/api/dashboards",{
+        $.ajax("/api/v1/dashboards",{
             success: function(data, textStatus, jqXHR){
                 dataLoaded(data);
             }
@@ -51,7 +51,7 @@ define(["App"], function(App) {
         $(".dashboard-list-item-name").editable(function(value, settings) {
             var dashboardId = $(this).parent().attr("id").substring("dashboard-".length);
             $.ajax({
-                url: "/api/dashboards/" + dashboardId + "/name?name=" + value,
+                url: "/api/v1/dashboards/" + dashboardId + "/name?name=" + value,
                 type: "PUT",
                 success: function(dashboards) {
                     dashboardsTab.updateDashboardTabs({ dashboards : dashboards });

@@ -4,7 +4,7 @@
         var newValue = prompt("Edit Attribute Value", attributeValue);
         if (newValue!=null) {
             $.ajax({
-                url: "/api/admin/apiKeys/" + apiKeyId + "/attribute",
+                url: "/api/v1/admin/apiKeys/" + apiKeyId + "/attribute",
                 data: {attributeKey: attributeKey, attributeValue : newValue},
                 type: "POST",
                 success: function(){
@@ -18,7 +18,7 @@
         var confirmed = confirm("Are you sure?");
         if (confirmed) {
             $.ajax({
-                url: "/api/admin/apiKeys/" + apiKeyId + "/attribute/delete?attributeKey=" + encodeURIComponent(attributeKey),
+                url: "/api/v1/admin/apiKeys/" + apiKeyId + "/attribute/delete?attributeKey=" + encodeURIComponent(attributeKey),
                 type: "DELETE",
                 success: function(){
                     location.reload();
@@ -33,7 +33,7 @@
         var newValue = prompt("Please, enter Attribute Value");
         if (newValue!=null) {
             $.ajax({
-                url: "/api/admin/apiKeys/" + apiKeyId + "/attribute/add",
+                url: "/api/v1/admin/apiKeys/" + apiKeyId + "/attribute/add",
                 data: {attributeKey: newKey, attributeValue : newValue},
                 type: "POST",
                 success: function(status){

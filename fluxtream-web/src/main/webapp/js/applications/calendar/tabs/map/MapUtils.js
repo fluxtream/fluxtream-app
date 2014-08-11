@@ -460,7 +460,7 @@ define(["applications/calendar/tabs/map/MapConfig",
         if (item != null && item.type==="moves-place") {
             if (item.placeType==="foursquare") {
                 $.ajax({
-                    url: "/api/metadata/foursquare/venue/" + item.foursquareId,
+                    url: "/api/v1/metadata/foursquare/venue/" + item.foursquareId,
                     success: function(response) {
                         marker.config.mapicon = {
                             url: response.categoryIconUrlPrefix + "bg_32" + response.categoryIconUrlSuffix,
@@ -1353,16 +1353,16 @@ define(["applications/calendar/tabs/map/MapConfig",
             map.setZoom(map.getZoom()+1);
     }
 
-    function zoomOnItemAndClick(map,item){
+    function zoomOnItemAndClick(map,item,zoom){
         var targetMarker = null;
         for (var i = 0, li = map.markerList.length; i < li && targetMarker == null; i++){
             if (map.markerList[i].item != null && map.markerList[i].item.id == item.id)
                 targetMarker = map.markerList[i];
         }
-        if (targetMarker != null){
+        if (targetMarker != null && zoom){
             map.zoomOnMarker(targetMarker);
-            google.maps.event.trigger(targetMarker,"click");
         }
+        google.maps.event.trigger(targetMarker,"click");
     }
 
     return {
@@ -1470,7 +1470,10 @@ define(["applications/calendar/tabs/map/MapConfig",
             }
             map.isPreserveViewChecked = function(){return false;}
             map.zoomOnItemAndClick = function(item){
-                zoomOnItemAndClick(map,item);
+                zoomOnItemAndClick(map,item,true);
+            }
+            map.clickOnItem = function(item){
+                zoomOnItemAndClick(map,item,false);
             }
             map._oldFitBounds = map.fitBounds;
             map.fitBounds = function(bounds,isPreservedView){

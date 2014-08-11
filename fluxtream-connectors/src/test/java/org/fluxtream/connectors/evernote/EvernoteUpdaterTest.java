@@ -3,7 +3,7 @@ package org.fluxtream.connectors.evernote;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import org.fluxtream.services.impl.BodyTrackHelper;
+import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 

@@ -1,9 +1,9 @@
 package org.fluxtream.connectors.zeo;
 
 import java.util.TimeZone;
-import org.fluxtream.Configuration;
-import org.fluxtream.utils.HttpUtils;
-import org.fluxtream.utils.TimeUtils;
+import org.fluxtream.core.Configuration;
+import org.fluxtream.core.utils.HttpUtils;
+import org.fluxtream.core.utils.TimeUtils;
 import net.sf.json.JSONObject;
 import org.joda.time.DateTimeZone;
 

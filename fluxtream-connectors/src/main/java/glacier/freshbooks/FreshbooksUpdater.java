@@ -12,10 +12,10 @@ import oauth.signpost.signature.PlainTextMessageSigner;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 
-import org.fluxtream.TimeInterval;
-import org.fluxtream.connectors.annotations.Updater;
-import org.fluxtream.connectors.updaters.AbstractUpdater;
-import org.fluxtream.connectors.updaters.UpdateInfo;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.connectors.annotations.Updater;
+import org.fluxtream.core.connectors.updaters.AbstractUpdater;
+import org.fluxtream.core.connectors.updaters.UpdateInfo;
 
 /**
  * 

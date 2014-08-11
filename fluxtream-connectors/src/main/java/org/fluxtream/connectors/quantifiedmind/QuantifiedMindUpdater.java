@@ -1,14 +1,14 @@
 package org.fluxtream.connectors.quantifiedmind;
 
 import java.io.IOException;
-import org.fluxtream.connectors.Connector;
-import org.fluxtream.connectors.annotations.Updater;
-import org.fluxtream.connectors.updaters.AbstractUpdater;
-import org.fluxtream.connectors.updaters.UpdateInfo;
-import org.fluxtream.services.GuestService;
-import org.fluxtream.utils.HttpUtils;
-import org.fluxtream.utils.UnexpectedHttpResponseCodeException;
-import org.fluxtream.utils.Utils;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.connectors.annotations.Updater;
+import org.fluxtream.core.connectors.updaters.AbstractUpdater;
+import org.fluxtream.core.connectors.updaters.UpdateInfo;
+import org.fluxtream.core.services.GuestService;
+import org.fluxtream.core.utils.HttpUtils;
+import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
+import org.fluxtream.core.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;

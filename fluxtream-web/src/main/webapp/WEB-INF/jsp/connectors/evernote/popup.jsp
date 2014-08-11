@@ -7,6 +7,6 @@
         <iframe id="iframe-${guid}" src="/evernote/content/${apiKeyId}/${guid}"></iframe>
     </div>
     <div class="modal-footer">
-        <a href="#" class="btn" data-dismiss="modal">Dismiss</a>
+        <a href="javascript:void(0)" class="btn" data-dismiss="modal">Dismiss</a>
     </div>
 </div>

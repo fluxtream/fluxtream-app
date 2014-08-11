@@ -203,7 +203,7 @@ define([], function() {
 					return 0;
 				};
 
-				TOOLS.loadJson("/api/bodytrack/users/" + App.getUID() + "/tags",
+				TOOLS.loadJson("/api/v1/bodytrack/users/" + App.buddyToAccess.id + "/tags",
 						{},
 						{
 							success : function(data, textStatus, jqXHR) {
@@ -272,7 +272,7 @@ define([], function() {
 					cache   : false,
 					type    : "GET",
                     dataType: 'json',
-					url     : "/api/bodytrack/users/" + App.getUID() + "/views",
+					url     : "/api/v1/bodytrack/users/" + App.buddyToAccess.id + "/views",
 					success : function(data, textStatus, jqXHR) {
 						VIEWS.availableList = data.views;
 						if (typeof callback === "function") {
@@ -289,16 +289,11 @@ define([], function() {
                 $.ajax({
                     cache: false,
                     type : "DELETE",
-                    url  : "/api/bodytrack/users/" + App.getUID() + "/views/" + id,
+                    url  : "/api/v1/bodytrack/users/" + App.buddyToAccess.id + "/views/" + id,
                     success: function(data, textStatus, jqXHR){
-                        if (data.result != "OK")
-                            callback(false);
-                        else{
-                            VIEWS.getAvailableList(function(){
-                                callback(true);
-                            });
-                        }
-
+                        VIEWS.getAvailableList(function(){
+                            callback(true);
+                        });
                     },
                     error : function (jqXHR, textStatus, errorThrown){
                         callback(false);
@@ -312,7 +307,7 @@ define([], function() {
 					cache   : false,
 					type    : "GET",
                     dataType: 'json',
-					url     : "/api/bodytrack/users/" + App.getUID() + "/views/" + id,
+					url     : "/api/v1/bodytrack/users/" + App.buddyToAccess.id + "/views/" + id,
 					success : function(data, textStatus, jqXHR) {
 						VIEWS.data = data;
 						if (typeof callback === "function") {
@@ -331,7 +326,7 @@ define([], function() {
 					cache   : false,
 					type    : "POST",
                     dataType: 'json',
-					url     : "/api/bodytrack/users/" + App.getUID() + "/views",
+					url     : "/api/v1/bodytrack/users/" + App.buddyToAccess.id + "/views",
 					data    : {
 						"name" : name,
 						"data" : JSON.stringify(VIEWS.data)
@@ -371,7 +366,7 @@ define([], function() {
 					cache   : false,
 					type    : "GET",
                     dataType: 'json',
-					url     : "/api/bodytrack/users/" + App.getUID() + "/sources/list",
+					url     : "/api/v1/bodytrack/users/" + App.buddyToAccess.id + "/sources/list",
 					success : function(data, textStatus, jqXHR) {
 						SOURCES.availableList = data.sources;
 
@@ -390,7 +385,7 @@ define([], function() {
 					cache   : false,
 					type    : "GET",
                     dataType: 'json',
-					url     : "/bodytrack/users/" + App.getUID() + "/sources",
+					url     : "/bodytrack/users/" + App.buddyToAccess.id + "/sources",
 					success : function(data, textStatus, jqXHR) {
 						SOURCES.configuredList = data.sources;
 
@@ -409,7 +404,7 @@ define([], function() {
 					cache   : false,
 					type    : "GET",
                     dataType: 'json',
-					url     : "/bodytrack/users/" + App.getUID() + "/sources/discovery",
+					url     : "/bodytrack/users/" + App.buddyToAccess.id + "/sources/discovery",
 					success : function(data, textStatus, jqXHR) {
 						SOURCES.discoveryList = data.sources;
 
@@ -428,7 +423,7 @@ define([], function() {
 					cache   : false,
 					type    : "GET",
                     dataType: 'json',
-					url     : "/api/bodytrack/users/" + App.getUID() + "/sources/" + device_name + "/default_graph_specs",
+					url     : "/api/v1/bodytrack/users/" + App.buddyToAccess.id + "/sources/" + device_name + "/default_graph_specs",
 					success : function(data, textStatus, jqXHR) {
 						if (typeof callback === "function") {
 							callback(data.info);
@@ -442,19 +437,19 @@ define([], function() {
 	}; // SOURCES
 
     window.channelDatasource = function(userId, deviceName, channelName) {
-        var urlPrefix = "/api/bodytrack/tiles/" + userId + "/" + deviceName + "."
+        var urlPrefix = "/api/v1/bodytrack/tiles/" + userId + "/" + deviceName + "."
                             + channelName + "/";
         return __createDatasource(urlPrefix);
     }
 
     window.timespanDatasource = function(userId, deviceName, channelName) {
-        var urlPrefix = "/api/bodytrack/timespans/" + userId + "/" + deviceName + "."
+        var urlPrefix = "/api/v1/bodytrack/timespans/" + userId + "/" + deviceName + "."
                             + channelName + "/";
         return __createDatasource(urlPrefix);
     }
 
     window.photoDatasource = function(userId, deviceName, channelName, tags, matchingStrategy, nsfw) {
-        var urlPrefix = "/api/bodytrack/photos/" + userId + "/"+ (deviceName == null ? "All" : deviceName) + "." + channelName + "/";
+        var urlPrefix = "/api/v1/bodytrack/photos/" + userId + "/"+ (deviceName == null ? "All" : deviceName) + "." + channelName + "/";
         var urlParams = {};
         if (matchingStrategy == 'untagged') {
             urlParams["tag-match"] = matchingStrategy;

@@ -2,8 +2,7 @@
 	prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ page
-	isELIgnored="false"%><%@ page import="org.fluxtream.*"%><%@ page
-	import="org.fluxtream.domain.*"%><%@ page import="java.util.*"%>
+	isELIgnored="false"%><%@ page import="java.util.*"%>
 <%
 	List<String> errors = new ArrayList<String>();
 	if (request.getAttribute("errors") != null)
