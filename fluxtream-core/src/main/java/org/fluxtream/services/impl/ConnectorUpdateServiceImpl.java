@@ -302,6 +302,9 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         // Spawn a duplicate entry in the UpdateWorker table to record this failure and the reason for it
         if (!incrementRetries) {
             UpdateWorkerTask failed = new UpdateWorkerTask(updt);
+            failed.workerThreadName = updt.workerThreadName;
+            failed.startTime = updt.startTime;
+            failed.endTime = updt.endTime;
             failed.auditTrail = updt.auditTrail;
             failed.apiKeyId = updt.apiKeyId;
             failed.retries = updt.retries;
@@ -317,6 +320,9 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
         // Reschedule the original task
         updt.status = Status.SCHEDULED;
+        updt.workerThreadName = null;
+        updt.startTime = null;
+        updt.endTime = null;
 
         // Reset serverUUID to UNCLAIMED to reflect the fact that this task is no longer in the process of being
         // executed.
