@@ -91,6 +91,8 @@
 
     <div  class="container-fluid">
 
+        <p><span class="label label-info">Live serverUUID's: ${serverUUID}</span></p>
+
         <div class="dropdown">
             <a class="dropdown-toggle" data-toggle="dropdown" href="#">&lt;Please choose a Guest&gt;</a>
             <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
