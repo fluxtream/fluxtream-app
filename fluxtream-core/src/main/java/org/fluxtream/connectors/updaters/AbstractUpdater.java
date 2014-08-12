@@ -155,8 +155,18 @@ public abstract class AbstractUpdater extends ApiClientSupport {
             return UpdateResult.failedResult(stackTrace);
         }
         finally {
-            // Update the time bounds no matter how we exit the updater.
-            updateTimeBounds(updateInfo);
+            try {
+                // Update the time bounds no matter how we exit the updater.
+                updateTimeBounds(updateInfo);
+            } catch(Throwable t) {
+                final String stackTrace = Utils.stackTrace(t);
+                StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateData")
+                        .append(" message=\"Couldn't update time bounds\" connector=")
+                        .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=").append(updateInfo.apiKey.getGuestId())
+                        .append(" stackTrace=<![CDATA[").append(stackTrace).append("]]>")
+                        .append(updateInfo.apiKey.getGuestId());
+                logger.warn(sb.toString());
+            }
         }
 	}
 
