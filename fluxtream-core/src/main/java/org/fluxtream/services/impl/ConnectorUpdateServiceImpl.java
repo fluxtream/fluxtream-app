@@ -373,10 +373,10 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
             }
 
             // If the status is in_progress, set serverUUID to the current one.
-            // For anything other than IN_PROGRESS, set the serverUUID to null to reflect that it's not claimed
+            // For SCHEDULED tasks, set the serverUUID to unclaimed
             if(status==Status.IN_PROGRESS) {
                 updt.serverUUID = SERVER_UUID;
-            } else {
+            } else if (status==Status.SCHEDULED) {
                 updt.serverUUID = UNCLAIMED;
             }
 
