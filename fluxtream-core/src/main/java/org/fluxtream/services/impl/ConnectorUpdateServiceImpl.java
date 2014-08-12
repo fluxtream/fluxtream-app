@@ -1,13 +1,31 @@
 package org.fluxtream.services.impl;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import org.fluxtream.aspects.FlxLogger;
 import org.fluxtream.connectors.Connector;
 import org.fluxtream.connectors.updaters.AbstractUpdater;
 import org.fluxtream.connectors.updaters.ScheduleResult;
 import org.fluxtream.connectors.updaters.UpdateInfo.UpdateType;
-import org.fluxtream.domain.*;
+import org.fluxtream.domain.ApiKey;
+import org.fluxtream.domain.ApiNotification;
+import org.fluxtream.domain.ApiUpdate;
+import org.fluxtream.domain.ConnectorInfo;
+import org.fluxtream.domain.UpdateWorkerTask;
 import org.fluxtream.domain.UpdateWorkerTask.Status;
-import org.fluxtream.services.*;
+import org.fluxtream.services.ApiDataService;
+import org.fluxtream.services.ConnectorUpdateService;
+import org.fluxtream.services.GuestService;
+import org.fluxtream.services.MetadataService;
+import org.fluxtream.services.SystemService;
 import org.fluxtream.utils.JPAUtils;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeUtils;
@@ -20,11 +38,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import java.util.*;
 
 @Service
 @Component
@@ -304,7 +317,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
             UpdateWorkerTask failed = new UpdateWorkerTask(updt);
             failed.workerThreadName = updt.workerThreadName;
             failed.startTime = updt.startTime;
-            failed.endTime = updt.endTime;
+            failed.endTime = DateTimeUtils.currentTimeMillis();
             failed.auditTrail = updt.auditTrail;
             failed.apiKeyId = updt.apiKeyId;
             failed.retries = updt.retries;
