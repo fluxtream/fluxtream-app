@@ -1,33 +1,20 @@
 package org.fluxtream.services.impl;
 
-import java.util.Date;
-import java.util.List;
+import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Trace;
 import org.fluxtream.Configuration;
 import org.fluxtream.aspects.FlxLogger;
 import org.fluxtream.connectors.Connector;
-import org.fluxtream.connectors.updaters.AbstractUpdater;
-import org.fluxtream.connectors.updaters.SettingsAwareUpdater;
-import org.fluxtream.connectors.updaters.SharedConnectorSettingsAwareUpdater;
-import org.fluxtream.connectors.updaters.UpdateInfo;
-import org.fluxtream.connectors.updaters.UpdateResult;
-import org.fluxtream.domain.ApiKey;
-import org.fluxtream.domain.ConnectorInfo;
-import org.fluxtream.domain.Notification;
-import org.fluxtream.domain.SharedConnector;
-import org.fluxtream.domain.UpdateWorkerTask;
+import org.fluxtream.connectors.updaters.*;
+import org.fluxtream.domain.*;
 import org.fluxtream.domain.UpdateWorkerTask.Status;
-import org.fluxtream.services.ApiDataService;
-import org.fluxtream.services.CoachingService;
-import org.fluxtream.services.ConnectorUpdateService;
-import org.fluxtream.services.GuestService;
-import org.fluxtream.services.NotificationsService;
-import org.fluxtream.services.SettingsService;
-import org.fluxtream.services.SystemService;
-import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.Trace;
+import org.fluxtream.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import java.util.Date;
+import java.util.List;
 
 import static org.fluxtream.utils.Utils.stackTrace;
 
@@ -69,6 +56,9 @@ class UpdateWorker implements Runnable {
     @Trace(dispatcher=true)
 	@Override
 	public void run() {
+        final boolean claimed = connectorUpdateService.claimForExecution(task.getId(), Thread.currentThread().getName());
+        if (!claimed)
+            return;
         logNR();
         StringBuilder sb = new StringBuilder("module=updateQueue component=worker action=start")
                 .append(" guestId=").append(task.getGuestId())

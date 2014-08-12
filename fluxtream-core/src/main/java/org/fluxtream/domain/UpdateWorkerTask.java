@@ -1,12 +1,13 @@
 package org.fluxtream.domain;
 
-import java.util.Date;
+import org.fluxtream.connectors.updaters.UpdateInfo;
+import org.hibernate.annotations.Index;
+
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import org.fluxtream.connectors.updaters.UpdateInfo;
-import org.hibernate.annotations.Index;
+import java.util.Date;
 
 @Entity(name="UpdateWorkerTask")
 @NamedQueries ( {
@@ -146,6 +147,9 @@ public class UpdateWorkerTask extends AbstractEntity {
     @Index(name="retries_index")
 	public int retries;
 	public String jsonParams;
+
+    public Long startTime, endTime;
+    public String workerThreadName;
 	
 	public UpdateWorkerTask() {
     }
