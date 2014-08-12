@@ -146,6 +146,9 @@ public class UpdateWorkerTask extends AbstractEntity {
     @Index(name="retries_index")
 	public int retries;
 	public String jsonParams;
+
+    public Long startTime, endTime;
+    public String workerThreadName;
 	
 	public UpdateWorkerTask() {
     }

@@ -107,7 +107,15 @@ public interface ConnectorUpdateService {
 
     // Returns true if the task was claimed and false otherwise.  If returns false the caller
     // should not try to continue with task execution.
-    public boolean claim(long taskId);
+    public boolean claimForDispatch(long taskId);
+
+    /**
+     * Sets the actual start time of execution
+     * @param taskId
+     * @param workerThreadName the current thread's name, useful for debugging
+     * @return
+     */
+    public boolean claimForExecution(long taskId, String workerThreadName);
 
     public void addAuditTrail(long updateWorkerTaskId, UpdateWorkerTask.AuditTrailEntry auditTrailEntry);
 

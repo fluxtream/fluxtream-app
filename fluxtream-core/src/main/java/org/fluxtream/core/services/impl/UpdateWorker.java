@@ -69,6 +69,9 @@ class UpdateWorker implements Runnable {
     @Trace(dispatcher=true)
 	@Override
 	public void run() {
+        final boolean claimed = connectorUpdateService.claimForExecution(task.getId(), Thread.currentThread().getName());
+        if (!claimed)
+            return;
         logNR();
         StringBuilder sb = new StringBuilder("module=updateQueue component=worker action=start")
                 .append(" guestId=").append(task.getGuestId())
