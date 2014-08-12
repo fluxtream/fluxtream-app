@@ -28,6 +28,7 @@ import org.fluxtream.core.services.MetadataService;
 import org.fluxtream.core.services.SystemService;
 import org.fluxtream.core.utils.JPAUtils;
 import org.joda.time.DateTimeConstants;
+import org.joda.time.DateTimeUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -258,8 +259,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
      * @param guestId
      * @param force if true then delete all pending updates for the connectors, otherwise respect
      *              any pending updates and return ALREADY_SCHEDULED if present
-     * @param updateTime (optional) if present schedule the connector updates to occur at the
-     *                   specified time.  If not present then schedule the updates to occur immediately
      * * @return a list of objects that describe worker tasks that have been either modified or added
      * to the update queue
      */
@@ -554,8 +553,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
 
     @Override
     public List<UpdateWorkerTask> getAllScheduledUpdateWorkerTasks() {
-        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class,
-                                                                 "updateWorkerTasks.all.scheduled");
+        List<UpdateWorkerTask> updateWorkerTasks = JPAUtils.find(em, UpdateWorkerTask.class, "updateWorkerTasks.all.scheduled");
         return updateWorkerTasks;
     }
 
@@ -779,7 +777,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         // and return
         if(task==null) {
             StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=claimForDispatch")
-                    .append(" updateWorkerTaskId="+taskId)
+                    .append(" updateWorkerTaskId=" + taskId)
                     .append(" message=\"Ignoring claimForDispatch request for an update task which is no longer in the system (deleted connector?)");
             logger.info(sb);
             return false;
