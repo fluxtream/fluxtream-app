@@ -738,7 +738,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
             task.serverUUID = SERVER_UUID;
             task.status = Status.IN_PROGRESS;
             task.addAuditTrailEntry(new UpdateWorkerTask.AuditTrailEntry(new java.util.Date(), SERVER_UUID));
-            em.persist(task);
             return true;
         }
 
@@ -762,7 +761,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
             task.serverUUID = null;
             task.status = Status.SCHEDULED;
             task.addAuditTrailEntry(new UpdateWorkerTask.AuditTrailEntry(new java.util.Date(), SERVER_UUID));
-            em.persist(task);
             return true;
         }
 
@@ -782,11 +780,9 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
                     .append(" message=\"Ignoring claimForExecution request for an update task which is no longer in the system (deleted connector?)");
             logger.info(sb);
             return false;
-
         } else {
             task.workerThreadName = workerThreadName;
             task.startTime = DateTimeUtils.currentTimeMillis();
-            em.persist(task);
             return true;
         }
     }
@@ -807,7 +803,6 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         }
         else {
             task.addAuditTrailEntry(auditTrailEntry);
-            em.persist(task);
         }
     }
 
