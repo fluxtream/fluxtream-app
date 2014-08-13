@@ -781,6 +781,7 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
             logger.info(sb);
             return false;
         } else {
+            logger.info("claiming task " + taskId + " for execution");
             task.workerThreadName = workerThreadName;
             task.startTime = DateTimeUtils.currentTimeMillis();
             return true;
