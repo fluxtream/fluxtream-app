@@ -777,9 +777,9 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         // connector instance which was subsequently deleted.  In that case, print a message
         // and return
         if(task==null) {
-            StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=claimForDispatch")
+            StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=claimForExecution")
                     .append(" updateWorkerTaskId="+taskId)
-                    .append(" message=\"Ignoring claimForDispatch request for an update task which is no longer in the system (deleted connector?)");
+                    .append(" message=\"Ignoring claimForExecution request for an update task which is no longer in the system (deleted connector?)");
             logger.info(sb);
             return false;
 
