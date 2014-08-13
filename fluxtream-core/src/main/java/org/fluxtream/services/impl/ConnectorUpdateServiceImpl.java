@@ -414,19 +414,15 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
                         " message=\"Executing update: " +
                         " \"" + updateWorkerTask);
 
-            // Claim can return false if the task with that ID has been deleted, such as in the case
-            // of connector deletion.  In that case just skip this task.  If it returns true then
-            // continue with task execution
-            if(claimForDispatch(updateWorkerTask.getId()) == true){
-                UpdateWorker updateWorker = beanFactory.getBean(UpdateWorker.class);
-                updateWorker.task = updateWorkerTask;
-                try {
-                    executor.execute(updateWorker);
-                } catch (Throwable t) {
-                    unclaim(updateWorkerTask.getId());
-                    logger.warn("executor.execute failed. activeCount=" + executor.getActiveCount() + " maxPoolSize=" + executor.getMaxPoolSize());
-                    t.printStackTrace();
-                }
+            claimForDispatch(updateWorkerTask);
+            UpdateWorker updateWorker = beanFactory.getBean(UpdateWorker.class);
+            updateWorker.task = updateWorkerTask;
+            try {
+                executor.execute(updateWorker);
+            } catch (Throwable t) {
+                unclaim(updateWorkerTask);
+                logger.warn("executor.execute failed. activeCount=" + executor.getActiveCount() + " maxPoolSize=" + executor.getMaxPoolSize());
+                t.printStackTrace();
             }
         }
     }
@@ -716,59 +712,26 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         return seen.values();
     }
 
-    @Override
     @Transactional(readOnly=false)
-    public boolean claimForDispatch(final long taskId) {
-        UpdateWorkerTask task = em.find(UpdateWorkerTask.class, taskId);
-
-        // Check if task is null.  This can happen if we were in the process of updating a
-        // connector instance which was subsequently deleted.  In that case, print a message
-        // and return
-        if(task==null) {
-            StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=claimForDispatch")
-                        .append(" updateWorkerTaskId="+taskId)
-                        .append(" message=\"Ignoring claimForDispatch request for an update task which is no longer in the system (deleted connector?)");
-            logger.info(sb);
-            return false;
-
-        } else {
-            task.startTime = null;
-            task.endTime = null;
-            task.workerThreadName = null;
-            task.serverUUID = SERVER_UUID;
-            task.status = Status.IN_PROGRESS;
-            task.addAuditTrailEntry(new UpdateWorkerTask.AuditTrailEntry(new java.util.Date(), SERVER_UUID));
-            return true;
-        }
-
+    public void claimForDispatch(UpdateWorkerTask task) {
+        task.startTime = null;
+        task.endTime = null;
+        task.workerThreadName = null;
+        task.serverUUID = SERVER_UUID;
+        task.status = Status.IN_PROGRESS;
+        task.addAuditTrailEntry(new UpdateWorkerTask.AuditTrailEntry(new java.util.Date(), SERVER_UUID));
     }
 
     @Transactional(readOnly=false)
-    public boolean unclaim(final long taskId) {
-        UpdateWorkerTask task = em.find(UpdateWorkerTask.class, taskId);
-
-        // Check if task is null.  This can happen if we were in the process of updating a
-        // connector instance which was subsequently deleted.  In that case, print a message
-        // and return
-        if(task==null) {
-            StringBuilder sb = new StringBuilder("module=updateQueue component=connectorUpdateService action=claimForDispatch")
-                    .append(" updateWorkerTaskId="+taskId)
-                    .append(" message=\"Ignoring claimForDispatch request for an update task which is no longer in the system (deleted connector?)");
-            logger.info(sb);
-            return false;
-
-        } else {
-            task.serverUUID = null;
-            task.status = Status.SCHEDULED;
-            task.addAuditTrailEntry(new UpdateWorkerTask.AuditTrailEntry(new java.util.Date(), SERVER_UUID));
-            return true;
-        }
-
+    public void unclaim(UpdateWorkerTask task) {
+        task.serverUUID = null;
+        task.status = Status.SCHEDULED;
+        task.addAuditTrailEntry(new UpdateWorkerTask.AuditTrailEntry(new java.util.Date(), SERVER_UUID));
     }
 
     @Override
     @Transactional(readOnly=false)
-    public boolean claimForExecution(final long taskId, final String workerThreadName) {
+    public UpdateWorkerTask claimForExecution(final long taskId, final String workerThreadName) {
         UpdateWorkerTask task = em.find(UpdateWorkerTask.class, taskId);
 
         // Check if task is null.  This can happen if we were in the process of updating a
@@ -779,12 +742,12 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
                     .append(" updateWorkerTaskId="+taskId)
                     .append(" message=\"Ignoring claimForExecution request for an update task which is no longer in the system (deleted connector?)");
             logger.info(sb);
-            return false;
+            return null;
         } else {
             logger.info("claiming task " + taskId + " for execution");
             task.workerThreadName = workerThreadName;
             task.startTime = DateTimeUtils.currentTimeMillis();
-            return true;
+            return task;
         }
     }
 
