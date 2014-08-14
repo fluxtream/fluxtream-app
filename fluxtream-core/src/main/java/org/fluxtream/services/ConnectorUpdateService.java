@@ -80,7 +80,7 @@ public interface ConnectorUpdateService {
      * @param updateWorkerTaskId the id of the task whose status is to be updated
      * @param status the status to set the task to
      */
-	public void setUpdateWorkerTaskStatus(long updateWorkerTaskId, UpdateWorkerTask.Status status);
+	public UpdateWorkerTask setUpdateWorkerTaskStatus(long updateWorkerTaskId, UpdateWorkerTask.Status status);
 
 	public ScheduleResult reScheduleUpdateTask(long updateWorkerTaskId, long time,
                                                boolean incrementRetries, UpdateWorkerTask.AuditTrailEntry auditTrailEntry);
