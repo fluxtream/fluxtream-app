@@ -70,8 +70,11 @@ class UpdateWorker implements Runnable {
 	@Override
 	public void run() {
         final UpdateWorkerTask claimed = connectorUpdateService.claimForExecution(task.getId(), Thread.currentThread().getName());
-        if (claimed==null)
+        if (claimed==null) {
             return;
+        } else {
+            this.task = claimed;
+        }
         logNR();
         StringBuilder sb = new StringBuilder("module=updateQueue component=worker action=start")
                 .append(" guestId=").append(task.getGuestId())
@@ -119,12 +122,12 @@ class UpdateWorker implements Runnable {
                     break;
                 default:
                     logger.warn("module=updateQueue component=worker message=\"UpdateType was not handled (" + task.updateType + ")\"");
-                    connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.FAILED);
+                    this.task = connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.FAILED);
             }
         }
         else {
             // This connector does not support update so mark the update task as done
-            connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.DONE);
+            this.task = connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.DONE);
 
             StringBuilder sb2 = new StringBuilder("module=updateQueue component=worker")
                     .append(" guestId=").append(task.getGuestId())
@@ -317,7 +320,7 @@ class UpdateWorker implements Runnable {
                 .append(" connector=").append(task.objectTypes);
 		logger.info(stringBuilder.toString());
         guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null);
-		connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.DONE);
+        this.task = connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.DONE);
 	}
 
 	private void abort(ApiKey apiKey, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
@@ -327,7 +330,7 @@ class UpdateWorker implements Runnable {
                 .append(" objectType=").append(task.objectTypes);
 		logger.info(stringBuilder.toString());
         guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, auditTrailEntry.stackTrace);
-		connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.FAILED);
+		this.task = connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.FAILED);
 	}
 
 	private void retry(UpdateInfo updateInfo, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
