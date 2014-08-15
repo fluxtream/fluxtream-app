@@ -1,20 +1,33 @@
 package org.fluxtream.services.impl;
 
+import java.util.Date;
+import java.util.List;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import org.fluxtream.Configuration;
 import org.fluxtream.aspects.FlxLogger;
 import org.fluxtream.connectors.Connector;
-import org.fluxtream.connectors.updaters.*;
-import org.fluxtream.domain.*;
+import org.fluxtream.connectors.updaters.AbstractUpdater;
+import org.fluxtream.connectors.updaters.SettingsAwareUpdater;
+import org.fluxtream.connectors.updaters.SharedConnectorSettingsAwareUpdater;
+import org.fluxtream.connectors.updaters.UpdateInfo;
+import org.fluxtream.connectors.updaters.UpdateResult;
+import org.fluxtream.domain.ApiKey;
+import org.fluxtream.domain.ConnectorInfo;
+import org.fluxtream.domain.Notification;
+import org.fluxtream.domain.SharedConnector;
+import org.fluxtream.domain.UpdateWorkerTask;
 import org.fluxtream.domain.UpdateWorkerTask.Status;
-import org.fluxtream.services.*;
+import org.fluxtream.services.ApiDataService;
+import org.fluxtream.services.CoachingService;
+import org.fluxtream.services.ConnectorUpdateService;
+import org.fluxtream.services.GuestService;
+import org.fluxtream.services.NotificationsService;
+import org.fluxtream.services.SettingsService;
+import org.fluxtream.services.SystemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import java.util.Date;
-import java.util.List;
 
 import static org.fluxtream.utils.Utils.stackTrace;
 
@@ -56,9 +69,12 @@ class UpdateWorker implements Runnable {
     @Trace(dispatcher=true)
 	@Override
 	public void run() {
-        final boolean claimed = connectorUpdateService.claimForExecution(task.getId(), Thread.currentThread().getName());
-        if (!claimed)
+        final UpdateWorkerTask claimed = connectorUpdateService.claimForExecution(task.getId(), Thread.currentThread().getName());
+        if (claimed==null) {
             return;
+        } else {
+            this.task = claimed;
+        }
         logNR();
         StringBuilder sb = new StringBuilder("module=updateQueue component=worker action=start")
                 .append(" guestId=").append(task.getGuestId())
@@ -106,12 +122,12 @@ class UpdateWorker implements Runnable {
                     break;
                 default:
                     logger.warn("module=updateQueue component=worker message=\"UpdateType was not handled (" + task.updateType + ")\"");
-                    connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.FAILED);
+                    this.task = connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.FAILED);
             }
         }
         else {
             // This connector does not support update so mark the update task as done
-            connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.DONE);
+            this.task = connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.DONE);
 
             StringBuilder sb2 = new StringBuilder("module=updateQueue component=worker")
                     .append(" guestId=").append(task.getGuestId())
@@ -304,7 +320,7 @@ class UpdateWorker implements Runnable {
                 .append(" connector=").append(task.objectTypes);
 		logger.info(stringBuilder.toString());
         guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null);
-		connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.DONE);
+        this.task = connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.DONE);
 	}
 
 	private void abort(ApiKey apiKey, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
@@ -314,7 +330,7 @@ class UpdateWorker implements Runnable {
                 .append(" objectType=").append(task.objectTypes);
 		logger.info(stringBuilder.toString());
         guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, auditTrailEntry.stackTrace);
-		connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.FAILED);
+		this.task = connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.FAILED);
 	}
 
 	private void retry(UpdateInfo updateInfo, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
