@@ -80,7 +80,7 @@ public interface ConnectorUpdateService {
      * @param updateWorkerTaskId the id of the task whose status is to be updated
      * @param status the status to set the task to
      */
-	public void setUpdateWorkerTaskStatus(long updateWorkerTaskId, UpdateWorkerTask.Status status);
+	public UpdateWorkerTask setUpdateWorkerTaskStatus(long updateWorkerTaskId, UpdateWorkerTask.Status status);
 
 	public ScheduleResult reScheduleUpdateTask(long updateWorkerTaskId, long time,
                                                boolean incrementRetries, UpdateWorkerTask.AuditTrailEntry auditTrailEntry);
@@ -105,17 +105,13 @@ public interface ConnectorUpdateService {
 
     public Collection<UpdateWorkerTask> getLastFinishedUpdateTasks(ApiKey apiKey);
 
-    // Returns true if the task was claimed and false otherwise.  If returns false the caller
-    // should not try to continue with task execution.
-    public boolean claimForDispatch(long taskId);
-
     /**
      * Sets the actual start time of execution
      * @param taskId
      * @param workerThreadName the current thread's name, useful for debugging
      * @return
      */
-    public boolean claimForExecution(long taskId, String workerThreadName);
+    public UpdateWorkerTask claimForExecution(long taskId, String workerThreadName);
 
     public void addAuditTrail(long updateWorkerTaskId, UpdateWorkerTask.AuditTrailEntry auditTrailEntry);
 

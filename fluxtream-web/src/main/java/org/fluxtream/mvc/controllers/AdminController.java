@@ -104,6 +104,7 @@ public class AdminController {
         mav.addObject("tasksDue", due);
         mav.addObject("tasksOverdue", overdue);
         mav.addObject("rows", rows);
+        mav.addObject("serverUUID", connectorUpdateService.getLiveServerUUIDs().toString());
         return mav;
     }
 
