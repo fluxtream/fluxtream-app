@@ -98,9 +98,6 @@ public interface ApiDataService {
 
     void deleteStaleData() throws ClassNotFoundException;
 
-    @Transactional(readOnly = false)
-    void cleanupStaleData() throws ClassNotFoundException, Exception;
-
     @Transactional(readOnly=false)
     void setComment(String connectorName, String objectTypeName, long guestId, long facetId, String comment);
 

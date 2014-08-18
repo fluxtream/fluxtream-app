@@ -1,7 +1,6 @@
 package org.fluxtream.services.impl;
 
 import org.fluxtream.aspects.FlxLogger;
-import org.fluxtream.services.ApiDataService;
 import org.fluxtream.services.ConnectorUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -19,7 +18,7 @@ public class StaleDataCleanupWorker implements Runnable {
     FlxLogger logger = FlxLogger.getLogger(StaleDataCleanupWorker.class);
 
     @Autowired
-    ApiDataService apiDataService;
+    ApiDataCleanupService apiDataCleanupService;
 
     @Autowired
     ConnectorUpdateService connectorUpdateService;
@@ -27,7 +26,7 @@ public class StaleDataCleanupWorker implements Runnable {
     @Override
     public void run() {
         try {
-            apiDataService.cleanupStaleData();
+            apiDataCleanupService.cleanupStaleData();
             connectorUpdateService.cleanupStaleData();
         }
         catch (Exception e) {
