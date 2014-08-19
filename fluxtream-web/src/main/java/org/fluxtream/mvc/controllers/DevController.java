@@ -19,10 +19,13 @@ import org.markdown4j.Markdown4jProcessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+
+import static org.fluxtream.core.utils.Utils.hash;
 
 /**
  * User: candide
@@ -68,9 +71,14 @@ public class DevController {
     }
 
     @RequestMapping(value = "/home")
-    public ModelAndView partnersHome(HttpServletResponse response) {
+    public ModelAndView partnersHome(HttpServletResponse response, ModelMap model) {
         noCache(response);
         final ModelAndView mav = new ModelAndView("developer/index", "release", env.get("release"));
+        String release = env.get("release");
+        final Guest guest = AuthHelper.getGuest();
+        model.addObject("avatarURL", getGravatarImageURL(guest));
+        model.addObject("guestName", guest.getGuestName());
+        model.addObject("release", release);
         mav.addObject("visibility", "partners");
         return mav;
     }
@@ -129,11 +137,24 @@ public class DevController {
     }
 
     @RequestMapping(value = "/partners/partials/{partial}")
-    public ModelAndView partnersPartial(@PathVariable("partial") String partial) {
-        ModelAndView mav = new ModelAndView("/developer/partners/partials/" + partial);
+    public String partnersPartial(@PathVariable("partial") String partial, ModelMap model) {
         String release = env.get("release");
-        mav.addObject("release", release);
-        return mav;
+        final Guest guest = AuthHelper.getGuest();
+        model.addObject("guestName", guest.getGuestName());
+        model.addObject("avatarURL", getGravatarImageURL(guest));
+        model.addObject("release", release);
+        return "/developer/partners/partials/" + partial;
+    }
+
+    private String getGravatarImageURL(Guest guest) {
+        String emailHash = hash(guest.email.toLowerCase().trim()); //gravatar specifies the email should be trimmed, taken to lowercase, and then MD5 hashed
+        String gravatarURL = String.format("http://www.gravatar.com/avatar/%s?s=27&d=404", emailHash);
+        //HttpGet get = new HttpGet(gravatarURL);
+        //int res = 0;
+        //try { res = ((new DefaultHttpClient()).execute(get)).getStatusLine().getStatusCode(); }
+        //catch (IOException e) {e.printStackTrace();}
+        //return res==200 ? gravatarURL : null;
+        return gravatarURL;
     }
 
 }
