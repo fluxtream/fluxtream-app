@@ -1,5 +1,12 @@
 package org.fluxtream.mvc.controllers;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.NoSuchAlgorithmException;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.auth.AuthHelper;
@@ -7,7 +14,12 @@ import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.domain.Notification.Type;
-import org.fluxtream.core.services.*;
+import org.fluxtream.core.services.ApiDataService;
+import org.fluxtream.core.services.CoachingService;
+import org.fluxtream.core.services.ConnectorUpdateService;
+import org.fluxtream.core.services.GuestService;
+import org.fluxtream.core.services.MetadataService;
+import org.fluxtream.core.services.NotificationsService;
 import org.fluxtream.core.utils.SecurityUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,15 +31,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
-
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.security.NoSuchAlgorithmException;
 
 @Controller
 public class AppController {
@@ -61,7 +64,7 @@ public class AppController {
     @Autowired
     ErrorController errorController;
 
-    @RequestMapping(value = { "", "/", "/welcome" })
+    @RequestMapping(value = { "*", "/*", "/welcome*" })
     public ModelAndView index(HttpServletRequest request,
                               HttpServletResponse response) {
         response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
@@ -86,6 +89,11 @@ public class AppController {
             mav.addObject("supportsFBLogin", false);
         mav.addObject("tracker", hasTracker(request));
         return mav;
+    }
+
+    @RequestMapping(value = "handle404")
+    public String handle404() {
+        return "redirect:/welcome";
     }
 
     private boolean hasIntercom(HttpServletRequest request) {
@@ -176,7 +184,6 @@ public class AppController {
         if (savedRequest!=null) {
             final String redirectUrl = savedRequest.getRedirectUrl();
             requestCache.removeRequest(request, response);
-            final URI uri = new URI(redirectUrl);
             return new ModelAndView("redirect:" + redirectUrl);
         }
         return new ModelAndView("redirect:/app");

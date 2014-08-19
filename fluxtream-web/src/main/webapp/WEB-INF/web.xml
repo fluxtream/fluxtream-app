@@ -139,6 +139,10 @@
         <servlet-name>springmvc</servlet-name>
         <url-pattern>/</url-pattern>
     </servlet-mapping>
+    <error-page>
+        <error-code>404</error-code>
+        <location>/handle404</location>
+    </error-page>
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>
     </welcome-file-list>
