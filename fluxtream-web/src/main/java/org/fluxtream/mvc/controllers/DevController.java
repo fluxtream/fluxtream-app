@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletResponse;
 import com.wordnik.swagger.config.ConfigFactory;
 import com.wordnik.swagger.config.SwaggerConfig;
@@ -46,6 +47,9 @@ public class DevController {
 
     @Autowired
     GuestService guestService;
+
+    @Autowired
+    ServletContext context;
 
     @RequestMapping(value="")
     public String devIndexRedict() {
@@ -128,9 +132,13 @@ public class DevController {
     private ModelAndView renderMarkdown(final String documentName) throws IOException {
         ModelAndView mav = new ModelAndView("/developer/public/partials/user-manual");
         String release = env.get("release");
-        final String userManualLocation = env.get("userManuals.location") + documentName + ".md";
         Markdown4jProcessor processor = new Markdown4jProcessor();
-        String manual = processor.process(new File(userManualLocation));
+        final String userManualsLocation = env.get("userManuals.location");
+        String documentLocation = context.getRealPath("/doc/") + "/" + documentName + ".md";
+        if (userManualsLocation!=null)
+            documentLocation = userManualsLocation + documentName + ".md";
+        String manual = processor.process(new File(documentLocation));
+        manual = manual.replaceAll("\\$\\{homeBaseUrl\\}", env.get("homeBaseUrl"));
         mav.addObject("manual", manual);
         mav.addObject("release", release);
         return mav;

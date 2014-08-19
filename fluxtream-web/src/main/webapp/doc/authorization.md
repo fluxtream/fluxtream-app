@@ -2,7 +2,7 @@
 
 #### Create a Fluxtream account
 
-If you don’t already have a Fluxtream account, please [register for one](https://staging.fluxtream.org/dev/#/sign-up).
+If you don’t already have a Fluxtream account, please [register for one](${homeBaseUrl}welcome?register).
 
 #### Create app keys
 
@@ -10,11 +10,11 @@ Once logged in the developer console, you will be able to create an app instance
 
 #### Request authorization from the user
 
-Send your user to [/auth/oauth2/authorize](https://staging.fluxtream.org/auth/oauth2/authorize) with your `client_id` as a parameter. You are also required to provide a `redirect_uri` parameter where users will be redirected after the authorization process.
+Send your user to [/auth/oauth2/authorize](${homeBaseUrl}auth/oauth2/authorize) with your `client_id` as a parameter. You are also required to provide a `redirect_uri` parameter where users will be redirected after the authorization process.
 
 Your request will look like this:
 
-    https://staging.fluxtream.org/auth/oauth2/authorize?client_id=xxx&redirect_uri=xxx
+    ${homeBaseUrl}/auth/oauth2/authorize?client_id=xxx&redirect_uri=xxx
 
 #### Create an authorization handler
 
