@@ -1,5 +1,10 @@
 package org.fluxtream.mvc.controllers;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import javax.servlet.http.HttpServletResponse;
 import com.wordnik.swagger.config.ConfigFactory;
 import com.wordnik.swagger.config.SwaggerConfig;
 import net.sf.json.JSONObject;
@@ -18,12 +23,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * User: candide
@@ -45,7 +44,12 @@ public class DevController {
     @Autowired
     GuestService guestService;
 
-    @RequestMapping(value = {"/", ""})
+    @RequestMapping(value="")
+    public String devIndexRedict() {
+        return "redirect:/dev/";
+    }
+
+    @RequestMapping(value="/")
     public ModelAndView devIndex(HttpServletResponse response) {
         noCache(response);
         final Guest guest = AuthHelper.getGuest();
