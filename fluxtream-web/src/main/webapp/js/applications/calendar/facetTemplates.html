@@ -1004,7 +1004,7 @@
             <div>{{{mainCityMessage}}}</div>
 
             <div>{{{changeMainCityMessage}}}</div>
-            <span>Not seeing the right city? <a class="enabled" href="javascript:$('#addCityForm').show()">Add it here</a></span>
+            <span>Not seeing the right city? <a class="enabled" href="javascript:void(0);" onclick="$('#addCityForm').show(); return false;">Add it here</a></span>
             <br><br>
             <form id="addCityForm" class="form-horizontal" style="display:none" action="javascript:void(0);">
                 <fieldset>
