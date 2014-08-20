@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -210,7 +211,7 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
 	@Transactional(readOnly = false)
 	public ApiKey setApiKeyAttribute(ApiKey ak, String key,
 			String value) {
-        ApiKey apiKey = em.find(ApiKey.class, ak.getId());
+        ApiKey apiKey = em.find(ApiKey.class, ak.getId(), LockModeType.PESSIMISTIC_WRITE);
 
         // apiKey could be null, for example if the connector
         // was already deleted.  In this case just return
@@ -218,7 +219,6 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
         if(apiKey==null) {
             return null;
         }
-
         // At this point we know that apiKey exists and
         // is non-null
         apiKey.removeAttribute(key);
