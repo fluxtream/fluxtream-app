@@ -1,12 +1,8 @@
 package org.fluxtream.core.services.impl;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.ListIterator;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.DashboardWidget;
@@ -17,14 +13,19 @@ import org.fluxtream.core.services.WidgetsService;
 import org.fluxtream.core.utils.HttpUtils;
 import org.fluxtream.core.utils.JPAUtils;
 import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.ListIterator;
 
 /**
  *
@@ -188,7 +189,7 @@ public class WidgetsServiceImpl implements WidgetsService {
         JSONArray widgetsList = null;
         String widgetListString = null;
         try {
-            widgetListString = HttpUtils.fetch(baseURL + "widgets.json");
+            widgetListString = HttpUtils.fetch(baseURL + "widgets/widgets.json");
         }
         catch (IOException e) {
             throw new RuntimeException("Could not access widgets JSON URL: " + baseURL + "widgets.json");
