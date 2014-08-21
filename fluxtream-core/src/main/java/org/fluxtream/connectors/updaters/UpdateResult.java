@@ -34,7 +34,7 @@ public class UpdateResult {
     }
 
     public static UpdateResult failedResult(UpdateFailedException e) {
-        return failedResult(stackTrace(e),e.isPermanent);
+        return failedResult(stackTrace(e), e.isPermanent());
     }
 
 	public static UpdateResult failedResult(String stackTrace, boolean permanentFailure) {

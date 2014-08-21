@@ -15,6 +15,7 @@ import org.fluxtream.connectors.ObjectType;
 import org.fluxtream.connectors.annotations.Updater;
 import org.fluxtream.connectors.location.LocationFacet;
 import org.fluxtream.connectors.updaters.AbstractUpdater;
+import org.fluxtream.connectors.updaters.AuthExpiredException;
 import org.fluxtream.connectors.updaters.UpdateFailedException;
 import org.fluxtream.connectors.updaters.UpdateInfo;
 import org.fluxtream.domain.AbstractFacet;
@@ -756,7 +757,7 @@ public class JawboneUpUpdater extends AbstractUpdater {
         throw new RuntimeException("Error calling Jawbone API: this statement should have never been reached");
     }
 
-    private void refreshToken(UpdateInfo updateInfo) throws IOException, UnexpectedHttpResponseCodeException {
+    private void refreshToken(UpdateInfo updateInfo) throws IOException, UnexpectedHttpResponseCodeException, UpdateFailedException {
         String refreshToken = guestService.getApiKeyAttribute(updateInfo.apiKey, "refreshToken");
         Map<String,String> parameters = new HashMap<String,String>();
         parameters.put("grant_type", "refresh_token");
@@ -770,6 +771,8 @@ public class JawboneUpUpdater extends AbstractUpdater {
         final String json = HttpUtils.fetch("https://jawbone.com/auth/oauth2/token", parameters);
 
         JSONObject token = JSONObject.fromObject(json);
+        if (!token.has("access_token"))
+            throw new UpdateFailedException("Couldn't renew access token (no \"access_token\" field in JSON response)", new Exception(), true);
         final String accessToken = token.getString("access_token");
         // store the new secret
         guestService.setApiKeyAttribute(updateInfo.apiKey,
@@ -799,6 +802,11 @@ public class JawboneUpUpdater extends AbstractUpdater {
         } catch (Throwable t) {
             // just ignore any potential problems here
         }
-        throw new UnexpectedHttpResponseCodeException(statusCode, message + " - unexpected status code: " + statusCode);
+        if (statusCode==401)
+            throw new AuthExpiredException();
+        if (statusCode>=400&&statusCode<500) {
+            throw new UpdateFailedException("Unexpected response code: " + statusCode, new Exception(), true);
+        } else
+            throw new UpdateFailedException("Unexpected response code: " + statusCode);
     }
 }

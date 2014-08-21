@@ -161,7 +161,9 @@ public class MovesUpdater extends AbstractUpdater {
                                    e.getHttpResponseCode(), e.getHttpResponseMessage());
 
                 // The update failed.  We don't know if this is permanent or temporary.
-                // Throw the appropriate exception.
+                // let's assume that it is permanent if it's our fault (4xx)
+                if (e.getHttpResponseCode()>=400&&e.getHttpResponseCode()<500)
+                    throw new UpdateFailedException("Unexpected response code: " + e.getHttpResponseCode(), new Exception(), true);
                 throw new UpdateFailedException(e);
 
             } catch (RateLimitReachedException e) {
@@ -540,8 +542,10 @@ public class MovesUpdater extends AbstractUpdater {
             countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, fetchUrl, Utils.stackTrace(e),
                                e.getHttpResponseCode(), e.getHttpResponseMessage());
 
-            // The update failed.  We don't know if this is permanent or temporary.
-            // Throw the appropriate exception.
+            // The update failed.  We don't know if this is permanent or temporary but
+            // let's assume that it is permanent if it's our fault (4xx)
+            if (e.getHttpResponseCode()>=400&&e.getHttpResponseCode()<500)
+                throw new UpdateFailedException("Unexpected response code: " + e.getHttpResponseCode(), new Exception(), true);
             throw new UpdateFailedException(e);
         } catch (RateLimitReachedException e) {
             // Couldn't fetch storyline, rate limit reached
@@ -716,6 +720,8 @@ public class MovesUpdater extends AbstractUpdater {
                 updateInfo.setResetTime("moves", getQuotaAvailableTime());
                 throw new RateLimitReachedException();
             }
+            else if (statusCode>=400 && statusCode<500)
+                throw new UpdateFailedException("Unexpected response code: " + statusCode, new Exception(), true);
             else {
                 throw new UnexpectedHttpResponseCodeException(response.getStatusLine().getStatusCode(),
                                                               response.getStatusLine().getReasonPhrase());

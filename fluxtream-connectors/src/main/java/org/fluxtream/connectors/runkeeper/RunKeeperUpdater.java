@@ -4,10 +4,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.TimeZone;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.log4j.Logger;
+import org.codehaus.plexus.util.ExceptionUtils;
 import org.fluxtream.connectors.Connector;
 import org.fluxtream.connectors.annotations.Updater;
 import org.fluxtream.connectors.location.LocationFacet;
 import org.fluxtream.connectors.updaters.AbstractUpdater;
+import org.fluxtream.connectors.updaters.UpdateFailedException;
 import org.fluxtream.connectors.updaters.UpdateInfo;
 import org.fluxtream.domain.AbstractFacet;
 import org.fluxtream.services.ApiDataService;
@@ -16,10 +21,6 @@ import org.fluxtream.services.MetadataService;
 import org.fluxtream.services.impl.BodyTrackHelper;
 import org.fluxtream.utils.JPAUtils;
 import org.fluxtream.utils.TimeUtils;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import org.apache.log4j.Logger;
-import org.codehaus.plexus.util.ExceptionUtils;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
@@ -125,11 +126,13 @@ public class RunKeeperUpdater  extends AbstractUpdater {
             Collections.reverse(activities);
             getFitnessActivities(updateInfo, service, token, activities);
         } else {
-            final RuntimeException e = new RuntimeException("Unexpected response code retrieving RK user object: " + response.getCode());
             countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then,
-                               request.getCompleteUrl(), ExceptionUtils.getStackTrace(e),
+                               request.getCompleteUrl(), ExceptionUtils.getStackTrace(new Exception()),
                                httpResponseCode, response.getBody());
-            throw e;
+            if (httpResponseCode>=400&&httpResponseCode<500)
+                throw new UpdateFailedException("Unexpected response code: " + httpResponseCode, true);
+            else
+                throw new UpdateFailedException("Unexpected code: " + httpResponseCode);
         }
     }
 
@@ -156,7 +159,10 @@ public class RunKeeperUpdater  extends AbstractUpdater {
                 countFailedApiCall(updateInfo.apiKey,
                                    updateInfo.objectTypes, then, activityURL, ExceptionUtils.getStackTrace(new Exception()),
                                    httpResponseCode, response.getBody());
-                throw new RuntimeException("Unexpected code: " + httpResponseCode);
+                if (httpResponseCode>=400&&httpResponseCode<500)
+                    throw new UpdateFailedException("Unexpected response code: " + httpResponseCode, true);
+                else
+                    throw new UpdateFailedException("Unexpected code: " + httpResponseCode);
             }
         }
     }
@@ -293,7 +299,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
      */
     private void getFitnessActivityFeed(final UpdateInfo updateInfo, final OAuthService service,
                                         final Token token, String activityFeedURL, final int pageSize,
-                                        List<String> activities, long since) {
+                                        List<String> activities, long since) throws UpdateFailedException {
         OAuthRequest request = new OAuthRequest(Verb.GET, activityFeedURL);
         request.addQuerystringParameter("pageSize", String.valueOf(pageSize));
         request.addQuerystringParameter("oauth_token", token.getToken());
@@ -334,7 +340,10 @@ public class RunKeeperUpdater  extends AbstractUpdater {
             countFailedApiCall(updateInfo.apiKey,
                                updateInfo.objectTypes, then, activityFeedURL, ExceptionUtils.getStackTrace(new Exception()),
                                httpResponseCode, response.getBody());
-            throw new RuntimeException("Unexpected code: " + httpResponseCode);
+            if (httpResponseCode>=400&&httpResponseCode<500)
+                throw new UpdateFailedException("Unexpected response code: " + httpResponseCode, true);
+            else
+                throw new UpdateFailedException("Unexpected code: " + httpResponseCode);
         }
     }
 
