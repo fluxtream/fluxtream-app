@@ -141,7 +141,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
     }
 
     private List<String> getDailyDatastoreChannelNames(String facetName) {
-        String[] channelNamesMappings = env.bodytrackProperties.getStringArray(facetName + ".channel_names");
+        String[] channelNamesMappings = env.bodytrackProperties.getString(facetName + ".channel_names").split(",");
         List<String> channelNames = new ArrayList<String>();
         for (String mapping : channelNamesMappings) {
             String[] terms = StringUtils.split(mapping, ":");
@@ -153,7 +153,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
     }
 
     private List<String> getFacetColumnNames(String facetName) {
-        String[] channelNamesMappings = env.bodytrackProperties.getStringArray(facetName + ".channel_names");
+        String[] channelNamesMappings = env.bodytrackProperties.getString(facetName + ".channel_names").split(",");
         List<String> channelNames = new ArrayList<String>();
         for (String mapping : channelNamesMappings) {
             String[] terms = StringUtils.split(mapping, ":");
@@ -165,7 +165,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
     }
 
     private List<FieldHandler> getFieldHandlers(String facetName) {
-        String[] channelNamesMappings = env.bodytrackProperties.getStringArray(facetName + ".channel_names");
+        String[] channelNamesMappings = env.bodytrackProperties.getString(facetName + ".channel_names").split(",");
         List<FieldHandler> fieldHandlers = new ArrayList<FieldHandler>();
         for (String mapping : channelNamesMappings) {
             String[] terms = StringUtils.split(mapping, ":");
