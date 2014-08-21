@@ -200,12 +200,16 @@ public abstract class AbstractUpdater extends ApiClientSupport {
             updateResult = UpdateResult.successResult();
         } catch (RateLimitReachedException e) {
             updateResult = UpdateResult.rateLimitReachedResult(e);
+        }  catch (AuthExpiredException e) {
+            StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateData").append(" message=\"connector needs re-authorization\" connector=").append(updateInfo.apiKey.getConnector().toString()).append(" guestId=").append(updateInfo.apiKey.getGuestId());
+            logger.warn(sb.toString());
+            return UpdateResult.needsReauth();
         } catch (UpdateFailedException e) {
             final String stackTrace = Utils.stackTrace(e);
             StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateData")
                     .append(" message=\"Update failed exception\" connector=")
                     .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=").append(updateInfo.apiKey.getGuestId())
-                    .append(" isPermanent=").append(e.isPermanent)
+                    .append(" isPermanent=").append(e.isPermanent())
                     .append(" stackTrace=<![CDATA[").append(stackTrace).append("]]>")
                     .append(updateInfo.apiKey.getGuestId());
             logger.warn(sb.toString());
