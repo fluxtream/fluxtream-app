@@ -1,5 +1,7 @@
 package org.fluxtream.connectors.twitter;
 
+import java.util.HashMap;
+import java.util.List;
 import net.sf.json.JSONArray;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
@@ -12,15 +14,16 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.fluxtream.aspects.FlxLogger;
 import org.fluxtream.connectors.ObjectType;
 import org.fluxtream.connectors.annotations.Updater;
-import org.fluxtream.connectors.updaters.*;
+import org.fluxtream.connectors.updaters.AbstractUpdater;
+import org.fluxtream.connectors.updaters.RateLimitReachedException;
+import org.fluxtream.connectors.updaters.UpdateFailedException;
+import org.fluxtream.connectors.updaters.UpdateInfo;
 import org.fluxtream.domain.ApiKey;
 import org.fluxtream.domain.ChannelMapping;
 import org.fluxtream.services.impl.BodyTrackHelper;
+import org.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
-import java.util.List;
 
 
 @Component
@@ -352,10 +355,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
             countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, reasonPhrase,
                                statusCode, reasonPhrase);
             if (statusCode==401)
-                throw new AuthExpiredException();
-            else if (statusCode>=400&&statusCode<500)
-                throw new UpdateFailedException("Unexpected response code " + statusCode, new Exception(), true);
-            throw new UpdateFailedException(new Exception());
+                throw new UpdateFailedException("This auth token is not valid anymore", true);
+            throw new UnexpectedHttpResponseCodeException(statusCode, reasonPhrase);
 		}
 	}
 
@@ -451,10 +452,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 					updateInfo.objectTypes, then, requestUrl, reasonPhrase,
                     statusCode, reasonPhrase);
             if (statusCode==401)
-                throw new AuthExpiredException();
-            else if (statusCode>=400&&statusCode<500)
-                throw new UpdateFailedException("Unexpected response code " + statusCode, new Exception(), true);
-            throw new UpdateFailedException(new Exception());
+                throw new UpdateFailedException("This auth token is not valid anymore", true);
+            throw new UnexpectedHttpResponseCodeException(statusCode, reasonPhrase);
 		}
 	}
 
@@ -489,10 +488,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
             countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, requestUrl, reasonPhrase,
                                statusCode, reasonPhrase);
             if (statusCode==401)
-                throw new AuthExpiredException();
-            else if (statusCode>=400&&statusCode<500)
-                throw new UpdateFailedException("Unexpected response code " + statusCode, new Exception(), true);
-            throw new UpdateFailedException(new Exception());
+                throw new UpdateFailedException("This auth token is not valid anymore", true);
+            throw new UnexpectedHttpResponseCodeException(statusCode, reasonPhrase);
 		}
 	}
 
@@ -527,10 +524,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
                                updateInfo.objectTypes, then, requestUrl, reasonPhrase,
                                statusCode, reasonPhrase);
             if (statusCode==401)
-                throw new AuthExpiredException();
-            else if (statusCode>=400&&statusCode<500)
-                throw new UpdateFailedException("Unexpected response code " + statusCode, new Exception(), true);
-            throw new UpdateFailedException(new Exception());
+                throw new UpdateFailedException("This auth token is not valid anymore", true);
+            throw new UnexpectedHttpResponseCodeException(statusCode, reasonPhrase);
 		}
 	}
 }

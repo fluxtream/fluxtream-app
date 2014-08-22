@@ -1,7 +1,5 @@
 package org.fluxtream.connectors.updaters;
 
-import javax.persistence.PersistenceException;
-
 /**
  * <p>
  * <code>UpdateFailedException</code> does something...
@@ -10,7 +8,7 @@ import javax.persistence.PersistenceException;
  * @author Chris Bartley (bartley@cmu.edu)
  */
 public class UpdateFailedException extends Exception {
-    private boolean isPermanent;
+    public boolean isPermanent;
 
     public UpdateFailedException() {
         super();
@@ -50,18 +48,5 @@ public class UpdateFailedException extends Exception {
     public UpdateFailedException(Throwable cause, boolean permanentFailure) {
         super(cause);
         isPermanent=permanentFailure;
-    }
-
-    public boolean isPermanent() {
-        final Throwable cause = getCause();
-        if (cause !=null) {
-            // typical internal errors that will consistently crash the udpate
-            if (cause instanceof PersistenceException)
-                return true;
-            String className = cause.getClass().toString();
-            if (className.startsWith("org.springframework"))
-                return true;
-        }
-        return isPermanent;
     }
 }

@@ -5,16 +5,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import com.google.gdata.util.RateLimitExceededException;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import org.apache.commons.lang.StringUtils;
 import org.fluxtream.connectors.Connector;
 import org.fluxtream.connectors.ObjectType;
 import org.fluxtream.connectors.annotations.Updater;
 import org.fluxtream.connectors.updaters.AbstractUpdater;
-import org.fluxtream.connectors.updaters.AuthExpiredException;
-import org.fluxtream.connectors.updaters.RateLimitReachedException;
 import org.fluxtream.connectors.updaters.UpdateFailedException;
 import org.fluxtream.connectors.updaters.UpdateInfo;
 import org.fluxtream.domain.AbstractFacet;
@@ -26,6 +20,9 @@ import org.fluxtream.utils.JPAUtils;
 import org.fluxtream.utils.TimeUtils;
 import org.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import org.fluxtream.utils.Utils;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.scribe.builder.ServiceBuilder;
@@ -203,7 +200,6 @@ public class WithingsUpdater extends AbstractUpdater {
     private void fetchAndProcessJSON(final UpdateInfo updateInfo, final String url,
                                      final Map<String,String> parameters, ApiVersion apiVersion) throws Exception {
         long then = System.currentTimeMillis();
-        int httpResponseCode = 0;
         try {
             OAuthRequest request = new OAuthRequest(Verb.GET, url);
             for (String parameterName : parameters.keySet()) {
@@ -215,53 +211,18 @@ public class WithingsUpdater extends AbstractUpdater {
             final Token token = new Token(accessToken, guestService.getApiKeyAttribute(updateInfo.apiKey, "tokenSecret"));
             service.signRequest(token, request);
             Response response = request.send();
-            httpResponseCode = response.getCode();
+            final int httpResponseCode = response.getCode();
             if (httpResponseCode!=200)
-                throw new UpdateFailedException("Unexpected response code: " + httpResponseCode);
+                throw new UnexpectedHttpResponseCodeException(httpResponseCode, response.getBody());
             String json = response.getBody();
             JSONObject jsonObject = JSONObject.fromObject(json);
-            final int withingsStatusCode = jsonObject.getInt("status");
-            if (withingsStatusCode !=0) {
-                switch (withingsStatusCode) {
-                    case 247:
-                        throw new UpdateFailedException("247 : The userid provided is absent, or incorrect", true);
-                    case 250:
-                        // 250 : The provided userid and/or Oauth credentials do not match
-                        throw new AuthExpiredException();
-                    case 286:
-                        throw new UpdateFailedException("286 : No such subscription was found", true);
-                    case 293:
-                        throw new UpdateFailedException("293 : The callback URL is either absent or incorrect", true);
-                    case 294:
-                        throw new UpdateFailedException("294 : No such subscription could be deleted", true);
-                    case 304:
-                        throw new UpdateFailedException("304 : The comment is either absent or incorrect", true);
-                    case 305:
-                        // 305: Too many notifications are already set
-                        throw new RateLimitExceededException();
-                    case 342:
-                        throw new UpdateFailedException("342 : The signature (using Oauth) is invalid", true);
-                    case 343:
-                        throw new UpdateFailedException("343 : Wrong Notification Callback Url don't exist", true);
-                    case 601:
-                        // 601: Too Many Requests
-                        throw new RateLimitReachedException();
-                    case 2554:
-                        throw new UpdateFailedException("2554 : Wrong action or wrong webservice", true);
-                    case 2555:
-                        throw new UpdateFailedException("2555 : An unknown error occurred", false);
-                    case 2556:
-                        throw new UpdateFailedException("2556 : Service is not defined", true);
-                    default:
-                    throw new UnexpectedHttpResponseCodeException(withingsStatusCode, "Unexpected status code: " + withingsStatusCode);
-                }
-
-            }
+            if (jsonObject.getInt("status")!=0)
+                throw new UnexpectedHttpResponseCodeException(jsonObject.getInt("status"), "Unexpected status code: " + jsonObject.getInt("status"));
             countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url);
             if (!StringUtils.isEmpty(json))
                 storeMeasurements(updateInfo, json, apiVersion);
-        } catch (Exception e) {
-            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url, Utils.stackTrace(e), httpResponseCode, e.getMessage());
+        } catch (UnexpectedHttpResponseCodeException e) {
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url, Utils.stackTrace(e), e.getHttpResponseCode(), e.getHttpResponseMessage());
             throw e;
         }
     }
