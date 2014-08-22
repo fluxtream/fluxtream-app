@@ -10,6 +10,7 @@ import java.util.TreeMap;
 import java.util.UUID;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -121,7 +122,7 @@ public class MovesUpdater extends AbstractUpdater {
         // Check first if we already have a user registration date stored in apiKeyAttributes as userRegistrationDate.
         // userRegistrationDate is stored in storage format (yyyy-mm-dd)
         String userRegistrationKeyName = "userRegistrationDate";
-        String userRegistrationDate = guestService.getApiKeyAttribute(updateInfo.apiKey,userRegistrationKeyName);
+        String userRegistrationDate = (String)updateInfo.getContext(userRegistrationKeyName);
 
         // The first time we do this there won't be a stored userRegistrationDate yet.  In that case get the
         // registration date from a Moves API call
@@ -146,7 +147,14 @@ public class MovesUpdater extends AbstractUpdater {
                     userRegistrationDate = toStorageFormat(compactRegistrationDate);
 
                     // Cache registrationDate so we don't need to do an API call next time
-                    guestService.setApiKeyAttribute(updateInfo.apiKey, userRegistrationKeyName, userRegistrationDate);
+                    final String storedUserRegistrationDate = guestService.getApiKeyAttribute(updateInfo.apiKey, userRegistrationKeyName);
+                    if (storedUserRegistrationDate!=null&&!storedUserRegistrationDate.equals(userRegistrationDate)) {
+                        logger.warn("Moves userRegistrationDate has changed (was " +
+                                    storedUserRegistrationDate + ", is now " + userRegistrationDate + ") " +
+                                    "apiKeyId=" + updateInfo.apiKey.getId());
+                        guestService.setApiKeyAttribute(updateInfo.apiKey, userRegistrationKeyName, userRegistrationDate);
+                    }
+                    updateInfo.setContext(userRegistrationKeyName, userRegistrationDate);
                 }
             } catch (UnexpectedHttpResponseCodeException e) {
                 // Couldn't get user registration date
@@ -702,29 +710,39 @@ public class MovesUpdater extends AbstractUpdater {
                 ResponseHandler<String> responseHandler = new BasicResponseHandler();
                 content = responseHandler.handleResponse(response);
             }
-            else if(statusCode == 401) {
-                // Unauthorized, so this is never going to work
-                // Notify the user that the tokens need to be manually renewed
-                notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
-                                                      "Heads Up. We failed in our attempt to update your Moves connector.<br>" +
-                                                      "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
-                                                      "scroll to the Moves connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
-                // Record permanent failure since this connector won't work again until
-                // it is reauthenticated
-                guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
-                throw new UpdateFailedException("Unauthorized access", true);
-            }
-            else if(statusCode == 429) {
-                // Over quota, so this API attempt didn't work
-                // Set the reset time info in updateInfo so that we get scheduled for when the quota becomes available
-                updateInfo.setResetTime("moves", getQuotaAvailableTime());
-                throw new RateLimitReachedException();
-            }
-            else if (statusCode>=400 && statusCode<500)
-                throw new UpdateFailedException("Unexpected response code: " + statusCode, new Exception(), true);
             else {
-                throw new UnexpectedHttpResponseCodeException(response.getStatusLine().getStatusCode(),
-                                                              response.getStatusLine().getReasonPhrase());
+                // attempt to get a human-readable message
+                String message = null;
+                try {
+                    message = IOUtils.toString(response.getEntity().getContent());
+                } catch (Throwable t) {}
+                if(statusCode == 401) {
+                    // Unauthorized, so this is never going to work
+                    // Notify the user that the tokens need to be manually renewed
+                    notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
+                                                              "Heads Up. We failed in our attempt to update your Moves connector.<br>" +
+                                                              "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+                                                              "scroll to the Moves connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
+                    // Record permanent failure since this connector won't work again until
+                    // it is reauthenticated
+                    guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
+                    throw new UpdateFailedException("Unauthorized access", true);
+                }
+                else if(statusCode == 429) {
+                    // Over quota, so this API attempt didn't work
+                    // Set the reset time info in updateInfo so that we get scheduled for when the quota becomes available
+                    updateInfo.setResetTime("moves", getQuotaAvailableTime());
+                    throw new RateLimitReachedException();
+                }
+                else if (statusCode>=400 && statusCode<500) {
+                    String message40x = "Unexpected response code: " + statusCode;
+                    if (message!=null) message40x += " message: " + message;
+                    throw new UpdateFailedException(message40x, new Exception(), true);
+                }
+                else {
+                    throw new UnexpectedHttpResponseCodeException(response.getStatusLine().getStatusCode(),
+                                                                  response.getStatusLine().getReasonPhrase());
+                }
             }
         }
         finally {
