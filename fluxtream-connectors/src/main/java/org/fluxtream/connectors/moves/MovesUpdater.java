@@ -121,7 +121,7 @@ public class MovesUpdater extends AbstractUpdater {
         // Check first if we already have a user registration date stored in apiKeyAttributes as userRegistrationDate.
         // userRegistrationDate is stored in storage format (yyyy-mm-dd)
         String userRegistrationKeyName = "userRegistrationDate";
-        String userRegistrationDate = guestService.getApiKeyAttribute(updateInfo.apiKey,userRegistrationKeyName);
+        String userRegistrationDate = (String)updateInfo.getContext(userRegistrationKeyName);
 
         // The first time we do this there won't be a stored userRegistrationDate yet.  In that case get the
         // registration date from a Moves API call
@@ -146,7 +146,14 @@ public class MovesUpdater extends AbstractUpdater {
                     userRegistrationDate = toStorageFormat(compactRegistrationDate);
 
                     // Cache registrationDate so we don't need to do an API call next time
-                    guestService.setApiKeyAttribute(updateInfo.apiKey, userRegistrationKeyName, userRegistrationDate);
+                    final String storedUserRegistrationDate = guestService.getApiKeyAttribute(updateInfo.apiKey, userRegistrationKeyName);
+                    if (storedUserRegistrationDate!=null&&!storedUserRegistrationDate.equals(userRegistrationDate)) {
+                        logger.warn("Moves userRegistrationDate has changed (was " +
+                                    storedUserRegistrationDate + ", is now " + userRegistrationDate + ") " +
+                                    "apiKeyId=" + updateInfo.apiKey.getId());
+                        guestService.setApiKeyAttribute(updateInfo.apiKey, userRegistrationKeyName, userRegistrationDate);
+                    }
+                    updateInfo.setContext(userRegistrationKeyName, userRegistrationDate);
                 }
             } catch (UnexpectedHttpResponseCodeException e) {
                 // Couldn't get user registration date
