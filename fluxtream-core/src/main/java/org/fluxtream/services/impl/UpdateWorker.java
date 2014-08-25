@@ -138,6 +138,8 @@ class UpdateWorker implements Runnable {
                 if (task.status==Status.IN_PROGRESS) {
                     logger.warn("Warning (UpdateWorker): Task was still marked as IN_PROGRESS - taskId=" + task.getId() + " connector=" + task.connectorName +
                                 " objectType=" + task.objectTypes + " guestId=" + task.getGuestId());
+
+                    connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.FAILED);
                     shortReschedule(guestService.getApiKey(task.apiKeyId),
                                     new UpdateWorkerTask.AuditTrailEntry(new Date(),
                                                                          "Run aborted for no specific reason",
