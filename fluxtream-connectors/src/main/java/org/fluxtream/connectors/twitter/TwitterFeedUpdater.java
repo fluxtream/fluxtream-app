@@ -1,9 +1,6 @@
 package org.fluxtream.connectors.twitter;
 
-import java.util.HashMap;
-import java.util.List;
 import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
 import org.apache.http.Header;
@@ -15,16 +12,15 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.fluxtream.aspects.FlxLogger;
 import org.fluxtream.connectors.ObjectType;
 import org.fluxtream.connectors.annotations.Updater;
-import org.fluxtream.connectors.updaters.AbstractUpdater;
-import org.fluxtream.connectors.updaters.AuthExpiredException;
-import org.fluxtream.connectors.updaters.RateLimitReachedException;
-import org.fluxtream.connectors.updaters.UpdateFailedException;
-import org.fluxtream.connectors.updaters.UpdateInfo;
+import org.fluxtream.connectors.updaters.*;
 import org.fluxtream.domain.ApiKey;
 import org.fluxtream.domain.ChannelMapping;
 import org.fluxtream.services.impl.BodyTrackHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.List;
 
 
 @Component
@@ -48,20 +44,6 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 
     public TwitterFeedUpdater() {
 		super();
-	}
-
-	public void getScreenName(ApiKey apiKey, OAuthConsumer consumer) throws Exception {
-		HttpGet request = new HttpGet("https://api.twitter.com/1.1/account/verify_credentials.json");
-		consumer.sign(request);
-		HttpClient client = env.getHttpClient();
-		HttpResponse response = client.execute(request);
-		if (response.getStatusLine().getStatusCode() == 200) {
-			ResponseHandler<String> responseHandler = new BasicResponseHandler();
-			String json = responseHandler.handleResponse(response);
-			JSONObject profile = JSONObject.fromObject(json);
-			String screen_name = profile.getString("screen_name");
-			guestService.setApiKeyAttribute(apiKey,  "screen_name", screen_name);
-		}
 	}
 
     OAuthConsumer setupConsumer(ApiKey apiKey) {
@@ -138,14 +120,9 @@ public class TwitterFeedUpdater extends AbstractUpdater {
         initChannelMapping(updateInfo);
         final OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
 
-        if (guestService.getApiKeyAttribute(updateInfo.apiKey, "screen_name")==null)
-			getScreenName(updateInfo.apiKey, consumer);
-		
-		String screen_name = guestService.getApiKeyAttribute(updateInfo.apiKey, "screen_name");
-		
 		List<ObjectType> objectTypes = updateInfo.objectTypes();
 		if (objectTypes.contains(ObjectType.getObjectType(connector(), "tweet"))) {
-			getStatuses(updateInfo, screen_name, consumer);
+			getStatuses(updateInfo, consumer);
 		} else if (objectTypes.contains(ObjectType.getObjectType(connector(), "mention"))) {
 			getMentions(updateInfo, consumer);
 		} else if (objectTypes.contains(ObjectType.getObjectType(connector(), "dm"))) {
@@ -158,11 +135,9 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
         initChannelMapping(updateInfo);
         final OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
-        String screen_name = guestService.getApiKeyAttribute(updateInfo.apiKey, "screen_name");
-		
 		List<ObjectType> objectTypes = updateInfo.objectTypes();
 		if (objectTypes.contains(ObjectType.getObjectType(connector(), "tweet"))) {
-			refreshStatuses(updateInfo, screen_name, consumer);
+			refreshStatuses(updateInfo, consumer);
 		} else if (objectTypes.contains(ObjectType.getObjectType(connector(), "mention"))) {
 			refreshMentions(updateInfo, consumer);
 		} else if (objectTypes.contains(ObjectType.getObjectType(connector(), "dm"))) {
@@ -171,13 +146,13 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		}
 	}
 
-	private void refreshStatuses(UpdateInfo updateInfo, String screen_name, OAuthConsumer consumer) throws Exception {
+	private void refreshStatuses(UpdateInfo updateInfo, OAuthConsumer consumer) throws Exception {
 		TweetFacet mostRecentTweet = jpaDaoService.findOne("twitter.tweet.biggestTwitterId", TweetFacet.class, updateInfo.apiKey.getGuestId());
         TweetFacet lastMostRecentTweet = mostRecentTweet;
 		if (mostRecentTweet!=null) {
 			int newerTweets = 1;
 			while (newerTweets>0) {
-				newerTweets = getStatusesAfter(updateInfo, screen_name, mostRecentTweet.tweetId+1, consumer);
+				newerTweets = getStatusesAfter(updateInfo, mostRecentTweet.tweetId+1, consumer);
 				mostRecentTweet = jpaDaoService.findOne("twitter.tweet.biggestTwitterId", TweetFacet.class, updateInfo.apiKey.getGuestId());
                 if (lastMostRecentTweet.tweetId==mostRecentTweet.tweetId)
                     break;
@@ -231,19 +206,19 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		}
 	}
 
-	private void getStatuses(UpdateInfo updateInfo, String screen_name, OAuthConsumer consumer) throws Exception {
+	private void getStatuses(UpdateInfo updateInfo, OAuthConsumer consumer) throws Exception {
         TweetFacet oldestTweet = jpaDaoService.findOne("twitter.tweet.smallestTwitterId", TweetFacet.class, updateInfo.apiKey.getGuestId());
         if (oldestTweet==null) {
-    		getStatuses(updateInfo, screen_name, -1, -1, consumer);
+    		getStatuses(updateInfo, -1, -1, consumer);
         } else
-            getStatusesBefore(updateInfo, screen_name, oldestTweet.tweetId-1, consumer);
+            getStatusesBefore(updateInfo, oldestTweet.tweetId-1, consumer);
 
         oldestTweet = jpaDaoService.findOne("twitter.tweet.smallestTwitterId", TweetFacet.class, updateInfo.apiKey.getGuestId());
         TweetFacet lastOldestTweet = oldestTweet;
 		if (oldestTweet!=null) {
 			int olderTweets = 1;
 			while(olderTweets>0) {
-				olderTweets = getStatusesBefore(updateInfo, screen_name, oldestTweet.tweetId-1, consumer);
+				olderTweets = getStatusesBefore(updateInfo, oldestTweet.tweetId-1, consumer);
 				oldestTweet = jpaDaoService.findOne("twitter.tweet.smallestTwitterId", TweetFacet.class, updateInfo.apiKey.getGuestId());
                 if (oldestTweet.tweetId==lastOldestTweet.tweetId)
                     break;
@@ -339,19 +314,18 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 		return getSentDirectMessages(updateInfo, -1, since_id, consumer);
 	}
 
-	private int getStatusesBefore(UpdateInfo updateInfo, String screen_name, long max_id, OAuthConsumer consumer) throws Exception {
-		return getStatuses(updateInfo, screen_name, max_id, -1, consumer);
+	private int getStatusesBefore(UpdateInfo updateInfo, long max_id, OAuthConsumer consumer) throws Exception {
+		return getStatuses(updateInfo, max_id, -1, consumer);
 	}
 
-	private int getStatusesAfter(UpdateInfo updateInfo, String screen_name, long since_id, OAuthConsumer consumer) throws Exception {
-		return getStatuses(updateInfo, screen_name, -1, since_id, consumer);
+	private int getStatusesAfter(UpdateInfo updateInfo, long since_id, OAuthConsumer consumer) throws Exception {
+		return getStatuses(updateInfo, -1, since_id, consumer);
 	}
 
-	private int getStatuses(UpdateInfo updateInfo, String screen_name, long max_id, long since_id, OAuthConsumer consumer) throws Exception {
+	private int getStatuses(UpdateInfo updateInfo, long max_id, long since_id, OAuthConsumer consumer) throws Exception {
         checkRateLimitInfo(updateInfo, STATUSES_USER_TIMELINE);
 		long then = System.currentTimeMillis();
-		String requestUrl = "https://api.twitter.com/1.1/statuses/user_timeline.json?" +
-				"screen_name=" + screen_name + "&exclude_replies=t&count=200";
+		String requestUrl = "https://api.twitter.com/1.1/statuses/user_timeline.json?exclude_replies=true&count=200";
 		if (max_id!=-1)
 			requestUrl+="&max_id=" + max_id;
 		else if (since_id!=-1)
