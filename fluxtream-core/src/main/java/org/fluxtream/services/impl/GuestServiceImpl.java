@@ -283,9 +283,7 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
 
     @Override
     public ApiKey getApiKey(final long apiKeyId) {
-        // using LockModeType.PESSIMISTIC_READ to avoid errors of the type:
-        // GenericJDBCException: could not load an entity: [org.fluxtream.domain.ApiKey#xxxx]
-        return em.find(ApiKey.class, apiKeyId, LockModeType.PESSIMISTIC_READ);
+        return em.find(ApiKey.class, apiKeyId);
     }
 
     @Override
