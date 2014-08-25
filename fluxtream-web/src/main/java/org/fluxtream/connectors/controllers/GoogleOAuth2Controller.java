@@ -181,7 +181,7 @@ public class GoogleOAuth2Controller {
                                                      message);
                 // Record permanent failure since this connector won't work again until
                 // it is reauthenticated
-                guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
+                guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null, ApiKey.PermanentFailReason.NEEDS_REAUTH);
                 return new ModelAndView("redirect:/app");
             }
 
@@ -232,7 +232,7 @@ public class GoogleOAuth2Controller {
                                         + encodedRefreshToken);
 
         // Record this connector as having status up
-        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null);
+        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null, null);
         // Schedule an update for this connector
         connectorUpdateService.updateConnector(apiKey, false);
 

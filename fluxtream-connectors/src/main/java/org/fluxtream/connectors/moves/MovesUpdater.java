@@ -171,7 +171,8 @@ public class MovesUpdater extends AbstractUpdater {
                 // The update failed.  We don't know if this is permanent or temporary.
                 // let's assume that it is permanent if it's our fault (4xx)
                 if (e.getHttpResponseCode()>=400&&e.getHttpResponseCode()<500)
-                    throw new UpdateFailedException("Unexpected response code: " + e.getHttpResponseCode(), new Exception(), true);
+                    throw new UpdateFailedException("Unexpected response code: " + e.getHttpResponseCode(), new Exception(), true,
+                                                    ApiKey.PermanentFailReason.clientError(e.getHttpResponseCode(), e.getHttpResponseMessage()));
                 throw new UpdateFailedException(e);
 
             } catch (RateLimitReachedException e) {
@@ -553,7 +554,8 @@ public class MovesUpdater extends AbstractUpdater {
             // The update failed.  We don't know if this is permanent or temporary but
             // let's assume that it is permanent if it's our fault (4xx)
             if (e.getHttpResponseCode()>=400&&e.getHttpResponseCode()<500)
-                throw new UpdateFailedException("Unexpected response code: " + e.getHttpResponseCode(), new Exception(), true);
+                throw new UpdateFailedException("Unexpected response code: " + e.getHttpResponseCode(), new Exception(), true,
+                                                ApiKey.PermanentFailReason.clientError(e.getHttpResponseCode(), e.getHttpResponseMessage()));
             throw new UpdateFailedException(e);
         } catch (RateLimitReachedException e) {
             // Couldn't fetch storyline, rate limit reached
@@ -725,8 +727,8 @@ public class MovesUpdater extends AbstractUpdater {
                                                               "scroll to the Moves connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
                     // Record permanent failure since this connector won't work again until
                     // it is reauthenticated
-                    guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
-                    throw new UpdateFailedException("Unauthorized access", true);
+                    guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null, ApiKey.PermanentFailReason.NEEDS_REAUTH);
+                    throw new UpdateFailedException("Unauthorized access", true, ApiKey.PermanentFailReason.NEEDS_REAUTH);
                 }
                 else if(statusCode == 429) {
                     // Over quota, so this API attempt didn't work
@@ -737,7 +739,7 @@ public class MovesUpdater extends AbstractUpdater {
                 else if (statusCode>=400 && statusCode<500) {
                     String message40x = "Unexpected response code: " + statusCode;
                     if (message!=null) message40x += " message: " + message;
-                    throw new UpdateFailedException(message40x, new Exception(), true);
+                    throw new UpdateFailedException(message40x, new Exception(), true, ApiKey.PermanentFailReason.clientError(statusCode, message));
                 }
                 else {
                     throw new UnexpectedHttpResponseCodeException(response.getStatusLine().getStatusCode(),

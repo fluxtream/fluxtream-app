@@ -254,9 +254,7 @@ class UpdateWorker implements Runnable {
                                                       "Heads Up. Your " + connector.prettyName() + " Authorization Token has expired.<br>" +
                                                       "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
                                                       "scroll to the " + connector.prettyName() + " section, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
-            // ideally we would have an ApiKey.Status specifically for this but STATUS_OVER_RATE_LIMIT is good enough
-            // especially with the accompanying message
-            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_OVER_RATE_LIMIT, connector.getName() + " needs re-auth");
+            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null, ApiKey.PermanentFailReason.NEEDS_REAUTH);
             break;
 		case HAS_REACHED_RATE_LIMIT:
             final UpdateWorkerTask.AuditTrailEntry rateLimit = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "long reschedule");
@@ -300,7 +298,7 @@ class UpdateWorker implements Runnable {
             else {
                 // This was a permanent failure, so we should set status to permanent failure and
                 // we should not retry
-                abort(updateInfo.apiKey,failed);
+                abort(updateInfo.apiKey, failed, updateResult.reason);
             }
             if (updateInfo.getUpdateType()== UpdateInfo.UpdateType.INITIAL_HISTORY_UPDATE)
                 notificationsService.addNamedNotification(updateInfo.apiKey.getGuestId(), Notification.Type.ERROR,
@@ -310,14 +308,14 @@ class UpdateWorker implements Runnable {
                 );
 			break;
 		case NO_RESULT:
-			abort(updateInfo.apiKey,null);
+			abort(updateInfo.apiKey, null, updateResult.reason);
 			break;
 		}
 	}
 
     private void rescheduleAccordingToQuotaSpecifications(final UpdateInfo updateInfo, final UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
         longReschedule(updateInfo, auditTrailEntry);
-        guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_OVER_RATE_LIMIT, auditTrailEntry.stackTrace);
+        guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_OVER_RATE_LIMIT, auditTrailEntry.stackTrace, null);
     }
 
     private void duplicateUpdate() {
@@ -331,17 +329,17 @@ class UpdateWorker implements Runnable {
                 .append(" guestId=").append(task.getGuestId())
                 .append(" connector=").append(task.objectTypes);
 		logger.info(stringBuilder.toString());
-        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null);
+        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null, null);
         this.task = connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.DONE);
 	}
 
-	private void abort(ApiKey apiKey, UpdateWorkerTask.AuditTrailEntry auditTrailEntry) {
+	private void abort(ApiKey apiKey, UpdateWorkerTask.AuditTrailEntry auditTrailEntry, final String reason) {
 		StringBuilder stringBuilder = new StringBuilder("module=updateQueue component=worker action=abort")
                 .append(" guestId=").append(task.getGuestId())
                 .append(" connector=").append(task.connectorName)
                 .append(" objectType=").append(task.objectTypes);
 		logger.info(stringBuilder.toString());
-        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, auditTrailEntry.stackTrace);
+        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, auditTrailEntry.stackTrace, reason);
 		this.task = connectorUpdateService.setUpdateWorkerTaskStatus(task.getId(), Status.FAILED);
 	}
 
@@ -377,7 +375,7 @@ class UpdateWorker implements Runnable {
                 .append(" connector=").append(task.connectorName)
                 .append(" objectType=").append(task.objectTypes);
 		logger.info(stringBuilder.toString());
-        guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_TRANSIENT_FAILURE, auditTrailEntry.stackTrace);
+        guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_TRANSIENT_FAILURE, auditTrailEntry.stackTrace, null);
 		// re-schedule when we are below rate limit again
         Long resetTime = updateInfo.getSafeResetTime();
         if (resetTime==null) {
@@ -396,7 +394,7 @@ class UpdateWorker implements Runnable {
                 .append(" retries=").append(String.valueOf(task.retries));
 		logger.info(sb.toString());
 		// schedule 1 minute later, typically
-        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_TRANSIENT_FAILURE, auditTrailEntry.stackTrace);
+        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_TRANSIENT_FAILURE, auditTrailEntry.stackTrace, null);
 		connectorUpdateService.reScheduleUpdateTask(task.getId(), System.currentTimeMillis() + getShortRetryDelay(apiKey.getConnector()),
                                                     true, auditTrailEntry);
 	}

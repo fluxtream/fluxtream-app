@@ -15,6 +15,7 @@ import org.fluxtream.connectors.updaters.AbstractUpdater;
 import org.fluxtream.connectors.updaters.UpdateFailedException;
 import org.fluxtream.connectors.updaters.UpdateInfo;
 import org.fluxtream.domain.AbstractFacet;
+import org.fluxtream.domain.ApiKey;
 import org.fluxtream.services.ApiDataService;
 import org.fluxtream.services.JPADaoService;
 import org.fluxtream.services.MetadataService;
@@ -130,7 +131,8 @@ public class RunKeeperUpdater  extends AbstractUpdater {
                                request.getCompleteUrl(), ExceptionUtils.getStackTrace(new Exception()),
                                httpResponseCode, response.getBody());
             if (httpResponseCode>=400&&httpResponseCode<500)
-                throw new UpdateFailedException("Unexpected response code: " + httpResponseCode, true);
+                throw new UpdateFailedException("Unexpected response code: " + httpResponseCode, true,
+                                                ApiKey.PermanentFailReason.clientError(httpResponseCode));
             else
                 throw new UpdateFailedException("Unexpected code: " + httpResponseCode);
         }
@@ -160,7 +162,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
                                    updateInfo.objectTypes, then, activityURL, ExceptionUtils.getStackTrace(new Exception()),
                                    httpResponseCode, response.getBody());
                 if (httpResponseCode>=400&&httpResponseCode<500)
-                    throw new UpdateFailedException("Unexpected response code: " + httpResponseCode, true);
+                    throw new UpdateFailedException("Unexpected response code: " + httpResponseCode, true, ApiKey.PermanentFailReason.clientError(httpResponseCode));
                 else
                     throw new UpdateFailedException("Unexpected code: " + httpResponseCode);
             }
@@ -341,7 +343,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
                                updateInfo.objectTypes, then, activityFeedURL, ExceptionUtils.getStackTrace(new Exception()),
                                httpResponseCode, response.getBody());
             if (httpResponseCode>=400&&httpResponseCode<500)
-                throw new UpdateFailedException("Unexpected response code: " + httpResponseCode, true);
+                throw new UpdateFailedException("Unexpected response code: " + httpResponseCode, true, ApiKey.PermanentFailReason.clientError(httpResponseCode));
             else
                 throw new UpdateFailedException("Unexpected code: " + httpResponseCode);
         }

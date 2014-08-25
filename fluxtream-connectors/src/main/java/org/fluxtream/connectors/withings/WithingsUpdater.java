@@ -78,8 +78,8 @@ public class WithingsUpdater extends AbstractUpdater {
                                                                                                                                                 "scroll to the Withings connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
             // Record permanent failure since this connector won't work again until
             // it is reauthenticated
-            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
-            throw new UpdateFailedException("requires token reauthorization",true);
+            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null, ApiKey.PermanentFailReason.NEEDS_REAUTH);
+            throw new UpdateFailedException("requires token reauthorization",true, ApiKey.PermanentFailReason.NEEDS_REAUTH);
         }
 
         final String userid = guestService.getApiKeyAttribute(updateInfo.apiKey, "userid");
@@ -113,8 +113,8 @@ public class WithingsUpdater extends AbstractUpdater {
                                                                                                                                                 "scroll to the Withings connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
             // Record permanent failure since this connector won't work again until
             // it is reauthenticated
-            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
-            throw new UpdateFailedException("requires token reauthorization",true);
+            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null, ApiKey.PermanentFailReason.NEEDS_REAUTH);
+            throw new UpdateFailedException("requires token reauthorization",true, ApiKey.PermanentFailReason.NEEDS_REAUTH);
         }
 
         // do v1 API call
@@ -221,37 +221,58 @@ public class WithingsUpdater extends AbstractUpdater {
             String json = response.getBody();
             JSONObject jsonObject = JSONObject.fromObject(json);
             final int withingsStatusCode = jsonObject.getInt("status");
+            String message = null;
             if (withingsStatusCode !=0) {
                 switch (withingsStatusCode) {
                     case 247:
-                        throw new UpdateFailedException("247 : The userid provided is absent, or incorrect", true);
+                        message = "247 : The userid provided is absent, or incorrect";
+                        throw new UpdateFailedException(message, true,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
                     case 250:
                         // 250 : The provided userid and/or Oauth credentials do not match
                         throw new AuthExpiredException();
                     case 286:
-                        throw new UpdateFailedException("286 : No such subscription was found", true);
+                        message = "286 : No such subscription was found";
+                        throw new UpdateFailedException(message, true,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
                     case 293:
-                        throw new UpdateFailedException("293 : The callback URL is either absent or incorrect", true);
+                        message = "293 : The callback URL is either absent or incorrect";
+                        throw new UpdateFailedException(message, true,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
                     case 294:
-                        throw new UpdateFailedException("294 : No such subscription could be deleted", true);
+                        message = "294 : No such subscription could be deleted";
+                        throw new UpdateFailedException(message, true,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
                     case 304:
-                        throw new UpdateFailedException("304 : The comment is either absent or incorrect", true);
+                        message = "304 : The comment is either absent or incorrect";
+                        throw new UpdateFailedException(message, true,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
                     case 305:
                         // 305: Too many notifications are already set
                         throw new RateLimitExceededException();
                     case 342:
-                        throw new UpdateFailedException("342 : The signature (using Oauth) is invalid", true);
+                        message = "342 : The signature (using Oauth) is invalid";
+                        throw new UpdateFailedException( message, true,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
                     case 343:
-                        throw new UpdateFailedException("343 : Wrong Notification Callback Url don't exist", true);
+                        message = "343 : Wrong Notification Callback Url don't exist";
+                        throw new UpdateFailedException(message, true,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
                     case 601:
                         // 601: Too Many Requests
                         throw new RateLimitReachedException();
                     case 2554:
-                        throw new UpdateFailedException("2554 : Wrong action or wrong webservice", true);
+                        message = "2554 : Wrong action or wrong webservice";
+                        throw new UpdateFailedException(message, true,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
                     case 2555:
-                        throw new UpdateFailedException("2555 : An unknown error occurred", false);
+                        message = "2555 : An unknown error occurred";
+                        throw new UpdateFailedException(message, false,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
                     case 2556:
-                        throw new UpdateFailedException("2556 : Service is not defined", true);
+                        message = "2556 : Service is not defined";
+                        throw new UpdateFailedException(message, true,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
                     default:
                     throw new UnexpectedHttpResponseCodeException(withingsStatusCode, "Unexpected status code: " + withingsStatusCode);
                 }

@@ -193,7 +193,7 @@ public class AdminController {
     @RequestMapping(value = "/admin/{guestId}/{apiKeyId}/setToPermanentFail")
     public ModelAndView setToPermanentFail(@PathVariable("guestId") long guestId,
                                            @PathVariable("apiKeyId") long apiKeyId) throws Exception {
-        guestService.setApiKeyStatus(apiKeyId, ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
+        guestService.setApiKeyStatus(apiKeyId, ApiKey.Status.STATUS_PERMANENT_FAILURE, null, ApiKey.PermanentFailReason.MANUAL_INTERVENTION);
         return new ModelAndView(String.format("redirect:/admin/%s/%s", guestId, apiKeyId));
     }
 

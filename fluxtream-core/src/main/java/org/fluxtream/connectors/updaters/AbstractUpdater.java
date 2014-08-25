@@ -152,7 +152,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
             notificationsService.addNamedNotification(updateInfo.apiKey.getGuestId(), Notification.Type.WARNING,
                                                       connector().statusNotificationName(),
                                                       sb.toString());
-            return UpdateResult.failedResult(stackTrace);
+            return UpdateResult.failedResult(stackTrace, ApiKey.PermanentFailReason.UNKNOWN);
         }
         finally {
             try {
@@ -222,7 +222,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                     .append(" stackTrace=<![CDATA[").append(stackTrace).append("]]>")
                     .append(updateInfo.apiKey.getGuestId());
             logger.warn(sb.toString());
-            updateResult = UpdateResult.failedResult(stackTrace);
+            updateResult = UpdateResult.failedResult(stackTrace, ApiKey.PermanentFailReason.UNKNOWN);
         }
         finally {
             // Update the time bounds no matter how we exit the updater.

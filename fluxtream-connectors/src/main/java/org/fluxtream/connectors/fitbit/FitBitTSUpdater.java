@@ -254,7 +254,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                 if (e.responseCode==401)
                     throw new AuthExpiredException();
                 else if (e.responseCode>=400&&e.responseCode<500)
-                    throw new UpdateFailedException("Unexpected response code: " + e.responseCode, true);
+                    throw new UpdateFailedException("Unexpected response code: " + e.responseCode, true,
+                                                    ApiKey.PermanentFailReason.clientError(e.responseCode, e.getMessage()));
                 throw new RuntimeException(
                         "Could not make REST call, got response code: "
                         + e.responseCode + ", message: "
@@ -637,7 +638,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                 if (e.responseCode==401)
                     throw new AuthExpiredException();
                 else if (e.responseCode>=400&&e.responseCode<500)
-                    throw new UpdateFailedException("Unexpected response code: " + e.responseCode, true);
+                    throw new UpdateFailedException("Unexpected response code: " + e.responseCode, true,
+                                                    ApiKey.PermanentFailReason.clientError(e.responseCode));
                 throw new RuntimeException(
                 						"Could not make REST call, got response code: "
                 								+ e.responseCode + ", message: "

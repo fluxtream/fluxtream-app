@@ -130,7 +130,9 @@ public class FlickrUpdater extends AbstractUpdater {
                     if (message.indexOf("Invalid auth token")!=-1) {
                         throw new AuthExpiredException();
                     } else
-                        throw new UpdateFailedException("Could not retrieve flickr recently updated photos: " + message, true);
+                        throw new UpdateFailedException("Could not retrieve flickr recently updated photos: " + message,
+                                                        true,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
                 }
             }
             JSONObject photosWrapper = feed.getJSONObject("photos");
@@ -281,8 +283,9 @@ public class FlickrUpdater extends AbstractUpdater {
                                then, searchPhotosUrl, Utils.stackTrace(e),
                                e.getHttpResponseCode(), e.getHttpResponseMessage());
             if (e.getHttpResponseCode()>=400 && e.getHttpResponseCode()<500)
-                throw new UpdateFailedException("Unexpected response code: " + e.getHttpResponseCode(), new Exception(), true);
-            throw new UpdateFailedException(e, false);
+                throw new UpdateFailedException("Unexpected response code: " + e.getHttpResponseCode(), new Exception(), true,
+                                                ApiKey.PermanentFailReason. clientError(e.getHttpResponseCode(), e.getHttpResponseMessage()));
+            throw new UpdateFailedException(e, false, null);
 		} catch (IOException e) {
 			reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, searchPhotosUrl,
                                 Utils.stackTrace(e), "I/O");
@@ -320,8 +323,9 @@ public class FlickrUpdater extends AbstractUpdater {
                                then, searchPhotosUrl, Utils.stackTrace(e),
                                e.getHttpResponseCode(), e.getHttpResponseMessage());
             if (e.getHttpResponseCode()>=400 && e.getHttpResponseCode()<500)
-                throw new UpdateFailedException("Unexpected response code: " + e.getHttpResponseCode(), new Exception(), true);
-            throw new UpdateFailedException(e, false);
+                throw new UpdateFailedException("Unexpected response code: " + e.getHttpResponseCode(), new Exception(), true,
+                                                ApiKey.PermanentFailReason.clientError(e.getHttpResponseCode(), e.getHttpResponseMessage()));
+            throw new UpdateFailedException(e, false, null);
         } catch (IOException e) {
             reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes,
                                then, searchPhotosUrl, Utils.stackTrace(e), "I/O");

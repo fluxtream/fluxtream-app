@@ -44,6 +44,30 @@ public class ApiKey extends AbstractEntity {
         STATUS_UP, STATUS_PERMANENT_FAILURE, STATUS_TRANSIENT_FAILURE, STATUS_OVER_RATE_LIMIT
     }
 
+    public static class PermanentFailReason {
+        public final static String NEEDS_REAUTH = "NEEDS_REAUTH";
+        public final static String CLIENT_ERROR = "CLIENT_ERROR";
+        public final static String SERVER_EXCEPTION = "SERVER_EXCEPTION";
+        public final static String MANUAL_INTERVENTION = "MANUAL_INTERVENTION";
+        public final static String UNKNOWN = "UNKNOWN";
+        public final static String DIVIDER = " ";
+
+        public static String clientError(final int code) {
+            return new StringBuffer(CLIENT_ERROR).append(DIVIDER).append(code).toString();
+        }
+
+        public static String clientError(final int code, String message) {
+            StringBuffer sb = new StringBuffer(CLIENT_ERROR).append(DIVIDER).append(code);
+            if (message!=null)
+                sb.append(DIVIDER).append(message);
+            return sb.toString();
+        }
+
+        public static String unknownReason(String message) {
+            return new StringBuffer(UNKNOWN).append(DIVIDER).append(message).toString();
+        }
+    }
+
     @Expose
 	@Index(name="guestId_index")
 	private long guestId;
@@ -62,6 +86,8 @@ public class ApiKey extends AbstractEntity {
 
     @Lob
     public String stackTrace;
+
+    public String reason;
 
     @Lob
     private byte[] settingsStorage;
