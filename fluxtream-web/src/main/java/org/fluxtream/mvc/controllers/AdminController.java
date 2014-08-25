@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.lang.StringUtils;
 import org.fluxtream.Configuration;
 import org.fluxtream.connectors.Connector;
 import org.fluxtream.domain.ApiKey;
@@ -53,6 +54,29 @@ public class AdminController {
 
     @Autowired
     JPADaoService jpaDaoService;
+
+    @Secured({ "ROLE_ADMIN" })
+    @RequestMapping(value = { "/admin/fail" })
+    public ModelAndView getPermanentFailConnectors(HttpServletResponse response,
+                                                   @RequestParam(value = "filter",
+                                                                 defaultValue = "apiKey.reason!='" + ApiKey.PermanentFailReason.NEEDS_REAUTH + "'") String filter) throws Exception {
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
+        response.setHeader("Pragma", "no-cache"); // HTTP 1.0.
+        response.setDateHeader("Expires", 0);
+        ModelAndView mav = new ModelAndView("admin/permanentFail");
+
+        final StringBuffer queryString = new StringBuffer("SELECT apiKey FROM ApiKey apiKey WHERE apiKey.status=1 ");
+        if (!StringUtils.isEmpty(filter))
+            queryString.append("AND ").append(filter);
+        queryString.append(" ORDER BY apiKey.api");
+
+        final List<ApiKey> apiKeys = jpaDaoService.executeQueryWithLimitAndOffset(queryString.toString(), 1000, 0, ApiKey.class);
+        mav.addObject("apiKeys", apiKeys);
+        mav.addObject("filter", filter);
+        mav.addObject("release", env.get("release"));
+        return mav;
+    }
+
 
     @Secured({ "ROLE_ADMIN" })
     @RequestMapping(value = { "/admin" })

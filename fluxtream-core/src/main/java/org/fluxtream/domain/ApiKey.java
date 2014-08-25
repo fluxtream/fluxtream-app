@@ -205,4 +205,8 @@ public class ApiKey extends AbstractEntity {
     public Status getStatus() {
         return status;
     }
+
+    public String getReason() {
+        return reason;
+    }
 }
