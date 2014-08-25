@@ -68,6 +68,7 @@ class UpdateWorker implements Runnable {
     @Trace(dispatcher=true)
 	@Override
 	public void run() {
+        ApiKey apiKey = null;
         try {
             final UpdateWorkerTask claimed = connectorUpdateService.claimForExecution(task.getId(), Thread.currentThread().getName());
             if (claimed == null) {
@@ -80,7 +81,8 @@ class UpdateWorker implements Runnable {
             StringBuilder sb = new StringBuilder("module=updateQueue component=worker action=start").append(" guestId=").append(task.getGuestId()).append(" connector=").append(task.connectorName).append(" objectType=").append(task.objectTypes).append(" apiKeyId=").append(task.apiKeyId);
             logger.info(sb.toString());
 
-            ApiKey apiKey = guestService.getApiKey(task.apiKeyId);
+            apiKey = guestService.getApiKey(task.apiKeyId);
+
             Connector conn = apiKey.getConnector();
 
             // Check if this connector type is enabled and supportsSync before calling update.
