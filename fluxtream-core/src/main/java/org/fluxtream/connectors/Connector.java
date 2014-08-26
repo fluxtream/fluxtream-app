@@ -318,6 +318,10 @@ public class Connector {
         return name;
     }
 
+    public int getValue() {
+        return value;
+    }
+
     public int value() {
         return value;
     }

@@ -5,9 +5,10 @@
         %><%@ page import="org.fluxtream.auth.AuthHelper"
         %><%@ page import="org.fluxtream.domain.ApiKey"
         %>
-<%@ page import="org.fluxtream.domain.Guest" %>
+<%@ page import="org.fluxtream.mvc.controllers.AdminViewHelper" %>
 <%
-    List<ApiKey> apiKeys = (List<ApiKey>)request.getAttribute("apiKeys");%><!DOCTYPE html>
+    List<ApiKey> apiKeys = (List<ApiKey>)request.getAttribute("apiKeys");
+    List<ApiKey.Status> statusFilters = (List<ApiKey.Status>)request.getAttribute("statusFilters");%><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -91,7 +92,6 @@
             </div>
         </div>
     </div>
-    <h3>Permanent Fail Updaters</h3>
 
     <style>
         #header-fixed {
@@ -112,6 +112,9 @@
         .apiCode{
             width: 80px;
         }
+        .apiStatus{
+            width: 80px;
+        }
         #dashboardTable, #header-fixed {
             table-layout: fixed;
         }
@@ -124,11 +127,37 @@
 
     <div  class="container-fluid">
 
+        <h3>Search (failed) Updaters</h3>
+
         <form action="/admin/fail">
             <fieldset>
-                <label>Where clause</label>
-                <input type="text" name="filter" placeholder="more filters" value="${filter}">
-                <span class="help-block">Example: apiKey.reason LIKE 'CLIENT_ERROR 400%'</span>
+                <div class="control-group">
+                    <label>Where clause</label>
+                    <input type="text" name="filter" placeholder="more filters" value="${filter}">
+                    <input type="text" name="guestId" placeholder="a Guest ID" value="${guestId}">
+                </div>
+                <span class="help-block">Example filter: apiKey.reason LIKE 'CLIENT_ERROR 400%'</span>
+                <!-- Multiple Checkboxes -->
+                <div class="control-group">
+                    <div class="controls" id="checkboxes">
+                        <label class="checkbox inline" for="checkboxes-0">
+                            <input type="checkbox" <%=AdminViewHelper.setChecked(statusFilters, ApiKey.Status.STATUS_PERMANENT_FAILURE)%> name="status_1" id="checkboxes-0" value="true">
+                            Permanent Fail
+                        </label>
+                        <label class="checkbox inline" for="checkboxes-1">
+                            <input type="checkbox" <%=AdminViewHelper.setChecked(statusFilters, ApiKey.Status.STATUS_TRANSIENT_FAILURE)%> name="status_2" id="checkboxes-1" value="true">
+                            Transient Fail
+                        </label>
+                        <label class="checkbox inline" for="checkboxes-2">
+                            <input type="checkbox" <%=AdminViewHelper.setChecked(statusFilters, ApiKey.Status.STATUS_OVER_RATE_LIMIT)%> name="status_3" id="checkboxes-2" value="true">
+                            Over Rate Limit
+                        </label>
+                        <label class="checkbox inline" for="checkboxes-3">
+                            <input type="checkbox" <%=AdminViewHelper.setChecked(statusFilters, ApiKey.Status.STATUS_UP)%> name="status_0" id="checkboxes-3" value="true">
+                            Up
+                        </label>
+                    </div>
+                </div>
                 <button type="submit" class="btn">Submit</button>
             </fieldset>
         </form>
@@ -136,7 +165,7 @@
         <c:choose>
             <c:when test="${apiKeys.size()==0}">
                 <div class="alert alert-success">
-                    Hurray! No Failed ApiKeys at the moment!
+                    Nothing to show here!
                 </div>
             </c:when>
             <c:otherwise>
@@ -144,22 +173,38 @@
 
                 <table class="table table-bordered" id="dashboardTable">
                     <thead>
-                        <th class="connectorName-column">Connector Name (/api)</th>
-                        <th class="apiCode">api</th>
-                        <th class="apiKeyReason">Reason</th>
+                        <th class="connectorName-column">Connector Name</th>
+                        <th class="apiCode">Api code</th>
+                        <th class="apiStatus">Status</th>
                         <th class="apiKeyGuestId">Guest ID</th>
+                        <th class="apiKeyReason">Reason</th>
                         <th class="details">Details</th>
                     </thead>
                     <tbody>
-                    <% for (ApiKey apiKey : apiKeys) {%>
+                    <c:forEach var="apiKey" items="${apiKeys}">
                         <tr>
-                            <td><%=apiKey.getConnector().getPrettyName()%></td>
-                            <td><%=apiKey.getConnector().value()%></td>
-                            <td><%=apiKey.getReason()%></td>
-                            <td><%=apiKey.getGuestId()%></td>
-                            <td><a href="/admin/<%=apiKey.getGuestId()%>/<%=apiKey.getId()%>">details</a></td>
+                            <td>${apiKey.connector.prettyName}</td>
+                            <td>${apiKey.connector.value}</td>
+                            <td class="apiKeyStatus">
+                                <c:choose>
+                                    <c:when test="${empty apiKey.status}">
+                                        <a class="btn btn-link" href="/admin/${apiKey.guestId}/${apiKey.id}">
+                                            <div title="${apiKey.status}" class="syncStatus-NA">&nbsp;</div>
+                                        </a>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <a class="btn btn-link" href="/admin/${apiKey.guestId}/${apiKey.id}">
+                                            <div title="${apiKey.status}" class="syncStatus-${apiKey.status}">
+                                                &nbsp;</div>
+                                        </a>
+                                    </c:otherwise>
+                                </c:choose>
+                            </td>
+                            <td>${apiKey.guestId}</td>
+                            <td>${apiKey.reason}</td>
+                            <td><a href="/admin/${apiKey.guestId}/${apiKey.id}">details</a></td>
                         </tr>
-                    <% } %>
+                    </c:forEach>
                     </tbody>
                 </table>
             </c:otherwise>
