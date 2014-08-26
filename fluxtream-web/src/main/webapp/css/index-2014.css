@@ -4,7 +4,7 @@ body, html {
   font-family: 'Open Sans', Arial, Helvetica, sans-serif;
   text-align: center;
   color: #777775;
-  background: white;
+  background: #fafaf8;
   padding: 0;
   margin: 0;
   border: 0px;
@@ -344,6 +344,81 @@ footer {
   font-weight: bold;
 }
 
+.connector-img-cloud {
+  margin: 0.5em 0 1.5em;
+  padding: 0;
+  line-height: 1;
+  text-align: center;
+  border: 1px solid #d5d5da;
+  border-left: none;
+  border-right: none;
+  overflow: hidden;
+  vertical-align: middle;
+  height: 160px;
+  -webkit-transition: height 0.5s ease-in-out;
+  -moz-transition: height 0.5s ease-in-out;
+  -o-transition: height 0.5s ease-in-out;
+  transition: height 0.5s ease-in-out;
+}
+
+.connector-cloud {
+  padding: 0;
+  line-height: 1;
+  text-align: center;
+  height: 317px;
+  width: 100%;
+  background: #ffffff url("../images/connector-cloud.png") no-repeat top center;
+  opacity: 0.45;
+  z-index: 4;
+  -webkit-transition-property: opacity 0.5s ease-in-out;
+  -moz-transition-property: opacity 0.5s ease-in-out;
+  -o-transition-property: opacity 0.5s ease-in-out;
+  transition-property: opacity 0.5s ease-in-out;
+}
+
+.connector-img-cloud:before { 
+  content:'';
+  display: block;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 8px;
+  background: #1e5799;
+  background: -moz-linear-gradient(top,  rgba(0,0,0,0.10) 0%, rgba(255,255,255,0) 100%);
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, rgba(0,0,0,0.10) 0%), color-stop(100%,rgba(255,255,255,0)));
+  background: -webkit-linear-gradient(top,  rgba(0,0,0,0.10) 0%, rgba(255,255,255,0) 100%);
+  background: -o-linear-gradient(top, rgba(0,0,0,0.10) 0%, rgba(255,255,255,0) 100%);
+  background: -ms-linear-gradient(top, rgba(0,0,0,0.10) 0%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(to bottom,  rgba(0,0,0,0.10) 0%,rgba(255,255,255,0) 100%);  
+  z-index: 5;
+}
+.connector-img-cloud:after { 
+  content:'';
+  display: block;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 8px;
+  background: #1e5799;
+  background: -moz-linear-gradient(bottom,  rgba(0,0,0,0.10) 0%, rgba(255,255,255,0) 100%);
+  background: -webkit-gradient(linear, left bottom, left top, color-stop(0%, rgba(0,0,0,0.10) 0%), color-stop(100%,rgba(255,255,255,0)));
+  background: -webkit-linear-gradient(bottom,  rgba(0,0,0,0.10) 0%, rgba(255,255,255,0) 100%);
+  background: -o-linear-gradient(bottom, rgba(0,0,0,0.10) 0%, rgba(255,255,255,0) 100%);
+  background: -ms-linear-gradient(bottom, rgba(0,0,0,0.10) 0%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(to top,  rgba(0,0,0,0.10) 0%,rgba(255,255,255,0) 100%);  
+  z-index: 5;
+}
+
+.connector-img-cloud:hover {
+  height: 317px;
+}
+
+.connector-img-cloud:hover .connector-cloud:hover {
+  opacity: 1;
+}
+
 @media screen and (max-width: 767px) {
   .logo { 
     margin: 0 auto;
@@ -420,6 +495,13 @@ footer {
   .copyright {
     margin: 0;
     float: none;
+  }
+  .connector-cloud {
+    background-image: url(../images/connector-cloud@2x.gif);
+    background-size: 100%;
+  }
+  .connector-img-cloud:hover {
+    height: 197px;
   }
 }
 
@@ -501,6 +583,13 @@ footer {
     padding: 2em 0;
     background: #1E4C85;
   }
+  .container {
+    padding: 2em 0;
+  }
+  .connector-cloud {
+    background-image: url(../images/connector-cloud@2x.gif);
+    background-size: 70%;
+  }
 }
 @media screen and (min-width: 992px){
     iframe {
@@ -517,6 +606,10 @@ footer {
   }
   .the-whole :nth-child(2), .the-whole :nth-child(2) h2, .explore :nth-child(2), .explore :nth-child(2) h2 {
     text-align: left;
+  }
+  .connector-cloud {
+    background-image: url(../images/connector-cloud.png);
+    background-size: auto;
   }
 }
 @media screen and (min-width: 1260px){
