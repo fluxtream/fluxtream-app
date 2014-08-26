@@ -327,7 +327,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 case "eventStart":
                     var eventStart = moment(facet[member], "YYYYMMDD'T'HHmmss.SSSZ");
                     facet.startMinute = eventStart.hour()*60+eventStart.minute();
-                    facet.startTime = {"hours" : eventStart.hour()>12?eventStart.hour()-12:eventStart.hour(), "minutes" : pad(eventStart.minute()), "ampm" : eventStart.hour()>12?"pm":"am"};
+                    facet.startTime = {"hours" : eventStart.hour()>12?eventStart.hour()-12:eventStart.hour(), "minutes" : pad(eventStart.minute()), "ampm" : eventStart.hour()>=12?"pm":"am"};
                     facet.time = App.formatMinuteOfDay(facet.startMinute)[0];
                     facet.ampm = App.formatMinuteOfDay(facet.startMinute)[1];
                     facet.start = eventStart.utc().valueOf();
@@ -336,7 +336,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 case "eventEnd":
                     var eventEnd = moment(facet[member], "YYYYMMDD'T'HHmmss.SSSZ");
                     facet.endMinute = eventEnd.hour()*60+eventEnd.minute();
-                    facet.endTime = {"hours" : eventEnd.hour()>12?eventEnd.hour()-12:eventEnd.hour(), "minutes" : pad(eventEnd.minute()), "ampm" : eventEnd.hour()>12?"pm":"am"};
+                    facet.endTime = {"hours" : eventEnd.hour()>12?eventEnd.hour()-12:eventEnd.hour(), "minutes" : pad(eventEnd.minute()), "ampm" : eventEnd.hour()>=12?"pm":"am"};
                     facet.end = eventEnd.utc().valueOf();
                     break;
             }
