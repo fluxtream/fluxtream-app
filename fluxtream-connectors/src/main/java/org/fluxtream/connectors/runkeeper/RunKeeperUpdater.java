@@ -12,6 +12,7 @@ import org.fluxtream.connectors.Connector;
 import org.fluxtream.connectors.annotations.Updater;
 import org.fluxtream.connectors.location.LocationFacet;
 import org.fluxtream.connectors.updaters.AbstractUpdater;
+import org.fluxtream.connectors.updaters.AuthRevokedException;
 import org.fluxtream.connectors.updaters.UpdateFailedException;
 import org.fluxtream.connectors.updaters.UpdateInfo;
 import org.fluxtream.domain.AbstractFacet;
@@ -115,8 +116,9 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         Response response = request.send();
         final int httpResponseCode = response.getCode();
         long then = System.currentTimeMillis();
+        String body = null;
         if (httpResponseCode==200) {
-            String body = response.getBody();
+            body = response.getBody();
             JSONObject jsonObject = JSONObject.fromObject(body);
             String fitnessActivities = jsonObject.getString("fitness_activities");
             List<String> activities = new ArrayList<String>();
@@ -129,12 +131,29 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         } else {
             countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then,
                                request.getCompleteUrl(), ExceptionUtils.getStackTrace(new Exception()),
-                               httpResponseCode, response.getBody());
-            if (httpResponseCode>=400&&httpResponseCode<500)
+                               httpResponseCode, body);
+            if (httpResponseCode==403) {
+                handleTokenRevocation(body);
+            } if (httpResponseCode>=400&&httpResponseCode<500)
                 throw new UpdateFailedException("Unexpected response code: " + httpResponseCode, true,
                                                 ApiKey.PermanentFailReason.clientError(httpResponseCode));
             else
                 throw new UpdateFailedException("Unexpected code: " + httpResponseCode);
+        }
+    }
+
+    private void handleTokenRevocation(final String responseBody) {
+        // let's try to parse this error's payload and be conservative about parsing errors here
+        if (responseBody!=null) {
+            try {
+                final JSONObject errorPayload = JSONObject.fromObject(responseBody);
+                if (errorPayload.has("reason")&&errorPayload.getString("reason").equalsIgnoreCase("Revoked")) {
+                    boolean dataCleanupRequested = false;
+                    if (errorPayload.has("delete_health")&&errorPayload.getBoolean("delete_health"))
+                        dataCleanupRequested = true;
+                    throw new AuthRevokedException(dataCleanupRequested);
+                }
+            } catch (Throwable t) {}
         }
     }
 
@@ -151,16 +170,19 @@ public class RunKeeperUpdater  extends AbstractUpdater {
             long then = System.currentTimeMillis();
             Response response = request.send();
             final int httpResponseCode = response.getCode();
+            String body = null;
             if (httpResponseCode ==200) {
+                body = response.getBody();
                 countSuccessfulApiCall(updateInfo.apiKey,
                                        updateInfo.objectTypes, then, activityURL);
-                String body = response.getBody();
                 JSONObject jsonObject = JSONObject.fromObject(body);
                 createOrUpdateActivity(jsonObject, updateInfo);
             } else {
                 countFailedApiCall(updateInfo.apiKey,
                                    updateInfo.objectTypes, then, activityURL, ExceptionUtils.getStackTrace(new Exception()),
                                    httpResponseCode, response.getBody());
+                if (httpResponseCode==403)
+                    handleTokenRevocation(body);
                 if (httpResponseCode>=400&&httpResponseCode<500)
                     throw new UpdateFailedException("Unexpected response code: " + httpResponseCode, true, ApiKey.PermanentFailReason.clientError(httpResponseCode));
                 else
@@ -318,8 +340,9 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         long then = System.currentTimeMillis();
         Response response = request.send();
         final int httpResponseCode = response.getCode();
+        String body = null;
         if (httpResponseCode ==200) {
-            String body = response.getBody();
+            body = response.getBody();
             JSONObject jsonObject = JSONObject.fromObject(body);
             final JSONArray items = jsonObject.getJSONArray("items");
             for(int i=0; i<items.size(); i++) {
@@ -342,6 +365,8 @@ public class RunKeeperUpdater  extends AbstractUpdater {
             countFailedApiCall(updateInfo.apiKey,
                                updateInfo.objectTypes, then, activityFeedURL, ExceptionUtils.getStackTrace(new Exception()),
                                httpResponseCode, response.getBody());
+            if (httpResponseCode==403)
+                handleTokenRevocation(body);
             if (httpResponseCode>=400&&httpResponseCode<500)
                 throw new UpdateFailedException("Unexpected response code: " + httpResponseCode, true, ApiKey.PermanentFailReason.clientError(httpResponseCode));
             else

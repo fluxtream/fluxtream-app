@@ -40,7 +40,6 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 	@Autowired
 	protected JPADaoService jpaDaoService;
 
-    @Qualifier("JPAFacetDao")
     @Autowired
 	protected FacetDao facetDao;
 
@@ -118,6 +117,13 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                     .append(updateInfo.apiKey.getGuestId());
             logger.warn(sb.toString());
             return UpdateResult.rateLimitReachedResult(e);
+        } catch (AuthRevokedException e) {
+            StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateDataHistory")
+                    .append(" message=\"auth revoked\" connector=")
+                    .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+                    .append(updateInfo.apiKey.getGuestId());
+            logger.warn(sb.toString());
+            return UpdateResult.authRevokedResult(e);
         } catch (AuthExpiredException e) {
             StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateDataHistory")
                     .append(" message=\"connector needs re-authorization\" connector=")
@@ -198,6 +204,8 @@ public abstract class AbstractUpdater extends ApiClientSupport {
         try {
             updateConnectorData(updateInfo);
             updateResult = UpdateResult.successResult();
+        } catch (AuthRevokedException e) {
+            updateResult = UpdateResult.authRevokedResult(e);
         } catch (RateLimitReachedException e) {
             updateResult = UpdateResult.rateLimitReachedResult(e);
         }  catch (AuthExpiredException e) {
