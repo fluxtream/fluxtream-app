@@ -258,7 +258,8 @@ class UpdateWorker implements Runnable {
                                                       "Heads Up. Your " + connector.prettyName() + " Authorization Token has expired.<br>" +
                                                       "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
                                                       "scroll to the " + connector.prettyName() + " section, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
-            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null, ApiKey.PermanentFailReason.NEEDS_REAUTH);
+            UpdateWorkerTask.AuditTrailEntry failed = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "abort");
+            abort(updateInfo.apiKey, failed, updateResult.reason);
             break;
 		case HAS_REACHED_RATE_LIMIT:
             final UpdateWorkerTask.AuditTrailEntry rateLimit = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "long reschedule");
@@ -287,7 +288,7 @@ class UpdateWorker implements Runnable {
 			break;
 		case UPDATE_FAILED:
         case UPDATE_FAILED_PERMANENTLY:
-            final UpdateWorkerTask.AuditTrailEntry failed = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "abort");
+            failed = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "abort");
             failed.stackTrace = updateResult.stackTrace;
             connectorUpdateService.addAuditTrail(task.getId(), failed);
             final UpdateWorkerTask.AuditTrailEntry retry = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "retry");
