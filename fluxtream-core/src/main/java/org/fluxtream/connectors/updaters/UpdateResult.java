@@ -6,13 +6,10 @@ import static org.fluxtream.utils.Utils.stackTrace;
 
 public class UpdateResult {
 
-    RateLimitReachedException rateLimitReachedException;
 
 	private UpdateResult(ResultType resultType) {
 		type = resultType;
 	}
-
-    public UpdateResult() {}
 
     public ResultType getType() {
         return type;
@@ -24,9 +21,16 @@ public class UpdateResult {
 
     public String reason;
 
+    private AuthRevokedException authRevokedException;
+
+    public AuthRevokedException getAuthRevokedException() {
+        return authRevokedException;
+    }
+
     public enum ResultType {
 		NO_RESULT, UPDATE_SUCCEEDED, UPDATE_FAILED, HAS_REACHED_RATE_LIMIT,
-			DUPLICATE_UPDATE, UPDATE_FAILED_PERMANENTLY, NEEDS_REAUTH
+			DUPLICATE_UPDATE, UPDATE_FAILED_PERMANENTLY, NEEDS_REAUTH,
+        AUTH_REVOKED
 	}
 
     // Failusre can either be transient or permanent.  Default to transient, but allow optional
@@ -51,13 +55,19 @@ public class UpdateResult {
         return new UpdateResult(ResultType.UPDATE_SUCCEEDED);
 	}
 
+    public static UpdateResult authRevokedResult(AuthRevokedException authRevokedException) {
+        final UpdateResult updateResult = new UpdateResult(ResultType.AUTH_REVOKED);
+        updateResult.authRevokedException = authRevokedException;
+        updateResult.stackTrace = Utils.stackTrace(authRevokedException);
+        return updateResult;
+    }
+
     public static UpdateResult needsReauth() {
         return new UpdateResult(ResultType.NEEDS_REAUTH);
     }
 
 	public static UpdateResult rateLimitReachedResult(RateLimitReachedException rateLimitReachedException) {
         final UpdateResult updateResult = new UpdateResult(ResultType.HAS_REACHED_RATE_LIMIT);
-        updateResult.rateLimitReachedException = rateLimitReachedException;
         updateResult.stackTrace = Utils.stackTrace(rateLimitReachedException);
         return updateResult;
     }

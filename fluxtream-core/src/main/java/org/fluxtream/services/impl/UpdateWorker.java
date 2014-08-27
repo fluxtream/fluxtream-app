@@ -252,13 +252,26 @@ class UpdateWorker implements Runnable {
 		case DUPLICATE_UPDATE:
 			duplicateUpdate();
 			break;
+        case AUTH_REVOKED:
+            String message = "Your " + connector.prettyName() + " Authorization Token has been revoked.";
+            if (updateResult.getAuthRevokedException().isDataCleanupRequested()) {
+                guestService.removeApiKey(task.apiKeyId);
+                message += "<br>With the revocation info we received, there was an indication that you wanted your " +
+                           "data to be permanently deleted from our servers. Consequently we just permanently removed your " +
+                            connector.getPrettyName() + " connector and all its associated data.";
+            }
+            notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
+                                                      connector.statusNotificationName(), message);
+            UpdateWorkerTask.AuditTrailEntry failed = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "abort");
+            abort(updateInfo.apiKey, failed, updateResult.reason);
+            break;
         case NEEDS_REAUTH:
             notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
                                                       connector.statusNotificationName(),
                                                       "Heads Up. Your " + connector.prettyName() + " Authorization Token has expired.<br>" +
                                                       "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
                                                       "scroll to the " + connector.prettyName() + " section, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
-            UpdateWorkerTask.AuditTrailEntry failed = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "abort");
+            failed = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "abort");
             abort(updateInfo.apiKey, failed, updateResult.reason);
             break;
 		case HAS_REACHED_RATE_LIMIT:
