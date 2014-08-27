@@ -285,6 +285,17 @@
         });
         $(".scheduleUpdateButton.historical").click(function(){
             var selectedApiKeyIds = getSelectedApiKeyIds();
+            $.ajax({
+                url: "/api/admin/batch/incrementalUpdate",
+                type: "POST",
+                data: {"apiKeyIds" : selectedApiKeyIds},
+                success: function() {
+                    location.reload();
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert("there was a problem: " + textStatus + "/" + errorThrown);
+                }
+            });
             console.log(selectedApiKeyIds);
         });
     </script>

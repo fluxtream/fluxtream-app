@@ -1,5 +1,6 @@
 package org.fluxtream.connectors.updaters;
 
+import org.fluxtream.domain.ApiKey;
 import org.fluxtream.utils.Utils;
 
 import static org.fluxtream.utils.Utils.stackTrace;
@@ -59,11 +60,17 @@ public class UpdateResult {
         final UpdateResult updateResult = new UpdateResult(ResultType.AUTH_REVOKED);
         updateResult.authRevokedException = authRevokedException;
         updateResult.stackTrace = Utils.stackTrace(authRevokedException);
+        updateResult.reason = new StringBuffer(ApiKey.PermanentFailReason.AUTH_REVOKED)
+                .append(ApiKey.PermanentFailReason.DIVIDER)
+                .append("dataCleanupRequested=")
+                .append(authRevokedException.isDataCleanupRequested()).toString();
         return updateResult;
     }
 
     public static UpdateResult needsReauth() {
-        return new UpdateResult(ResultType.NEEDS_REAUTH);
+        final UpdateResult updateResult = new UpdateResult(ResultType.NEEDS_REAUTH);
+        updateResult.reason = ApiKey.PermanentFailReason.NEEDS_REAUTH;
+        return updateResult;
     }
 
 	public static UpdateResult rateLimitReachedResult(RateLimitReachedException rateLimitReachedException) {

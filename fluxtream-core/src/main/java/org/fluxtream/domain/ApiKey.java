@@ -46,6 +46,7 @@ public class ApiKey extends AbstractEntity {
 
     public static class PermanentFailReason {
         public final static String NEEDS_REAUTH = "NEEDS_REAUTH";
+        public final static String AUTH_REVOKED = "AUTH_REVOKED";
         public final static String CLIENT_ERROR = "CLIENT_ERROR";
         public final static String SERVER_EXCEPTION = "SERVER_EXCEPTION";
         public final static String MANUAL_INTERVENTION = "MANUAL_INTERVENTION";

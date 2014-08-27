@@ -675,6 +675,18 @@ public class AdminController {
         }
     }
 
+    @POST
+    @Secured({ "ROLE_ADMIN" })
+    @Path("/batch/incrementalUpdate")
+    public Response batchIncrementalUpdate(@FormParam("apiKeyIds") String apiKeyIds) {
+        try {
+            final String scheduledString = updateConnectorObjectTypes(apiKeyIds, false);
+            return Response.ok().entity(scheduledString).build();
+        } catch (Throwable t) {
+            return Response.serverError().entity(t.getMessage()).build();
+        }
+    }
+
     private String updateConnectorObjectTypes(final String apiKeyIds, boolean historyUpdate) {
         List<Long> ids = new ArrayList<Long>();
         for (String i : apiKeyIds.split(","))
@@ -695,18 +707,6 @@ public class AdminController {
                             withFieldVisibility(JsonAutoDetect.Visibility.NON_PRIVATE));
             scheduledString = objectMapper.writeValueAsString(scheduled);} catch (Throwable t) {}
         return scheduledString;
-    }
-
-    @POST
-    @Secured({ "ROLE_ADMIN" })
-    @Path("/batch/incrementalUpdate")
-    public Response batchIncrementalUpdate(@FormParam("apiKeyIds") String apiKeyIds) {
-        try {
-            final String scheduledString = updateConnectorObjectTypes(apiKeyIds, true);
-            return Response.ok().entity(scheduledString).build();
-        } catch (Throwable t) {
-            return Response.serverError().entity(t.getMessage()).build();
-        }
     }
 
     private JSONArray getGuestRolesJsonArray(Guest guest) {
