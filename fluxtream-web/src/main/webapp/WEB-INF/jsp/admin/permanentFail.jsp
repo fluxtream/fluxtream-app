@@ -100,6 +100,10 @@
             background-color:white;
             padding-right: 40px;
         }
+
+        .updater-selection {
+            width: 1em;
+        }
         .connectorName-column {
             width: 120px;
         }
@@ -171,8 +175,13 @@
             <c:otherwise>
                 <table class="table table-bordered" id="header-fixed"></table>
 
+                <button class="btn disabled scheduleUpdateButton incremental" style="width:25em">Incrementally Update</button>
+                <button class="btn disabled scheduleUpdateButton historical" style="width:25em">Redo History Update</button>
+                <div style="margin-bottom:1em"></div>
+
                 <table class="table table-bordered" id="dashboardTable">
                     <thead>
+                        <th class="updater-selection"><input type="checkbox" id="select-all" value="true"></th>
                         <th class="connectorName-column">Connector Name</th>
                         <th class="apiCode">Api code</th>
                         <th class="apiStatus">Status</th>
@@ -183,6 +192,7 @@
                     <tbody>
                     <c:forEach var="apiKey" items="${apiKeys}">
                         <tr>
+                            <td><input class="updater-checkbox" data-apiKeyId="${apiKey.id}" type="checkbox"></td>
                             <td>${apiKey.connector.prettyName}</td>
                             <td>${apiKey.connector.value}</td>
                             <td class="apiKeyStatus">
@@ -210,6 +220,74 @@
             </c:otherwise>
         </c:choose>
     </div>
+
+    <script>
+        $("#select-all").change(function() {
+            var checked = $("#select-all").prop("checked");
+            $(".updater-checkbox").prop("checked", checked);
+            updateScheduleUpdateButtons();
+        });
+        $(".updater-checkbox").change(updateScheduleUpdateButtons);
+        function updateScheduleUpdateButtons() {
+            var nSelected = 0;
+            var totalItems = 0;
+            $(".updater-checkbox:checked").each(function() {
+                nSelected++;
+            });
+            $(".updater-checkbox").each(function() {
+                totalItems++;
+            });
+            $("#select-all").prop("checked", totalItems==nSelected);
+            if (nSelected>0) {
+                var incrementalMessage = "Incrementally Update " + nSelected;
+                var historicalMessage = "Redo History Update for " + nSelected;
+                if (nSelected>1) {
+                    incrementalMessage += " Connectors Now";
+                    historicalMessage += " Connectors";
+                } else {
+                    incrementalMessage += " Connector Now";
+                    historicalMessage += " Connector";
+                }
+                $(".scheduleUpdateButton.incremental").html(incrementalMessage);
+                $(".scheduleUpdateButton.historical").html(historicalMessage);
+                $(".scheduleUpdateButton").removeClass("disabled").addClass("btn-primary");
+            } else {
+                $(".scheduleUpdateButton.incremental").html("Incrementally Update");
+                $(".scheduleUpdateButton.historical").html("Redo History Update");
+                $(".scheduleUpdateButton").addClass("disabled").removeClass("btn-primary");
+            }
+        }
+        function getSelectedApiKeyIds() {
+            var selectedApiKeyIds = "";
+            var i = 0;
+            $(".updater-checkbox:checked").each(function() {
+                var apiKeyId = $(this).attr("data-apiKeyId");
+                if (i>0) selectedApiKeyIds += ",";
+                selectedApiKeyIds += apiKeyId;
+                i++;
+            });
+            return selectedApiKeyIds;
+        }
+        $(".scheduleUpdateButton.incremental").click(function(){
+            var selectedApiKeyIds = getSelectedApiKeyIds();
+            $.ajax({
+                url: "/api/admin/batch/historyUpdate",
+                type: "POST",
+                data: {"apiKeyIds" : selectedApiKeyIds},
+                success: function() {
+                    location.reload();
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert("there was a problem: " + textStatus + "/" + errorThrown);
+                }
+            });
+            console.log(selectedApiKeyIds);
+        });
+        $(".scheduleUpdateButton.historical").click(function(){
+            var selectedApiKeyIds = getSelectedApiKeyIds();
+            console.log(selectedApiKeyIds);
+        });
+    </script>
 
 </div>
 
