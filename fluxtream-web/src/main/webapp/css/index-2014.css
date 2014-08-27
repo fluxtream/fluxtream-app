@@ -140,7 +140,7 @@ body, html {
 	padding-left: 3em;
 }
 
-.register_btn {
+.register_btn, register_btn:visited, .register_btn:active, .register_btn:focus {
   font-family: Arial, Helvetica, sans-serif;
   box-shadow: 0 2px 8px 2px #084e98;
   background-color: #fff; /*transparent;*/
@@ -156,6 +156,7 @@ body, html {
   border-bottom-right-radius: 5px !important;
   font-size: 0.9em !important;
   transition:box-shadow 0.2s ease-in-out, border 0.2s ease-in-out, border-bottom-left-radius 0.2s ease-in-out;border-bottom-right-radius 0.2s ease-in-out;
+  outline: none;
 }
 
 .register_btn:hover {
@@ -168,12 +169,6 @@ body, html {
   color: #196cae; /* #fff; */
 }
 
-/*
-.register_btn:active {
-  position: relative;
-  top: 1px;
-}
-*/
 
 .img img { width: 100% !important; }
 
@@ -251,7 +246,6 @@ iframe { width: 280px; height: 210px; }
 }
 
 .nav li {
-/*   display: inline; */
 }
 
 .nav li:hover {
@@ -259,28 +253,12 @@ iframe { width: 280px; height: 210px; }
 }
 
 .guideLink {
-/*
-  padding-right: 9px;
-  border-right: 1px solid #5E5E5E;
-/* Remove the following padding-left when the learn more link is added back */
-/*   padding-left: 80px;
-*/
 }
 
 .policyLink {
-/*
-  margin-left: 7px;
-  padding-right: 11px;
-  border-right: 1px solid #5E5E5E;
-*/
 }
 
 .developerLink {
-/*   margin-left: 7px; */
-/* Re-enable the following two lines when the learn more link is added back
-  padding-right: 11px;
-  border-right: 1px solid #5E5E5E;
-  */
 }
 
 .learnMoreLink {
@@ -288,33 +266,22 @@ iframe { width: 280px; height: 210px; }
 }
 
 footer {
-/*   background-color: #5995de; */
   padding-top: 1em;
   padding-bottom: 1em; 
-/*   height: 100px; */
 }
 
 .createLab_logo {
   background: url("../images/createlab.png");
-/*   float: left; */
   width: 163px;
   height: 22px;
-/*   margin-top: 37px; */
 }
 
 .creator {
   color: white;
-/*   float: right; */
-/*   margin-top: 33px; */
 }
 
 .copyright {
   color: white;
-/*
-  float: right;
-  margin-right: -418px;
-  margin-top: 50px;
-*/
 }
 
 .sc_highlight > td {
@@ -531,7 +498,7 @@ footer {
     height: 197px;
   }
   .register_btn:hover {
-    margin-bottom: 4px;
+    margin-bottom: 1px;
   }
   .take-control {
     padding-top: 2.3em;
@@ -624,7 +591,7 @@ footer {
     background-size: 70%;
   }
   .register_btn:hover {
-    margin-top: 4px;
+    margin-top: 0;
   }
 }
 @media screen and (min-width: 992px){
