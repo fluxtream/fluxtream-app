@@ -32,7 +32,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	function render(params) {
         setTabParam = params.setTabParam;
         setTabParam(null);
-        if (Calendar.digest.delta && params.facetToShow == null)
+        if (params.digest.delta && params.facetToShow == null)
             params.facetToShow = currentFacetTooltip;
         hideEventInfo();
         this.getTemplate("text!applications/calendar/tabs/clock/clock.html", "clock", function() {

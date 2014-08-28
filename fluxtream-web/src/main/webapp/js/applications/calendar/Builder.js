@@ -289,7 +289,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
     };
 
 	function updateTab(digest, Calendar, force) {
-        if (App.activeApp.name != "calendar")
+        if (App.activeApp.name != "calendar" || digest == null)
             return;
         tabInterface.setRenderParamsFunction(function(){
             return $.extend({

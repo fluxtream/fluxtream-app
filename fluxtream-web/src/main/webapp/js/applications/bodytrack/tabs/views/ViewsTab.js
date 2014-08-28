@@ -3,6 +3,8 @@ define(["core/Tab","core/grapher/BTCore"], function(Tab,BTCore) {
 	var viewsTab = new Tab("bodytrack", "views", "Candide Kemmler", "icon-facetime-video", true);
 
     viewsTab.render = function(params){
+        if (App.buddyToAccess == null)
+            return;
         this.getTemplate("text!applications/bodytrack/tabs/views/views.html", "views", function() {
             setup();
         });

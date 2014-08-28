@@ -11,6 +11,8 @@ define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher
     var channelsToAdd = [];
 
     grapherTab.render = function(params){
+        if (App.buddyToAccess == null)
+            return;
         if (lastGuestId!=null&&App.buddyToAccess.id!==lastGuestId) {
             $("._timeline_sources_list").empty();
             grapher.reload();
