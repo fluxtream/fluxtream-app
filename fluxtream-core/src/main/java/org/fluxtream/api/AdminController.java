@@ -665,37 +665,24 @@ public class AdminController {
 
     @POST
     @Secured({ "ROLE_ADMIN" })
-    @Path("/batch/historyUpdate")
+    @Path("/batch/update")
     public Response batchHistoryUpdate(@FormParam("apiKeyIds") String apiKeyIds) {
         try {
-            final String scheduledString = updateConnectorObjectTypes(apiKeyIds, true);
+            final String scheduledString = updateConnectors(apiKeyIds);
             return Response.ok().entity(scheduledString).build();
         } catch (Throwable t) {
             return Response.serverError().entity(t.getMessage()).build();
         }
     }
 
-    @POST
-    @Secured({ "ROLE_ADMIN" })
-    @Path("/batch/incrementalUpdate")
-    public Response batchIncrementalUpdate(@FormParam("apiKeyIds") String apiKeyIds) {
-        try {
-            final String scheduledString = updateConnectorObjectTypes(apiKeyIds, false);
-            return Response.ok().entity(scheduledString).build();
-        } catch (Throwable t) {
-            return Response.serverError().entity(t.getMessage()).build();
-        }
-    }
-
-    private String updateConnectorObjectTypes(final String apiKeyIds, boolean historyUpdate) {
+    private String updateConnectors(final String apiKeyIds) {
         List<Long> ids = new ArrayList<Long>();
         for (String i : apiKeyIds.split(","))
             ids.add(Long.parseLong(i));
         Map<Long,List<ScheduleResult>> scheduled = new HashMap<Long, List<ScheduleResult>>();
         for (Long id : ids) {
             ApiKey apiKey = guestService.getApiKey(id);
-            final int objectTypesMask = apiKey.getConnector().getObjectTypesMask();
-            final List<ScheduleResult> scheduleResults = connectorUpdateService.updateConnectorObjectType(apiKey, objectTypesMask, true, historyUpdate);
+            final List<ScheduleResult> scheduleResults = connectorUpdateService.updateConnector(apiKey, true);
             scheduled.put(id, scheduleResults);
         }
         String scheduledString = "Could not serialize results";

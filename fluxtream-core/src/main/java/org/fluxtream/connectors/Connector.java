@@ -398,16 +398,6 @@ public class Connector {
         return connectorsByValue.get(api);
     }
 
-    public int getObjectTypesMask() {
-        final ObjectType[] types = objectTypes();
-        if (types==null||types.length==0)
-            return -1;
-        int mask = 0;
-        for (ObjectType type : types)
-            mask += type.value();
-        return mask;
-    }
-
     /**
      * Returns the Connector having the given pretty name.  Returns <code>null</code> if no such connector exists or
      * if the given pretty name is <code>null</code>.

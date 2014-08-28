@@ -272,6 +272,7 @@ class UpdateWorker implements Runnable {
                                                       "Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
                                                       "scroll to the " + connector.prettyName() + " section, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
             failed = new UpdateWorkerTask.AuditTrailEntry(new Date(), updateResult.getType().toString(), "abort");
+            failed.stackTrace = updateResult.stackTrace;
             abort(updateInfo.apiKey, failed, updateResult.reason);
             break;
 		case HAS_REACHED_RATE_LIMIT:

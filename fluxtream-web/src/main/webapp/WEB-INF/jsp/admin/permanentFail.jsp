@@ -175,8 +175,7 @@
             <c:otherwise>
                 <table class="table table-bordered" id="header-fixed"></table>
 
-                <button class="btn disabled scheduleUpdateButton incremental" style="width:25em">Incrementally Update</button>
-                <button class="btn disabled scheduleUpdateButton historical" style="width:25em">Redo History Update</button>
+                <button class="btn disabled scheduleUpdateButton" style="width:25em">Update Connectors</button>
                 <div style="margin-bottom:1em"></div>
 
                 <table class="table table-bordered" id="dashboardTable">
@@ -239,21 +238,15 @@
             });
             $("#select-all").prop("checked", totalItems==nSelected);
             if (nSelected>0) {
-                var incrementalMessage = "Incrementally Update " + nSelected;
-                var historicalMessage = "Redo History Update for " + nSelected;
-                if (nSelected>1) {
-                    incrementalMessage += " Connectors Now";
-                    historicalMessage += " Connectors";
-                } else {
-                    incrementalMessage += " Connector Now";
-                    historicalMessage += " Connector";
-                }
-                $(".scheduleUpdateButton.incremental").html(incrementalMessage);
-                $(".scheduleUpdateButton.historical").html(historicalMessage);
+                var updateMessage = "Update " + nSelected;
+                if (nSelected>1)
+                    updateMessage += " Connectors Now";
+                else
+                    updateMessage += " Connector Now";
+                $(".scheduleUpdateButton").html(updateMessage);
                 $(".scheduleUpdateButton").removeClass("disabled").addClass("btn-primary");
             } else {
-                $(".scheduleUpdateButton.incremental").html("Incrementally Update");
-                $(".scheduleUpdateButton.historical").html("Redo History Update");
+                $(".scheduleUpdateButton").html("Update Connectors");
                 $(".scheduleUpdateButton").addClass("disabled").removeClass("btn-primary");
             }
         }
@@ -268,25 +261,10 @@
             });
             return selectedApiKeyIds;
         }
-        $(".scheduleUpdateButton.incremental").click(function(){
+        $(".scheduleUpdateButton").click(function(){
             var selectedApiKeyIds = getSelectedApiKeyIds();
             $.ajax({
-                url: "/api/admin/batch/historyUpdate",
-                type: "POST",
-                data: {"apiKeyIds" : selectedApiKeyIds},
-                success: function() {
-                    location.reload();
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    alert("there was a problem: " + textStatus + "/" + errorThrown);
-                }
-            });
-            console.log(selectedApiKeyIds);
-        });
-        $(".scheduleUpdateButton.historical").click(function(){
-            var selectedApiKeyIds = getSelectedApiKeyIds();
-            $.ajax({
-                url: "/api/admin/batch/incrementalUpdate",
+                url: "/api/admin/batch/update",
                 type: "POST",
                 data: {"apiKeyIds" : selectedApiKeyIds},
                 success: function() {
