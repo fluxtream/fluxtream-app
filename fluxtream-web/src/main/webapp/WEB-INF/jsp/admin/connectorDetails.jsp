@@ -87,7 +87,6 @@
 <% } else { %>
     <div>No reason given</div>
 <% } %>
-</div>
 
 <h4>Stack trace</h4>
 <% if (apiKey.stackTrace!=null) { %>
