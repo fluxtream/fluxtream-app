@@ -9,6 +9,8 @@ define([], function() {
 	var tabStateStorage = {};
 
 	FlxState.saveState = function(appName, urlState) {
+        if (urlState == null)
+            return;
 		if (typeof(storage[appName])=="undefined")
 			storage[appName] = {};
 		storage[appName] = urlState;
