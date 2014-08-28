@@ -331,10 +331,15 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
         final ApiKey apiKey = getApiKey(apiKeyId);
         if (apiKey!=null) {
             apiKey.status = status;
-            if (stackTrace!=null)
-                apiKey.stackTrace = stackTrace;
-            if (reason!=null)
-                apiKey.reason = reason;
+            if (status== ApiKey.Status.STATUS_UP) {
+                apiKey.stackTrace = null;
+                apiKey.reason = null;
+            } else {
+                if (stackTrace != null)
+                    apiKey.stackTrace = stackTrace;
+                if (reason != null)
+                    apiKey.reason = reason;
+            }
             em.persist(apiKey);
         }
     }
