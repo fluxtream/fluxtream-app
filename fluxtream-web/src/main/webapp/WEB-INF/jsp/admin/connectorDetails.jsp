@@ -118,8 +118,6 @@
     </thead>
     <tbody>
     <% for (UpdateWorkerTask task : scheduledTasks) {
-        System.out.println(task);
-        System.out.println(task.timeScheduled);
         final String time = DateTimeFormat.mediumDateTime().print(task.timeScheduled);
         final List<ObjectType> objectTypes = ObjectType.getObjectTypes(Connector.getConnector(task.connectorName), task.objectTypes);
         String color, status;
