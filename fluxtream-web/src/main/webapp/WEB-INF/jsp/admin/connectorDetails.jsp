@@ -81,11 +81,28 @@
 </div>
 
 
-<% if ((Boolean)connectorInstanceModel.get("errors")&&StringUtils.isNotEmpty(errors)) {
-%>
-    <h4>Stack trace</h4>
-    <div class="alert alert-error"><%=errors%></div>
+<h4>Reason<h4>
+<% if (apiKey.reason!=null) { %>
+    <div class="alert alert-error"><%=apiKey.reason%><div/>
+<% } else { %>
+    <div>No reason given</div>
 <% } %>
+</div>
+
+<h4>Stack trace</h4>
+<% if (apiKey.stackTrace!=null) { %>
+    <div class="alert alert-error"><%=apiKey.stackTrace%></div>
+<% } else {%>
+    <div>No Stack Trace is available</div>
+<% } %>
+
+<h4>Audit Trail</h4>
+<% if (errors!=null) { %>
+    <div class="alert alert-error"><%=errors%></div>
+<% } else { %>
+    <div>No Audit Trail is given</div>
+<% } %>
+
 
 <% if (scheduledTasks.size()>0) {%>
 <h4>Worker Tasks</h4>
