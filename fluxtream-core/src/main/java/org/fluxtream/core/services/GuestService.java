@@ -54,7 +54,7 @@ public interface GuestService {
 
 	public List<ApiKey> getApiKeys(long guestId, Connector connector);
 
-    public void setApiKeyStatus(long apiKeyId, ApiKey.Status status, String stackTrace);
+    public void setApiKeyStatus(long apiKeyId, ApiKey.Status status, String stackTrace, String reason);
 
     public void setApiKeyToSynching(long apiKeyId, boolean synching);
 

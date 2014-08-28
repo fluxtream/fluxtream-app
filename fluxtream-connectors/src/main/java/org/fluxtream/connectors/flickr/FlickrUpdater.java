@@ -8,10 +8,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.location.LocationFacet;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
+import org.fluxtream.core.connectors.updaters.AuthExpiredException;
+import org.fluxtream.core.connectors.updaters.UpdateFailedException;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.ChannelMapping;
@@ -24,8 +28,6 @@ import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.utils.JPAUtils;
 import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
 import org.fluxtream.core.utils.Utils;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
@@ -125,7 +127,12 @@ public class FlickrUpdater extends AbstractUpdater {
                 String stat = feed.getString("stat");
                 if (stat.equalsIgnoreCase("fail")) {
                     String message = feed.getString("message");
-                    throw new RuntimeException("Could not retrieve flickr recently updated photos: " + message);
+                    if (message.indexOf("Invalid auth token")!=-1) {
+                        throw new AuthExpiredException();
+                    } else
+                        throw new UpdateFailedException("Could not retrieve flickr recently updated photos: " + message,
+                                                        true,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
                 }
             }
             JSONObject photosWrapper = feed.getJSONObject("photos");
@@ -275,7 +282,10 @@ public class FlickrUpdater extends AbstractUpdater {
             countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes,
                                then, searchPhotosUrl, Utils.stackTrace(e),
                                e.getHttpResponseCode(), e.getHttpResponseMessage());
-            throw e;
+            if (e.getHttpResponseCode()>=400 && e.getHttpResponseCode()<500)
+                throw new UpdateFailedException("Unexpected response code: " + e.getHttpResponseCode(), new Exception(), true,
+                                                ApiKey.PermanentFailReason. clientError(e.getHttpResponseCode(), e.getHttpResponseMessage()));
+            throw new UpdateFailedException(e, false, null);
 		} catch (IOException e) {
 			reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, searchPhotosUrl,
                                 Utils.stackTrace(e), "I/O");
@@ -312,7 +322,10 @@ public class FlickrUpdater extends AbstractUpdater {
             countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes,
                                then, searchPhotosUrl, Utils.stackTrace(e),
                                e.getHttpResponseCode(), e.getHttpResponseMessage());
-            throw e;
+            if (e.getHttpResponseCode()>=400 && e.getHttpResponseCode()<500)
+                throw new UpdateFailedException("Unexpected response code: " + e.getHttpResponseCode(), new Exception(), true,
+                                                ApiKey.PermanentFailReason.clientError(e.getHttpResponseCode(), e.getHttpResponseMessage()));
+            throw new UpdateFailedException(e, false, null);
         } catch (IOException e) {
             reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes,
                                then, searchPhotosUrl, Utils.stackTrace(e), "I/O");

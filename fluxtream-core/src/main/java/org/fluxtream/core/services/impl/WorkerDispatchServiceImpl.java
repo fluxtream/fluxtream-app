@@ -6,6 +6,9 @@ import javax.persistence.PersistenceContext;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.domain.UpdateWorkerTask;
 import org.fluxtream.core.utils.JPAUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +29,10 @@ public class WorkerDispatchServiceImpl implements WorkerDispatchService {
     @PersistenceContext
     EntityManager em;
 
+    @Autowired
+    @Qualifier("updateWorkersExecutor")
+    ThreadPoolTaskExecutor executor;
+
     @Override
     @Transactional(readOnly=false, propagation = Propagation.REQUIRES_NEW)
     public List<UpdateWorkerTask> claimTasksForDispatch(int availableThreads, String serverUUID) {
@@ -33,7 +40,7 @@ public class WorkerDispatchServiceImpl implements WorkerDispatchService {
         if (updateWorkerTasks.size() == 0) {
             logger.debug("Nothing to do");
         } else {
-            StringBuilder sb = new StringBuilder("claiming tasks for dispatch, ").append(" availableThreads=" + availableThreads).append(" message=\"adding " + updateWorkerTasks.size() + " update worker tasks\"").append(" activeCount=\" + executor.getActiveCount() + \" maxPoolSize=\" + executor.getMaxPoolSize()");
+            StringBuilder sb = new StringBuilder("claiming tasks for dispatch, ").append(" availableThreads=" + availableThreads).append(" message=\"adding " + updateWorkerTasks.size() + " update worker tasks\"").append(" activeCount=" + executor.getActiveCount() + " maxPoolSize=" + executor.getMaxPoolSize());
             logger.info(sb);
 
             for (int i = 0; i < updateWorkerTasks.size(); i++) {

@@ -86,7 +86,7 @@ public class GoogleCalendarUpdater extends AbstractUpdater implements SettingsAw
                                                   "oauth 2 with Google APIs. Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
                                                   "scroll to the Google Calendar connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
         // Report this connector as having failed permanently
-        throw new UpdateFailedException("requires token reauthorization", true);
+        throw new UpdateFailedException("requires token reauthorization", true, ApiKey.PermanentFailReason.NEEDS_REAUTH);
     }
 
     @Override
@@ -465,14 +465,14 @@ public class GoogleCalendarUpdater extends AbstractUpdater implements SettingsAw
 
             // Record permanent update failure since this connector is never
             // going to succeed
-            guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, Utils.stackTrace(e));
-            throw new UpdateFailedException("refresh token attempt permanently failed due to a bad token refresh response", e, true);
+            guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, Utils.stackTrace(e), ApiKey.PermanentFailReason.NEEDS_REAUTH);
+            throw new UpdateFailedException("refresh token attempt permanently failed due to a bad token refresh response", e, true, ApiKey.PermanentFailReason.NEEDS_REAUTH);
         }
         catch (IOException e) {
             logger.warn("module=GoogleCalendarUpdater component=background_updates action=refreshToken" +
-                        " connector=" + apiKey.getConnector().getName() + " guestId=" + apiKey.getGuestId() + " status=temporarily failed");
+                        " connector=" + apiKey.getConnector().getName() + " guestId=" + apiKey.getGuestId() + " status=permanently failed");
             // Notify the user that the tokens need to be manually renewed
-            throw new UpdateFailedException("refresh token attempt failed", e, true);
+            throw new UpdateFailedException("refresh token attempt failed", e, true, ApiKey.PermanentFailReason.NEEDS_REAUTH);
         }
         final Calendar.Builder calendarBuilder = new Calendar.Builder(httpTransport, jsonFactory, credential);
         final Calendar calendar = calendarBuilder.build();

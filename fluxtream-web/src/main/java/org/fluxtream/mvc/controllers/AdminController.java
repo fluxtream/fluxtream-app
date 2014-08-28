@@ -1,8 +1,21 @@
 package org.fluxtream.mvc.controllers;
 
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.lang.StringUtils;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.connectors.Connector;
-import org.fluxtream.core.domain.*;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ApiUpdate;
+import org.fluxtream.core.domain.ConnectorInfo;
+import org.fluxtream.core.domain.Guest;
+import org.fluxtream.core.domain.UpdateWorkerTask;
 import org.fluxtream.core.mvc.models.admin.ConnectorInstanceModelFactory;
 import org.fluxtream.core.services.ConnectorUpdateService;
 import org.fluxtream.core.services.GuestService;
@@ -15,9 +28,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-
-import javax.servlet.http.HttpServletResponse;
-import java.util.*;
 
 /**
  * User: candide
@@ -44,6 +54,93 @@ public class AdminController {
 
     @Autowired
     JPADaoService jpaDaoService;
+
+    @Secured({ "ROLE_ADMIN" })
+    @RequestMapping(value = { "/admin/fail" })
+    public ModelAndView getPermanentFailConnectors(HttpServletResponse response,
+                                                   @RequestParam(value = "filter", required=false,
+                                                                 defaultValue = "apiKey.reason!='" + ApiKey.PermanentFailReason.NEEDS_REAUTH + "'") String filter,
+                                                   @RequestParam(value = "guestId", required=false) String guestId,
+                                                   @RequestParam(value = "status_0", required=false, defaultValue="false") boolean statusUp,
+                                                   @RequestParam(value = "status_1", required=false, defaultValue="false") boolean statusPermanentFail,
+                                                   @RequestParam(value = "status_2", required=false, defaultValue="false") boolean statusTemporaryFail,
+                                                   @RequestParam(value = "status_3", required=false, defaultValue="false") boolean statusOverRateLimit) throws Exception {
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
+        response.setHeader("Pragma", "no-cache"); // HTTP 1.0.
+        response.setDateHeader("Expires", 0);
+        final List<ApiKey.Status> statusFilters = new ArrayList<ApiKey.Status>();
+        if (statusUp)
+            statusFilters.add(ApiKey.Status.STATUS_UP);
+        if (statusPermanentFail)
+            statusFilters.add(ApiKey.Status.STATUS_PERMANENT_FAILURE);
+        if (statusTemporaryFail)
+            statusFilters.add(ApiKey.Status.STATUS_TRANSIENT_FAILURE);
+        if (statusOverRateLimit)
+            statusFilters.add(ApiKey.Status.STATUS_OVER_RATE_LIMIT);
+
+        ModelAndView mav = new ModelAndView("admin/permanentFail");
+
+        final StringBuffer queryString = new StringBuffer("SELECT apiKey FROM ApiKey apiKey ");
+
+        StringBuffer whereClause = new StringBuffer();
+        boolean whereClauseAdded = addPotentialStatusWhereClause(whereClause, statusFilters);
+        if (!StringUtils.isEmpty(guestId)) {
+            addGuestIdClause(whereClause, guestId, whereClauseAdded);
+            whereClauseAdded = true;
+        }
+        if (!StringUtils.isEmpty(filter)) {
+            addFilterClause(whereClause, filter, whereClauseAdded);
+            whereClauseAdded = true;
+        }
+
+        if (whereClauseAdded)
+            queryString.append(whereClause).append(" ");
+
+        queryString.append("ORDER BY apiKey.api, apiKey.guestId");
+
+        System.out.println(queryString.toString());
+
+        final List<ApiKey> apiKeys = jpaDaoService.executeQueryWithLimitAndOffset(queryString.toString(), Integer.MAX_VALUE, 0, ApiKey.class);
+        mav.addObject("statusFilters", statusFilters);
+        mav.addObject("apiKeys", apiKeys);
+        mav.addObject("filter", filter);
+        mav.addObject("guestId", guestId);
+        mav.addObject("release", env.get("release"));
+        return mav;
+    }
+
+    private void addFilterClause(final StringBuffer whereClause, final String filter, final boolean whereClauseAdded) {
+        if (whereClauseAdded)
+            whereClause.append(" AND " + filter);
+        else
+            whereClause.append(" WHERE " + filter);
+    }
+
+    private void addGuestIdClause(final StringBuffer whereClause, final String guestId, final boolean whereClauseAdded) {
+        if (whereClauseAdded)
+            whereClause.append(" AND guestId=" + guestId);
+        else
+            whereClause.append(" WHERE guestId=" + guestId);
+    }
+
+    private boolean addPotentialStatusWhereClause(final StringBuffer whereClause, final List<ApiKey.Status> statusFilters) {
+        boolean whereClauseAdded = false;
+        StringBuffer statusWhereClause = new StringBuffer();
+        for (ApiKey.Status statusFilter : statusFilters) {
+            addStatusWhereClauseTerm(statusWhereClause, whereClauseAdded, statusFilter.ordinal());
+            whereClauseAdded = true;
+        }
+        if (whereClauseAdded)
+            whereClause.append("WHERE ").append("(").append(statusWhereClause).append(")");
+        return whereClauseAdded;
+    }
+
+    private boolean addStatusWhereClauseTerm(final StringBuffer whereClause, boolean whereClauseAdded, final int statusValue) {
+        if (whereClauseAdded) whereClause.append(" OR ");
+        whereClause.append("apiKey.status=" + statusValue);
+        whereClauseAdded = true;
+        return whereClauseAdded;
+    }
 
     @Secured({ "ROLE_ADMIN" })
     @RequestMapping(value = { "/admin" })
@@ -184,7 +281,7 @@ public class AdminController {
     @RequestMapping(value = "/admin/{guestId}/{apiKeyId}/setToPermanentFail")
     public ModelAndView setToPermanentFail(@PathVariable("guestId") long guestId,
                                            @PathVariable("apiKeyId") long apiKeyId) throws Exception {
-        guestService.setApiKeyStatus(apiKeyId, ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
+        guestService.setApiKeyStatus(apiKeyId, ApiKey.Status.STATUS_PERMANENT_FAILURE, null, ApiKey.PermanentFailReason.MANUAL_INTERVENTION);
         return new ModelAndView(String.format("redirect:/admin/%s/%s", guestId, apiKeyId));
     }
 

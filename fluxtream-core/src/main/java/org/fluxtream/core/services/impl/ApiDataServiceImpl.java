@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.persistence.Entity;
@@ -741,53 +740,6 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
     public void deleteStaleData() throws ClassNotFoundException {
         StaleDataCleanupWorker worker = beanFactory.getBean(StaleDataCleanupWorker.class);
         executor.execute(worker);
-    }
-
-    @Override
-    @Transactional(readOnly = false)
-    public void cleanupStaleData() throws Exception {
-        ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(
-                false);
-        scanner.addIncludeFilter(new AnnotationTypeFilter(Entity.class));
-        Set<BeanDefinition> components = scanner.findCandidateComponents("org.fluxtream");
-        for (BeanDefinition component : components)
-        {
-            Class cls = Class.forName(component.getBeanClassName());
-            final String entityName = JPAUtils.getEntityName(cls);
-            System.out.println("cleaning up " + entityName + "...");
-            if (entityName.startsWith("Facet_")) {
-                if (!JPAUtils.hasRelation(cls)) {
-                    // Clean up entries for apiKeyId's which are no longer present in the system, but preserve items with
-                    // api=0 to preserve the locations generated from reverse IP lookup when the users log in.
-                    Query query = em
-                            .createNativeQuery("DELETE FROM " + entityName + " WHERE (apiKeyId NOT IN (SELECT DISTINCT id from ApiKey)) AND api!=0;");
-                    final int i = query.executeUpdate();
-                    StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=deleteStaleData")
-                            .append(" facetTable=").append(entityName).append(" facetsDeleted=").append(i);
-                    logger.info(sb.toString());
-                } else {
-                    Query query = em
-                            .createNativeQuery("SELECT * FROM " + entityName + " WHERE (apiKeyId NOT IN (SELECT DISTINCT id from ApiKey)) AND api!=0;", cls);
-                    final List<?extends AbstractFacet> facetsToDelete = query.getResultList();
-                    final int i = facetsToDelete.size();
-                    if (i>0) {
-                        for (AbstractFacet facet : facetsToDelete) {
-                            em.remove(facet);
-                        }
-                        StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=deleteStaleData")
-                                .append(" facetTable=").append(entityName).append(" facetsDeleted=").append(i);
-                        logger.info(sb.toString());
-                    }
-                }
-                em.flush();
-            }
-        }
-        Query query = em
-                .createNativeQuery("DELETE FROM ApiUpdates WHERE apiKeyId NOT IN (SELECT DISTINCT id from ApiKey);");
-        final int i = query.executeUpdate();
-        StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=deleteStaleData")
-                .append(" facetTable=ApiUpdates").append(" facetsDeleted=").append(i);
-        logger.info(sb.toString());
     }
 
     @Override

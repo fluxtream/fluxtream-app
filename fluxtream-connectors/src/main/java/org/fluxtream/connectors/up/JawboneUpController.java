@@ -160,7 +160,7 @@ public class JawboneUpController {
                                         "refreshToken", refresh_token);
 
         // Record that this connector is now up
-        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null);
+        guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null, null);
 
         if (stateParameter !=null&&!StringUtils.isEmpty(stateParameter))
             return "redirect:/app/tokenRenewed/up";

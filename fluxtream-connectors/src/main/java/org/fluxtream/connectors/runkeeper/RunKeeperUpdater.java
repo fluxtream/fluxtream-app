@@ -4,22 +4,25 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.TimeZone;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.log4j.Logger;
+import org.codehaus.plexus.util.ExceptionUtils;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.location.LocationFacet;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
+import org.fluxtream.core.connectors.updaters.AuthRevokedException;
+import org.fluxtream.core.connectors.updaters.UpdateFailedException;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.services.ApiDataService;
 import org.fluxtream.core.services.JPADaoService;
 import org.fluxtream.core.services.MetadataService;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.utils.JPAUtils;
 import org.fluxtream.core.utils.TimeUtils;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import org.apache.log4j.Logger;
-import org.codehaus.plexus.util.ExceptionUtils;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
@@ -113,8 +116,9 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         Response response = request.send();
         final int httpResponseCode = response.getCode();
         long then = System.currentTimeMillis();
+        String body = response.getBody();
+
         if (httpResponseCode==200) {
-            String body = response.getBody();
             JSONObject jsonObject = JSONObject.fromObject(body);
             String fitnessActivities = jsonObject.getString("fitness_activities");
             List<String> activities = new ArrayList<String>();
@@ -125,11 +129,35 @@ public class RunKeeperUpdater  extends AbstractUpdater {
             Collections.reverse(activities);
             getFitnessActivities(updateInfo, service, token, activities);
         } else {
-            final RuntimeException e = new RuntimeException("Unexpected response code retrieving RK user object: " + response.getCode());
             countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then,
-                               request.getCompleteUrl(), ExceptionUtils.getStackTrace(e),
-                               httpResponseCode, response.getBody());
-            throw e;
+                               request.getCompleteUrl(), ExceptionUtils.getStackTrace(new Exception()),
+                               httpResponseCode, body);
+            if (httpResponseCode==403) {
+                handleTokenRevocation(body);
+            }
+            if (httpResponseCode>=400&&httpResponseCode<500)
+                throw new UpdateFailedException("Unexpected response code: " + httpResponseCode, true,
+                                                ApiKey.PermanentFailReason.clientError(httpResponseCode));
+            else
+                throw new UpdateFailedException("Unexpected code: " + httpResponseCode);
+        }
+    }
+
+    private void handleTokenRevocation(final String responseBody) throws AuthRevokedException {
+        // let's try to parse this error's payload and be conservative about parsing errors here
+        boolean dataCleanupRequested = false;
+        if (responseBody!=null) {
+            try {
+                final JSONObject errorPayload = JSONObject.fromObject(responseBody);
+                if (errorPayload != null && errorPayload.has("reason")&&errorPayload.getString("reason").equalsIgnoreCase("Revoked")) {
+                    if (errorPayload.has("delete_health")&&errorPayload.getBoolean("delete_health"))
+                        dataCleanupRequested = true;
+                    throw new AuthRevokedException(dataCleanupRequested);
+                }
+            } catch (AuthRevokedException t) {
+                throw t;
+            } catch (Throwable t) {
+            }
         }
     }
 
@@ -146,17 +174,22 @@ public class RunKeeperUpdater  extends AbstractUpdater {
             long then = System.currentTimeMillis();
             Response response = request.send();
             final int httpResponseCode = response.getCode();
+            String body = response.getBody();
             if (httpResponseCode ==200) {
                 countSuccessfulApiCall(updateInfo.apiKey,
                                        updateInfo.objectTypes, then, activityURL);
-                String body = response.getBody();
                 JSONObject jsonObject = JSONObject.fromObject(body);
                 createOrUpdateActivity(jsonObject, updateInfo);
             } else {
                 countFailedApiCall(updateInfo.apiKey,
                                    updateInfo.objectTypes, then, activityURL, ExceptionUtils.getStackTrace(new Exception()),
-                                   httpResponseCode, response.getBody());
-                throw new RuntimeException("Unexpected code: " + httpResponseCode);
+                                   httpResponseCode, body);
+                if (httpResponseCode==403)
+                    handleTokenRevocation(body);
+                if (httpResponseCode>=400&&httpResponseCode<500)
+                    throw new UpdateFailedException("Unexpected response code: " + httpResponseCode, true, ApiKey.PermanentFailReason.clientError(httpResponseCode));
+                else
+                    throw new UpdateFailedException("Unexpected code: " + httpResponseCode);
             }
         }
     }
@@ -293,7 +326,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
      */
     private void getFitnessActivityFeed(final UpdateInfo updateInfo, final OAuthService service,
                                         final Token token, String activityFeedURL, final int pageSize,
-                                        List<String> activities, long since) {
+                                        List<String> activities, long since) throws UpdateFailedException, AuthRevokedException {
         OAuthRequest request = new OAuthRequest(Verb.GET, activityFeedURL);
         request.addQuerystringParameter("pageSize", String.valueOf(pageSize));
         request.addQuerystringParameter("oauth_token", token.getToken());
@@ -310,8 +343,8 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         long then = System.currentTimeMillis();
         Response response = request.send();
         final int httpResponseCode = response.getCode();
+        String body = response.getBody();
         if (httpResponseCode ==200) {
-            String body = response.getBody();
             JSONObject jsonObject = JSONObject.fromObject(body);
             final JSONArray items = jsonObject.getJSONArray("items");
             for(int i=0; i<items.size(); i++) {
@@ -333,8 +366,13 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         } else {
             countFailedApiCall(updateInfo.apiKey,
                                updateInfo.objectTypes, then, activityFeedURL, ExceptionUtils.getStackTrace(new Exception()),
-                               httpResponseCode, response.getBody());
-            throw new RuntimeException("Unexpected code: " + httpResponseCode);
+                               httpResponseCode, body);
+            if (httpResponseCode==403)
+                handleTokenRevocation(body);
+            if (httpResponseCode>=400&&httpResponseCode<500)
+                throw new UpdateFailedException("Unexpected response code: " + httpResponseCode, true, ApiKey.PermanentFailReason.clientError(httpResponseCode));
+            else
+                throw new UpdateFailedException("Unexpected code: " + httpResponseCode);
         }
     }
 

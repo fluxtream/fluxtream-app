@@ -1,5 +1,19 @@
 package org.fluxtream.core.services.impl;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import com.maxmind.geoip.Location;
 import com.maxmind.geoip.LookupService;
 import net.sf.json.JSONObject;
@@ -12,9 +26,24 @@ import org.fluxtream.core.auth.FlxUserDetails;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.OAuth2Helper;
 import org.fluxtream.core.connectors.location.LocationFacet;
-import org.fluxtream.core.domain.*;
-import org.fluxtream.core.services.*;
-import org.fluxtream.core.utils.*;
+import org.fluxtream.core.domain.AbstractUserProfile;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ApiKeyAttribute;
+import org.fluxtream.core.domain.CoachingBuddy;
+import org.fluxtream.core.domain.ConnectorInfo;
+import org.fluxtream.core.domain.Guest;
+import org.fluxtream.core.domain.ResetPasswordToken;
+import org.fluxtream.core.services.ApiDataService;
+import org.fluxtream.core.services.ConnectorUpdateService;
+import org.fluxtream.core.services.GuestService;
+import org.fluxtream.core.services.MetadataService;
+import org.fluxtream.core.services.SettingsService;
+import org.fluxtream.core.services.SystemService;
+import org.fluxtream.core.utils.HttpUtils;
+import org.fluxtream.core.utils.JPAUtils;
+import org.fluxtream.core.utils.RandomString;
+import org.fluxtream.core.utils.SecurityUtils;
+import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,16 +55,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.io.IOException;
-import java.util.*;
 
 @Service
 @Transactional(readOnly=true)
@@ -211,7 +230,7 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
 	@Transactional(readOnly = false)
 	public ApiKey setApiKeyAttribute(ApiKey ak, String key,
 			String value) {
-        ApiKey apiKey = em.find(ApiKey.class, ak.getId());
+        ApiKey apiKey = em.find(ApiKey.class, ak.getId(), LockModeType.PESSIMISTIC_WRITE);
 
         // apiKey could be null, for example if the connector
         // was already deleted.  In this case just return
@@ -219,7 +238,6 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
         if(apiKey==null) {
             return null;
         }
-
         // At this point we know that apiKey exists and
         // is non-null
         apiKey.removeAttribute(key);
@@ -327,12 +345,20 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
 
     @Override
     @Transactional(readOnly=false)
-    public void setApiKeyStatus(final long apiKeyId, final ApiKey.Status status, final String stackTrace) {
+    public void setApiKeyStatus(final long apiKeyId, final ApiKey.Status status, final String stackTrace,
+                                final String reason) {
         final ApiKey apiKey = getApiKey(apiKeyId);
         if (apiKey!=null) {
             apiKey.status = status;
-            if (stackTrace!=null)
-                apiKey.stackTrace = stackTrace;
+            if (status== ApiKey.Status.STATUS_UP) {
+                apiKey.stackTrace = null;
+                apiKey.reason = null;
+            } else {
+                if (stackTrace != null)
+                    apiKey.stackTrace = stackTrace;
+                if (reason != null)
+                    apiKey.reason = reason;
+            }
             em.persist(apiKey);
         }
     }

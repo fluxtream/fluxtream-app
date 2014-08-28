@@ -5,10 +5,16 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import com.google.gdata.util.RateLimitExceededException;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
+import org.fluxtream.core.connectors.updaters.AuthExpiredException;
+import org.fluxtream.core.connectors.updaters.RateLimitReachedException;
 import org.fluxtream.core.connectors.updaters.UpdateFailedException;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.AbstractFacet;
@@ -20,9 +26,6 @@ import org.fluxtream.core.utils.JPAUtils;
 import org.fluxtream.core.utils.TimeUtils;
 import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
 import org.fluxtream.core.utils.Utils;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.scribe.builder.ServiceBuilder;
@@ -75,8 +78,8 @@ public class WithingsUpdater extends AbstractUpdater {
                                                                                                                                                 "scroll to the Withings connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
             // Record permanent failure since this connector won't work again until
             // it is reauthenticated
-            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
-            throw new UpdateFailedException("requires token reauthorization",true);
+            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null, ApiKey.PermanentFailReason.NEEDS_REAUTH);
+            throw new UpdateFailedException("requires token reauthorization",true, ApiKey.PermanentFailReason.NEEDS_REAUTH);
         }
 
         final String userid = guestService.getApiKeyAttribute(updateInfo.apiKey, "userid");
@@ -110,8 +113,8 @@ public class WithingsUpdater extends AbstractUpdater {
                                                                                                                                                 "scroll to the Withings connector, and renew your tokens (look for the <i class=\"icon-resize-small icon-large\"></i> icon)");
             // Record permanent failure since this connector won't work again until
             // it is reauthenticated
-            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
-            throw new UpdateFailedException("requires token reauthorization",true);
+            guestService.setApiKeyStatus(updateInfo.apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null, ApiKey.PermanentFailReason.NEEDS_REAUTH);
+            throw new UpdateFailedException("requires token reauthorization",true, ApiKey.PermanentFailReason.NEEDS_REAUTH);
         }
 
         // do v1 API call
@@ -200,6 +203,7 @@ public class WithingsUpdater extends AbstractUpdater {
     private void fetchAndProcessJSON(final UpdateInfo updateInfo, final String url,
                                      final Map<String,String> parameters, ApiVersion apiVersion) throws Exception {
         long then = System.currentTimeMillis();
+        int httpResponseCode = 0;
         try {
             OAuthRequest request = new OAuthRequest(Verb.GET, url);
             for (String parameterName : parameters.keySet()) {
@@ -211,18 +215,74 @@ public class WithingsUpdater extends AbstractUpdater {
             final Token token = new Token(accessToken, guestService.getApiKeyAttribute(updateInfo.apiKey, "tokenSecret"));
             service.signRequest(token, request);
             Response response = request.send();
-            final int httpResponseCode = response.getCode();
+            httpResponseCode = response.getCode();
             if (httpResponseCode!=200)
-                throw new UnexpectedHttpResponseCodeException(httpResponseCode, response.getBody());
+                throw new UpdateFailedException("Unexpected response code: " + httpResponseCode);
             String json = response.getBody();
             JSONObject jsonObject = JSONObject.fromObject(json);
-            if (jsonObject.getInt("status")!=0)
-                throw new UnexpectedHttpResponseCodeException(jsonObject.getInt("status"), "Unexpected status code: " + jsonObject.getInt("status"));
+            final int withingsStatusCode = jsonObject.getInt("status");
+            String message = null;
+            if (withingsStatusCode !=0) {
+                switch (withingsStatusCode) {
+                    case 247:
+                        message = "247 : The userid provided is absent, or incorrect";
+                        throw new UpdateFailedException(message, true,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
+                    case 250:
+                        // 250 : The provided userid and/or Oauth credentials do not match
+                        throw new AuthExpiredException();
+                    case 286:
+                        message = "286 : No such subscription was found";
+                        throw new UpdateFailedException(message, true,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
+                    case 293:
+                        message = "293 : The callback URL is either absent or incorrect";
+                        throw new UpdateFailedException(message, true,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
+                    case 294:
+                        message = "294 : No such subscription could be deleted";
+                        throw new UpdateFailedException(message, true,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
+                    case 304:
+                        message = "304 : The comment is either absent or incorrect";
+                        throw new UpdateFailedException(message, true,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
+                    case 305:
+                        // 305: Too many notifications are already set
+                        throw new RateLimitExceededException();
+                    case 342:
+                        message = "342 : The signature (using Oauth) is invalid";
+                        throw new UpdateFailedException( message, true,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
+                    case 343:
+                        message = "343 : Wrong Notification Callback Url don't exist";
+                        throw new UpdateFailedException(message, true,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
+                    case 601:
+                        // 601: Too Many Requests
+                        throw new RateLimitReachedException();
+                    case 2554:
+                        message = "2554 : Wrong action or wrong webservice";
+                        throw new UpdateFailedException(message, true,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
+                    case 2555:
+                        message = "2555 : An unknown error occurred";
+                        throw new UpdateFailedException(message, false,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
+                    case 2556:
+                        message = "2556 : Service is not defined";
+                        throw new UpdateFailedException(message, true,
+                                                        ApiKey.PermanentFailReason.unknownReason(message));
+                    default:
+                    throw new UnexpectedHttpResponseCodeException(withingsStatusCode, "Unexpected status code: " + withingsStatusCode);
+                }
+
+            }
             countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url);
             if (!StringUtils.isEmpty(json))
                 storeMeasurements(updateInfo, json, apiVersion);
-        } catch (UnexpectedHttpResponseCodeException e) {
-            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url, Utils.stackTrace(e), e.getHttpResponseCode(), e.getHttpResponseMessage());
+        } catch (Exception e) {
+            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url, Utils.stackTrace(e), httpResponseCode, e.getMessage());
             throw e;
         }
     }

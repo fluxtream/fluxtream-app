@@ -64,8 +64,8 @@ public class GoogleOAuth2Helper {
 
             // Record permanent failure since this connector won't work again until
             // it is reauthenticated
-            guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null);
-            throw new UpdateFailedException("requires token reauthorization",true);
+            guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null, ApiKey.PermanentFailReason.NEEDS_REAUTH);
+            throw new UpdateFailedException("requires token reauthorization", true, ApiKey.PermanentFailReason.NEEDS_REAUTH);
         }
 
         // We're not on a mirrored test server.  Try to swap the expired
@@ -88,7 +88,7 @@ public class GoogleOAuth2Helper {
                         + " guestId=" + apiKey.getGuestId()
                         + " status=success");
             // Record that this connector is now up
-            guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null);
+            guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null, null);
         } catch (IOException e) {
             logger.warn("component=background_updates action=refreshToken" +
                         " connector=" + apiKey.getConnector().getName() + " guestId=" + apiKey.getGuestId() + " status=failed");
@@ -100,8 +100,8 @@ public class GoogleOAuth2Helper {
 
             // Record permanent update failure since this connector is never
             // going to succeed
-            guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, Utils.stackTrace(e));
-            throw new UpdateFailedException("refresh token attempt failed", e, true);
+            guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, Utils.stackTrace(e), ApiKey.PermanentFailReason.NEEDS_REAUTH);
+            throw new UpdateFailedException("refresh token attempt failed", e, true, ApiKey.PermanentFailReason.NEEDS_REAUTH);
         }
 
         JSONObject token = JSONObject.fromObject(fetched);

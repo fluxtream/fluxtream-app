@@ -1,5 +1,11 @@
 package org.fluxtream.connectors.fitbit;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.fluxtream.core.aspects.FlxLogger;
@@ -8,8 +14,10 @@ import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.connectors.SignpostOAuthHelper;
 import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
+import org.fluxtream.core.connectors.updaters.AuthExpiredException;
 import org.fluxtream.core.connectors.updaters.RateLimitReachedException;
 import org.fluxtream.core.connectors.updaters.UnexpectedResponseCodeException;
+import org.fluxtream.core.connectors.updaters.UpdateFailedException;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.AbstractLocalTimeFacet;
 import org.fluxtream.core.domain.ApiKey;
@@ -20,16 +28,18 @@ import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.utils.JPAUtils;
 import org.fluxtream.core.utils.TimeUtils;
 import org.fluxtream.core.utils.Utils;
-import org.joda.time.*;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Days;
+import org.joda.time.DurationFieldType;
+import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.lang.reflect.Field;
-import java.util.*;
 
 /**
  * @author candide
@@ -241,6 +251,11 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             }
             else{
                 // Otherwise throw the same error that SignpostOAuthHelper used to throw
+                if (e.responseCode==401)
+                    throw new AuthExpiredException();
+                else if (e.responseCode>=400&&e.responseCode<500)
+                    throw new UpdateFailedException("Unexpected response code: " + e.responseCode, true,
+                                                    ApiKey.PermanentFailReason.clientError(e.responseCode, e.getMessage()));
                 throw new RuntimeException(
                         "Could not make REST call, got response code: "
                         + e.responseCode + ", message: "
@@ -620,6 +635,11 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             }
             else{
                 // Otherwise throw the same error that SignpostOAuthHelper used to throw
+                if (e.responseCode==401)
+                    throw new AuthExpiredException();
+                else if (e.responseCode>=400&&e.responseCode<500)
+                    throw new UpdateFailedException("Unexpected response code: " + e.responseCode, true,
+                                                    ApiKey.PermanentFailReason.clientError(e.responseCode));
                 throw new RuntimeException(
                 						"Could not make REST call, got response code: "
                 								+ e.responseCode + ", message: "

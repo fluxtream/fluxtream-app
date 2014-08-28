@@ -3,7 +3,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
     xmlns:cache="http://www.springframework.org/schema/cache"
 	xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:tx="http://www.springframework.org/schema/tx"
 	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="
     	http://www.springframework.org/schema/cache
@@ -55,7 +55,6 @@
 	<context:spring-configured />
 	<context:annotation-config />
 	<context:component-scan base-package="org.fluxtream" />
-	<tx:annotation-driven transaction-manager="transactionManager" />
 
 	<bean id="jmxExporter" class="org.springframework.jmx.export.MBeanExporter">
 		<property name="beans">
@@ -89,10 +88,6 @@
 	<bean id="messageSource"
 		class="org.springframework.context.support.ResourceBundleMessageSource">
 		<property name="basename" value="i18n.messages" />
-	</bean>
-
-	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
-		<property name="entityManagerFactory" ref="entityManagerFactory" />
 	</bean>
 
 	<util:properties id="countries" location="classpath:countries.properties"/>
@@ -139,8 +134,6 @@
         <constructor-arg value="widgets.properties"/>
     </bean>
 
-    <tx:annotation-driven transaction-manager="transactionManager" />
-
 	<mvc:annotation-driven />
 
     <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
@@ -149,12 +142,29 @@
         <property name="user" value="${db.username}" />
         <property name="password" value="${db.password}" />
 	</bean>
-	
+
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory" />
+    </bean>
+
+    <!-- create a vanilla transaction manager for use with the transaction template -->
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <bean id="txTemplate" class="org.springframework.transaction.support.TransactionTemplate"
+            p:isolationLevelName="ISOLATION_READ_UNCOMMITTED"
+            p:transactionManager-ref="txManager">
+    </bean>
+    <tx:annotation-driven transaction-manager="transactionManager" />
+
 	<bean id="entityManagerFactory"
 		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"
 		p:packagesToScan="org.fluxtream" p:dataSource-ref="dataSource"
 		p:jpaVendorAdapter-ref="hibernateVendor" p:jpaPropertyMap-ref="jpaPropertyMap" />
-		
+
 	<bean id="hibernateVendor"
 		class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"
 		p:showSql="false" />
@@ -178,7 +188,7 @@
         <entry key="hibernate.c3p0.timeout" value="100" />
 		<entry key="hibernate.archive.autodetection" value="class, hbm" />
 		<entry key="hibernate.default_schema " value="flx" />
-		<entry key="hibernate.hbm2ddl.auto" value="update" />
+		<entry key="hibernate.hbm2ddl.auto" value="none" />
 		<entry key="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect" />
 	</util:map>
 

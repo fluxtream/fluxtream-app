@@ -23,6 +23,9 @@
     .guestName-column {
         width: 120px;
     }
+    .guestId-column {
+        width: 25px;
+    }
     .apiKeyStatus {
         width: 25px;
     }
@@ -60,6 +63,7 @@
 <table class="table table-bordered" id="dashboardTable">
     <thead>
         <th class="guestName-column">Guest name</th>
+        <th class="guestId-column">Guest ID</th>
         <c:forEach var="connectorInfo" items="${connectors}">
         <th class="apiKeyStatus">${connectorInfo.name}</th>
         </c:forEach>
@@ -69,6 +73,9 @@
         <tr>
             <td class="guestName-column">
                 <a class="btn btn-link" href="/admin/${row.key.id}">${row.key.guestName}</a>
+            </td>
+            <td class="guestId-column">
+                <a class="btn btn-link" href="/admin/${row.key.id}">${row.key.id}</a>
             </td>
             <c:forEach var="connectorKeys" items="${row.value}">
             <td class="apiKeyStatus">
