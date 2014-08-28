@@ -3,6 +3,7 @@ package org.fluxtream.api;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -15,6 +16,15 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import com.google.gson.Gson;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.annotate.JsonAutoDetect;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.plexus.util.ExceptionUtils;
 import org.fluxtream.Configuration;
 import org.fluxtream.auth.AuthHelper;
 import org.fluxtream.connectors.Connector;
@@ -36,11 +46,6 @@ import org.fluxtream.services.SystemService;
 import org.fluxtream.services.WidgetsService;
 import org.fluxtream.services.impl.ExistingEmailException;
 import org.fluxtream.services.impl.UsernameAlreadyTakenException;
-import com.google.gson.Gson;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import org.apache.commons.lang.StringUtils;
-import org.codehaus.plexus.util.ExceptionUtils;
 import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -656,6 +661,39 @@ public class AdminController {
             return gson.toJson(result);
         }
 
+    }
+
+    @POST
+    @Secured({ "ROLE_ADMIN" })
+    @Path("/batch/update")
+    public Response batchHistoryUpdate(@FormParam("apiKeyIds") String apiKeyIds) {
+        try {
+            final String scheduledString = updateConnectors(apiKeyIds);
+            return Response.ok().entity(scheduledString).build();
+        } catch (Throwable t) {
+            return Response.serverError().entity(t.getMessage()).build();
+        }
+    }
+
+    private String updateConnectors(final String apiKeyIds) {
+        List<Long> ids = new ArrayList<Long>();
+        for (String i : apiKeyIds.split(","))
+            ids.add(Long.parseLong(i));
+        Map<Long,List<ScheduleResult>> scheduled = new HashMap<Long, List<ScheduleResult>>();
+        for (Long id : ids) {
+            ApiKey apiKey = guestService.getApiKey(id);
+            final List<ScheduleResult> scheduleResults = connectorUpdateService.updateConnector(apiKey, true);
+            scheduled.put(id, scheduleResults);
+        }
+        String scheduledString = "Could not serialize results";
+        try {
+            final ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+            objectMapper.setVisibilityChecker(
+                    objectMapper.getSerializationConfig().getDefaultVisibilityChecker().
+                            withFieldVisibility(JsonAutoDetect.Visibility.NON_PRIVATE));
+            scheduledString = objectMapper.writeValueAsString(scheduled);} catch (Throwable t) {}
+        return scheduledString;
     }
 
     private JSONArray getGuestRolesJsonArray(Guest guest) {

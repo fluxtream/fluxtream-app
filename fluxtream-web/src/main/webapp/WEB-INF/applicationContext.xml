@@ -28,7 +28,7 @@
                    rejection-policy="CALLER_RUNS" queue-capacity="100"/>
 
 	<task:executor id="updateWorkersExecutor" pool-size="5-25"
-		rejection-policy="CALLER_RUNS" queue-capacity="100" />
+		rejection-policy="CALLER_RUNS" queue-capacity="5" />
 
     <cache:annotation-driven />
 

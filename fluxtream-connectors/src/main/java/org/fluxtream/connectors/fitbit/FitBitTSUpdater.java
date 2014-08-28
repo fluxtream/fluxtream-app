@@ -12,8 +12,10 @@ import org.fluxtream.connectors.ObjectType;
 import org.fluxtream.connectors.SignpostOAuthHelper;
 import org.fluxtream.connectors.annotations.Updater;
 import org.fluxtream.connectors.updaters.AbstractUpdater;
+import org.fluxtream.connectors.updaters.AuthExpiredException;
 import org.fluxtream.connectors.updaters.RateLimitReachedException;
 import org.fluxtream.connectors.updaters.UnexpectedResponseCodeException;
+import org.fluxtream.connectors.updaters.UpdateFailedException;
 import org.fluxtream.connectors.updaters.UpdateInfo;
 import org.fluxtream.domain.AbstractLocalTimeFacet;
 import org.fluxtream.domain.ApiKey;
@@ -249,6 +251,11 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             }
             else{
                 // Otherwise throw the same error that SignpostOAuthHelper used to throw
+                if (e.responseCode==401)
+                    throw new AuthExpiredException();
+                else if (e.responseCode>=400&&e.responseCode<500)
+                    throw new UpdateFailedException("Unexpected response code: " + e.responseCode, true,
+                                                    ApiKey.PermanentFailReason.clientError(e.responseCode, e.getMessage()));
                 throw new RuntimeException(
                         "Could not make REST call, got response code: "
                         + e.responseCode + ", message: "
@@ -628,6 +635,11 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             }
             else{
                 // Otherwise throw the same error that SignpostOAuthHelper used to throw
+                if (e.responseCode==401)
+                    throw new AuthExpiredException();
+                else if (e.responseCode>=400&&e.responseCode<500)
+                    throw new UpdateFailedException("Unexpected response code: " + e.responseCode, true,
+                                                    ApiKey.PermanentFailReason.clientError(e.responseCode));
                 throw new RuntimeException(
                 						"Could not make REST call, got response code: "
                 								+ e.responseCode + ", message: "

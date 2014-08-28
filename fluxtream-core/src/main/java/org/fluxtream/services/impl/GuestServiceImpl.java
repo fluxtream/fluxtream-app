@@ -326,12 +326,20 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
 
     @Override
     @Transactional(readOnly=false)
-    public void setApiKeyStatus(final long apiKeyId, final ApiKey.Status status, final String stackTrace) {
+    public void setApiKeyStatus(final long apiKeyId, final ApiKey.Status status, final String stackTrace,
+                                final String reason) {
         final ApiKey apiKey = getApiKey(apiKeyId);
         if (apiKey!=null) {
             apiKey.status = status;
-            if (stackTrace!=null)
-                apiKey.stackTrace = stackTrace;
+            if (status== ApiKey.Status.STATUS_UP) {
+                apiKey.stackTrace = null;
+                apiKey.reason = null;
+            } else {
+                if (stackTrace != null)
+                    apiKey.stackTrace = stackTrace;
+                if (reason != null)
+                    apiKey.reason = reason;
+            }
             em.persist(apiKey);
         }
     }

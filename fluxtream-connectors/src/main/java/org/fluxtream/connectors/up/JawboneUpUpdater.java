@@ -15,9 +15,11 @@ import org.fluxtream.connectors.ObjectType;
 import org.fluxtream.connectors.annotations.Updater;
 import org.fluxtream.connectors.location.LocationFacet;
 import org.fluxtream.connectors.updaters.AbstractUpdater;
+import org.fluxtream.connectors.updaters.AuthExpiredException;
 import org.fluxtream.connectors.updaters.UpdateFailedException;
 import org.fluxtream.connectors.updaters.UpdateInfo;
 import org.fluxtream.domain.AbstractFacet;
+import org.fluxtream.domain.ApiKey;
 import org.fluxtream.domain.ChannelMapping;
 import org.fluxtream.services.ApiDataService;
 import org.fluxtream.services.JPADaoService;
@@ -756,7 +758,7 @@ public class JawboneUpUpdater extends AbstractUpdater {
         throw new RuntimeException("Error calling Jawbone API: this statement should have never been reached");
     }
 
-    private void refreshToken(UpdateInfo updateInfo) throws IOException, UnexpectedHttpResponseCodeException {
+    private void refreshToken(UpdateInfo updateInfo) throws IOException, UnexpectedHttpResponseCodeException, UpdateFailedException {
         String refreshToken = guestService.getApiKeyAttribute(updateInfo.apiKey, "refreshToken");
         Map<String,String> parameters = new HashMap<String,String>();
         parameters.put("grant_type", "refresh_token");
@@ -770,6 +772,10 @@ public class JawboneUpUpdater extends AbstractUpdater {
         final String json = HttpUtils.fetch("https://jawbone.com/auth/oauth2/token", parameters);
 
         JSONObject token = JSONObject.fromObject(json);
+        if (!token.has("access_token")) {
+            final String message = "Couldn't renew access token (no \"access_token\" field in JSON response)";
+            throw new UpdateFailedException(message, new Exception(), true, ApiKey.PermanentFailReason.unknownReason(message));
+        }
         final String accessToken = token.getString("access_token");
         // store the new secret
         guestService.setApiKeyAttribute(updateInfo.apiKey,
@@ -793,12 +799,18 @@ public class JawboneUpUpdater extends AbstractUpdater {
                 JSONObject meta = errorJson.getJSONObject("meta");
                 if (meta.has("error_type")) {
                     String details = meta.has("error_detail") ? meta.getString("error_details") : "Unknown Error (no details provided)";
-                    throw new UpdateFailedException(message + " - " + details, true);
+                    throw new UpdateFailedException(message + " - " + details, true, ApiKey.PermanentFailReason.unknownReason(details));
                 }
             }
         } catch (Throwable t) {
             // just ignore any potential problems here
         }
-        throw new UnexpectedHttpResponseCodeException(statusCode, message + " - unexpected status code: " + statusCode);
+        if (statusCode==401)
+            throw new AuthExpiredException();
+        if (statusCode>=400&&statusCode<500) {
+            throw new UpdateFailedException("Unexpected response code: " + statusCode, new Exception(), true,
+                                            ApiKey.PermanentFailReason.clientError(statusCode, message));
+        } else
+            throw new UpdateFailedException("Unexpected response code: " + statusCode);
     }
 }

@@ -1,13 +1,12 @@
 package org.fluxtream.domain;
 
-import org.fluxtream.connectors.updaters.UpdateInfo;
-import org.hibernate.annotations.Index;
-
+import java.util.Date;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import java.util.Date;
+import org.fluxtream.connectors.updaters.UpdateInfo;
+import org.hibernate.annotations.Index;
 
 @Entity(name="UpdateWorkerTask")
 @NamedQueries ( {
@@ -179,7 +178,7 @@ public class UpdateWorkerTask extends AbstractEntity {
                 .append(" - next action: ")
                 .append(auditTrailEntry.nextAction);
             if (auditTrailEntry.stackTrace!=null)
-                sb.append("\nstackTrack: \n")
+                sb.append("\nstackTrace: \n")
                   .append(auditTrailEntry.stackTrace);
         }
         this.auditTrail = sb.toString();
