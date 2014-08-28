@@ -74,6 +74,8 @@ public class UpdateFailedException extends Exception {
             }
             if (className.startsWith("org.springframework"))
                 serverException = true;
+            else if (className.startsWith("java.lang.NullPointerException"))
+                serverException = true;
 
             if (serverException) {
                 StringBuffer sb = new StringBuffer();
