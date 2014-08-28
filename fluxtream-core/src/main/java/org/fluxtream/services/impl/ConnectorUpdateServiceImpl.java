@@ -746,6 +746,11 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
     }
 
     @Override
+    public UpdateWorkerTask getTask(long taskId) {
+        return em.find(UpdateWorkerTask.class, taskId);
+    }
+
+    @Override
     public void destroy() throws Exception {
         executor.shutdown();
     }

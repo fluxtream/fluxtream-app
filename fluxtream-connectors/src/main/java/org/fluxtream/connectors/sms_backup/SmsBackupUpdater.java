@@ -457,12 +457,12 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
 
             // Record permanent update failure since this connector is never
             // going to succeed
-            guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, Utils.stackTrace(e));
-            throw new UpdateFailedException("refresh token attempt permanently failed due to a bad token refresh response", e, true);
+            guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, Utils.stackTrace(e), ApiKey.PermanentFailReason.NEEDS_REAUTH);
+            throw new UpdateFailedException("refresh token attempt permanently failed due to a bad token refresh response", e, true, ApiKey.PermanentFailReason.NEEDS_REAUTH);
         }
         catch (IOException e) {
             // Notify the user that the tokens need to be manually renewed
-            throw new UpdateFailedException("refresh token attempt failed", e, true);
+            throw new UpdateFailedException("refresh token attempt failed", e, true, ApiKey.PermanentFailReason.NEEDS_REAUTH);
         }
 
         return credential;
@@ -499,7 +499,7 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
             return emailAddress;
         }
         catch (Exception e){
-            throw new UpdateFailedException("Failed to get gmail address!",e,false);
+            throw new UpdateFailedException("Failed to get gmail address!", e, false, null);
         }
 
     }
@@ -519,7 +519,7 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
             Store store = MailUtils.getGmailImapStoreViaSASL(emailAddress, accessToken);
             return store;
         } catch(Exception e){
-            throw new UpdateFailedException("Failed to connect to gmail!",e,false);
+            throw new UpdateFailedException("Failed to connect to gmail!", e, false, null);
         }
 
 
@@ -593,7 +593,7 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
             notificationsService.addNamedNotification(updateInfo.getGuestId(),
                                                       Notification.Type.ERROR, connector().getName() + ".smsFolderError",
                                                       "The SMS folder configured for SMS Backup, \"" + smsFolderName + "\", does not exist. Either change it in your connector settings or check if SMS Backup is set to use this folder.");
-            throw new UpdateFailedException("Couldn't open SMS folder.",false);
+            throw new UpdateFailedException("Couldn't open SMS folder.",false, null);
         }
         catch (Exception ex) {
             ex.printStackTrace();
@@ -648,7 +648,7 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
         catch (MessagingException ex){
             notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.ERROR, connector().getName() + ".callLogFolderError",
                                   "The call log folder configured for SMS Backup, \"" + callLogFolderName + "\", does not exist. Either change it in your connector settings or check if SMS Backup is set to use this folder.");
-            throw new UpdateFailedException("Couldn't open Call Log folder.",false);
+            throw new UpdateFailedException("Couldn't open Call Log folder.",false, null);
         }
         catch (Exception ex) {
             ex.printStackTrace();

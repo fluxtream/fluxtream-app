@@ -2,6 +2,7 @@ package org.fluxtream.connectors.up;
 
 import java.util.Locale;
 import org.fluxtream.connectors.updaters.UpdateFailedException;
+import org.fluxtream.domain.ApiKey;
 import org.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -94,7 +95,7 @@ public class JawboneUpUpdaterTest {
                 JSONObject meta = errorJson.getJSONObject("meta");
                 if (meta.has("error_type")) {
                     String details = meta.has("error_detail") ? meta.getString("error_details") : "Unknown Error (no details provided)";
-                    throw new UpdateFailedException(message + " - " + details, true);
+                    throw new UpdateFailedException(message + " - " + details, true, ApiKey.PermanentFailReason.unknownReason(details));
                 }
             }
         } catch (Throwable t) {

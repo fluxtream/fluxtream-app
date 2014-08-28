@@ -40,7 +40,6 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 	@Autowired
 	protected JPADaoService jpaDaoService;
 
-    @Qualifier("JPAFacetDao")
     @Autowired
 	protected FacetDao facetDao;
 
@@ -118,6 +117,13 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                     .append(updateInfo.apiKey.getGuestId());
             logger.warn(sb.toString());
             return UpdateResult.rateLimitReachedResult(e);
+        } catch (AuthRevokedException e) {
+            StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateDataHistory")
+                    .append(" message=\"auth revoked\" connector=")
+                    .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
+                    .append(updateInfo.apiKey.getGuestId());
+            logger.warn(sb.toString());
+            return UpdateResult.authRevokedResult(e);
         } catch (AuthExpiredException e) {
             StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateDataHistory")
                     .append(" message=\"connector needs re-authorization\" connector=")
@@ -152,7 +158,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
             notificationsService.addNamedNotification(updateInfo.apiKey.getGuestId(), Notification.Type.WARNING,
                                                       connector().statusNotificationName(),
                                                       sb.toString());
-            return UpdateResult.failedResult(stackTrace);
+            return UpdateResult.failedResult(stackTrace, ApiKey.PermanentFailReason.UNKNOWN);
         }
         finally {
             try {
@@ -198,14 +204,20 @@ public abstract class AbstractUpdater extends ApiClientSupport {
         try {
             updateConnectorData(updateInfo);
             updateResult = UpdateResult.successResult();
+        } catch (AuthRevokedException e) {
+            updateResult = UpdateResult.authRevokedResult(e);
         } catch (RateLimitReachedException e) {
             updateResult = UpdateResult.rateLimitReachedResult(e);
+        }  catch (AuthExpiredException e) {
+            StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateData").append(" message=\"connector needs re-authorization\" connector=").append(updateInfo.apiKey.getConnector().toString()).append(" guestId=").append(updateInfo.apiKey.getGuestId());
+            logger.warn(sb.toString());
+            return UpdateResult.needsReauth();
         } catch (UpdateFailedException e) {
             final String stackTrace = Utils.stackTrace(e);
             StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=updateData")
                     .append(" message=\"Update failed exception\" connector=")
                     .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=").append(updateInfo.apiKey.getGuestId())
-                    .append(" isPermanent=").append(e.isPermanent)
+                    .append(" isPermanent=").append(e.isPermanent())
                     .append(" stackTrace=<![CDATA[").append(stackTrace).append("]]>")
                     .append(updateInfo.apiKey.getGuestId());
             logger.warn(sb.toString());
@@ -218,7 +230,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                     .append(" stackTrace=<![CDATA[").append(stackTrace).append("]]>")
                     .append(updateInfo.apiKey.getGuestId());
             logger.warn(sb.toString());
-            updateResult = UpdateResult.failedResult(stackTrace);
+            updateResult = UpdateResult.failedResult(stackTrace, ApiKey.PermanentFailReason.UNKNOWN);
         }
         finally {
             // Update the time bounds no matter how we exit the updater.
