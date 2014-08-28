@@ -81,9 +81,9 @@
 </div>
 
 
-<h4>Reason<h4>
+<h4>Reason</h4>
 <% if (apiKey.reason!=null) { %>
-    <div class="alert alert-error"><%=apiKey.reason%><div/>
+    <div class="alert alert-error"><%=apiKey.reason%></div>
 <% } else { %>
     <div>No reason given</div>
 <% } %>
