@@ -109,7 +109,6 @@ $(document).ready(function() {
     }
     if (typeof params["accessDenied"] != "undefined"){
         $("#accessDeniedModal").modal();
-        $('#login').slideDown();
     }
     if (typeof params["username"] != "undefined"){
         $("#loginFailedModal").modal();
@@ -155,6 +154,10 @@ function createAccount(isDeveloperAccount) {
             $("#submitCreateAccountForm").click(submitCreateAccountForm);
         }
     })
+}
+
+function enterCredentials() {
+    $("#xsLoginDialog").modal();
 }
 
 function showLightbox(index) {
