@@ -4,30 +4,15 @@
 %>
 <html>
 <head>
-    <%--<link href="/static/css/bootstrap-2.3.2.min.css" rel="stylesheet">--%>
-    <%--<link href="/static/css/bootstrap-responsive-2.3.2.min.css" rel="stylesheet">--%>
-    <%--<link href="${release}/css/index.css" rel="stylesheet" type="text/css"/>--%>
-    <%--<link href='//fonts.googleapis.com/css?family=Open+Sans:400,700,600' rel='stylesheet' type='text/css'>--%>
-    <%--<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>--%>
-    <%--<script src="/static/js/bootstrap-2.3.2.min.js"></script>--%>
-    <%--<script type="text/javascript" src="/${release}/js/welcome.js"></script>--%>
-    <%--<!-- fav icons -->--%>
-    <%--<link rel="shortcut icon" href="/favicon.ico">--%>
-
-        <script type="text/javascript">var NREUMQ=NREUMQ||[];NREUMQ.push(["mark","firstbyte",new Date().getTime()]);</script>
-        <!--     <link href="static/css/bootstrap-2.3.2.min.css" rel="stylesheet"> -->
-        <!--     <link href="static/css/bootstrap-responsive-2.3.2.min.css" rel="stylesheet"> -->
-        <link href="static/css/bootstrap-3.2.0.min.css" rel="stylesheet">
-        <link href="${release}/css/index-2014.css" rel="stylesheet" type="text/css"/>
-        <link href='//fonts.googleapis.com/css?family=Open+Sans:400,700,600' rel='stylesheet' type='text/css'>
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-        <!--     <script src="static/js/bootstrap-2.3.2.min.js"></script> -->
-        <script src="static/js/bootstrap-3.2.0.min.js"></script>
-        <script type="text/javascript" src="/${release}/js/welcome.js"></script>
-        <!-- fav icons -->
-        <link rel="shortcut icon" href="favicon.ico">
-
-
+    <script type="text/javascript">var NREUMQ=NREUMQ||[];NREUMQ.push(["mark","firstbyte",new Date().getTime()]);</script>
+    <link href="static/css/bootstrap-3.2.0.min.css" rel="stylesheet">
+    <link href="${release}/css/index-2014.css" rel="stylesheet" type="text/css"/>
+    <link href='//fonts.googleapis.com/css?family=Open+Sans:400,700,600' rel='stylesheet' type='text/css'>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script src="static/js/bootstrap-3.2.0.min.js"></script>
+    <script type="text/javascript" src="/${release}/js/welcome.js"></script>
+    <!-- fav icons -->
+    <link rel="shortcut icon" href="favicon.ico">
 </head>
 <div id="wrapper">
 <div id="header" class="container logo-login-container">
@@ -278,14 +263,14 @@
                         <label class="password_txt sr-only" for="f_password_xs">Password:</label>
                         <input type="password" onkeypress="if(event.which==13) document.forms[1].submit();" class="password_input form-control" id="f_password_xs" name="f_password" placeholder="password">
                     </div>
-                    <%--<div class="form-group">--%>
-                        <%--<button class="login_btn btn btn-primary form-control">Login</button>--%>
+                    <div class="form-group">
+                        <button class="login_btn btn btn-primary form-control">Login</button>
                         <%--<a href="javascript:void(0)" class="forgotPassword">Forgot password?</a>--%>
-                    <%--</div>--%>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <a href="javascript:void(0)" class="btn btn-primary" data-dismiss="modal">Ok</a>
+                <a href="javascript:void(0)" class="btn btn-primary" data-dismiss="modal">Dismiss</a>
             </div>
         </div>
     </div>
