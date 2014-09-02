@@ -842,9 +842,18 @@ define(
                     $(target).dropdown("toggle");
                     break;
                 }
-                else if ($(target).attr("data-toggle") == "collapse"){
-                    $($(target).attr("data-target")).addClass("collapse");
-                    $($(target).attr("data-target")).collapse("toggle");
+                else if ($(target).attr("data-toggle") == "collapse-custom"){
+                    if ($($(target).attr("data-target")).hasClass("collapse")){
+                        $($(target).attr("data-target")).removeClass("collapse");
+                        $($(target).attr("data-target")).removeClass("in");
+
+                    }
+                    else{
+                        $($(target).attr("data-target")).addClass("collapse");
+                        $($(target).attr("data-target")).addClass("in");
+                    }
+                    event.preventDefault();
+                    break;
                 }
             }
         }
