@@ -4,6 +4,10 @@
 %>
 <html>
 <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="yes" />
     <script type="text/javascript">var NREUMQ=NREUMQ||[];NREUMQ.push(["mark","firstbyte",new Date().getTime()]);</script>
     <link href="static/css/bootstrap-3.2.0.min.css" rel="stylesheet">
     <link href="${release}/css/index-2014.css" rel="stylesheet" type="text/css"/>
