@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style"
 	content="black-translucent" />
-<meta name="viewport" content="width=1000, initial-scale=1.0">
+<meta name="viewport" content="width=device-width">
 <title>Fluxtream</title>
 <meta name="description" content="">
 <meta name="author" content="">
@@ -151,6 +151,7 @@
     <script src="/static/js/moment-2.5.1.min.js"></script>
     <script src="/static/js/jquery.xcolor-1.8.js"></script>
     <script src="/static/js/jquery.outerHTML-1.0.0.js"></script>
+    <script src="/static/js/jquery.fastbutton-1.0.0.js"></script>
 
     <script>
         window.FLX_RELEASE_NUMBER = "${release}";

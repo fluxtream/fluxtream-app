@@ -860,21 +860,10 @@ define(
                 hideFunctions[i]();
         };
 
-        $(document).bind("touchend",onEvent).bind("click",globalClickHandler).bind("mousedown", onEvent);
-
-        var hideFunctions = [];
+        $(document).bind("touchstart",onEvent).bind("touchend",onEvent).bind("click",globalClickHandler).bind("mousedown", onEvent);
 
         App.addHideTooltipListener = function(hideFunction) {
             hideFunctions.push(hideFunction);
-            var onEvent = function(event){ //hides the tooltip if an element clicked on or any of its parents has the notthide property
-                for (var target = event.target; target != null; target=target.parentElement){
-                    if ($(target).attr("notthide") != null)
-                        return;
-                }
-                for (var i = 0, li = hideFunctions.length; i < li; i++)
-                    hideFunctions[i];
-            };
-            $(document).unbind("click").unbind("touchend").bind("touchend",onEvent).bind("click",globalClickHandler).bind("click", onEvent);
         }
 
         App.search = function() {

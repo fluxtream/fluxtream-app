@@ -13,6 +13,7 @@
     <link href="${release}/css/index-2014.css" rel="stylesheet" type="text/css"/>
     <link href='//fonts.googleapis.com/css?family=Open+Sans:400,700,600' rel='stylesheet' type='text/css'>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script src="/static/js/jquery.fastbutton-1.0.0.js"></script>
     <script src="static/js/bootstrap-3.2.0.min.js"></script>
     <script type="text/javascript" src="/${release}/js/welcome.js"></script>
     <!-- fav icons -->
