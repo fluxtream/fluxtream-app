@@ -106,7 +106,7 @@
 
     <beans:bean id="mobileEntryPoint"
                 class="org.fluxtream.core.auth.FlxLoginUrlAuthenticationEntryPoint">
-        <beans:property name="loginFormUrl" value="/mobile/authenticate" />
+        <beans:property name="loginFormUrl" value="/welcome" />
     </beans:bean>
 
     <beans:bean id="loginUrlAuthenticationEntryPoint"
