@@ -450,9 +450,10 @@ define(
         };
 
         function fetchGuestInfo() {
+            var url = "/api/v1/guest?includeAvatar=true";
+            if (!_.isUndefined(App.viewee))url+="&"+App.COACHEE_BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
             $.ajax({
-                url: "/api/v1/guest?includeAvatar=true",
-                beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
+                url: url,
                 success: function(guestInfo) {
                     App.buddyToAccess = guestInfo;
                     var loggedInUser = $("#loggedInUser");
@@ -1115,11 +1116,11 @@ define(
             }
             function afterDone(){
                 setTimeout(checkForDataUpdates,updateCheckInterval);
-
             }
-            $.ajax("/api/v1/dataUpdates/all",{
+            var url = "/api/v1/dataUpdates/all";
+            if (!_.isUndefined(App.viewee)) url += "?"+App.COACHEE_BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
+            $.ajax(url, {
                 type: "GET",
-                beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
                 dataType: "json",
                 data: {since: lastCheckTimestamp},
                 success: function(data){
@@ -1144,7 +1145,7 @@ define(
         App.invalidPath = invalidPath;
         App.geocoder = new google.maps.Geocoder();
         App.sharingDialog = SharingDialog;
-        App.COACHEE_BUDDY_TO_ACCESS_HEADER = "X-FLX-BUDDY-TO-ACCESS";
+        App.COACHEE_BUDDY_TO_ACCESS_PARAM = "buddyToAccess";
         window.App = App;
         return App;
 

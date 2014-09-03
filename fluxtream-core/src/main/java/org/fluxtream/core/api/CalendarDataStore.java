@@ -84,7 +84,7 @@ public class CalendarDataStore {
     public Response getLocationConnectorsWeekData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
                                                   @ApiParam(value="Week", required=true) @PathParam("week") final int week,
                                                   @ApiParam(value="filter JSON", required=true) @QueryParam("filter") String filter,
-                                                  @ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader) {
+                                                  @ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String coacheeUsernameHeader) {
         return getWeekData(year, week, filter, true, coacheeUsernameHeader);
     }
 
@@ -100,7 +100,7 @@ public class CalendarDataStore {
     public Response getAllConnectorsWeekData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
                                              @ApiParam(value="Week", required=true) @PathParam("week") final int week,
                                              @ApiParam(value="filter JSON", required=true) @QueryParam("filter") String filter,
-                                             @ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader) {
+                                             @ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String coacheeUsernameHeader) {
         return getWeekData(year, week, filter, false, coacheeUsernameHeader);
     }
 
@@ -180,7 +180,7 @@ public class CalendarDataStore {
     public Response getLocationConnectorsMonthData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
                                                    @ApiParam(value="Month", required=true) @PathParam("month") final int month,
                                                    @ApiParam(value="Filter JSON", required=true) @QueryParam("filter") String filter,
-                                                   @ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader) {
+                                                   @ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String coacheeUsernameHeader) {
         return getMonthData(year, month, filter, true, coacheeUsernameHeader);
     }
 
@@ -196,7 +196,7 @@ public class CalendarDataStore {
     public Response getAllConnectorsMonthData(@ApiParam(value="Year", required=true) @PathParam("year") final int year,
                                               @ApiParam(value="Month", required=true) @PathParam("month") final int month,
                                               @ApiParam(value="Filter JSON", required=true) @QueryParam("filter") String filter,
-                                              @ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader) {
+                                              @ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String coacheeUsernameHeader) {
         return getMonthData(year, month, filter, false, coacheeUsernameHeader);
     }
 
@@ -271,7 +271,7 @@ public class CalendarDataStore {
     })
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getWeatherDataForADay(@ApiParam(value="Date", required=true) @PathParam("date") String date,
-                                              @ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader) {
+                                              @ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String coacheeUsernameHeader) {
 
         CoachingBuddy coachee;
         try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
@@ -331,7 +331,7 @@ public class CalendarDataStore {
     })
 	public Response getAllConnectorsDayData(@ApiParam(value="Date (YYYY-MM-DD)", required=true) @PathParam("date") String date,
                                             @ApiParam(value="Filter JSON", required=false) @QueryParam(value="filter") String filter,
-                                            @ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader) throws InstantiationException,
+                                            @ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String coacheeUsernameHeader) throws InstantiationException,
             IllegalAccessException, ClassNotFoundException, UpdateFailedException, OutsideTimeBoundariesException, IOException {
         if (StringUtils.isEmpty(filter)) filter = "{}";
         CoachingBuddy coachee;
@@ -584,7 +584,7 @@ public class CalendarDataStore {
                                                    "where <connectorIdentifier> is either the connector name or the apiKey id " +
                                                    "and objectTypeName is the name of the facet Type - example: 64-weight,fitbit,withings-heart_pulse",
                                            required=true) @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded,
-                                     @ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader)
+                                     @ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String coacheeUsernameHeader)
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
         try{
@@ -651,7 +651,7 @@ public class CalendarDataStore {
                                                    "where <connectorIdentifier> is either the connector name or the apiKey id " +
                                                    "and objectTypeName is the name of the facet Type - example: 64-weight,fitbit,withings-heart_pulse",
                                              required=true) @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded,
-                                     @ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader)
+                                     @ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String coacheeUsernameHeader)
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
         try{
@@ -727,7 +727,7 @@ public class CalendarDataStore {
                                                         "where <connectorIdentifier> is either the connector name or the apiKey id " +
                                                         "and objectTypeName is the name of the facet Type - example: 64-weight,fitbit,withings-heart_pulse",
                                                   required=true) @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded,
-                                          @ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader)
+                                          @ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String coacheeUsernameHeader)
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
         try{

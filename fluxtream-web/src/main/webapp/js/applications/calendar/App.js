@@ -274,9 +274,10 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         var thisFetchId = ++fetchId;
         if (lastFetch != null)
             lastFetch.abort();
+        var url = "/api/v1/calendar/all/" + state.tabState;
+        if (!_.isUndefined(App.viewee)) url += "?"+App.COACHEE_BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
         lastFetch = $.ajax({
-            url: "/api/v1/calendar/all/" + state.tabState,
-            beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
+            url: url,
 			success : function(response) {
                 if (thisFetchId != fetchId)//we litter the callback with these in case a we got to the callback but a new request started
                     return;

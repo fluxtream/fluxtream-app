@@ -56,7 +56,7 @@ public class GuestController {
     })
     @ApiOperation(value = "Retrieve information on the currently logged in's guest", response = GuestModel.class)
 	public Response getCurrentGuest(@ApiParam(value="Include the guest's avatar?") @QueryParam("includeAvatar") final boolean includeAvatar,
-                                    @ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader) throws InstantiationException,
+                                    @ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String coacheeUsernameHeader) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
         try{
             CoachingBuddy coachee;
@@ -83,7 +83,7 @@ public class GuestController {
             @ApiResponse(code=403, message="Buddy-to-access authorization has been revoked")
     })
     @ApiOperation(value = "Retrieve the avatar (gravatar) of the currently logged in's guest", response = AvatarImageModel.class)
-    public Response getAvatarImage(@ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader) {
+    public Response getAvatarImage(@ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String coacheeUsernameHeader) {
         Guest guest = AuthHelper.getGuest();
         AvatarImageModel avatarImage = getAvatarImageModel(coacheeUsernameHeader, guest);
         return Response.ok(avatarImage).build();

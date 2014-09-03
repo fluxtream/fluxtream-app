@@ -14,8 +14,9 @@ define(["core/grapher/BTCore",
     };
 
     function show(){
-        $.ajax("/api/v1/connectors/installed",{
-            beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
+        var url = "/api/v1/connectors/installed";
+        if (!_.isUndefined(App.viewee)) url += "?"+App.COACHEE_BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
+        $.ajax(url, {
             success: function(data){
                 dataLoaded(data,false);
             }
@@ -28,8 +29,9 @@ define(["core/grapher/BTCore",
     //with the original full dialog template, the first time through all the cells will be forced to update. However,
     //after that it should in theory properly only update when a change happens in each cell
     function updateContents(){
-        $.ajax("/api/v1/connectors/installed",{
-            beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
+        var url = "/api/v1/connectors/installed";
+        if (!_.isUndefined(App.viewee)) url += "?"+App.COACHEE_BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
+        $.ajax(url, {
             success: function(data){
                 if (hidden)
                     return;
@@ -159,8 +161,9 @@ define(["core/grapher/BTCore",
         syncAllBtn.click(function(){
             setAllToSyncing();
             event.preventDefault();
-            $.ajax("/api/v1/sync/all",{
-                beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
+            var url = "/api/v1/sync/all";
+            if (!_.isUndefined(App.viewee)) url += "?"+App.COACHEE_BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
+            $.ajax(url, {
                 type:"POST"
             });
         });
@@ -187,8 +190,10 @@ define(["core/grapher/BTCore",
         syncNowBtn.click(function(event){
             event.preventDefault();
             setToSyncing(connector.connectorName)
-            $.ajax("/api/v1/sync/" + connector.connectorName,{
-                beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
+            var url = "/api/v1/sync/" + connector.connectorName;
+            if (!_.isUndefined(App.viewee)) url+="?"+App.COACHEE_BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
+            $.ajax({
+                url : url,
                 type:"POST"
             });
         });

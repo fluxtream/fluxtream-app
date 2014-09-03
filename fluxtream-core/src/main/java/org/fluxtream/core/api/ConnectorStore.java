@@ -156,7 +156,7 @@ public class ConnectorStore {
             @ApiResponse(code = 401, message = "You are no longer logged in"),
             @ApiResponse(code = 403, message = "Buddy-to-access authorization has been revoked")
     })
-    public Response getInstalledConnectors(@ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader){
+    public Response getInstalledConnectors(@ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String coacheeUsernameHeader){
         CoachingBuddy coachee;
         try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
         } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
@@ -462,7 +462,7 @@ public class ConnectorStore {
                             @QueryParam("start") long start,
                             @QueryParam("end") long end,
                             @QueryParam("value") String value,
-                            @ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader){
+                            @ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String coacheeUsernameHeader){
         Guest guest = AuthHelper.getGuest();
         if(guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
