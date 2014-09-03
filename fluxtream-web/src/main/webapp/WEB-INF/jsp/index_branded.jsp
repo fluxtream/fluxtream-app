@@ -269,10 +269,10 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h3>Please, Enter Credentials</h3>
+                <h3 id="xsLoginFormTitle">Enter credentials, please</h3>
             </div>
             <div class="modal-body">
-                <form method="post" action="signIn" id="xsloginForm" role="form">
+                <form method="post" action="signIn" id="xsLoginForm" role="form">
                     <div class="form-group">
                         <label class="username_txt sr-only" for="f_username_xs">Username/email:</label>
                         <input type="text" onkeypress="if(event.which==13) document.forms[1].submit();" class="form-control username_input" id="f_username_xs" name="f_username" placeholder="username/email">
@@ -282,8 +282,23 @@
                         <input type="password" onkeypress="if(event.which==13) document.forms[1].submit();" class="password_input form-control" id="f_password_xs" name="f_password" placeholder="password">
                     </div>
                     <div class="form-group">
+                        <a href="javascript:void(0)" class="forgotPassword" id="xslostPasswdLink">Forgot password?</a>
+                    </div>
+                    <div class="form-group">
                         <button class="login_btn btn btn-primary form-control">Login</button>
                         <%--<a href="javascript:void(0)" class="forgotPassword">Forgot password?</a>--%>
+                    </div>
+                </form>
+                <form method="post" action="support/sendResetRequest" style="display:none" id="xsRecoverForm" role="form" class="form-inline">
+                    <div class="form-group">
+                        <label class="recover_email_txt sr-only" for="recover_email_xs">Your email address:</label>
+                        <input class="recover_email_input form-control" title="Enter your email" type="text" name="recover[email]" id="Recover_email_xs" placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <a href="javascript:void(0)" id="xsCancelRecoverPassword">cancel</a>
+                    </div>
+                    <div class="form-group">
+                        <button class="login_btn btn btn-primary form-control">Send</button>
                     </div>
                 </form>
             </div>

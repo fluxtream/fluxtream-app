@@ -75,10 +75,27 @@ $(document).ready(function() {
         return false;
     });
 
+    $('#xslostPasswdLink').click(function() {
+        $('#xsLoginForm').hide();
+        $('#xsRecoverForm').show();
+        $('#xsRecoverForm').submit(function() { $(this).ajaxSubmit({success: handleRecoverCallback }); return false; });
+        $('#xsRecover_email').focus();
+        $("#xsLoginFormTitle").html("Forgot password?");
+        return false;
+    });
+
     $('#cancelRecoverPassword').click(function() {
         $('#recoverForm').hide();
         $('#loginForm').show();
         $('#f_username').focus();
+        return false;
+    });
+
+    $('#xsCancelRecoverPassword').click(function() {
+        $('#xsRecoverForm').hide();
+        $('#xsLoginForm').show();
+        $('#f_username_xs').focus();
+        $("#xsLoginFormTitle").html("Enter credentials, please");
         return false;
     });
 
