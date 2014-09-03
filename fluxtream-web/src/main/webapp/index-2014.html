@@ -73,7 +73,16 @@
     </div> <!-- /.lasagna-layer-1 -->
     <div class="container-fluid hidden-xs hidden-sm">
       <section class="row connectors">
+          <div class="expand-control hidden-xs">
+            <a href="#" class="handle please-expand">
+              <span class="handle-bar"></span>
+              <span class="handle-bar"></span>
+              <span class="handle-bar"></span>
+            </a> 
+          </div>
+
         <div class="connector-img-cloud connector-img-cloud-lg col-xs-12 col-sm-12 col-md-12 col-lg-12">
+
           <div class="connector-cloud"></div>
         </div>
       </section>
@@ -100,6 +109,13 @@
     </div> 
     <div class="container-fluid hidden-lg hidden-md">
       <section class="row connectors">
+          <div class="expand-control hidden-xs">
+            <a href="#" class="handle please-expand">
+              <span class="handle-bar"></span>
+              <span class="handle-bar"></span>
+              <span class="handle-bar"></span>
+            </a> 
+          </div>
         <div class="connector-img-cloud-sm connector-img-cloud col-xs-12 col-sm-12 col-md-12 col-lg-12">
           <div class="connector-cloud"></div>
         </div>
@@ -328,6 +344,12 @@
 
 <div id="registerModalWrapper">
 </div>
+
+<script type="text/javascript">
+  $(".please-expand" ).click(function() {
+    $( ".connector-img-cloud" ).toggleClass( "connector-img-cloud-open" );
+});
+</script>
 
 <script type="text/javascript">if (!NREUMQ.f) { NREUMQ.f=function() {NREUMQ.push(["load",new Date().getTime()]);var e=document.createElement("script");e.type="text/javascript";e.src=(("http:"===document.location.protocol)?"http:":"https:") + "//" + "js-agent.newrelic.com/nr-100.js";document.body.appendChild(e);if(NREUMQ.a)NREUMQ.a();};NREUMQ.a=window.onload;window.onload=NREUMQ.f;};NREUMQ.push(["nrfj","beacon-1.newrelic.com","320efd248b","2133971","YVxbZUcHCEAHUkdcW1gWakFHDwhUJV5dQUZZVVVUR0knQxZyXFtARFZVXVAUSVoIVVZN",0,2,new Date().getTime(),"","","","",""]);</script></body>
 </html>
