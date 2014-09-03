@@ -116,7 +116,12 @@ $(document).ready(function() {
     else if (typeof params["subscribed"] != "undefined"){
         $("#subscribedModal").modal();
     }
-});
+
+    $(".please-expand" ).click(function() {
+        $( ".connector-img-cloud" ).toggleClass( "connector-img-cloud-open" );
+    });
+
+    });
 
 
 function submitCreateAccountForm() {

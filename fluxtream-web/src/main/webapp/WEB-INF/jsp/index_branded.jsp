@@ -58,8 +58,7 @@
     <div id="intro" class="container">
         <section class="row">
             <div class="col-xs-12 col-sm-5 col-sm-offset-1 col-md-5 col-lg-4 col-lg-offset-1">
-                <!--             <iframe width="432" height="324" src="http://www.youtube.com/embed/D85ICrW52e0?hd=1" frameborder="0" allowfullscreen></iframe> -->
-                <iframe src="//www.youtube.com/embed/D85ICrW52e0?hd=1" frameborder="0" allowfullscreen></iframe>
+                <iframe src="//www.youtube.com/embed/D85ICrW52e0?hd=1&controls=0&showinfo=0" frameborder="0" allowfullscreen></iframe>
             </div>
             <div class="intro_txt col-xs-12 col-sm-6 col-md-6 col-lg-5 col-lg-offset-0">
                 <p>An open-source non-profit personal data visualization framework to help you make sense of your life and compare hypotheses about what affects your well-being</p>
@@ -77,6 +76,13 @@
 </div> <!-- /.lasagna-layer-1 -->
 <div class="container-fluid hidden-xs hidden-sm">
     <section class="row connectors">
+        <div class="expand-control hidden-xs">
+            <a href="#" class="handle please-expand">
+                <span class="handle-bar"></span>
+                <span class="handle-bar"></span>
+                <span class="handle-bar"></span>
+            </a>
+        </div>
         <div class="connector-img-cloud connector-img-cloud-lg col-xs-12 col-sm-12 col-md-12 col-lg-12">
             <div class="connector-cloud"></div>
         </div>
@@ -104,6 +110,13 @@
 </div>
 <div class="container-fluid hidden-lg hidden-md">
     <section class="row connectors">
+        <div class="expand-control hidden-xs">
+            <a href="#" class="handle please-expand">
+                <span class="handle-bar"></span>
+                <span class="handle-bar"></span>
+                <span class="handle-bar"></span>
+            </a>
+        </div>
         <div class="connector-img-cloud-sm connector-img-cloud col-xs-12 col-sm-12 col-md-12 col-lg-12">
             <div class="connector-cloud"></div>
         </div>
