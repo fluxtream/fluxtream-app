@@ -31,13 +31,6 @@ public class FlxLogoutHandler implements LogoutHandler {
                 e.printStackTrace();
             }
         }
-        else if (request.getHeader("User-Agent").indexOf("Mobile") != -1) {
-            try {
-                response.sendRedirect("/mobile/signIn");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
 }
