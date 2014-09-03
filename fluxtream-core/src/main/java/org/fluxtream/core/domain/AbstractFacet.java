@@ -1,19 +1,5 @@
 package org.fluxtream.core.domain;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.StringTokenizer;
-import java.util.TreeSet;
-import javax.persistence.EntityManager;
-import javax.persistence.Lob;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.PostLoad;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
-import javax.persistence.Query;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
@@ -24,6 +10,10 @@ import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.Store;
 import org.jetbrains.annotations.Nullable;
+import org.joda.time.DateTimeUtils;
+
+import javax.persistence.*;
+import java.util.*;
 
 @MappedSuperclass
 @Indexed
@@ -158,6 +148,7 @@ public abstract class AbstractFacet extends AbstractEntity {
             this.fullTextDescription += " " + this.comment;
             this.fullTextDescription = this.fullTextDescription.trim();
         }
+        this.timeUpdated = DateTimeUtils.currentTimeMillis();
         persistTags();
     }
 
