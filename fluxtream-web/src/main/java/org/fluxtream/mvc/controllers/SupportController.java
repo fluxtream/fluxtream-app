@@ -109,7 +109,7 @@ public class SupportController {
 			vars.put("username", guest.username);
         String mailMessage ="Hi " + vars.get("username") + ",\n" +
                             "\n" +
-                            "Someone requested that your Fluxtream.com password be reset.\n" +
+                            "Someone requested that your Fluxtream password be reset.\n" +
                             "\n" +
                             "If this wasn't you, there's nothing to worry about - simply ignore this email and nothing will change.\n" +
                             "\n" +
