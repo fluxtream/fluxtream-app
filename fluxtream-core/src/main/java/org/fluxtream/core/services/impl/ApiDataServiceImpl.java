@@ -447,6 +447,7 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
                 persistTags(facet);
             }
             try {
+                facet.timeUpdated = DateTimeUtils.currentTimeMillis();
                 em.persist(facet);
                 StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=persistFacet")
                         .append(" connector=").append(Connector.fromValue(facet.api).getName())
