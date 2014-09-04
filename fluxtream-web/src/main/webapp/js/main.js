@@ -2,9 +2,20 @@ require.config({
     waitSeconds: 0
 });
 
-require(['App', 'Connectors'], function(App, Connectors) {
-    App.initialize();
-});
+(function(){
+    //Before loading the app we need to load fallbacks for if APIs are innaccessible
+    if (window.google == null){//google maps API was blocked
+        require(["core/libFallback/GoogleFallback"],function(google){
+            window.google = google;
+        });
+    }
+
+    //Now we can load the app
+    require(['App', 'Connectors'], function(App, Connectors) {
+        App.initialize();
+    });
+})();
+
 
 //below are require statements for all dynamically required files.
 //this allows for the optimizer to properly package all the files together
