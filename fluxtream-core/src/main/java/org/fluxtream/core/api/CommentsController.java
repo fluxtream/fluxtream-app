@@ -37,7 +37,7 @@ public class CommentsController {
      */
     @POST
     @Path("/{facetType}/{facetId}")
-    @Produces({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.TEXT_PLAIN})
     @ApiOperation(value = "Set a facet's user comment", response = String.class)
     public Response setComment(@ApiParam(value="The type (<connectorName>-<objectTypeName>) of the facet", required=true) @PathParam("facetType") String facetType,
                                   @ApiParam(value="Facet ID", required=true) @PathParam("facetId") long facetId,
@@ -68,12 +68,12 @@ public class CommentsController {
     @DELETE
     @Path("/{facetType}/{facetId}")
     @ApiOperation(value = "Delete a facet's user comment", response = String.class)
-    @Produces({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.TEXT_PLAIN})
     public Response deleteComment(@ApiParam(value="The type (<connectorName>-<objectTypeName>) of the facet", required=true) @PathParam("facetType") String facetType,
                                      @ApiParam(value="Facet ID", required=true) @PathParam("facetId") long facetId) {
         final long guestId = AuthHelper.getGuestId();
         String connectorName, objectTypeName = null;
-        if (facetType.indexOf("-")!=-1)
+        if (facetType.indexOf("-")==-1)
             connectorName = facetType;
         else {
             final String[] splits = StringUtils.split(facetType, "-");
