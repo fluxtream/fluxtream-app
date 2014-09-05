@@ -31,7 +31,7 @@
         <form method="post" action="signIn" id="loginForm" class="form-inline" role="form">
             <div class="form-group">
                 <label class="username_txt sr-only" for="f_username">Username/email:</label>
-                <input type="text" onkeypress="if(event.which==13) document.forms[0].submit();" class="form-control username_input" id="f_username" name="f_username" placeholder="username/email">
+                <input type="text" autocapitalize="off" onkeypress="if(event.which==13) document.forms[0].submit();" class="form-control username_input" id="f_username" name="f_username" placeholder="username/email">
             </div>
             <div class="form-group">
                 <label class="password_txt sr-only" for="f_password">Password:</label>
@@ -45,7 +45,7 @@
         <form method="post" action="support/sendResetRequest" style="display:none" id="recoverForm" role="form" class="form-inline">
             <div class="form-group">
                 <label class="recover_email_txt sr-only" for="recover_email">Your email address:</label>
-                <input class="recover_email_input form-control" title="Enter your email" type="text" name="recover[email]" id="recover_email" placeholder="Enter your email">
+                <input autocapitalize="off" class="recover_email_input form-control" title="Enter your email" type="email" name="recover[email]" id="recover_email" placeholder="Enter your email">
             </div>
             <div class="form-group">
                 <button class="login_btn btn btn-primary form-control">Send</button>
@@ -257,8 +257,8 @@
                     <strong>Not so fast, Hot Shot!</strong> Login is required before you access this resource.
                 </div>
             </div>
-            <div class="modal-footer">
-                <a href="javascript:void(0)" class="btn btn-primary" data-dismiss="modal">Ok</a>
+            <div class="modal-footer" style="height:65px">
+                <a href="javascript:void(0)" class="login_btn btn btn-primary" data-dismiss="modal">Ok</a>
             </div>
         </div>
     </div>
@@ -275,7 +275,7 @@
                 <form method="post" action="signIn" id="xsLoginForm" role="form">
                     <div class="form-group">
                         <label class="username_txt sr-only" for="f_username_xs">Username/email:</label>
-                        <input type="text" onkeypress="if(event.which==13) document.forms[1].submit();" class="form-control username_input" id="f_username_xs" name="f_username" placeholder="username/email">
+                        <input type="text" autocapitalize="off" onkeypress="if(event.which==13) document.forms[1].submit();" class="form-control username_input" id="f_username_xs" name="f_username" placeholder="username/email">
                     </div>
                     <div class="form-group">
                         <label class="password_txt sr-only" for="f_password_xs">Password:</label>
@@ -292,7 +292,7 @@
                 <form method="post" action="support/sendResetRequest" style="display:none" id="xsRecoverForm" role="form" class="form-inline">
                     <div class="form-group">
                         <label class="recover_email_txt sr-only" for="recover_email_xs">Your email address:</label>
-                        <input class="recover_email_input form-control" title="Enter your email" type="text" name="recover[email]" id="Recover_email_xs" placeholder="Enter your email">
+                        <input class="recover_email_input form-control" title="Enter your email" type="email" name="recover[email]" id="Recover_email_xs" placeholder="Enter your email">
                     </div>
                     <div class="form-group">
                         <a href="javascript:void(0)" id="xsCancelRecoverPassword">cancel</a>
@@ -302,8 +302,8 @@
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
-                <a href="javascript:void(0)" class="btn btn-primary" data-dismiss="modal">Dismiss</a>
+            <div class="modal-footer" style="height:65px">
+                <a href="javascript:void(0)" class="login_btn btn btn-primary" data-dismiss="modal">Dismiss</a>
             </div>
         </div>
     </div>
@@ -322,8 +322,8 @@
                     <strong>Bad login credentials!</strong> We could not authenticate you properly. Either your username or password were incorrect.
                 </div>
             </div>
-            <div class="modal-footer">
-                <a href="javascript:void(0)" class="btn btn-primary" data-dismiss="modal">Ok</a>
+            <div class="modal-footer" style="height:65px">
+                <a href="javascript:void(0)" class="btn login_btn btn-primary" data-dismiss="modal">Ok</a>
             </div>
         </div>
     </div>
@@ -343,8 +343,8 @@
                     a newer version of your web browser.
                 </div>
             </div>
-            <div class="modal-footer">
-                <a href="javascript:void(0)" class="btn btn-primary" data-dismiss="modal">Ok</a>
+            <div class="modal-footer" style="height:65px">
+                <a href="javascript:void(0)" class="btn login_btn btn-primary" data-dismiss="modal">Ok</a>
             </div>
         </div>
     </div>
