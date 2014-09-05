@@ -95,7 +95,7 @@ $(document).ready(function() {
         $('#xsRecoverForm').hide();
         $('#xsLoginForm').show();
         $('#f_username_xs').focus();
-        $("#xsLoginFormTitle").html("Enter credentials, please");
+        $("#xsLoginFormTitle").html("Please log in");
         return false;
     });
 
@@ -123,6 +123,9 @@ $(document).ready(function() {
     }
     if (typeof params["register"] != "undefined"){
         createAccount(false);
+    }
+    if (typeof params["signIn"] != "undefined"){
+        enterCredentials();
     }
     if (typeof params["accessDenied"] != "undefined"){
         $("#accessDeniedModal").modal();

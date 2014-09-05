@@ -21,6 +21,7 @@
 	<http pattern="/${release}/images/**" security="none" />
     <http pattern="/images/**" security="none" />
     <http pattern="/welcome*" security="none" />
+    <http pattern="/" security="none" />
     <http pattern="/accessDenied*" security="none" />
 	<http pattern="/notSupported" security="none" />
 	<http pattern="/favicon.ico" security="none" />
@@ -106,12 +107,12 @@
 
     <beans:bean id="mobileEntryPoint"
                 class="org.fluxtream.core.auth.FlxLoginUrlAuthenticationEntryPoint">
-        <beans:property name="loginFormUrl" value="/welcome" />
+        <beans:property name="loginFormUrl" value="/welcome?signIn" />
     </beans:bean>
 
     <beans:bean id="loginUrlAuthenticationEntryPoint"
                 class="org.fluxtream.core.auth.FlxLoginUrlAuthenticationEntryPoint">
-        <beans:property name="loginFormUrl" value="/welcome" />
+        <beans:property name="loginFormUrl" value="/welcome?signIn" />
     </beans:bean>
 
     <!--<beans:bean id="restApiEntryPoint"-->
@@ -143,7 +144,7 @@
     </beans:bean>
 
 	<beans:bean id="failureHandler" class="org.fluxtream.core.auth.FlxAuthFailureHandler">
-		<beans:property name="defaultFailureUrl" value="/welcome" />
+		<beans:property name="defaultFailureUrl" value="/welcome?signIn" />
 	</beans:bean>
 
 	<authentication-manager alias="authenticationManager">

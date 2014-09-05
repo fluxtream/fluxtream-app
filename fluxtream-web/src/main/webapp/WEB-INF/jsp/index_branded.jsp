@@ -269,7 +269,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h3 id="xsLoginFormTitle">Enter credentials, please</h3>
+                <h3 id="xsLoginFormTitle">Please log in</h3>
             </div>
             <div class="modal-body">
                 <form method="post" action="signIn" id="xsLoginForm" role="form">
