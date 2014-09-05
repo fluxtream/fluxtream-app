@@ -1,14 +1,10 @@
 package org.fluxtream.mvc.controllers;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletResponse;
 import com.wordnik.swagger.config.ConfigFactory;
 import com.wordnik.swagger.config.SwaggerConfig;
 import net.sf.json.JSONObject;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.auth.AuthHelper;
@@ -25,6 +21,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.fluxtream.core.utils.Utils.hash;
 
@@ -155,14 +158,16 @@ public class DevController {
     }
 
     private String getGravatarImageURL(Guest guest) {
+        final String defaultAvatarImage = env.get("homeBaseUrl") + env.get("release") + "/images/unknown_guest.png";
+        if (guest==null||guest.email==null)
+            return defaultAvatarImage;
         String emailHash = hash(guest.email.toLowerCase().trim()); //gravatar specifies the email should be trimmed, taken to lowercase, and then MD5 hashed
         String gravatarURL = String.format("http://www.gravatar.com/avatar/%s?s=27&d=404", emailHash);
-        //HttpGet get = new HttpGet(gravatarURL);
-        //int res = 0;
-        //try { res = ((new DefaultHttpClient()).execute(get)).getStatusLine().getStatusCode(); }
-        //catch (IOException e) {e.printStackTrace();}
-        //return res==200 ? gravatarURL : null;
-        return gravatarURL;
+        HttpGet get = new HttpGet(gravatarURL);
+        int res = 0;
+        try { res = ((new DefaultHttpClient()).execute(get)).getStatusLine().getStatusCode(); }
+        catch (IOException e) {e.printStackTrace();}
+        return res==200 ? gravatarURL : defaultAvatarImage;
     }
 
 }

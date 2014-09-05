@@ -450,6 +450,7 @@ footer {
     background-image: url(../images/connector-cloud@2x.png);
     background-position-y: 5px;
     background-size: 100%;
+    opacity: 1;
   }
   .connector-img-cloud {
     height: 180px;
@@ -573,7 +574,6 @@ footer {
     height: 25px;
     width: 55px;
     border: 1px solid #d1d1d1;
-/*     border-top: 1px solid transparent; */
     -webkit-border-bottom-left-radius: 5px;
     -moz-border-bottom-left-radius: 5px;
     border-bottom-left-radius: 5px;
@@ -581,6 +581,7 @@ footer {
     -moz-border-bottom-right-radius: 5px;
     border-bottom-right-radius: 5px;
     padding: 5px;
+    cursor:pointer;
   }
   .handle-bar {
     display: block;
