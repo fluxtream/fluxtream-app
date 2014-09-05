@@ -48,7 +48,7 @@
                 <input class="recover_email_input form-control" title="Enter your email" type="text" name="recover[email]" id="recover_email" placeholder="Enter your email">
             </div>
             <div class="form-group">
-                <button class="login_btn btn btn-primary">Send</button>
+                <button class="login_btn btn btn-primary form-control">Send</button>
                 <a href="javascript:void(0)" class="forgotPassword " id="cancelRecoverPassword">cancel</a>
             </div>
         </form>
@@ -77,7 +77,7 @@
 <div class="container-fluid hidden-xs hidden-sm">
     <section class="row connectors">
         <div class="expand-control hidden-xs">
-            <a href="#" class="handle please-expand">
+            <a href="javascript:void(0)" class="handle please-expand">
                 <span class="handle-bar"></span>
                 <span class="handle-bar"></span>
                 <span class="handle-bar"></span>
@@ -111,7 +111,7 @@
 <div class="container-fluid hidden-lg hidden-md">
     <section class="row connectors">
         <div class="expand-control hidden-xs">
-            <a href="#" class="handle please-expand">
+            <a href="javascript:void(0)" class="handle please-expand">
                 <span class="handle-bar"></span>
                 <span class="handle-bar"></span>
                 <span class="handle-bar"></span>
