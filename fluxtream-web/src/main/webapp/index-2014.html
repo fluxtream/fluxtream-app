@@ -38,14 +38,15 @@
               <a href="javascript:void(0)" class="forgotPassword" id="lostPasswdLink">Forgot password?</a>
             </div>
           </form>
+          
           <form method="post" action="support/sendResetRequest" style="display:none" id="recoverForm" role="form" class="form-inline">
             <div class="form-group">
               <label class="recover_email_txt sr-only" for="recover_email">Your email address:</label>
               <input class="recover_email_input form-control" title="Enter your email" type="text" name="recover[email]" id="recover_email" placeholder="Enter your email">
             </div>
             <div class="form-group">
-              <button class="login_btn btn btn-primary">Send</button>
-              <a href="javascript:void(0)" class="forgotPassword " id="cancelRecoverPassword">cancel</a>
+              <button class="login_btn btn btn-primary form-control">Send</button>
+              <a href="javascript:void(0)" class="forgotPassword" id="cancelRecoverPassword">cancel</a>
             </div>
           </form>
       </div> <!-- /.login_container/-->
@@ -74,11 +75,11 @@
     <div class="container-fluid hidden-xs hidden-sm">
       <section class="row connectors">
           <div class="expand-control hidden-xs">
-            <a href="#" class="handle please-expand">
+            <span href="" class="handle please-expand">
               <span class="handle-bar"></span>
               <span class="handle-bar"></span>
               <span class="handle-bar"></span>
-            </a> 
+            </span> 
           </div>
 
         <div class="connector-img-cloud connector-img-cloud-lg col-xs-12 col-sm-12 col-md-12 col-lg-12">
