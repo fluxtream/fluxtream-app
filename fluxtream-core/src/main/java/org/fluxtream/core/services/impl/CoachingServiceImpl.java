@@ -124,7 +124,8 @@ public class CoachingServiceImpl implements CoachingService {
         final List<Guest> coaches = new ArrayList<Guest>();
         for (CoachingBuddy sharingBuddy : coachingBuddies) {
             final Guest buddyGuest = guestService.getGuestById(sharingBuddy.buddyId);
-            coaches.add(buddyGuest);
+            if (buddyGuest!=null)
+                coaches.add(buddyGuest);
         }
         return coaches;
     }
