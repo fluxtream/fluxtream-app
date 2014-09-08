@@ -57,6 +57,7 @@ public class AuthHelper {
             return;
         CoachingBuddy toRemove = null;
         for (CoachingBuddy buddy : buddies) {
+            if (buddy==null) continue;
             if (buddy.getId()==coachee.getId()) {
                 toRemove = buddy;
                 break;
