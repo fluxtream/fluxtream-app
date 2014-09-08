@@ -128,7 +128,7 @@
                         <div class="col-sm-offset-4 col-sm-2">
                             <button type="submit"
                                     onclick="if (typeof(ga)!='undefined') {ga('send', 'event', 'button', 'click', 'register', 1);}"
-                                    id="submitCreateAccountForm" class="btn btn-primary">Register</button>
+                                    id="submitCreateAccountForm" class="login_btn btn btn-primary">Register</button>
                         </div>
                         <div class="col-sm-6">
                             <div style="display:inline-block;height:37px;line-height:37px;vertical-align: top;margin-right: 15px;"></a>
