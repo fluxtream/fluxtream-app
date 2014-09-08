@@ -173,13 +173,13 @@ public class ConnectorStore {
                 final Connector api = connectorInfo.getApi();
                 if (api==null) {
                     StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getInstalledConnectors ");
-                    logger.warn("message=\"null connector for " + connectorInfo.getName() + "\"");
+                    sb.append("message=\"null connector for " + connectorInfo.getName() + "\"");
+                    logger.warn(sb);
                     continue;
                 }
                 if (!guestService.hasApiKey(guest.getId(), api)||api.getName().equals("facebook")/*HACK*/) {
                     connectors.remove(i--);
-                }
-                else {
+                } else {
                     ConnectorInfo connector = connectorInfo;
                     ConnectorModelFull connectorModel = new ConnectorModelFull();
                     Connector conn = Connector.fromValue(connector.api);
@@ -222,6 +222,28 @@ public class ConnectorStore {
                         connectorModel.uploadMessage = uploadMessage;
                     }
                     connectorsArray.add(connectorModel);
+                }
+            }
+            if (coacheeUsernameHeader!=null) {
+                List<ConnectorModelFull> unshared = new ArrayList<ConnectorModelFull>();
+                for (ConnectorInfo connector : connectors) {
+                    final List<ApiKey> apiKeys = guestService.getApiKeys(guest.getId(), Connector.fromValue(connector.api));
+                    for (ApiKey apiKey : apiKeys) {
+                        if (coachingService.getSharedConnector(apiKey.getId(), AuthHelper.getGuestId()) == null) {
+                            for (ConnectorModelFull connectorModelFull : connectorsArray) {
+                                if (connectorModelFull.apiKeyId == apiKey.getId()) {
+                                    unshared.add(connectorModelFull);
+                                }
+                            }
+                        }
+                    }
+                }
+                for (ConnectorModelFull toRemove : unshared) {
+                    for (int i=0; i<connectorsArray.size(); i++) {
+                        ConnectorModelFull fullModel = connectorsArray.get(i);
+                        if (fullModel.apiKeyId==toRemove.apiKeyId)
+                            connectorsArray.remove(fullModel);
+                    }
                 }
             }
             StringBuilder sb = new StringBuilder("module=API component=connectorStore action=getInstalledConnectors")
