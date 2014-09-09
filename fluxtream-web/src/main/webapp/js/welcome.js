@@ -131,6 +131,8 @@ $(document).ready(function() {
         $("#accessDeniedModal").modal();
     }
     if (typeof params["username"] != "undefined"){
+        console.log(params["username"]);
+        $("#f_username").val(params["username"]);
         $("#loginFailedModal").modal();
     }
     else if (typeof params["subscribed"] != "undefined"){

@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <%
     Boolean tracker = (Boolean)request.getAttribute("tracker");
-%>
-<html>
+%><html>
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -323,7 +322,7 @@
                 </div>
             </div>
             <div class="modal-footer" style="height:65px">
-                <a href="javascript:void(0)" class="btn login_btn btn-primary" data-dismiss="modal">Ok</a>
+                <a href="javascript:void(0)" onclick="$('#f_username').select();$('#f_username').focus();" class="btn login_btn btn-primary" data-dismiss="modal">Ok</a>
             </div>
         </div>
     </div>
