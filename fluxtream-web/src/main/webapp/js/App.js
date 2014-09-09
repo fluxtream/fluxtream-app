@@ -269,20 +269,23 @@ define(
 
         function defaultAppRoute(appName, uid) {
             console.log("app-default route: name=" + appName + ", uid=" + uid);
-            if (!_.isUndefined(uid))
-                App.setBuddyToAccess(uid);
             var app = App.apps[appName];
             renderDefault(app);
+            if (hasBuddyToAccessChanged(uid)) {
+                App.as(uid);
+            }
         }
 
         function appStateRoute (appName, state) {
             console.log(state);
             var urlSplits = state.split("/");
-            console.log(urlSplits[0]);
-            if (!isNaN(urlSplits[0])) {
-                App.setBuddyToAccess(urlSplits[0]);
-                state = state.substring(urlSplits[0].length+1);
+            var btaPathParam = urlSplits[0];
+            if (isNaN(btaPathParam)) {
+                window.location = window.location.origin + "/app/" + appName + "/" + App.buddyToAccess.id + "/" + state;
+                return;
             }
+            state = state.substring(btaPathParam.length+1);
+
             console.log("app route: name=" + appName + "state=" + state);
             var app = App.apps[appName];
             if (_.isUndefined(app)) {
@@ -302,6 +305,18 @@ define(
             }
             console.log(state);
             render(app, state);
+            if (hasBuddyToAccessChanged(btaPathParam)) {
+                App.as(btaPathParam);
+            }
+        }
+
+        function hasBuddyToAccessChanged(btaPathParam) {
+            var btaChanged = false;
+            if (isNaN(btaPathParam))
+                btaChanged = (btaPathParam !== App.buddyToAccess["username"]);
+            else
+                btaChanged = (Number(btaPathParam) !== App.buddyToAccess["id"]);
+            return btaChanged;
         }
 
         /**
@@ -458,16 +473,11 @@ define(
 
         App.as = function(usernameOrUID) {
             if (!_.isUndefined(usernameOrUID)) {
-                App.setBuddyToAccess(usernameOrUID);
                 fetchGuestInfo(function() {
                     App.activeApp.navigateState(App.state.getState(App.activeApp.name), {"as" : usernameOrUID});//force refresh of the current app state
                 }, usernameOrUID);
             }
         };
-
-        App.setBuddyToAccess = function(usernameOrUID) {
-            App.viewee = usernameOrUID;
-        }
 
         function fetchGuestInfo(andDoThisAfter, buddyToAccessParam) {
             var url = "/api/v1/guest?includeAvatar=true";
@@ -1140,7 +1150,7 @@ define(
                 setTimeout(checkForDataUpdates,updateCheckInterval);
             }
             var url = "/api/v1/dataUpdates/all";
-            if (App.buddyToAccess["isBuddy"]) url += "?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
+            if (App.buddyToAccess["isBuddy"]) url += "?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.buddyToAccess["id"];
             $.ajax(url, {
                 type: "GET",
                 dataType: "json",

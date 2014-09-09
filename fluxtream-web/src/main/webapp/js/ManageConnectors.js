@@ -15,7 +15,7 @@ define(["core/grapher/BTCore",
 
     function show(){
         var url = "/api/v1/connectors/installed";
-        if (App.buddyToAccess["isBuddy"]) url += "?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
+        if (App.buddyToAccess["isBuddy"]) url += "?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.buddyToAccess["id"];
         $.ajax(url, {
             success: function(data){
                 dataLoaded(data,false);
@@ -30,7 +30,7 @@ define(["core/grapher/BTCore",
     //after that it should in theory properly only update when a change happens in each cell
     function updateContents(){
         var url = "/api/v1/connectors/installed";
-        if (App.buddyToAccess["isBuddy"]) url += "?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
+        if (App.buddyToAccess["isBuddy"]) url += "?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.buddyToAccess["id"];
         $.ajax(url, {
             success: function(data){
                 if (hidden)
@@ -41,7 +41,7 @@ define(["core/grapher/BTCore",
                             if (data[i].manageable){
                                 var row = $("#connector-" + data[i].connectorName);
                                 var params = getConnectorParams(data[i]);
-                                params.isBuddy= !_.isUndefined(App.viewee)&& !_.isNull(App.viewee)&& App.viewee!="self";
+                                params.isBuddy= App.buddyToAccess["isBuddy"];
                                 var html = $(noImageTemplate.render(params));
                                 if (row.length == 0){
                                     $("#connectorInfoTable").append(imageTemplate.render(params));
@@ -118,7 +118,7 @@ define(["core/grapher/BTCore",
                 params[i] = getConnectorParams(data[i])
                 params[i].hasSettings = hasTimelineSettings||hasGeneralSettings;
             }
-            var html = template.render({connectors:params, buddyToAccess: App.buddyToAccess, isBuddy: !_.isUndefined(App.viewee)&& !_.isNull(App.viewee)&& App.viewee!="self"});
+            var html = template.render({connectors:params, buddyToAccess: App.buddyToAccess, isBuddy: App.buddyToAccess["isBuddy"]});
             if (update){
                 var scrollTop = $("#modal .modal-body").scrollTop();
                 $("#modal").html($(html).html());
@@ -162,7 +162,7 @@ define(["core/grapher/BTCore",
             setAllToSyncing();
             event.preventDefault();
             var url = "/api/v1/sync/all";
-            if (App.buddyToAccess["isBuddy"]) url += "?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
+            if (App.buddyToAccess["isBuddy"]) url += "?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.buddyToAccess["id"];
             $.ajax(url, {
                 type:"POST"
             });
@@ -191,7 +191,7 @@ define(["core/grapher/BTCore",
             event.preventDefault();
             setToSyncing(connector.connectorName)
             var url = "/api/v1/sync/" + connector.connectorName;
-            if (App.buddyToAccess["isBuddy"]) url+="?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
+            if (App.buddyToAccess["isBuddy"]) url+="?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.buddyToAccess["id"];
             $.ajax({
                 url : url,
                 type:"POST"
