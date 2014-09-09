@@ -225,13 +225,16 @@ public class ConnectorStore {
                 }
             }
             if (coacheeUsernameHeader!=null) {
+                // if we're looking at a buddy's connectors, let's show only those he shared with this user
                 List<ConnectorModelFull> unshared = new ArrayList<ConnectorModelFull>();
                 for (ConnectorInfo connector : connectors) {
                     final List<ApiKey> apiKeys = guestService.getApiKeys(guest.getId(), Connector.fromValue(connector.api));
                     for (ApiKey apiKey : apiKeys) {
                         if (coachingService.getSharedConnector(apiKey.getId(), AuthHelper.getGuestId()) == null) {
                             for (ConnectorModelFull connectorModelFull : connectorsArray) {
-                                if (connectorModelFull.apiKeyId == apiKey.getId()) {
+                                // WARNING: this is using the connector's name
+                                // (using the apiKeyId seems to be buggy in a weird way)
+                                if (connectorModelFull.connectorName.equals(apiKey.getConnector().getName())) {
                                     unshared.add(connectorModelFull);
                                 }
                             }
