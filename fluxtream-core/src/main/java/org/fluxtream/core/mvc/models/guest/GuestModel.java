@@ -22,18 +22,21 @@ public class GuestModel {
     public String roles;
     @ApiModelProperty(value="The guest's technical ID", required=true)
     public long id;
+    @ApiModelProperty(value="Is this one of the logged-in user's buddies?", required=true)
+    public boolean isBuddy;
     @ApiModelProperty(value="The guest's avatar", required=false)
     public AvatarImageModel avatar;
 
     public GuestModel() {}
 
-	public GuestModel(Guest guest) {
+	public GuestModel(Guest guest, boolean isBuddy) {
         this.fullname = guest.getGuestName();
 		this.username = guest.username;
 		this.firstname = guest.firstname;
 		this.lastname = guest.lastname;
         this.email = guest.email;
         this.roles = guest.getUserRoles().toString();
+        this.isBuddy = isBuddy;
         this.id=guest.getId();
     }
 	

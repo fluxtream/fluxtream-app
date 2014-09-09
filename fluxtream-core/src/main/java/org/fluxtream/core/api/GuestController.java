@@ -65,7 +65,7 @@ public class GuestController {
             Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
             if (guest==null)
                 return Response.status(401).entity("You are no longer logged in").build();
-            GuestModel guestModel = new GuestModel(guest);
+            GuestModel guestModel = new GuestModel(guest, coachee!=null);
             if (includeAvatar)
                 guestModel.avatar = getAvatarImageModel(buddyToAccessParameter, guest);
             return Response.ok(guestModel).build();
@@ -157,7 +157,7 @@ public class GuestController {
         final List<Guest> coachees = coachingService.getCoachees(guest.getId());
         final List<GuestModel> coacheeModels = new ArrayList<GuestModel>();
         for (Guest coachee : coachees)
-            coacheeModels.add(new GuestModel(coachee));
+            coacheeModels.add(new GuestModel(coachee, true));
         return coacheeModels;
     }
 

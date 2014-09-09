@@ -15,7 +15,7 @@ define(["core/grapher/BTCore",
 
     function show(){
         var url = "/api/v1/connectors/installed";
-        if (!_.isUndefined(App.viewee)) url += "?"+App.COACHEE_BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
+        if (App.buddyToAccess["isBuddy"]) url += "?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
         $.ajax(url, {
             success: function(data){
                 dataLoaded(data,false);
@@ -30,7 +30,7 @@ define(["core/grapher/BTCore",
     //after that it should in theory properly only update when a change happens in each cell
     function updateContents(){
         var url = "/api/v1/connectors/installed";
-        if (!_.isUndefined(App.viewee)) url += "?"+App.COACHEE_BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
+        if (App.buddyToAccess["isBuddy"]) url += "?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
         $.ajax(url, {
             success: function(data){
                 if (hidden)
@@ -162,7 +162,7 @@ define(["core/grapher/BTCore",
             setAllToSyncing();
             event.preventDefault();
             var url = "/api/v1/sync/all";
-            if (!_.isUndefined(App.viewee)) url += "?"+App.COACHEE_BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
+            if (App.buddyToAccess["isBuddy"]) url += "?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
             $.ajax(url, {
                 type:"POST"
             });
@@ -191,7 +191,7 @@ define(["core/grapher/BTCore",
             event.preventDefault();
             setToSyncing(connector.connectorName)
             var url = "/api/v1/sync/" + connector.connectorName;
-            if (!_.isUndefined(App.viewee)) url+="?"+App.COACHEE_BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
+            if (App.buddyToAccess["isBuddy"]) url+="?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
             $.ajax({
                 url : url,
                 type:"POST"

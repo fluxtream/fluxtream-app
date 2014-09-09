@@ -275,7 +275,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         if (lastFetch != null)
             lastFetch.abort();
         var url = "/api/v1/calendar/all/" + state.tabState;
-        if (!_.isUndefined(App.viewee)) url += "?"+App.COACHEE_BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
+        if (App.buddyToAccess["isBuddy"]) url += "?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
         lastFetch = $.ajax({
             url: url,
 			success : function(response) {

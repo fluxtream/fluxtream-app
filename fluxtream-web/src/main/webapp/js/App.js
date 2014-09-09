@@ -217,8 +217,7 @@ define(
                     renderAppTemplate(apps[i], arguments[i]);
                     apps[i].setup();
                 }
-                setupURLRouting();
-                fetchGuestInfo();
+                fetchGuestInfo(setupURLRouting);
             });
         }
 
@@ -259,35 +258,50 @@ define(
                     app = App.apps[appName];
                 renderDefault(app);
             });
-            FlxState.router.route("app/:name", "app-default", function(appName) {
-                console.log("app-default route: name=" + appName);
-                var app = App.apps[appName];
-                renderDefault(app);
-            });
-            FlxState.router.route("app/:name/*state", "app", function(appName, state) {
-                console.log("app route: name=" + appName + ", state=" + state);
-                var app = App.apps[appName];
-                if (_.isUndefined(app)) {
-                    console.log("invalid app: " + appName);
-                    App.invalidPath();
-                }
-                // strip trailing slash from state, if any
-                if (state.endsWith("/")) {
-                    state = state.slice(0, -1);
-                }
-                FlxState.saveState(appName, state);
-                state = app.parseState(state);
-                if (state === null) {
-                    console.log("invalid state: " + state);
-                    App.invalidPath();
-                    return;
-                }
-                render(app, state);
-            });
+            FlxState.router.route("app/:name", "app-default", defaultAppRoute);
+            FlxState.router.route("app/:name/:uid", "app-default", defaultAppRoute);
+            FlxState.router.route("app/:name/*state", "app", appStateRoute);
 
             if (!Backbone.history.start({pushState : window.history && window.history.pushState})) {
                 console.log("error loading routes!");
             }
+        }
+
+        function defaultAppRoute(appName, uid) {
+            console.log("app-default route: name=" + appName + ", uid=" + uid);
+            if (!_.isUndefined(uid))
+                App.setBuddyToAccess(uid);
+            var app = App.apps[appName];
+            renderDefault(app);
+        }
+
+        function appStateRoute (appName, state) {
+            console.log(state);
+            var urlSplits = state.split("/");
+            console.log(urlSplits[0]);
+            if (!isNaN(urlSplits[0])) {
+                App.setBuddyToAccess(urlSplits[0]);
+                state = state.substring(urlSplits[0].length+1);
+            }
+            console.log("app route: name=" + appName + "state=" + state);
+            var app = App.apps[appName];
+            if (_.isUndefined(app)) {
+                console.log("invalid app: " + appName);
+                App.invalidPath();
+            }
+            // strip trailing slash from state, if any
+            if (state.endsWith("/")) {
+                state = state.slice(0, -1);
+            }
+            FlxState.saveState(appName, state);
+            state = app.parseState(state);
+            if (state === null) {
+                console.log("invalid state: " + state);
+                App.invalidPath();
+                return;
+            }
+            console.log(state);
+            render(app, state);
         }
 
         /**
@@ -442,16 +456,22 @@ define(
             }
         };
 
-        App.as = function(username) {
-            if (!_.isUndefined(username)) {
-                App.viewee = username;
-                fetchGuestInfo();
+        App.as = function(usernameOrUID) {
+            if (!_.isUndefined(usernameOrUID)) {
+                App.setBuddyToAccess(usernameOrUID);
+                fetchGuestInfo(function() {
+                    App.activeApp.navigateState(App.state.getState(App.activeApp.name), {"as" : usernameOrUID});//force refresh of the current app state
+                }, usernameOrUID);
             }
         };
 
-        function fetchGuestInfo() {
+        App.setBuddyToAccess = function(usernameOrUID) {
+            App.viewee = usernameOrUID;
+        }
+
+        function fetchGuestInfo(andDoThisAfter, buddyToAccessParam) {
             var url = "/api/v1/guest?includeAvatar=true";
-            if (!_.isUndefined(App.viewee))url+="&"+App.COACHEE_BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
+            if (buddyToAccessParam)url+="&"+App.BUDDY_TO_ACCESS_PARAM+"="+buddyToAccessParam;
             $.ajax({
                 url: url,
                 success: function(guestInfo) {
@@ -459,7 +479,7 @@ define(
                     var loggedInUser = $("#loggedInUser");
                     loggedInUser.attr("self", guestInfo["fullname"]);
                     loggedInUser.html(guestInfo["fullname"] + "<span id=\"profileIcon\">&nbsp;</span> <b id=\"profileIconCaret\" class=\"caret\"></b>");
-                    if (App.viewee!=null&&App.viewee!="self") {
+                    if (App.buddyToAccess["isBuddy"]) {
                         loggedInUser.css("text-shadow", "0 0 10px white");
                         loggedInUser.css("color", "#FFFEFD");
                         $("#addConnectorLink").addClass("disabled-link").unbind().click(function(evt){evt.preventDefault()});
@@ -481,6 +501,8 @@ define(
                             $("#profileIcon").replaceWith("<i class=\"icon-user icon-large\"></i>");
                         }
                     }
+                    if (!_.isUndefined(andDoThisAfter))
+                        andDoThisAfter();
                     App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
                     checkForDataUpdates();
                 },
@@ -1118,7 +1140,7 @@ define(
                 setTimeout(checkForDataUpdates,updateCheckInterval);
             }
             var url = "/api/v1/dataUpdates/all";
-            if (!_.isUndefined(App.viewee)) url += "?"+App.COACHEE_BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
+            if (App.buddyToAccess["isBuddy"]) url += "?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
             $.ajax(url, {
                 type: "GET",
                 dataType: "json",
@@ -1132,7 +1154,6 @@ define(
                 },
                 error: function(){
                     afterDone();
-
                 }
 
             });
@@ -1145,7 +1166,8 @@ define(
         App.invalidPath = invalidPath;
         App.geocoder = new google.maps.Geocoder();
         App.sharingDialog = SharingDialog;
-        App.COACHEE_BUDDY_TO_ACCESS_PARAM = "buddyToAccess";
+        App.BUDDY_TO_ACCESS_PARAM = "buddyToAccess";
+        App.buddyToAccess = {isBuddy : false};
         window.App = App;
         return App;
 

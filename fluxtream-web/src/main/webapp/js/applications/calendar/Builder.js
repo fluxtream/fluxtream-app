@@ -133,7 +133,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
 
     function bindConnectorButtons(App, Calendar) {
         var url = "/api/v1/connectors/installed";
-        if (!_.isUndefined(App.viewee)) url += "?"+App.COACHEE_BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
+        if (App.buddyToAccess["isBuddy"]) url += "?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.viewee;
         $.ajax({
             url: url,
             async: false,

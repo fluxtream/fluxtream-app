@@ -59,7 +59,7 @@ public class LegacyGuestController {
             long guestId = AuthHelper.getGuestId();
 
             Guest guest = guestService.getGuestById(guestId);
-            GuestModel guestModel = new GuestModel(guest);
+            GuestModel guestModel = new GuestModel(guest, false);
 
             return guestModel;
         }
@@ -144,7 +144,7 @@ public class LegacyGuestController {
         final List<Guest> coachees = coachingService.getCoachees(guest.getId());
         final List<GuestModel> coacheeModels = new ArrayList<GuestModel>();
         for (Guest coachee : coachees)
-            coacheeModels.add(new GuestModel(coachee));
+            coacheeModels.add(new GuestModel(coachee, true));
         return coacheeModels;
     }
 
