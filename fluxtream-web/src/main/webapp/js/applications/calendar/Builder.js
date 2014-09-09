@@ -104,7 +104,6 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
     function createConnectorButton(App, Calendar, connector) {
         //var configFilterLabel = App.getConnectorConfig(connector.connectorName).filterLabel,
         //    filterLabel = configFilterLabel || connector.name;
-        console.log("creating connector button");
         var button = $('<li/>');
         $('<a/>', {
             href: "#",
@@ -343,7 +342,6 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
             for (var i = 0; i < digest.selectedConnectors.length; i++) {
                 var connector_btn_id = "flx-connector-btn-" + digest.selectedConnectors[i].connectorName;
                 if (connector_btn_id===existing_btn_id) {
-                    console.log("keeping " + connector_btn_id);
                     btn_to_remove = false;
                     break;
                 }
