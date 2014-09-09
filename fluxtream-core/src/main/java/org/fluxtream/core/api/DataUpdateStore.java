@@ -46,10 +46,10 @@ public class DataUpdateStore {
     @Path("/all")
     @Produces({MediaType.APPLICATION_JSON})
     public Response getDataUpdates(@QueryParam("since") String since,
-                                   @ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String coacheeUsernameHeader){
+                                   @ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter){
         try{
             CoachingBuddy coachee;
-            try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
+            try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, coachingService);
             } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
             Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
             if (guest==null)

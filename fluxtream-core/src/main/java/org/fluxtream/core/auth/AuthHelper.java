@@ -82,11 +82,11 @@ public class AuthHelper {
         }
     }
 
-    public static CoachingBuddy getCoachee(String coacheeUsernameHeader, CoachingService coachingService) throws CoachRevokedException {
-        if (coacheeUsernameHeader!=null&&coacheeUsernameHeader.equals("self"))
+    public static CoachingBuddy getCoachee(String buddyToAccessParameter, CoachingService coachingService) throws CoachRevokedException {
+        if (buddyToAccessParameter!=null&&buddyToAccessParameter.equals("self"))
             as(null);
-        if (coacheeUsernameHeader !=null&&!coacheeUsernameHeader.equals("self")) {
-            final CoachingBuddy coachee = coachingService.getCoachee(getGuestId(), coacheeUsernameHeader);
+        if (buddyToAccessParameter !=null&&!buddyToAccessParameter.equals("self")) {
+            final CoachingBuddy coachee = coachingService.getCoachee(getGuestId(), buddyToAccessParameter);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             final FlxUserDetails principal = (FlxUserDetails) auth.getPrincipal();
             if (coachee!=null) {
