@@ -359,7 +359,7 @@ public class BodyTrackHelper {
             if (coachee!=null) {
                 List<String> sourcesToRemove = new ArrayList<String>();
                 for (Source source : response.sources) {
-                    final Connector photoConnectorForSource = getPhotoConnectorForSource(source);
+                    final Connector photoConnectorForSource = Connector.fromDeviceNickname(source.name);
                     if (photoConnectorForSource!=null) {
                         final List<ApiKey> apiKeys = guestService.getApiKeys(coachee.guestId, photoConnectorForSource);
                         for (ApiKey apiKey : apiKeys) {
@@ -464,17 +464,6 @@ public class BodyTrackHelper {
 
             return gson.toJson(new SourcesResponse(null, guestId, coachee));
         }
-    }
-
-    // TODO: we need to get the Connector associated with a source in order
-    // to know if the buddy-to-access has shared it with the logged in user...
-    // I (Candide) don't know how to find that out, so this is a ugly temporary hack!
-    private Connector getPhotoConnectorForSource(Source source) {
-        if (source.name.equalsIgnoreCase("Jawbone_UP")) return Connector.getConnector("up");
-        else if (source.name.equalsIgnoreCase("FluxtreamCapture")) return Connector.getConnector("fluxtream_capture");
-        else if (source.name.equalsIgnoreCase("Evernote")) return Connector.getConnector("evernote");
-        else if (source.name.equalsIgnoreCase("Flickr")) return Connector.getConnector("flickr");
-        return null;
     }
 
     public SourceInfo getSourceInfoObject(final Long guestId, final String deviceName){
