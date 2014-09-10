@@ -1,9 +1,5 @@
 package org.fluxtream.core.connectors.annotations;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import org.fluxtream.core.connectors.Connector.UpdateStrategyType;
 import org.fluxtream.core.connectors.DefaultSharedConnectorFilter;
 import org.fluxtream.core.connectors.SharedConnectorFilter;
@@ -13,9 +9,16 @@ import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.AbstractUserProfile;
 import org.fluxtream.core.facets.extractors.AbstractFacetExtractor;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Updater {
+
+    public static final String DEVICE_NICKNAME_NONE = "none";
 
     // dummy empty class meant to let settings have a default
     static class EmptySettings {}
@@ -43,5 +46,7 @@ public @interface Updater {
     public int[] deleteOrder() default {-1};
 
     public Class<? extends SharedConnectorFilter> sharedConnectorFilter() default DefaultSharedConnectorFilter.class;
+
+    public String deviceNickname() default DEVICE_NICKNAME_NONE;
 
 }

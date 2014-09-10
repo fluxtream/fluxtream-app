@@ -1,15 +1,5 @@
 package org.fluxtream.connectors.up;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.TreeSet;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
@@ -48,6 +38,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.*;
+
 /**
  * User: candide
  * Date: 26/01/14
@@ -58,6 +54,7 @@ import org.springframework.stereotype.Component;
                                                                  JawboneUpSleepFacet.class, JawboneUpMealFacet.class,
                                                                  JawboneUpServingFacet.class, JawboneUpWorkoutFacet.class},
          defaultChannels = {"Jawbone_UP.intensity", "Jawbone_UP.sleep"},
+         deviceNickname = "Jawbone_UP",
          deleteOrder= {1, 2, 4, 8, 32, 16}, bodytrackResponder = JawboneUpBodytrackResponder.class)
 public class JawboneUpUpdater extends AbstractUpdater {
 
