@@ -21,7 +21,6 @@
 	<http pattern="/${release}/images/**" security="none" />
     <http pattern="/images/**" security="none" />
     <http pattern="/welcome*" security="none" />
-    <http pattern="/" security="none" />
     <http pattern="/accessDenied*" security="none" />
 	<http pattern="/notSupported" security="none" />
 	<http pattern="/favicon.ico" security="none" />
@@ -75,6 +74,7 @@
     <http entry-point-ref="daep"
 		use-expressions="true" create-session="ifRequired">
         <http-basic/>
+        <intercept-url pattern="/*" access="permitAll" />
         <intercept-url pattern="/dev/**" access="permitAll" />
 		<intercept-url pattern="/**" access="hasRole('ROLE_USER')" />
 

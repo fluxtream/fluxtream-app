@@ -22,6 +22,13 @@ public class AuthHelper {
 		return guestId;
 	}
 
+    public static boolean isFullyAuthenticated() {
+        Authentication auth = SecurityContextHolder.getContext()
+                .getAuthentication();
+        return (auth != null && auth.isAuthenticated()
+                && auth.getPrincipal() instanceof FlxUserDetails);
+    }
+
     public static boolean isViewingGranted(String connectorName, CoachingService coachingService) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         final FlxUserDetails principal = (FlxUserDetails) auth.getPrincipal();
