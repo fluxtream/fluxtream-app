@@ -15,6 +15,7 @@ define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher
             return;
         if (lastGuestId!=null&&App.buddyToAccess.id!==lastGuestId) {
             $("._timeline_sources_list").empty();
+            $("._timeline_channel").remove();
             grapher.reload();
         }
         lastGuestId = App.buddyToAccess.id;
