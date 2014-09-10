@@ -74,7 +74,7 @@
     <http entry-point-ref="daep"
 		use-expressions="true" create-session="ifRequired">
         <http-basic/>
-        <intercept-url pattern="/*" access="permitAll" />
+        <intercept-url pattern="/" access="permitAll" />
         <intercept-url pattern="/dev/**" access="permitAll" />
 		<intercept-url pattern="/**" access="hasRole('ROLE_USER')" />
 
