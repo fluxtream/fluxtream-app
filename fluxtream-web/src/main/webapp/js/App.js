@@ -258,8 +258,6 @@ define(
                     app = App.apps[appName];
                 renderDefault(app);
             });
-            FlxState.router.route("app/:name", "app-default", defaultAppRoute);
-            FlxState.router.route("app/:name/:uid", "app-default", defaultAppRoute);
             FlxState.router.route("app/:name/*state", "app", appStateRoute);
 
             if (!Backbone.history.start({pushState : window.history && window.history.pushState})) {
@@ -286,7 +284,7 @@ define(
             }
             state = state.substring(btaPathParam.length+1);
 
-            console.log("app route: name=" + appName + "state=" + state);
+            console.log("app route: name=" + appName + ", state=" + state);
             var app = App.apps[appName];
             if (_.isUndefined(app)) {
                 console.log("invalid app: " + appName);
@@ -299,12 +297,11 @@ define(
             FlxState.saveState(appName, state);
             state = app.parseState(state);
             if (state === null) {
-                console.log("invalid state: " + state);
-                App.invalidPath();
-                return;
+                renderDefault(app);
+            } else {
+                console.log(state);
+                render(app, state);
             }
-            console.log(state);
-            render(app, state);
             if (hasBuddyToAccessChanged(btaPathParam)) {
                 App.as(btaPathParam);
             }
