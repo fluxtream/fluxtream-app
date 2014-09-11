@@ -56,7 +56,7 @@ public class SyncController {
     @POST
     @Path("/{connector}")
     @ApiOperation(value = "Update a connector belonging to either the logged in user or the buddy-to-access specified in the "
-            + CoachingService.BUDDY_TO_ACCESS_HEADER + " header",
+            + CoachingService.BUDDY_TO_ACCESS_PARAM + " parameter",
             response = ScheduleResult.class, responseContainer = "Array")
     @ApiResponses({
             @ApiResponse(code=401, message="The user is no longer logged in"),
@@ -64,14 +64,14 @@ public class SyncController {
     })
     @Produces({MediaType.APPLICATION_JSON})
     public Response updateConnector(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName,
-                                    @ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader){
-        return sync(connectorName, coacheeUsernameHeader, true);
+                                    @ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter){
+        return sync(connectorName, buddyToAccessParameter, true);
     }
 
-    private Response sync(final String connectorName, final String coacheeUsernameHeader, final boolean force) {
+    private Response sync(final String connectorName, final String buddyToAccessParameter, final boolean force) {
         try{
             CoachingBuddy coachee;
-            try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
+            try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, coachingService);
             } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
             Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
             final long guestId = guest.getId();
@@ -91,7 +91,7 @@ public class SyncController {
     @POST
     @Path("/{connector}/{objectTypes}")
     @ApiOperation(value = "Update a connector's object types belonging to eigher the logged in user or the buddy-to-access specified in the "
-            + CoachingService.BUDDY_TO_ACCESS_HEADER + " header",
+            + CoachingService.BUDDY_TO_ACCESS_PARAM + " parameter",
             response = ScheduleResult.class, responseContainer = "Array")
     @ApiResponses({
             @ApiResponse(code=401, message="The user is no longer logged in"),
@@ -100,15 +100,15 @@ public class SyncController {
     @Produces({MediaType.APPLICATION_JSON})
     public Response updateConnectorObjectType(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName,
                                               @ApiParam(value="Bit mask of object types that have to be updated", required=true) @PathParam("objectTypes") int objectTypes,
-                                              @ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader){
-        return syncConnectorObjectType(connectorName, coacheeUsernameHeader, objectTypes, false);
+                                              @ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter){
+        return syncConnectorObjectType(connectorName, buddyToAccessParameter, objectTypes, false);
     }
 
-    private Response syncConnectorObjectType(final String connectorName, final String coacheeUsernameHeader,
+    private Response syncConnectorObjectType(final String connectorName, final String buddyToAccessParameter,
                                              final int objectTypes, final boolean force) {
         try {
             CoachingBuddy coachee;
-            try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
+            try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, coachingService);
             } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
             Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
             final long guestId = guest.getId();
@@ -131,9 +131,9 @@ public class SyncController {
             @ApiResponse(code=403, message="Buddy-to-access authorization has been revoked")
     })
     @Produces({MediaType.APPLICATION_JSON})
-    public Response updateAllConnectors(@ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader){
+    public Response updateAllConnectors(@ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter){
         CoachingBuddy coachee;
-        try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
+        try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, coachingService);
         } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
         Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
         final long guestId = guest.getId();

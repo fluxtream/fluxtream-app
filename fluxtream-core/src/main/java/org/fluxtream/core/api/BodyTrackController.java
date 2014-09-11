@@ -557,10 +557,26 @@ public class BodyTrackController {
             if (!accessAllowed&&coachee==null){
                 uid = null;
             }
+            if (coachee!=null) {
+                ApiKey apiKey = getApiKeyFromDeviceNickname(deviceNickname, coachee.guestId);
+                if (apiKey==null)
+                    return Response.status(Response.Status.BAD_REQUEST).entity("Couldn't find connector with device nickname=" + deviceNickname).build();
+                else if (coachingService.getSharedConnector(apiKey.getId(), AuthHelper.getGuestId())==null)
+                    return Response.status(Response.Status.UNAUTHORIZED).entity("Access denied to device " + deviceNickname).build();
+            }
             return Response.ok(bodyTrackHelper.fetchTile(uid, deviceNickname, channelName, level, offset)).build();
-        } catch (Exception e){
+        } catch (Exception e) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
         }
+    }
+
+    private ApiKey getApiKeyFromDeviceNickname(String deviceNickname, long guestId) {
+        final List<ApiKey> apiKeys = guestService.getApiKeys(guestId, Connector.fromDeviceNickname(deviceNickname));
+        // bodytrack doesn't have the ability to handle multiple instances of the same connector yet, so returning
+        // the first matching ApiKey
+        if (apiKeys.size()>0)
+            return apiKeys.get(0);
+        return null;
     }
 
     @GET
@@ -723,14 +739,10 @@ public class BodyTrackController {
             List<ApiKey> keys = guestService.getApiKeys(uid);
             ApiKey api = null;
 
-            for (ApiKey key : keys){
-                Connector connector = key.getConnector();
-                if (connector.getName().equals(connectorName)||
-                    connector.getPrettyName().equals(connectorName)){
-                    api = key;
-                    break;
-                }
-            }
+            api = getApiKeyFromConnectorName(connectorName, keys, api);
+
+            if (coachee!=null && coachingService.getSharedConnector(api.getId(), AuthHelper.getGuestId())==null)
+                return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied to connector " + connectorName).build();
 
             if (api == null) {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Invalid Channel (null)").build();
@@ -751,6 +763,18 @@ public class BodyTrackController {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
         }
 
+    }
+
+    private ApiKey  getApiKeyFromConnectorName(String connectorName, List<ApiKey> keys, ApiKey api) {
+        for (ApiKey key : keys){
+            Connector connector = key.getConnector();
+            if (connector.getName().equals(connectorName)||
+                connector.getPrettyName().equals(connectorName)){
+                api = key;
+                break;
+            }
+        }
+        return api;
     }
 
     private class TimespanTileResponse{

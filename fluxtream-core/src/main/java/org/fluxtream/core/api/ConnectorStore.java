@@ -156,9 +156,9 @@ public class ConnectorStore {
             @ApiResponse(code = 401, message = "You are no longer logged in"),
             @ApiResponse(code = 403, message = "Buddy-to-access authorization has been revoked")
     })
-    public Response getInstalledConnectors(@ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader){
+    public Response getInstalledConnectors(@ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter){
         CoachingBuddy coachee;
-        try { coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
+        try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, coachingService);
         } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
         Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
         if (guest==null)
@@ -224,14 +224,17 @@ public class ConnectorStore {
                     connectorsArray.add(connectorModel);
                 }
             }
-            if (coacheeUsernameHeader!=null) {
+            if (buddyToAccessParameter!=null) {
+                // if we're looking at a buddy's connectors, let's show only those he shared with this user
                 List<ConnectorModelFull> unshared = new ArrayList<ConnectorModelFull>();
                 for (ConnectorInfo connector : connectors) {
                     final List<ApiKey> apiKeys = guestService.getApiKeys(guest.getId(), Connector.fromValue(connector.api));
                     for (ApiKey apiKey : apiKeys) {
                         if (coachingService.getSharedConnector(apiKey.getId(), AuthHelper.getGuestId()) == null) {
                             for (ConnectorModelFull connectorModelFull : connectorsArray) {
-                                if (connectorModelFull.apiKeyId == apiKey.getId()) {
+                                // WARNING: this is using the connector's name
+                                // (using the apiKeyId seems to be buggy in a weird way)
+                                if (connectorModelFull.connectorName.equals(apiKey.getConnector().getName())) {
                                     unshared.add(connectorModelFull);
                                 }
                             }
@@ -484,14 +487,14 @@ public class ConnectorStore {
                             @QueryParam("start") long start,
                             @QueryParam("end") long end,
                             @QueryParam("value") String value,
-                            @ApiParam(value="Buddy to access username Header (" + CoachingService.BUDDY_TO_ACCESS_HEADER + ")", required=false) @HeaderParam(CoachingService.BUDDY_TO_ACCESS_HEADER) String coacheeUsernameHeader){
+                            @ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter){
         Guest guest = AuthHelper.getGuest();
         if(guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
 
         CoachingBuddy coachee;
         try {
-            coachee = AuthHelper.getCoachee(coacheeUsernameHeader, coachingService);
+            coachee = AuthHelper.getCoachee(buddyToAccessParameter, coachingService);
         } catch (CoachRevokedException e) {
             return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();
         }

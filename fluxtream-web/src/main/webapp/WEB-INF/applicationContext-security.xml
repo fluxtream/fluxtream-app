@@ -13,7 +13,7 @@
 	<http pattern="/${release}/js/**" security="none" />
     <http pattern="/${release}/videos/**" security="none" />
     <http pattern="/${release}/html/**" security="none" />
-	<http pattern="/${release}/css/**" security="none" />
+	<http pattern="/*/css/**" security="none" />
     <http pattern="/${release}/fonts/**" security="none" />
     <http pattern="/${release}/assets-home/**" security="none" />
     <http pattern="/static/**" security="none" />
@@ -74,7 +74,7 @@
     <http entry-point-ref="daep"
 		use-expressions="true" create-session="ifRequired">
         <http-basic/>
-        <intercept-url pattern="/*" access="permitAll" />
+        <intercept-url pattern="/" access="permitAll" />
         <intercept-url pattern="/dev/**" access="permitAll" />
 		<intercept-url pattern="/**" access="hasRole('ROLE_USER')" />
 

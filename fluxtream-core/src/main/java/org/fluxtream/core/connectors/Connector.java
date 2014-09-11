@@ -1,12 +1,7 @@
 package org.fluxtream.core.connectors;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.velocity.util.StringUtils;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 import org.fluxtream.core.connectors.annotations.Updater;
@@ -15,13 +10,14 @@ import org.fluxtream.core.connectors.updaters.AbstractUpdater;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.AbstractUserProfile;
 import org.fluxtream.core.facets.extractors.AbstractFacetExtractor;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.velocity.util.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Connector {
 
@@ -32,6 +28,7 @@ public class Connector {
     private static Map<String, Connector> connectors = new ConcurrentHashMap<String, Connector>();
     private static Map<Integer, Connector> connectorsByValue = new ConcurrentHashMap<Integer, Connector>();
     private static Map<String, Connector> connectorsByPrettyName = new ConcurrentHashMap<String, Connector>();
+    private static Map<String, Connector> connectorsByDeviceNickname = new ConcurrentHashMap<String, Connector>();
 
     private Class<? extends AbstractFacetExtractor> extractorClass;
     private Map<Integer, Class<? extends AbstractFacetExtractor>> objectTypeExtractorClasses;
@@ -46,10 +43,12 @@ public class Connector {
     private String[] defaultChannels;
     private Class<? extends AbstractUpdater> updaterClass;
     private Class<? extends AbstractBodytrackResponder> bodytrackResponder;
+    private String deviceNickname;
 
     static {
         Connector flxConnector = new Connector();
         flxConnector.name = "fluxtream";
+        flxConnector.deviceNickname = "FluxtreamCapture";
         connectors.put(flxConnector.name, flxConnector);
         connectorsByValue.put(0xCAFEBABE, flxConnector);
         // NOTE! This connector has no pretty name, and ConcurrentHashMaps don't allow keys or values to be null, so
@@ -134,6 +133,9 @@ public class Connector {
                 .getAnnotation(Updater.class);
         // set connectors' pretty name
         connector.prettyName = updaterAnnotation.prettyName();
+        connector.deviceNickname = updaterAnnotation.deviceNickname().equals(Updater.DEVICE_NICKNAME_NONE)
+                                 ? updaterAnnotation.prettyName()==null ? connectorName : updaterAnnotation.prettyName()
+                                 : updaterAnnotation.deviceNickname();
         connector.value = updaterAnnotation.value();
         connector.updateStrategyType = updaterAnnotation
                 .updateStrategyType();
@@ -165,10 +167,10 @@ public class Connector {
 
         connectors.put(connectorName, connector);
         connectorsByValue.put(connector.value(), connector);
+        connectorsByDeviceNickname.put(connector.deviceNickname, connector);
         if (connector.prettyName != null) {
-            connectorsByPrettyName.put(connector.prettyName, connector);
+            connectorsByPrettyName.put(connector.prettyName.toLowerCase(), connector);
         }
-
         connector.bodytrackResponder = updaterAnnotation.bodytrackResponder();
 
     }
@@ -364,6 +366,10 @@ public class Connector {
         return prettyName();
     }
 
+    public String getDeviceNickname() {
+        return deviceNickname;
+    }
+
     public String prettyName() {
         return prettyName;
     }
@@ -396,6 +402,10 @@ public class Connector {
 
     public static Connector fromValue(int api) {
         return connectorsByValue.get(api);
+    }
+
+    public static Connector fromDeviceNickname(String deviceNickname) {
+        return connectorsByDeviceNickname.get(deviceNickname.toLowerCase());
     }
 
     /**

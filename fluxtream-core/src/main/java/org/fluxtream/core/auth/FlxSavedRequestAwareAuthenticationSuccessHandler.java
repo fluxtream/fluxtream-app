@@ -52,13 +52,11 @@ public class FlxSavedRequestAwareAuthenticationSuccessHandler extends SimpleUrlA
             getRedirectStrategy().sendRedirect(request, response, requestRedirect);
         }
 
-        if (savedRequest == null) {
-            super.onAuthenticationSuccess(request, response, authentication);
-            return;
-        } else {
+        if (savedRequest != null) {
             // if saved request was an ajax call, ignore it
             if (savedRequest.getRedirectUrl().indexOf("/api/")!=-1) {
-                super.onAuthenticationSuccess(request, response, authentication);
+                requestCache.removeRequest(request, response);
+                getRedirectStrategy().sendRedirect(request, response, getDefaultTargetUrl());
                 return;
             }
         }

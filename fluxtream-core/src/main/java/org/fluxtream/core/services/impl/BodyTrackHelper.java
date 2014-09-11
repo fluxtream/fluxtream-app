@@ -1,52 +1,28 @@
 package org.fluxtream.core.services.impl;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
+import com.google.gson.*;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.aspects.FlxLogger;
+import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.bodytrackResponders.AbstractBodytrackResponder;
-import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.ChannelMapping;
-import org.fluxtream.core.domain.CoachingBuddy;
-import org.fluxtream.core.domain.GrapherView;
-import org.fluxtream.core.domain.Tag;
-import org.fluxtream.core.services.ApiDataService;
-import org.fluxtream.core.services.DataUpdateService;
-import org.fluxtream.core.services.GuestService;
-import org.fluxtream.core.services.PhotoService;
+import org.fluxtream.core.domain.*;
+import org.fluxtream.core.services.*;
 import org.fluxtream.core.utils.JPAUtils;
 import org.fluxtream.core.utils.Utils;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import java.io.*;
+import java.lang.reflect.Type;
+import java.util.*;
 
 //import java.nio.file.Path;
 //import java.nio.file.Paths;
@@ -93,6 +69,9 @@ public class BodyTrackHelper {
 
     @Autowired
     ApiDataService apiDataService;
+
+    @Autowired
+    CoachingService coachingService;
 
     @Autowired
     BeanFactory beanFactory;
@@ -376,6 +355,30 @@ public class BodyTrackHelper {
             // create the respone
             response = new SourcesResponse(infoResponse, guestId, coachee);
 
+            // filter out photo connectors that aren't shared with this user
+            if (coachee!=null) {
+                List<String> sourcesToRemove = new ArrayList<String>();
+                for (Source source : response.sources) {
+                    final Connector photoConnectorForSource = Connector.fromDeviceNickname(source.name);
+                    if (photoConnectorForSource!=null) {
+                        final List<ApiKey> apiKeys = guestService.getApiKeys(coachee.guestId, photoConnectorForSource);
+                        for (ApiKey apiKey : apiKeys) {
+                            if (coachingService.getSharedConnector(apiKey.getId(), AuthHelper.getGuestId())==null) {
+                                sourcesToRemove.add(source.name);
+                                break;
+                            }
+                        }
+                    } else {
+                        // let's be conservative: if we don't know this connector, let's assume
+                        // it wasn't shared
+                        sourcesToRemove.add(source.name);
+                    }
+                }
+                for (String sourceName : sourcesToRemove) {
+                    response.deleteSource(sourceName);
+                }
+            }
+
             //TODO: this is a hack to prevent double flickr photo channel showing up
             response.deleteSource("Flickr");
             response.deleteSource("SMS_Backup");
@@ -387,6 +390,9 @@ public class BodyTrackHelper {
                 // doesn't yet support a connector that is supported on another branch and resulted
                 // in data being populated in the database which is going to cause a crash here
                 if (api.getConnector()==null)
+                    continue;
+                // filter out not shared connectors
+                if (coachee!=null&&coachingService.getSharedConnector(api.getId(), AuthHelper.getGuestId())==null)
                     continue;
                 Source source = response.hasSource(mapping.deviceName);
                 if (source == null){

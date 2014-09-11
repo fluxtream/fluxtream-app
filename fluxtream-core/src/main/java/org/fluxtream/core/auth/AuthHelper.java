@@ -1,5 +1,6 @@
 package org.fluxtream.core.auth;
 
+import org.apache.commons.lang.StringUtils;
 import org.fluxtream.core.domain.CoachingBuddy;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.services.CoachingService;
@@ -89,11 +90,19 @@ public class AuthHelper {
         }
     }
 
-    public static CoachingBuddy getCoachee(String coacheeUsernameHeader, CoachingService coachingService) throws CoachRevokedException {
-        if (coacheeUsernameHeader!=null&&coacheeUsernameHeader.equals("self"))
+    public static CoachingBuddy getCoachee(String buddyToAccessParameter, CoachingService coachingService) throws CoachRevokedException {
+        if (buddyToAccessParameter==null || buddyToAccessParameter!=null&&buddyToAccessParameter.equals("self")) {
             as(null);
-        if (coacheeUsernameHeader !=null&&!coacheeUsernameHeader.equals("self")) {
-            final CoachingBuddy coachee = coachingService.getCoachee(getGuestId(), coacheeUsernameHeader);
+            return null;
+        } else if (buddyToAccessParameter !=null&&!buddyToAccessParameter.equals("self")) {
+            CoachingBuddy coachee;
+            if (StringUtils.isNumeric(buddyToAccessParameter)) {
+                final Long coacheeId = Long.valueOf(buddyToAccessParameter, 10);
+                if (coacheeId==AuthHelper.getGuestId())
+                    return null;
+                coachee = coachingService.getCoachee(getGuestId(), coacheeId);
+            } else
+                coachee = coachingService.getCoachee(getGuestId(), buddyToAccessParameter);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             final FlxUserDetails principal = (FlxUserDetails) auth.getPrincipal();
             if (coachee!=null) {
@@ -105,8 +114,7 @@ public class AuthHelper {
                 principal.coachee = null;
                 throw new CoachRevokedException();
             }
-        } else
-            return getCoachee();
+        } else return getCoachee();
     }
 
     public static CoachingBuddy getCoachee() throws CoachRevokedException {

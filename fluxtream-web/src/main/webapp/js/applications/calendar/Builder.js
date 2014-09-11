@@ -108,7 +108,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
         $('<a/>', {
             href: "#",
             id: "flx-connector-btn-" + connector.connectorName,
-            class: "flx-active"
+            class: "flx-active flx-connector-btn"
         }).click(function(event){
             event.preventDefault();
             $(document).click(); //needed for click away to work on tooltips in clock tab
@@ -132,11 +132,13 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
     }
 
     function bindConnectorButtons(App, Calendar) {
+        var url = "/api/v1/connectors/installed";
+        if (App.buddyToAccess["isBuddy"]) url += "?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.buddyToAccess["id"];
         $.ajax({
-            beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
-            url: "/api/v1/connectors/installed",
+            url: url,
             async: false,
             success: function(response) {
+                $("#selectedConnectors").empty();
                 $.each(response, function(i, connector) {
                     createConnectorButton(App, Calendar, connector);
                     connectorNames.push(connector.connectorName);
@@ -333,6 +335,21 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
             else
                 button.hide();
         }
+        // only show filter buttons for the current viewees' selected connectors
+        $(".flx-connector-btn").each(function(index){
+            var existing_btn_id = $(this).attr("id");
+            var btn_to_remove = true;
+            for (var i = 0; i < digest.selectedConnectors.length; i++) {
+                var connector_btn_id = "flx-connector-btn-" + digest.selectedConnectors[i].connectorName;
+                if (connector_btn_id===existing_btn_id) {
+                    btn_to_remove = false;
+                    break;
+                }
+            }
+            if (btn_to_remove) {
+                $("#"+existing_btn_id).remove();
+            }
+        });
 
     }
 	

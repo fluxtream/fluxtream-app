@@ -14,8 +14,9 @@ define(["core/grapher/BTCore",
     };
 
     function show(){
-        $.ajax("/api/v1/connectors/installed",{
-            beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
+        var url = "/api/v1/connectors/installed";
+        if (App.buddyToAccess["isBuddy"]) url += "?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.buddyToAccess["id"];
+        $.ajax(url, {
             success: function(data){
                 dataLoaded(data,false);
             }
@@ -28,8 +29,9 @@ define(["core/grapher/BTCore",
     //with the original full dialog template, the first time through all the cells will be forced to update. However,
     //after that it should in theory properly only update when a change happens in each cell
     function updateContents(){
-        $.ajax("/api/v1/connectors/installed",{
-            beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
+        var url = "/api/v1/connectors/installed";
+        if (App.buddyToAccess["isBuddy"]) url += "?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.buddyToAccess["id"];
+        $.ajax(url, {
             success: function(data){
                 if (hidden)
                     return;
@@ -39,7 +41,7 @@ define(["core/grapher/BTCore",
                             if (data[i].manageable){
                                 var row = $("#connector-" + data[i].connectorName);
                                 var params = getConnectorParams(data[i]);
-                                params.isBuddy= !_.isUndefined(App.viewee)&& !_.isNull(App.viewee)&& App.viewee!="self";
+                                params.isBuddy= App.buddyToAccess["isBuddy"];
                                 var html = $(noImageTemplate.render(params));
                                 if (row.length == 0){
                                     $("#connectorInfoTable").append(imageTemplate.render(params));
@@ -116,7 +118,7 @@ define(["core/grapher/BTCore",
                 params[i] = getConnectorParams(data[i])
                 params[i].hasSettings = hasTimelineSettings||hasGeneralSettings;
             }
-            var html = template.render({connectors:params, buddyToAccess: App.buddyToAccess, isBuddy: !_.isUndefined(App.viewee)&& !_.isNull(App.viewee)&& App.viewee!="self"});
+            var html = template.render({connectors:params, buddyToAccess: App.buddyToAccess, isBuddy: App.buddyToAccess["isBuddy"]});
             if (update){
                 var scrollTop = $("#modal .modal-body").scrollTop();
                 $("#modal").html($(html).html());
@@ -159,8 +161,9 @@ define(["core/grapher/BTCore",
         syncAllBtn.click(function(){
             setAllToSyncing();
             event.preventDefault();
-            $.ajax("/api/v1/sync/all",{
-                beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
+            var url = "/api/v1/sync/all";
+            if (App.buddyToAccess["isBuddy"]) url += "?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.buddyToAccess["id"];
+            $.ajax(url, {
                 type:"POST"
             });
         });
@@ -187,8 +190,10 @@ define(["core/grapher/BTCore",
         syncNowBtn.click(function(event){
             event.preventDefault();
             setToSyncing(connector.connectorName)
-            $.ajax("/api/v1/sync/" + connector.connectorName,{
-                beforeSend: function(xhr){if(!_.isUndefined(App.viewee)){xhr.setRequestHeader(App.COACHEE_BUDDY_TO_ACCESS_HEADER, App.viewee);}},
+            var url = "/api/v1/sync/" + connector.connectorName;
+            if (App.buddyToAccess["isBuddy"]) url+="?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.buddyToAccess["id"];
+            $.ajax({
+                url : url,
                 type:"POST"
             });
         });

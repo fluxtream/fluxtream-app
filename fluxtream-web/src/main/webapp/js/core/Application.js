@@ -57,6 +57,13 @@ define(["core/FlxState"], function(FlxState) {
         if (this.params == null)
             this.params = {};
         var url = "app/" + this.name;
+        console.log("navigateState: " + url);
+
+        if (!_.isUndefined(this.params["as"]))
+            url += "/" + params["as"];
+        else
+            url += "/" + App.buddyToAccess.id;
+
         if (state) {
             url += "/" + state;
         }
