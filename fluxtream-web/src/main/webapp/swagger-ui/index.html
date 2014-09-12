@@ -5,6 +5,7 @@
   <link href='https://fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'/>
   <link href='css/reset.css' media='screen' rel='stylesheet' type='text/css'/>
   <link href='css/screen.css' media='screen' rel='stylesheet' type='text/css'/>
+  <link href='/static/css/bootstrap-3.2.0.min.css' media='screen' rel='stylesheet' type='text/css'/>
   <script type="text/javascript" src="lib/shred.bundle.js"></script>
   <script src='lib/jquery-1.8.0.min.js' type='text/javascript'></script>
   <script src='lib/jquery.slideto.min.js' type='text/javascript'></script>
@@ -28,26 +29,19 @@
         return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
     }
     var apiDocsURL = getParameterByName("apiDocsURL");
+    var onCompleteCount = 0;
     $(function () {
+      log("this is called once");
       window.swaggerUi = new SwaggerUi({
       url: apiDocsURL,
       dom_id: "swagger-ui-container",
       supportedSubmitMethods: ['get', 'post', 'put', 'delete'],
       onComplete: function(swaggerApi, swaggerUi){
-        log("Loaded SwaggerUI");
-
-        if(typeof initOAuth == "function") {
-
-          initOAuth({
-            clientId: "your-client-id",
-            realm: "your-realm",
-            appName: "your-app-name"
-          });
-
+        onCompleteCount++;
+        // strangely, this callback method is always invoked 3 times...
+        if (onCompleteCount==3) {
+            injectGeneratedDocs();
         }
-        $('pre code').each(function(i, e) {
-          hljs.highlightBlock(e)
-        });
       },
       onFailure: function(data) {
         log("Unable to Load SwaggerUI");
@@ -55,38 +49,88 @@
       docExpansion: "list"
     });
 
-    $('#input_apiKey').change(function() {
-      var key = $('#input_apiKey')[0].value;
-      log("key: " + key);
-      if(key && key.trim() != "") {
-        log("added key " + key);
-        window.authorizations.add("key", new ApiKeyAuthorization("api_key", key, "header"));
-      }
-    })
+    function injectGeneratedDocs() {
+
+        var sortedApis = ["guest", "calendar", "bodytrack", "sync", "comments", "metadata", "settings", "notifications"];
+
+        for (var i=0; i<sortedApis.length; i++) {
+            var li = $("#resource_" + sortedApis[i]);
+            var narrative = $("#" + sortedApis[i] + "_narrative");
+            $("#resources-rearranged").append(li);
+            $("#resource_" + sortedApis[i]).prepend(narrative);
+        }
+
+        $("#resources").attr("id", "resources-hidden");
+        $("#resources-rearranged").attr("id", "resources");
+        $(".endpoints").css("height", "");
+    }
+
     window.swaggerUi.load();
   });
   </script>
 </head>
 
 <body class="swagger-section">
-<div id='header' style="display:none">
-  <div class="swagger-ui-wrap">
-    <a id="logo" href="http://swagger.wordnik.com">swagger</a>
-    <form id='api_selector'>
-      <div class='input icon-btn'>
-        <img id="show-pet-store-icon" src="images/pet_store_api.png" title="Show Swagger Petstore Example Apis">
-      </div>
-      <div class='input icon-btn'>
-        <img id="show-wordnik-dev-icon" src="images/wordnik_api.png" title="Show Wordnik Developer Apis">
-      </div>
-      <div class='input'><input placeholder="http://example.com/api" id="input_baseUrl" name="baseUrl" type="text"/></div>
-      <div class='input'><input placeholder="api_key" id="input_apiKey" name="apiKey" type="text"/></div>
-      <div class='input'><a id="set_token" href="https://fluxtream.dev/auth/oauth2/authorize?response_type=code&client_id=4bdc4053-ddb4-45e0-9e70-f5c3fb8db978&redirect_uri=https://fluxtream.me/dev/swapToken">Get Token</a></div>
-    </form>
-  </div>
-</div>
 
-<div id="message-bar" class="swagger-ui-wrap">&nbsp;</div>
-<div id="swagger-ui-container" class="swagger-ui-wrap"></div>
+    <div class="container-fluid">
+        <div class="row">
+            <h1>Foreword</h1>
+
+            <p class="lead">This text is stylable with <a href="http://getbootstrap.com/css/" target="_blank">Bootstrap 3.2.0</a> classes and markup.</p>
+            <p>For example, <code>&lt;section&gt;</code> should be wrapped as inline.</p>
+            <p>To switch directories, type <kbd>cd</kbd> followed by the name of the directory.<br>
+                To edit settings, press <kbd><kbd>ctrl</kbd> + <kbd>,</kbd></kbd></p>
+
+            <div class="alert alert-warning" role="alert">
+                <strong>Warning</strong> This API is in beta.
+            </div>
+        </div>
+        <div class="swagger-ui-wrap">
+
+            <div class="row" id="resources_container">
+                <ul id="resources-rearranged">
+                </ul>
+            </div>
+        </div>
+
+        <div id="swagger-ui-container" style="display:none" class="swagger-ui-wrap">
+        </div>
+
+        <div style="display:none">
+            <div id="guest_narrative">
+                <h1>Knowing your guests</h1>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+            </div>
+            <div id="calendar_narrative">
+                <h1>Retrieve API data per day, per week and per month</h1>
+                <p>If one examines neocapitalist appropriation, one is faced with a choice: either reject pretextual dialectic theory or conclude that sexual identity, somewhat ironically, has significance, but only if narrativity is distinct from truth; otherwise, we can assume that consciousness is impossible. The rubicon, and some would say the stasis, of patriarchialist postdialectic theory depicted in Tarantino’s Reservoir Dogs is also evident in Jackie Brown. Therefore, an abundance of materialisms concerning the failure of neotextual class exist.</p>
+            </div>
+            <div id="bodytrack_narrative">
+                <h1>Manage data for the BodyTrack Timeline</h1>
+                <p>Werther[4] states that the works of Tarantino are empowering. In a sense, the premise of neocapitalist appropriation suggests that sexual identity has intrinsic meaning. The characteristic theme of the works of Tarantino is not, in fact, discourse, but prediscourse. It could be said that the subject is interpolated into a patriarchialist postdialectic theory that includes art as a whole.</p>
+            </div>
+            <div id="sync_narrative">
+                <h1>Manage API data synchronization</h1>
+                <p>Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur?</p>
+            </div>
+            <div id="comments_narrative">
+                <h1>User Comments</h1>
+                <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. </p>
+            </div>
+            <div id="metadata_narrative">
+                <h1>Edit and retrieve user timezone info</h1>
+                <p>Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae.</p>
+            </div>
+            <div id="settings_narrative">
+                <h1>Manage user settings</h1>
+                <p>Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.</p>
+            </div>
+            <div id="notifications_narrative">
+                <h1>User notifications</h1>
+                <p>“Class is part of the economy of reality,” says Lacan; however, according to Dietrich[2] , it is not so much class that is part of the economy of reality, but rather the dialectic of class. If patriarchialist postdialectic theory holds, we have to choose between the textual paradigm of reality and patriarchialist feminism. However, Derrida promotes the use of patriarchialist postdialectic theory to deconstruct consciousness.</p>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
