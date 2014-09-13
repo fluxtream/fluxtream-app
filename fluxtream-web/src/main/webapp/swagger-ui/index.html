@@ -72,22 +72,39 @@
 <body class="swagger-section">
 
     <div class="container-fluid">
-        <div class="row">
-            <h1>Foreword</h1>
+        <div class="swagger-ui-wrap row">
 
-            <p class="lead">This text is stylable with <a href="http://getbootstrap.com/css/" target="_blank">Bootstrap 3.2.0</a> classes and markup.</p>
-            <p>For example, <code>&lt;section&gt;</code> should be wrapped as inline.</p>
-            <p>To switch directories, type <kbd>cd</kbd> followed by the name of the directory.<br>
-                To edit settings, press <kbd><kbd>ctrl</kbd> + <kbd>,</kbd></kbd></p>
+            <h1>Fluxtream's (REST) API Documentation</h1>
+
+            <h2>Foreword</h2>
 
             <div class="alert alert-warning" role="alert">
                 <strong>Warning</strong> This API is in beta.
             </div>
-            <p>And finally, an image:<br> <img src="img/manage_connectors.png"></p>
-        </div>
-        <div class="swagger-ui-wrap">
 
-            <div class="row" id="resources_container">
+            <p>This API is, in its current state, exactly what we are using for our web frontend and mobile apps, no more, no less.
+                That means it hasn't been thought out to be generic enough to support any possible application under the sun. It is
+                subject to change as we discover new use-cases that we want support or things that we want to improve.
+            </p>
+            <p>At this point then, <strong>we don't guarantee any sort of backward compatibility</strong>.</p>
+            <p>That said, if you have specific requests, please don't hesitate to <a href="mailto:info@fluxtream.org">contact us</a>. As always, we are looking forward to your feedback.</p>
+
+            <p>From a technical standpoint, Fluxtream exposes relatively few CRUD-type operations and I/O payloads are generally quite complex. Hence, the API is organized
+                by "theme" rather than by the rigid concept of a "resource" in REST parlance. </p>
+
+            <h2>Glossary</h2>
+
+            <dl class="dl">
+                <dt>Guest</dt>
+                <dd>We prefer to call our users "guests", to remind us that we are but temporarily hosting people's data,
+                    which is wholly and thoroughly theirs.</dd>
+                <dt>Buddy-to-access</dt>
+                <dd>Many endpoints can specify an optional <code>buddyToAccess</code> parameter. Fluxtream guests can indeed
+                share their data with buddies; we use this rather informal word to stress our preference for horizontal
+                relationships when sharing data.</dd>
+            </dl>
+
+            <div id="resources_container">
                 <ul id="resources-rearranged">
                 </ul>
             </div>
@@ -98,36 +115,37 @@
 
         <div style="display:none">
             <div id="guest_narrative">
-                <h1>Knowing your guests</h1>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                <h2>Knowing your guests</h2>
+                <p>This is a very straightforward API that retrieves some basic information
+                about the currently logged-in guest. </p>
             </div>
             <div id="calendar_narrative">
-                <h1>Retrieve API data per day, per week and per month</h1>
-                <p>If one examines neocapitalist appropriation, one is faced with a choice: either reject pretextual dialectic theory or conclude that sexual identity, somewhat ironically, has significance, but only if narrativity is distinct from truth; otherwise, we can assume that consciousness is impossible. The rubicon, and some would say the stasis, of patriarchialist postdialectic theory depicted in Tarantino’s Reservoir Dogs is also evident in Jackie Brown. Therefore, an abundance of materialisms concerning the failure of neotextual class exist.</p>
+                <h2>Retrieve API data per day, per week and per month</h2>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
             </div>
             <div id="bodytrack_narrative">
-                <h1>Manage data for the BodyTrack Timeline</h1>
-                <p>Werther[4] states that the works of Tarantino are empowering. In a sense, the premise of neocapitalist appropriation suggests that sexual identity has intrinsic meaning. The characteristic theme of the works of Tarantino is not, in fact, discourse, but prediscourse. It could be said that the subject is interpolated into a patriarchialist postdialectic theory that includes art as a whole.</p>
+                <h2>Manage data for the BodyTrack Timeline</h2>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
             </div>
             <div id="sync_narrative">
-                <h1>Manage API data synchronization</h1>
-                <p>Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur?</p>
+                <h2>Manage API data synchronization</h2>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
             </div>
             <div id="comments_narrative">
-                <h1>User Comments</h1>
-                <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. </p>
+                <h2>User comments</h2>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
             </div>
             <div id="metadata_narrative">
-                <h1>Edit and retrieve user timezone info</h1>
-                <p>Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae.</p>
+                <h2>Edit and retrieve user timezone info</h2>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
             </div>
             <div id="settings_narrative">
-                <h1>Manage user settings</h1>
-                <p>Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.</p>
+                <h2>Manage user settings</h2>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
             </div>
             <div id="notifications_narrative">
-                <h1>User notifications</h1>
-                <p>“Class is part of the economy of reality,” says Lacan; however, according to Dietrich[2] , it is not so much class that is part of the economy of reality, but rather the dialectic of class. If patriarchialist postdialectic theory holds, we have to choose between the textual paradigm of reality and patriarchialist feminism. However, Derrida promotes the use of patriarchialist postdialectic theory to deconstruct consciousness.</p>
+                <h2>User notifications</h2>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
             </div>
         </div>
     </div>
