@@ -9,7 +9,7 @@ import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.updaters.ScheduleResult;
 import org.fluxtream.core.domain.*;
 import org.fluxtream.core.mvc.models.StatusModel;
-import org.fluxtream.core.services.CoachingService;
+import org.fluxtream.core.services.BuddiesService;
 import org.fluxtream.core.services.ConnectorUpdateService;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.services.SystemService;
@@ -47,7 +47,7 @@ public class SyncController {
     ConnectorUpdateService connectorUpdateService;
 
     @Autowired
-    CoachingService coachingService;
+    BuddiesService buddiesService;
 
     Gson gson = new Gson();
 
@@ -56,7 +56,7 @@ public class SyncController {
     @POST
     @Path("/{connector}")
     @ApiOperation(value = "Update a connector belonging to either the logged in user or the buddy-to-access specified in the "
-            + CoachingService.BUDDY_TO_ACCESS_PARAM + " parameter",
+            + BuddiesService.BUDDY_TO_ACCESS_PARAM + " parameter",
             response = ScheduleResult.class, responseContainer = "Array")
     @ApiResponses({
             @ApiResponse(code=401, message="The user is no longer logged in"),
@@ -64,14 +64,14 @@ public class SyncController {
     })
     @Produces({MediaType.APPLICATION_JSON})
     public Response updateConnector(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName,
-                                    @ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter){
+                                    @ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter){
         return sync(connectorName, buddyToAccessParameter, true);
     }
 
     private Response sync(final String connectorName, final String buddyToAccessParameter, final boolean force) {
         try{
             CoachingBuddy coachee;
-            try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, coachingService);
+            try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, buddiesService);
             } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
             Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
             final long guestId = guest.getId();
@@ -91,7 +91,7 @@ public class SyncController {
     @POST
     @Path("/{connector}/{objectTypes}")
     @ApiOperation(value = "Update a connector's object types belonging to eigher the logged in user or the buddy-to-access specified in the "
-            + CoachingService.BUDDY_TO_ACCESS_PARAM + " parameter",
+            + BuddiesService.BUDDY_TO_ACCESS_PARAM + " parameter",
             response = ScheduleResult.class, responseContainer = "Array")
     @ApiResponses({
             @ApiResponse(code=401, message="The user is no longer logged in"),
@@ -100,7 +100,7 @@ public class SyncController {
     @Produces({MediaType.APPLICATION_JSON})
     public Response updateConnectorObjectType(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName,
                                               @ApiParam(value="Bit mask of object types that have to be updated", required=true) @PathParam("objectTypes") int objectTypes,
-                                              @ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter){
+                                              @ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter){
         return syncConnectorObjectType(connectorName, buddyToAccessParameter, objectTypes, false);
     }
 
@@ -108,7 +108,7 @@ public class SyncController {
                                              final int objectTypes, final boolean force) {
         try {
             CoachingBuddy coachee;
-            try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, coachingService);
+            try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, buddiesService);
             } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
             Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
             final long guestId = guest.getId();
@@ -131,9 +131,9 @@ public class SyncController {
             @ApiResponse(code=403, message="Buddy-to-access authorization has been revoked")
     })
     @Produces({MediaType.APPLICATION_JSON})
-    public Response updateAllConnectors(@ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter){
+    public Response updateAllConnectors(@ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter){
         CoachingBuddy coachee;
-        try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, coachingService);
+        try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, buddiesService);
         } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
         Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
         final long guestId = guest.getId();
