@@ -41,7 +41,7 @@
     </c:choose>
 
     <!-- Page content -->
-    <div id="page-content-wrapper" ng-view class="container-fluid">
+    <div id="page-content-wrapper" ng-view class="container" style="margin-left:0;">
     </div>
 
 </div>
