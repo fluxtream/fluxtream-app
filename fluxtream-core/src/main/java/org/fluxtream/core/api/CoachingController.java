@@ -1,6 +1,8 @@
 package org.fluxtream.core.api;
 
 import com.sun.jersey.api.Responses;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
@@ -31,6 +33,7 @@ import java.util.Set;
  * @author Candide Kemmler (candide@fluxtream.com)
  */
 @Path("/v1/coaching")
+@Api(value = "/buddies", description = "Data sharing")
 @Component("RESTCoachingController")
 @Scope("request")
 public class CoachingController {
@@ -45,7 +48,8 @@ public class CoachingController {
     BeanFactory beanFactory;
 
     @POST
-    @Path("/coaches/find")
+    @Path("/find")
+    @ApiOperation(value = "Find a buddy", response = GuestModel.class)
     @Produces({MediaType.APPLICATION_JSON})
     public Response findCoach(@FormParam("username") String username) {
         final Guest guest = guestService.getGuest(username);
@@ -58,26 +62,10 @@ public class CoachingController {
             return Responses.notFound().entity("No Such User: " + username + ". Please try again.").build();
     }
 
-    @POST
-    @Path("/coachees/{username}")
-    public Response getCoaches(@PathParam("username") String username){
-        if (username.equals("self")) {
-            AuthHelper.as(null);
-            return Response.ok("Viewing own data").build();
-        }
-        final long guestId = AuthHelper.getGuestId();
-        final CoachingBuddy coachee = coachingService.getCoachee(guestId, username);
-        if (coachee==null) {
-            return Response.status(403).entity("Could not view " + username +
-                    "'s data. Please refresh the page and " +
-                    "check that you still have access to their data.").build();
-        }
-        AuthHelper.as(coachee);
-        return Response.ok("Viewing " + guestService.getGuestById(coachee.guestId).getGuestName() + "'s data").build();
-    }
-
     @DELETE
-    @Path("/coaches/{username}")
+    @Path("/{username}")
+    @ApiOperation(value = "Remove a buddy, revoking all access to the calling guest's data",responseContainer = "array",
+            response = GuestModel.class)
     @Produces({MediaType.APPLICATION_JSON})
     public List<GuestModel> removeCoach(@PathParam("username") String username) {
         final long guestId = AuthHelper.getGuestId();
@@ -89,6 +77,8 @@ public class CoachingController {
 
     @POST
     @Path("/coaches/{username}")
+    @ApiOperation(value = "Add a buddy to whom we are now able to allow access to the calling guest's connectors.",
+            response = GuestModel.class, responseContainer = "array")
     @Produces({MediaType.APPLICATION_JSON})
     public List<GuestModel> addCoach(@PathParam("username") String username) {
         final long guestId = AuthHelper.getGuestId();
@@ -108,6 +98,8 @@ public class CoachingController {
 
     @GET
     @Path("/coaches/{username}/connectors")
+    @ApiOperation(value = "Retrieve information about data shared with a given buddy.",
+            response = CoachModel.class, responseContainer = "array")
     @Produces({MediaType.APPLICATION_JSON})
     public CoachModel getConnectorSharingInfo(@PathParam("username") String username) {
         final long guestId = AuthHelper.getGuestId();
@@ -147,6 +139,8 @@ public class CoachingController {
 
     @GET
     @Path("/coachees")
+    @ApiOperation(value = "Retrieve the list of buddies whose data we may have access to.",
+            response = GuestModel.class, responseContainer = "array")
     @Produces({MediaType.APPLICATION_JSON})
     public List<GuestModel> getCoachees(){
         Guest guest = AuthHelper.getGuest();
@@ -157,6 +151,8 @@ public class CoachingController {
 
     @GET
     @Path("/coaches")
+    @ApiOperation(value = "Retrieve the list of buddies with whom the calling guest may have shared data.",
+            response = GuestModel.class, responseContainer = "array")
     @Produces({MediaType.APPLICATION_JSON})
     public List<GuestModel> getCoaches(){
         final long guestId = AuthHelper.getGuestId();
@@ -167,6 +163,7 @@ public class CoachingController {
 
     @POST
     @Path("/coaches/{username}/connectors/{connector}")
+    @ApiOperation(value = "Share a connector with a buddy")
     public Response addSharedConnector(@PathParam("username") String username,
                                        @PathParam("connector") String connectorName) {
         final SharedConnector sharedConnector = coachingService.addSharedConnector(AuthHelper.getGuestId(), username, connectorName, "{}");
@@ -181,6 +178,7 @@ public class CoachingController {
 
     @DELETE
     @Path("/coaches/{username}/connectors/{connector}")
+    @ApiOperation(value = "Stop sharing a connector with a buddy")
     public Response removeSharedConnector(@PathParam("username") String username,
                                           @PathParam("connector") String connectorName) {
         coachingService.removeSharedConnector(AuthHelper.getGuestId(), username, connectorName);
@@ -190,6 +188,7 @@ public class CoachingController {
     @GET
     @Path("/sharedConnector/{apiKeyId}/{username}")
     @Produces({MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Retrieve sharing details for a given connector – the structure of the returned object is connector specific.")
     public String getSharedConnectorSettings(@PathParam("apiKeyId") long apiKeyId,
                                              @PathParam("username") String username) {
         final long buddyId = guestService.getGuest(username).getId();
@@ -199,6 +198,7 @@ public class CoachingController {
 
     @POST
     @Path("/sharedConnector/{apiKeyId}/{username}")
+    @ApiOperation(value = "Specify sharing details for a given connector – the structure of the specification object is connector specific.")
     public Response saveSharedConnectorSettingsFilter(@PathParam("apiKeyId") long apiKeyId,
                                                       @PathParam("username") String username,
                                                       @FormParam("json") String json) {
