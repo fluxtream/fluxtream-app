@@ -1,8 +1,7 @@
 package org.fluxtream.core.api;
 
 import com.sun.jersey.api.Responses;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.*;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
@@ -50,8 +49,12 @@ public class CoachingController {
     @POST
     @Path("/find")
     @ApiOperation(value = "Find a buddy", response = GuestModel.class)
+    @ApiResponses({
+            @ApiResponse(code=400, message="The user is already trusted by the calling guest"),
+            @ApiResponse(code=404, message="No such user was found")
+    })
     @Produces({MediaType.APPLICATION_JSON})
-    public Response findCoach(@FormParam("username") String username) {
+    public Response findCoach(@ApiParam(value="The buddy's username", required=true) @FormParam("username") String username) {
         final Guest guest = guestService.getGuest(username);
         final List<Guest> coaches = coachingService.getCoaches(AuthHelper.getGuestId());
         if (coaches.contains(guest))
@@ -67,7 +70,7 @@ public class CoachingController {
     @ApiOperation(value = "Remove a buddy, revoking all access to the calling guest's data",responseContainer = "array",
             response = GuestModel.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public List<GuestModel> removeCoach(@PathParam("username") String username) {
+    public List<GuestModel> removeCoach(@ApiParam(value="The buddy's username", required=true) @PathParam("username") String username) {
         final long guestId = AuthHelper.getGuestId();
         coachingService.removeCoach(guestId, username);
         final List<Guest> coaches = coachingService.getCoaches(guestId);
@@ -80,7 +83,7 @@ public class CoachingController {
     @ApiOperation(value = "Add a buddy to whom we are now able to allow access to the calling guest's connectors.",
             response = GuestModel.class, responseContainer = "array")
     @Produces({MediaType.APPLICATION_JSON})
-    public List<GuestModel> addCoach(@PathParam("username") String username) {
+    public List<GuestModel> addCoach(@ApiParam(value="The buddy's username", required=true) @PathParam("username") String username) {
         final long guestId = AuthHelper.getGuestId();
         coachingService.addCoach(guestId, username);
         final List<Guest> coaches = coachingService.getCoaches(guestId);
@@ -101,7 +104,7 @@ public class CoachingController {
     @ApiOperation(value = "Retrieve information about data shared with a given buddy.",
             response = CoachModel.class, responseContainer = "array")
     @Produces({MediaType.APPLICATION_JSON})
-    public CoachModel getConnectorSharingInfo(@PathParam("username") String username) {
+    public CoachModel getConnectorSharingInfo(@ApiParam(value="The buddy's username", required=true) @PathParam("username") String username) {
         final long guestId = AuthHelper.getGuestId();
         final CoachingBuddy coachingBuddy = coachingService.getCoach(guestId, username);
         final Set<SharedConnector> sharedConnectors = coachingBuddy.sharedConnectors;
@@ -164,8 +167,8 @@ public class CoachingController {
     @POST
     @Path("/trusted/{username}/connectors/{connector}")
     @ApiOperation(value = "Share a connector with a buddy")
-    public Response addSharedConnector(@PathParam("username") String username,
-                                       @PathParam("connector") String connectorName) {
+    public Response addSharedConnector(@ApiParam(value="The buddy's username", required=true) @PathParam("username") String username,
+                                       @ApiParam(value="A connector name", required=true) @PathParam("connector") String connectorName) {
         final SharedConnector sharedConnector = coachingService.addSharedConnector(AuthHelper.getGuestId(), username, connectorName, "{}");
         final ApiKey apiKey = guestService.getApiKey(AuthHelper.getGuestId(), Connector.getConnector(connectorName));
         final Class<? extends AbstractUpdater> updaterClass = apiKey.getConnector().getUpdaterClass();
@@ -179,8 +182,8 @@ public class CoachingController {
     @DELETE
     @Path("/trusted/{username}/connectors/{connector}")
     @ApiOperation(value = "Stop sharing a connector with a buddy")
-    public Response removeSharedConnector(@PathParam("username") String username,
-                                          @PathParam("connector") String connectorName) {
+    public Response removeSharedConnector(@ApiParam(value="The buddy's username", required=true) @PathParam("username") String username,
+                                          @ApiParam(value="A connector name", required=true) @PathParam("connector") String connectorName) {
         coachingService.removeSharedConnector(AuthHelper.getGuestId(), username, connectorName);
         return Response.ok().entity("Successfully removed a connector (" + username + "/" + connectorName + ")").build();
     }
@@ -189,8 +192,8 @@ public class CoachingController {
     @Path("/trusted/sharedConnector/{apiKeyId}/{username}")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Retrieve sharing details for a given connector – the structure of the returned object is connector specific.")
-    public String getSharedConnectorSettings(@PathParam("apiKeyId") long apiKeyId,
-                                             @PathParam("username") String username) {
+    public String getSharedConnectorSettings(@ApiParam(value="ID of a connector instance", required=true) @PathParam("apiKeyId") long apiKeyId,
+                                             @ApiParam(value="The buddy's username", required=true) @PathParam("username") String username) {
         final long buddyId = guestService.getGuest(username).getId();
         final SharedConnector sharedConnector = coachingService.getSharedConnector(apiKeyId, buddyId);
         return sharedConnector.filterJson;
@@ -199,9 +202,9 @@ public class CoachingController {
     @POST
     @Path("/trusted/sharedConnector/{apiKeyId}/{username}")
     @ApiOperation(value = "Specify sharing details for a given connector – the structure of the specification object is connector specific.")
-    public Response saveSharedConnectorSettingsFilter(@PathParam("apiKeyId") long apiKeyId,
-                                                      @PathParam("username") String username,
-                                                      @FormParam("json") String json) {
+    public Response saveSharedConnectorSettingsFilter(@ApiParam(value="ID of a connector instance", required=true) @PathParam("apiKeyId") long apiKeyId,
+                                                      @ApiParam(value="The buddy's username", required=true) @PathParam("username") String username,
+                                                      @ApiParam(value="Custom connector sharing specification", required=true) @FormParam("json") String json) {
         final ApiKey apiKey = guestService.getApiKey(apiKeyId);
         final long guestId = AuthHelper.getGuestId();
         final long buddyId = guestService.getGuest(username).getId();
