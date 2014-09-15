@@ -234,14 +234,17 @@
 </template>
 <template id="sharedConnectors">
     {{#connectors}}
-        <label class="checkbox">
-            <input type="checkbox" onclick="App.sharingDialog.toggleSharedConnector('{{username}}','{{connectorName}}', this);"
-                   value="{{connectorName}}" {{#shared}}checked=checked{{/shared}}> {{prettyName}}
+        <form class="form-inline sharedConnectors" action="javascript:void(0)">
+            <label class="checkbox">
+                <input type="checkbox" onclick="App.sharingDialog.toggleSharedConnector('{{username}}','{{connectorName}}', this);"
+                       value="{{connectorName}}" {{#shared}}checked=checked{{/shared}}> {{prettyName}}
+            </label>
+
             {{#hasSettings}}
-                <a class="btn btn-link sharedConnectorSettingsBtn" {{^shared}}style="display:none"{{/shared}} data-apiKeyId="{{apiKeyId}}" data-connectorPrettyName="{{prettyName}}"
-                   data-connectorName="{{connectorName}}">more...</a>
+            <a class="btn btn-link sharedConnectorSettingsBtn" {{^shared}}style="display:none"{{/shared}} data-apiKeyId="{{apiKeyId}}" data-connectorPrettyName="{{prettyName}}"
+            data-connectorName="{{connectorName}}">more...</a>
             {{/hasSettings}}
-        </label>
+        </form>
     {{/connectors}}
 </template>
 <template id="findUserDialog">
@@ -256,7 +259,7 @@
                     <input type="text" placeholder="Please, Enter a Username..." id="findUserField" style="display:inline"/>
                     <button id="findUserButton" class="btn" style="margin: 0 0 9px 4px;">Search</button>
                     <img class="loading-animation"
-                         src="/{{release}}/images/loading.gif"/>
+                         src="/static/images/loading.gif"/>
                     <div id="findUserMessage" class="alert alert-info">You need to enter the fluxtream username of the person you want to invite.
                     If you don't already know it, please ask them to tell you what it is.</div>
                 </form>
