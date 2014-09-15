@@ -44,7 +44,7 @@ import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.domain.SharedConnector;
 import org.fluxtream.core.services.ApiDataService;
-import org.fluxtream.core.services.CoachingService;
+import org.fluxtream.core.services.BuddiesService;
 import org.fluxtream.core.services.JPADaoService;
 import org.fluxtream.core.services.MetadataService;
 import org.fluxtream.core.services.SettingsService;
@@ -99,7 +99,7 @@ public class EvernoteUpdater extends AbstractUpdater implements SettingsAwareUpd
     SettingsService settingsService;
 
     @Autowired
-    CoachingService coachingService;
+    BuddiesService buddiesService;
 
     ENMLProcessor processor = new ENMLProcessor();
 
@@ -246,7 +246,7 @@ public class EvernoteUpdater extends AbstractUpdater implements SettingsAwareUpd
         }
         jsonSettings.put("notebooks", settingsNotebooks);
         String toPersist = jsonSettings.toString();
-        coachingService.setSharedConnectorFilter(sharedConnector.getId(), toPersist);
+        buddiesService.setSharedConnectorFilter(sharedConnector.getId(), toPersist);
     }
 
     private void setChannelMapping(ApiKey apiKey, final List<NotebookConfig> notebookConfigs) {

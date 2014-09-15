@@ -15,7 +15,7 @@ import org.fluxtream.core.domain.CoachingBuddy;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.mvc.models.guest.GuestModel;
-import org.fluxtream.core.services.CoachingService;
+import org.fluxtream.core.services.BuddiesService;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.utils.HttpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +47,7 @@ public class LegacyGuestController {
 	Configuration env;
 
     @Autowired
-    CoachingService coachingService;
+    BuddiesService buddiesService;
 
     @GET
 	@Path("/")
@@ -141,7 +141,7 @@ public class LegacyGuestController {
             response = GuestModel.class)
     public List<GuestModel> getCoachees() {
         Guest guest = AuthHelper.getGuest();
-        final List<Guest> coachees = coachingService.getCoachees(guest.getId());
+        final List<Guest> coachees = buddiesService.getTrustingBuddies(guest.getId());
         final List<GuestModel> coacheeModels = new ArrayList<GuestModel>();
         for (Guest coachee : coachees)
             coacheeModels.add(new GuestModel(coachee, true));

@@ -3,7 +3,7 @@ package org.fluxtream.core.auth;
 import org.apache.commons.lang.StringUtils;
 import org.fluxtream.core.domain.CoachingBuddy;
 import org.fluxtream.core.domain.Guest;
-import org.fluxtream.core.services.CoachingService;
+import org.fluxtream.core.services.BuddiesService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -29,13 +29,13 @@ public class AuthHelper {
                 && auth.getPrincipal() instanceof FlxUserDetails);
     }
 
-    public static boolean isViewingGranted(String connectorName, CoachingService coachingService) {
+    public static boolean isViewingGranted(String connectorName, BuddiesService buddiesService) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         final FlxUserDetails principal = (FlxUserDetails) auth.getPrincipal();
         if (principal.coachee==null)
             return true;
         else {
-            return coachingService.isViewingGranted(principal.guestId, principal.coachee.guestId, connectorName);
+            return buddiesService.isViewingGranted(principal.guestId, principal.coachee.guestId, connectorName);
         }
     }
 
@@ -90,7 +90,7 @@ public class AuthHelper {
         }
     }
 
-    public static CoachingBuddy getCoachee(String buddyToAccessParameter, CoachingService coachingService) throws CoachRevokedException {
+    public static CoachingBuddy getCoachee(String buddyToAccessParameter, BuddiesService buddiesService) throws CoachRevokedException {
         if (buddyToAccessParameter==null || buddyToAccessParameter!=null&&buddyToAccessParameter.equals("self")) {
             as(null);
             return null;
@@ -100,9 +100,9 @@ public class AuthHelper {
                 final Long coacheeId = Long.valueOf(buddyToAccessParameter, 10);
                 if (coacheeId==AuthHelper.getGuestId())
                     return null;
-                coachee = coachingService.getCoachee(getGuestId(), coacheeId);
+                coachee = buddiesService.getTrustingBuddy(getGuestId(), coacheeId);
             } else
-                coachee = coachingService.getCoachee(getGuestId(), buddyToAccessParameter);
+                coachee = buddiesService.getTrustingBuddy(getGuestId(), buddyToAccessParameter);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             final FlxUserDetails principal = (FlxUserDetails) auth.getPrincipal();
             if (coachee!=null) {

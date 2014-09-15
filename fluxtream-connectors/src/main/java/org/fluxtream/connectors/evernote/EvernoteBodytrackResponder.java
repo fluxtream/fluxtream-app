@@ -15,7 +15,7 @@ import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.GuestSettings;
 import org.fluxtream.core.mvc.models.TimespanModel;
-import org.fluxtream.core.services.CoachingService;
+import org.fluxtream.core.services.BuddiesService;
 import org.fluxtream.core.services.SettingsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,7 +32,7 @@ public class EvernoteBodytrackResponder extends AbstractBodytrackResponder {
     SettingsService settingsService;
 
     @Autowired
-    CoachingService coachingService;
+    BuddiesService buddiesService;
 
     @Override
     public List<TimespanModel> getTimespans(final long startMillis, final long endMillis,
@@ -42,7 +42,7 @@ public class EvernoteBodytrackResponder extends AbstractBodytrackResponder {
         final TimeInterval timeInterval = new SimpleTimeInterval(startMillis, endMillis, TimeUnit.ARBITRARY, TimeZone.getTimeZone("UTC"));
         String objectTypeName = "Evernote-note";
         List<AbstractFacet> facets = getFacetsInTimespan(timeInterval, apiKey, ObjectType.getObjectType(Connector.getConnector("evernote"), "note"));
-        facets = coachingService.filterFacets(AuthHelper.getGuestId(), apiKey.getId(), facets);
+        facets = buddiesService.filterFacets(AuthHelper.getGuestId(), apiKey.getId(), facets);
 
         // The start and end times of track facets are the same.  Assume that the
         // start time is correct and arbitrarily draw a box that's 7 mins or

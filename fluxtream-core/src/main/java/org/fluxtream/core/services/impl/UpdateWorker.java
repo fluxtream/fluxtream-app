@@ -20,7 +20,7 @@ import org.fluxtream.core.domain.SharedConnector;
 import org.fluxtream.core.domain.UpdateWorkerTask;
 import org.fluxtream.core.domain.UpdateWorkerTask.Status;
 import org.fluxtream.core.services.ApiDataService;
-import org.fluxtream.core.services.CoachingService;
+import org.fluxtream.core.services.BuddiesService;
 import org.fluxtream.core.services.ConnectorUpdateService;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.services.NotificationsService;
@@ -29,8 +29,6 @@ import org.fluxtream.core.services.SystemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import static org.fluxtream.core.utils.Utils.stackTrace;
 
 @Component
 @Scope("prototype")
@@ -57,7 +55,7 @@ class UpdateWorker implements Runnable {
     SettingsService settingsService;
 
     @Autowired
-    CoachingService coachingService;
+    BuddiesService buddiesService;
 
 	@Autowired
 	Configuration env;
@@ -230,7 +228,7 @@ class UpdateWorker implements Runnable {
             if (updater instanceof SharedConnectorSettingsAwareUpdater) {
                 final SharedConnectorSettingsAwareUpdater sharedConnectorSettingsAwareUpdater = (SharedConnectorSettingsAwareUpdater)updater;
                 final ApiKey apiKey = guestService.getApiKey(updateInfo.apiKey.getId());
-                final List<SharedConnector> sharedConnectors = coachingService.getSharedConnectors(apiKey);
+                final List<SharedConnector> sharedConnectors = buddiesService.getSharedConnectors(apiKey);
                 for (SharedConnector sharedConnector : sharedConnectors) {
                     sharedConnectorSettingsAwareUpdater.syncSharedConnectorSettings(updateInfo.apiKey.getId(), sharedConnector);
                 }

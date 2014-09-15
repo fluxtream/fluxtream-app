@@ -72,7 +72,7 @@ public class BodyTrackController {
     BodyTrackHelper bodyTrackHelper;
 
     @Autowired
-    CoachingService coachingService;
+    BuddiesService buddiesService;
 
     @Autowired
     private FluxtreamCapturePhotoStore fluxtreamCapturePhotoStore;
@@ -104,7 +104,7 @@ public class BodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
 
             if (!accessAllowed && coachee==null) {
                 uid = null;
@@ -475,7 +475,7 @@ public class BodyTrackController {
             loggedInUserId = AuthHelper.getGuestId();
             accessAllowed = checkForPermissionAccess(uid);
             if (!accessAllowed) {
-                final CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+                final CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
                 if (coachee != null) {
                     accessAllowed = coachee.hasAccessToConnector("fluxtream_capture");
                 }
@@ -553,7 +553,7 @@ public class BodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
             if (!accessAllowed&&coachee==null){
                 uid = null;
             }
@@ -561,7 +561,7 @@ public class BodyTrackController {
                 ApiKey apiKey = getApiKeyFromDeviceNickname(deviceNickname, coachee.guestId);
                 if (apiKey==null)
                     return Response.status(Response.Status.BAD_REQUEST).entity("Couldn't find connector with device nickname=" + deviceNickname).build();
-                else if (coachingService.getSharedConnector(apiKey.getId(), AuthHelper.getGuestId())==null)
+                else if (buddiesService.getSharedConnector(apiKey.getId(), AuthHelper.getGuestId())==null)
                     return Response.status(Response.Status.UNAUTHORIZED).entity("Access denied to device " + deviceNickname).build();
             }
             return Response.ok(bodyTrackHelper.fetchTile(uid, deviceNickname, channelName, level, offset)).build();
@@ -586,7 +586,7 @@ public class BodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
             if (!accessAllowed&&coachee==null){
                 uid = null;
             }
@@ -604,7 +604,7 @@ public class BodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
 
             if (!accessAllowed && coachee==null) {
                 uid = null;
@@ -627,7 +627,7 @@ public class BodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
 
             if (!accessAllowed && coachee==null) {
                 uid = null;
@@ -648,7 +648,7 @@ public class BodyTrackController {
             boolean accessAllowed = checkForPermissionAccess(uid);
             CoachingBuddy coachee = null;
             if (!accessAllowed) {
-                coachee = coachingService.getCoachee(loggedInUserId, uid);
+                coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
                 accessAllowed = (coachee!=null);
             }
             if (!accessAllowed){
@@ -668,7 +668,7 @@ public class BodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
 
             if (!accessAllowed && coachee==null) {
                 uid = null;
@@ -687,7 +687,7 @@ public class BodyTrackController {
         try {
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
             if (!accessAllowed && coachee == null) {
                 uid = null;
             }
@@ -726,7 +726,7 @@ public class BodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
 
             if (!accessAllowed && coachee==null) {
                 uid = null;
@@ -741,7 +741,7 @@ public class BodyTrackController {
 
             api = getApiKeyFromConnectorName(connectorName, keys, api);
 
-            if (coachee!=null && coachingService.getSharedConnector(api.getId(), AuthHelper.getGuestId())==null)
+            if (coachee!=null && buddiesService.getSharedConnector(api.getId(), AuthHelper.getGuestId())==null)
                 return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied to connector " + connectorName).build();
 
             if (api == null) {
@@ -801,7 +801,7 @@ public class BodyTrackController {
         try {
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
 
             final TagFilter.FilteringStrategy tagFilteringStrategy = TagFilter.FilteringStrategy.findByName(tagMatchingStrategyName);
 
@@ -881,7 +881,7 @@ public class BodyTrackController {
         try {
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
 
             final TagFilter.FilteringStrategy tagFilteringStrategy = TagFilter.FilteringStrategy.findByName(tagMatchingStrategyName);
 
@@ -991,7 +991,7 @@ public class BodyTrackController {
                     loggedInUserId = AuthHelper.getGuestId();
                     accessAllowed = checkForPermissionAccess(uid);
                     if (!accessAllowed) {
-                        final CoachingBuddy coachee = coachingService.getCoachee(loggedInUserId, uid);
+                        final CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
                         if (coachee != null) {
                             accessAllowed = coachee.hasAccessToConnector(connector.getName());
                         }

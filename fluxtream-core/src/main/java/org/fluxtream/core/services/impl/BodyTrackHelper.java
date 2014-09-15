@@ -71,7 +71,7 @@ public class BodyTrackHelper {
     ApiDataService apiDataService;
 
     @Autowired
-    CoachingService coachingService;
+    BuddiesService buddiesService;
 
     @Autowired
     BeanFactory beanFactory;
@@ -363,7 +363,7 @@ public class BodyTrackHelper {
                     if (photoConnectorForSource!=null) {
                         final List<ApiKey> apiKeys = guestService.getApiKeys(coachee.guestId, photoConnectorForSource);
                         for (ApiKey apiKey : apiKeys) {
-                            if (coachingService.getSharedConnector(apiKey.getId(), AuthHelper.getGuestId())==null) {
+                            if (buddiesService.getSharedConnector(apiKey.getId(), AuthHelper.getGuestId())==null) {
                                 sourcesToRemove.add(source.name);
                                 break;
                             }
@@ -392,7 +392,7 @@ public class BodyTrackHelper {
                 if (api.getConnector()==null)
                     continue;
                 // filter out not shared connectors
-                if (coachee!=null&&coachingService.getSharedConnector(api.getId(), AuthHelper.getGuestId())==null)
+                if (coachee!=null&& buddiesService.getSharedConnector(api.getId(), AuthHelper.getGuestId())==null)
                     continue;
                 Source source = response.hasSource(mapping.deviceName);
                 if (source == null){
