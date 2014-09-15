@@ -147,7 +147,7 @@ public class BuddiesController {
     @Produces({MediaType.APPLICATION_JSON})
     public List<GuestModel> getCoachees(){
         Guest guest = AuthHelper.getGuest();
-        final List<Guest> coachees = buddiesService.getTrustingBuddies(guest.getId());
+        final List<Guest> coachees = buddiesService.getTrustedBuddies(guest.getId());
         final List<GuestModel> guestModels = toGuestModels(coachees);
         return guestModels;
     }
@@ -159,7 +159,7 @@ public class BuddiesController {
     @Produces({MediaType.APPLICATION_JSON})
     public List<GuestModel> getCoaches(){
         final long guestId = AuthHelper.getGuestId();
-        final List<Guest> coaches = buddiesService.getTrustedBuddies(guestId);
+        final List<Guest> coaches = buddiesService.getTrustingBuddies(guestId);
         final List<GuestModel> guestModels = toGuestModels(coaches);
         return guestModels;
     }

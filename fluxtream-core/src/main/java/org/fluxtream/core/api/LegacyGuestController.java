@@ -141,7 +141,7 @@ public class LegacyGuestController {
             response = GuestModel.class)
     public List<GuestModel> getCoachees() {
         Guest guest = AuthHelper.getGuest();
-        final List<Guest> coachees = buddiesService.getTrustingBuddies(guest.getId());
+        final List<Guest> coachees = buddiesService.getTrustedBuddies(guest.getId());
         final List<GuestModel> coacheeModels = new ArrayList<GuestModel>();
         for (Guest coachee : coachees)
             coacheeModels.add(new GuestModel(coachee, true));

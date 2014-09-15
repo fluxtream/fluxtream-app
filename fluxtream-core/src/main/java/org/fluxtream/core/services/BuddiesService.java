@@ -22,9 +22,9 @@ public interface BuddiesService {
 
     public boolean isViewingGranted(long guestId, long coacheeId, String connectorName);
 
-    public List<Guest> getTrustedBuddies(long guestId);
-
     public List<Guest> getTrustingBuddies(long guestId);
+
+    public List<Guest> getTrustedBuddies(long guestId);
 
     public CoachingBuddy getTrustedBuddy(long guestId, String username);
 
