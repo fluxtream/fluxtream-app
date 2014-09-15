@@ -99,10 +99,16 @@
                 <dd>We prefer to call our users "guests", to remind us that we are but temporarily hosting people's data,
                     which is wholly and thoroughly theirs.</dd>
                 <dt>Buddy-to-access</dt>
-                <dd>Many endpoints can specify an optional <code>buddyToAccess</code> parameter. Fluxtream guests can indeed
-                share their data with buddies; we use this rather informal word to stress our preference for horizontal
+                <dd>Many endpoints can specify an optional <code>buddyToAccess</code> parameter. Indeed, Fluxtream guests can
+                share their data with buddies (see the <code>buddies/</code> API below); we use this rather informal word to stress our preference for horizontal
                 relationships when sharing data.</dd>
             </dl>
+
+            <div class="alert alert-info" role="alert">
+                <p><strong>This documentation is interactive</strong></p>
+                <p>Check out the 'Try it out' button at the bottom of each endpoint description, and give it a go –
+                    you need to be logged-in for it to work.</p>
+            </div>
 
             <div id="resources_container">
                 <ul id="resources-rearranged">
@@ -115,41 +121,49 @@
 
         <div style="display:none">
             <div id="guest_narrative">
+            <div id="guest_narrative">
                 <h2>Knowing your guests</h2>
                 <p>This is a very straightforward API that retrieves some basic information
                 about the currently logged-in guest. </p>
             </div>
             <div id="buddies_narrative">
                 <h2>Sharing data with buddies</h2>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                <p>A guest can add a buddy by username. Once a buddy is trusted, a guest can then share connectors with him.
+                Some connectors allow the specification of filters (e.g. Evernote and Google Calendar).</p>
             </div>
             <div id="calendar_narrative">
                 <h2>Retrieve API data per day, per week and per month</h2>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                <p>The calendar/ endpoints are what powers the Calendar App in Fluxtream. Different connectors return different <code>facets</code>.
+                These share common attributes (e.g. <code>apiKeyId</code>, <code>start</code>, <code>end</code>, <code>timeUpdated</code>,...) but most
+                of the info they carry is usually specific.</p>
             </div>
             <div id="bodytrack_narrative">
                 <h2>Manage data for the BodyTrack Timeline</h2>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                <p>The BodyTrack Timeline requires a tile-based API. Also, at this point, the BodyTrack API provides the only way that we support uploading
+                your own data. Photo upload also happens here.</p>
             </div>
             <div id="sync_narrative">
                 <h2>Manage API data synchronization</h2>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                <p>Connector synchronization usually happens automatically in the background, but this API provides a way to force
+                the immediate scheduling of a synchronization operation.</p>
             </div>
             <div id="comments_narrative">
-                <h2>User comments</h2>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                <h2>Guest comments</h2>
+                <p>This is a straightforward CR(U)D API to guest comments.</p>
             </div>
             <div id="metadata_narrative">
-                <h2>Edit and retrieve user timezone info</h2>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                <h2>Edit and retrieve guest timezone info</h2>
+                <p>Guests need a way to override guesses that are made by the system about what timezone they were in at
+                a given moment.</p>
             </div>
             <div id="settings_narrative">
-                <h2>Manage user settings</h2>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                <h2>Manage guest settings</h2>
+                <p>This API provides a simple interface that lets guests specify their units of measures preferences, as well as set their
+                password, first name and last name.</p>
             </div>
             <div id="notifications_narrative">
-                <h2>User notifications</h2>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                <h2>Guest notifications</h2>
+                <p>A simple API to send and retrieve guest notifications.</p>
             </div>
         </div>
     </div>
