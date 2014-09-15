@@ -368,10 +368,13 @@ public class BodyTrackHelper {
                                 break;
                             }
                         }
-                    } else {
-                        // let's be conservative: if we don't know this connector, let's assume
-                        // it wasn't shared
-                        sourcesToRemove.add(source.name);
+                      // 09/15/2014 on Anne's request: until we have thoroughly fixed the management
+                      // of channel mappings, sources that don't map to connectors need to continue being
+                      // shared with buddies
+//                    } else {
+//                        // let's be conservative: if we don't know this connector, let's assume
+//                        // it wasn't shared
+//                        sourcesToRemove.add(source.name);
                     }
                 }
                 for (String sourceName : sourcesToRemove) {
