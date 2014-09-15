@@ -50,7 +50,7 @@
 
     function injectGeneratedDocs() {
 
-        var sortedApis = ["guest", "calendar", "bodytrack", "sync", "comments", "metadata", "settings", "notifications"];
+        var sortedApis = ["guest", "buddies", "calendar", "bodytrack", "sync", "comments", "metadata", "settings", "notifications"];
 
         for (var i=0; i<sortedApis.length; i++) {
             var li = $("#resource_" + sortedApis[i]);
@@ -76,11 +76,11 @@
 
             <h1>Fluxtream's (REST) API Documentation</h1>
 
-            <h2>Foreword</h2>
-
             <div class="alert alert-warning" role="alert">
                 <strong>Warning</strong> This API is in beta.
             </div>
+
+            <h2>Foreword</h2>
 
             <p>This API is, in its current state, exactly what we are using for our web frontend and mobile apps, no more, no less.
                 That means it hasn't been thought out to be generic enough to support any possible application under the sun. It is
@@ -118,6 +118,10 @@
                 <h2>Knowing your guests</h2>
                 <p>This is a very straightforward API that retrieves some basic information
                 about the currently logged-in guest. </p>
+            </div>
+            <div id="buddies_narrative">
+                <h2>Sharing data with buddies</h2>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
             </div>
             <div id="calendar_narrative">
                 <h2>Retrieve API data per day, per week and per month</h2>

@@ -14,7 +14,7 @@ import org.fluxtream.core.domain.CoachingBuddy;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.mvc.models.AvatarImageModel;
 import org.fluxtream.core.mvc.models.guest.GuestModel;
-import org.fluxtream.core.services.CoachingService;
+import org.fluxtream.core.services.BuddiesService;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.utils.HttpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +45,7 @@ public class GuestController {
 	Configuration env;
 
     @Autowired
-    CoachingService coachingService;
+    BuddiesService buddiesService;
 
     @GET
 	@Path("/")
@@ -56,11 +56,11 @@ public class GuestController {
     })
     @ApiOperation(value = "Retrieve information on the currently logged in's guest", response = GuestModel.class)
 	public Response getCurrentGuest(@ApiParam(value="Include the guest's avatar?") @QueryParam("includeAvatar") final boolean includeAvatar,
-                                    @ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter) throws InstantiationException,
+                                    @ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
         try{
             CoachingBuddy coachee;
-            try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, coachingService);
+            try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, buddiesService);
             } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
             Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
             if (guest==null)
@@ -83,7 +83,7 @@ public class GuestController {
             @ApiResponse(code=403, message="Buddy-to-access authorization has been revoked")
     })
     @ApiOperation(value = "Retrieve the avatar (gravatar) of the currently logged in's guest", response = AvatarImageModel.class)
-    public Response getAvatarImage(@ApiParam(value="Buddy to access username parameter (" + CoachingService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(CoachingService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter) {
+    public Response getAvatarImage(@ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter) {
         Guest guest = AuthHelper.getGuest();
         AvatarImageModel avatarImage = getAvatarImageModel(buddyToAccessParameter, guest);
         return Response.ok(avatarImage).build();
@@ -94,7 +94,7 @@ public class GuestController {
         String type = "none";
         String url;
         try {
-            final CoachingBuddy coachee = AuthHelper.getCoachee(buddyToAccessParameter, coachingService);
+            final CoachingBuddy coachee = AuthHelper.getCoachee(buddyToAccessParameter, buddiesService);
             if (coachee!=null)
                 guest = guestService.getGuestById(coachee.guestId);
         }
@@ -154,7 +154,7 @@ public class GuestController {
             response = GuestModel.class)
     public List<GuestModel> getCoachees() {
         Guest guest = AuthHelper.getGuest();
-        final List<Guest> coachees = coachingService.getCoachees(guest.getId());
+        final List<Guest> coachees = buddiesService.getTrustedBuddies(guest.getId());
         final List<GuestModel> coacheeModels = new ArrayList<GuestModel>();
         for (Guest coachee : coachees)
             coacheeModels.add(new GuestModel(coachee, true));

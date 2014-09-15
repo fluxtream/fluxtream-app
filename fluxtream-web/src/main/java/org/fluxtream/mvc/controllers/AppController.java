@@ -52,7 +52,7 @@ public class AppController {
     ConnectorUpdateService connectorUpdateService;
 
     @Autowired
-    CoachingService coachingService;
+    BuddiesService buddiesService;
 
     @Autowired
 	BeanFactory beanFactory;
@@ -154,7 +154,7 @@ public class AppController {
 
         String release = env.get("release");
 		request.setAttribute("guestName", guest.getGuestName());
-        request.setAttribute("coachees", coachingService.getCoachees(guestId));
+        request.setAttribute("coachees", buddiesService.getTrustingBuddies(guestId));
         request.setAttribute("useMinifiedJs", Boolean.valueOf(env.get("useMinifiedJs")));
 
 		if (SecurityUtils.isDemoUser())

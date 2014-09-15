@@ -16,7 +16,7 @@ import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.domain.Notification;
 import org.fluxtream.core.domain.SharedConnector;
 import org.fluxtream.core.services.ApiDataService;
-import org.fluxtream.core.services.CoachingService;
+import org.fluxtream.core.services.BuddiesService;
 import org.fluxtream.core.services.JPADaoService;
 import org.fluxtream.core.services.SettingsService;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
@@ -62,7 +62,7 @@ public class GoogleCalendarUpdater extends AbstractUpdater implements SettingsAw
     BodyTrackHelper bodyTrackHelper;
 
     @Autowired
-    CoachingService coachingService;
+    BuddiesService buddiesService;
 
     @Override
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception, UpdateFailedException {
@@ -527,6 +527,6 @@ public class GoogleCalendarUpdater extends AbstractUpdater implements SettingsAw
         }
         jsonSettings.put("calendars", sharingSettingsCalendars);
         String toPersist = jsonSettings.toString();
-        coachingService.setSharedConnectorFilter(sharedConnector.getId(), toPersist);
+        buddiesService.setSharedConnectorFilter(sharedConnector.getId(), toPersist);
     }
 }

@@ -17,7 +17,7 @@ define(["sharedConnectorSettings/evernote", "sharedConnectorSettings/google_cale
     function updateCoachesDropdown(username) {
         if (username==null)
             username = "< Please select a buddy >";
-        $.ajax("/api/v1/coaching/coaches",{
+        $.ajax("/api/v1/buddies/trusted",{
             success:function(coaches){
             App.loadMustacheTemplate("settingsTemplates.html","coachesDropdown",function(template){
                 var html = template.render({coaches : coaches, selectedCoach : username});
@@ -49,7 +49,7 @@ define(["sharedConnectorSettings/evernote", "sharedConnectorSettings/google_cale
 
     function findUser(username) {
         $.ajax({
-            url: "/api/v1/coaching/coaches/find",
+            url: "/api/v1/buddies/find",
             data: {username : username},
             type: "POST",
             statusCode: {
@@ -64,11 +64,13 @@ define(["sharedConnectorSettings/evernote", "sharedConnectorSettings/google_cale
                     $("#shareMyDataButton").removeClass("disabled");
                 },
                 404: function(jqXHR, statusText, errorThrown) {
+                    $(".loading-animation").hide();
                     $("#findUserMessage").html("<i class=\"icon-exclamation-sign\"></i> " + errorThrown + ": " + jqXHR.responseText);
                     $("#findUserMessage").addClass("alert alert-error");
                     $("#shareMyDataButton").addClass("disabled");
                 },
                 400: function(jqXHR, statusText, errorThrown) {
+                    $(".loading-animation").hide();
                     $("#findUserMessage").html("<i class=\"icon-exclamation-sign\"></i> " + errorThrown + ": " + jqXHR.responseText);
                     $("#findUserMessage").addClass("alert alert-error");
                     $("#shareMyDataButton").addClass("disabled");
@@ -78,7 +80,7 @@ define(["sharedConnectorSettings/evernote", "sharedConnectorSettings/google_cale
     }
 
     function showCoach(username) {
-        $.ajax("/api/v1/coaching/coaches/" + username + "/connectors",{
+        $.ajax("/api/v1/buddies/trusted/" + username + "/connectors",{
             success:function(coach) {
                 App.loadMustacheTemplate("settingsTemplates.html","sharedConnectors",function(template){
                     updateCoachesDropdown(username);
@@ -109,7 +111,7 @@ define(["sharedConnectorSettings/evernote", "sharedConnectorSettings/google_cale
 
     function addCoach(username) {
         $.ajax({
-            url: "/api/v1/coaching/coaches/"+username,
+            url: "/api/v1/buddies/trusted/"+username,
             type: "POST",
             success: function(status) {
                 $('#findUserModal').modal('hide');
@@ -120,7 +122,7 @@ define(["sharedConnectorSettings/evernote", "sharedConnectorSettings/google_cale
 
     function removeCoach(username) {
         $.ajax({
-            url: "/api/v1/coaching/coaches/"+username,
+            url: "/api/v1/buddies/trusted/"+username,
             type: "DELETE",
             success: function(status) {
                 $("#removeCoachButton").remove();
@@ -142,7 +144,7 @@ define(["sharedConnectorSettings/evernote", "sharedConnectorSettings/google_cale
 
     function addSharedConnector(username, connectorName) {
         $.ajax({
-            url: "/api/v1/coaching/coaches/" + username + "/connectors/" + connectorName,
+            url: "/api/v1/buddies/trusted/" + username + "/connectors/" + connectorName,
             data: {connectorName : connectorName},
             type: "POST",
             success: function() {console.log("OK")}
@@ -151,7 +153,7 @@ define(["sharedConnectorSettings/evernote", "sharedConnectorSettings/google_cale
 
     function removeSharedConnector(username, connectorName) {
         $.ajax({
-            url: "/api/v1/coaching/coaches/" + username + "/connectors/" + connectorName,
+            url: "/api/v1/buddies/trusted/" + username + "/connectors/" + connectorName,
             type: "DELETE",
             success: function() {console.log("OK")}
         });

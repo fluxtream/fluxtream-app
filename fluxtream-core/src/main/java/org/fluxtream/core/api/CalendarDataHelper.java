@@ -11,7 +11,7 @@ import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.metadata.AbstractTimespanMetadata;
 import org.fluxtream.core.mvc.models.TimeBoundariesModel;
 import org.fluxtream.core.services.ApiDataService;
-import org.fluxtream.core.services.CoachingService;
+import org.fluxtream.core.services.BuddiesService;
 import org.fluxtream.core.services.GuestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,7 +26,7 @@ public class CalendarDataHelper {
     private GuestService guestService;
 
     @Autowired
-    private CoachingService coachingService;
+    private BuddiesService buddiesService;
 
 	/**
 	 * This is to let the client discard responses that are coming "too late"
@@ -44,11 +44,11 @@ public class CalendarDataHelper {
                                          List<String> dates) {
         List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         try {
-            if (AuthHelper.isViewingGranted(connector.getName(), coachingService)) {
+            if (AuthHelper.isViewingGranted(connector.getName(), buddiesService)) {
                 final ApiKey apiKey = guestService.getApiKey(AuthHelper.getVieweeId(), connector);
                 facets = apiDataService.getApiDataFacets(apiKey, objectType,
                         dates);
-                facets = coachingService.filterFacets(AuthHelper.getGuestId(), apiKey.getId(), facets);
+                facets = buddiesService.filterFacets(AuthHelper.getGuestId(), apiKey.getId(), facets);
             }
         } catch (Throwable t) {
             t.printStackTrace();
@@ -60,10 +60,10 @@ public class CalendarDataHelper {
 			ObjectType objectType, AbstractTimespanMetadata timespanMetadata) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 		try {
-            if (AuthHelper.isViewingGranted(connector.getName(), coachingService)) {
+            if (AuthHelper.isViewingGranted(connector.getName(), buddiesService)) {
                 final ApiKey apiKey = guestService.getApiKey(AuthHelper.getVieweeId(), connector);
                 facets = apiDataService.getApiDataFacets(apiKey, objectType, timespanMetadata.getTimeInterval());
-                facets = coachingService.filterFacets(AuthHelper.getGuestId(), apiKey.getId(), facets);
+                facets = buddiesService.filterFacets(AuthHelper.getGuestId(), apiKey.getId(), facets);
             }
 		} catch (Throwable t) {
 			t.printStackTrace();
@@ -74,11 +74,11 @@ public class CalendarDataHelper {
     public List<AbstractRepeatableFacet> getFacets(final Connector connector, final ObjectType objectType, final String startDate, final String endDate) {
         List<AbstractRepeatableFacet> facets = new ArrayList<AbstractRepeatableFacet>();
         try {
-            if (AuthHelper.isViewingGranted(connector.getName(), coachingService)) {
+            if (AuthHelper.isViewingGranted(connector.getName(), buddiesService)) {
                 final ApiKey apiKey = guestService.getApiKey(AuthHelper.getVieweeId(), connector);
                 facets = apiDataService.getApiDataFacets(apiKey, objectType,
                         startDate, endDate);
-                facets = coachingService.filterFacets(AuthHelper.getGuestId(), apiKey.getId(), facets);
+                facets = buddiesService.filterFacets(AuthHelper.getGuestId(), apiKey.getId(), facets);
             }
         } catch (Throwable t) {
             t.printStackTrace();
