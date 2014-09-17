@@ -48,6 +48,10 @@ $(document).ready(function() {
         while (match = search.exec(query))
             params[decode(match[1])] = decode(match[2]);
     })();
+    if (typeof params["signIn"] != "undefined"){
+      enterCredentials();
+    }
+
     $('#toggleLoginPanel').click(function() {
         if ($('#login').is(':visible')) {
             $('#login').slideUp();
@@ -124,9 +128,6 @@ $(document).ready(function() {
     if (typeof params["register"] != "undefined"){
         createAccount(false);
     }
-    if (typeof params["signIn"] != "undefined"){
-        enterCredentials();
-    }
     if (typeof params["accessDenied"] != "undefined"){
         $("#accessDeniedModal").modal();
     }
@@ -184,7 +185,8 @@ function createAccount(isDeveloperAccount) {
 }
 
 function enterCredentials() {
-    $("#xsLoginDialog").modal();
+  $("#xsLoginDialog").modal();
+  $("#f_username_xs").focus();
 }
 
 function showLightbox(index) {
