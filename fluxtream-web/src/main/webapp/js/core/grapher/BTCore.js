@@ -272,7 +272,7 @@ define([], function() {
 					cache   : false,
 					type    : "GET",
                     dataType: 'json',
-					url     : "/api/v1/bodytrack/users/" + App.buddyToAccess.id + "/views",
+					url     : App.apiUri("/api/v1/bodytrack/users/{buddyToAccess.id}/views"),
 					success : function(data, textStatus, jqXHR) {
 						VIEWS.availableList = data.views;
 						if (typeof callback === "function") {
@@ -285,21 +285,21 @@ define([], function() {
 				});
 			},
 
-            delete : function(id,callback){
-                $.ajax({
-                    cache: false,
-                    type : "DELETE",
-                    url  : "/api/v1/bodytrack/users/" + App.buddyToAccess.id + "/views/" + id,
-                    success: function(data, textStatus, jqXHR){
-                        VIEWS.getAvailableList(function(){
-                            callback(true);
-                        });
-                    },
-                    error : function (jqXHR, textStatus, errorThrown){
-                        callback(false);
-                    }
-                })
-            },
+      delete : function(id,callback){
+          $.ajax({
+              cache: false,
+              type : "DELETE",
+              url  : App.apiUri("/api/v1/bodytrack/users/{buddyToAccess.id}/views/" + id),
+              success: function(data, textStatus, jqXHR){
+                  VIEWS.getAvailableList(function(){
+                      callback(true);
+                  });
+              },
+              error : function (jqXHR, textStatus, errorThrown){
+                  callback(false);
+              }
+          })
+      },
 
 			// Set view data
 			load : function(id, callback) {
@@ -307,7 +307,7 @@ define([], function() {
 					cache   : false,
 					type    : "GET",
                     dataType: 'json',
-					url     : "/api/v1/bodytrack/users/" + App.buddyToAccess.id + "/views/" + id,
+					url     : App.apiUri("/api/v1/bodytrack/users/{buddyToAccess.id}/views/" + id),
 					success : function(data, textStatus, jqXHR) {
 						VIEWS.data = data;
 						if (typeof callback === "function") {
@@ -326,7 +326,7 @@ define([], function() {
 					cache   : false,
 					type    : "POST",
                     dataType: 'json',
-					url     : "/api/v1/bodytrack/users/" + App.buddyToAccess.id + "/views",
+					url     : App.apiUri("/api/v1/bodytrack/users/{buddyToAccess.id}/views"),
 					data    : {
 						"name" : name,
 						"data" : JSON.stringify(VIEWS.data)
@@ -366,7 +366,7 @@ define([], function() {
 					cache   : false,
 					type    : "GET",
                     dataType: 'json',
-					url     : "/api/v1/bodytrack/users/" + App.buddyToAccess.id + "/sources/list",
+					url     : App.apiUri("/api/v1/bodytrack/users/{buddyToAccess.id}/sources/list"),
 					success : function(data, textStatus, jqXHR) {
 						SOURCES.availableList = data.sources;
 
@@ -385,7 +385,7 @@ define([], function() {
 					cache   : false,
 					type    : "GET",
                     dataType: 'json',
-					url     : "/bodytrack/users/" + App.buddyToAccess.id + "/sources",
+					url     : App.apiUri("/api/v1/bodytrack/users/{buddyToAccess.id}/sources"),
 					success : function(data, textStatus, jqXHR) {
 						SOURCES.configuredList = data.sources;
 
@@ -404,7 +404,7 @@ define([], function() {
 					cache   : false,
 					type    : "GET",
                     dataType: 'json',
-					url     : "/bodytrack/users/" + App.buddyToAccess.id + "/sources/discovery",
+					url     : App.apiUri("/api/v1/bodytrack/users/{buddyToAccess.id}/sources/discovery"),
 					success : function(data, textStatus, jqXHR) {
 						SOURCES.discoveryList = data.sources;
 
@@ -423,7 +423,7 @@ define([], function() {
 					cache   : false,
 					type    : "GET",
                     dataType: 'json',
-					url     : "/api/v1/bodytrack/users/" + App.buddyToAccess.id + "/sources/" + device_name + "/default_graph_specs",
+					url     : App.apiUri("/api/v1/bodytrack/users/{buddyToAccess.id}/sources/" + device_name + "/default_graph_specs"),
 					success : function(data, textStatus, jqXHR) {
 						if (typeof callback === "function") {
 							callback(data.info);
@@ -436,20 +436,20 @@ define([], function() {
 			}
 	}; // SOURCES
 
-    window.channelDatasource = function(userId, deviceName, channelName) {
-        var urlPrefix = "/api/v1/bodytrack/tiles/" + userId + "/" + deviceName + "."
+    window.channelDatasource = function(deviceName, channelName) {
+        var urlPrefix = "/api/v1/bodytrack/tiles/{buddyToAccess.id}/" + deviceName + "."
                             + channelName + "/";
         return __createDatasource(urlPrefix);
     }
 
-    window.timespanDatasource = function(userId, deviceName, channelName) {
-        var urlPrefix = "/api/v1/bodytrack/timespans/" + userId + "/" + deviceName + "."
+    window.timespanDatasource = function(deviceName, channelName) {
+        var urlPrefix = "/api/v1/bodytrack/timespans/{buddyToAccess.id}/" + deviceName + "."
                             + channelName + "/";
         return __createDatasource(urlPrefix);
     }
 
-    window.photoDatasource = function(userId, deviceName, channelName, tags, matchingStrategy, nsfw) {
-        var urlPrefix = "/api/v1/bodytrack/photos/" + userId + "/"+ (deviceName == null ? "All" : deviceName) + "." + channelName + "/";
+    window.photoDatasource = function(deviceName, channelName, tags, matchingStrategy, nsfw) {
+        var urlPrefix = "/api/v1/bodytrack/photos/{buddyToAccess.id}/"+ (deviceName == null ? "All" : deviceName) + "." + channelName + "/";
         var urlParams = {};
         if (matchingStrategy == 'untagged') {
             urlParams["tag-match"] = matchingStrategy;
@@ -496,7 +496,7 @@ define([], function() {
                 }
             };
             $.ajax({
-                       url     : urlPrefix + level + "." + offset + ".json",
+                       url     : App.apiUri(urlPrefix + level + "." + offset + ".json"),
                        data    : urlParams,
                        success : function(data, textStatus, jqXHR) {
                           // try {
