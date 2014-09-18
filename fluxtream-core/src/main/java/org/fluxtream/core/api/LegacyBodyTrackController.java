@@ -54,6 +54,7 @@ import java.util.*;
 @Component("RESTLegacyBodytrackController")
 @Api(value = "/bodytrack", description = "CSV export and import, timeline-related operations")
 @Scope("request")
+@Deprecated
 public class LegacyBodyTrackController {
 
     private static final FlxLogger LOG = FlxLogger.getLogger(LegacyBodyTrackController.class);
@@ -97,6 +98,7 @@ public class LegacyBodyTrackController {
     @GET
     @Path("/exportCSV/{UID}/fluxtream-export-from-{start}-to-{end}.csv")
     @ApiOperation(value = "CSV export <startTime -> endTime", response = String.class)
+    @Deprecated
     public void exportCSV(@ApiParam(value="Channels", required=true) @QueryParam("channels") String channels,
                           @ApiParam(value="Start time (epoch seconds)", required=true) @PathParam("start") Long start,
                           @ApiParam(value="End time (epoch seconds)", required=true) @PathParam("end") Long end,
@@ -136,6 +138,7 @@ public class LegacyBodyTrackController {
     @GET
     @Path("/exportCSV/{UID}/fluxtream-export-from-{start}.csv")
     @ApiOperation(value = "CSV export <startTime", response = String.class)
+    @Deprecated
     public void exportCSVStartOnly(@ApiParam(value="Channels", required=true) @QueryParam("channels") String channels,
                                    @ApiParam(value="Start time (epoch seconds)", required=true) @PathParam("start") Long start,
                                    @ApiParam(value="User ID (must be ID of loggedIn user)", required=true) @PathParam("UID") Long uid,
@@ -146,6 +149,7 @@ public class LegacyBodyTrackController {
     @GET
     @Path("/exportCSV/{UID}/fluxtream-export-to-{end}.csv")
     @ApiOperation(value = "CSV export <startTime", response = String.class)
+    @Deprecated
     public void exportCSVEndOnly(@ApiParam(value="Channels", required=true) @QueryParam("channels") String channels,
                                  @ApiParam(value="End time (epoch seconds)", required=true) @PathParam("end") Long end,
                                  @ApiParam(value="User ID (must be ID of loggedIn user)", required=true) @PathParam("UID") Long uid,
@@ -156,6 +160,7 @@ public class LegacyBodyTrackController {
     @GET
     @Path("/exportCSV/{UID}/fluxtream-export.csv")
     @ApiOperation(value = "CSV export all data for given user id", response = String.class)
+    @Deprecated
     public void exportCSVNoParams(@ApiParam(value="Channels", required=true) @QueryParam("channels") String channels,
                                   @ApiParam(value="User ID (must be ID of loggedIn user)", required=true) @PathParam("UID") Long uid,
                                   @Context HttpServletResponse response){
@@ -167,6 +172,7 @@ public class LegacyBodyTrackController {
 	@Path("/uploadHistory")
     @Secured("ROLE_ADMIN")
 	@Produces({ MediaType.APPLICATION_JSON })
+    @Deprecated
 	public String loadHistory(@QueryParam("username") String username,
 			@QueryParam("connectorName") String connectorName) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
@@ -193,6 +199,7 @@ public class LegacyBodyTrackController {
     @Path("/users/{UID}/views/{id}")
     @ApiOperation(value = "Delete a view", response = String.class)
     @Produces({ MediaType.APPLICATION_JSON })
+    @Deprecated
     public String deleteBodytrackView(@ApiParam(value="User ID (must be ID of loggedIn user)", required=true) @PathParam("UID") Long uid,
                                       @ApiParam(value="View ID", required=true) @PathParam("id") long viewId){
         StatusModel status;
@@ -213,8 +220,11 @@ public class LegacyBodyTrackController {
     @Path("/upload")
     @Consumes({MediaType.MULTIPART_FORM_DATA,MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})
-    public String uploadToBodytrack(@FormParam("dev_nickname") String deviceNickname, @FormParam("channel_names") String channels,
-                                    @FormParam("data") String data){
+    @ApiOperation(value = "Upload binary data via multipart encoding for the current logged in user", response = String.class)
+    @Deprecated
+    public String uploadToBodytrack(@ApiParam(value="The device to upload the data for", required=true) @FormParam("dev_nickname") String deviceNickname,
+                                    @ApiParam(value="JSON encoded array of channels being uploaded for", required=true) @FormParam("channel_names") String channels,
+                                    @ApiParam(value="Multipart form data to be uploaded", required=true)  @FormParam("data") String data){
         StatusModel status;
         try{
             long guestId = AuthHelper.getGuestId();
@@ -264,7 +274,10 @@ public class LegacyBodyTrackController {
     @POST
     @Path("/jupload")
     @Produces({MediaType.APPLICATION_JSON})
-    public String uploadJsonToBodytrack(@QueryParam("dev_nickname")  String deviceNickname, String body){
+    @ApiOperation(value = "Upload JSON data for current logged in user", response = String.class)
+    @Deprecated
+    public String uploadJsonToBodytrack(@ApiParam(value="The device to upload the data for", required=true) @QueryParam("dev_nickname")  String deviceNickname,
+                                        @ApiParam(value="The data to upload", required=true) String body){
         StatusModel status;
         try{
             long uid = AuthHelper.getGuestId();
@@ -308,7 +321,10 @@ public class LegacyBodyTrackController {
     @Path("/photoUpload")
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
-    public Response handlePhotoUpload(@QueryParam("connector_name") final String connectorName, final MultiPart multiPart) {
+    @ApiOperation(value = "Upload a photo for the current logged in user", response = String.class)
+    @Deprecated
+    public Response handlePhotoUpload(@ApiParam(value="Connector to upload the photo for", required=true) @QueryParam("connector_name") final String connectorName,
+                                      @ApiParam(value="Multipart encoded photo data", required=true) final MultiPart multiPart) {
         Response response;
 
         final Connector connector = Connector.getConnector(connectorName);
@@ -420,8 +436,10 @@ public class LegacyBodyTrackController {
 
     @GET
     @Path("/photo/{UID}.{PhotoStoreKeySuffix}")
-    public Response getFluxtreamCapturePhoto(@PathParam("UID") final Long uid,
-                                             @PathParam("PhotoStoreKeySuffix") final String photoStoreKeySuffix,
+    @ApiOperation(value="Retrieve a specific photo by photo store key suffix")
+    @Deprecated
+    public Response getFluxtreamCapturePhoto(@ApiParam(value="User ID", required=true) @PathParam("UID") final Long uid,
+                                             @ApiParam(value="Photo Store Key Suffix", required=true) @PathParam("PhotoStoreKeySuffix") final String photoStoreKeySuffix,
                                              @Context final Request request) {
 
         return getFluxtreamCapturePhoto(uid, request, new FluxtreamCapturePhotoFetchStrategy() {
@@ -443,9 +461,11 @@ public class LegacyBodyTrackController {
 
     @GET
     @Path("/photoThumbnail/{UID}/{PhotoId}/{ThumbnailIndex}")
-    public Response getFluxtreamCapturePhotoThumbnail(@PathParam("UID") final long uid,
-                                                      @PathParam("PhotoId") final long photoId,
-                                                      @PathParam("ThumbnailIndex") final int thumbnailIndex,
+    @ApiOperation(value="Retrieve a specific photo thumbnail")
+    @Deprecated
+    public Response getFluxtreamCapturePhotoThumbnail(@ApiParam(value="User ID", required=true) @PathParam("UID") final long uid,
+                                                      @ApiParam(value="Photo ID", required=true) @PathParam("PhotoId") final long photoId,
+                                                      @ApiParam(value="Thumbnail ID", required=true) @PathParam("ThumbnailIndex") final int thumbnailIndex,
                                                       @Context final Request request) {
 
         return getFluxtreamCapturePhoto(uid, request, new FluxtreamCapturePhotoFetchStrategy() {
@@ -548,9 +568,14 @@ public class LegacyBodyTrackController {
 
     @GET
     @Path("/tiles/{UID}/{DeviceNickname}.{ChannelName}/{Level}.{Offset}.json")
+    @ApiOperation(value="Get data tile for a given channel", response=String.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public String fetchTile(@PathParam("UID") Long uid, @PathParam("DeviceNickname") String deviceNickname,
-                                   @PathParam("ChannelName") String channelName, @PathParam("Level") int level, @PathParam("Offset") long offset){
+    @Deprecated
+    public String fetchTile(@ApiParam(value="User ID", required=true) @PathParam("UID") Long uid,
+                            @ApiParam(value="Device Name", required=true) @PathParam("DeviceNickname") String deviceNickname,
+                            @ApiParam(value="Channel Name", required=true) @PathParam("ChannelName") String channelName,
+                            @ApiParam(value="Level of tile", required=true) @PathParam("Level") int level,
+                            @ApiParam(value="Offset of tile", required=true) @PathParam("Offset") long offset){
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
@@ -566,8 +591,10 @@ public class LegacyBodyTrackController {
 
     @GET
     @Path("/users/{UID}/views")
+    @ApiOperation(value="Get a list of available views", response=String.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public String getViews(@PathParam("UID") Long uid) {
+    @Deprecated
+    public String getViews(@ApiParam(value="User ID", required=true) @PathParam("UID") Long uid) {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
@@ -584,8 +611,11 @@ public class LegacyBodyTrackController {
 
     @GET
     @Path("/users/{UID}/views/{id}")
+    @ApiOperation(value="Retrieve a specific view", response=String.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public String bodyTrackView(@PathParam("UID") Long uid, @PathParam("id") long id) {
+    @Deprecated
+    public String bodyTrackView(@ApiParam(value="User ID", required=true) @PathParam("UID") Long uid,
+                                @ApiParam(value="View ID", required= true) @PathParam("id") long id) {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
@@ -604,8 +634,12 @@ public class LegacyBodyTrackController {
 
     @POST
     @Path("/users/{UID}/views")
+    @ApiOperation(value="Create a new view with given name and data", response = String.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public String setView(@PathParam("UID") Long uid, @FormParam("name") String name, @FormParam("data") String data) {
+    @Deprecated
+    public String setView(@ApiParam(value="User ID", required = true) @PathParam("UID") Long uid,
+                          @ApiParam(value="View name", required = true) @FormParam("name") String name,
+                          @ApiParam(value="View data", required = true)  @FormParam("data") String data) {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
@@ -623,8 +657,10 @@ public class LegacyBodyTrackController {
 
     @GET
     @Path("/users/{UID}/sources/list")
+    @ApiOperation(value="Retrieves a list of devices and channels that data can be retrieved from", response=String.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public String getSourceList(@PathParam("UID") Long uid) {
+    @Deprecated
+    public String getSourceList(@ApiParam(value= "User ID", required= true) @PathParam("UID") Long uid) {
         try{
             final long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
@@ -645,8 +681,11 @@ public class LegacyBodyTrackController {
 
     @GET
     @Path(value = "/users/{UID}/sources/{source}/default_graph_specs")
+    @ApiOperation(value = "Retrieves the default grapher settings for a device", response=String.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public String bodyTrackGetDefaultGraphSpecs(@PathParam("UID") Long uid, @PathParam("source") String name) {
+    @Deprecated
+    public String bodyTrackGetDefaultGraphSpecs(@ApiParam(value="User ID", required = true) @PathParam("UID") Long uid,
+                                                @ApiParam(value="Device name", required=true) @PathParam("source") String name) {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
@@ -664,8 +703,10 @@ public class LegacyBodyTrackController {
 
     @GET
     @Path(value = "/users/{UID}/tags")
+    @ApiOperation(value = "Retrieve all tags for a user", response=String.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public String getAllTagsForUser(@PathParam("UID") Long uid) {
+    @Deprecated
+    public String getAllTagsForUser(@ApiParam(value="User ID", required = true) @PathParam("UID") Long uid) {
         try {
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
@@ -682,9 +723,13 @@ public class LegacyBodyTrackController {
 
     @POST
     @Path("/users/{UID}/channels/{DeviceNickname}.{ChannelName}/set")
+    @ApiOperation(value = "Set the default style for a channel", response=String.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public String setDefaultStyle(@PathParam("UID") Long uid, @PathParam("DeviceNickname") String deviceNickname,
-                                @PathParam("ChannelName") String channelName, @FormParam("user_default_style") String style) {
+    @Deprecated
+    public String setDefaultStyle(@ApiParam(value="User ID", required = true) @PathParam("UID") Long uid,
+                                  @ApiParam(value="Device name", required = true) @PathParam("DeviceNickname") String deviceNickname,
+                                  @ApiParam(value="Channel name", required = true) @PathParam("ChannelName") String channelName,
+                                  @ApiParam(value="Style data", required = true) @FormParam("user_default_style") String style) {
         try{
             if (!checkForPermissionAccess(uid)){
                 uid = null;
@@ -699,12 +744,14 @@ public class LegacyBodyTrackController {
 
     @GET
     @Path("/timespans/{UID}/{ConnectorName}.{ObjectTypeName}/{Level}.{Offset}.json")
+    @ApiOperation(value = "Retrieve a timespan tile", response=String.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public String fetchTimespanTile(@PathParam("UID") Long uid,
-                                 @PathParam("ConnectorName") String connectorName,
-                                 @PathParam("ObjectTypeName") String objectTypeName,
-                                 @PathParam("Level") int level,
-                                 @PathParam("Offset") long offset) {
+    @Deprecated
+    public String fetchTimespanTile(@ApiParam(value="User ID", required = true) @PathParam("UID") Long uid,
+                                    @ApiParam(value="Connector Name", required = true) @PathParam("ConnectorName") String connectorName,
+                                    @ApiParam(value="Object Type Name", required = true) @PathParam("ObjectTypeName") String objectTypeName,
+                                    @ApiParam(value="Tile level", required = true) @PathParam("Level") int level,
+                                    @ApiParam(value="Tile offset", required = true) @PathParam("Offset") long offset) {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
@@ -764,14 +811,16 @@ public class LegacyBodyTrackController {
 
     @GET
     @Path("/photos/{UID}/{ConnectorPrettyName}.{ObjectTypeName}/{Level}.{Offset}.json")
+    @ApiOperation(value = "Retrieve a photo tile", response=String.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public String fetchPhotoTile(@PathParam("UID") Long uid,
-                                 @PathParam("ConnectorPrettyName") String connectorPrettyName,
-                                 @PathParam("ObjectTypeName") String objectTypeName,
-                                 @PathParam("Level") int level,
-                                 @PathParam("Offset") long offset,
-                                 @QueryParam("tags") String tagsStr,
-                                 @QueryParam("tag-match") String tagMatchingStrategyName) {
+    @Deprecated
+    public String fetchPhotoTile(@ApiParam(value="User ID", required = true) @PathParam("UID") Long uid,
+                                 @ApiParam(value="Connector name", required = true) @PathParam("ConnectorPrettyName") String connectorPrettyName,
+                                 @ApiParam(value="Object type name", required = true) @PathParam("ObjectTypeName") String objectTypeName,
+                                 @ApiParam(value="Tile level", required = true) @PathParam("Level") int level,
+                                 @ApiParam(value="Tile offset", required = true) @PathParam("Offset") long offset,
+                                 @ApiParam(value="Tags for filtering", required = true) @QueryParam("tags") String tagsStr,
+                                 @ApiParam(value="Tag matching strategy", required = true) @QueryParam("tag-match") String tagMatchingStrategyName) {
         try {
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
@@ -842,16 +891,17 @@ public class LegacyBodyTrackController {
 
     @GET
     @Path("/photos/{UID}/{ConnectorPrettyName}.{ObjectTypeName}/{unixTime}/{count}")
+    @ApiOperation(value="Get photos at a given time", response=String.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public String getPhotosBeforeOrAfterTime(@PathParam("UID") long uid,
-                                             @PathParam("ConnectorPrettyName") String connectorPrettyName,
-                                             @PathParam("ObjectTypeName") String objectTypeName,
-                                             @PathParam("unixTime") double unixTimeInSecs,
-                                             @PathParam("count") int desiredCount,
-                                             @QueryParam("isBefore") boolean isGetPhotosBeforeTime,
-                                             @QueryParam("tags") String tagsStr,
-                                             @QueryParam("tag-match") String tagMatchingStrategyName
-                                             ) {
+    @Deprecated
+    public String getPhotosBeforeOrAfterTime(@ApiParam(value="User ID", required = true) @PathParam("UID") long uid,
+                                             @ApiParam(value="Connector name", required = true) @PathParam("ConnectorPrettyName") String connectorPrettyName,
+                                             @ApiParam(value="Object type name", required = true) @PathParam("ObjectTypeName") String objectTypeName,
+                                             @ApiParam(value="Timestamp (epoch seconds)", required = true) @PathParam("unixTime") double unixTimeInSecs,
+                                             @ApiParam(value="Photo count limit", required = true) @PathParam("count") int desiredCount,
+                                             @ApiParam(value="Is before time", required = true) @QueryParam("isBefore") boolean isGetPhotosBeforeTime,
+                                             @ApiParam(value="Tags for matching", required = true) @QueryParam("tags") String tagsStr,
+                                             @ApiParam(value="Tag matching strategy", required = true) @QueryParam("tag-match") String tagMatchingStrategyName) {
         try {
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
@@ -881,11 +931,13 @@ public class LegacyBodyTrackController {
 
     @GET
     @Path("/metadata/{UID}/{ConnectorName}.{ObjectTypeName}/{facetId}/get")
+    @ApiOperation(value="Get the metadata for a facet", response=String.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getFacetMetadata(@PathParam("UID") Long uid,
-                                   final @PathParam("ConnectorName") String connectorName,
-                                   final @PathParam("ObjectTypeName") String objectTypeName,
-                                   final @PathParam("facetId") long facetId) {
+    @Deprecated
+    public Response getFacetMetadata(@ApiParam(value="User ID", required = true) @PathParam("UID") Long uid,
+                                     @ApiParam(value="Connector name", required = true) final @PathParam("ConnectorName") String connectorName,
+                                     @ApiParam(value="Object type name", required = true) final @PathParam("ObjectTypeName") String objectTypeName,
+                                     @ApiParam(value="Facet ID", required = true) final @PathParam("facetId") long facetId) {
 
         return executeFacetMetaDataOperation(uid, connectorName, objectTypeName, facetId, new FacetMetaDataOperation() {
             @Override
@@ -898,13 +950,15 @@ public class LegacyBodyTrackController {
 
     @POST
     @Path("/metadata/{UID}/{ConnectorName}.{ObjectTypeName}/{facetId}/set")
+    @ApiOperation(value="Set the metadata for a facet", response=String.class)
     @Produces({MediaType.APPLICATION_JSON})
-    public Response setFacetMetadata(final @PathParam("UID") long uid,
-                                     final @PathParam("ConnectorName") String connectorName,
-                                     final @PathParam("ObjectTypeName") String objectTypeName,
-                                     final @PathParam("facetId") long facetId,
-                                     final @FormParam("comment") String comment,
-                                     final @FormParam("tags") String tags) {
+    @Deprecated
+    public Response setFacetMetadata(@ApiParam(value="User ID", required = true) final @PathParam("UID") long uid,
+                                     @ApiParam(value="Connector name", required = true) final @PathParam("ConnectorName") String connectorName,
+                                     @ApiParam(value="Object type name", required = true) final @PathParam("ObjectTypeName") String objectTypeName,
+                                     @ApiParam(value="Facet ID", required = true) final @PathParam("facetId") long facetId,
+                                     @ApiParam(value="Comment", required = true) final @FormParam("comment") String comment,
+                                     @ApiParam(value="Tags", required = true) final @FormParam("tags") String tags) {
 
         // don't bother doing anything if comment and tags are both null
         if (comment != null || tags != null) {
