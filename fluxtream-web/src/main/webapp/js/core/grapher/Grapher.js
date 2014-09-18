@@ -2115,7 +2115,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
 
         return function (pointObj, sourceInfo){
             var timespanObject = sourceInfo.info.timespanInfo;
-            $.ajax("/api/v1/connectors/" + timespanObject.objectType + "/data?start=" + timespanObject.start * 1000 + "&end=" + timespanObject.end * 1000 + "&value=" + encodeURIComponent(timespanObject.value),{
+            $.ajax(App.apiUri("/api/v1/connectors/" + timespanObject.objectType + "/data?buddyToAccess={buddyToAccess.id}&start=" + timespanObject.start * 1000 + "&end=" + timespanObject.end * 1000 + "&value=" + encodeURIComponent(timespanObject.value)),{
                 success: function(facets){
                     $.ajax("/api/v1/metadata/cities?start=" + timespanObject.start * 1000 + "&end=" + timespanObject.end * 1000,{
                         success: function(cities){
