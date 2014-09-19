@@ -202,6 +202,12 @@ public class BuddiesServiceImpl implements BuddiesService {
     }
 
     @Override
+    public List<SharedConnector> getSharedConnectors(long trustedBuddyId, long trustingBuddyId) {
+        final List<SharedConnector> conns = JPAUtils.find(em, SharedConnector.class, "sharedConnector.byTrustedBuddyId", trustingBuddyId, trustedBuddyId);
+        return conns;
+    }
+
+    @Override
     public List<SharedConnector> getSharedConnectors(final ApiKey apiKey) {
         final List<SharedConnector> conns = JPAUtils.find(em, SharedConnector.class, "sharedConnector.byConnectorNameAndVieweeId", apiKey.getConnector().getName(), apiKey.getGuestId());
         return conns;

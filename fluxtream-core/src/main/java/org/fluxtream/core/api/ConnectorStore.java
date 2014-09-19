@@ -225,22 +225,18 @@ public class ConnectorStore {
                 }
             }
             if (buddyToAccessParameter!=null) {
-                // if we're looking at a buddy's connectors, let's show only those he shared with this user
+                final List<SharedConnector> sharedConnectors = buddiesService.getSharedConnectors(AuthHelper.getGuestId(), coachee.guestId);
                 List<ConnectorModelFull> unshared = new ArrayList<ConnectorModelFull>();
-                for (ConnectorInfo connector : connectors) {
-                    final List<ApiKey> apiKeys = guestService.getApiKeys(guest.getId(), Connector.fromValue(connector.api));
-                    for (ApiKey apiKey : apiKeys) {
-                        if (buddiesService.getSharedConnector(apiKey.getId(), AuthHelper.getGuestId()) == null) {
-                            for (ConnectorModelFull connectorModelFull : connectorsArray) {
-                                // WARNING: this is using the connector's name
-                                // (using the apiKeyId seems to be buggy in a weird way)
-                                if (connectorModelFull.connectorName.equals(apiKey.getConnector().getName())) {
-                                    unshared.add(connectorModelFull);
-                                }
-                            }
-                        }
+
+                eachTrustingBuddyConnector:for (int i=0; i<connectorsArray.size(); i++) {
+                    ConnectorModelFull fullModel = connectorsArray.get(i);
+                    for (SharedConnector sharedConnector : sharedConnectors) {
+                        if (sharedConnector.connectorName.equals(fullModel.connectorName))
+                            continue eachTrustingBuddyConnector;
                     }
+                    unshared.add(fullModel);
                 }
+
                 for (ConnectorModelFull toRemove : unshared) {
                     for (int i=0; i<connectorsArray.size(); i++) {
                         ConnectorModelFull fullModel = connectorsArray.get(i);

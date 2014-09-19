@@ -476,6 +476,13 @@ define(
             }
         };
 
+        App.apiUri = function(uri) {
+          if (uri.indexOf("{buddyToAccess.id}")!=-1) {
+            return uri.replace("{buddyToAccess.id}", App.buddyToAccess.id);
+          }
+          return uri;
+        }
+
         function fetchGuestInfo(andDoThisAfter, buddyToAccessParam) {
             var url = "/api/v1/guest?includeAvatar=true";
             if (buddyToAccessParam)url+="&"+App.BUDDY_TO_ACCESS_PARAM+"="+buddyToAccessParam;
