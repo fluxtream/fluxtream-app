@@ -240,15 +240,20 @@ public class LegacyBodyTrackController {
                 List<Object> currentList = new ArrayList<Object>();
                 parsedData.add(currentList);
                 for (JsonElement dataPoint : e.getAsJsonArray()){
-                    JsonPrimitive primitive = dataPoint.getAsJsonPrimitive();
-                    if (primitive.isBoolean()){
-                        currentList.add(primitive.getAsBoolean());
-                    }
-                    else if (primitive.isString()){
-                        currentList.add(primitive.getAsString());
+                    if (dataPoint instanceof JsonNull){
+                        currentList.add(null);
                     }
                     else{
-                        currentList.add(primitive.getAsDouble());
+                        JsonPrimitive primitive = dataPoint.getAsJsonPrimitive();
+                        if (primitive.isBoolean()){
+                            currentList.add(primitive.getAsBoolean());
+                        }
+                        else if (primitive.isString()){
+                            currentList.add(primitive.getAsString());
+                        }
+                        else{
+                            currentList.add(primitive.getAsDouble());
+                        }
                     }
                 }
             }
