@@ -47,7 +47,7 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
                     MovesMoveFacet moveFacet = (MovesMoveFacet) facet;
                     for (MovesActivity activity : moveFacet.getActivities()){
                         BodyTrackHelper.TimespanStyle style = new BodyTrackHelper.TimespanStyle();
-                        style.iconURL = String.format("/images/moves/" + activity.activity + ".png", env.get("release"));
+                        style.iconURL = String.format("images/moves/" + activity.activity + ".png", env.get("release"));
                         final TimespanModel moveTimespanModel = new TimespanModel(activity.start, activity.end, activity.activity, objectTypeName, style);
                         items.add(moveTimespanModel);
                     }
@@ -74,7 +74,7 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
         List l = jpaDaoService.executeNativeQuery("SELECT type, foursquareId FROM Facet_MovesPlace WHERE apiKeyId=(?1) AND id=(?2)", apiKeyId, id);
         String homeBaseUrl = env.get("homeBaseUrl");
         if (l==null||l.size()==0)
-            return homeBaseUrl+"/images/moves/unknown.png";
+            return homeBaseUrl+"images/moves/unknown.png";
         final Object[] singleResult = (Object[])l.get(0);
         String type = (String) singleResult[0];
         if (type.equals("foursquare")) {
@@ -82,7 +82,7 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
             final FoursquareVenue foursquareVenue = metadataService.getFoursquareVenue(foursquareId);
             return foursquareVenue.categoryIconUrlPrefix + "bg_32" + foursquareVenue.categoryIconUrlSuffix;
         } else {
-            return homeBaseUrl+"/images/moves/" + type + ".png";
+            return homeBaseUrl+"images/moves/" + type + ".png";
         }
     }
 
