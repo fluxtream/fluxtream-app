@@ -36,6 +36,7 @@ import static org.fluxtream.core.utils.Utils.hash;
 @Component("RESTLegacyGuestController")
 @Api(value = "/guest", description = "Retrieve guest information")
 @Scope("request")
+@Deprecated
 public class LegacyGuestController {
 
 	@Autowired
@@ -53,6 +54,7 @@ public class LegacyGuestController {
 	@Path("/")
 	@Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "Retrieve information on the currently logged in's guest", response = StatusModel.class)
+    @Deprecated
 	public Object getCurrentGuest() throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
         try{
@@ -72,6 +74,7 @@ public class LegacyGuestController {
     @Path("/avatarImage")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Retrieve the avatar (gravatar) of the currently logged in's guest", response = String.class)
+    @Deprecated
     public String getAvatarImage() {
         Guest guest = AuthHelper.getGuest();
         JSONObject json = new JSONObject();
@@ -139,6 +142,7 @@ public class LegacyGuestController {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Retrieve the currently logged in guest's list of coachees", responseContainer = "array",
             response = GuestModel.class)
+    @Deprecated
     public List<GuestModel> getCoachees() {
         Guest guest = AuthHelper.getGuest();
         final List<Guest> coachees = buddiesService.getTrustedBuddies(guest.getId());
