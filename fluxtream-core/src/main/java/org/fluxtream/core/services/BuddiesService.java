@@ -36,6 +36,8 @@ public interface BuddiesService {
 
     SharedConnector getSharedConnector(long apiKeyId, long viewerId);
 
+    List<SharedConnector> getSharedConnectors(long trustedBuddyId, long trustingBuddyId);
+
     List<SharedConnector> getSharedConnectors(ApiKey apiKey);
 
     void setSharedConnectorFilter(long sharedConnectorId, String filterJson);
