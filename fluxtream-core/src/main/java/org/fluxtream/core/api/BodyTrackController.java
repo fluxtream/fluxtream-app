@@ -574,13 +574,13 @@ public class BodyTrackController {
             if (!accessAllowed&&coachee==null){
                 uid = null;
             }
-            if (coachee!=null) {
-                ApiKey apiKey = getApiKeyFromDeviceNickname(deviceNickname, coachee.guestId);
-                if (apiKey==null)
-                    return Response.status(Response.Status.BAD_REQUEST).entity("Couldn't find connector with device nickname=" + deviceNickname).build();
-                else if (buddiesService.getSharedConnector(apiKey.getId(), AuthHelper.getGuestId())==null)
-                    return Response.status(Response.Status.UNAUTHORIZED).entity("Access denied to device " + deviceNickname).build();
-            }
+//            if (coachee!=null) {
+//                ApiKey apiKey = getApiKeyFromDeviceNickname(deviceNickname, coachee.guestId);
+//                if (apiKey==null)
+//                    return Response.status(Response.Status.BAD_REQUEST).entity("Couldn't find connector with device nickname=" + deviceNickname).build();
+//                else if (buddiesService.getSharedConnector(apiKey.getId(), AuthHelper.getGuestId())==null)
+//                    return Response.status(Response.Status.UNAUTHORIZED).entity("Access denied to device " + deviceNickname).build();
+//            }
             return Response.ok(bodyTrackHelper.fetchTile(uid, deviceNickname, channelName, level, offset)).build();
         } catch (Exception e) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
