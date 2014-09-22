@@ -1,6 +1,7 @@
 package org.fluxtream.core.services.impl;
 
 import com.google.gson.*;
+import com.wordnik.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.TimeInterval;
@@ -722,8 +723,8 @@ public class BodyTrackHelper {
         private final SortedSet<String> tags = new TreeSet<String>();
     }
 
-    private static class ViewsList{
-        LinkedList<ViewStub> views = new LinkedList<ViewStub>();
+    public static class ViewsList{
+        public LinkedList<ViewStub> views = new LinkedList<ViewStub>();
 
         void populateViews(EntityManager em, Gson gson, long guestId){
             List<GrapherView> viewList = JPAUtils.find(em, GrapherView.class,"grapherView",guestId);
@@ -734,14 +735,14 @@ public class BodyTrackHelper {
     }
 
     public static class AddViewResult extends ViewsList{
-        long saved_view_id;
+        public long saved_view_id;
     }
 
-    private static class ViewStub{
-        long id;
-        long last_used;
-        String name;
-        AxisRange time_range;
+    public static class ViewStub{
+        public long id;
+        public long last_used;
+        public String name;
+        public AxisRange time_range;
 
         public ViewStub(GrapherView view,Gson gson){
             id = view.getId();
@@ -755,20 +756,20 @@ public class BodyTrackHelper {
 
     }
 
-    private static class ViewJSON{
-        String name;
-        ViewData v2;
+    public static class ViewJSON{
+        public String name;
+        public ViewData v2;
     }
 
-    private static class ViewData{
-        AxisRange x_axis;
-        boolean show_add_pane;
-        ArrayList<ViewChannelData> y_axes;
+    public static class ViewData{
+        public AxisRange x_axis;
+        public boolean show_add_pane;
+        public ArrayList<ViewChannelData> y_axes;
     }
 
-    private static class AxisRange{
-        double min;
-        double max;
+    public static class AxisRange{
+        public double min;
+        public double max;
     }
 
     public static class GetTileResponse{
