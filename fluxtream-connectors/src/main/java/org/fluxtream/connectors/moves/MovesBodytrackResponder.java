@@ -47,7 +47,7 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
                     MovesMoveFacet moveFacet = (MovesMoveFacet) facet;
                     for (MovesActivity activity : moveFacet.getActivities()){
                         BodyTrackHelper.TimespanStyle style = new BodyTrackHelper.TimespanStyle();
-                        style.iconURL = String.format("images/moves/" + activity.activity + ".png", env.get("release"));
+                        style.iconURL = String.format(env.get("homeBaseUrl")+"%s/images/moves/" + activity.activity + ".png", env.get("release"));
                         final TimespanModel moveTimespanModel = new TimespanModel(activity.start, activity.end, activity.activity, objectTypeName, style);
                         items.add(moveTimespanModel);
                     }

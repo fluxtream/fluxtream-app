@@ -516,7 +516,7 @@ define(["core/grapher/BTCore"],function(BTCore){
 
                     // set focus on the comment input, and select all the text
                     $("#photoDialog #_timeline_photo_dialog_comment").select().focus();
-
+                    $(".ui-autocomplete").css("z-index", "10000");
                 };
 
                 // create the comment and tag form, hide the status area, and show the form
