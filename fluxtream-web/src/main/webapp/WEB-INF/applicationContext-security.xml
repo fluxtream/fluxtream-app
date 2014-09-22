@@ -19,6 +19,7 @@
     <http pattern="/static/**" security="none" />
 	<http pattern="/css/**" security="none" />
 	<http pattern="/${release}/images/**" security="none" />
+    <http pattern="/${release}/js/public/**" security="none" />
     <http pattern="/images/**" security="none" />
     <http pattern="/welcome*" security="none" />
     <http pattern="/accessDenied*" security="none" />
