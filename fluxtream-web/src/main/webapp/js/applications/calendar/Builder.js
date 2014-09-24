@@ -325,6 +325,16 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
             if (button.length == 0){
                 button = createConnectorButton(App,Calendar,digest.selectedConnectors[i]);
             }
+            var connector = digest.selectedConnectors[i];
+            var connected = _.some(connector.facetTypes, function(facetType) {
+                var hasTypedFacets = digest.facets[facetType] != null;
+                //var objectType = facetType.split("-")[1];
+                if(Calendar.currentTab.name==="photos") {
+                    hasTypedFacets = hasTypedFacets && digest.facets[facetType].hasImages;
+                }
+                return hasTypedFacets;
+            });
+            button.toggleClass("flx-disconnected", !connected);
             if (Calendar.currentTab.connectorDisplayable(digest.selectedConnectors[i])){
                 button.show();
                 if (Calendar.currentTab.connectorsAlwaysEnabled()){
