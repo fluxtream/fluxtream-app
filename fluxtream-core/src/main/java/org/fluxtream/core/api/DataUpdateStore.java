@@ -59,6 +59,7 @@ public class DataUpdateStore {
             return Response.ok(gson.toJson(new DataUpdateDigestModel(updates,guestService,settingsService,ISODateTimeFormat.dateTime().parseMillis(since)))).build();
         }
         catch (Exception e){
+            e.printStackTrace();
             return Response.serverError().entity("Failed to fetch updates").build();
         }
     }
