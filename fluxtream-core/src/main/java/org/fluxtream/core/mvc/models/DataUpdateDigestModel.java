@@ -78,6 +78,10 @@ public class DataUpdateDigestModel {
 
     private void addApiDataUpdate(DataUpdate update, GuestService guestService, final SettingsService settingsService){
         ApiKey api = guestService.getApiKey(update.apiKeyId);
+        if (api == null){
+            //This means the specific apikeyid was removed
+            return;
+        }
         String apiName = api.getConnector().getName();
         List<String> facetNames = new ArrayList<String>();
         if (update.objectTypeId == null){     //TODO: determine if this is ever reached
