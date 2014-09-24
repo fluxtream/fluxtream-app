@@ -4,7 +4,7 @@
 	<div>
 		<hr/>
 		<small class="flx-credits">
-            <span title="<%=release%>">Fluxtream 1.0</span> <br> &copy; 2011<%=until %> The BodyTrack Team @ CMU CREATE Lab &amp; Candide Kemmler
+            <span title="<%=release%>">Fluxtream 1.1</span> <br> &copy; 2011<%=until %> The BodyTrack Team @ CMU CREATE Lab &amp; Candide Kemmler
             <div><a href="https://twitter.com/fluxtream" target="_blank"><img src="/<%=release%>/images/twitter_follow_button.png" style="width:122px;height:20px;"></a></div>
         </small>
 	</div>
