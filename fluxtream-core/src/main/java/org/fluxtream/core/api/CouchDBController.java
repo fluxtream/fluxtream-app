@@ -25,7 +25,7 @@ import java.util.Random;
  * Date: 23/09/14
  * Time: 15:39
  */
-@Path("/couch")
+@Path("/v1/couch")
 @Component("RESTCouchDBController")
 @Scope("request")
 public class CouchDBController {
