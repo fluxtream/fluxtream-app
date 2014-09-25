@@ -8,7 +8,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
-<html ng-app="developerWebsiteApp">
+<html ng-app="developerWebsiteApp" style="pouet">
 <head>
     <meta charset="utf-8">
     <title>Fluxtream Developer Home</title>
