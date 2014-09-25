@@ -258,7 +258,7 @@ html {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 body {
-  font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 1.5;
   color: #414145;
@@ -393,7 +393,7 @@ h6,
 .h4,
 .h5,
 .h6 {
-  font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-weight: 700;
   line-height: 1.1;
 }
@@ -5854,6 +5854,9 @@ td.visible-print {
     display: none !important;
   }
 }
+html {
+  overflow-y: hidden;
+}
 #wrapper {
   padding-left: 250px;
   transition: all 0.4s ease 0s;
@@ -5919,6 +5922,11 @@ td.visible-print {
   margin-left: 20px;
   line-height: 65px;
   display: inline-block;
+}
+.page-content h3 {
+  margin-top: 0;
+  margin-bottom: 35px;
+  padding: 10px 0;
 }
 #menu-toggle {
   display: none;
