@@ -1,9 +1,7 @@
 package org.fluxtream.core.api;
 
 import com.google.gson.Gson;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiParam;
+import com.wordnik.swagger.annotations.*;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.domain.GuestSettings;
@@ -90,7 +88,10 @@ public class SettingsStore {
 
     @POST
     @Path("/deleteAccount")
-    @ApiOperation(value = "Delete the user's account (this is irreversible)", response = String.class)
+    @ApiOperation(value = "Delete the user's account (this is irreversible)")
+    @ApiResponses({
+            @ApiResponse(code=200, message = "Successfully deleted account")
+    })
     public Response eraseEverything() {
         final long guestId = AuthHelper.getGuestId();
         try {
@@ -107,7 +108,10 @@ public class SettingsStore {
 
     @POST
     @Path("/general")
-    @ApiOperation(value = "Set the user's first name and last name", response = String.class)
+    @ApiOperation(value = "Set the user's first name and last name")
+    @ApiResponses({
+            @ApiResponse(code=200, message = "Settings updated")
+    })
     public Response saveSettings(@ApiParam(value="First name", required=true) @FormParam("guest_firstname") String firstName,
                                @ApiParam(value="Last name", required=true) @FormParam("guest_lastname") String lastName) {
         try {
@@ -126,7 +130,10 @@ public class SettingsStore {
 
     @POST
     @Path("/units")
-    @ApiOperation(value = "Set the user's preferred units of measure", response = String.class)
+    @ApiOperation(value = "Set the user's preferred units of measure")
+    @ApiResponses({
+            @ApiResponse(code=200, message = "Settings updated!")
+    })
     public Response saveSettings(@ApiParam(value="Length measure unit", allowableValues = "SI, FEET_INCHES", required=true) @FormParam("length_measure_unit") String lengthUnit,
                                @ApiParam(value="Distance measure unit", allowableValues = "SI, MILES_YARDS", required=true) @FormParam("distance_measure_unit") String distanceUnit,
                                @ApiParam(value="Weight measure unit", allowableValues = "SI, POUNDS, STONES", required=true) @FormParam("weight_measure_unit") String weightUnit,

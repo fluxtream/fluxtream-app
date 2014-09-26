@@ -53,7 +53,7 @@ public class LegacyGuestController {
     @GET
 	@Path("/")
 	@Produces({ MediaType.APPLICATION_JSON })
-    @ApiOperation(value = "Retrieve information on the currently logged in's guest", response = StatusModel.class)
+    @ApiOperation(value = "Retrieve information on the currently logged in's guest", response = GuestModel.class)
     @Deprecated
 	public Object getCurrentGuest() throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {

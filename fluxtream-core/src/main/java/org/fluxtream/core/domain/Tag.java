@@ -1,13 +1,16 @@
 package org.fluxtream.core.domain;
 
-import java.util.HashSet;
-import java.util.Set;
-import javax.persistence.Entity;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
+import com.wordnik.swagger.annotations.ApiModel;
+import com.wordnik.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.Index;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.persistence.Entity;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  *
@@ -25,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
   @NamedQuery(name = "tags.delete.all",
               query = "DELETE FROM Tags tag WHERE tag.guestId=?")
 })
+@ApiModel
 public class Tag extends AbstractEntity {
     /** Regex for illegal characters (it's simply the negation of the legal characters) */
     public static final String REGEX_ILLEGAL_CHARACTERS = "[^a-zA-Z0-9-_]";
@@ -37,9 +41,11 @@ public class Tag extends AbstractEntity {
 
     public Tag() {}
 
+    @ApiModelProperty
     public long guestId;
 
     @Index(name = "name")
+    @ApiModelProperty
     public String name;
 
     @Override
