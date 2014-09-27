@@ -1,5 +1,5 @@
 <!-- Sidebar -->
-<div id="sidebar-wrapper">
+<div id="sidebar-wrapper" class="sidebar">
     <ul class="sidebar-nav">
         <li class="sidebar-brand"><a href="/dev/"><img class="flxLogo" src="/${release}/images/logo.png" width="180" height="41"/></a></li>
         <li><a href="/">Main Site <span class="glyphicon glyphicon-home"></span></a></li>

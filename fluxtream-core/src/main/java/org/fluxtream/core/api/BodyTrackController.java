@@ -93,7 +93,10 @@ public class BodyTrackController {
 
     @GET
     @Path("/exportCSV/{UID}/fluxtream-export-from-{start}-to-{end}.csv")
-    @ApiOperation(value = "CSV export of data from a given time range", response = String.class)
+    @ApiOperation(value = "CSV export of data from a given time range")
+    @ApiResponses({
+        @ApiResponse(code=200, message="CSV data")
+    })
     public void exportCSV(@ApiParam(value="Channels", required=true) @QueryParam("channels") String channels,
                           @ApiParam(value="Start time (epoch seconds)", required=true) @PathParam("start") Long start,
                           @ApiParam(value="End time (epoch seconds)", required=true) @PathParam("end") Long end,
@@ -132,7 +135,10 @@ public class BodyTrackController {
 
     @GET
     @Path("/exportCSV/{UID}/fluxtream-export-from-{start}.csv")
-    @ApiOperation(value = "CSV export of data from a given start time onwards", response = String.class)
+    @ApiOperation(value = "CSV export of data from a given start time onwards")
+    @ApiResponses({
+            @ApiResponse(code=200, message="CSV data")
+    })
     public void exportCSVStartOnly(@ApiParam(value="Channels", required=true) @QueryParam("channels") String channels,
                                    @ApiParam(value="Start time (epoch seconds)", required=true) @PathParam("start") Long start,
                                    @ApiParam(value="User ID (must be ID of loggedIn user)", required=true) @PathParam("UID") Long uid,
@@ -142,7 +148,10 @@ public class BodyTrackController {
 
     @GET
     @Path("/exportCSV/{UID}/fluxtream-export-to-{end}.csv")
-    @ApiOperation(value = "CSV export of data from a given end time and all before", response = String.class)
+    @ApiOperation(value = "CSV export of data from a given end time and all before")
+    @ApiResponses({
+            @ApiResponse(code=200, message="CSV data")
+    })
     public void exportCSVEndOnly(@ApiParam(value="Channels", required=true) @QueryParam("channels") String channels,
                                  @ApiParam(value="End time (epoch seconds)", required=true) @PathParam("end") Long end,
                                  @ApiParam(value="User ID (must be ID of loggedIn user)", required=true) @PathParam("UID") Long uid,
@@ -152,7 +161,10 @@ public class BodyTrackController {
 
     @GET
     @Path("/exportCSV/{UID}/fluxtream-export.csv")
-    @ApiOperation(value = "CSV export all data for given user id", response = String.class)
+    @ApiOperation(value = "CSV export all data for given user id")
+    @ApiResponses({
+            @ApiResponse(code=200, message="CSV data")
+    })
     public void exportCSVNoParams(@ApiParam(value="Channels", required=true) @QueryParam("channels") String channels,
                                   @ApiParam(value="User ID (must be ID of loggedIn user)", required=true) @PathParam("UID") Long uid,
                                   @Context HttpServletResponse response){
@@ -188,8 +200,11 @@ public class BodyTrackController {
 
     @DELETE
     @Path("/users/{UID}/views/{id}")
-    @ApiOperation(value = "Delete a view", response = String.class)
+    @ApiOperation(value = "Delete a view")
     @Produces({ MediaType.APPLICATION_JSON })
+    @ApiResponses({
+            @ApiResponse(code=200, message="Successfully deleted view {viewId}")
+    })
     public Response deleteBodytrackView(@ApiParam(value="User ID (must be ID of loggedIn user)", required=true) @PathParam("UID") Long uid,
                                       @ApiParam(value="View ID", required=true) @PathParam("id") long viewId){
         Response response;
@@ -316,7 +331,7 @@ public class BodyTrackController {
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     @Produces({MediaType.APPLICATION_JSON})
     public Response handlePhotoUpload(@ApiParam(value="Connector to upload the photo for", required=true) @QueryParam("connector_name") final String connectorName,
-                                      @ApiParam(value="Multipart encoded photo data", required=true) final MultiPart multiPart) {
+                                      final MultiPart multiPart) {
         Response response;
 
         final Connector connector = Connector.getConnector(connectorName);
@@ -428,6 +443,10 @@ public class BodyTrackController {
 
     @GET
     @Path("/photo/{UID}.{PhotoStoreKeySuffix}")
+    @ApiResponses({
+            @ApiResponse(code=200, message="Photo Image data (png/jpg)"),
+            @ApiResponse(code=403, message="In case of unauthorized access")
+    })
     @ApiOperation(value="Retrieve a specific photo by photo store key suffix")
     public Response getFluxtreamCapturePhoto(@ApiParam(value="User ID", required=true) @PathParam("UID") final Long uid,
                                              @ApiParam(value="Photo Store Key Suffix", required=true) @PathParam("PhotoStoreKeySuffix") final String photoStoreKeySuffix,
@@ -452,6 +471,10 @@ public class BodyTrackController {
 
     @GET
     @Path("/photoThumbnail/{UID}/{PhotoId}/{ThumbnailIndex}")
+    @ApiResponses({
+            @ApiResponse(code=200, message="Photo Image data (png/jpg)"),
+            @ApiResponse(code=403, message="In case of unauthorized access")
+    })
     @ApiOperation(value="Retrieve a specific photo thumbnail")
     public Response getFluxtreamCapturePhotoThumbnail(@ApiParam(value="User ID", required=true) @PathParam("UID") final long uid,
                                                       @ApiParam(value="Photo ID", required=true) @PathParam("PhotoId") final long photoId,
@@ -559,6 +582,9 @@ public class BodyTrackController {
     @GET
     @Path("/tiles/{UID}/{DeviceNickname}.{ChannelName}/{Level}.{Offset}.json")
     @ApiOperation(value="Get data tile for a given channel", response=BodyTrackHelper.GetTileResponse.class)
+    @ApiResponses({
+            @ApiResponse(code=403, message="In case of unauthorized access")
+    })
     @Produces({MediaType.APPLICATION_JSON})
     public Response fetchTile(@ApiParam(value="User ID", required=true) @PathParam("UID") Long uid,
                               @ApiParam(value="Device Name", required=true) @PathParam("DeviceNickname") String deviceNickname,
@@ -598,6 +624,9 @@ public class BodyTrackController {
     @Path("/users/{UID}/views")
     @ApiOperation(value="Get a list of available views", response=BodyTrackHelper.ViewsList.class)
     @Produces({MediaType.APPLICATION_JSON})
+    @ApiResponses({
+            @ApiResponse(code=403, message="In case of unauthorized access")
+    })
     public Response getViews(@ApiParam(value="User ID", required=true) @PathParam("UID") Long uid) {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
@@ -616,6 +645,9 @@ public class BodyTrackController {
     @GET
     @Path("/users/{UID}/views/{id}")
     @ApiOperation(value="Retrieve a specific view", response=BodyTrackHelper.ViewJSON.class)
+    @ApiResponses({
+            @ApiResponse(code=403, message="In case of unauthorized access")
+    })
     @Produces({MediaType.APPLICATION_JSON})
     public Response bodyTrackView(@ApiParam(value="User ID", required=true) @PathParam("UID") Long uid,
                                   @ApiParam(value="View ID", required= true) @PathParam("id") long id) {
@@ -641,6 +673,9 @@ public class BodyTrackController {
     @POST
     @Path("/users/{UID}/views")
     @ApiOperation(value="Create a new view with given name and data", response = BodyTrackHelper.AddViewResult.class)
+    @ApiResponses({
+            @ApiResponse(code=403, message="In case of unauthorized access")
+    })
     @Produces({MediaType.APPLICATION_JSON})
     public Response setView(@ApiParam(value="User ID", required = true) @PathParam("UID") Long uid,
                             @ApiParam(value="View name", required = true) @FormParam("name") String name,
@@ -663,6 +698,9 @@ public class BodyTrackController {
     @GET
     @Path("/users/{UID}/sources/list")
     @ApiOperation(value="Retrieves a list of devices and channels that data can be retrieved from", response=BodyTrackHelper.SourcesResponse.class)
+    @ApiResponses({
+            @ApiResponse(code=403, message="In case of unauthorized access")
+    })
     @Produces({MediaType.APPLICATION_JSON})
     public Response getSourceList(@ApiParam(value= "User ID", required= true) @PathParam("UID") Long uid) {
         try{
@@ -686,6 +724,9 @@ public class BodyTrackController {
     @GET
     @Path(value = "/users/{UID}/sources/{source}/default_graph_specs")
     @ApiOperation(value = "Retrieves the default grapher settings for a device", response=BodyTrackHelper.SourceInfo.class)
+    @ApiResponses({
+            @ApiResponse(code=403, message="In case of unauthorized access")
+    })
     @Produces({MediaType.APPLICATION_JSON})
     public Response bodyTrackGetDefaultGraphSpecs(@ApiParam(value="User ID", required = true) @PathParam("UID") Long uid,
                                                   @ApiParam(value="Device name", required=true) @PathParam("source") String name) {
@@ -706,7 +747,10 @@ public class BodyTrackController {
 
     @GET
     @Path(value = "/users/{UID}/tags")
-    @ApiOperation(value = "Retrieve all tags for a user", response=Tag.class, responseContainer="List")
+    @ApiOperation(value = "Retrieve all tags for a user", response=Tag.class, responseContainer="Array")
+    @ApiResponses({
+            @ApiResponse(code=403, message="In case of unauthorized access")
+    })
     @Produces({MediaType.APPLICATION_JSON})
     public Response getAllTagsForUser(@ApiParam(value="User ID", required = true) @PathParam("UID") Long uid) {
         try {
@@ -725,7 +769,11 @@ public class BodyTrackController {
 
     @POST
     @Path("/users/{UID}/channels/{DeviceNickname}.{ChannelName}/set")
-    @ApiOperation(value = "Set the default style for a channel", response=String.class)
+    @ApiOperation(value = "Set the default style for a channel")
+    @ApiResponses({
+            @ApiResponse(code=200, message="Channel style set"),
+            @ApiResponse(code=403, message="In case of unauthorized access")
+    })
     @Produces({MediaType.APPLICATION_JSON})
     public Response setDefaultStyle(@ApiParam(value="User ID", required = true) @PathParam("UID") Long uid,
                                     @ApiParam(value="Device name", required = true) @PathParam("DeviceNickname") String deviceNickname,
@@ -820,6 +868,9 @@ public class BodyTrackController {
     @GET
     @Path("/photos/{UID}/{ConnectorPrettyName}.{ObjectTypeName}/{Level}.{Offset}.json")
     @ApiOperation(value = "Retrieve a photo tile", response=PhotoItem.class)
+    @ApiResponses({
+            @ApiResponse(code=403, message="In case of unauthorized access")
+    })
     @Produces({MediaType.APPLICATION_JSON})
     public Response fetchPhotoTile(@ApiParam(value="User ID", required = true) @PathParam("UID") Long uid,
                                    @ApiParam(value="Connector name", required = true) @PathParam("ConnectorPrettyName") String connectorPrettyName,
@@ -899,6 +950,9 @@ public class BodyTrackController {
     @GET
     @Path("/photos/{UID}/{ConnectorPrettyName}.{ObjectTypeName}/{unixTime}/{count}")
     @ApiOperation(value="Get photos at a given time", response=PhotoItem.class)
+    @ApiResponses({
+            @ApiResponse(code=403, message="In case of unauthorized access")
+    })
     @Produces({MediaType.APPLICATION_JSON})
     public Response getPhotosBeforeOrAfterTime(@ApiParam(value="User ID", required = true) @PathParam("UID") long uid,
                                                @ApiParam(value="Connector name", required = true) @PathParam("ConnectorPrettyName") String connectorPrettyName,
@@ -956,6 +1010,9 @@ public class BodyTrackController {
     @POST
     @Path("/metadata/{UID}/{ConnectorName}.{ObjectTypeName}/{facetId}/set")
     @ApiOperation(value="Set the metadata for a facet", response=FacetMetadata.class)
+    @ApiResponses({
+            @ApiResponse(code=403, message="In case of unauthorized access")
+    })
     @Produces({MediaType.APPLICATION_JSON})
     public Response setFacetMetadata(@ApiParam(value="User ID", required = true) final @PathParam("UID") long uid,
                                      @ApiParam(value="Connector name", required = true) final @PathParam("ConnectorName") String connectorName,
@@ -988,7 +1045,9 @@ public class BodyTrackController {
         return jsonResponseHelper.badRequest("Nothing changed since comment and tags were both null");
     }
 
+    @ApiModel
     public static class FacetMetadata {
+        @ApiModelProperty(value="The facet's user comment (if any)", required=true)
         public String comment;
         public SortedSet<String> tags = new TreeSet<String>();
 
@@ -1100,26 +1159,45 @@ public class BodyTrackController {
         return targetUid == guest.getId() || guest.hasRole(Guest.ROLE_ADMIN);
     }
 
+    @ApiModel
     public static class PhotoItem {
         private static final DateTimeFormatter DATE_TIME_FORMATTER = ISODateTimeFormat.dateTime();
 
+        @ApiModelProperty(value="Not Safe For Work", required=true)
         public boolean nsfw = false;
+        @ApiModelProperty
         public String id;
+        @ApiModelProperty
         public String description;
+        @ApiModelProperty
         public String comment;
+        @ApiModelProperty
         public double begin_d;
+        @ApiModelProperty
         public String begin;
+        @ApiModelProperty
         public double end_d;
+        @ApiModelProperty
         public String end;
+        @ApiModelProperty
         public String dev_id;
+        @ApiModelProperty
         public String dev_nickname;
+        @ApiModelProperty
         public String object_type_name;
+        @ApiModelProperty
         public String channel_name;
+        @ApiModelProperty
         public String url;
+        @ApiModelProperty
         public ArrayList<String> tags = new ArrayList<String>();
+        @ApiModelProperty
         public ArrayList<PhotoItemThumbnail> thumbnails = new ArrayList<PhotoItemThumbnail>();
+        @ApiModelProperty
         public int count = 1;
+        @ApiModelProperty
         public int orientation;
+        @ApiModelProperty
         public String time_type;
 
         public PhotoItem(final PhotoService.Photo photo) {
@@ -1217,17 +1295,21 @@ public class BodyTrackController {
         public String failure;
     }
 
+    @ApiModel
     public class PhotoUploadResponsePayload {
         @NotNull
         @Expose
+        @ApiModelProperty
         public final String operation;
 
         @NotNull
         @Expose
+        @ApiModelProperty
         public final String key;
 
         @Nullable
         @Expose
+        @ApiModelProperty
         public final Long id;
 
         public PhotoUploadResponsePayload(@NotNull final FluxtreamCapturePhotoStore.Operation operation, @Nullable final Long databaseRecordId, @NotNull final String photoStoreKey) {

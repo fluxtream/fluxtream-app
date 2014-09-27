@@ -55,7 +55,7 @@ public class PhotoStore {
     @GET
     @Path("/date/{date}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Get the user's photos for a specific date", responseContainer = "array", response = PhotoModel.class)
+    @ApiOperation(value = "Get the user's photos for a specific date", responseContainer = "Array", response = PhotoModel.class)
     public Response getPhotosForDate(@ApiParam(value="Username (must be currently logged in user's username)", required=true) @PathParam("username") String username,
                                      @ApiParam(value="Date (yyyy-mm-dd)", required=true) @PathParam("date") String date){
         try{
@@ -72,7 +72,7 @@ public class PhotoStore {
     @GET
     @Path("/week/{year}/{week}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Get the user's photos for a specific date", responseContainer = "array", response = PhotoModel.class)
+    @ApiOperation(value = "Get the user's photos for a specific date", responseContainer = "Array", response = PhotoModel.class)
     public Response getPhotosForWeek(@ApiParam(value="Username (must be currently logged in user's username)", required=true) @PathParam("username") String username,
                                    @ApiParam(value="Year", required=true) @PathParam("year") int year,
                                    @ApiParam(value="Week", required=true) @PathParam("week") int week){
@@ -105,7 +105,7 @@ public class PhotoStore {
     @GET
     @Path("/year/{year}")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Get the user's photos for an entire year", responseContainer = "array", response = PhotoModel.class)
+    @ApiOperation(value = "Get the user's photos for an entire year", responseContainer = "Array", response = PhotoModel.class)
     public Response getPhotosForYear(@ApiParam(value="Username (must be currently logged in user's username)", required=true) @PathParam("username") String username,
                                    @ApiParam(value="Year", required=true) @PathParam("year") int year){
         try{

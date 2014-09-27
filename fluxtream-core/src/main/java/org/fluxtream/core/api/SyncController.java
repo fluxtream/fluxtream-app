@@ -8,7 +8,6 @@ import org.fluxtream.core.auth.CoachRevokedException;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.updaters.ScheduleResult;
 import org.fluxtream.core.domain.*;
-import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.services.BuddiesService;
 import org.fluxtream.core.services.ConnectorUpdateService;
 import org.fluxtream.core.services.GuestService;
@@ -155,8 +154,14 @@ public class SyncController {
         return gson.toJson(null);
     }
 
+    @ApiModel
+    public class HistoryCompleteModel {
+        @ApiModelProperty(value="Has the initial history update completed?", required=true)
+        public boolean historyUpdateComplete;
+    }
+
     @POST
-    @ApiOperation(value = "Check if a connector's history update is complete", response = String.class)
+    @ApiOperation(value = "Check if a connector's history update is complete", response=HistoryCompleteModel.class)
     @Path("/{connector}/historyComplete")
     public Response isHistoryComplete(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName,
                                       @ApiParam(value="Bit mask of the connector's object types", required=true) @FormParam("objectTypes") int objectTypes) {
@@ -168,8 +173,14 @@ public class SyncController {
         return Response.ok(response.toString()).build();
     }
 
+    @ApiModel
+    public class IsSynchingModel {
+        @ApiModelProperty(value="Is this connector currently synching?", required=true)
+        public boolean synching;
+    }
+
     @POST
-    @ApiOperation(value = "Check if a connector's currently synching", response = String.class)
+    @ApiOperation(value = "Check if a connector's currently synching", response = IsSynchingModel.class)
     @Path("/{connector}/isSynching")
     public Response isSynching(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName) {
         final long guestId = AuthHelper.getGuestId();
@@ -180,8 +191,14 @@ public class SyncController {
         return Response.ok(response.toString()).build();
     }
 
+    @ApiModel
+    public class LastSuccessfulUpdateModel {
+        @ApiModelProperty(value="ISO 8601 formatted time of last successful update", required=true)
+        public String lastSuccessfulUpdate;
+    }
+
     @POST
-    @ApiOperation(value = "Retrieve a connector's last successful update time", response = String.class)
+    @ApiOperation(value = "Retrieve a connector's last successful update time", response = LastSuccessfulUpdateModel.class)
     @Path("/{connector}/lastSuccessfulUpdate")
     public Response lastSuccessfulUpdate(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName) {
         Connector connector = Connector.getConnector(connectorName);
@@ -196,7 +213,10 @@ public class SyncController {
 
     @POST
     @Path("/{connector}/reset")
-    @ApiOperation(value = "Un-schedule pending updates of the given connector", response = StatusModel.class)
+    @ApiOperation(value = "Un-schedule pending updates of the given connector")
+    @ApiResponses({
+            @ApiResponse(code=200, message="reset controller {connectorName}")
+    })
     @Produces({MediaType.APPLICATION_JSON})
     public Response resetConnector(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName) {
         final long guestId = AuthHelper.getGuestId();
@@ -205,8 +225,14 @@ public class SyncController {
         return Response.ok("reset controller " + connectorName).build();
     }
 
+    @ApiModel
+    public class LastUpdateModel {
+        @ApiModelProperty(value="ISO 8601 formatted time of last update", required=true)
+        public String lastUpdate;
+    }
+
     @POST
-    @ApiOperation(value = "Retrieve a connector's last attempted update time (successful or failed)", response = String.class)
+    @ApiOperation(value = "Retrieve a connector's last attempted update time (successful or failed)", response = LastUpdateModel.class)
     @Path("/{connector}/lastUpdate")
     public Response lastUpdate(@ApiParam(value="Connector name", required=true) @PathParam("connector") String connectorName) {
         Connector connector = Connector.getConnector(connectorName);

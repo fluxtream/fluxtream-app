@@ -150,7 +150,7 @@ public class GuestController {
     @GET
     @Path("/coachees")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Retrieve the currently logged in guest's list of coachees", responseContainer = "array",
+    @ApiOperation(value = "Retrieve the currently logged in guest's list of coachees", responseContainer = "Array",
             response = GuestModel.class)
     public List<GuestModel> getCoachees() {
         Guest guest = AuthHelper.getGuest();

@@ -292,7 +292,8 @@
   width: 100%;
 }
 .swagger-section .swagger-ui-wrap .model-signature {
-  font-family: "Droid Sans", sans-serif;
+  /*         font-family: "Droid Sans", sans-serif; */
+  font-family: "Open Sans", sans-serif;
   font-size: 1em;
   line-height: 1.5em;
 }
@@ -385,12 +386,14 @@
   border: 1px solid #aaa;
 }
 .swagger-section .swagger-ui-wrap h1 {
-  color: black;
-  font-size: 1.5em;
-  line-height: 1.3em;
+  color: #414145;
+  font-size: 28px;
+  line-height: 1.1em;
+  margin: 0 0 35px;
   padding: 10px 0 10px 0;
-  font-family: "Droid Sans", sans-serif;
-  font-weight: bold;
+  /*         font-family: "Droid Sans", sans-serif; */
+  font-family: "Open Sans", sans-serif;
+  font-weight: 700;
 }
 .swagger-section .swagger-ui-wrap .heading_with_menu {
   float: none;
@@ -441,7 +444,8 @@
   font-family: "Anonymous Pro", "Menlo", "Consolas", "Bitstream Vera Sans Mono", "Courier New", monospace;
 }
 .swagger-section .swagger-ui-wrap form.formtastic fieldset.inputs ol li.text textarea {
-  font-family: "Droid Sans", sans-serif;
+  /*                         font-family: "Droid Sans", sans-serif; */
+  font-family: "Open Sans", sans-serif;
   height: 250px;
   padding: 4px;
   display: block;
@@ -519,8 +523,9 @@
   margin: 20px 0 25px 0 !important;
 }
 .swagger-section .swagger-ui-wrap ul#resources {
-  font-family: "Droid Sans", sans-serif;
-  font-size: 0.9em;
+  /*         font-family: "Droid Sans", sans-serif; */
+  font-family: "Open Sans", sans-serif;
+  /*         font-size: 0.9em; */
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource {
   border-bottom: 1px solid #dddddd;
@@ -592,7 +597,8 @@
   display: block;
   clear: none;
   float: left;
-  font-family: "Droid Sans", sans-serif;
+  /*                     font-family: "Droid Sans", sans-serif; */
+  font-family: "Open Sans", sans-serif;
   font-weight: bold;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource div.heading h2 a {
@@ -615,7 +621,7 @@
   overflow: hidden;
   display: block;
   margin: 0;
-  padding: 0;
+  padding: 4px;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation div.heading h3 {
   display: block;
@@ -954,7 +960,8 @@
   padding: 10px 0;
   font-size: 0.8em;
   border-top: 1px solid #dddddd;
-  font-family: "Droid Sans", sans-serif;
+  font-family: "Open Sans", sans-serif;
+  /*         font-family: "Droid Sans", sans-serif; */
   color: #999999;
   font-style: italic;
 }
@@ -969,7 +976,8 @@
 }
 .swagger-section .swagger-ui-wrap .markdown ol,
 .swagger-section .swagger-ui-wrap .markdown ul {
-  font-family: "Droid Sans", sans-serif;
+  font-family: "Open Sans", sans-serif;
+  /*         font-family: "Droid Sans", sans-serif; */
   margin: 5px 0 10px;
   padding: 0 0 0 18px;
   list-style-type: disc;
@@ -1065,6 +1073,12 @@
 }
 .swagger-section .api-popup-actions {
   padding-top: 10px;
+}
+body {
+  font-family: 'Open Sans', Helvetica, Arial, sans-serif !important;
+}
+.swagger-section dd {
+  margin-bottom: 1em;
 }
 .swagger-section .access {
   display: none;
