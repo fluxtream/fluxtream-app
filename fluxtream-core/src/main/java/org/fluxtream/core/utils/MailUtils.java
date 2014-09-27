@@ -50,7 +50,7 @@ public class MailUtils {
     }
 
     public static Store getGmailImapStoreViaSASL(final String emailAddress, final String accessToken) throws MessagingException{
-        Properties props = System.getProperties();
+        Properties props = new Properties();
         props.put("mail.imaps.sasl.enable", "true");
         props.put("mail.imaps.sasl.mechanisms", "XOAUTH2");
         props.put(OAuth2SaslClientFactory.OAUTH_TOKEN_PROP, accessToken);

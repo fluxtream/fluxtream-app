@@ -66,7 +66,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
             scopedApis.put("https://www.googleapis.com/auth/calendar.readonly",
                            Connector.getConnector("google_calendar"));
         if (Connector.getConnector("sms_backup")!=null)
-            scopedApis.put("https://www.googleapis.com/auth/userinfo.email https://mail.google.com/",
+            scopedApis.put("https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/gmail.readonly",
                            Connector.getConnector("sms_backup"));
     }
 
@@ -266,11 +266,11 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         ConnectorInfo SMSBackupInfo = new ConnectorInfo("SMS_Backup",
                                                         "/" + release + "/images/connectors/connector-sms_backup.jpg",
                                                         res.getString("sms_backup"),
-                                                        "/google/oauth2/token?scope=https://www.googleapis.com/auth/userinfo.email%20https://mail.google.com/",
+                                                        "/google/oauth2/token?scope=https://www.googleapis.com/auth/userinfo.email%20https://www.googleapis.com/auth/gmail.readonly",
                                                         Connector.getConnector("sms_backup"), order++, true,
                                                         false,true,smsBackupKeys);
         SMSBackupInfo.supportsRenewTokens = true;
-        SMSBackupInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://www.googleapis.com/auth/userinfo.email%%20https://mail.google.com/";
+        SMSBackupInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://www.googleapis.com/auth/userinfo.email%%20https://www.googleapis.com/auth/gmail.readonly";
         em.persist(SMSBackupInfo);
 	}
 

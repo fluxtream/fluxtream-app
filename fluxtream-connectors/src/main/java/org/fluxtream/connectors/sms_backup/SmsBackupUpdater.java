@@ -1,22 +1,23 @@
 package org.fluxtream.connectors.sms_backup;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.*;
+import java.lang.Thread;
+import java.math.BigInteger;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentMap;
-import javax.mail.Address;
-import javax.mail.Folder;
-import javax.mail.FolderNotFoundException;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Store;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMultipart;
+import javax.mail.*;
+import javax.mail.internet.*;
 import javax.mail.search.SentDateTerm;
+
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import com.google.api.services.gmail.Gmail;
+import com.google.api.services.gmail.model.*;
+import com.google.api.services.gmail.model.Message;
+import org.apache.commons.codec.binary.Base64;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.ObjectType;
@@ -59,6 +60,9 @@ import org.springframework.stereotype.Component;
          defaultChannels = {"sms_backup.call_log"})
 public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUpdater {
 
+    static final int baseSleepAmount = 500; //half a second
+    static final int maxSleepAmount = 1000 * 60 * 60; //one hour
+
     @Autowired
     BodyTrackHelper bodyTrackHelper;
 
@@ -85,10 +89,8 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
 
 	@Override
 	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-        String email = guestService.getApiKeyAttribute(updateInfo.apiKey, "username");
-        String password = guestService.getApiKeyAttribute(updateInfo.apiKey,"password");
         for (ObjectType type : updateInfo.objectTypes()){
-            Date since = getStartDate(updateInfo, type);
+            BigInteger historyId = getHistoryId(updateInfo, type);
             if (type.name().equals("call_log")){
                 List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey);
                 boolean call_logChannelExists = false;
@@ -134,15 +136,26 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
                     mapping.objectTypeId = ObjectType.getObjectType(updateInfo.apiKey.getConnector(),"sms").value();
                     bodyTrackHelper.persistChannelMapping(mapping);
                 }
-                retrieveCallLogSinceDate(updateInfo, email, password, since);
+                retrieveCallLogSinceDate(updateInfo, historyId);
             }
             else if (type.name().equals("sms")){
-                retrieveSmsEntriesSince(updateInfo, email, password, since);
+                retrieveSmsEntriesSince(updateInfo, historyId);
 
             }
         }
 	}
 
+
+    public BigInteger getHistoryId(UpdateInfo updateInfo, ObjectType ot){
+        ApiKey apiKey = updateInfo.apiKey;
+
+        String updateKeyName = "SMSBackup." + ot.getName() + ".historyId";
+        String historyIdString = guestService.getApiKeyAttribute(apiKey, updateKeyName);
+
+        if (historyIdString == null)
+            return null;
+        return new BigInteger(historyIdString);
+    }
 
     public Date getStartDate(UpdateInfo updateInfo, ObjectType ot) {
         ApiKey apiKey = updateInfo.apiKey;
@@ -174,12 +187,22 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
         guestService.setApiKeyAttribute(updateInfo.apiKey, updateKeyName, "" + updateProgressTime);
     }
 
+    private void updateHistoryId(UpdateInfo updateInfo, ObjectType ot, BigInteger historyId){
+        BigInteger oldHistoryId = getHistoryId(updateInfo, ot);
+        //in case we ran some other update at the same time, we shouldn't overwrite it
+        if (oldHistoryId != null && oldHistoryId.compareTo(historyId) >= 0){
+            return;
+        }
+        String updateKeyName = "SMSBackup." + ot.getName() + ".historyId";
+        guestService.setApiKeyAttribute(updateInfo.apiKey, updateKeyName, historyId.toString());
+    }
+
     private void updateStartDate(UpdateInfo updateInfo, ObjectType ot, Date updateProgressTime){
         updateStartDate(updateInfo, ot, updateProgressTime.getTime());
     }
 
 
-	private AbstractFacet flushEntry(final UpdateInfo updateInfo, final String username, final Message message, Class type) throws Exception{
+	private AbstractFacet flushEntry(final UpdateInfo updateInfo, final String username, final MimeMessage message, Class type) throws Exception{
         final String messageId;
         final String smsBackupId;
         final String smsBackupAddress;
@@ -226,8 +249,14 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
                                                            facet.timeUpdated = System.currentTimeMillis();
 
                                                            try{
-                                                               InternetAddress[] senders = (InternetAddress[]) message.getFrom();
-                                                               InternetAddress[] recipients = (InternetAddress[]) message.getRecipients(Message.RecipientType.TO);
+                                                               InternetAddress[] senders = null;
+                                                               try{
+                                                                   senders =  (InternetAddress[]) message.getFrom();
+                                                               } catch (AddressException ignored){}
+                                                               InternetAddress[] recipients = null;
+                                                               try{
+                                                                   recipients =  (InternetAddress[]) message.getRecipients(MimeMessage.RecipientType.TO);
+                                                               } catch (AddressException ignored){}
                                                                String fromAddress, toAddress;
                                                                boolean senderMissing = false, recipientsMissing = false;
                                                                if (senders != null && senders.length > 0){
@@ -273,7 +302,7 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
                                                                        facet.personNumber = smsBackupAddress;
                                                                    }
                                                                }
-                                                               facet.dateReceived = message.getReceivedDate();
+                                                               facet.dateReceived = message.getSentDate();
                                                                facet.start = facet.dateReceived.getTime();
                                                                facet.end = facet.start;
                                                                Object content = message.getContent();
@@ -360,14 +389,20 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
                                                                    facet.personNumber = st.nextToken();
                                                                    switch(facet.callType) {
                                                                        case OUTGOING:
-                                                                           Address[] recipients = message.getRecipients(Message.RecipientType.TO);
+                                                                           Address[] recipients = null;
+                                                                           try{
+                                                                               recipients =  message.getRecipients(MimeMessage.RecipientType.TO);
+                                                                           } catch (AddressException ignored){}
                                                                            if (recipients != null && recipients.length > 0)
                                                                                facet.personName = ((InternetAddress)recipients[0]).getPersonal();
                                                                            else
                                                                                facet.personName = message.getSubject().substring(10);//read the name from the subject line
                                                                            break;
                                                                        case INCOMING:
-                                                                           Address[] senders = message.getFrom();
+                                                                           Address[] senders = null;
+                                                                           try{
+                                                                               senders =  message.getFrom();
+                                                                           } catch (AddressException ignored){}
                                                                            if (senders != null && senders.length > 0)
                                                                                facet.personName = ((InternetAddress)senders[0]).getPersonal();
                                                                            else
@@ -378,13 +413,16 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
                                                                    StringTokenizer st = new StringTokenizer(callLine);
                                                                    facet.personNumber = st.nextToken();
                                                                    facet.callType = CallLogEntryFacet.CallType.MISSED;
-                                                                   Address[] senders = message.getFrom();
+                                                                   Address[] senders = null;
+                                                                   try{
+                                                                       senders =  message.getFrom();
+                                                                   } catch (AddressException ignored){}
                                                                    if (senders != null && senders.length > 0)
                                                                        facet.personName = ((InternetAddress)senders[0]).getPersonal();
                                                                    else
                                                                        facet.personName = message.getSubject().substring(10);//read the name from the subject line
                                                                }
-                                                               facet.date = message.getReceivedDate();
+                                                               facet.date = message.getSentDate();
                                                                facet.start = facet.date.getTime();
                                                                facet.end = facet.start + facet.seconds*1000;
                                                            }
@@ -504,25 +542,11 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
 
     }
 
-    private Store getStore(ApiKey apiKey) throws UpdateFailedException{
-        String emailAddress = getEmailAddress(apiKey);
+    private Gmail getGmailService(ApiKey apiKey) throws UpdateFailedException{
+        HttpTransport httpTransport = new NetHttpTransport();
+        JacksonFactory jsonFactory = new JacksonFactory();
         GoogleCredential credential = getCredentials(apiKey);
-
-
-
-
-        String accessToken = credential.getAccessToken();
-
-
-
-        try{
-            Store store = MailUtils.getGmailImapStoreViaSASL(emailAddress, accessToken);
-            return store;
-        } catch(Exception e){
-            throw new UpdateFailedException("Failed to connect to gmail!", e, false, null);
-        }
-
-
+        return new Gmail(httpTransport, jsonFactory, credential);
     }
 
 	private Store getStore(String email, String password)
@@ -551,27 +575,26 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
 		return store;
 	}
 
-	void retrieveSmsEntriesSince(UpdateInfo updateInfo,
-			String email, String password, Date date) throws Exception {
+	void retrieveSmsEntriesSince(UpdateInfo updateInfo, BigInteger historyId) throws Exception {
 		long then = System.currentTimeMillis();
 		String query = "(incremental sms log retrieval)";
 		ObjectType smsObjectType = ObjectType.getObjectType(connector(), "sms");
 		String smsFolderName = getSettingsOrPortLegacySettings(updateInfo.apiKey).smsFolderName;
 		try {
-            Store store;
-            if (guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken") != null){
-			    store = getStore(updateInfo.apiKey);
-                email = getEmailAddress(updateInfo.apiKey);
+            Gmail gmail = getGmailService(updateInfo.apiKey);
+            String email = getEmailAddress(updateInfo.apiKey);
+
+            BigInteger originalHistoryId = historyId;
+
+            Label smsLabel = null;
+
+            for (Label label : gmail.users().labels().list(email).execute().getLabels()){
+                if (label.getName().equals(smsFolderName)){
+                    smsLabel = label;
+                }
             }
-            else
-                store = getStore(email,password);
-			Folder folder = store.getDefaultFolder();
-			if (folder == null  || !folder.exists())
-				throw new FolderNotFoundException();
-			folder = folder.getFolder(smsFolderName);
-			if (folder == null  || !folder.exists())
-				throw new FolderNotFoundException();
-			Message[] msgs = getMessagesInFolderSinceDate(folder, date);
+            if (smsLabel == null)
+                throw new FolderNotFoundException();
 
             //if we get to this point then we were able to access the folder and should delete our error notification
             Notification errorNotification = notificationsService.getNamedNotification(updateInfo.getGuestId(), connector().getName() + ".smsFolderError");
@@ -579,16 +602,66 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
                 notificationsService.deleteNotification(updateInfo.getGuestId(),errorNotification.getId());
             }
 
-			for (Message message : msgs) {
-                date = message.getReceivedDate();
-                if (flushEntry(updateInfo, email, message, SmsEntryFacet.class) == null){
-                    throw new Exception("Could not persist SMS message");
-                }
-                updateStartDate(updateInfo, smsObjectType, date);
-			}
-			countSuccessfulApiCall(updateInfo.apiKey,
-					smsObjectType.value(), then, query);
-			return;
+            Properties props = new Properties();
+            Session session = Session.getDefaultInstance(props, null);
+
+            if (historyId != null){
+                ListHistoryResponse historyResponse = null;
+                BigInteger queryHistoryId = historyId;
+                do{
+                    historyResponse = invokeListHistory(gmail,email,queryHistoryId,smsLabel.getId(),historyResponse == null ? null : historyResponse.getNextPageToken());
+                    if (historyResponse == null){
+                        //if historyResponse is null that means we got a 404 error which means historyId is no longer valid
+                        historyId = null;
+                        break;
+                    }
+                    List<History> histories = historyResponse.getHistory();
+                    for (History history : histories){
+                        if (history.getMessages() == null)
+                            continue;
+                        for (Message messageStub : history.getMessages()){
+                            Message message = invokeGetMessage(gmail, email, messageStub.getId());
+                            if (message == null)
+                                continue;
+                            if (historyId.compareTo(message.getHistoryId()) < 0)
+                                historyId = message.getHistoryId();
+                            byte[] emailBytes = Base64.decodeBase64(message.getRaw());
+                            MimeMessage mimeMessage = new MimeMessage(session, new ByteArrayInputStream(emailBytes));
+
+                            if (flushEntry(updateInfo, email, mimeMessage, SmsEntryFacet.class) == null){
+                                throw new Exception("Could not persist SMS");
+                            }
+                        }
+                    }
+                } while (historyResponse.getNextPageToken() != null);
+            }
+            if (historyId == null){
+                ListMessagesResponse listResponse = null;
+                do{
+                    listResponse = invokeList(gmail,email,smsLabel.getId(),listResponse == null ? null : listResponse.getNextPageToken());
+                    if (listResponse.getMessages() == null){
+                        continue;
+                    }
+                    for (Message messageStub : listResponse.getMessages()){
+                        Message message = invokeGetMessage(gmail, email, messageStub.getId());
+                        if (message == null)
+                            continue;
+                        if (historyId == null || historyId.compareTo(message.getHistoryId()) < 0)
+                            historyId = message.getHistoryId();
+                        byte[] emailBytes = Base64.decodeBase64(message.getRaw());
+                        MimeMessage mimeMessage = new MimeMessage(session, new ByteArrayInputStream(emailBytes));
+
+                        if (flushEntry(updateInfo, email, mimeMessage, SmsEntryFacet.class) == null){
+                            throw new Exception("Could not persist SMS");
+                        }
+                    }
+
+                } while (listResponse.getNextPageToken() != null);
+            }
+            if (historyId != null && !historyId.equals(originalHistoryId)){
+                updateHistoryId(updateInfo,smsObjectType,historyId);
+            }
+
 		} catch (MessagingException ex){
             notificationsService.addNamedNotification(updateInfo.getGuestId(),
                                                       Notification.Type.ERROR, connector().getName() + ".smsFolderError",
@@ -603,30 +676,27 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
 		}
 	}
 
-	void retrieveCallLogSinceDate(UpdateInfo updateInfo,
-			String email, String password, Date date) throws Exception {
-        //if (true)
-        //    throw new Exception("Blah");
+	void retrieveCallLogSinceDate(UpdateInfo updateInfo, BigInteger historyId) throws Exception {
 		long then = System.currentTimeMillis();
 		String query = "(incremental call log retrieval)";
 		ObjectType callLogObjectType = ObjectType.getObjectType(connector(),
 				"call_log");
 		String callLogFolderName = getSettingsOrPortLegacySettings(updateInfo.apiKey).callLogFolderName;
 		try {
-            Store store;
-            if (guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken") != null){
-                store = getStore(updateInfo.apiKey);
-                email = getEmailAddress(updateInfo.apiKey);
+            Gmail gmail = getGmailService(updateInfo.apiKey);
+            String email = getEmailAddress(updateInfo.apiKey);
+
+            BigInteger originalHistoryId = historyId;
+
+            Label callLogLabel = null;
+
+            for (Label label : gmail.users().labels().list(email).execute().getLabels()){
+                if (label.getName().equals(callLogFolderName)){
+                    callLogLabel = label;
+                }
             }
-            else
-                store = getStore(email,password);
-			Folder folder = store.getDefaultFolder();
-			if (folder == null || !folder.exists())
-				throw new FolderNotFoundException();
-			folder = folder.getFolder(callLogFolderName);
-			if (folder == null || !folder.exists())
-				throw new FolderNotFoundException();
-			Message[] msgs = getMessagesInFolderSinceDate(folder, date);
+            if (callLogLabel == null)
+                throw new FolderNotFoundException();
 
             //if we get to this point then we were able to access the folder and should delete our error notification
             Notification errorNotification = notificationsService.getNamedNotification(updateInfo.getGuestId(), connector().getName() + ".callLogFolderError");
@@ -634,16 +704,67 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
                 notificationsService.deleteNotification(updateInfo.getGuestId(),errorNotification.getId());
             }
 
-			for (Message message : msgs) {
-                date = message.getReceivedDate();
-                if (flushEntry(updateInfo, email, message, CallLogEntryFacet.class) == null){
-                    throw new Exception("Could not persist Call log");
-                }
-                updateStartDate(updateInfo,callLogObjectType,date);
-			}
-			countSuccessfulApiCall(updateInfo.apiKey,
-					callLogObjectType.value(), then, query);
-			return;
+            Properties props = new Properties();
+            Session session = Session.getDefaultInstance(props, null);
+
+            if (historyId != null){
+                ListHistoryResponse historyResponse = null;
+                BigInteger queryHistoryId = historyId;
+                do{
+                    historyResponse = invokeListHistory(gmail,email,queryHistoryId,callLogLabel.getId(),historyResponse == null ? null : historyResponse.getNextPageToken());
+                    if (historyResponse == null){
+                        //if historyResponse is null that means we got a 404 error which means historyId is no longer valid
+                        historyId = null;
+                        break;
+                    }
+                    List<History> histories = historyResponse.getHistory();
+                    for (History history : histories){
+                        if (history.getMessages() == null)
+                            continue;
+                        for (Message messageStub : history.getMessages()){
+                            Message message = invokeGetMessage(gmail, email, messageStub.getId());
+                            if (message == null)
+                                continue;
+                            if (historyId.compareTo(message.getHistoryId()) < 0)
+                                historyId = message.getHistoryId();
+                            byte[] emailBytes = Base64.decodeBase64(message.getRaw());
+                            MimeMessage mimeMessage = new MimeMessage(session, new ByteArrayInputStream(emailBytes));
+
+                            if (flushEntry(updateInfo, email, mimeMessage, CallLogEntryFacet.class) == null){
+                                throw new Exception("Could not persist Call log");
+                            }
+                        }
+                    }
+                } while (historyResponse.getNextPageToken() != null);
+            }
+            if (historyId == null){
+                ListMessagesResponse listResponse = null;
+                do{
+                    listResponse = invokeList(gmail,email,callLogLabel.getId(),listResponse == null ? null : listResponse.getNextPageToken());
+                    if (listResponse.getMessages() == null){
+                        continue;
+                    }
+                    for (Message messageStub : listResponse.getMessages()){
+                        Message message = invokeGetMessage(gmail, email, messageStub.getId());
+                        if (message == null)
+                            continue;
+                        if (historyId == null || historyId.compareTo(message.getHistoryId()) < 0)
+                            historyId = message.getHistoryId();
+                        byte[] emailBytes = Base64.decodeBase64(message.getRaw());
+                        MimeMessage mimeMessage = new MimeMessage(session, new ByteArrayInputStream(emailBytes));
+
+                        if (flushEntry(updateInfo, email, mimeMessage, CallLogEntryFacet.class) == null){
+                            throw new Exception("Could not persist Call log");
+                        }
+                    }
+
+                } while (listResponse.getNextPageToken() != null);
+            }
+            if (historyId != null && !historyId.equals(originalHistoryId)){
+                updateHistoryId(updateInfo,callLogObjectType,historyId);
+            }
+
+			countSuccessfulApiCall(updateInfo.apiKey, callLogObjectType.value(), then, query);
 		}
         catch (MessagingException ex){
             notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.ERROR, connector().getName() + ".callLogFolderError",
@@ -657,15 +778,6 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
                     ex.getMessage());
 			throw ex;
 		}
-	}
-
-	private Message[] getMessagesInFolderSinceDate(Folder folder, Date date)
-			throws Exception {
-		if (!folder.isOpen())
-			folder.open(Folder.READ_ONLY);
-		SentDateTerm term = new SentDateTerm(SentDateTerm.GT, date);
-		Message[] msgs = folder.search(term);
-		return msgs;
 	}
 
     private SmsBackupSettings getSettingsOrPortLegacySettings(final ApiKey apiKey){
@@ -719,5 +831,137 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
     @Override
     public Object syncConnectorSettings(final UpdateInfo updateInfo, final Object settings) {
         return settings;
+    }
+
+    private Message invokeGetMessage(Gmail gmail, String email, String messageId) throws IOException {
+        Gmail.Users.Messages.Get messageQuery = gmail.users().messages().get(email, messageId).setFormat("raw");
+
+        Message message = null;
+
+        int sleepTime = baseSleepAmount;
+
+        while (message == null){
+            try{
+                message = messageQuery.execute();
+            }
+            catch (java.net.SocketTimeoutException ex){
+                try{
+                    sleepTime = Math.min(sleepTime * 2, maxSleepAmount);
+                    Thread.sleep(sleepTime);
+                } catch (Exception ignored){}
+            }
+            catch (GoogleJsonResponseException responseException){
+                switch (responseException.getDetails().getCode()){
+                    case 500://internal server error, should resolve
+                    case 503://internal server error, should resolve
+                    case 429://per second rate limit, just need to sleep
+                        try{
+                            System.err.println("SmsBackUpdater.invokeGetMessage: Error " + responseException.getDetails().getCode());
+                            sleepTime = Math.min(sleepTime * 2, maxSleepAmount);
+                            Thread.sleep(sleepTime);
+                        } catch (Exception ignored){}
+                        break;
+                    case 404://not found/invalid message id (could happen if the message was deleted before we queried for it)
+                        return null;
+                    case 401://Unauthorized (should indicate that our auth info is invalid)
+                    default:
+                        throw responseException;
+
+                }
+            }
+        }
+
+        return message;
+    }
+
+    private ListMessagesResponse invokeList(Gmail gmail, String email, List<String> labels, String nextPageToken) throws IOException {
+        Gmail.Users.Messages.List messagesQuery = gmail.users().messages().list(email).setLabelIds(labels);
+        if (nextPageToken != null){
+            messagesQuery.setPageToken(nextPageToken);
+        }
+        ListMessagesResponse response = null;
+
+        int sleepTime = baseSleepAmount;
+
+        while (response == null){
+            try{
+                response = messagesQuery.execute();
+            }
+            catch (java.net.SocketTimeoutException ex){
+                try{
+                    sleepTime = Math.min(sleepTime * 2, maxSleepAmount);
+                    Thread.sleep(sleepTime);
+                } catch (Exception ignored){}
+            }
+            catch (GoogleJsonResponseException responseException){
+                switch (responseException.getDetails().getCode()){
+                    case 500://internal server error, should resolve
+                    case 503://internal server error, should resolve
+                    case 429://per second rate limit, just need to sleep
+                        try{
+                            System.err.println("SmsBackUpdater.invokeList: Error " + responseException.getDetails().getCode());
+                            sleepTime = Math.min(sleepTime * 2, maxSleepAmount);
+                            Thread.sleep(sleepTime);
+                        } catch (Exception ignored){}
+                        break;
+                    case 401://Unauthorized
+                    default:
+                        throw responseException;
+
+                }
+            }
+
+        }
+        return response;
+    }
+
+    private ListMessagesResponse invokeList(Gmail gmail, String email, String labelId, String nextPageToken) throws IOException {
+        List<String> list = new ArrayList<String>();
+        list.add(labelId);
+        return invokeList(gmail,email,list,nextPageToken);
+    }
+
+    private ListHistoryResponse invokeListHistory(Gmail gmail, String email, BigInteger historyId, String labelId, String nextPageToken) throws IOException {
+        Gmail.Users.History.List historyQuery = gmail.users().history().list(email).setStartHistoryId(historyId).setLabelId(labelId);
+        if (nextPageToken != null){
+            historyQuery.setPageToken(nextPageToken);
+        }
+
+        ListHistoryResponse response = null;
+        int sleepTime = baseSleepAmount;
+
+        while (response == null){
+            try{
+                response = historyQuery.execute();
+            }
+            catch (java.net.SocketTimeoutException ex){
+                try{
+                    sleepTime = Math.min(sleepTime * 2, maxSleepAmount);
+                    Thread.sleep(sleepTime);
+                } catch (Exception ignored){}
+            }
+            catch (GoogleJsonResponseException responseException){
+                switch (responseException.getDetails().getCode()){
+                    case 500://internal server error, should resolve
+                    case 503://internal server error, should resolve
+                    case 429://per second rate limit, just need to sleep
+                        try{
+                            System.err.println("SmsBackUpdater.invokeListHistory: Error " + responseException.getDetails().getCode());
+                            sleepTime = Math.min(sleepTime * 2, maxSleepAmount);
+                            Thread.sleep(sleepTime);
+                        } catch (Exception ignored){}
+                        break;
+                    case 404://not found/invalid historyid
+                        return null;
+                    case 401://Unauthorized
+                    default:
+                        throw responseException;
+
+                }
+            }
+
+        }
+        return response;
+
     }
 }
