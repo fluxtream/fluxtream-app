@@ -111,9 +111,9 @@ Date.prototype.format = function (mask, utc) {
 };
 
 define(
-    [ "core/FlxState", "Addresses", "ManageConnectors", "AddConnectors", "ConnectorConfig", "Settings", "SharingDialog",
+    [ "core/FlxState", "ManageConnectors", "AddConnectors", "ConnectorConfig", "Settings", "SharingDialog",
       "libs/jquery.form", "libs/jquery.jeditable.mini", "libs/jquery.timeago" ],
-    function(FlxState, Addresses, ManageConnectors, AddConnectors, ConnectorConfig, Settings,
+    function(FlxState, ManageConnectors, AddConnectors, ConnectorConfig, Settings,
         SharingDialog ) {
 
         var App = {};
@@ -129,14 +129,37 @@ define(
             loadApps();
 
             bindGlobalEventHandlers();
+            checkForDataUpdates();
+
+            App.addDataUpdatesListener("AppNotificationsListener",function(updates){
+                if (updates.notification === true){
+                    App.refreshNotifications();
+                }
+            });
         }
 
         function bindGlobalEventHandlers(){
-            $("body").on("keyup.gloablAppEventHandler",function(event){
+            $(document).on("keyup.gloablAppEventHandler",function(event){
+                nonIdleEventDetected();
                 if (event.keyCode == 27 && App.modals.length > 0){
                     event.preventDefault();
                     App.modals[0].modal("hide");//close the top most modal dialog
                 }
+            });
+            $(document).on("keydown.globalAppEventHandler",function(event){
+                nonIdleEventDetected();
+            });
+            $(document).on("mousemove.globalAppEventHandler",function(event){
+                nonIdleEventDetected();
+            });
+            $(document).on("scroll.globalAppEventHandler",function(event){
+                nonIdleEventDetected();
+            });
+            $(document).on("mouseup.globalAppEventHandler",function(event){
+                nonIdleEventDetected();
+            });
+            $(document).on("mousedown.globalAppEventHandler",function(event){
+                nonIdleEventDetected();
             })
 
         }
@@ -194,7 +217,7 @@ define(
                     renderAppTemplate(apps[i], arguments[i]);
                     apps[i].setup();
                 }
-                setupURLRouting();
+                fetchGuestInfo(setupURLRouting);
             });
         }
 
@@ -235,35 +258,62 @@ define(
                     app = App.apps[appName];
                 renderDefault(app);
             });
-            FlxState.router.route("app/:name", "app-default", function(appName) {
-                console.log("app-default route: name=" + appName);
-                var app = App.apps[appName];
-                renderDefault(app);
-            });
-            FlxState.router.route("app/:name/*state", "app", function(appName, state) {
-                console.log("app route: name=" + appName + ", state=" + state);
-                var app = App.apps[appName];
-                if (_.isUndefined(app)) {
-                    console.log("invalid app: " + appName);
-                    App.invalidPath();
-                }
-                // strip trailing slash from state, if any
-                if (state.endsWith("/")) {
-                    state = state.slice(0, -1);
-                }
-                FlxState.saveState(appName, state);
-                state = app.parseState(state);
-                if (state === null) {
-                    console.log("invalid state: " + state);
-                    App.invalidPath();
-                    return;
-                }
-                render(app, state);
-            });
+            FlxState.router.route("app/:name/*state", "app", appStateRoute);
 
             if (!Backbone.history.start({pushState : window.history && window.history.pushState})) {
                 console.log("error loading routes!");
             }
+        }
+
+        function defaultAppRoute(appName, uid) {
+            console.log("app-default route: name=" + appName + ", uid=" + uid);
+            var app = App.apps[appName];
+            renderDefault(app);
+            if (hasBuddyToAccessChanged(uid)) {
+                App.as(uid);
+            }
+        }
+
+        function appStateRoute (appName, state) {
+            console.log(state);
+            var urlSplits = state.split("/");
+            var btaPathParam = urlSplits[0];
+            if (isNaN(btaPathParam)) {
+                window.location = window.location.origin + "/app/" + appName + "/" + App.buddyToAccess.id + "/" + state;
+                return;
+            }
+            state = state.substring(btaPathParam.length+1);
+
+            console.log("app route: name=" + appName + ", state=" + state);
+            var app = App.apps[appName];
+            if (_.isUndefined(app)) {
+                console.log("invalid app: " + appName);
+                App.invalidPath();
+            }
+            // strip trailing slash from state, if any
+            if (state.endsWith("/")) {
+                state = state.slice(0, -1);
+            }
+            FlxState.saveState(appName, state);
+            state = app.parseState(state);
+            if (state === null) {
+                renderDefault(app);
+            } else {
+                console.log(state);
+                render(app, state);
+            }
+            if (hasBuddyToAccessChanged(btaPathParam)) {
+                App.as(btaPathParam);
+            }
+        }
+
+        function hasBuddyToAccessChanged(btaPathParam) {
+            var btaChanged = false;
+            if (isNaN(btaPathParam))
+                btaChanged = (btaPathParam !== App.buddyToAccess["username"]);
+            else
+                btaChanged = (Number(btaPathParam) !== App.buddyToAccess["id"]);
+            return btaChanged;
         }
 
         /**
@@ -406,65 +456,87 @@ define(
             var confirmed = confirm("Are you sure?");
             if (confirmed) {
                 $.ajax({
-                    url: "/api/settings/deleteAccount",
+                    url: "/api/v1/settings/deleteAccount",
                     type: "POST",
-                    success: function(status) {
-                        if (status.result=="OK") {
-                            window.location = "/logout";
-                        } else {
-                            alert(status.message);
-                        }
+                    success: function(body, statusText, jqXHR) {
+                        console.log(statusText  + ":" + body);
+                        window.location = "/logout";
+                    }, error: function(jqXHR, statusText, errorThrown) {
+                        alert("Could not delete account: " + statusText+" (" + errorThrown + ") " + ". Please contact us!");
                     }
                 });
             }
         };
 
-        App.as = function(username) {
+        App.as = function(usernameOrUID) {
+            if (!_.isUndefined(usernameOrUID)) {
+                fetchGuestInfo(function() {
+                    App.activeApp.navigateState(App.state.getState(App.activeApp.name), {"as" : usernameOrUID});//force refresh of the current app state
+                }, usernameOrUID);
+            }
+        };
+
+        App.apiUri = function(uri) {
+          if (uri.indexOf("{buddyToAccess.id}")!=-1) {
+            return uri.replace("{buddyToAccess.id}", App.buddyToAccess.id);
+          }
+          return uri;
+        }
+
+        function fetchGuestInfo(andDoThisAfter, buddyToAccessParam) {
+            var url = "/api/v1/guest?includeAvatar=true";
+            if (buddyToAccessParam)url+="&"+App.BUDDY_TO_ACCESS_PARAM+"="+buddyToAccessParam;
             $.ajax({
-                url: "/api/coaching/coachees/" + username,
-                type: "POST",
-                success: function(status) {
-                    if (status.result=="OK") {
-                        location.reload();
-                    } else
-                        alert(status.message);
+                url: url,
+                success: function(guestInfo) {
+                    App.buddyToAccess = guestInfo;
+                    var loggedInUser = $("#loggedInUser");
+                    loggedInUser.attr("self", guestInfo["fullname"]);
+                    loggedInUser.html(guestInfo["fullname"] + "<span id=\"profileIcon\">&nbsp;</span> <b id=\"profileIconCaret\" class=\"caret\"></b>");
+                    if (App.buddyToAccess["isBuddy"]) {
+                        loggedInUser.css("text-shadow", "0 0 10px white");
+                        loggedInUser.css("color", "#FFFEFD");
+                        $("#addConnectorLink").addClass("disabled-link").unbind().click(function(evt){evt.preventDefault()});
+                    }
+                    else {
+                        loggedInUser.css("text-shadow", "");
+                        loggedInUser.css("color", "");
+                        $("#addConnectorLink").removeClass("disabled-link").unbind().click(function(){App.connectors();});
+                    }
+                    if (guestInfo["avatar"]!=null) {
+                        if (guestInfo["avatar"].type!="none") {
+                            $("#profileIcon").replaceWith("<img src=\"" + guestInfo.avatar.url + "\" style=\"display:inline;width:27px;margin: 0 1px 0 4px;\" width=27 height=27>");
+                            $("#profileIconCaret").css("margin-top", "10px");
+                            $("#helpDropdownToggle").css("margin-top", "3px");
+                            $("#connectorsDropdownToggle").css("margin-top", "3px");
+                            $("#appsMenuWrapper").css("margin-top", "4px");
+                            $(".brand").css("margin-top", "3px");
+                        } else {
+                            $("#profileIcon").replaceWith("<i class=\"icon-user icon-large\"></i>");
+                        }
+                    }
+                    if (!_.isUndefined(andDoThisAfter))
+                        andDoThisAfter();
+                    App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
+                    checkForDataUpdates();
+                },
+                error: function(jqXHR, statusText, errorThrown) {
+                    App.logError(jqXHR, statusText, errorThrown);
                 }
             });
-        };
+        }
+
+        App.logError = function(jqXHR, statusText, errorThrown) {
+            console.log(statusText+" (" + errorThrown + ") ");
+            console.log(jqXHR.responseText);
+        }
 
         App.connectors = function() {
             AddConnectors.show();
         };
 
-        App.addresses = function() {
-            Addresses.show();
-        };
-
         App.manageConnectors = function(){
             ManageConnectors.show();
-        };
-
-        App.removeConnector = function(api) {
-            if (typeof(ga)!='undefined') {ga('send', 'event', 'button', 'click', 'removeConnector', 1);}
-            var c = confirm("If you wrote comments on events related to this connector, "
-                                + "you will lose them forever.\n"
-                                + "Are your sure you want to continue?");
-            if (c) {
-                if (typeof(ga)!='undefined') {ga('send', 'event', 'button', 'click', 'removeConnectorConfirmed', 1);}
-                $.ajax({
-                           url : "/connectors/removeConnector?api=" + api,
-                           dataType : "json",
-                           success : function(data) {
-                               if (data.result == "ok") {
-                                   $("#userConnectors").load(
-                                       "/connectors/userConnectors");
-                                   $("#availableConnectors").load(
-                                       "/connectors/availableConnectors");
-                                   App.showConnectorsPage(0);
-                               }
-                           }
-                       });
-            }
         };
 
         App.getConnectorSettings = function(connectorId) {
@@ -550,19 +622,12 @@ define(
                     url : "/upload/addConnector",
                     type: "POST",
                     data: {connectorName : connectorName},
-                    success : function(response) {
-                        var status;
-                        try { status = JSON.parse(response); }
-                        catch(err) { alert("Couldn't add upload-only connector:" + err); }
-                        if (status.result==="OK") {
-                            $("#modal").modal("hide");
-                            App.activeApp.renderState(App.state.getState(App.activeApp.name),true);
-                        }
-                        else {
-                            if (typeof(status.stackTrace)!="undefined")
-                                console.log(status.stackTrace);
-                            alert("Could not add upload-only connector: " + status.message);
-                        }
+                    success : function(body, statusText, jqXHR) {
+                        $("#modal").modal("hide");
+                        App.activeApp.renderState(App.state.getState(App.activeApp.name),true);
+                    },
+                    error: function(jqXHR, statusText, errorThrown) {
+                        alert("Could not add upload-only connector: " + jqXHR.responseText);
                     }
                 });
             } else {
@@ -574,14 +639,9 @@ define(
             if (typeof(ga)!='undefined') {ga('send', 'event', 'button', 'click', 'addConnector', 1);}
         };
 
-        App.showConnectorsPage = function(page) {
-            $("#availableConnectors").load(
-                "/connectors/availableConnectors?page=" + page);
-        };
-
         App.discardNotification = function(notificationId) {
             $.ajax({
-                    url: "/api/notifications/" + notificationId,
+                    url: "/api/v1/notifications/" + notificationId,
                     type: "DELETE",
                     success: function() {
                         $("#notification-" + notificationId).remove();
@@ -590,6 +650,41 @@ define(
                 }
             );
         };
+
+        App.handleNotificationList = function(notificatons){
+
+            $(".alert").remove();
+            $("#notifications").empty();
+            if (typeof(notificatons)!="undefined"&&notificatons!=null) {
+                for (var n=0; n<notificatons.length; n++) {
+                    console.log("showing a notification " + n);
+                    if ($("#notification-" + notificatons[n].id).length==0) {
+                        (function(n){
+                            App.loadMustacheTemplate("notificationTemplates.html",notificatons[n].type+"Notification",function(template) {
+                                if (notificatons[n].repeated>1) notificatons[n].message += " (" + notificatons[n].repeated + "x)";
+                                var html = template.render(notificatons[n]);
+                                $("#notifications").append(html);
+                                $("abbr.timeago").timeago();
+                                $(window).resize();
+                            });
+                        })(n);
+                    }
+                }
+                $("#notifications").show();
+            }
+
+        }
+
+        App.refreshNotifications = function(){
+            $.ajax("/api/v1/notifications/all",{
+                success:function(result){
+                    App.handleNotificationList(result.notifications);
+                },
+                error: function(){
+                    console.log(arguments);
+                }
+            })
+        }
 
         App.showCarousel = function(photoId) {
             if ($("#photosCarousel").length==0) {
@@ -784,9 +879,18 @@ define(
                     $(target).dropdown("toggle");
                     break;
                 }
-                else if ($(target).attr("data-toggle") == "collapse"){
-                    $($(target).attr("data-target")).addClass("collapse");
-                    $($(target).attr("data-target")).collapse("toggle");
+                else if ($(target).attr("data-toggle") == "collapse-custom"){
+                    if ($($(target).attr("data-target")).hasClass("collapse")){
+                        $($(target).attr("data-target")).removeClass("collapse");
+                        $($(target).attr("data-target")).removeClass("in");
+
+                    }
+                    else{
+                        $($(target).attr("data-target")).addClass("collapse");
+                        $($(target).attr("data-target")).addClass("in");
+                    }
+                    event.preventDefault();
+                    break;
                 }
             }
         }
@@ -802,21 +906,10 @@ define(
                 hideFunctions[i]();
         };
 
-        $(document).bind("touchend",onEvent).bind("click",globalClickHandler).bind("mousedown", onEvent);
-
-        var hideFunctions = [];
+        $(document).bind("touchstart",onEvent).bind("touchend",onEvent).bind("click",globalClickHandler).bind("mousedown", onEvent);
 
         App.addHideTooltipListener = function(hideFunction) {
             hideFunctions.push(hideFunction);
-            var onEvent = function(event){ //hides the tooltip if an element clicked on or any of its parents has the notthide property
-                for (var target = event.target; target != null; target=target.parentElement){
-                    if ($(target).attr("notthide") != null)
-                        return;
-                }
-                for (var i = 0, li = hideFunctions.length; i < li; i++)
-                    hideFunctions[i];
-            };
-            $(document).unbind("click").unbind("touchend").bind("touchend",onEvent).bind("click",globalClickHandler).bind("click", onEvent);
         }
 
         App.search = function() {
@@ -909,14 +1002,14 @@ define(
 
         function incrementMessageDisplay(messageName){
             $.ajax({
-                url: "/api/settings/"+messageName+"/increment",
+                url: "/api/v1/settings/"+messageName+"/increment",
                 method: "POST",
-                success: function(status){
-                    if (status.result=="OK") {
-                        var count =parseInt(status.payload,10);
-                        App.messageDisplayCounters[messageName] = count;
-                    } else
-                        console.log("Couldn't increment message display for " + messageName)
+                success: function(status, statusText, jqXHR){
+                    var count =parseInt(status["payload"],10);
+                    App.messageDisplayCounters[messageName] = count;
+                },
+                error: function(jqXHR, statusText, errorThrown) {
+                    console.log("Couldn't increment message display for " + messageName);
                 }
             });
         }
@@ -935,14 +1028,6 @@ define(
                 $(".application").addClass("dormant");
                 $("#applications").append(html);
             });
-        }
-
-        function getUsername(){
-            return $("#flxUsername").html();
-        }
-
-        function getUID(){
-            return $("#flxUID").html();
         }
 
         window.FlxUtils = {};
@@ -1009,8 +1094,85 @@ define(
             });
         }
 
-        App.getUsername = getUsername;
-        App.getUID = getUID;
+        var dataUpdateListeners = {};
+
+        App.addDataUpdatesListener = function(name,listener){
+            dataUpdateListeners[name] = listener;
+        }
+
+        App.removeDataUpdatesListener = function(name){
+            delete dataUpdateListeners[name];
+        }
+
+
+        //the last time they performed a nonidle event
+        var lastNonIdleEvent = new Date().getTime();
+        //the timestamp they went idle
+        var idleStartTime = 0;
+        //whether or not the user is marked idle
+        var isIdle = false;
+
+        //the amount of time a user can be idle before they are marked as idle
+        var maxIdleTime = 1000 * 60 * 20;    //20 minutes
+        //how often updates should be polled
+        var updateCheckInterval = 1000 * 30;//30 seconds
+
+        //used to prevent nonidle event spam
+        var nonIdleMutex = false;
+        //resolution of nonidle event detection
+        var nonIdleMutexDuration = maxIdleTime / 60;
+
+        function nonIdleEventDetected(){
+            if (nonIdleMutex) return; //prevent from unnecessary spamming calls to Date().getTime()
+            nonIdleMutex = true;
+            lastNonIdleEvent = new Date().getTime();
+            if (isIdle){
+                isIdle = false;
+                //idle to nonidle
+                /*var millisSpentIdle = lastNonIdleEvent - idleStartTime;
+                if (millisSpentIdle > 1000 * 60 * 60){//check if it's been longer than an hour
+                    //do something...
+                }*/
+                checkForDataUpdates();
+            }
+            setTimeout(function(){
+                nonIdleMutex = false;
+            },nonIdleMutexDuration);
+        }
+
+
+
+        var lastCheckTimestamp = moment().format("YYYY-MM-DDThh:mm:ss.SSSZZ");
+
+        function checkForDataUpdates(){
+            if (isIdle || new Date().getTime() - lastNonIdleEvent > maxIdleTime){
+                isIdle = true;
+                idleStartTime = lastNonIdleEvent;
+                return;
+            }
+            function afterDone(){
+                setTimeout(checkForDataUpdates,updateCheckInterval);
+            }
+            var url = "/api/v1/dataUpdates/all";
+            if (App.buddyToAccess["isBuddy"]) url += "?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.buddyToAccess["id"];
+            $.ajax(url, {
+                type: "GET",
+                dataType: "json",
+                data: {since: lastCheckTimestamp},
+                success: function(data){
+                    lastCheckTimestamp = data.generationTimestamp;
+                    for (var member in dataUpdateListeners){
+                        dataUpdateListeners[member](data);
+                    }
+                    afterDone();
+                },
+                error: function(){
+                    afterDone();
+                }
+
+            });
+        }
+
         App.initialize = initialize;
         App.renderApp = renderApp;
         App.state = FlxState;
@@ -1018,6 +1180,8 @@ define(
         App.invalidPath = invalidPath;
         App.geocoder = new google.maps.Geocoder();
         App.sharingDialog = SharingDialog;
+        App.BUDDY_TO_ACCESS_PARAM = "buddyToAccess";
+        App.buddyToAccess = {isBuddy : false};
         window.App = App;
         return App;
 

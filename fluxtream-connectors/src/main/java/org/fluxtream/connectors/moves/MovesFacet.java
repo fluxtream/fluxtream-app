@@ -2,8 +2,8 @@ package org.fluxtream.connectors.moves;
 
 import java.util.List;
 import javax.persistence.MappedSuperclass;
-import org.fluxtream.connectors.Connector;
-import org.fluxtream.domain.AbstractFacet;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.domain.AbstractFacet;
 import org.hibernate.annotations.Index;
 
 /**

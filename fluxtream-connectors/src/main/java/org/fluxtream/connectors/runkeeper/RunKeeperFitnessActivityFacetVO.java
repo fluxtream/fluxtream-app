@@ -1,11 +1,9 @@
 package org.fluxtream.connectors.runkeeper;
 
-import java.util.Date;
-import java.util.TimeZone;
-import org.fluxtream.TimeInterval;
-import org.fluxtream.connectors.vos.AbstractTimedFacetVO;
-import org.fluxtream.domain.GuestSettings;
-import org.fluxtream.mvc.models.DurationModel;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.connectors.vos.AbstractTimedFacetVO;
+import org.fluxtream.core.domain.GuestSettings;
+import org.fluxtream.core.mvc.models.DurationModel;
 
 /**
  *
@@ -21,9 +19,6 @@ public class RunKeeperFitnessActivityFacetVO extends AbstractTimedFacetVO<RunKee
 
     @Override
     protected void fromFacet(final RunKeeperFitnessActivityFacet facet, final TimeInterval timeInterval, final GuestSettings settings) {
-        TimeZone timeZone = TimeZone.getTimeZone(facet.timeZone);
-        this.startMinute = toMinuteOfDay(new Date(facet.start), timeZone);
-        this.endMinute = toMinuteOfDay(new Date(facet.end), timeZone);
         this.totalCalories = facet.totalCalories;
         this.averageHeartRate = (facet.averageHeartRate!=null && facet.averageHeartRate>0)?facet.averageHeartRate:null;
         this.total_distance = facet.total_distance;

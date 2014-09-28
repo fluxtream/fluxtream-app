@@ -1,13 +1,13 @@
 package glacier.github;
 
-import org.fluxtream.connectors.Connector;
-import org.fluxtream.connectors.annotations.Updater;
-import org.fluxtream.connectors.updaters.AbstractUpdater;
-import org.fluxtream.connectors.updaters.UpdateInfo;
-import org.fluxtream.domain.ApiUpdate;
-import org.fluxtream.services.GuestService;
-import org.fluxtream.utils.HttpUtils;
-import org.fluxtream.utils.Utils;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.connectors.annotations.Updater;
+import org.fluxtream.core.connectors.updaters.AbstractUpdater;
+import org.fluxtream.core.connectors.updaters.UpdateInfo;
+import org.fluxtream.core.domain.ApiUpdate;
+import org.fluxtream.core.services.GuestService;
+import org.fluxtream.core.utils.HttpUtils;
+import org.fluxtream.core.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

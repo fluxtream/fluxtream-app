@@ -3,10 +3,10 @@ package org.fluxtream.connectors.sms_backup;
 import javax.mail.MessagingException;
 import javax.mail.Store;
 
-import org.fluxtream.connectors.Connector;
-import org.fluxtream.domain.ApiKey;
-import org.fluxtream.services.GuestService;
-import org.fluxtream.utils.MailUtils;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.services.GuestService;
+import org.fluxtream.core.utils.MailUtils;
 
 public class SmsBackupHelper {
 

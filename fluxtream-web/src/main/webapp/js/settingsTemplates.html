@@ -15,6 +15,9 @@
                     <li id="passwordSettings">
                         <a href="javascript:void(0);" onclick="$(this).tab('show');" data-target="#password-settings" data-toggle="tab">Password</a>
                     </li>
+                    <li id="appsSettings">
+                        <a href="javascript:void(0);" onclick="$(this).tab('show');" data-target="#apps-settings" data-toggle="tab">Apps</a>
+                    </li>
                     <li id="moreSettings">
                         <a href="javascript:void(0);" onclick="$(this).tab('show');" data-target="#more-settings" data-toggle="tab">More</a>
                     </li>
@@ -81,6 +84,8 @@
                     </div>
                     <div class="tab-pane settings-tab" id="password-settings">
                     </div>
+                    <div class="tab-pane settings-tab" id="apps-settings">
+                    </div>
                     <div class="tab-pane settings-tab" id="more-settings">
                         <h3>Delete my account</h3>
                         <a href="javascript:App.eraseEverything();"
@@ -94,6 +99,40 @@
             <button class="btn" onclick="App.closeModal()">Close</button>
         </div>
     </div>
+</template>
+<template id="linkedApps">
+    <h3>Applications</h3>
+    {{#accessTokens}}
+    <small>You have given the following apps access to your data:</small>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>App Name</th>
+            <th>Organization</th>
+            <th>Date</th>
+            <th>&nbsp;</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#accessTokens}}
+        <tr>
+            {{#website}}
+                <td><a href="{{website}}" target="_blank">{{name}}</a></td>
+            {{/website}}
+            {{^website}}
+                <td>{{name}}</td>
+            {{/website}}
+            <td>{{#organization}}{{organization}}{{/organization}}{{^organization}}none{{/organization}}</td>
+            <td>{{createdAt}}</td>
+            <td><a href="javascript:void(0)" class="revokeAccessToken" data-accessToken="{{accessToken}}">Revoke Access</a></td>
+        </tr>
+        {{/accessTokens}}
+        </tbody>
+    </table>
+    {{/accessTokens}}
+    {{^accessTokens}}
+    <small>Currently, you haven't given access to your data to any app.</small>
+    {{/accessTokens}}
 </template>
 <template id="resetPassword">
     <h3>Change Your Password</h3>
@@ -177,7 +216,7 @@
 </template>
 <template id="coachesDropdown">
     <div class="btn-group">
-        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+        <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:void(0)">
             {{selectedCoach}}
             <span class="caret"></span>
         </a>
@@ -195,14 +234,17 @@
 </template>
 <template id="sharedConnectors">
     {{#connectors}}
-        <label class="checkbox">
-            <input type="checkbox" onclick="App.sharingDialog.toggleSharedConnector('{{username}}','{{connectorName}}', this);"
-                   value="{{connectorName}}" {{#shared}}checked=checked{{/shared}}> {{prettyName}}
+        <form class="form-inline sharedConnectors" action="javascript:void(0)">
+            <label class="checkbox">
+                <input type="checkbox" onclick="App.sharingDialog.toggleSharedConnector('{{username}}','{{connectorName}}', this);"
+                       value="{{connectorName}}" {{#shared}}checked=checked{{/shared}}> {{prettyName}}
+            </label>
+
             {{#hasSettings}}
-                <a class="btn btn-link sharedConnectorSettingsBtn" {{^shared}}style="display:none"{{/shared}} data-apiKeyId="{{apiKeyId}}" data-connectorPrettyName="{{prettyName}}"
-                   data-connectorName="{{connectorName}}">more...</a>
+            <a class="btn btn-link sharedConnectorSettingsBtn" {{^shared}}style="display:none"{{/shared}} data-apiKeyId="{{apiKeyId}}" data-connectorPrettyName="{{prettyName}}"
+            data-connectorName="{{connectorName}}">more...</a>
             {{/hasSettings}}
-        </label>
+        </form>
     {{/connectors}}
 </template>
 <template id="findUserDialog">
@@ -217,7 +259,7 @@
                     <input type="text" placeholder="Please, Enter a Username..." id="findUserField" style="display:inline"/>
                     <button id="findUserButton" class="btn" style="margin: 0 0 9px 4px;">Search</button>
                     <img class="loading-animation"
-                         src="/{{release}}/images/loading.gif"/>
+                         src="/static/images/loading.gif"/>
                     <div id="findUserMessage" class="alert alert-info">You need to enter the fluxtream username of the person you want to invite.
                     If you don't already know it, please ask them to tell you what it is.</div>
                 </form>

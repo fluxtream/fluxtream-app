@@ -1,17 +1,13 @@
 package org.fluxtream.connectors.flickr;
 
-import java.awt.Dimension;
-import java.util.Calendar;
-import java.util.HashMap;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.connectors.vos.AbstractPhotoFacetVO;
+import org.fluxtream.core.domain.GuestSettings;
+import org.fluxtream.core.mvc.models.DimensionModel;
+
+import java.awt.*;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TimeZone;
-import java.util.TreeMap;
-import org.fluxtream.TimeInterval;
-import org.fluxtream.connectors.vos.AbstractPhotoFacetVO;
-import org.fluxtream.domain.GuestSettings;
-import org.fluxtream.mvc.models.DimensionModel;
 
 public class FlickrPhotoFacetVO extends
 		AbstractPhotoFacetVO<FlickrPhotoFacet> {
@@ -36,9 +32,6 @@ public class FlickrPhotoFacetVO extends
         UID = facet.getId();
         this.date = facet.date;
         start = facet.datetaken;
-        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        c.setTimeInMillis(start);
-		startMinute = c.get(Calendar.HOUR_OF_DAY)*60+c.get(Calendar.MINUTE);
 
         int i = 0;
         thumbnailUrls.put(i, String.format("https://farm%s.static.flickr.com/%s/%s_%s_s.jpg", facet.farm, facet.server, facet.flickrId, facet.secret));
@@ -75,7 +68,7 @@ public class FlickrPhotoFacetVO extends
 
         this.photoUrl = "https://farm" + facet.farm + ".static.flickr.com/"
                         + facet.server + "/" + facet.flickrId + "_" + facet.secret
-                        + "_z.jpg";
+                        + "_b.jpg";
 		description = facet.title;
 
         if (facet.longitude!=null && facet.latitude!=null){

@@ -1,7 +1,7 @@
 define(function() {
 
     function show(){
-        $.ajax("/api/connectors/uninstalled",{
+        $.ajax("/api/v1/connectors/uninstalled",{
             success: function(data, textStatus, jqXHR){
                 var rows = [];
                 var row = {connectors:[]};

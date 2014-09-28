@@ -3,7 +3,7 @@ package org.fluxtream.connectors.evernote;
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import org.fluxtream.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 
 /**
  * User: candide

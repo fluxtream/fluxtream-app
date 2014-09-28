@@ -4,15 +4,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import org.fluxtream.TimeInterval;
-import org.fluxtream.connectors.vos.AbstractPhotoFacetVO;
-import org.fluxtream.domain.GuestSettings;
-import org.fluxtream.mvc.models.DimensionModel;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.connectors.vos.AbstractPhotoFacetVO;
+import org.fluxtream.core.domain.GuestSettings;
+import org.fluxtream.core.mvc.models.DimensionModel;
 
 public class PicasaPhotoFacetVO extends AbstractPhotoFacetVO<PicasaPhotoFacet> {
 
@@ -25,7 +24,6 @@ public class PicasaPhotoFacetVO extends AbstractPhotoFacetVO<PicasaPhotoFacet> {
 	public void fromFacet(PicasaPhotoFacet facet, TimeInterval timeInterval,
 			GuestSettings settings) {
         start = facet.start;
-		startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getMainTimeZone());
 		thumbnailUrl = facet.thumbnailUrl;
 		photoUrl = facet.photoUrl;
 		description = facet.title;

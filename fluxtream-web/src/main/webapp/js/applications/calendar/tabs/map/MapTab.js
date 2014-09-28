@@ -13,6 +13,9 @@ define(["core/Tab",
 
     function render(params) {
         itemToShow = params.facetToShow;
+        if (params.digest.delta && map != null && map.selectedMarker != null && map.selectedMarker.item != null){
+            itemToShow = map.selectedMarker.item;
+        }
         params.setTabParam(null);
         this.getTemplate("text!applications/calendar/tabs/map/map.html", "map", function(){
             if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){
@@ -66,7 +69,7 @@ define(["core/Tab",
             }
         }
         else{//recycle old map
-            if (map.isPreserveViewChecked()){
+            if (map.isPreserveViewChecked() || digest.delta){
                 bounds = map.getBounds();
             }
             map.reset();
@@ -75,71 +78,80 @@ define(["core/Tab",
         if (typeof(digest.locationFetched)=="undefined"){
             Calendar.startLoading();
             $.ajax({
-                url: "/api/calendar/location/" + Calendar.tabState,
+                url: "/api/v1/calendar/location/" + Calendar.tabState,
                 success: function(locationDigest) {
-                    for (name in locationDigest.cachedData) {
-                        Calendar.processFacets(locationDigest.cachedData[name]);
-                        digest.cachedData[name] = locationDigest.cachedData[name];
+                    for (name in locationDigest.facets) {
+                        Calendar.processFacets(locationDigest.facets[name]);
+                        digest.facets[name] = locationDigest.facets[name];
                     }
                     digest.locationFetched = true;
-
-                    map.setDigest(digest);
-                    $("#mapFit").click(function(){
-                        map.fitBounds(map.gpsBounds);
-                    });
-
-                    map.executeAfterReady(function(){
-                        showData(connectorEnabled,bounds,function(bounds){
-                            if (bounds != null){
-                                map.fitBounds(bounds,map.isPreserveViewChecked());
-                            }
-                            else{
-                                map.setCenter(new google.maps.LatLng(digest.metadata.mainCity.latitude,digest.metadata.mainCity.longitude));
-                                map.setZoom(14);
-                            }
-                            map.preserveViewCheckboxChanged = function(){
-                                preserveView = map.isPreserveViewChecked();
-                            }
-                            if (itemToShow != null){
-                                map.zoomOnItemAndClick(itemToShow);
-                            }
-
-                            if (cursorPos != null)
-                                map.setCursorPosition(cursorPos);
-
-                            $("#mapwrapper .noDataOverlay").css("display", map.hasAnyData() ? "none" : "block");
-                            doneLoading();
-
-                        });
-                    });
+                    renderDigest();
                 },
+
                 error: function(status) {
                     Calendar.handleError(status.message);
                 }
+            });
+        }
+        else{
+            renderDigest();
+        }
+        function renderDigest(){
+            map.setDigest(digest);
+            $("#mapFit").unbind("click").click(function(){
+                map.fitBounds(map.gpsBounds);
+            });
+
+            map.executeAfterReady(function(){
+                showData(connectorEnabled,bounds,function(bounds){
+                    if (bounds != null){
+                        map.fitBounds(bounds,map.isPreserveViewChecked() || digestData.delta);
+                    }
+                    else{
+                        map.setCenter(new google.maps.LatLng(digest.metadata.mainCity.latitude,digest.metadata.mainCity.longitude));
+                        map.setZoom(14);
+                    }
+                    map.preserveViewCheckboxChanged = function(){
+                        preserveView = map.isPreserveViewChecked();
+                    }
+                    if (itemToShow != null){
+                        if (!digestData.delta)
+                            map.zoomOnItemAndClick(itemToShow);
+                        else
+                            map.clickOnItem(itemToShow);
+                    }
+
+                    if (cursorPos != null)
+                        map.setCursorPosition(cursorPos);
+
+                    $("#mapwrapper .noDataOverlay").css("display", map.hasAnyData() ? "none" : "block");
+                    doneLoading();
+
+                });
             });
         }
 	}
 
     function showData(connectorEnabled,bounds,doneLoading){
         var digest = digestData;
-        if (digest!=null && digest.cachedData!=null &&
-            typeof(digest.cachedData["google_latitude-location"])!="undefined"
-                && digest.cachedData["google_latitude-location"] !=null &&
-            digest.cachedData["google_latitude-location"].length>0) { //make sure gps data is available before trying to display it
-            map.addGPSData(digest.cachedData["google_latitude-location"],App.getFacetConfig("google_latitude-location"),true);
+        if (digest!=null && digest.facets!=null &&
+            typeof(digest.facets["google_latitude-location"])!="undefined"
+                && digest.facets["google_latitude-location"] !=null &&
+            digest.facets["google_latitude-location"].length>0) { //make sure gps data is available before trying to display it
+            map.addGPSData(digest.facets["google_latitude-location"],App.getFacetConfig("google_latitude-location"),true);
         }
 
-        for (var objectType in digest.cachedData){
+        for (var objectType in digest.facets){
             if (objectType == "google_latitude-location")
                 continue;//we already showed google latitude data if it existed
-            map.addGPSData(digest.cachedData[objectType],App.getFacetConfig(objectType),true)
+            map.addGPSData(digest.facets[objectType],App.getFacetConfig(objectType),true)
         }
 
         map.addAddresses(digest.addresses,true);
-        for(var objectTypeName in digest.cachedData) {
-            if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
+        for(var objectTypeName in digest.facets) {
+            if (digest.facets[objectTypeName]==null||typeof(digest.facets[objectTypeName])=="undefined")
                 continue;
-            map.addData(digest.cachedData[objectTypeName], objectTypeName, true);
+            map.addData(digest.facets[objectTypeName], objectTypeName, true);
         }
         for (var i = 0; i < digest.selectedConnectors.length; i++){
             if (!connectorEnabled[digest.selectedConnectors[i].connectorName])
@@ -148,7 +160,7 @@ define(["core/Tab",
                 }
         }
 
-        doneLoading(map.isPreserveViewChecked() ? bounds : map.gpsBounds);
+        doneLoading((map.isPreserveViewChecked() || digest.delta) ? bounds : map.gpsBounds);
 
     }
 

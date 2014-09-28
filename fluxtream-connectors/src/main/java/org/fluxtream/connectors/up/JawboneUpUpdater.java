@@ -1,33 +1,5 @@
 package org.fluxtream.connectors.up;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.TreeSet;
-import org.fluxtream.TimezoneMap;
-import org.fluxtream.connectors.ObjectType;
-import org.fluxtream.connectors.annotations.Updater;
-import org.fluxtream.connectors.location.LocationFacet;
-import org.fluxtream.connectors.updaters.AbstractUpdater;
-import org.fluxtream.connectors.updaters.AuthExpiredException;
-import org.fluxtream.connectors.updaters.UpdateFailedException;
-import org.fluxtream.connectors.updaters.UpdateInfo;
-import org.fluxtream.domain.AbstractFacet;
-import org.fluxtream.domain.ApiKey;
-import org.fluxtream.domain.ChannelMapping;
-import org.fluxtream.services.ApiDataService;
-import org.fluxtream.services.JPADaoService;
-import org.fluxtream.services.MetadataService;
-import org.fluxtream.services.impl.BodyTrackHelper;
-import org.fluxtream.utils.HttpUtils;
-import org.fluxtream.utils.TimespanSegment;
-import org.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
@@ -39,6 +11,24 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.log4j.Logger;
+import org.fluxtream.core.TimezoneMap;
+import org.fluxtream.core.connectors.ObjectType;
+import org.fluxtream.core.connectors.annotations.Updater;
+import org.fluxtream.core.connectors.location.LocationFacet;
+import org.fluxtream.core.connectors.updaters.AbstractUpdater;
+import org.fluxtream.core.connectors.updaters.AuthExpiredException;
+import org.fluxtream.core.connectors.updaters.UpdateFailedException;
+import org.fluxtream.core.connectors.updaters.UpdateInfo;
+import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
+import org.fluxtream.core.services.ApiDataService;
+import org.fluxtream.core.services.JPADaoService;
+import org.fluxtream.core.services.MetadataService;
+import org.fluxtream.core.services.impl.BodyTrackHelper;
+import org.fluxtream.core.utils.HttpUtils;
+import org.fluxtream.core.utils.TimespanSegment;
+import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
@@ -47,6 +37,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * User: candide
@@ -58,6 +54,7 @@ import org.springframework.stereotype.Component;
                                                                  JawboneUpSleepFacet.class, JawboneUpMealFacet.class,
                                                                  JawboneUpServingFacet.class, JawboneUpWorkoutFacet.class},
          defaultChannels = {"Jawbone_UP.intensity", "Jawbone_UP.sleep"},
+         deviceNickname = "Jawbone_UP",
          deleteOrder= {1, 2, 4, 8, 32, 16}, bodytrackResponder = JawboneUpBodytrackResponder.class)
 public class JawboneUpUpdater extends AbstractUpdater {
 

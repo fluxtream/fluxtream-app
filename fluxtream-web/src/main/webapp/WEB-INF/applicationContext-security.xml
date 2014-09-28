@@ -1,67 +1,127 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/security"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd">
 
 	<global-method-security secured-annotations="enabled"/>
 
+    <!-- assets -->
 	<http pattern="/support/*" security="none" />
 	<http pattern="/**/notify" security="none" />
 	<http pattern="/${release}/js/**" security="none" />
     <http pattern="/${release}/videos/**" security="none" />
     <http pattern="/${release}/html/**" security="none" />
-	<http pattern="/${release}/css/**" security="none" />
+	<http pattern="/*/css/**" security="none" />
+    <http pattern="/${release}/fonts/**" security="none" />
     <http pattern="/${release}/assets-home/**" security="none" />
     <http pattern="/static/**" security="none" />
 	<http pattern="/css/**" security="none" />
 	<http pattern="/${release}/images/**" security="none" />
+    <http pattern="/${release}/js/public/**" security="none" />
     <http pattern="/images/**" security="none" />
     <http pattern="/welcome*" security="none" />
     <http pattern="/accessDenied*" security="none" />
 	<http pattern="/notSupported" security="none" />
 	<http pattern="/favicon.ico" security="none" />
 	<http pattern="/apple-touch-icon-precomposed.png" security="none" />
+    <http pattern="/html/privacyPolicy.html" security="none" />
+
+    <!-- registration -->
 	<http pattern="/get-invitation*" security="none" />
     <http pattern="/createAccount*" security="none" />
     <http pattern="/register*" security="none" />
     <http pattern="/createAccountForm*" security="none" />
     <http pattern="/widgets.json" security="none" />
     <http pattern="/widgets/**" security="none" />
-    <http pattern="/api/test/**" security="none" />
-    <http pattern="/api/ping" security="none" />
-    <http pattern="/api/facebook/login*" security="none" />
+
+    <!-- api ping -->
+    <http pattern="/api/v1/test/**" security="none" />
+    <http pattern="/api/v1/ping" security="none" />
+
+    <!-- facebook login and sharing -->
+    <http pattern="/api/v1/facebook/login*" security="none" />
     <http pattern="/openGraph/**" security="none" />
     <http pattern="/channel.html" security="none" />
-    <http pattern="/html/privacyPolicy.html" security="none" />
 
-    <http access-denied-page="/accessDenied" entry-point-ref="loginUrlAuthenticationEntryPoint"
+    <!-- api documentation -->
+    <http pattern="/api/api-docs/**" security="none" />
+    <http pattern="/api/api-docs*" security="none" />
+    <http pattern="/bootstrap/*" security="none" />
+
+    <!-- oauth2 token exchange -->
+    <http pattern="/auth/oauth2/token" security="none" />
+    <http pattern="/auth/oauth2/token*" security="none" />
+
+    <!-- CORS -->
+    <http pattern="/cors" security="none" />
+
+    <!-- swagger ui -->
+    <http pattern="/swagger-ui/**" security="none" />
+
+    <!-- mobile register & signIn -->
+    <http pattern="/mobile/oauth2/authorize" security="none" /> <!-- TODO: REMOVE THIS -->
+    <http pattern="/mobile/signIn" security="none" />
+    <http pattern="/mobile/authenticate" security="none" />
+    <http pattern="/mobile/register" security="none" />
+
+    <!-- partner app user registration -->
+    <http pattern="/api/v1/partners/apps/*/guest*" security="none" />
+
+    <!-- developer website -->
+    <http pattern="/dev/partials/*" security="none" />
+
+    <http entry-point-ref="daep"
 		use-expressions="true" create-session="ifRequired">
         <http-basic/>
+        <intercept-url pattern="/" access="permitAll" />
+        <intercept-url pattern="/dev/**" access="permitAll" />
 		<intercept-url pattern="/**" access="hasRole('ROLE_USER')" />
 
+        <custom-filter before="PRE_AUTH_FILTER" ref="oauth2ProcessingFilter" />
 		<custom-filter position="FORM_LOGIN_FILTER" ref="authFilter" />
 		<custom-filter position="LOGOUT_FILTER" ref="logoutFilter" />
-	</http>
+        <custom-filter after="LOGOUT_FILTER" ref="requestCacheAwareFilter" />
+    </http>
+
+    <beans:bean id="oauth2ProcessingFilter"
+                class="org.fluxtream.core.auth.FlxOAuth2ProcessingFilter"/>
 
 	<beans:bean id="logoutFilter"
 		class="org.springframework.security.web.authentication.logout.LogoutFilter">
 		<beans:constructor-arg value="/welcome"></beans:constructor-arg>
 		<beans:constructor-arg>
 			<beans:array>
-				<beans:bean class="org.fluxtream.auth.FlxLogoutHandler">
+				<beans:bean class="org.fluxtream.core.auth.FlxLogoutHandler">
 				</beans:bean>
 			</beans:array>
 		</beans:constructor-arg>
 		<beans:property name="filterProcessesUrl" value="/logout" />
 	</beans:bean>
 
-	<beans:bean id="loginUrlAuthenticationEntryPoint"
-		class="org.fluxtream.auth.FlxLoginUrlAuthenticationEntryPoint">
-		<beans:property name="loginFormUrl" value="/welcome" />
-	</beans:bean>
+    <beans:bean id="daep" class="org.fluxtream.core.auth.FlxAuthenticationEntryPoint">
+        <!--<beans:property name="restApiEntryPoint" ref="restApiEntryPoint"/>-->
+        <beans:property name="mobileEntryPoint" ref="mobileEntryPoint"/>
+        <beans:property name="defaultEntryPoint" ref="loginUrlAuthenticationEntryPoint"/>
+    </beans:bean>
 
-	<beans:bean id="authFilter" class="org.fluxtream.auth.FlxAuthFilter">
+    <beans:bean id="mobileEntryPoint"
+                class="org.fluxtream.core.auth.FlxLoginUrlAuthenticationEntryPoint">
+        <beans:property name="loginFormUrl" value="/welcome?signIn" />
+    </beans:bean>
+
+    <beans:bean id="loginUrlAuthenticationEntryPoint"
+                class="org.fluxtream.core.auth.FlxLoginUrlAuthenticationEntryPoint">
+        <beans:property name="loginFormUrl" value="/welcome?signIn" />
+    </beans:bean>
+
+    <!--<beans:bean id="restApiEntryPoint"-->
+                <!--class="org.fluxtream.core.auth.FlxRestApiEntryPoint">-->
+    <!--</beans:bean>-->
+
+
+	<beans:bean id="authFilter" class="org.fluxtream.core.auth.FlxAuthFilter">
 		<beans:property name="authenticationManager" ref="authenticationManager" />
 		<beans:property name="authenticationFailureHandler"
 			ref="failureHandler" />
@@ -71,8 +131,9 @@
 	</beans:bean>
 
 	<beans:bean id="successHandler"
-		class="org.fluxtream.auth.FlxSavedRequestAwareAuthenticationSuccessHandler">
+		class="org.fluxtream.core.auth.FlxSavedRequestAwareAuthenticationSuccessHandler">
 		<beans:property name="defaultTargetUrl" value="/checkIn" />
+        <beans:property name="mobileDefaultTargetUrl" value="/mobile/checkIn" />
 		<beans:property name="alwaysUseDefaultTargetUrl" value="true" />
         <beans:property name="requestCache" ref="requestCache"/>
 	</beans:bean>
@@ -83,8 +144,8 @@
         <beans:constructor-arg ref="requestCache"/>
     </beans:bean>
 
-	<beans:bean id="failureHandler" class="org.fluxtream.auth.FlxAuthFailureHandler">
-		<beans:property name="defaultFailureUrl" value="/welcome" />
+	<beans:bean id="failureHandler" class="org.fluxtream.core.auth.FlxAuthFailureHandler">
+		<beans:property name="defaultFailureUrl" value="/welcome?signIn" />
 	</beans:bean>
 
 	<authentication-manager alias="authenticationManager">
@@ -95,7 +156,7 @@
 		</authentication-provider>
 	</authentication-manager>
 
-	<beans:bean id="guestService" class="org.fluxtream.auth.FlxUserDetailsService">
+	<beans:bean id="guestService" class="org.fluxtream.core.auth.FlxUserDetailsService">
     </beans:bean>
 
 </beans:beans>

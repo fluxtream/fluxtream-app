@@ -1,8 +1,8 @@
-<%@ page import="org.fluxtream.auth.AuthHelper" %>
+<%@ page import="org.fluxtream.core.auth.AuthHelper" %>
 <%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"%><%@ taglib
         uri="http://granule.com/tags" prefix="g"
         %><%@ page import="java.util.List"
-        %><%@ page import="org.fluxtream.domain.Guest"
+        %><%@ page import="org.fluxtream.core.domain.Guest"
         %><%
     List<Guest> allGuests = (List<Guest>)request.getAttribute("allGuests");%><!DOCTYPE html>
 <html lang="en">
@@ -94,7 +94,7 @@
         <p><span class="label label-info">Live serverUUID's: ${serverUUID}</span></p>
 
         <div class="dropdown">
-            <a class="dropdown-toggle" data-toggle="dropdown" href="#">&lt;Please choose a Guest&gt;</a>
+            <a class="dropdown-toggle" data-toggle="dropdown" href="javascript:void(0)">&lt;Please choose a Guest&gt;</a>
             <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                 <%if (allGuests!=null) {for (Guest guest : allGuests){ %>
                 <li><a href="/admin/<%=guest.getId()%>"><%=guest.username%> (<%=guest.getGuestName()%>)</a></li>

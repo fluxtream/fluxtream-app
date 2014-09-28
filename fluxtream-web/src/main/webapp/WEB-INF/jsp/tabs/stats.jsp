@@ -1,8 +1,8 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"
         %><%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"
         %><%@ page isELIgnored="false"
-        %><%@ page import="org.fluxtream.*"
-        %><%@ page import="org.fluxtream.mvc.tabs.controllers.DashboardWidgetsHelper"
+        %><%@ page import="org.fluxtream.core.*"
+        %><%@ page import="org.fluxtream.core.mvc.tabs.controllers.DashboardWidgetsHelper"
         %><%@ page import="java.util.*"
         %>
 
@@ -25,8 +25,8 @@
     <div class="flx-widget span4">
         <header>
             <div class="flx-widget-controls">
-                <a href="#" class="flx-settings"><i class="icon-cog"></i></a>
-                <a href="#" class="flx-remove"><i class="icon-remove"></i></a>
+                <a href="javascript:void(0)" class="flx-settings"><i class="icon-cog"></i></a>
+                <a href="javascript:void(0)" class="flx-remove"><i class="icon-remove"></i></a>
             </div>
             <h3 class="flx-title">Steps</h3>
         </header>
@@ -39,8 +39,8 @@
     <div class="flx-widget span4">
         <header>
             <div class="flx-widget-controls">
-                <a href="#" class="flx-settings"><i class="icon-cog"></i></a>
-                <a href="#" class="flx-remove"><i class="icon-remove"></i></a>
+                <a href="javascript:void(0)" class="flx-settings"><i class="icon-cog"></i></a>
+                <a href="javascript:void(0)" class="flx-remove"><i class="icon-remove"></i></a>
             </div>
             <h3 class="flx-title">Sleep</h3>
         </header>
@@ -53,8 +53,8 @@
     <div class="flx-widget span4">
         <header>
             <div class="flx-widget-controls">
-                <a href="#" class="flx-settings"><i class="icon-cog"></i></a>
-                <a href="#" class="flx-remove"><i class="icon-remove"></i></a>
+                <a href="javascript:void(0)" class="flx-settings"><i class="icon-cog"></i></a>
+                <a href="javascript:void(0)" class="flx-remove"><i class="icon-remove"></i></a>
             </div>
             <h3 class="flx-title">Food</h3>
         </header>
@@ -72,8 +72,8 @@
     <div class="flx-widget span4">
         <header>
             <div class="flx-widget-controls">
-                <a href="#" class="flx-settings"><i class="icon-cog"></i></a>
-                <a href="#" class="flx-remove"><i class="icon-remove"></i></a>
+                <a href="javascript:void(0)" class="flx-settings"><i class="icon-cog"></i></a>
+                <a href="javascript:void(0)" class="flx-remove"><i class="icon-remove"></i></a>
             </div>
             <h3 class="flx-title">Activity</h3>
         </header>
@@ -86,8 +86,8 @@
     <div class="flx-widget span4">
         <header>
             <div class="flx-widget-controls">
-                <a href="#" class="flx-settings"><i class="icon-cog"></i></a>
-                <a href="#" class="flx-remove"><i class="icon-remove"></i></a>
+                <a href="javascript:void(0)" class="flx-settings"><i class="icon-cog"></i></a>
+                <a href="javascript:void(0)" class="flx-remove"><i class="icon-remove"></i></a>
             </div>
             <h3 class="flx-title">Finance</h3>
         </header>
@@ -100,8 +100,8 @@
     <div class="flx-widget span4">
         <header>
             <div class="flx-widget-controls">
-                <a href="#" class="flx-settings"><i class="icon-cog"></i></a>
-                <a href="#" class="flx-remove"><i class="icon-remove"></i></a>
+                <a href="javascript:void(0)" class="flx-settings"><i class="icon-cog"></i></a>
+                <a href="javascript:void(0)" class="flx-remove"><i class="icon-remove"></i></a>
             </div>
             <h3 class="flx-title">mffboston09</h3>
         </header>

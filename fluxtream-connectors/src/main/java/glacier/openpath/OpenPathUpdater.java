@@ -3,12 +3,12 @@ package glacier.openpath;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import org.fluxtream.connectors.Connector;
-import org.fluxtream.connectors.TwoLeggedOAuthHelper;
-import org.fluxtream.connectors.annotations.Updater;
-import org.fluxtream.connectors.location.LocationFacet;
-import org.fluxtream.connectors.updaters.AbstractUpdater;
-import org.fluxtream.connectors.updaters.UpdateInfo;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.connectors.TwoLeggedOAuthHelper;
+import org.fluxtream.core.connectors.annotations.Updater;
+import org.fluxtream.core.connectors.location.LocationFacet;
+import org.fluxtream.core.connectors.updaters.AbstractUpdater;
+import org.fluxtream.core.connectors.updaters.UpdateInfo;
 
 @Component
 @Updater(prettyName = "OpenPath", value = 89, objectTypes = { LocationFacet.class }, hasFacets = true)

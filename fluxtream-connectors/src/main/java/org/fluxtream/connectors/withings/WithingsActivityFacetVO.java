@@ -1,9 +1,9 @@
 package org.fluxtream.connectors.withings;
 
-import org.fluxtream.OutsideTimeBoundariesException;
-import org.fluxtream.TimeInterval;
-import org.fluxtream.connectors.vos.AbstractLocalTimeInstantFacetVO;
-import org.fluxtream.domain.GuestSettings;
+import org.fluxtream.core.OutsideTimeBoundariesException;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.connectors.vos.AbstractLocalTimeInstantFacetVO;
+import org.fluxtream.core.domain.GuestSettings;
 
 /**
  * User: candide

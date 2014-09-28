@@ -1,9 +1,6 @@
 package org.fluxtream.connectors.up;
 
 import java.util.Locale;
-import org.fluxtream.connectors.updaters.UpdateFailedException;
-import org.fluxtream.domain.ApiKey;
-import org.fluxtream.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.http.HttpResponse;
@@ -13,6 +10,9 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.fluxtream.core.connectors.updaters.UpdateFailedException;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.ISODateTimeFormat;
 import org.junit.Test;

@@ -4,12 +4,12 @@
 %><%@ page import="java.util.Map"
 %>
 <%@ page import="java.util.Set" %>
-<%@ page import="org.fluxtream.connectors.Connector" %>
-<%@ page import="org.fluxtream.connectors.ObjectType" %>
-<%@ page import="org.fluxtream.domain.ApiKey" %>
-<%@ page import="org.fluxtream.domain.ApiUpdate" %>
-<%@ page import="org.fluxtream.domain.Guest" %>
-<%@ page import="org.fluxtream.domain.UpdateWorkerTask" %>
+<%@ page import="org.fluxtream.core.connectors.Connector" %>
+<%@ page import="org.fluxtream.core.connectors.ObjectType" %>
+<%@ page import="org.fluxtream.core.domain.ApiKey" %>
+<%@ page import="org.fluxtream.core.domain.ApiUpdate" %>
+<%@ page import="org.fluxtream.core.domain.Guest" %>
+<%@ page import="org.fluxtream.core.domain.UpdateWorkerTask" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.joda.time.format.DateTimeFormat" %>
 <%

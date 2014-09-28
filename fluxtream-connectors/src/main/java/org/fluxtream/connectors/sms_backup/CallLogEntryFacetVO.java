@@ -1,21 +1,20 @@
 package org.fluxtream.connectors.sms_backup;
 
-import org.fluxtream.TimeInterval;
-import org.fluxtream.connectors.vos.AbstractTimedFacetVO;
-import org.fluxtream.domain.GuestSettings;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.connectors.vos.AbstractTimedFacetVO;
+import org.fluxtream.core.domain.GuestSettings;
+import org.fluxtream.core.mvc.models.DurationModel;
 
 public class CallLogEntryFacetVO extends AbstractTimedFacetVO<CallLogEntryFacet>{
 
-	public int secondsTalking;
+	public DurationModel talkingTime;
 	public String personName;
     public String personNumber;
     public String callType;
 	
 	@Override
 	public void fromFacet(CallLogEntryFacet phoneCall, TimeInterval timeInterval, GuestSettings settings) {
-        this.startMinute = toMinuteOfDay(phoneCall.date, timeInterval.getMainTimeZone());
-        this.endMinute = this.startMinute + phoneCall.seconds/60;
-        this.secondsTalking = Math.round(phoneCall.seconds);
+        this.talkingTime = new DurationModel(Math.round(phoneCall.seconds));
 
         this.personName = phoneCall.personName;
         this.personNumber = phoneCall.personNumber;

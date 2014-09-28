@@ -6,7 +6,7 @@
         http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
         http://www.springframework.org/schema/beans 
         http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
-        
+
 	<bean id="placeholderConfigurer"
 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />
@@ -22,9 +22,11 @@
     <mvc:resources mapping="/${release}/js/**" location="/js/" cache-period="31556926" />
     <mvc:resources mapping="/${release}/less/**" location="/less/" cache-period="31556926" />
     <mvc:resources mapping="/${release}/css/**" location="/css/" cache-period="31556926" />
-    <mvc:resources mapping="/${release}/videos/**" location="/videos/" cache-period="31556926" />
+    <mvc:resources mapping="/${release}/fonts/**" location="/fonts/" cache-period="31556926" />
     <mvc:resources mapping="/${release}/assets-home/**" location="/assets-home/" cache-period="31556926" />
     <mvc:resources mapping="/css/**" location="/css/" cache-period="31556926" />
+    <mvc:resources mapping="/images/**" location="/images/" cache-period="31556926" />
+    <mvc:resources mapping="/${release}/images/**" location="/images/" cache-period="31556926" />
     <mvc:resources mapping="/static/css/**" location="/static/css/" cache-period="31556926" />
     <mvc:resources mapping="/static/font/**" location="/static/font/" cache-period="31556926" />
     <mvc:resources mapping="/static/grapher4/**" location="/static/grapher4/" cache-period="31556926" />
@@ -33,21 +35,7 @@
     <mvc:resources mapping="/static/tiny_mce-3.5b1/**" location="/static/tiny_mce-3.5b1/" cache-period="31556926" />
     <mvc:resources mapping="/${release}/html/**" location="/html/" cache-period="31556926" />
 
-    <mvc:resources mapping="/widgets.json" location="/widgets/widgets.json" cache-period="31556926"/>
-    <mvc:resources mapping="/channel.html" location="/channel.html" cache-period="31556926"/>
     <mvc:resources mapping="/widgets/**" location="/widgets/" cache-period="31556926"/>
-
-	<bean id="viewResolver"
-		class="org.springframework.web.servlet.view.UrlBasedViewResolver">
-		<property name="viewClass"
-			value="org.springframework.web.servlet.view.JstlView" />
-		<property name="prefix" value="/WEB-INF/jsp/" />
-		<property name="suffix" value=".jsp" />
-	</bean>
-
-    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
-        <!-- maximum file size in bytes: thats 100Mb -->
-        <property name="maxUploadSize" value="104857600"/>
-    </bean>
+    <mvc:resources mapping="/swagger-ui/**" location="/swagger-ui/" cache-period="31556926"/>
 
 </beans>

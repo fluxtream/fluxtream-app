@@ -1,16 +1,16 @@
 package org.fluxtream.mvc.controllers;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.fluxtream.SimpleTimeInterval;
-import org.fluxtream.auth.AuthHelper;
-import org.fluxtream.aspects.FlxLogger;
+import org.fluxtream.core.Configuration;
+import org.fluxtream.core.SimpleTimeInterval;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.TimeUnit;
+import org.fluxtream.core.aspects.FlxLogger;
+import org.fluxtream.core.auth.AuthHelper;
+import org.fluxtream.core.connectors.vos.AbstractFacetVO;
+import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.services.ApiDataService;
+import org.fluxtream.core.services.FullTextSearchService;
+import org.fluxtream.core.services.MetadataService;
 import org.joda.time.format.DateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -19,14 +19,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import org.fluxtream.Configuration;
-import org.fluxtream.TimeInterval;
-import org.fluxtream.TimeUnit;
-import org.fluxtream.connectors.vos.AbstractFacetVO;
-import org.fluxtream.domain.AbstractFacet;
-import org.fluxtream.services.ApiDataService;
-import org.fluxtream.services.FullTextSearchService;
-import org.fluxtream.services.MetadataService;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
 
 @Controller
 public class SearchController {

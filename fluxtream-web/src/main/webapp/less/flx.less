@@ -124,7 +124,7 @@ html {
 
 div#currentTimespanLabel {
     display:inline-block;
-    width: 250px;
+    width: 260px;
     text-align: center;
     align: center;
 }
@@ -215,6 +215,7 @@ a.paginationLink {
 .application.dormant { //hacky way of fixing comment display bug
     position:fixed;
     top:0px;
+    left: 100%;
     margin-top:-1000px;
     height:500px;
     overflow:hidden;
@@ -228,6 +229,7 @@ a.paginationLink {
 .tab.dormant {        //hacky way of fixing comment display bug
     position:fixed;
     top:0px;
+    left: 100%;
     margin-top:-1000px;
     height:500px;
     overflow:hidden;
@@ -323,14 +325,19 @@ a img { text-decoration: none; }
 }
 
 .nav-tabs { background: @hd-bg-color; }
-.nav-tabs > li > a { padding-top: 8px; padding-bottom: 8px; line-height:18px;}
+.nav-tabs > li > a {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  line-height:18px;
+  .unselectable;
+}
 .nav-tabs > li > a:hover { padding-top: 8px; padding-bottom: 7px; line-height:18px;}
 
 .flx-timeMenu { .flx-clearfix; }
 
 .menuTodayButton { margin-right:18px; }
 
-#currentTimespanLabel { width: 250px !important;
+#currentTimespanLabel { width: 260px !important;
     h3 { display: block; float:left; padding: 0 0 0 15px; margin-top: -2px; text-align: center; }
 }
 
@@ -977,7 +984,7 @@ footer { color: gray; }
   border:none;
   width:20px;
   height:20px;
-  margin: 0 7px 1px -5px;
+  margin: 0 0px 6px 6px;
   display: inline;
 }
 
@@ -1308,4 +1315,15 @@ body .modal-reading {
 
 .sharedConnectorSettingsBtn {
   padding: 0;
+}
+
+.form-inline.sharedConnectors {
+  margin: 0 0 4px;
+}
+
+a.disabled-link,
+a.disabled-link:visited ,
+a.disabled-link:active,
+a.disabled-link:hover {
+  color:#aaa !important;
 }

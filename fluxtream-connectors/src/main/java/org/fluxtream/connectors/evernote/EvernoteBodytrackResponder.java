@@ -3,20 +3,20 @@ package org.fluxtream.connectors.evernote;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
-import org.fluxtream.SimpleTimeInterval;
-import org.fluxtream.TimeInterval;
-import org.fluxtream.TimeUnit;
-import org.fluxtream.auth.AuthHelper;
-import org.fluxtream.connectors.Connector;
-import org.fluxtream.connectors.ObjectType;
-import org.fluxtream.connectors.bodytrackResponders.AbstractBodytrackResponder;
-import org.fluxtream.connectors.vos.AbstractFacetVO;
-import org.fluxtream.domain.AbstractFacet;
-import org.fluxtream.domain.ApiKey;
-import org.fluxtream.domain.GuestSettings;
-import org.fluxtream.mvc.models.TimespanModel;
-import org.fluxtream.services.CoachingService;
-import org.fluxtream.services.SettingsService;
+import org.fluxtream.core.SimpleTimeInterval;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.TimeUnit;
+import org.fluxtream.core.auth.AuthHelper;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.connectors.ObjectType;
+import org.fluxtream.core.connectors.bodytrackResponders.AbstractBodytrackResponder;
+import org.fluxtream.core.connectors.vos.AbstractFacetVO;
+import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.GuestSettings;
+import org.fluxtream.core.mvc.models.TimespanModel;
+import org.fluxtream.core.services.BuddiesService;
+import org.fluxtream.core.services.SettingsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,7 +32,7 @@ public class EvernoteBodytrackResponder extends AbstractBodytrackResponder {
     SettingsService settingsService;
 
     @Autowired
-    CoachingService coachingService;
+    BuddiesService buddiesService;
 
     @Override
     public List<TimespanModel> getTimespans(final long startMillis, final long endMillis,
@@ -42,7 +42,7 @@ public class EvernoteBodytrackResponder extends AbstractBodytrackResponder {
         final TimeInterval timeInterval = new SimpleTimeInterval(startMillis, endMillis, TimeUnit.ARBITRARY, TimeZone.getTimeZone("UTC"));
         String objectTypeName = "Evernote-note";
         List<AbstractFacet> facets = getFacetsInTimespan(timeInterval, apiKey, ObjectType.getObjectType(Connector.getConnector("evernote"), "note"));
-        facets = coachingService.filterFacets(AuthHelper.getGuestId(), apiKey.getId(), facets);
+        facets = buddiesService.filterFacets(AuthHelper.getGuestId(), apiKey.getId(), facets);
 
         // The start and end times of track facets are the same.  Assume that the
         // start time is correct and arbitrarily draw a box that's 7 mins or

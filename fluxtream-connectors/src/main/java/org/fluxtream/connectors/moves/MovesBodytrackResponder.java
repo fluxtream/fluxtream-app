@@ -1,25 +1,37 @@
 package org.fluxtream.connectors.moves;
 
+import org.fluxtream.core.Configuration;
+import org.fluxtream.core.SimpleTimeInterval;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.TimeUnit;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.connectors.ObjectType;
+import org.fluxtream.core.connectors.bodytrackResponders.AbstractBodytrackResponder;
+import org.fluxtream.core.connectors.vos.AbstractFacetVO;
+import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.GuestSettings;
+import org.fluxtream.core.domain.metadata.FoursquareVenue;
+import org.fluxtream.core.mvc.models.TimespanModel;
+import org.fluxtream.core.services.JPADaoService;
+import org.fluxtream.core.services.impl.BodyTrackHelper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.ws.rs.PathParam;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
-import org.fluxtream.SimpleTimeInterval;
-import org.fluxtream.TimeInterval;
-import org.fluxtream.TimeUnit;
-import org.fluxtream.connectors.Connector;
-import org.fluxtream.connectors.ObjectType;
-import org.fluxtream.connectors.bodytrackResponders.AbstractBodytrackResponder;
-import org.fluxtream.connectors.vos.AbstractFacetVO;
-import org.fluxtream.domain.AbstractFacet;
-import org.fluxtream.domain.ApiKey;
-import org.fluxtream.domain.GuestSettings;
-import org.fluxtream.mvc.models.TimespanModel;
-import org.fluxtream.services.impl.BodyTrackHelper;
-import org.springframework.stereotype.Component;
 
 @Component
 public class MovesBodytrackResponder extends AbstractBodytrackResponder {
+
+    @Autowired
+    Configuration env;
+
+    @Autowired
+    JPADaoService jpaDaoService;
 
     @Override
     public List<TimespanModel> getTimespans(final long startMillis, final long endMillis, final ApiKey apiKey, final String channelName) {
@@ -35,7 +47,7 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
                     MovesMoveFacet moveFacet = (MovesMoveFacet) facet;
                     for (MovesActivity activity : moveFacet.getActivities()){
                         BodyTrackHelper.TimespanStyle style = new BodyTrackHelper.TimespanStyle();
-                        style.iconURL = "/images/moves/" + activity.activity + ".png";
+                        style.iconURL = String.format(env.get("homeBaseUrl")+"%s/images/moves/" + activity.activity + ".png", env.get("release"));
                         final TimespanModel moveTimespanModel = new TimespanModel(activity.start, activity.end, activity.activity, objectTypeName, style);
                         items.add(moveTimespanModel);
                     }
@@ -47,13 +59,31 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
                 for (AbstractFacet facet : facets){
                     MovesPlaceFacet place = (MovesPlaceFacet) facet;
                     BodyTrackHelper.TimespanStyle style = new BodyTrackHelper.TimespanStyle();
-                    style.iconURL = "/moves/place/" + place.apiKeyId + "/" + place.getId();
+                    style.iconURL = getMovesPlaceIcon(place.apiKeyId, place.getId());
                     final TimespanModel placeTimespanModel = new TimespanModel(place.start, place.end, "place", objectTypeName,style);
                     items.add(placeTimespanModel);
                 }
             }
         }
         return items;
+    }
+
+
+    public String getMovesPlaceIcon(@PathParam("apiKeyId") long apiKeyId,
+                                    @PathParam("id") long id) {
+        List l = jpaDaoService.executeNativeQuery("SELECT type, foursquareId FROM Facet_MovesPlace WHERE apiKeyId=(?1) AND id=(?2)", apiKeyId, id);
+        String homeBaseUrl = env.get("homeBaseUrl");
+        if (l==null||l.size()==0)
+            return homeBaseUrl+"images/moves/unknown.png";
+        final Object[] singleResult = (Object[])l.get(0);
+        String type = (String) singleResult[0];
+        if (type.equals("foursquare")) {
+            String foursquareId = (String) singleResult[1];
+            final FoursquareVenue foursquareVenue = metadataService.getFoursquareVenue(foursquareId);
+            return foursquareVenue.categoryIconUrlPrefix + "bg_32" + foursquareVenue.categoryIconUrlSuffix;
+        } else {
+            return homeBaseUrl+"images/moves/" + type + ".png";
+        }
     }
 
     @Override

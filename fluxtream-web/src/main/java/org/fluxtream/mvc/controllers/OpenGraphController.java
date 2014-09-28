@@ -1,19 +1,20 @@
 package org.fluxtream.mvc.controllers;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import org.fluxtream.Configuration;
-import org.fluxtream.connectors.Connector;
-import org.fluxtream.connectors.ObjectType;
-import org.fluxtream.connectors.vos.AbstractFacetVO;
-import org.fluxtream.domain.AbstractFacet;
-import org.fluxtream.services.ApiDataService;
-import org.fluxtream.services.MetadataService;
+import org.fluxtream.core.Configuration;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.connectors.ObjectType;
+import org.fluxtream.core.connectors.vos.AbstractFacetVO;
+import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.services.ApiDataService;
+import org.fluxtream.core.services.MetadataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 
 /**
  * User: candide

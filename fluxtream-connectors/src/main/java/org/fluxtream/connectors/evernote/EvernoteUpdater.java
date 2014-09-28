@@ -30,26 +30,26 @@ import com.evernote.edam.type.ResourceAttributes;
 import com.evernote.edam.type.Tag;
 import com.evernote.thrift.TException;
 import org.codehaus.plexus.util.ExceptionUtils;
-import org.fluxtream.aspects.FlxLogger;
-import org.fluxtream.connectors.Connector;
-import org.fluxtream.connectors.annotations.Updater;
-import org.fluxtream.connectors.location.LocationFacet;
-import org.fluxtream.connectors.updaters.AbstractUpdater;
-import org.fluxtream.connectors.updaters.AuthExpiredException;
-import org.fluxtream.connectors.updaters.RateLimitReachedException;
-import org.fluxtream.connectors.updaters.SettingsAwareUpdater;
-import org.fluxtream.connectors.updaters.SharedConnectorSettingsAwareUpdater;
-import org.fluxtream.connectors.updaters.UpdateInfo;
-import org.fluxtream.domain.ApiKey;
-import org.fluxtream.domain.ChannelMapping;
-import org.fluxtream.domain.SharedConnector;
-import org.fluxtream.services.ApiDataService;
-import org.fluxtream.services.CoachingService;
-import org.fluxtream.services.JPADaoService;
-import org.fluxtream.services.MetadataService;
-import org.fluxtream.services.SettingsService;
-import org.fluxtream.services.impl.BodyTrackHelper;
-import org.fluxtream.utils.JPAUtils;
+import org.fluxtream.core.aspects.FlxLogger;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.connectors.annotations.Updater;
+import org.fluxtream.core.connectors.location.LocationFacet;
+import org.fluxtream.core.connectors.updaters.AbstractUpdater;
+import org.fluxtream.core.connectors.updaters.AuthExpiredException;
+import org.fluxtream.core.connectors.updaters.RateLimitReachedException;
+import org.fluxtream.core.connectors.updaters.SettingsAwareUpdater;
+import org.fluxtream.core.connectors.updaters.SharedConnectorSettingsAwareUpdater;
+import org.fluxtream.core.connectors.updaters.UpdateInfo;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
+import org.fluxtream.core.domain.SharedConnector;
+import org.fluxtream.core.services.ApiDataService;
+import org.fluxtream.core.services.BuddiesService;
+import org.fluxtream.core.services.JPADaoService;
+import org.fluxtream.core.services.MetadataService;
+import org.fluxtream.core.services.SettingsService;
+import org.fluxtream.core.services.impl.BodyTrackHelper;
+import org.fluxtream.core.utils.JPAUtils;
 import com.syncthemall.enml4j.ENMLProcessor;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -99,7 +99,7 @@ public class EvernoteUpdater extends AbstractUpdater implements SettingsAwareUpd
     SettingsService settingsService;
 
     @Autowired
-    CoachingService coachingService;
+    BuddiesService buddiesService;
 
     ENMLProcessor processor = new ENMLProcessor();
 
@@ -246,7 +246,7 @@ public class EvernoteUpdater extends AbstractUpdater implements SettingsAwareUpd
         }
         jsonSettings.put("notebooks", settingsNotebooks);
         String toPersist = jsonSettings.toString();
-        coachingService.setSharedConnectorFilter(sharedConnector.getId(), toPersist);
+        buddiesService.setSharedConnectorFilter(sharedConnector.getId(), toPersist);
     }
 
     private void setChannelMapping(ApiKey apiKey, final List<NotebookConfig> notebookConfigs) {

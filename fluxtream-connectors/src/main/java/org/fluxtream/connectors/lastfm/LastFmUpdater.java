@@ -3,21 +3,21 @@ package org.fluxtream.connectors.lastfm;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
-import org.fluxtream.connectors.ObjectType;
-import org.fluxtream.connectors.annotations.Updater;
-import org.fluxtream.connectors.updaters.AbstractUpdater;
-import org.fluxtream.connectors.updaters.UpdateInfo;
-import org.fluxtream.domain.ChannelMapping;
-import org.fluxtream.services.JPADaoService;
-import org.fluxtream.services.impl.BodyTrackHelper;
-import org.fluxtream.utils.UnexpectedHttpResponseCodeException;
-import org.fluxtream.utils.Utils;
+import org.fluxtream.core.connectors.ObjectType;
+import org.fluxtream.core.connectors.annotations.Updater;
+import org.fluxtream.core.connectors.updaters.AbstractUpdater;
+import org.fluxtream.core.connectors.updaters.UpdateInfo;
+import org.fluxtream.core.domain.ChannelMapping;
+import org.fluxtream.core.services.JPADaoService;
+import org.fluxtream.core.services.impl.BodyTrackHelper;
+import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
+import org.fluxtream.core.utils.Utils;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static org.fluxtream.utils.HttpUtils.fetch;
+import static org.fluxtream.core.utils.HttpUtils.fetch;
 
 /**
  * @author candide

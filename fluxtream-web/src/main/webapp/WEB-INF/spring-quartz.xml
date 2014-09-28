@@ -1,26 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
         http://www.springframework.org/schema/beans 
         http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
-		<property name="triggers">
-			<list>
-				<ref bean="producerTrigger" />
-				<ref bean="consumerTrigger" />
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <ref bean="producerTrigger" />
+                <ref bean="consumerTrigger" />
                 <ref bean="cleanupCronTrigger" />
-			</list>
-		</property>
-	</bean>
+                <ref bean="dataUpdatesCleanupCronTrigger" />
+            </list>
+        </property>
+    </bean>
+
+    <bean id="dataUpdatesCleanupCronTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+        <property name="jobDetail" ref="dataUpdateCleanupJobDetail"/>
+        <property name="cronExpression" value="0 12 * * * ?" />
+    </bean>
+
+    <bean id="dataUpdateServiceImpl" class="org.fluxtream.core.services.impl.DataUpdateServiceImpl"/>
+    <bean id="dataUpdateCleanupJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="dataUpdateServiceImpl" />
+        <property name="targetMethod" value="cleanupOldDataUpdates" />
+        <property name="concurrent" value="false" />
+    </bean>
 
     <bean id="cleanupCronTrigger"
           class="org.springframework.scheduling.quartz.CronTriggerBean">
         <property name="jobDetail" ref="cleanupJobDetail" />
         <property name="cronExpression" value="0 0 * * * ?" />
     </bean>
-    <bean id="cleanup" class="org.fluxtream.updaters.quartz.Cleanup"/>
+    <bean id="cleanup" class="org.fluxtream.core.updaters.quartz.Cleanup"/>
     <bean id="cleanupJobDetail"
           class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
         <property name="targetObject" ref="cleanup" />
@@ -29,32 +42,32 @@
     </bean>
 
 
- 	<bean id="producerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
-		<property name="jobDetail" ref="producerJobDetail" />
-		<property name="startDelay" value="0" />
-		<property name="repeatInterval" value="${producer.trigger.repeatInterval}" />
-	</bean>
+    <bean id="producerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+        <property name="jobDetail" ref="producerJobDetail" />
+        <property name="startDelay" value="0" />
+        <property name="repeatInterval" value="${producer.trigger.repeatInterval}" />
+    </bean>
 
-    <bean id="producer" class="org.fluxtream.updaters.quartz.Producer"/>
+    <bean id="producer" class="org.fluxtream.core.updaters.quartz.Producer"/>
     <bean id="producerJobDetail"
           class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
         <property name="targetObject" ref="producer" />
         <property name="targetMethod" value="scheduleIncrementalUpdates" />
         <property name="concurrent" value="false" />
-    </bean> 
+    </bean>
 
- 	<bean id="consumerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
-		<property name="jobDetail" ref="consumerJobDetail" />
-		<property name="startDelay" value="0" />
-		<property name="repeatInterval" value="${consumer.trigger.repeatInterval}" />
-	</bean>
+    <bean id="consumerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+        <property name="jobDetail" ref="consumerJobDetail" />
+        <property name="startDelay" value="0" />
+        <property name="repeatInterval" value="${consumer.trigger.repeatInterval}" />
+    </bean>
 
-	<bean id="consumerJobDetail"
-		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
-		<property name="targetObject" ref="consumer" />
-		<property name="targetMethod" value="checkUpdatesQueue" />
-		<property name="concurrent" value="false" />
-	</bean>
-	<bean id="consumer" class="org.fluxtream.updaters.quartz.Consumer"/>
+    <bean id="consumerJobDetail"
+          class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="consumer" />
+        <property name="targetMethod" value="checkUpdatesQueue" />
+        <property name="concurrent" value="false" />
+    </bean>
+    <bean id="consumer" class="org.fluxtream.core.updaters.quartz.Consumer"/>
 
 </beans>

@@ -1,10 +1,11 @@
 package org.fluxtream.connectors.fitbit;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import org.fluxtream.domain.AbstractFacet;
-import org.fluxtream.services.impl.BodyTrackHelper;
-import org.fluxtream.services.impl.FieldHandler;
+import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.services.impl.BodyTrackHelper;
+import org.fluxtream.core.services.impl.FieldHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +20,7 @@ public class FitbitActivityFieldHandler implements FieldHandler {
     BodyTrackHelper bodyTrackHelper;
 
     @Override
-    public void handleField ( final long guestId, AbstractFacet facet) {
+    public List<BodyTrackHelper.BodyTrackUploadResult> handleField ( final long guestId, AbstractFacet facet) {
         FitbitTrackerActivityFacet fitbitActivityFacet = (FitbitTrackerActivityFacet) facet;
 
         // The Fitbit activity data is daily data that covers an entire day.  The start/end time may be the
@@ -105,7 +106,7 @@ public class FitbitActivityFieldHandler implements FieldHandler {
         data.add(record);
 
         // TODO: check the status code in the BodyTrackUploadResult
-        bodyTrackHelper.uploadToBodyTrack(guestId , "Fitbit", channelNames, data);
+        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(guestId, "Fitbit", channelNames, data));
     }
 
 }

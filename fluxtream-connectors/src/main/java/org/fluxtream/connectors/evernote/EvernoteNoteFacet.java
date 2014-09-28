@@ -3,7 +3,7 @@ package org.fluxtream.connectors.evernote;
 import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
-import org.fluxtream.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 import org.apache.commons.lang.StringUtils;
 
 /**

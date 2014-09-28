@@ -1,23 +1,14 @@
-<%@ page import="org.fluxtream.auth.AuthHelper" %>
 <%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"%><%@ taglib
 	uri="http://granule.com/tags" prefix="g"
-%><%@ page import="java.util.List"
-%><%@ page import="org.fluxtream.domain.Guest"
-%><%
+%><%@ page import="org.fluxtream.core.auth.AuthHelper"
+%><%@ page import="org.fluxtream.core.domain.Guest"
+%>
+<%@ page import="java.util.List" %>
+<%
     Boolean tracker = (Boolean)request.getAttribute("tracker");
     Boolean intercom = (Boolean)request.getAttribute("intercom");
     Boolean useMinifiedJs = (Boolean)request.getAttribute("useMinifiedJs");
-    List<Guest> coachees = (List<Guest>)request.getAttribute("coachees");
-    String vieweeFullname = (String)request.getAttribute("fullname");
-    if (AuthHelper.getCoachee()!=null) {
-        for (Guest coachee : coachees) {
-            if (coachee.getId()==AuthHelper.getCoachee().guestId) {
-                vieweeFullname = coachee.username;
-                break;
-            }
-        }
-    }
-    request.setAttribute("vieweeFullname", vieweeFullname);%><!DOCTYPE html>
+    List<Guest> coachees = (List<Guest>)request.getAttribute("coachees");%><!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -25,7 +16,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style"
 	content="black-translucent" />
-<meta name="viewport" content="width=1000, initial-scale=1.0">
+<meta name="viewport" content="width=device-width">
 <title>Fluxtream</title>
 <meta name="description" content="">
 <meta name="author" content="">
@@ -56,15 +47,13 @@
 </head>
 
 <body>
-    <div id="flxUsername" style="display:none;"><%=AuthHelper.getGuest().username%></div>
-    <div id="flxUID" style="display:none;"><%=AuthHelper.getVieweeId()%></div>
 
 	<div id="content">
 
 		<div class="navbar">
 			<div class="navbar-inner">
 				<div class="container-fluid">
-					<a class="btn btn-navbar" data-toggle="collapse"
+					<a class="btn btn-navbar" data-toggle="collapse-custom"
 						data-target=".nav-collapse"> <span class="icon-bar"></span> <span
 						class="icon-bar"></span> <span class="icon-bar"></span>
 					</a>
@@ -83,32 +72,31 @@
                             <ul class="nav pull-right">
                                 <li class="divider-vertical"></li>
                                 <li class="dropdown" id="helpDropdownToggle" data-container="body">
-                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Help <i class="icon-lightbulb icon-large"></i></a>
+                                    <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown">Help <i class="icon-lightbulb icon-large"></i></a>
                                     <ul class="dropdown-menu">
                                         <li><a href="javascript:App.quickStart();">Quick Start</a></li>
                                         <li><a href="javascript:App.privacyPolicy();">Privacy Policy</a></li>
                                     </ul>
                                 </li>
                                 <li class="dropdown" id="connectorsDropdownToggle" data-container="body">
-                                    <a href="#" class="dropdown-toggle" onclick="$('#connectorsDropdownToggle').popover('destroy');"
+                                    <a href="javascript:void(0)" class="dropdown-toggle" onclick="$('#connectorsDropdownToggle').popover('destroy');"
                                                         data-toggle="dropdown">Connectors
                                     <i class="icon-random icon-large"></i> <b class="caret"></b></a>
                                     <ul class="dropdown-menu">
-                                        <li><a href="javascript:App.connectors()"><i class="mainmenu-icon icon-plus icon-large pull-right"></i>Add</a></li>
+                                        <li><a id="addConnectorLink"><i class="mainmenu-icon icon-plus icon-large pull-right"></i>Add</a></li>
                                         <li id="manageConnectorsMenuItem"><a href="javascript:App.manageConnectors()"><i class="mainmenu-icon icon-list icon-large pull-right"></i>Manage</a></li>
                                     </ul></li>
                                 <li class="divider-vertical"></li>
-							<li class="dropdown"><a href="#" class="dropdown-toggle" onclick="$('#connectorsDropdownToggle').popover('destroy');" id="loggedInUser" <%if(AuthHelper.getCoachee()!=null){%>style="text-shadow:0 0 10px white; color:white"<%}%>
-								data-toggle="dropdown" self="<%=request.getAttribute("fullname")%>">${vieweeFullname}<span id="profileIcon">&nbsp;</span> <b id="profileIconCaret" class="caret"></b></a>
+							<li class="dropdown"><a href="javascript:void(0)" class="dropdown-toggle" onclick="$('#connectorsDropdownToggle').popover('destroy');" id="loggedInUser" data-toggle="dropdown" self="<%=request.getAttribute("fullname")%>"></a>
 								<ul class="dropdown-menu">
 									<li><a href="javascript:App.settings()"><i class="mainmenu-icon icon-cog icon-large pull-right"></i>Settings</a></li>
                                     <%--<li><a href="javascript:App.addresses()"><i class="mainmenu-icon icon-home icon-large pull-right"></i>Addresses</a></li>--%>
 									<li id="coachingDivider" class="divider"></li><%
                                     if (coachees.size()>0) {
                                         for (Guest guest : coachees) {%>
-                                    <li><a onclick="if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'viewBuddyData', 1);}" href="javascript:App.as('<%=guest.username%>')">View <%=guest.getGuestName()%>'s data</a></li>
+                                    <li><a onclick="if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'viewBuddyData', 1);}" href="javascript:App.as('<%=guest.getId()%>')">View <%=guest.getGuestName()%>'s data</a></li>
                                         <%  } %>
-                                    <li><a onclick="if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'viewMyData', 1);}" href="javascript:App.as('self')">View My data</a></li>
+                                    <li><a onclick="if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'viewMyData', 1);}" href="javascript:App.as(<%=AuthHelper.getGuestId()%>)">View My data</a></li>
                                     <% } %>
                                     <li><a href="javascript:App.sharingDialog.show();if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'sharingDialog', 1);}"><i class="mainmenu-icon icon-share icon-large pull-right"></i><span style="margin-right:2em">Share your data...</span></a></li>
                                     <li class="divider"></li>
@@ -162,8 +150,10 @@
     <script src="/static/js/backbone-1.0.0-custom.1-min.js"></script>
     <script src="/static/js/jquery.ba-dotimeout-1.0.0.min.js"></script>
     <script src="/static/js/jquery.masonry-2.1.03.min.js"></script>
+    <script src="/static/js/moment-2.5.1.min.js"></script>
     <script src="/static/js/jquery.xcolor-1.8.js"></script>
     <script src="/static/js/jquery.outerHTML-1.0.0.js"></script>
+    <script src="/static/js/jquery.fastbutton-1.0.0.js"></script>
 
     <script>
         window.FLX_RELEASE_NUMBER = "${release}";

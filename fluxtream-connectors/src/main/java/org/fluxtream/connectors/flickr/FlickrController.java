@@ -11,15 +11,15 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import javax.servlet.http.HttpServletRequest;
-import org.fluxtream.Configuration;
-import org.fluxtream.auth.AuthHelper;
-import org.fluxtream.connectors.Connector;
+import org.fluxtream.core.Configuration;
+import org.fluxtream.core.auth.AuthHelper;
+import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.connectors.controllers.ControllerSupport;
-import org.fluxtream.domain.ApiKey;
-import org.fluxtream.domain.Guest;
-import org.fluxtream.domain.Notification;
-import org.fluxtream.services.GuestService;
-import org.fluxtream.services.NotificationsService;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.Guest;
+import org.fluxtream.core.domain.Notification;
+import org.fluxtream.core.services.GuestService;
+import org.fluxtream.core.services.NotificationsService;
 import org.apache.commons.io.IOUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -29,8 +29,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import static org.fluxtream.utils.HttpUtils.fetch;
-import static org.fluxtream.utils.Utils.hash;
+import static org.fluxtream.core.utils.HttpUtils.fetch;
+import static org.fluxtream.core.utils.Utils.hash;
 
 @Controller
 @RequestMapping(value="/flickr")

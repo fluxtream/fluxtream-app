@@ -1,7 +1,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"
 %><%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"
 %><%@ page isELIgnored="false"
-%><%@ page import="org.fluxtream.*"%><div class="modal hide">
+%><div class="modal hide">
     <script>
         if (typeof(ga)!='undefined') {ga('send', 'event', 'button', 'click', 'accountCreated', 1);}
     </script>

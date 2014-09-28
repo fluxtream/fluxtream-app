@@ -2,8 +2,8 @@
 <%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"%><%@ taglib
         uri="http://java.sun.com/jsp/jstl/core" prefix="c" %><%@ taglib
         uri="http://granule.com/tags" prefix="g"
-        %><%@ page import="org.fluxtream.auth.AuthHelper"
-        %><%@ page import="org.fluxtream.domain.ApiKey"
+        %><%@   page import="org.fluxtream.core.auth.AuthHelper"
+        %><%@ page import="org.fluxtream.core.domain.ApiKey"
         %>
 <%@ page import="org.fluxtream.mvc.controllers.AdminViewHelper" %>
 <%

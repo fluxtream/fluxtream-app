@@ -10,7 +10,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import org.fluxtream.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 
 /**
  * User: candide

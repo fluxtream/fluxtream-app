@@ -7,7 +7,7 @@ define(function() {
     function loadSettings(apiKeyId, connector, template) {
         var handler = this;
         $.ajax({
-            url: "/api/connectors/settings/"+apiKeyId,
+            url: "/api/v1/connectors/settings/"+apiKeyId,
             success: function(settings) {
                 var settingsHtml = template.render({
                     connectorName:connector.connectorName,
@@ -34,7 +34,7 @@ define(function() {
 
     function resetSettings(handler, apiKeyId, connector, template) {
         $.ajax({
-            url: "/api/connectors/settings/reset/" + apiKeyId,
+            url: "/api/v1/connectors/settings/reset/" + apiKeyId,
             type: "POST",
             success: function(){
                 handler.loadSettings(apiKeyId, connector, template);
@@ -50,13 +50,13 @@ define(function() {
 
     function saveSettings(apiKeyId, settings) {
         $.ajax({
-            url: "/api/connectors/settings/" + apiKeyId,
+            url: "/api/v1/connectors/settings/" + apiKeyId,
             type: "post",
             data: {json : JSON.stringify(settings)},
-            success: function(status){
-                if(!status.result) {
-                    alert("Oops, we could not save your settings:" + status.message);
-                }
+            error: function(jqXHR, statusText, errorThrown) {
+                var errorMessage = errorThrown + ": " + jqXHR.responseText;
+                console.log(errorMessage);
+                alert("Could upload data: " + jqXHR.responseText);
             }
         });
     }

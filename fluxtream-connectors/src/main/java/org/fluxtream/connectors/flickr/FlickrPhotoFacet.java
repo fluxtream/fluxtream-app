@@ -1,9 +1,9 @@
 package org.fluxtream.connectors.flickr;
 
 import javax.persistence.Entity;
-import org.fluxtream.connectors.annotations.ObjectTypeSpec;
-import org.fluxtream.connectors.location.LocationFacet;
-import org.fluxtream.domain.AbstractLocalTimeFacet;
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.connectors.location.LocationFacet;
+import org.fluxtream.core.domain.AbstractLocalTimeFacet;
 import org.hibernate.search.annotations.Indexed;
 
 @Entity(name="Facet_FlickrPhoto")

@@ -1,11 +1,9 @@
 package org.fluxtream.connectors.lastfm;
 
-import java.util.Date;
-
-import org.fluxtream.OutsideTimeBoundariesException;
-import org.fluxtream.TimeInterval;
-import org.fluxtream.connectors.vos.AbstractInstantFacetVO;
-import org.fluxtream.domain.GuestSettings;
+import org.fluxtream.core.OutsideTimeBoundariesException;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.connectors.vos.AbstractInstantFacetVO;
+import org.fluxtream.core.domain.GuestSettings;
 
 public class LastFmRecentTrackFacetVO extends AbstractInstantFacetVO<LastFmRecentTrackFacet>{
 
@@ -19,7 +17,6 @@ public class LastFmRecentTrackFacetVO extends AbstractInstantFacetVO<LastFmRecen
 	@Override
 	public void fromFacet(LastFmRecentTrackFacet facet, TimeInterval timeInterval,
 			GuestSettings settings) throws OutsideTimeBoundariesException {
-		startMinute = toMinuteOfDay(new Date(facet.time), timeInterval.getTimeZone(facet.start));
 		artist = facet.artist;
 		this.album_mbid = facet.album_mbid;
 		this.artist_mbid = facet.artist_mbid;

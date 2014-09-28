@@ -1,7 +1,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%><%@ taglib
 	prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%><%@ page
-	isELIgnored="false"%><%@ page import="org.fluxtream.domain.*"%>
-<%@ page import="org.fluxtream.connectors.vos.*"
+	isELIgnored="false"%><%@ page import="org.fluxtream.core.domain.*"%>
+<%@ page import="org.fluxtream.core.connectors.vos.*"
 %><%@ page import="glacier.picasa.*"
 %><%@ page import="org.fluxtream.connectors.flickr.*"
 %><%@ page import="org.fluxtream.*"
@@ -14,7 +14,7 @@ if (facets.size()>0) {
 
 <div class="modal fade" id="modal">
 	<div class="modal-header">
-		<a href="#" class="close" data-dismiss="modal">&times;</a>
+		<a href="javascript:void(0)" class="close" data-dismiss="modal">&times;</a>
 	</div>
 	<div class="modal-body" style="overflow:hidden">
 		<div id="photosCarousel" class="carousel">

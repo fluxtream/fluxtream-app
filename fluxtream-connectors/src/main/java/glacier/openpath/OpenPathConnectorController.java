@@ -6,8 +6,8 @@ import java.util.List;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 
-import org.fluxtream.auth.AuthHelper;
-import org.fluxtream.domain.ApiKey;
+import org.fluxtream.core.auth.AuthHelper;
+import org.fluxtream.core.domain.ApiKey;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import org.fluxtream.connectors.Connector;
-import org.fluxtream.services.ConnectorUpdateService;
-import org.fluxtream.services.GuestService;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.services.ConnectorUpdateService;
+import org.fluxtream.core.services.GuestService;
 
 @Controller()
 @RequestMapping("/openPath")

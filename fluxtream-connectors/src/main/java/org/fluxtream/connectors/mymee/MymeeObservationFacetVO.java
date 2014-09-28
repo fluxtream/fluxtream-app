@@ -1,12 +1,11 @@
 package org.fluxtream.connectors.mymee;
 
-import java.util.Date;
 import java.util.List;
-import org.fluxtream.OutsideTimeBoundariesException;
-import org.fluxtream.TimeInterval;
-import org.fluxtream.connectors.vos.AbstractPhotoFacetVO;
-import org.fluxtream.domain.GuestSettings;
-import org.fluxtream.mvc.models.DimensionModel;
+import org.fluxtream.core.OutsideTimeBoundariesException;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.connectors.vos.AbstractPhotoFacetVO;
+import org.fluxtream.core.domain.GuestSettings;
+import org.fluxtream.core.mvc.models.DimensionModel;
 
 /**
  *
@@ -28,7 +27,6 @@ public class MymeeObservationFacetVO extends AbstractPhotoFacetVO<MymeeObservati
     @Override
     protected void fromFacet(final MymeeObservationFacet facet, final TimeInterval timeInterval, final GuestSettings settings)
             throws OutsideTimeBoundariesException {
-        startMinute = toMinuteOfDay(new Date(facet.start), timeInterval.getTimeZone(facet.start));
         this.UID = facet.getId();
         this.deviceName = "Mymee";
         this.channelName = "observation";

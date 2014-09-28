@@ -12,6 +12,6 @@
         <aop:include name="newRelicTransactionAspect" />
     </aop:aspectj-autoproxy>
 
-    <bean id="newRelicTransactionAspect" class="org.fluxtream.aspects.NewRelicTransactionAspect">
+    <bean id="newRelicTransactionAspect" class="org.fluxtream.core.aspects.NewRelicTransactionAspect">
     </bean>
 </beans>

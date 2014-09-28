@@ -92,17 +92,17 @@ define(["core/DashboardWidget", "core/widgetComponents/GrapherComponent", "core/
                                     case "Fitbit.steps":
                                         $("#grapherWidgetWidget").empty();
                                         that.grapher = null;
-                                        new AverageStepsComponent(that,$("#grapherWidgetWidget"),that.digest.cachedData["fitbit-activity_summary"],"steps");
+                                        new AverageStepsComponent(that,$("#grapherWidgetWidget"),that.digest.facets["fitbit-activity_summary"],"steps");
                                         return;
                                     case "BodyMedia.totalSteps":
                                         $("#grapherWidgetWidget").empty();
                                         that.grapher = null;
-                                        new AverageStepsComponent(that,$("#grapherWidgetWidget"),that.digest.cachedData["bodymedia-steps"],"steps");
+                                        new AverageStepsComponent(that,$("#grapherWidgetWidget"),that.digest.facets["bodymedia-steps"],"steps");
                                         return;
                                     case "Fitbit.caloriesOut":
                                         $("#grapherWidgetWidget").empty();
                                         that.grapher = null;
-                                        new AverageCaloriesBurnedComponent(that,$("#grapherWidgetWidget"),that.digest.cachedData["fitbit-activity_summary"],"caloriesOut");
+                                        new AverageCaloriesBurnedComponent(that,$("#grapherWidgetWidget"),that.digest.facets["fitbit-activity_summary"],"caloriesOut");
                                         return;
                                 }
                             }
@@ -130,7 +130,7 @@ define(["core/DashboardWidget", "core/widgetComponents/GrapherComponent", "core/
             var lastTile = Math.floor(tbounds.end/1000/tileWidth);
             var tileURIs = [];
             for (var i = firstTile; i <= lastTile; i++){
-                tileURIs[tileURIs.length] = "/api/bodytrack/tiles/" + App.getUID() + "/" + channelName + "/" + level + "." + i + ".json";
+                tileURIs[tileURIs.length] = "/api/v1/bodytrack/tiles/" + App.getUID() + "/" + channelName + "/" + level + "." + i + ".json";
             }
             return tileURIs;
         }

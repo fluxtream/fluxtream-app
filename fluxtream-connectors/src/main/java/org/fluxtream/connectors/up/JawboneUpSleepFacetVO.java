@@ -1,11 +1,11 @@
 package org.fluxtream.connectors.up;
 
-import org.fluxtream.OutsideTimeBoundariesException;
-import org.fluxtream.TimeInterval;
-import org.fluxtream.connectors.vos.AbstractFacetVO;
-import org.fluxtream.connectors.vos.TimeOfDayVO;
-import org.fluxtream.domain.GuestSettings;
-import org.fluxtream.mvc.models.DurationModel;
+import org.fluxtream.core.OutsideTimeBoundariesException;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.connectors.vos.AbstractFacetVO;
+import org.fluxtream.core.connectors.vos.TimeOfDayVO;
+import org.fluxtream.core.domain.GuestSettings;
+import org.fluxtream.core.mvc.models.DurationModel;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 

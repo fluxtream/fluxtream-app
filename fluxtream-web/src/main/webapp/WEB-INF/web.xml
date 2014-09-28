@@ -23,18 +23,6 @@
         <param-name>webAppRootKey</param-name>
         <param-value>webapp.root.fluxtream</param-value>
     </context-param>
-    <error-page>
-        <exception-type>java.lang.Throwable</exception-type>
-        <location>/errors/500.html</location>
-    </error-page>
-    <error-page>
-        <error-code>500</error-code>
-        <location>/errors/500.html</location>
-    </error-page>
-    <error-page>
-        <error-code>404</error-code>
-        <location>/errors/404.html</location>
-    </error-page>
     <listener>
         <listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
     </listener>
@@ -56,7 +44,15 @@
             <param-value>true</param-value>
         </init-param>
     </filter>
+    <filter>
+        <filter-name>CORS</filter-name>
+        <filter-class>org.fluxtream.core.cors.SimpleCORSFilter</filter-class>
+    </filter>
 
+    <filter-mapping>
+        <filter-name>CORS</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
     <filter-mapping>
         <filter-name>encodingFilter</filter-name>
         <url-pattern>/*</url-pattern>
@@ -83,11 +79,16 @@
         <url-pattern>/combined.css</url-pattern>
     </servlet-mapping>
     <servlet>
+        <servlet-name>Bootstrap</servlet-name>
+        <servlet-class>org.fluxtream.core.api.SwaggerBootstrapServlet</servlet-class>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+    <servlet>
         <servlet-name>jersey</servlet-name>
         <servlet-class>com.sun.jersey.spi.spring.container.servlet.SpringServlet</servlet-class>
         <init-param>
             <param-name>com.sun.jersey.config.property.packages</param-name>
-            <param-value>org.fluxtream.api</param-value>
+            <param-value>org.fluxtream.api;com.wordnik.swagger.jersey.listing</param-value>
         </init-param>
         <init-param>
             <param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name>
@@ -101,6 +102,7 @@
             <param-name>com.sun.jersey.spi.container.ContainerResponseFilters</param-name>
             <param-value>com.sun.jersey.api.container.filter.GZIPContentEncodingFilter</param-value>
         </init-param>
+        <load-on-startup>2</load-on-startup>
     </servlet>
     <servlet>
         <servlet-name>springmvc</servlet-name>
@@ -109,12 +111,12 @@
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>jersey</servlet-name>
-        <url-pattern>/api/*</url-pattern>
+        <servlet-name>Bootstrap</servlet-name>
+        <url-pattern>/bootstrap/*</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>jersey</servlet-name>
-        <url-pattern>/rest/*</url-pattern>
+        <url-pattern>/api/*</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
@@ -137,6 +139,10 @@
         <servlet-name>springmvc</servlet-name>
         <url-pattern>/</url-pattern>
     </servlet-mapping>
+    <error-page>
+        <error-code>404</error-code>
+        <location>/handle404</location>
+    </error-page>
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>
     </welcome-file-list>

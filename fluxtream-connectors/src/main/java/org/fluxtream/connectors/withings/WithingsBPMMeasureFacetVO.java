@@ -1,11 +1,9 @@
 package org.fluxtream.connectors.withings;
 
-import java.util.Date;
-
-import org.fluxtream.OutsideTimeBoundariesException;
-import org.fluxtream.TimeInterval;
-import org.fluxtream.connectors.vos.AbstractInstantFacetVO;
-import org.fluxtream.domain.GuestSettings;
+import org.fluxtream.core.OutsideTimeBoundariesException;
+import org.fluxtream.core.TimeInterval;
+import org.fluxtream.core.connectors.vos.AbstractInstantFacetVO;
+import org.fluxtream.core.domain.GuestSettings;
 
 public class WithingsBPMMeasureFacetVO extends AbstractInstantFacetVO<WithingsBPMMeasureFacet> {
 
@@ -14,7 +12,6 @@ public class WithingsBPMMeasureFacetVO extends AbstractInstantFacetVO<WithingsBP
 	@Override
 	public void fromFacet(WithingsBPMMeasureFacet facet, TimeInterval timeInterval,
 			GuestSettings settings) throws OutsideTimeBoundariesException {
-		this.startMinute = toMinuteOfDay(new Date(facet.measureTime), timeInterval.getTimeZone(facet.measureTime));
         this.start = facet.start;
 		systolic = facet.systolic;
 		diastolic = facet.diastolic;

@@ -37,16 +37,14 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
                 var formatted = App._formatDateAsDatePicker(event.date.getUTCFullYear(),
                     event.date.getUTCMonth(),
                     event.date.getUTCDate());
-                Calendar.fetchState("/api/calendar/nav/getDate",
-                    {date: formatted, state: Calendar.tabState});
+                Calendar.navigateState(Calendar.currentTab.name + "/date/" + formatted);
             }
             else if (Calendar.timeUnit == "week"){
-                var weekNumber = DateUtils.getWeekNumber(event.date.getUTCFullYear(),
+                var formatted = App._formatDateAsDatePicker(event.date.getUTCFullYear(),
                     event.date.getUTCMonth(),
                     event.date.getUTCDate());
-                var range = DateUtils.getDateRangeForWeek(weekNumber[0],weekNumber[1]);
-                Calendar.fetchState("/api/calendar/nav/getWeek",
-                    {week: weekNumber[1], year: weekNumber[0], state: Calendar.tabState});
+                var date = moment(formatted, "YYYY-MM-DD");
+                Calendar.navigateState(Calendar.currentTab.name + "/week/" + date.year() + "/" + date.week());
             }
             $(".datepicker").hide();
         });
@@ -58,24 +56,11 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
                 $(".datepicker-months .switch").click();
             }
         });
-        $(".datepicker-years td").click(function(event){
-            if (Calendar.timeUnit == "year" && $(event.target).hasClass("year")){
-                Calendar.fetchState("/api/calendar/nav/getYear",
-                    {year: $(event.target).text(), state: Calendar.tabState});
-                $(".datepicker").hide();
-            }
-        });
         $(".datepicker-months td").click(function(event){
             if (Calendar.timeUnit == "month" && $(event.target).hasClass("month")){
+                var year = $(".datepicker-months .switch").text();
                 var month = DateUtils.getMonthFromName($(event.target).text()) + 1;
-                Calendar.fetchState(
-                    "/api/calendar/nav/getMonth",
-                    {
-                        year: $(".datepicker-months .switch").text(),
-                        month: month,
-                        state: Calendar.tabState
-                    }
-                );
+                Calendar.navigateState(Calendar.currentTab.name + "/month/" + year + "/" + month);
                 $(".datepicker").hide();
             }
         });
@@ -88,8 +73,15 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
         });
     }
 
-    Builder.getConnectorButton = function(connectorName) {
-        return $("#flx-connector-btn-" + connectorName);
+    Builder.getConnectorButton = function(connector,Calendar) {
+        if (typeof connector === "string"){
+            return $("#flx-connector-btn-" + connector);
+        }
+        if ($("#flx-connector-btn-" + connector.connectorName).length == 0){
+            createConnectorButton(null,Calendar,connector);
+            connectorNames.push(connector.connectorName)
+        }
+        return $("#flx-connector-btn-" + connector.connectorName);
     };
 
     Builder.getConnectorNames = function() {
@@ -116,7 +108,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
         $('<a/>', {
             href: "#",
             id: "flx-connector-btn-" + connector.connectorName,
-            class: "flx-active"
+            class: "flx-active flx-connector-btn"
         }).click(function(event){
             event.preventDefault();
             $(document).click(); //needed for click away to work on tooltips in clock tab
@@ -126,7 +118,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
                 if (member != "default")
                     uploadData[member] = Calendar.connectorEnabled[member];
             }
-            $.ajax("/api/connectors/filters",{
+            $.ajax("/api/v1/connectors/filters",{
                 type:"POST",
                 data:{filterState:JSON.stringify(uploadData)}
             });
@@ -140,10 +132,13 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
     }
 
     function bindConnectorButtons(App, Calendar) {
+        var url = "/api/v1/connectors/installed";
+        if (App.buddyToAccess["isBuddy"]) url += "?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.buddyToAccess["id"];
         $.ajax({
-            url: "/api/connectors/installed",
+            url: url,
             async: false,
             success: function(response) {
+                $("#selectedConnectors").empty();
                 $.each(response, function(i, connector) {
                     createConnectorButton(App, Calendar, connector);
                     connectorNames.push(connector.connectorName);
@@ -172,14 +167,7 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
 
         $(window).scroll();
     }
-	
-	function timeUnitToURL(timeUnit) {
-        if (timeUnit.toLowerCase() === 'date') {
-            timeUnit = 'day';
-        }
-        return "/api/calendar/nav/set" + timeUnit.upperCaseFirst() + "TimeUnit";
-	}
-	
+
 	function createTabs(Calendar) {
 		tabInterface.setTabVisibility(tabs.fullList,false);
         tabInterface.setTabVisibility(tabs[Calendar.timeUnit],true);
@@ -194,10 +182,9 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
                 .click(function(event){
                     var timeUnit = $(event.target).attr("unit");
 
-                    if (Calendar.dateAxisCursorPosition == null || (Calendar.currentTabName != "map" && Calendar.currentTabName != "timeline")){
-                        var url = timeUnitToURL(timeUnit);
-                        var params = {state: Calendar.tabState};
-                        Calendar.fetchState(url, params);
+                    if (Calendar.dateAxisCursorPosition == null || Calendar.currentTabName != "timeline"){
+                        var newState = updateTimeUnit(timeUnit, Calendar.tabState);
+                        Calendar.navigateState(Calendar.currentTab.name + "/" + newState);
                     }
                     else{
                         var state = Calendar.toState(Calendar.currentTabName,timeUnit,new Date(Calendar.dateAxisCursorPosition * 1000));
@@ -212,60 +199,99 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
         $(".menuNextButton").click(function(event) {
             if($(event.delegateTarget).hasClass('disabled'))
                 return;
-
-            Calendar.fetchState("/api/calendar/nav/incrementTimespan",
-                                {state: Calendar.tabState});
+            var nextTimespan = computeNextTimespan(Calendar.timespanState);
+            Calendar.navigateState(Calendar.currentTab.name+"/"+nextTimespan);
         });
         $(".menuPrevButton").click(function(event) {
             if($(event.delegateTarget).hasClass('disabled'))
                 return;
-
-            Calendar.fetchState("/api/calendar/nav/decrementTimespan",
-                                {state: Calendar.tabState});
+            var prevTimespan = computePreviousTimespan(Calendar.timespanState);
+            Calendar.navigateState(Calendar.currentTab.name+"/"+prevTimespan);
         });
         $(".menuTodayButton").click(function(event) {
             if($(event.delegateTarget).hasClass('disabled'))
                 return;
-
-            Calendar.fetchState("/api/calendar/nav/setToToday",
-                                {timeUnit: "DAY"});
+            Calendar.navigateState(Calendar.currentTab.name+"/date/"+moment().format("YYYY-MM-DD"));
         });
         nextPrevEnable();//removed a switch statement here that did the same thing for every possible timeunit
 	};
-	
+
+    function updateTimeUnit(timeUnit, state) {
+        var splits = state.split("/");
+        var date;
+        if (splits[0]==="date"){
+            date = moment(splits[1], "YYYY-MM-DD");
+        } else if (splits[0]==="week") {
+            var year = Number(splits[1]);
+            var week = Number(splits[2]);
+            date = moment().year(year).isoWeek(week).day(0);
+        } else if (splits[0]==="month") {
+            var year = Number(splits[1]);
+            var month = Number(splits[2])-1;
+            date = moment().year(year).month(month).date(1);
+        }
+        switch(timeUnit){
+            case "date":
+                return "date/" + date.format("YYYY-MM-DD");
+            case "week":
+                return "week/" + date.year() + "/" + date.week();
+            case "month":
+                var month = date.month()+1;
+                return "month/" + date.year() + "/" + month;
+        }
+    }
+
+    function computePreviousTimespan(state){
+        var splits = state.split("/");
+        if (splits[0]==="date"){
+            var date = moment(splits[1], "YYYY-MM-DD");
+            date.subtract("days", 1);
+            var result = date.format("YYYY-MM-DD");
+            return "date/" + result;
+        } else if (splits[0]==="week") {
+            var year = Number(splits[1]);
+            var week = Number(splits[2]);
+            var startDay = moment().year(year).isoWeek(week).day("Thursday").subtract("weeks", 1);
+            var result = "week/" + startDay.year() + "/" + startDay.isoWeek();
+            return result;
+        } else if (splits[0]==="month") {
+            var year = Number(splits[1]);
+            var month = Number(splits[2])-1;
+            var startDay = moment().year(year).month(month).date(1).subtract("months", 1);
+            var result = "month/" + startDay.year() + "/" + (startDay.month()+1);
+            return result;
+        }
+    }
+
+    function computeNextTimespan(state){
+        var splits = state.split("/");
+        if (splits[0]==="date"){
+            var date = moment(splits[1], "YYYY-MM-DD");
+            date.add("days", 1);
+            var result = date.format("YYYY-MM-DD");
+            return "date/" + result;
+        } else if (splits[0]==="week") {
+            var year = Number(splits[1]);
+            var week = Number(splits[2]);
+            var endDay = moment().year(year).isoWeek(week).day("Thursday").add("weeks", 1);
+            var result = "week/" + endDay.year() + "/" + endDay.isoWeek();
+            return result;
+        } else if (splits[0]==="month") {
+            var year = Number(splits[1]);
+            var month = Number(splits[2])-1;
+            var startDay = moment().year(year).month(month).date(1).add("months", 1);
+            var result = "month/" + startDay.year() + "/" + (startDay.month()+1);
+            return result;
+        }
+    }
+
 	function nextPrevEnable() {
         $(".menuNextButton").removeClass("disabled");
         $(".menuPrevButton").removeClass("disabled");
     };
 
-	function handleNotifications(digestInfo) {
-		$(".alert").remove();
-        $("#notifications").empty();
-		if (typeof(digestInfo.notifications)!="undefined") {
-			for (var n=0; n<digestInfo.notifications.length; n++) {
-                console.log("showing a notification " + n)
-                showNotification(digestInfo.notifications[n]);
-			}
-            $("#notifications").show();
-		}
-	}
-
-    function showNotification(notification) {
-        App.loadMustacheTemplate("notificationTemplates.html",
-            notification.type+"Notification",
-            function(template) {
-                if ($("#notification-" + notification.id).length==0) {
-                    if (notification.repeated>1) notification.message += " (" + notification.repeated + "x)";
-                    var html = template.render(notification);
-                    $("#notifications").append(html);
-                    $("abbr.timeago").timeago();
-                    $(window).resize();
-                }
-            });
-    }
-	
 	function updateTab(digest, Calendar, force) {
-        if (App.activeApp.name != "calendar")
+        if (App.activeApp.name != "calendar" || digest == null)
             return;
         tabInterface.setRenderParamsFunction(function(){
             return $.extend({
@@ -299,6 +325,16 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
             if (button.length == 0){
                 button = createConnectorButton(App,Calendar,digest.selectedConnectors[i]);
             }
+            var connector = digest.selectedConnectors[i];
+            var connected = _.some(connector.facetTypes, function(facetType) {
+                var hasTypedFacets = digest.facets[facetType] != null;
+                //var objectType = facetType.split("-")[1];
+                if(Calendar.currentTab.name==="photos") {
+                    hasTypedFacets = hasTypedFacets && digest.facets[facetType].hasImages;
+                }
+                return hasTypedFacets;
+            });
+            button.toggleClass("flx-disconnected", !connected);
             if (Calendar.currentTab.connectorDisplayable(digest.selectedConnectors[i])){
                 button.show();
                 if (Calendar.currentTab.connectorsAlwaysEnabled()){
@@ -309,6 +345,21 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
             else
                 button.hide();
         }
+        // only show filter buttons for the current viewees' selected connectors
+        $(".flx-connector-btn").each(function(index){
+            var existing_btn_id = $(this).attr("id");
+            var btn_to_remove = true;
+            for (var i = 0; i < digest.selectedConnectors.length; i++) {
+                var connector_btn_id = "flx-connector-btn-" + digest.selectedConnectors[i].connectorName;
+                if (connector_btn_id===existing_btn_id) {
+                    btn_to_remove = false;
+                    break;
+                }
+            }
+            if (btn_to_remove) {
+                $("#"+existing_btn_id).remove();
+            }
+        });
 
     }
 	
@@ -330,7 +381,6 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
 	Builder.updateTab = updateTab;
     Builder.isValidTabName = isValidTabName;
     Builder.isValidTimeUnit = isValidTimeUnit;
-    Builder.handleNotifications = handleNotifications;
 
     return Builder;
 	

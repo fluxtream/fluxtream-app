@@ -1,16 +1,13 @@
 package org.fluxtream.mvc.controllers;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-
+import com.postmark.PostmarkMailSender;
 import org.apache.commons.httpclient.HttpException;
-import org.fluxtream.aspects.FlxLogger;
 import org.apache.velocity.app.VelocityEngine;
+import org.fluxtream.core.Configuration;
+import org.fluxtream.core.aspects.FlxLogger;
+import org.fluxtream.core.domain.Guest;
+import org.fluxtream.core.domain.ResetPasswordToken;
+import org.fluxtream.core.services.GuestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.mail.SimpleMailMessage;
@@ -23,11 +20,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import org.fluxtream.Configuration;
-import org.fluxtream.domain.Guest;
-import org.fluxtream.domain.ResetPasswordToken;
-import org.fluxtream.services.GuestService;
-import com.postmark.PostmarkMailSender;
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/support")
@@ -111,7 +109,7 @@ public class SupportController {
 			vars.put("username", guest.username);
         String mailMessage ="Hi " + vars.get("username") + ",\n" +
                             "\n" +
-                            "Someone requested that your Fluxtream.com password be reset.\n" +
+                            "Someone requested that your Fluxtream password be reset.\n" +
                             "\n" +
                             "If this wasn't you, there's nothing to worry about - simply ignore this email and nothing will change.\n" +
                             "\n" +

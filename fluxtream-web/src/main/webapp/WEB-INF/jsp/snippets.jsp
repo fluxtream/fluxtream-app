@@ -1,4 +1,4 @@
-<%@ page import="org.fluxtream.mvc.controllers.AuthHelper" %>
+<%@ page import="org.fluxtream.core.auth.AuthHelper" %>
 <%@ page pageEncoding="utf-8" contentType="text/html; charset=UTF-8"%><%@ taglib
     prefix="c" uri="http://java.sun.com/jsp/jstl/core"%><%@ taglib
     prefix="sec" uri="http://www.springframework.org/security/tags"%><%@ taglib
@@ -60,7 +60,7 @@
                         <ul class="nav pull-right">
                             <li class="divider-vertical"></li>
                             <li class="dropdown">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Connectors <i class="icon-random icon-large"></i> <b class="caret"></b></a>
+                                <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown">Connectors <i class="icon-random icon-large"></i> <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     <li><a href="javascript:App.connectors()">Add  <i class="icon-plus icon-large" style="float: right;"></i></a></li>
                                     <li><a href="javascript:App.connectors()">Manage <i class="icon-list icon-large" style="float: right;"></i></a></li>
@@ -68,7 +68,7 @@
                             </li>
                             <li class="divider-vertical"></li>
                             <li class="dropdown">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Test Test <i class="icon-user icon-large"></i> <b class="caret"></b></a>
+                                <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown">Test Test <i class="icon-user icon-large"></i> <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     <li><a href="javascript:App.settings()">Settings <i class="icon-cog icon-large" style="float: right;"></i></a></li>
                                     <li><a href="javascript:App.addresses()">Addresses <i style="float: right;" class="icon-home icon-large"></i></a></li>
@@ -88,7 +88,7 @@
             <div class="row-fluid">
                 <div class="span2">
                     <div class="btn-group">
-                        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+                        <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:void(0)">
                             &lt;No Selected User&gt;
                             <span class="caret"></span>
                         </a>
@@ -133,10 +133,10 @@
                     </div>
                 <ul class="nav nav-list flx-nav-list">
                   <li>
-                    <a href="#">General settings</a>
+                    <a href="javascript:void(0)">General settings</a>
                   </li>
                   <li class="active">
-                    <a href="#">Advanced settings</a>
+                    <a href="javascript:void(0)">Advanced settings</a>
                   </li>
                 </ul>                
             </div>
@@ -238,41 +238,41 @@
                     <div class="dashboards-list">
                             <div class="dashboard-list-item">
                                 <div class="reorder">
-                                    <a href="#" class="up"><i class="icon-caret-up"></i></a>
-                                    <a href="#" class="down"><i class="icon-caret-down"></i></a>
-                                    <a href="#" class="edit">edit</a>
+                                    <a href="javascript:void(0)" class="up"><i class="icon-caret-up"></i></a>
+                                    <a href="javascript:void(0)" class="down"><i class="icon-caret-down"></i></a>
+                                    <a href="javascript:void(0)" class="edit">edit</a>
                                 </div>
                                 <div class="col1">
                                     Dashboard 1
                                 </div>
                                 <div class="remove">
-                                    <a href="#"><i class="icon-trash"></i></a>
+                                    <a href="javascript:void(0)"><i class="icon-trash"></i></a>
                                 </div>
                             </div>
                             <div class="dashboard-list-item">
                                 <div class="reorder">
-                                    <a href="#" class="up"><i class="icon-caret-up"></i></a>
-                                    <a href="#" class="down"><i class="icon-caret-down"></i></a>
-                                    <a href="#" class="edit">edit</a>
+                                    <a href="javascript:void(0)" class="up"><i class="icon-caret-up"></i></a>
+                                    <a href="javascript:void(0)" class="down"><i class="icon-caret-down"></i></a>
+                                    <a href="javascript:void(0)" class="edit">edit</a>
                                 </div>
                                 <div class="col1">
                                     Dashboard 2
                                 </div>
                                 <div class="remove">
-                                    <a href="#"><i class="icon-trash"></i></a>
+                                    <a href="javascript:void(0)"><i class="icon-trash"></i></a>
                                 </div>
                             </div>
                             <div class="dashboard-list-item">
                                 <div class="reorder">
-                                    <a href="#" class="up"><i class="icon-caret-up"></i></a>
-                                    <a href="#" class="down"><i class="icon-caret-down"></i></a>
-                                    <a href="#" class="edit">edit</a>
+                                    <a href="javascript:void(0)" class="up"><i class="icon-caret-up"></i></a>
+                                    <a href="javascript:void(0)" class="down"><i class="icon-caret-down"></i></a>
+                                    <a href="javascript:void(0)" class="edit">edit</a>
                                 </div>
                                 <div class="col1">
                                     Dashboard 3
                                 </div>
                                 <div class="remove">
-                                    <a href="#"><i class="icon-trash"></i></a>
+                                    <a href="javascript:void(0)"><i class="icon-trash"></i></a>
                                 </div>
                             </div>
                     </div><!-- end dashboard list -->
@@ -603,9 +603,9 @@
             <div class="flx-toolTipData">
                 <h3 class="flx-dataType">Weight</h3>
                     <ul class="flx-toolTipLinks">
-                        <!-- <li><a href="#">List <i class="icon-list"></i></a></li> -->
-                        <li><a href="#">Timeline <i class="icon-film"></i></a></li>
-                        <li><a href="#">Bodytrack <i class="icon-lemon"></i></a></li>
+                        <!-- <li><a href="javascript:void(0)">List <i class="icon-list"></i></a></li> -->
+                        <li><a href="javascript:void(0)">Timeline <i class="icon-film"></i></a></li>
+                        <li><a href="javascript:void(0)">Bodytrack <i class="icon-lemon"></i></a></li>
                     </ul>
                     <span class="flx-deviceIcon withings"></span>
                 <div class="flx-deviceData">
@@ -624,37 +624,37 @@
             <div class="flx-channel-navigation">
                 <div class="btn-toolbar">
                     <div class="btn-group">
-                      <a href="#" class="btn"> <i class="icon-zoom-in"></i> </a>
-                      <a href="#" class="btn"> <i class="icon-zoom-out"></i> </a>
+                      <a href="javascript:void(0)" class="btn"> <i class="icon-zoom-in"></i> </a>
+                      <a href="javascript:void(0)" class="btn"> <i class="icon-zoom-out"></i> </a>
                     </div>
                     <div class="btn-group">
-                      <a href="#" class="btn"> <i class="icon-fast-backward"></i> </a>
-                      <a href="#" class="btn"> <i class="icon-step-backward"></i> </a>
-                      <a href="#" class="btn"> <i class="icon-step-forward"></i> </a>
-                      <a href="#" class="btn"> <i class="icon-fast-forward"></i> </a>
+                      <a href="javascript:void(0)" class="btn"> <i class="icon-fast-backward"></i> </a>
+                      <a href="javascript:void(0)" class="btn"> <i class="icon-step-backward"></i> </a>
+                      <a href="javascript:void(0)" class="btn"> <i class="icon-step-forward"></i> </a>
+                      <a href="javascript:void(0)" class="btn"> <i class="icon-fast-forward"></i> </a>
                     </div>
                </div>
             </div>
             <div class="flx-channel">
-                <div class="flx-remove-channel"><a href="#"><i class="icon-remove-sign"></i></a></div>
+                <div class="flx-remove-channel"><a href="javascript:void(0)"><i class="icon-remove-sign"></i></a></div>
                 <div class="flx-channel-name">
                     <h4>BodyMedia</h4>
                     <p>Lying down</p>    
                 </div>
                 <ul class="flx-channel-controls">
-                    <li><a href="#"><i class="icon-resize-vertical"></i></a></li>
-                    <li><a href="#"><i class="icon-pencil"></i></a></li>
+                    <li><a href="javascript:void(0)"><i class="icon-resize-vertical"></i></a></li>
+                    <li><a href="javascript:void(0)"><i class="icon-pencil"></i></a></li>
                 </ul>
             </div>
             <div class="flx-channel">
-                <div class="flx-remove-channel"><a href="#"><i class="icon-remove-sign"></i></a></div>
+                <div class="flx-remove-channel"><a href="javascript:void(0)"><i class="icon-remove-sign"></i></a></div>
                 <div class="flx-channel-name">
                     <h4>Zeo</h4>
                     <p>Sleep</p>    
                 </div>
                 <ul class="flx-channel-controls">
-                    <li><a href="#"><i class="icon-resize-vertical"></i></a></li>
-                    <li><a href="#"><i class="icon-pencil"></i></a></li>
+                    <li><a href="javascript:void(0)"><i class="icon-resize-vertical"></i></a></li>
+                    <li><a href="javascript:void(0)"><i class="icon-pencil"></i></a></li>
                 </ul>
             </div>
         </div>
@@ -667,40 +667,40 @@
                     <div class="floater" id="time-menu-container">
                         <div class="btn-toolbar flx-bodytrack-menu" id="bodytrack-menu">
                             <div class="btn-group">
-                                <a class="btn" href="#">New view</a>
+                                <a class="btn" href="javascript:void(0)">New view</a>
                             </div>
                             <div class="btn-group"> 
-                                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">Load view  <span class="caret"></span></a>
+                                <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:void(0)">Load view  <span class="caret"></span></a>
                                 <ul class="dropdown-menu load-view-subMenu">
                                     <li class="flx-clearfix">
                                         <div class="flx-floatL view-id">
-                                            <a href="#">
+                                            <a href="javascript:void(0)">
                                                 <h4>june 11th 2012</h4>
                                             </a>
                                         </div>
                                         <ul class="flx-floater view-filters">
-                                            <li><a href="#">Time only <i class="icon-time"></i></a></li>
-                                            <li><a href="#">Channel only <i class="icon-list"></i></a></li>
+                                            <li><a href="javascript:void(0)">Time only <i class="icon-time"></i></a></li>
+                                            <li><a href="javascript:void(0)">Channel only <i class="icon-list"></i></a></li>
                                         </ul>
                                     </li>
                                     <li class="divider"></li>
                                     <li class="flx-clearfix">
                                         <div class="flx-floatL view-id">
-                                            <a href="#"><h4>JPF Wed.</h4><p>This is the sample we made in Milan last November</p></a>
+                                            <a href="javascript:void(0)"><h4>JPF Wed.</h4><p>This is the sample we made in Milan last November</p></a>
                                         </div>
                                         <ul class="flx-floater view-filters">
-                                            <li><a href="#">Time only <i class="icon-time"></i></a></li>
-                                            <li><a href="#">Channel only <i class="icon-list"></i></a></li>
+                                            <li><a href="javascript:void(0)">Time only <i class="icon-time"></i></a></li>
+                                            <li><a href="javascript:void(0)">Channel only <i class="icon-list"></i></a></li>
                                         </ul>
                                     </li>
                                     <li class="divider"></li>
                                     <li class="flx-clearfix">
                                         <div class="flx-floatL view-id">
-                                            <a href="#"><h4>Lack of Sleep 1</h4><p>You never know what a body can do...</p></a>
+                                            <a href="javascript:void(0)"><h4>Lack of Sleep 1</h4><p>You never know what a body can do...</p></a>
                                         </div>
                                         <ul class="flx-floater view-filters">
-                                            <li><a href="#">Time only <i class="icon-time"></i></a></li>
-                                            <li><a href="#">Channel only <i class="icon-list"></i></a></li>
+                                            <li><a href="javascript:void(0)">Time only <i class="icon-time"></i></a></li>
+                                            <li><a href="javascript:void(0)">Channel only <i class="icon-list"></i></a></li>
                                         </ul>
                                     </li>
                                 </ul>
@@ -712,20 +712,20 @@
                                         <li>
                                             <form>
                                                 <input type="text" title="insert view name" style="display:inline"/>
-                                                <a href="#" class="btn btn-mini">save</a>
+                                                <a href="javascript:void(0)" class="btn btn-mini">save</a>
                                             </form>
                                             <h5>Or save as one of the views below</h5>
                                         </li>
                                         <li class="divider"></li>
                                         <li>
-                                            <a class="savedView" href="#">
+                                            <a class="savedView" href="javascript:void(0)">
                                                 <div><h4>Migraine</h4><p>12/07/10</p></div>
                                                 <div>This is the sample we did in Milan in November comparing sleep to migraine intensity</div>
                                             </a>
                                         </li>
                                         <li class="divider"></li>
                                         <li>
-                                            <a class="savedView" href="#">
+                                            <a class="savedView" href="javascript:void(0)">
                                                 <div><h4>Lack of Sleep 1</h4><p>15/10/11</p></div>
                                                 <div>Sleep disorder and (massive) food consumption</div>
                                             </a>
@@ -758,7 +758,7 @@
         <div class="row">
             <div class="span10">
                 <div class="synchAll">
-                    <span>Though your data should be up to date, you might want to <a href="#" class="btn btn-info">sync all your devices now <i class="icon-refresh"></i></a></span>
+                    <span>Though your data should be up to date, you might want to <a href="javascript:void(0)" class="btn btn-info">sync all your devices now <i class="icon-refresh"></i></a></span>
                 </div>
             </div>
         </div>
@@ -779,34 +779,34 @@
                         <tr>
                             <td class="syncStatus"><span class="syncLED-yes"></span></td>
                             <td class="connectors"><img src="/css/devicesPictures/bodymedia.jpg" alt="bodymedia"/></td>
-                            <td class="desc"><h4>BodyMedia Armband</h4><p>Activity, calories and sleep pattern</p><a href="#">Manage <i class="icon-cog"></i></a></td>
-                            <td class="lastSync"><p>Sept 17 2012 10:03:12</p><a href="#">Sync now <i class="icon-refresh"></i></a></td>
-                            <td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
-                            <td class="remove"><a href="#"><i class="icon-trash"></i></a></td>
+                            <td class="desc"><h4>BodyMedia Armband</h4><p>Activity, calories and sleep pattern</p><a href="javascript:void(0)">Manage <i class="icon-cog"></i></a></td>
+                            <td class="lastSync"><p>Sept 17 2012 10:03:12</p><a href="javascript:void(0)">Sync now <i class="icon-refresh"></i></a></td>
+                            <td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="javascript:void(0)">View graph <i class="icon-bar-chart"></i></a></td>
+                            <td class="remove"><a href="javascript:void(0)"><i class="icon-trash"></i></a></td>
                         </tr>
                         <tr>
                             <td class="syncStatus "><span class="syncLED-yes"></span></td>
                             <td class="connectors"><img src="/css/devicesPictures/zeo.jpg" alt="zeo"/></td>
-                            <td class="desc"><h4>Zeo Sleep Tracker</h4><p>Sleep quality monitor using a sensor headband</p><a href="#">Manage <i class="icon-cog"></i></a></td>
-                            <td class="lastSync"><p>Sept 17 2012 10:03:12</p><a href="#">Sync now <i class="icon-refresh"></i></a></td>
-                            <td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
-                            <td class="remove"><a href="#"><i class="icon-trash"></i></a></td>
+                            <td class="desc"><h4>Zeo Sleep Tracker</h4><p>Sleep quality monitor using a sensor headband</p><a href="javascript:void(0)">Manage <i class="icon-cog"></i></a></td>
+                            <td class="lastSync"><p>Sept 17 2012 10:03:12</p><a href="javascript:void(0)">Sync now <i class="icon-refresh"></i></a></td>
+                            <td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="javascript:void(0)">View graph <i class="icon-bar-chart"></i></a></td>
+                            <td class="remove"><a href="javascript:void(0)"><i class="icon-trash"></i></a></td>
                         </tr>
                         <tr>
                             <td class="syncStatus"><span class="syncLED-no"></span></td>
                             <td class="connectors"><img src="/css/devicesPictures/fitbit.jpg" alt="fitbit"/></td>
-                            <td class="desc"><h4>Fitbit</h4><p>A wearable tracker for physical activity or sleep</p><a href="#">Manage <i class="icon-cog"></i></a></td>
-                            <td class="lastSync"><p>Sept 17 2012 10:03:12</p><a href="#">Sync now <i class="icon-refresh"></i></a></td>
-                            <td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
-                            <td class="remove"><a href="#"><i class="icon-trash"></i></a></td>
+                            <td class="desc"><h4>Fitbit</h4><p>A wearable tracker for physical activity or sleep</p><a href="javascript:void(0)">Manage <i class="icon-cog"></i></a></td>
+                            <td class="lastSync"><p>Sept 17 2012 10:03:12</p><a href="javascript:void(0)">Sync now <i class="icon-refresh"></i></a></td>
+                            <td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="javascript:void(0)">View graph <i class="icon-bar-chart"></i></a></td>
+                            <td class="remove"><a href="javascript:void(0)"><i class="icon-trash"></i></a></td>
                         </tr>
                         <tr class="nowSynchro">
                             <td class="syncStatus"><span class="syncLED-waiting"><img src="/css/devicesPictures/load.gif" alt="load"/></span></td>
                             <td class="connectors"><img src="/css/devicesPictures/mymee.jpg" alt="mymee"/></td>
-                            <td class="desc"><h4>Mobile observation log</h4><p>Track my migraine and food consumption</p><a href="#">Manage <i class="icon-cog"></i></a></td>
+                            <td class="desc"><h4>Mobile observation log</h4><p>Track my migraine and food consumption</p><a href="javascript:void(0)">Manage <i class="icon-cog"></i></a></td>
                             <td class="lastSync"><p>Now synchronizing</p><span>Sync now <i class="icon-refresh"></i></span></td>
-                            <td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
-                            <td class="remove"><a href="#"><i class="icon-trash"></i></a></td>
+                            <td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="javascript:void(0)">View graph <i class="icon-bar-chart"></i></a></td>
+                            <td class="remove"><a href="javascript:void(0)"><i class="icon-trash"></i></a></td>
                         </tr>
                         <tr class="flx-tableSepar">
                             <td colspan="6"></td>
@@ -815,17 +815,17 @@
                             <td class="syncStatus"><span class="syncLED-no"></span></td>
                             <td class="connectors"><img src="/css/devicesPictures/bodyTrack.jpg" alt="bodyTrack"/></td>
                             <td class="desc"><h4>Basestation</h4><p>Temperature, humidity and air pressure</p></td>
-                            <td class="lastSync"><p>Sept 17 2012 10:03:12</p><a href="#">Sync now <i class="icon-refresh"></i></a></td>
-                            <td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
-                            <td class="remove"><a href="#"><i class="icon-trash"></i></a></td>
+                            <td class="lastSync"><p>Sept 17 2012 10:03:12</p><a href="javascript:void(0)">Sync now <i class="icon-refresh"></i></a></td>
+                            <td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="javascript:void(0)">View graph <i class="icon-bar-chart"></i></a></td>
+                            <td class="remove"><a href="javascript:void(0)"><i class="icon-trash"></i></a></td>
                         </tr>
                         <tr>
                             <td class="syncStatus"><span class="syncLED-yes"></span></td>
                             <td class="connectors"><img src="/css/devicesPictures/mHealth.jpg" alt="mHealth"/></td>
                             <td class="desc"><h4>Atrix</h4><p>Illuminance, azimuth and pitch</p></td>
-                            <td class="lastSync"><p>Sept 17 2012 10:03:12</p><a href="#">Sync now <i class="icon-refresh"></i></a></td>
-                            <td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="#">View graph <i class="icon-bar-chart"></i></a></td>
-                            <td class="remove"><a href="#"><i class="icon-trash"></i></a></td>
+                            <td class="lastSync"><p>Sept 17 2012 10:03:12</p><a href="javascript:void(0)">Sync now <i class="icon-refresh"></i></a></td>
+                            <td class="latestData"><p>Sept 27 2012 30:42:55</p><a href="javascript:void(0)">View graph <i class="icon-bar-chart"></i></a></td>
+                            <td class="remove"><a href="javascript:void(0)"><i class="icon-trash"></i></a></td>
                         </tr>
                     </tbody>
                 </table>
@@ -837,25 +837,25 @@
                     <h4>Variation 1</h4>
                     <ul class="flx-sourceFilters1">
                         <li>
-                            <a href="#" class="fitbit">Fitbit</a>
+                            <a href="javascript:void(0)" class="fitbit">Fitbit</a>
                         </li>
                         <li>
-                            <a href="#" class="flx-active bodytrack">BodyTrack</a>
+                            <a href="javascript:void(0)" class="flx-active bodytrack">BodyTrack</a>
                         </li>
                         <li>
-                            <a href="#" class="flx-inactive lastFM">Last FM</a>
+                            <a href="javascript:void(0)" class="flx-inactive lastFM">Last FM</a>
                         </li>
                         <li>
-                            <a href="#" class="flx-active withings">Withings</a>
+                            <a href="javascript:void(0)" class="flx-active withings">Withings</a>
                         </li>
                         <li>
                             <span class="flx-disconnected picasa">Picasa</span>
                         </li>
                         <li>
-                            <a href="#" class="flx-active twitter">Twitter</a>
+                            <a href="javascript:void(0)" class="flx-active twitter">Twitter</a>
                         </li>
                         <li>
-                            <a href="#" class="flx-active ggleCal">Google Cal.</a>
+                            <a href="javascript:void(0)" class="flx-active ggleCal">Google Cal.</a>
                         </li>
                     </ul>
                 </div>
@@ -868,25 +868,25 @@
                 <h4>Variation 2</h4>
                     <ul class="flx-sourceFilters2">
                         <li>
-                            <a href="#" class="fitbit">Fitbit</a>
+                            <a href="javascript:void(0)" class="fitbit">Fitbit</a>
                         </li>
                         <li>
-                            <a href="#" class="flx-active bodytrack">BodyTrack</a>
+                            <a href="javascript:void(0)" class="flx-active bodytrack">BodyTrack</a>
                         </li>
                         <li>
-                            <a href="#" class="flx-inactive lastFM">Last FM</a>
+                            <a href="javascript:void(0)" class="flx-inactive lastFM">Last FM</a>
                         </li>
                         <li>
-                            <a href="#" class="flx-active withings">Withings</a>
+                            <a href="javascript:void(0)" class="flx-active withings">Withings</a>
                         </li>
                         <li>
                             <span class="flx-disconnected picasa">Picasa</span>
                         </li>
                         <li>
-                            <a href="#" class="flx-active twitter">Twitter</a>
+                            <a href="javascript:void(0)" class="flx-active twitter">Twitter</a>
                         </li>
                         <li>
-                            <a href="#" class="flx-active ggleCal">Google Calendar</a>
+                            <a href="javascript:void(0)" class="flx-active ggleCal">Google Calendar</a>
                         </li>
                     </ul>
                 </div>
@@ -898,25 +898,25 @@
                 <h4>Variation 3</h4>
                     <ul class="flx-sourceFilters3">
                         <li>
-                            <a href="#" class="fitbit">Fitbit</a>
+                            <a href="javascript:void(0)" class="fitbit">Fitbit</a>
                         </li>
                         <li>
-                            <a href="#" class="flx-active bodytrack">BodyTrack</a>
+                            <a href="javascript:void(0)" class="flx-active bodytrack">BodyTrack</a>
                         </li>
                         <li>
-                            <a href="#" class="flx-inactive lastFM">Last FM</a>
+                            <a href="javascript:void(0)" class="flx-inactive lastFM">Last FM</a>
                         </li>
                         <li>
-                            <a href="#" class="flx-active withings">Withings</a>
+                            <a href="javascript:void(0)" class="flx-active withings">Withings</a>
                         </li>
                         <li>
                             <span class="flx-disconnected picasa">Picasa</span>
                         </li>
                         <li>
-                            <a href="#" class="flx-active twitter">Twitter</a>
+                            <a href="javascript:void(0)" class="flx-active twitter">Twitter</a>
                         </li>
                         <li>
-                            <a href="#" class="flx-active ggleCal">Calendar</a>
+                            <a href="javascript:void(0)" class="flx-active ggleCal">Calendar</a>
                         </li>
                     </ul>
                 </div>
@@ -927,25 +927,25 @@
                     <div class="flx-filtersWrapper">
                         <ul class="flx-sourceFilters4">
                             <li>
-                                <a href="#" class="fitbit">Fitbit</a>
+                                <a href="javascript:void(0)" class="fitbit">Fitbit</a>
                             </li>
                             <li>
-                                <a href="#" class="flx-active bodytrack">BodyTrack</a>
+                                <a href="javascript:void(0)" class="flx-active bodytrack">BodyTrack</a>
                             </li>
                             <li>
-                                <a href="#" class="flx-inactive lastFM">Last FM</a>
+                                <a href="javascript:void(0)" class="flx-inactive lastFM">Last FM</a>
                             </li>
                             <li>
-                                <a href="#" class="flx-active withings">Withings</a>
+                                <a href="javascript:void(0)" class="flx-active withings">Withings</a>
                             </li>
                             <li>
                                 <span class="flx-disconnected picasa">Picasa</span>
                             </li>
                             <li>
-                                <a href="#" class="flx-active twitter">Twitter</a>
+                                <a href="javascript:void(0)" class="flx-active twitter">Twitter</a>
                             </li>
                             <li>
-                                <a href="#" class="flx-active ggleCal">Calendar</a>
+                                <a href="javascript:void(0)" class="flx-active ggleCal">Calendar</a>
                             </li>
                         </ul>
                     </div>
@@ -958,25 +958,25 @@
                 <h4 style="margin-top:50px;">Variation 5 (Thomas's)</h4>
                     <ul class="flx-sourceFilters5">
                         <li>
-                            <a href="#" class="fitbit">Fitbit</a>
+                            <a href="javascript:void(0)" class="fitbit">Fitbit</a>
                         </li>
                         <li>
-                            <a href="#" class="flx-active bodytrack">BodyTrack</a>
+                            <a href="javascript:void(0)" class="flx-active bodytrack">BodyTrack</a>
                         </li>
                         <li>
-                            <a href="#" class="flx-inactive lastFM">Last FM</a>
+                            <a href="javascript:void(0)" class="flx-inactive lastFM">Last FM</a>
                         </li>
                         <li>
-                            <a href="#" class="flx-active withings">Withings</a>
+                            <a href="javascript:void(0)" class="flx-active withings">Withings</a>
                         </li>
                         <li>
                             <span class="flx-disconnected picasa">Picasa</span>
                         </li>
                         <li>
-                            <a href="#" class="flx-active twitter">Twitter</a>
+                            <a href="javascript:void(0)" class="flx-active twitter">Twitter</a>
                         </li>
                         <li>
-                            <a href="#" class="flx-active ggleCal">Calendar</a>
+                            <a href="javascript:void(0)" class="flx-active ggleCal">Calendar</a>
                         </li>
                     </ul>
                 </div>
@@ -988,25 +988,25 @@
                 <h4>Variation 6 (synthesis)</h4>
                     <ul class="flx-sourceFilters6">
                         <li>
-                            <a href="#" class="fitbit">Fitbit</a>
+                            <a href="javascript:void(0)" class="fitbit">Fitbit</a>
                         </li>
                         <li>
-                            <a href="#" class="flx-active bodytrack">BodyTrack</a>
+                            <a href="javascript:void(0)" class="flx-active bodytrack">BodyTrack</a>
                         </li>
                         <li>
-                            <a href="#" class="flx-inactive lastFM">Last FM</a>
+                            <a href="javascript:void(0)" class="flx-inactive lastFM">Last FM</a>
                         </li>
                         <li>
-                            <a href="#" class="flx-active withings">Withings</a>
+                            <a href="javascript:void(0)" class="flx-active withings">Withings</a>
                         </li>
                         <li>
                             <span class="flx-disconnected picasa">Picasa</span>
                         </li>
                         <li>
-                            <a href="#" class="flx-active twitter">Twitter</a>
+                            <a href="javascript:void(0)" class="flx-active twitter">Twitter</a>
                         </li>
                         <li>
-                            <a href="#" class="flx-active ggleCal">Calendar</a>
+                            <a href="javascript:void(0)" class="flx-active ggleCal">Calendar</a>
                         </li>
                     </ul>
                 </div>
@@ -1022,9 +1022,9 @@
                             <div class="flx-toolTipData">
                                 <h3 class="flx-dataType">Weight</h3>
                                     <ul class="flx-toolTipLinks">
-                                        <!-- <li><a href="#">List <i class="icon-list"></i></a></li> -->
-                                        <li><a href="#">Timeline <i class="icon-film"></i></a></li>
-                                        <li><a href="#">Bodytrack <i class="icon-lemon"></i></a></li>
+                                        <!-- <li><a href="javascript:void(0)">List <i class="icon-list"></i></a></li> -->
+                                        <li><a href="javascript:void(0)">Timeline <i class="icon-film"></i></a></li>
+                                        <li><a href="javascript:void(0)">Bodytrack <i class="icon-lemon"></i></a></li>
                                     </ul>
                                     <span class="flx-deviceIcon withings"></span>
                                 <div class="flx-deviceData">

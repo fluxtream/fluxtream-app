@@ -2,6 +2,7 @@ define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher
 	
 	var grapherTab = new Tab("bodytrack", "grapher", "Candide Kemmler", "icon-film", true);
     var currentView = null;
+    var lastGuestId;
 
     var grapher = null;
     var pointLoad = null;
@@ -10,6 +11,14 @@ define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher
     var channelsToAdd = [];
 
     grapherTab.render = function(params){
+        if (App.buddyToAccess == null)
+            return;
+        if (lastGuestId!=null&&App.buddyToAccess.id!==lastGuestId) {
+            $("._timeline_sources_list").empty();
+            $("._timeline_channel").remove();
+            grapher.reload();
+        }
+        lastGuestId = App.buddyToAccess.id;
         if (params.rebuildURL){
             params.rebuildURL = false;
             var append = "";

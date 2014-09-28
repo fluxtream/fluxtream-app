@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Swagger UI</title>
+  <link href='css/reset.css' media='screen' rel='stylesheet' type='text/css'/>
+  <link href='css/screen.css' media='screen' rel='stylesheet' type='text/css'/>
+  <link href='/static/css/bootstrap-3.2.0.min.css' media='screen' rel='stylesheet' type='text/css'/>
+<!--   <link href='/0.9.0032_768812f11a4b/css/styles.css' rel="stylesheet" type="text/css"> -->
+  <script type="text/javascript" src="lib/shred.bundle.js"></script>
+  <script src='lib/jquery-1.8.0.min.js' type='text/javascript'></script>
+  <script src='lib/jquery.slideto.min.js' type='text/javascript'></script>
+  <script src='lib/jquery.wiggle.min.js' type='text/javascript'></script>
+  <script src='lib/jquery.ba-bbq.min.js' type='text/javascript'></script>
+  <script src='lib/handlebars-1.0.0.js' type='text/javascript'></script>
+  <script src='lib/underscore-min.js' type='text/javascript'></script>
+  <script src='lib/backbone-min.js' type='text/javascript'></script>
+  <script src='lib/swagger.js' type='text/javascript'></script>
+  <script src='swagger-ui.min.js' type='text/javascript'></script>
+  <script src='lib/highlight.7.3.pack.js' type='text/javascript'></script>
+
+  <!-- enabling this will enable oauth2 implicit scope support -->
+  <!--<script src='lib/swagger-oauth.js' type='text/javascript'></script>-->
+
+  <script type="text/javascript">
+    function getParameterByName(name) {
+        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+            results = regex.exec(location.search);
+        return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    }
+    var apiDocsURL = getParameterByName("apiDocsURL");
+    var onCompleteCount = 0;
+    $(function () {
+      window.swaggerUi = new SwaggerUi({
+      url: apiDocsURL,
+      dom_id: "swagger-ui-container",
+      supportedSubmitMethods: ['get', 'post', 'put', 'delete'],
+      onComplete: function(swaggerApi, swaggerUi){
+        onCompleteCount++;
+        // strangely, this callback method is always invoked 3 times...
+        if (onCompleteCount==3) {
+            injectGeneratedDocs();
+        }
+      },
+      onFailure: function(data) {
+        log("Unable to Load SwaggerUI");
+      },
+      docExpansion: "list"
+    });
+
+    function injectGeneratedDocs() {
+
+        var sortedApis = ["guest", "buddies", "calendar", "bodytrack", "sync", "comments", "metadata", "settings", "notifications"];
+
+        for (var i=0; i<sortedApis.length; i++) {
+            var li = $("#resource_" + sortedApis[i]);
+            var narrative = $("#" + sortedApis[i] + "_narrative");
+            $("#resources-rearranged").append(li);
+            $("#resource_" + sortedApis[i]).prepend(narrative);
+        }
+
+        $("#resources").attr("id", "resources-hidden");
+        $("#resources-rearranged").attr("id", "resources");
+        $(".endpoints").css("height", "");
+    }
+
+    window.swaggerUi.load();
+  });
+  </script>
+</head>
+
+<body class="swagger-section">
+
+    <div class="container-fluid">
+        <div class="swagger-ui-wrap row">
+            <div class="col-sm-12">
+              <h1>Fluxtream's (REST) API Documentation</h1>
+              <div class="alert alert-warning" role="alert">
+                  <strong>Warning</strong> This API is in beta.
+              </div>
+            </div>
+            <div class="col-sm-12">
+              <h2>Foreword</h2>
+              <p>This API is, in its current state, exactly what we are using for our web frontend and mobile apps, no more, no less.
+                  That means it hasn't been thought out to be generic enough to support any possible application under the sun. It is
+                  subject to change as we discover new use-cases that we want support or things that we want to improve.
+              </p>
+              <p>At this point then, <strong>we don't guarantee any sort of backward compatibility</strong>.</p>
+              <p>That said, if you have specific requests, please don't hesitate to <a href="mailto:info@fluxtream.org">contact us</a>. As always, we are looking forward to your feedback.</p>
+  
+              <p>From a technical standpoint, Fluxtream exposes relatively few CRUD-type operations and I/O payloads are generally quite complex. Hence, the API is organized
+                  by "theme" rather than by the rigid concept of a "resource" in REST parlance. </p>
+            </div>
+            <div class="col-sm-12">
+              <h2>Glossary</h2>
+              <dl class="dl">
+                  <dt>Guest</dt>
+                  <dd>We prefer to call our users "guests", to remind us that we are but temporarily hosting people's data,
+                      which is wholly and thoroughly theirs.</dd>
+                      
+                  <dt>Buddy-to-access</dt>
+                  <dd>Many endpoints can specify an optional <code>buddyToAccess</code> parameter. Indeed, Fluxtream guests can
+                  share their data with buddies (see the <code>buddies/</code> API below); we use this rather informal word to stress our preference for horizontal
+                  relationships when sharing data.</dd>
+              </dl>
+            </div>
+            <div class="col-sm-12">
+              <div class="alert alert-info" role="alert">
+                  <p><strong>This documentation is interactive</strong></p>
+                  <p>Check out the 'Try it out' button at the bottom of each endpoint description, and give it a go –
+                      you need to be logged-in for it to work.</p>
+              </div>
+            </div>
+            
+            <div class="col-sm-12">
+              <div id="resources_container">
+                  <ul id="resources-rearranged">
+                  </ul>
+              </div>
+            </div>
+            
+        </div>
+
+        <div id="swagger-ui-container" style="display:none" class="swagger-ui-wrap">
+        </div>
+
+        <div style="display:none">
+            <div id="guest_narrative">
+                <h2>Knowing your guests</h2>
+                <p>This is a very straightforward API that retrieves some basic information
+                about the currently logged-in guest. </p>
+            </div>
+            <div id="buddies_narrative">
+                <h2>Sharing data with buddies</h2>
+                <p>A guest can add a buddy by username. Once a buddy is trusted, a guest can then share connectors with him.
+                Some connectors allow the specification of filters (e.g. Evernote and Google Calendar).</p>
+            </div>
+            <div id="calendar_narrative">
+                <h2>Retrieve API data per day, per week and per month</h2>
+                <p>The calendar/ endpoints are what powers the Calendar App in Fluxtream. Different connectors return different <code>facets</code>.
+                These share common attributes (e.g. <code>apiKeyId</code>, <code>start</code>, <code>end</code>, <code>timeUpdated</code>,...) but most
+                of the info they carry is usually specific.</p>
+            </div>
+            <div id="bodytrack_narrative">
+                <h2>Manage data for the BodyTrack Timeline</h2>
+                <p>The BodyTrack Timeline requires a tile-based API. Also, at this point, the BodyTrack API provides the only way that we support uploading
+                your own data. Photo upload also happens here.</p>
+            </div>
+            <div id="sync_narrative">
+                <h2>Manage API data synchronization</h2>
+                <p>Connector synchronization usually happens automatically in the background, but this API provides a way to force
+                the immediate scheduling of a synchronization operation.</p>
+            </div>
+            <div id="comments_narrative">
+                <h2>Guest comments</h2>
+                <p>This is a straightforward CR(U)D API to guest comments.</p>
+            </div>
+            <div id="metadata_narrative">
+                <h2>Edit and retrieve guest timezone info</h2>
+                <p>Guests need a way to override guesses that are made by the system about what timezone they were in at
+                a given moment.</p>
+            </div>
+            <div id="settings_narrative">
+                <h2>Manage guest settings</h2>
+                <p>This API provides a simple interface that lets guests specify their units of measures preferences, as well as set their
+                password, first name and last name.</p>
+            </div>
+            <div id="notifications_narrative">
+                <h2>Guest notifications</h2>
+                <p>A simple API to send and retrieve guest notifications.</p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

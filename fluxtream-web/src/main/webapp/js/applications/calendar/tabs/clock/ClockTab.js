@@ -18,6 +18,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     var selectedConnectors;
     var connectorEnabled;
     var dgst;
+    var currentFacetTooltip = null;
 
     var tooltipTemplate;
 
@@ -31,6 +32,8 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	function render(params) {
         setTabParam = params.setTabParam;
         setTabParam(null);
+        if (params.digest.delta && params.facetToShow == null)
+            params.facetToShow = currentFacetTooltip;
         hideEventInfo();
         this.getTemplate("text!applications/calendar/tabs/clock/clock.html", "clock", function() {
             if (lastTimestamp == params.digest.generationTimestamp && !params.forceReload){
@@ -77,16 +80,16 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         else
             map.reset();
 
-        if (digest.cachedData != null && digest.cachedData["google_latitude-location"] != null)
-            map.addGPSData(digest.cachedData["google_latitude-location"],App.getFacetConfig("google_latitude-location"),false);
-        for (var objectType in digest.cachedData){
+        if (digest.facets != null && digest.facets["google_latitude-location"] != null)
+            map.addGPSData(digest.facets["google_latitude-location"],App.getFacetConfig("google_latitude-location"),false);
+        for (var objectType in digest.facets){
             if (objectType == "google_latitude-location")
                 continue;//we already showed google latitude data if it existed
-            map.addGPSData(digest.cachedData[objectType],App.getFacetConfig(objectType),false)
+            map.addGPSData(digest.facets[objectType],App.getFacetConfig(objectType),false)
         }
         map.fitBounds(map.gpsBounds);
-        /*if (digest.cachedData != null && digest.cachedData["google_latitude-location"] != null){
-            map.addGPSData(digest.cachedData["google_latitude-location"],false);
+        /*if (digest.facets != null && digest.facets["google_latitude-location"] != null){
+            map.addGPSData(digest.facets["google_latitude-location"],false);
 
             map.fitBounds(map.gpsBounds);
         }
@@ -123,10 +126,10 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		drawingUtils.paintCircle(paper, config.SOCIAL_CATEGORY.orbit, "#ffffff", 1);
 		drawingUtils.paintCircle(paper, config.MEDIA_CATEGORY.orbit, "#ffffff", 1);
 		paintSolarInfo(digest.metadata.solarInfo);
-		for(var objectTypeName in digest.cachedData) {
-			if (digest.cachedData[objectTypeName]==null||typeof(digest.cachedData[objectTypeName])=="undefined")
+		for(var objectTypeName in digest.facets) {
+			if (digest.facets[objectTypeName]==null||typeof(digest.facets[objectTypeName])=="undefined")
 				continue;
-			updateDataDisplay(digest.cachedData[objectTypeName], objectTypeName, digest);
+			updateDataDisplay(digest.facets[objectTypeName], objectTypeName, digest);
 		}
 
         var hasData = $(paper.canvas).find(".facet").length != 0;
@@ -216,7 +219,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 
 	function drawEvents(items, orbit) {
 		if (typeof(items)=="undefined") return;
-		for (i = 0; i < items.length; i++) {
+		for (var i = 0; i < items.length; i++) {
 			try {
 				var item = items[i];
                 if (item.type==="google_calendar-entry"&&item.allDay)
@@ -378,6 +381,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 	}
 
     function showToolTip(x,y, offX, offY,contents,minute,color,parent,gpsPos,sourceName, channelName,facet,locationInfo){
+        currentFacetTooltip = facet;
         var weatherInfo = getWeatherData(minute);
         var weatherIcon;
         if (solarInfo != null && (minute < solarInfo.sunrise || minute > solarInfo.sunset)){//night
@@ -526,7 +530,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
                 commentEdit.click();
             });
 
-            App.apps.calendar.rebindDetailsControls(ttpdiv,dgst.cachedData);
+            App.apps.calendar.rebindDetailsControls(ttpdiv,dgst.facets);
 
             ttpdiv.find(".flx-photo").click(function(event){
                 var dTarget = $(event.delegateTarget);
@@ -566,6 +570,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
     }
 
 	function hideEventInfo() {
+        currentFacetTooltip = null;
         if (map != null){
             map.executeAfterReady(function(){
                 hideQTipMap();
@@ -661,7 +666,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             toggleConnectorObjectType(objectTypeNames[i], enabled);
         if (connectorName==="moves")
             toggleConnectorObjectType("moves-move-activity", enabled);
-        updateDataDisplay(dgst.cachedData["google_latitude-location"], "google_latitude-location", dgst);
+        updateDataDisplay(dgst.facets["google_latitude-location"], "google_latitude-location", dgst);
     }
 
     function toggleConnectorObjectType(objectTypeName, enabled) {

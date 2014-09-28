@@ -388,7 +388,7 @@ define(["core/grapher/BTCore"],function(BTCore){
                         $.ajax({
                             cache    : false,
                             type     : "POST",
-                            url      : "/api/bodytrack/metadata/" + App.getUID() + "/" + compoundPhotoIdComponents[0] + "." + compoundPhotoIdComponents[1] + "/" + compoundPhotoIdComponents[2] + "/set",
+                            url      : "/api/v1/bodytrack/metadata/" + App.buddyToAccess.id + "/" + compoundPhotoIdComponents[0] + "." + compoundPhotoIdComponents[1] + "/" + compoundPhotoIdComponents[2] + "/set",
                             data     : {
                                 "tags"    : getUserSelectedTags().join(','),
                                 "comment" : $("#photoDialog #_timeline_photo_dialog_comment").val()
@@ -399,8 +399,8 @@ define(["core/grapher/BTCore"],function(BTCore){
                                     //console.log("Successfully saved comment and tags for photo [" + compoundPhotoId + "]");
                                     //console.log(savedData);
                                     photoCache.update(compoundPhotoId, {
-                                        "comment": savedData['payload']['comment'],
-                                        "tags": savedData['payload']['tags']
+                                        "comment": savedData['comment'],
+                                        "tags": savedData['tags']
                                     });
                                     TAG_MANAGER.refreshTagCache(function() {
 
@@ -419,7 +419,7 @@ define(["core/grapher/BTCore"],function(BTCore){
                                                     $("#photoDialog #_timeline_photo_dialog_next_button").click();
                                                 } else {
                                                     // recreate the comment and tag form
-                                                    createCommentAndTagForm(savedData['payload']['comment'], savedData['payload']['tags']);
+                                                    createCommentAndTagForm(savedData['comment'], savedData['tags']);
 
                                                     $("#_timeline_photo_dialog_form").show();
 
@@ -516,7 +516,7 @@ define(["core/grapher/BTCore"],function(BTCore){
 
                     // set focus on the comment input, and select all the text
                     $("#photoDialog #_timeline_photo_dialog_comment").select().focus();
-
+                    $(".ui-autocomplete").css("z-index", "10000");
                 };
 
                 // create the comment and tag form, hide the status area, and show the form
@@ -563,7 +563,7 @@ define(["core/grapher/BTCore"],function(BTCore){
 
                     shouldLoadPreviousNeighbor = !!shouldLoadPreviousNeighbor;
 
-                    var url = "/api/bodytrack/photos/" + App.getUID() + "/" + deviceName + "." + channelName + "/" + currentPhotoTimestamp + "/" + cache.NUM_PHOTOS_TO_FETCH;
+                    var url = "/api/v1/bodytrack/photos/" + App.buddyToAccess.id + "/" + deviceName + "." + channelName + "/" + currentPhotoTimestamp + "/" + cache.NUM_PHOTOS_TO_FETCH;
                     var urlParams = {
                         "isBefore" : shouldLoadPreviousNeighbor
                     };

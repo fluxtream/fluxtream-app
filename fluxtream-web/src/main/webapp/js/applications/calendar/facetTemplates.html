@@ -63,7 +63,7 @@
             <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
                 <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                {{^allDay}}<div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>{{/allDay}}
+                {{^allDay}}<div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} <span class="flx-dataLabel">-</span> {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>{{/allDay}}
                 {{#allDay}}<div class="allDayEvent">All-Day</div>{{/allDay}}
                 <div class="flx-data">
                     <div class="bullet" style="background-color:{{color}};color:{{color}}"></div>
@@ -137,7 +137,6 @@
             <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
                 <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}}{{#endTime}} <span class="flx-dataLabel">-</span> {{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
                 <div class="flx-data">
                     <span class="flx-steps">
                         <span class="flx-dataLabel">You walked</span>
@@ -395,9 +394,13 @@
                 <div class="flx-data">
                     <strong>{{#MISSED}}Missed{{/MISSED}}{{#OUTGOING}}Outgoing{{/OUTGOING}}{{#INCOMING}}Incoming{{/INCOMING}} call {{#OUTGOING}}to{{/OUTGOING}}{{^OUTGOING}}from{{/OUTGOING}} {{personName}} ({{personNumber}})</strong>
                     {{^MISSED}}
-                        <br>Call length: {{secondsTalking}}s
+                        <br>Talking time:
+                        {{#talkingTime.hours}}<span class="flx-text bold">{{talkingTime.hours}}</span><span class="flx-text"> hours</span>{{/talkingTime.hours}}
+                        {{#talkingTime.minutes}}<span class="flx-text bold">{{talkingTime.minutes}}</span><span class="flx-text"> min</span>{{/talkingTime.minutes}}
+                        {{#talkingTime.seconds}}<span class="flx-text bold">{{talkingTime.seconds}}</span><span class="flx-text"> sec</span>{{/talkingTime.seconds}}
+                        {{^talkingTime.seconds}}<span class="flx-text bold">(no response)</span>{{/talkingTime.seconds}}
                     {{/MISSED}}
-                </div>
+            </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
@@ -1005,7 +1008,7 @@
             <div>{{{mainCityMessage}}}</div>
 
             <div>{{{changeMainCityMessage}}}</div>
-            <span>Not seeing the right city? <a class="enabled" href="javascript:$('#addCityForm').show()">Add it here</a></span>
+            <span>Not seeing the right city? <a class="enabled" href="javascript:void(0);" onclick="$('#addCityForm').show(); return false;">Add it here</a></span>
             <br><br>
             <form id="addCityForm" class="form-horizontal" style="display:none" action="javascript:void(0);">
                 <fieldset>
@@ -1017,7 +1020,7 @@
                             <br>
                             <select id="mainCitySelect" disabled class="input-xlarge">
                                 <option style="display: none;">Select a city</option>
-                            </select>&nbsp;&nbsp;&nbsp;<a id="selectMainCity" href="#" class="disabled">select</a>
+                            </select>&nbsp;&nbsp;&nbsp;<a id="selectMainCity" href="javascript:void(0)" class="disabled">select</a>
                         </div>
                     </div>
                 </fieldset>
@@ -1037,7 +1040,7 @@
                     <td>{{timezone}}</td>
                     <td>{{source}}</td>
                     <td>{{when}}</td>
-                    {{^consensus}}<td><a href="#" class="selectVisitedCity enabled" id="visitedCity-{{visitedCityId}}">select</a></td>{{/consensus}}
+                    {{^consensus}}<td><a href="javascript:void(0)" class="selectVisitedCity enabled" id="visitedCity-{{visitedCityId}}">select</a></td>{{/consensus}}
                     {{#consensus}}<td>&nbsp;</td>{{/consensus}}
                 </tr>
                 {{/cities}}
@@ -1062,9 +1065,9 @@
                     <td>{{lastSeenHere}}</td>
                     <td>{{count}}</td>
                     <td>{{source}}</td>
-                    {{#isUser}}<td><a href="#" class="selectVisitedCity enabled undo" id="visitedCity-{{visitedCityId}}">reset</a></td>{{/isUser}}
+                    {{#isUser}}<td><a href="javascript:void(0)" class="selectVisitedCity enabled undo" id="visitedCity-{{visitedCityId}}">reset</a></td>{{/isUser}}
                     {{^isUser}}
-                        {{^consensus}}<td><a href="#" class="selectVisitedCity enabled" id="visitedCity-{{visitedCityId}}">select</a></td>{{/consensus}}
+                        {{^consensus}}<td><a href="javascript:void(0)" class="selectVisitedCity enabled" id="visitedCity-{{visitedCityId}}">select</a></td>{{/consensus}}
                         {{#consensus}}<td>&nbsp;</td>{{/consensus}}
                     {{/isUser}}
                 </tr>

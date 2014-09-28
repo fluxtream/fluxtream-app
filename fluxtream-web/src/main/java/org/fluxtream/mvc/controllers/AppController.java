@@ -1,27 +1,14 @@
 package org.fluxtream.mvc.controllers;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.security.NoSuchAlgorithmException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.fluxtream.Configuration;
-import org.fluxtream.aspects.FlxLogger;
-import org.fluxtream.auth.AuthHelper;
-import org.fluxtream.connectors.Connector;
-import org.fluxtream.domain.ApiKey;
-import org.fluxtream.domain.Guest;
-import org.fluxtream.domain.Notification.Type;
-import org.fluxtream.services.ApiDataService;
-import org.fluxtream.services.CoachingService;
-import org.fluxtream.services.ConnectorUpdateService;
-import org.fluxtream.services.GuestService;
-import org.fluxtream.services.MetadataService;
-import org.fluxtream.services.NotificationsService;
-import org.fluxtream.utils.SecurityUtils;
+import org.fluxtream.core.Configuration;
+import org.fluxtream.core.aspects.FlxLogger;
+import org.fluxtream.core.auth.AuthHelper;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.Guest;
+import org.fluxtream.core.domain.Notification.Type;
+import org.fluxtream.core.services.*;
+import org.fluxtream.core.utils.SecurityUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -32,6 +19,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.NoSuchAlgorithmException;
 
 @Controller
 public class AppController {
@@ -57,7 +52,7 @@ public class AppController {
     ConnectorUpdateService connectorUpdateService;
 
     @Autowired
-    CoachingService coachingService;
+    BuddiesService buddiesService;
 
     @Autowired
 	BeanFactory beanFactory;
@@ -65,15 +60,13 @@ public class AppController {
     @Autowired
     ErrorController errorController;
 
-    @RequestMapping(value = { "", "/", "/welcome" })
+    @RequestMapping(value = { "*", "/*", "/welcome*" })
     public ModelAndView index(HttpServletRequest request,
                               HttpServletResponse response) {
         response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
         response.setHeader("Pragma", "no-cache"); // HTTP 1.0.
         response.setDateHeader("Expires", 0);
-        Authentication auth = SecurityContextHolder.getContext()
-                .getAuthentication();
-        if (auth != null && auth.isAuthenticated())
+        if (AuthHelper.isFullyAuthenticated())
             return new ModelAndView("redirect:/app");
         String indexPageName = "default";
         if (env.get("homepage.name")!=null)
@@ -90,6 +83,11 @@ public class AppController {
             mav.addObject("supportsFBLogin", false);
         mav.addObject("tracker", hasTracker(request));
         return mav;
+    }
+
+    @RequestMapping(value = "handle404")
+    public String handle404() {
+        return "redirect:/welcome";
     }
 
     private boolean hasIntercom(HttpServletRequest request) {
@@ -126,28 +124,6 @@ public class AppController {
         return mav;
     }
 
-    @RequestMapping(value = { "/explorer" })
-    public ModelAndView explorer(HttpServletRequest request) {
-
-        long guestId = AuthHelper.getGuestId();
-
-        ModelAndView mav = new ModelAndView("snippets");
-        String targetEnvironment = env.get("environment");
-        mav.addObject("tracker", hasTracker(request));
-        if (request.getSession(false) == null)
-            return mav;
-
-        Authentication auth = SecurityContextHolder.getContext()
-                .getAuthentication();
-        if (auth == null || !auth.isAuthenticated())
-            return mav;
-        mav.setViewName("explorer");
-
-        String release = env.get("release");
-        mav.addObject("release", release);
-        return mav;
-    }
-
     public ModelAndView home(HttpServletRequest request,
                              HttpServletResponse response) {
 		logger.info("action=loggedIn");
@@ -178,7 +154,7 @@ public class AppController {
 
         String release = env.get("release");
 		request.setAttribute("guestName", guest.getGuestName());
-        request.setAttribute("coachees", coachingService.getCoachees(guestId));
+        request.setAttribute("coachees", buddiesService.getTrustingBuddies(guestId));
         request.setAttribute("useMinifiedJs", Boolean.valueOf(env.get("useMinifiedJs")));
 
 		if (SecurityUtils.isDemoUser())
@@ -191,9 +167,10 @@ public class AppController {
     @RequestMapping(value = "/checkIn")
     public ModelAndView checkIn(HttpServletRequest request,
                                 HttpServletResponse response) throws IOException, NoSuchAlgorithmException, URISyntaxException {
-        if (!hasTimezoneCookie(request)|| AuthHelper.getGuest()==null)
+        final Guest guest = AuthHelper.getGuest();
+        if (!hasTimezoneCookie(request)|| guest ==null)
             return new ModelAndView("redirect:/welcome");
-        long guestId = AuthHelper.getGuestId();
+        long guestId = guest.getId();
         checkIn(request, guestId);
         final HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
         SavedRequest savedRequest =
@@ -201,8 +178,24 @@ public class AppController {
         if (savedRequest!=null) {
             final String redirectUrl = savedRequest.getRedirectUrl();
             requestCache.removeRequest(request, response);
-            final URI uri = new URI(redirectUrl);
-            return new ModelAndView("redirect:" + uri.getPath());
+            return new ModelAndView("redirect:" + redirectUrl);
+        }
+        return new ModelAndView("redirect:/app");
+    }
+
+    @RequestMapping(value = "/mobile/checkIn")
+    public ModelAndView mobileCheckIn(HttpServletRequest request,
+                                      HttpServletResponse response) throws IOException, NoSuchAlgorithmException, URISyntaxException {
+        final Guest guest = AuthHelper.getGuest();
+        long guestId = guest.getId();
+        checkIn(request, guestId);
+        final HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
+        SavedRequest savedRequest =
+                requestCache.getRequest(request, response);
+        if (savedRequest!=null) {
+            final String redirectUrl = savedRequest.getRedirectUrl();
+            requestCache.removeRequest(request, response);
+            return new ModelAndView("redirect:" + redirectUrl);
         }
         return new ModelAndView("redirect:/app");
     }
@@ -210,8 +203,10 @@ public class AppController {
 	@RequestMapping(value = { "/app*", "/app/**" })
 	public ModelAndView welcomeHome(HttpServletRequest request, HttpServletResponse response)
 			throws IOException, NoSuchAlgorithmException {
+        // always reset the target user to the logged in user when the app starts (or a browser reload happens)
+        AuthHelper.as(null);
 		if (!hasTimezoneCookie(request)|| AuthHelper.getGuest()==null)
-			return new ModelAndView("redirect:/welcome");
+			return new ModelAndView("redirect:/welcome?signIn");
         SavedRequest savedRequest =
                 new HttpSessionRequestCache().getRequest(request, response);
         if (savedRequest!=null) {

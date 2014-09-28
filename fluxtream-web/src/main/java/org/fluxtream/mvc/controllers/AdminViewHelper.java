@@ -1,7 +1,7 @@
 package org.fluxtream.mvc.controllers;
 
 import java.util.List;
-import org.fluxtream.domain.ApiKey;
+import org.fluxtream.core.domain.ApiKey;
 
 /**
  * User: candide

@@ -8,21 +8,21 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.fluxtream.auth.AuthHelper;
-import org.fluxtream.domain.ApiKey;
-import org.fluxtream.utils.UnexpectedHttpResponseCodeException;
+import org.fluxtream.core.auth.AuthHelper;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import org.fluxtream.Configuration;
-import org.fluxtream.connectors.Connector;
-import org.fluxtream.domain.Guest;
-import org.fluxtream.services.GuestService;
-import org.fluxtream.services.SystemService;
-import org.fluxtream.utils.HttpUtils;
+import org.fluxtream.core.Configuration;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.domain.Guest;
+import org.fluxtream.core.services.GuestService;
+import org.fluxtream.core.services.SystemService;
+import org.fluxtream.core.utils.HttpUtils;
 
 @Controller
 @RequestMapping(value = "/instagram")
