@@ -10,14 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.FormParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -42,17 +40,17 @@ public class CouchDBController {
         public int status;
     }
 
-    @POST
-    @Path("/init")
+    @PUT
+    @Path("/")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response init(@FormParam("userLogin") String userLogin)
+    public Response init()
             throws InstantiationException, IllegalAccessException,
             ClassNotFoundException, NoSuchAlgorithmException, UnsupportedEncodingException {
         try {
             final StringBuffer userTokenBuffer = new StringBuffer();
             final int status = getFluxtreamCaptureCouchDBUserToken(userTokenBuffer, true);
             final CouchDBCredentials couchDBCredentials = new CouchDBCredentials();
-            couchDBCredentials.user_login = userLogin;
+            couchDBCredentials.user_login = getBase64URLSafeUsername();
             couchDBCredentials.user_token = userTokenBuffer.toString();
             couchDBCredentials.status = status;
             return Response.ok().entity(couchDBCredentials).build();
@@ -63,17 +61,21 @@ public class CouchDBController {
         }
     }
 
-    @POST
-    @Path("/read")
+    private String getBase64URLSafeUsername() {
+        return Base64.encodeBase64URLSafeString(AuthHelper.getGuest().username.getBytes());
+    }
+
+    @GET
+    @Path("/")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response read(@FormParam("userLogin") String userLogin)
+    public Response read()
             throws InstantiationException, IllegalAccessException,
             ClassNotFoundException, NoSuchAlgorithmException, UnsupportedEncodingException {
         try {
             final StringBuffer userTokenBuffer = new StringBuffer();
             final int status = getFluxtreamCaptureCouchDBUserToken(userTokenBuffer, false);
             final CouchDBCredentials couchDBCredentials = new CouchDBCredentials();
-            couchDBCredentials.user_login = userLogin;
+            couchDBCredentials.user_login = getBase64URLSafeUsername();
             couchDBCredentials.user_token = userTokenBuffer.toString();
             couchDBCredentials.status = status;
             return Response.ok().entity(couchDBCredentials).build();
@@ -87,15 +89,15 @@ public class CouchDBController {
     @POST
     @Path("/reset")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response reset(@FormParam("userLogin") String userLogin)
+    public Response reset()
             throws InstantiationException, IllegalAccessException,
             ClassNotFoundException, NoSuchAlgorithmException, UnsupportedEncodingException {
         try {
             final StringBuffer userTokenBuffer = new StringBuffer();
-            final ApiKey apiKey = guestService.getApiKey(AuthHelper.getGuestId(), Connector.getConnector("fluxtream_capture"));
+            final ApiKey apiKey = getFluxtreamCaptureApiKey(AuthHelper.getGuestId());
             final String couchDBUserToken = guestService.getApiKeyAttribute(apiKey, COUCH_DB_USER_TOKEN_ATTRIBUTE_KEY);
             final CouchDBCredentials couchDBCredentials = new CouchDBCredentials();
-            couchDBCredentials.user_login = userLogin;
+            couchDBCredentials.user_login = getBase64URLSafeUsername();
             if (couchDBUserToken==null) {
                 couchDBCredentials.status = 1;
                 return Response.ok().entity(couchDBCredentials).build();
@@ -111,8 +113,21 @@ public class CouchDBController {
         }
     }
 
+    final ApiKey getFluxtreamCaptureApiKey(final long guestId) {
+        Connector connector = Connector.getConnector("fluxtream_capture");
+        final ApiKey apiKey;
+        List<ApiKey> apiKeys = guestService.getApiKeys(guestId, connector);
+        if (apiKeys != null && !apiKeys.isEmpty()) {
+            apiKey = apiKeys.get(0);
+        }
+        else {
+            apiKey = guestService.createApiKey(guestId, connector);
+        }
+        return apiKey;
+    }
+
     private int getFluxtreamCaptureCouchDBUserToken(final StringBuffer saltBuffer, final boolean createIfNotExists) {
-        final ApiKey apiKey = guestService.getApiKey(AuthHelper.getGuestId(), Connector.getConnector("fluxtream_capture"));
+        final ApiKey apiKey = getFluxtreamCaptureApiKey(AuthHelper.getGuestId());
         final String couchDBUserToken = guestService.getApiKeyAttribute(apiKey, COUCH_DB_USER_TOKEN_ATTRIBUTE_KEY);
         if (couchDBUserToken==null && createIfNotExists) {
             byte[] b = new byte[20];
