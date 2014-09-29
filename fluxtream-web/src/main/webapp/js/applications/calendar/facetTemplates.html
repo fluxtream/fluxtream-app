@@ -394,9 +394,13 @@
                 <div class="flx-data">
                     <strong>{{#MISSED}}Missed{{/MISSED}}{{#OUTGOING}}Outgoing{{/OUTGOING}}{{#INCOMING}}Incoming{{/INCOMING}} call {{#OUTGOING}}to{{/OUTGOING}}{{^OUTGOING}}from{{/OUTGOING}} {{personName}} ({{personNumber}})</strong>
                     {{^MISSED}}
-                        <br>Call length: {{secondsTalking}}s
+                        <br>Talking time:
+                        {{#talkingTime.hours}}<span class="flx-text bold">{{talkingTime.hours}}</span><span class="flx-text"> hours</span>{{/talkingTime.hours}}
+                        {{#talkingTime.minutes}}<span class="flx-text bold">{{talkingTime.minutes}}</span><span class="flx-text"> min</span>{{/talkingTime.minutes}}
+                        {{#talkingTime.seconds}}<span class="flx-text bold">{{talkingTime.seconds}}</span><span class="flx-text"> sec</span>{{/talkingTime.seconds}}
+                        {{^talkingTime.seconds}}<span class="flx-text bold">(no response)</span>{{/talkingTime.seconds}}
                     {{/MISSED}}
-                </div>
+            </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}

@@ -25,7 +25,7 @@ public class SmsBackupConnectorController {
     @RequestMapping(value="/attachment/{apiKeyId}/{fileName}")
     public void getAttachment(@PathVariable("apiKeyId") long apiKeyId,
                             @PathVariable("fileName") String fileName,
-                            @RequestParam("s") Integer maxSideLength,
+                            @RequestParam(value="s", required=false) Integer maxSideLength,
                             HttpServletResponse response) throws IOException, CoachRevokedException {
         File file = SmsBackupUpdater.getAttachmentFile(env.targetEnvironmentProps.getString("btdatastore.db.location"),
                                             AuthHelper.getVieweeId(), apiKeyId,fileName);

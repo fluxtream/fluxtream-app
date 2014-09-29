@@ -1,9 +1,7 @@
 package org.fluxtream.core.api;
 
 import com.google.gson.Gson;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiParam;
+import com.wordnik.swagger.annotations.*;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.domain.Notification;
@@ -43,7 +41,10 @@ public class NotificationsStore {
 
     @POST
     @Path("/{username}")
-    @ApiOperation(value = "Post a notification (admins only)", response = String.class)
+    @ApiOperation(value = "Post a notification (admins only)")
+    @ApiResponses({
+            @ApiResponse(code=200, message = "Notification posted")
+    })
     @Secured("ROLE_ADMIN")
     public Response addNotification(@ApiParam(value="Guest's username", required=true) @PathParam("username") String username,
                                   @ApiParam(value="Message", required=true) @FormParam("message") String message,
@@ -58,12 +59,15 @@ public class NotificationsStore {
 
         notificationsService.addNotification(guest.getId(), notificationType, message);
 
-        return Response.ok("notification posted").build();
+        return Response.ok("Notification posted").build();
     }
 
     @DELETE
     @Path("/{id}")
-    @ApiOperation(value = "Delete a notification", response = String.class)
+    @ApiOperation(value = "Delete a notification")
+    @ApiResponses({
+            @ApiResponse(code=200, message = "Notification deleted")
+    })
     public Response discardNotification(@ApiParam(value="Notification ID", required=true) @PathParam("id") String idString)
             throws IOException {
 
@@ -72,11 +76,14 @@ public class NotificationsStore {
         long id = Long.valueOf(idString);
         notificationsService.deleteNotification(guestId, id);
 
-        return Response.ok("notification deleted").build();
+        return Response.ok("Notification deleted").build();
     }
 
     @DELETE
-    @ApiOperation(value = "Delete a list of notifications", response = String.class)
+    @ApiOperation(value = "Delete a list of notifications")
+    @ApiResponses({
+            @ApiResponse(code=200, message = "Notifications deleted")
+    })
     public Response discardNotifications(@ApiParam(value="Comma-separated list of notification ids", required=true) @QueryParam("ids") String ids)
             throws IOException {
 

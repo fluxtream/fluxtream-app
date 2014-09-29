@@ -1,8 +1,6 @@
 package org.fluxtream.core.api;
 
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiParam;
+import com.wordnik.swagger.annotations.*;
 import org.apache.commons.lang.StringUtils;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.services.ApiDataService;
@@ -38,7 +36,10 @@ public class CommentsController {
     @POST
     @Path("/{facetType}/{facetId}")
     @Produces({MediaType.TEXT_PLAIN})
-    @ApiOperation(value = "Set a facet's user comment", response = String.class)
+    @ApiOperation(value = "Set a facet's user comment")
+    @ApiResponses({
+            @ApiResponse(code=200, message = "Comment was set")
+    })
     public Response setComment(@ApiParam(value="The type (<connectorName>-<objectTypeName>) of the facet", required=true) @PathParam("facetType") String facetType,
                                   @ApiParam(value="Facet ID", required=true) @PathParam("facetId") long facetId,
                                   @ApiParam(value="Comment", required=true) @FormParam("comment") String comment) {
@@ -68,6 +69,9 @@ public class CommentsController {
     @DELETE
     @Path("/{facetType}/{facetId}")
     @ApiOperation(value = "Delete a facet's user comment", response = String.class)
+    @ApiResponses({
+            @ApiResponse(code=200, message = "Comment was removed")
+    })
     @Produces({MediaType.TEXT_PLAIN})
     public Response deleteComment(@ApiParam(value="The type (<connectorName>-<objectTypeName>) of the facet", required=true) @PathParam("facetType") String facetType,
                                      @ApiParam(value="Facet ID", required=true) @PathParam("facetId") long facetId) {

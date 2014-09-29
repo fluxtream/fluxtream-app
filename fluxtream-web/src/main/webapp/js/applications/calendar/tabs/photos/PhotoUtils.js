@@ -399,8 +399,8 @@ define(["core/grapher/BTCore"],function(BTCore){
                                     //console.log("Successfully saved comment and tags for photo [" + compoundPhotoId + "]");
                                     //console.log(savedData);
                                     photoCache.update(compoundPhotoId, {
-                                        "comment": savedData['payload']['comment'],
-                                        "tags": savedData['payload']['tags']
+                                        "comment": savedData['comment'],
+                                        "tags": savedData['tags']
                                     });
                                     TAG_MANAGER.refreshTagCache(function() {
 
@@ -419,7 +419,7 @@ define(["core/grapher/BTCore"],function(BTCore){
                                                     $("#photoDialog #_timeline_photo_dialog_next_button").click();
                                                 } else {
                                                     // recreate the comment and tag form
-                                                    createCommentAndTagForm(savedData['payload']['comment'], savedData['payload']['tags']);
+                                                    createCommentAndTagForm(savedData['comment'], savedData['tags']);
 
                                                     $("#_timeline_photo_dialog_form").show();
 
