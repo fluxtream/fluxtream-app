@@ -8,6 +8,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <div class="page-content inset">
     <div class="row">
+      <div class="col-sm-12">
         ${manual}
+      </div>
     </div>
 </div>

@@ -1,6 +1,7 @@
 package org.fluxtream.core.services.impl;
 
 import com.google.gson.*;
+import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.fluxtream.core.Configuration;
@@ -723,7 +724,9 @@ public class BodyTrackHelper {
         private final SortedSet<String> tags = new TreeSet<String>();
     }
 
+    @ApiModel
     public static class ViewsList{
+        @ApiModelProperty
         public LinkedList<ViewStub> views = new LinkedList<ViewStub>();
 
         void populateViews(EntityManager em, Gson gson, long guestId){
@@ -738,10 +741,15 @@ public class BodyTrackHelper {
         public long saved_view_id;
     }
 
+    @ApiModel
     public static class ViewStub{
+        @ApiModelProperty
         public long id;
+        @ApiModelProperty
         public long last_used;
+        @ApiModelProperty
         public String name;
+        @ApiModelProperty
         public AxisRange time_range;
 
         public ViewStub(GrapherView view,Gson gson){
@@ -841,8 +849,10 @@ public class BodyTrackHelper {
         }
     }
 
+    @ApiModel
     public class SourcesResponse {
-        public ArrayList<Source> sources;
+        @ApiModelProperty
+        public List<Source> sources;
 
         public SourcesResponse(ChannelInfoResponse infoResponse, Long guestId, CoachingBuddy coachee){
             sources = new ArrayList<Source>();
@@ -912,7 +922,10 @@ public class BodyTrackHelper {
         }
     }
 
+    @ApiModel
     public static class SourceInfo{
+
+        @ApiModelProperty
         public Source info;
 
         public SourceInfo(ChannelInfoResponse infoResponse, String deviceName){
@@ -947,23 +960,39 @@ public class BodyTrackHelper {
 
     }
 
+    @ApiModel
     public static class Source{
+        @ApiModelProperty
         public String name;
-        public ArrayList<Channel> channels;
+        @ApiModelProperty
+        public List<Channel> channels;
+        @ApiModelProperty
         public Double min_time = 0.0;
+        @ApiModelProperty
         public Double max_time = 0.0;
     }
 
+    @ApiModel
     public static class Channel{
+        @ApiModelProperty
         public String type;
+        @ApiModelProperty
         public ChannelStyle builtin_default_style;
+        @ApiModelProperty
         public ChannelStyle style;
+        @ApiModelProperty
         public double max;
+        @ApiModelProperty
         public double min;
+        @ApiModelProperty
         public Double min_time;
+        @ApiModelProperty
         public Double max_time;
+        @ApiModelProperty
         public String name;
+        @ApiModelProperty
         public String objectTypeName;
+        @ApiModelProperty
         public String time_type;
 
         public Channel(){
@@ -996,10 +1025,15 @@ public class BodyTrackHelper {
     }
 
 
+    @ApiModel
     public static class ChannelStyle{
+        @ApiModelProperty
         public HighlightStyling highlight;
+        @ApiModelProperty
         public CommentStyling comments;
-        public ArrayList<Style> styles;
+        @ApiModelProperty
+        public List<Style> styles;
+        @ApiModelProperty
         public MainTimespanStyle timespanStyles;
 
         public static ChannelStyle getDefaultChannelStyle(String name){
