@@ -1,11 +1,19 @@
 package org.fluxtream.core.api;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.services.GuestService;
+import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -13,7 +21,9 @@ import org.springframework.stereotype.Component;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Random;
@@ -53,6 +63,7 @@ public class CouchDBController {
             couchDBCredentials.user_login = getBase64URLSafeUsername();
             couchDBCredentials.user_token = userTokenBuffer.toString();
             couchDBCredentials.status = status;
+            createCouchDatabase(getBase64URLSafeUsername());
             return Response.ok().entity(couchDBCredentials).build();
         } catch (Throwable t) {
             final CouchDBCredentials couchDBCredentials = new CouchDBCredentials();
@@ -62,7 +73,9 @@ public class CouchDBController {
     }
 
     private String getBase64URLSafeUsername() {
-        return Base64.encodeBase64URLSafeString(AuthHelper.getGuest().username.getBytes());
+        try {
+            return URLEncoder.encode(AuthHelper.getGuest().username, "UTF-8");
+        } catch (UnsupportedEncodingException e) {e.printStackTrace(); return null;}
     }
 
     @GET
@@ -78,6 +91,7 @@ public class CouchDBController {
             couchDBCredentials.user_login = getBase64URLSafeUsername();
             couchDBCredentials.user_token = userTokenBuffer.toString();
             couchDBCredentials.status = status;
+            createCouchDatabase(getBase64URLSafeUsername());
             return Response.ok().entity(couchDBCredentials).build();
         } catch (Throwable t) {
             final CouchDBCredentials couchDBCredentials = new CouchDBCredentials();
@@ -102,6 +116,7 @@ public class CouchDBController {
                 couchDBCredentials.status = 1;
                 return Response.ok().entity(couchDBCredentials).build();
             } else {
+                destroyCouchDatabase(getBase64URLSafeUsername());
                 guestService.removeApiKeyAttribute(apiKey.getId(), COUCH_DB_USER_TOKEN_ATTRIBUTE_KEY);
                 couchDBCredentials.status = getFluxtreamCaptureCouchDBUserToken(userTokenBuffer, true);
                 return Response.ok().entity(couchDBCredentials).build();
@@ -135,10 +150,59 @@ public class CouchDBController {
             final String userToken = Base64.encodeBase64URLSafeString(b);
             guestService.setApiKeyAttribute(apiKey, COUCH_DB_USER_TOKEN_ATTRIBUTE_KEY, userToken);
             saltBuffer.append(userToken);
+            try {
+                createCouchDatabase(getBase64URLSafeUsername());
+            } catch (UnexpectedHttpResponseCodeException e) {
+                return 2;
+            }
             return 0;
         }
         saltBuffer.append(couchDBUserToken);
         return createIfNotExists ? 1 : 0;
+    }
+
+    private void destroyCouchDatabase(final String dbUsername) throws UnexpectedHttpResponseCodeException {
+        HttpClient client = new DefaultHttpClient();
+        try {
+            final String couchdbHost = env.get("couchdb.host");
+            final String couchdbPort = env.get("couchdb.port");
+            HttpDelete delete = new HttpDelete(String.format("http://%s:%s/", couchdbHost, couchdbPort) + dbUsername);
+
+            HttpResponse response = client.execute(delete);
+
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                throw new UnexpectedHttpResponseCodeException(response.getStatusLine().getStatusCode(),
+                        response.getStatusLine().getReasonPhrase());
+            }
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            client.getConnectionManager().shutdown();
+        }
+    }
+
+    private void createCouchDatabase(final String dbUsername) throws UnexpectedHttpResponseCodeException {
+        HttpClient client = new DefaultHttpClient();
+        try {
+            final String couchdbHost = env.get("couchdb.host");
+            final String couchdbPort = env.get("couchdb.port");
+            HttpPut put = new HttpPut(String.format("http://%s:%s/", couchdbHost, couchdbPort) + dbUsername);
+
+            HttpResponse response = client.execute(put);
+
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                throw new UnexpectedHttpResponseCodeException(response.getStatusLine().getStatusCode(),
+                        response.getStatusLine().getReasonPhrase());
+            }
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            client.getConnectionManager().shutdown();
+        }
     }
 
 }
