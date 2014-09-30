@@ -9,6 +9,7 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.fluxtream.core.Configuration;
+import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.domain.ApiKey;
@@ -37,6 +38,8 @@ import java.util.Random;
 @Component("RESTCouchDBController")
 @Scope("request")
 public class CouchDBController {
+
+    FlxLogger logger = FlxLogger.getLogger(CouchDBController.class);
 
     private final String COUCH_DB_USER_TOKEN_ATTRIBUTE_KEY = "couchDB.userToken";
     @Autowired
@@ -171,6 +174,7 @@ public class CouchDBController {
             HttpResponse response = client.execute(delete);
 
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                logger.warn("Error communicating with CouchDB: " + response.getStatusLine().getReasonPhrase());
                 throw new UnexpectedHttpResponseCodeException(response.getStatusLine().getStatusCode(),
                         response.getStatusLine().getReasonPhrase());
             }
