@@ -5,7 +5,6 @@ import org.fluxtream.core.Configuration;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.SignpostOAuthHelper;
-import org.fluxtream.core.connectors.updaters.RateLimitReachedException;
 import org.fluxtream.core.connectors.updaters.UnexpectedResponseCodeException;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.Guest;
@@ -63,9 +62,6 @@ public class ApiCallController {
             String json = signpostHelper.makeRestCall(apiKey, 8, "http://api.fitbit.com/1/user/-/body/weight/date/" + formattedDate + "/max.json");
             return json;
         }
-        catch (RateLimitReachedException e) {
-            System.out.println(e.getMessage());
-        }
         catch (UnexpectedResponseCodeException e) {
             System.out.println(e.getMessage());
         }
@@ -86,9 +82,6 @@ public class ApiCallController {
         try {
             String json = signpostHelper.makeRestCall(apiKey, 8, "http://api.fitbit.com/1/user/-/body/log/weight/date/" + formattedDate + "/1m.json");
             return json;
-        }
-        catch (RateLimitReachedException e) {
-            System.out.println(e.getMessage());
         }
         catch (UnexpectedResponseCodeException e) {
             System.out.println(e.getMessage());
