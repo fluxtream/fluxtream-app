@@ -412,6 +412,10 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                                 channelListItem = $(channeListItemTemplate.render(channel));
                                 channelList.append(channelListItem);
                             }
+                            else{
+                                //This must be done because the ids sometimes get offset from each other
+                                channelListItem[0].id = channel.id;
+                            }
                         }
                         channelRemoveList.remove();
 
