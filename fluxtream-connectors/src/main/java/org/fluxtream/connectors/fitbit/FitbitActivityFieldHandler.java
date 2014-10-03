@@ -118,10 +118,16 @@ public class FitbitActivityFieldHandler implements FieldHandler {
 
         results.add(bodyTrackHelper.uploadToBodyTrack(guestId, "Fitbit", channelNames, data));
 
-        if (fitbitActivityFacet.stepsJson!=null)
-            results.add(addStepsData(guestId, fitbitActivityFacet));
-        if (fitbitActivityFacet.caloriesJson!=null)
-            results.add(addCaloriesData(guestId, fitbitActivityFacet));
+        if (fitbitActivityFacet.stepsJson!=null) {
+            final BodyTrackHelper.BodyTrackUploadResult bodyTrackUploadResult = addStepsData(guestId, fitbitActivityFacet);
+            if (bodyTrackUploadResult!=null)
+                results.add(bodyTrackUploadResult);
+        }
+        if (fitbitActivityFacet.caloriesJson!=null) {
+            final BodyTrackHelper.BodyTrackUploadResult bodyTrackUploadResult = addCaloriesData(guestId, fitbitActivityFacet);
+            if (bodyTrackUploadResult!=null)
+                results.add(bodyTrackUploadResult);
+        }
 
         // TODO: check the status code in the BodyTrackUploadResult
         return results;
@@ -142,7 +148,7 @@ public class FitbitActivityFieldHandler implements FieldHandler {
                     JSONObject intradayDataRecord = intradayDataArray.getJSONObject(i);
                     String time = intradayDataRecord.getString("time") + "Z";
                     final LocalTime localTime = ISODateTimeFormat.timeNoMillis().parseLocalTime(time);
-                    final long timeGmt = midnight + localTime.getMillisOfDay();
+                    final long timeGmt = (midnight + localTime.getMillisOfDay())/1000;
                     int value = intradayDataRecord.getInt("value");
                     List<Object> record = new ArrayList<Object>();
                     record.add(timeGmt);
@@ -150,8 +156,9 @@ public class FitbitActivityFieldHandler implements FieldHandler {
                     data.add(record);
                 }
             }
+            return bodyTrackHelper.uploadToBodyTrack(guestId, "Fitbit", channelNames, data);
         }
-        return bodyTrackHelper.uploadToBodyTrack(guestId, "Fitbit", channelNames, data);
+        return null;
     }
 
     private BodyTrackHelper.BodyTrackUploadResult addCaloriesData(final long guestId, FitbitTrackerActivityFacet fitbitActivityFacet) {
@@ -159,17 +166,17 @@ public class FitbitActivityFieldHandler implements FieldHandler {
         List<List<Object>> data = new ArrayList<List<Object>>();
 
         long midnight = ISODateTimeFormat.date().withZoneUTC().parseDateTime(fitbitActivityFacet.date).toDateMidnight().getMillis();
-        JSONObject stepsJson = JSONObject.fromObject(fitbitActivityFacet.stepsJson);
+        JSONObject caloriesJson = JSONObject.fromObject(fitbitActivityFacet.caloriesJson);
 
-        if (stepsJson.has(ACTIVITIES_LOG_CALORIES_INTRADAY_KEY)) {
-            JSONObject stepsIntradayJson = stepsJson.getJSONObject(ACTIVITIES_LOG_CALORIES_INTRADAY_KEY);
-            if (stepsIntradayJson.has(DATASET_KEY)) {
-                JSONArray intradayDataArray = stepsIntradayJson.getJSONArray(DATASET_KEY);
+        if (caloriesJson.has(ACTIVITIES_LOG_CALORIES_INTRADAY_KEY)) {
+            JSONObject caloriesIntradayJson = caloriesJson.getJSONObject(ACTIVITIES_LOG_CALORIES_INTRADAY_KEY);
+            if (caloriesIntradayJson.has(DATASET_KEY)) {
+                JSONArray intradayDataArray = caloriesIntradayJson.getJSONArray(DATASET_KEY);
                 for (int i=0; i<intradayDataArray.size(); i++) {
                     JSONObject intradayDataRecord = intradayDataArray.getJSONObject(i);
                     String time = intradayDataRecord.getString("time") + "Z";
                     final LocalTime localTime = ISODateTimeFormat.timeNoMillis().parseLocalTime(time);
-                    final long timeGmt = midnight + localTime.getMillisOfDay();
+                    final long timeGmt = (midnight + localTime.getMillisOfDay())/1000;
                     int value = intradayDataRecord.getInt("value");
                     List<Object> record = new ArrayList<Object>();
                     record.add(timeGmt);
@@ -177,8 +184,9 @@ public class FitbitActivityFieldHandler implements FieldHandler {
                     data.add(record);
                 }
             }
+            return bodyTrackHelper.uploadToBodyTrack(guestId, "Fitbit", channelNames, data);
         }
-        return bodyTrackHelper.uploadToBodyTrack(guestId, "Fitbit", channelNames, data);
+        return null;
     }
 
 }
