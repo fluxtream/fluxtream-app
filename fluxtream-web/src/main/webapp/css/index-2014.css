@@ -130,6 +130,33 @@ iframe { width: 280px; height: 210px; }
   height: 992px;
 }
 
+.api-hire-row {
+  padding-top: 1em;
+}
+
+.api-advert, .hire-us {
+  display: inline-block;
+  cursor: pointer;
+  font-size: 14px;
+  color: #fff;
+}
+.api-advert:hover, .hire-us:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+/*
+.call-to-dev:before {
+  display: inline-block;
+  content: '';
+  height: 4em;
+  width: 4em;
+  background: transparent url("../images/github.png") no-repeat center center;
+  background-size: 100%;
+}
+*/
+
+
 .screenshot_img_general {
     border: 1px solid #ccc;
     -webkit-border-radius: 3px;
@@ -466,6 +493,9 @@ footer {
   .take-control {
     padding-top: 2.3em;
   }
+  .api-advert, .hire-us {
+    margin-bottom: 1em;
+  } 
 }
 
 
@@ -604,6 +634,10 @@ footer {
   .connector-img-cloud-open .connector-cloud {
     opacity: 1;
   }
+  .api-advert, .hire-us {
+    margin-top: 1em;
+    margin-bottom: 0;
+  } 
 }
 @media screen and (min-width: 992px){
     iframe {

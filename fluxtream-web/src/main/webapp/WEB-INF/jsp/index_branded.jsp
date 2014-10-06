@@ -59,8 +59,9 @@
             <div class="col-xs-12 col-sm-5 col-sm-offset-1 col-md-5 col-lg-4 col-lg-offset-1">
                 <iframe src="//www.youtube.com/embed/D85ICrW52e0?hd=1&controls=0&showinfo=0" frameborder="0" allowfullscreen></iframe>
             </div>
-            <div class="intro_txt col-xs-12 col-sm-6 col-md-6 col-lg-5 col-lg-offset-0">
-                <p>An open-source non-profit personal data visualization framework to help you make sense of your life and compare hypotheses about what affects your well-being</p>
+            <div class="intro_txt col-xs-12 col-sm-6 col-md-6 col-lg-5">
+                <p>An open-source non-profit personal data visualization framework to help you make sense of your life and compare hypotheses about what affects your well-being
+                </p>
                 <div class="row">
                     <div class="register_txt col-xs-6 col-md-6 col-lg-6">
                         <p>It's free!</p>
@@ -71,6 +72,14 @@
                 </div> <!-- /.row -->
             </div> <!-- /.col -->
         </section> <!-- /.row -->
+        <div class="row api-hire-row">
+            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                <a href="#" class="api-advert"><img src="../../images/github-white.png" alt="github" width="" height="" /> We have an API!</a>
+            </div>
+            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                <a href="#" class="hire-us"><img src="../../images/github.png" alt="github" width="" height="" /> Need something custom made? Hire us!</a>
+            </div>
+        </div> <!-- /.row -->
     </div> <!-- /.container -->
 </div> <!-- /.lasagna-layer-1 -->
 <div class="container-fluid hidden-xs hidden-sm">
