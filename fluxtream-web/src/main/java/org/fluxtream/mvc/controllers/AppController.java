@@ -69,8 +69,8 @@ public class AppController {
         if (AuthHelper.isFullyAuthenticated())
             return new ModelAndView("redirect:/app");
         String indexPageName = "default";
-        if (env.get("homepage.name")!=null)
-            indexPageName = env.get("homepage.name");
+//        if (env.get("homepage.name")!=null)
+//            indexPageName = env.get("homepage.name");
         ModelAndView mav = new ModelAndView(indexPageName);
         String release = env.get("release");
         if (release != null)
