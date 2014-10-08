@@ -1,8 +1,7 @@
 package org.fluxtream.connectors.lastfm;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
+
 import org.fluxtream.core.SimpleTimeInterval;
 import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.TimeUnit;
@@ -34,6 +33,18 @@ public class LastFmBodytrackResponder extends AbstractBodytrackResponder {
 
         String objectTypeName = apiKey.getConnector().getName() + "-" + recent_track.getName();
         List<AbstractFacet> facets = getFacetsInTimespan(timeInterval,apiKey, recent_track);
+        //TODO: IMPORTANT we need to fetche these in sorted order, not sort them ourselves!
+        Collections.sort(facets, new Comparator<AbstractFacet>(){
+            public int compare(AbstractFacet o1, AbstractFacet o2) {
+                long diff = o1.end - o2.end;
+                if (diff < 0)
+                    return -1;
+                else if (diff > 0)
+                    return 1;
+                else
+                    return 0;
+            }
+        });
 
         // Sadly, the start and end times of track facets are the same.  Assume that the
         // start time is correct and arbitrarily draw a box that's 3 mins or
@@ -42,8 +53,7 @@ public class LastFmBodytrackResponder extends AbstractBodytrackResponder {
 
         for (AbstractFacet facet : facets){
             LastFmRecentTrackFacet trackFacet = (LastFmRecentTrackFacet) facet;
-
-            items.add(new TimespanModel(trackFacet.start,trackFacet.start+duration,"on",objectTypeName));
+            simpleMergeAddTimespan(items,new TimespanModel(trackFacet.start,trackFacet.start+duration,"on",objectTypeName),startMillis,endMillis);
         }
 
         return items;

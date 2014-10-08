@@ -202,4 +202,23 @@ public abstract class AbstractBodytrackResponder {
 
         return bounds;
     }
+
+    //note: assumption made: list will be sorted such that the last element in it will have the highest end time and newModel is the closest new model to that one
+    public void simpleMergeAddTimespan(List<TimespanModel> list, TimespanModel newModel, long startMillis, long endMillis){
+        final int largeWidth = 1920;
+        final double millisPerPixel = (endMillis - startMillis) / (double) largeWidth;
+        if (!list.isEmpty()){
+            TimespanModel lastModel = list.get(list.size() - 1);
+            if (lastModel.getObjectType().equals(newModel.getObjectType()) && lastModel.getValue().equals(newModel.getValue())){
+                double millisFromEndToEnd = (newModel.getEnd() - lastModel.getEnd()) * 1000;
+                double pixelDifference =    millisFromEndToEnd / millisPerPixel;
+                if (pixelDifference < 5){
+                    lastModel.setEnd(newModel.getEnd());
+                    return;
+                }
+            }
+        }
+        list.add(newModel);
+
+    }
 }
