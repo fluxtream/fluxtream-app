@@ -29,8 +29,8 @@ public class SleepFacet extends AbstractFacet {
     //0.0-5.0 rating out of 5 of the sleep quality
     public double rating;
 
-    //how many seconds was there snroing (this can be absent)
-    public Integer snoringSeconds;
+    //how many seconds was there snroing
+    public int snoringSeconds;
 
     //what the noise level was like
     public double noiseLevel;

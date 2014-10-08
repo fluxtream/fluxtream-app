@@ -9,6 +9,7 @@ import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.gdata.util.common.base.Pair;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.ResponseHandler;
@@ -41,34 +42,62 @@ public class SleepAsAndroidUpdater extends AbstractUpdater {
     @Override
     protected void updateConnectorData(UpdateInfo updateInfo) throws Exception {
         GoogleCredential credentials = getCredentials(updateInfo.apiKey);
-        HttpGet get = new HttpGet("https://sleep-cloud.appspot.com/fetchRecords?actigraph=true&labels=true&tags=true");
+
+        long then = System.currentTimeMillis();
+
+        Long latestData = getLatestFacetTime(updateInfo);
+
+        String url = "https://sleep-cloud.appspot.com/fetchRecords?actigraph=true&labels=true&tags=true";
+        if (latestData != null)
+            url += "&timestamp=" + latestData;
+
+        HttpGet get = new HttpGet(url);
         get.setHeader("Authorization","Bearer " + credentials.getAccessToken());
         get.getMethod();
         HttpResponse response = env.getHttpClient().execute(get);
         String content;
         int statusCode = response.getStatusLine().getStatusCode();
+        String statusMessage = response.getStatusLine().getReasonPhrase();
         if (statusCode != HttpStatus.SC_OK) {
             throw new UpdateFailedException("Got status code " + statusCode);
         }
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         content = responseHandler.handleResponse(response);
         try{
-            createOrUpdateFacets(updateInfo,content);
+            Long newLatestTime = createOrUpdateFacets(updateInfo,content);
+            if (newLatestTime != null && (latestData == null || newLatestTime > latestData)){
+                updateLatestFacetTime(updateInfo, newLatestTime);
+            }
+            countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url);
         }
         catch (Exception e){
+            countFailedApiCall(updateInfo.apiKey,updateInfo.objectTypes,then,url, ExceptionUtils.getStackTrace(e),statusCode,statusMessage);
             e.printStackTrace();
             throw new UpdateFailedException(e.getMessage());
         }
 
     }
 
-    private long createOrUpdateFacets(UpdateInfo updateInfo, String json) throws Exception {
+    private Long getLatestFacetTime(UpdateInfo updateInfo){
+        ApiKey apiKey = updateInfo.apiKey;
+
+        String updateKeyName = "SleepAsAndroid.latestData";
+        String latestDataString = guestService.getApiKeyAttribute(apiKey, updateKeyName);
+        return latestDataString == null ? null : Long.parseLong(latestDataString);
+    }
+
+    private void updateLatestFacetTime(UpdateInfo updateInfo, long timestamp){
+        String updateKeyName = "SleepAsAndroid.latestData";
+        guestService.setApiKeyAttribute(updateInfo.apiKey, updateKeyName, Long.toString(timestamp));
+    }
+
+    private Long createOrUpdateFacets(UpdateInfo updateInfo, String json) throws Exception {
         JSONObject topLevelObject = JSONObject.fromObject(json);
         JSONArray sleepsArray = topLevelObject.getJSONArray("sleeps");
-        long oldestFacetTime = Long.MIN_VALUE;
+        Long oldestFacetTime = null;
         for (int i = 0; i < sleepsArray.size(); i++){
             SleepFacet newFacet = createOrUpdateFacet(updateInfo, sleepsArray.getJSONObject(i));
-            oldestFacetTime = Math.max(oldestFacetTime, newFacet.end);
+            oldestFacetTime = oldestFacetTime == null ? newFacet.end : Math.max(oldestFacetTime, newFacet.end);
         }
         return oldestFacetTime;
     }
@@ -87,15 +116,21 @@ public class SleepAsAndroidUpdater extends AbstractUpdater {
                             facet.start = sleepObject.getLong("fromTime");
                             facet.end = sleepObject.getLong("toTime");
                         }
-                        facet.cycles = sleepObject.getInt("cycles");
-                        facet.ratioDeepSleep = sleepObject.getDouble("deepSleep");
+                        if (sleepObject.has("cycles"))
+                            facet.cycles = sleepObject.getInt("cycles");
+                        else
+                            facet.cycles = 0;
+                        if (sleepObject.has("deepSleep"))
+                            facet.ratioDeepSleep = sleepObject.getDouble("deepSleep");
+                        else
+                            facet.ratioDeepSleep = 0;
                         facet.rating = sleepObject.getDouble("rating");
                         facet.noiseLevel = sleepObject.getDouble("noiseLevel");
                         if (sleepObject.has("snroingSeconds")) {
                             facet.snoringSeconds = sleepObject.getInt("snoringSeconds");
                         }
                         else {
-                            facet.snoringSeconds = null;
+                            facet.snoringSeconds = 0;
 
                         }
 
