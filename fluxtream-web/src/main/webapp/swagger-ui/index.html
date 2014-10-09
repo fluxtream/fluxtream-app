@@ -140,6 +140,33 @@
                 <p>The calendar/ endpoints are what powers the Calendar App in Fluxtream. Different connectors return different <code>facets</code>.
                 These share common attributes (e.g. <code>apiKeyId</code>, <code>start</code>, <code>end</code>, <code>timeUpdated</code>,...) but most
                 of the info they carry is usually specific.</p>
+                <div class="well">
+                    <h4>Facet Models:</h4>
+                    <p>Call Log Entry</p>
+                    <span class="model-signature">
+                        <div>
+                            <div>
+                                <ul class="signature-nav custom" data-clazz="org.fluxtream.connectors.sms_backup.CallLogEntryFacetVO">
+                                    <li><a class="description-link" href="javascript:void(0)">Model</a></li>
+                                    <li><a class="snippet-link selected" href="javascript:void(0)">Model Schema</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </span>
+                </div>
+                <script>
+                    $(".signature-nav.custom").click(function(){
+                        var clazzName = $(this).attr("data-clazz");
+                        console.log("class name: " + clazzName);
+                        $.ajax({url:"/api/v1/datamodel/get?class="+clazzName,
+                        success: function(model) {
+                            var sModel = new SwaggerModel(model.name, model);
+                            console.log("creating JSON sample...");
+                            var jsonSample = sModel.createJSONSample();
+                            console.log(jsonSample);
+                        }});
+                    });
+                </script>
             </div>
             <div id="bodytrack_narrative">
                 <h2>Manage data for the BodyTrack Timeline</h2>
