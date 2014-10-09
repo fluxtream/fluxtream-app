@@ -50,6 +50,8 @@ import java.util.*;
 public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
     private final String LAST_INTRADAY_DATE_ATT = "last.intraday.date";
+    private final String INTRADAY_HISTORY_IMPORT_COMPLETE_ATT = "intraday.history.import.complete";
+
     FlxLogger logger = FlxLogger.getLogger(FitBitTSUpdater.class);
 
 	@Autowired
@@ -85,6 +87,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 		ObjectType.registerCustomObjectType(GET_USER_PROFILE_CALL);
         ObjectType.registerCustomObjectType(GET_USER_DEVICES_CALL);
 	}
+
 
     public FitBitTSUpdater() {
 		super();
@@ -243,7 +246,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         // 10/2/2014 We want to add support for intraday data
         final String intradayEnabledProperty = env.get("fitbit.intraday.enabled");
         if (intradayEnabledProperty !=null && Boolean.valueOf(intradayEnabledProperty))
-            updateIntradayData(updateInfo);
+            updateHistoryIntradayData(updateInfo);
 
     }
 
@@ -555,7 +558,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         // need to have a chance to do a history update for the intraday data
         final String intradayEnabledProperty = env.get("fitbit.intraday.enabled");
         if (intradayEnabledProperty !=null && Boolean.valueOf(intradayEnabledProperty))
-            updateIntradayData(updateInfo);
+            updateHistoryIntradayData(updateInfo);
 
         if (trackerLastServerSyncMillis > -1) {
             final List<String> trackerDaysToSync = getDaysToSync(updateInfo, "TRACKER", trackerLastServerSyncMillis, scaleLastServerSyncMillis);
@@ -584,7 +587,27 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         initChannelMapping(updateInfo);
 	}
 
-    private void updateIntradayData(final UpdateInfo updateInfo) throws RateLimitReachedException, UpdateFailedException, AuthExpiredException {
+    private void loadIntradayDataForOneDay(UpdateInfo updateInfo, String dateString)
+            throws AuthExpiredException, RateLimitReachedException, UpdateFailedException {
+        final List<AbstractFacet> facetsByDates = facetDao.getFacetsByDates(updateInfo.apiKey, ObjectType.getObjectType(connector(), 1), Arrays.asList(dateString));
+        if (facetsByDates.size()>0) {
+            final AbstractFacet facet = facetsByDates.get(0);
+            if (facet!=null) {
+                FitbitTrackerActivityFacet activityFacet = (FitbitTrackerActivityFacet) facet;
+                updateCaloriesIntraday(activityFacet, updateInfo);
+                updateStepsIntraday(activityFacet, updateInfo);
+                bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), Arrays.asList(facet));
+            } else {
+                logger.warn("TRYING TO UPDATE INTRADAY DATA OF AN UNEXISTING FACET, dateString=" + dateString);
+            }
+        }
+    }
+
+    private void updateHistoryIntradayData(final UpdateInfo updateInfo) throws RateLimitReachedException, UpdateFailedException, AuthExpiredException {
+        // if the intraday history has already completed, exit
+        final String historyCompleteAtt = guestService.getApiKeyAttribute(updateInfo.apiKey, INTRADAY_HISTORY_IMPORT_COMPLETE_ATT);
+        if (historyCompleteAtt!=null&&historyCompleteAtt.equals("true"))
+            return;
         // Fetching the entire intraday history for each guest is probably too much so there needs to be
         // a property specifying the number of days that we want to look back
         // First check if the intraday history has been fetched
@@ -617,6 +640,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                 }
             }
         }
+        // eventually, store a boolean to remember that we have completed the intraday history import
+        guestService.setApiKeyAttribute(updateInfo.apiKey, INTRADAY_HISTORY_IMPORT_COMPLETE_ATT, "true");
     }
 
     private long getMinTrackerTime(UpdateInfo updateInfo) {
@@ -633,7 +658,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                 String json = makeRestCall(updateInfo,
                         "activities/log/calories/date".hashCode(),
                         "http://api.fitbit.com/1/user/-/activities/log/calories/date/"
-                                + facet.date + "/1d.json");
+                                + facet.date + "/1d/1min.json");
                 facet.caloriesJson = json;
                 facetDao.merge(facet);
             }
@@ -665,7 +690,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             Date date = new Date(TimeUtils.dateFormatter.withZone(
                     DateTimeZone.forTimeZone(timeZone)).parseMillis(dateString));
             updateOneDayOfTrackerData(updateInfo, timeZone, date,
-                                      dateString, trackerLastServerSyncMillis);
+                    dateString, trackerLastServerSyncMillis);
         }
     }
 
@@ -698,6 +723,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                                     Arrays.asList(dateString));
 
         loadActivityDataForOneDay(updateInfo, date, userTimeZone, dateString);
+
+        loadIntradayDataForOneDay(updateInfo, dateString);
 
         // If all that succeeded, record the minimum of the end of the day "date" and scaleLastServerSyncMillis
         // as TRACKER.lastSyncDate.  If scaleLastServerSyncMillis> the end of the day "date" then we already know
