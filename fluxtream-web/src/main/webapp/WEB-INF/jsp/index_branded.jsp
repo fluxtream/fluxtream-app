@@ -235,7 +235,7 @@
         </div> <!-- /.row -->
         <div class="row">
           <div class="col-xs-12 col-sm-12">
-            <a class="github" href=""><span class="linkgithub">Fork me on </span><span class="text-hide">GitHub</span></a>
+            <a class="github" href="https://github.com/fluxtream/fluxtream-app"><span class="linkgithub">Fork me on </span><span class="text-hide">GitHub</span></a>
           </div>
         </div>
     </div> <!-- /.container -->
