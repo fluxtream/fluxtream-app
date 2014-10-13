@@ -588,14 +588,13 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 	}
 
     private void loadIntradayDataForOneDay(UpdateInfo updateInfo, String dateString)
-            throws AuthExpiredException, RateLimitReachedException, UpdateFailedException {
+            throws AuthExpiredException, RateLimitReachedException, UpdateFailedException, NoSuchFieldException, IllegalAccessException {
         final List<AbstractFacet> facetsByDates = facetDao.getFacetsByDates(updateInfo.apiKey, ObjectType.getObjectType(connector(), 1), Arrays.asList(dateString));
         if (facetsByDates.size()>0) {
             final AbstractFacet facet = facetsByDates.get(0);
             if (facet!=null) {
                 FitbitTrackerActivityFacet activityFacet = (FitbitTrackerActivityFacet) facet;
-                updateCaloriesIntraday(activityFacet, updateInfo);
-                updateStepsIntraday(activityFacet, updateInfo);
+                updateIntradayMetrics(updateInfo, activityFacet);
                 bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), Arrays.asList(facet));
             } else {
                 logger.warn("TRYING TO UPDATE INTRADAY DATA OF AN UNEXISTING FACET, dateString=" + dateString);
@@ -603,7 +602,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         }
     }
 
-    private void updateHistoryIntradayData(final UpdateInfo updateInfo) throws RateLimitReachedException, UpdateFailedException, AuthExpiredException {
+    private void updateHistoryIntradayData(final UpdateInfo updateInfo) throws RateLimitReachedException, UpdateFailedException, AuthExpiredException, NoSuchFieldException, IllegalAccessException {
         // if the intraday history has already completed, exit
         final String historyCompleteAtt = guestService.getApiKeyAttribute(updateInfo.apiKey, INTRADAY_HISTORY_IMPORT_COMPLETE_ATT);
         if (historyCompleteAtt!=null&&historyCompleteAtt.equals("true"))
@@ -632,8 +631,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             for (AbstractFacet facet : facetsByDates) {
                 FitbitTrackerActivityFacet activityFacet = (FitbitTrackerActivityFacet) facet;
                 if (activityFacet.date!=null&&activityFacet.date.equals(dayToUpdate)) {
-                    updateCaloriesIntraday(activityFacet, updateInfo);
-                    updateStepsIntraday(activityFacet, updateInfo);
+                    updateIntradayMetrics(updateInfo, activityFacet);
                     bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), Arrays.asList(facet));
                     guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_INTRADAY_DATE_ATT, dayToUpdate);
                     continue updatingDates;
@@ -644,42 +642,45 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         guestService.setApiKeyAttribute(updateInfo.apiKey, INTRADAY_HISTORY_IMPORT_COMPLETE_ATT, "true");
     }
 
+    private void updateIntradayMetrics(UpdateInfo updateInfo, FitbitTrackerActivityFacet activityFacet) throws RateLimitReachedException, AuthExpiredException, UpdateFailedException {
+        try {
+            List<String> wantedMetrics = Arrays.asList("steps", "calories", "distance", "floors", "elevation");
+            final Object wantedMetricsProperty = env.oauth.getProperty("fitbit.intraday.metrics.wanted");
+            if (wantedMetricsProperty!=null&&wantedMetricsProperty instanceof List) {
+                List<String> wantedMetricsConfig = (List<String>) wantedMetricsProperty;
+                if (wantedMetricsConfig.size()>0)
+                    wantedMetrics = wantedMetricsConfig;
+            }
+            for (String metric : wantedMetrics) {
+                updateIntradayMetric(activityFacet, updateInfo, metric);
+            }
+        // following exception should never happen
+        } catch (IllegalAccessException e) {
+            throw new UpdateFailedException();
+        } catch (NoSuchFieldException e) {
+            throw new UpdateFailedException();
+        }
+    }
+
     private long getMinTrackerTime(UpdateInfo updateInfo) {
         final String query = "SELECT min(start) FROM Facet_FitbitActivity WHERE apiKeyId=" + updateInfo.apiKey.getId();
         final Long minActivityStartTime = jpaDaoService.executeNativeQuery(query);
         return minActivityStartTime;
     }
 
-    public void updateCaloriesIntraday(final FitbitTrackerActivityFacet facet, final UpdateInfo updateInfo)
-            throws RateLimitReachedException, AuthExpiredException, UpdateFailedException {
+    public void updateIntradayMetric(final FitbitTrackerActivityFacet facet, final UpdateInfo updateInfo, final String metric)
+            throws RateLimitReachedException, AuthExpiredException, UpdateFailedException, IllegalAccessException, NoSuchFieldException {
+        Field field = FitbitTrackerActivityFacet.class.getField(metric + "Json");
         if (facet.date != null) {
-            if (facet.caloriesJson == null
-                    || isToday(facet.date, updateInfo.getGuestId())) {
-                String json = makeRestCall(updateInfo,
-                        "activities/log/calories/date".hashCode(),
-                        "http://api.fitbit.com/1/user/-/activities/log/calories/date/"
-                                + facet.date + "/1d/1min.json");
-                facet.caloriesJson = json;
-                facetDao.merge(facet);
-            }
+            String json = makeRestCall(updateInfo,
+                    String.format("activities/log/%s/date", metric).hashCode(),
+                    String.format("http://api.fitbit.com/1/user/-/activities/log/%s/date/", metric)
+                            + facet.date + "/1d.json");
+            field.set(facet, json);
+            facetDao.merge(facet);
         } else {
             logger.warn("guestId=" + updateInfo.getGuestId() +
-                    " connector=fitbit action=updateCaloriesIntraday message=facet date is null");
-        }
-    }
-
-    public void updateStepsIntraday(final FitbitTrackerActivityFacet facet, final UpdateInfo updateInfo)
-            throws RateLimitReachedException, AuthExpiredException, UpdateFailedException {
-        if (facet.date != null) {
-                String json = makeRestCall(updateInfo,
-                        "activities/log/steps/date".hashCode(),
-                        "http://api.fitbit.com/1/user/-/activities/log/steps/date/"
-                                + facet.date + "/1d.json");
-                facet.stepsJson = json;
-                facetDao.merge(facet);
-        } else {
-            logger.warn("guestId=" + updateInfo.getGuestId() +
-                    " connector=fitbit action=updateStepsIntraday message=facet date is null");
+                    " connector=fitbit action=updateIntradayMetric metric=" + metric + "message=facet date is null");
         }
     }
 
