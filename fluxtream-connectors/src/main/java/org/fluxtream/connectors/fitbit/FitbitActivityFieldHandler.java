@@ -10,6 +10,7 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -21,8 +22,6 @@ import java.util.List;
 @Component("fitbitActivity")
 public class FitbitActivityFieldHandler implements FieldHandler {
 
-    private static final String ACTIVITIES_LOG_CALORIES_INTRADAY_KEY = "activities-log-calories-intraday";
-    private static final String ACTIVITIES_LOG_STEPS_INTRADAY_KEY = "activities-log-steps-intraday";
     private static final String DATASET_KEY = "dataset";
     @Autowired
     BodyTrackHelper bodyTrackHelper;
@@ -118,30 +117,42 @@ public class FitbitActivityFieldHandler implements FieldHandler {
 
         results.add(bodyTrackHelper.uploadToBodyTrack(guestId, "Fitbit", channelNames, data));
 
-        if (fitbitActivityFacet.stepsJson!=null) {
-            final BodyTrackHelper.BodyTrackUploadResult bodyTrackUploadResult = addStepsData(guestId, fitbitActivityFacet);
-            if (bodyTrackUploadResult!=null)
-                results.add(bodyTrackUploadResult);
-        }
-        if (fitbitActivityFacet.caloriesJson!=null) {
-            final BodyTrackHelper.BodyTrackUploadResult bodyTrackUploadResult = addCaloriesData(guestId, fitbitActivityFacet);
-            if (bodyTrackUploadResult!=null)
-                results.add(bodyTrackUploadResult);
+        List<String> metrics = Arrays.asList("steps", "calories", "distance", "floors", "elevation");
+
+        for (String metric : metrics) {
+            try {
+                Field jsonField = FitbitTrackerActivityFacet.class.getField(metric + "Json");
+                if (jsonField.get(fitbitActivityFacet)!=null) {
+                    final BodyTrackHelper.BodyTrackUploadResult bodyTrackUploadResult = addIntradayData(guestId, fitbitActivityFacet, jsonField, metric);
+                    if (bodyTrackUploadResult!=null)
+                        results.add(bodyTrackUploadResult);
+                }
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+                continue;
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+                continue;
+            }
         }
 
         // TODO: check the status code in the BodyTrackUploadResult
         return results;
     }
 
-    private BodyTrackHelper.BodyTrackUploadResult addStepsData(final long guestId, FitbitTrackerActivityFacet fitbitActivityFacet) {
-        List<String> channelNames = Arrays.asList("stepsIntraday");
+    private BodyTrackHelper.BodyTrackUploadResult addIntradayData(final long guestId,
+                                                                  FitbitTrackerActivityFacet fitbitActivityFacet,
+                                                                  final Field field,
+                                                                  final String metric) throws IllegalAccessException {
         List<List<Object>> data = new ArrayList<List<Object>>();
 
         long midnight = ISODateTimeFormat.date().withZoneUTC().parseDateTime(fitbitActivityFacet.date).toDateMidnight().getMillis();
-        JSONObject stepsJson = JSONObject.fromObject(fitbitActivityFacet.stepsJson);
+        JSONObject stepsJson = JSONObject.fromObject(field.get(fitbitActivityFacet));
 
-        if (stepsJson.has(ACTIVITIES_LOG_STEPS_INTRADAY_KEY)) {
-            JSONObject stepsIntradayJson = stepsJson.getJSONObject(ACTIVITIES_LOG_STEPS_INTRADAY_KEY);
+        final String intradayMetricKey = "activities-log-" + metric + "-intraday";
+
+        if (stepsJson.has(intradayMetricKey)) {
+            JSONObject stepsIntradayJson = stepsJson.getJSONObject(intradayMetricKey);
             if (stepsIntradayJson.has(DATASET_KEY)) {
                 JSONArray intradayDataArray = stepsIntradayJson.getJSONArray(DATASET_KEY);
                 for (int i=0; i<intradayDataArray.size(); i++) {
@@ -156,35 +167,7 @@ public class FitbitActivityFieldHandler implements FieldHandler {
                     data.add(record);
                 }
             }
-            return bodyTrackHelper.uploadToBodyTrack(guestId, "Fitbit", channelNames, data);
-        }
-        return null;
-    }
-
-    private BodyTrackHelper.BodyTrackUploadResult addCaloriesData(final long guestId, FitbitTrackerActivityFacet fitbitActivityFacet) {
-        List<String> channelNames = Arrays.asList("caloriesIntraday");
-        List<List<Object>> data = new ArrayList<List<Object>>();
-
-        long midnight = ISODateTimeFormat.date().withZoneUTC().parseDateTime(fitbitActivityFacet.date).toDateMidnight().getMillis();
-        JSONObject caloriesJson = JSONObject.fromObject(fitbitActivityFacet.caloriesJson);
-
-        if (caloriesJson.has(ACTIVITIES_LOG_CALORIES_INTRADAY_KEY)) {
-            JSONObject caloriesIntradayJson = caloriesJson.getJSONObject(ACTIVITIES_LOG_CALORIES_INTRADAY_KEY);
-            if (caloriesIntradayJson.has(DATASET_KEY)) {
-                JSONArray intradayDataArray = caloriesIntradayJson.getJSONArray(DATASET_KEY);
-                for (int i=0; i<intradayDataArray.size(); i++) {
-                    JSONObject intradayDataRecord = intradayDataArray.getJSONObject(i);
-                    String time = intradayDataRecord.getString("time") + "Z";
-                    final LocalTime localTime = ISODateTimeFormat.timeNoMillis().parseLocalTime(time);
-                    final long timeGmt = (midnight + localTime.getMillisOfDay())/1000;
-                    int value = intradayDataRecord.getInt("value");
-                    List<Object> record = new ArrayList<Object>();
-                    record.add(timeGmt);
-                    record.add(value);
-                    data.add(record);
-                }
-            }
-            return bodyTrackHelper.uploadToBodyTrack(guestId, "Fitbit", channelNames, data);
+            return bodyTrackHelper.uploadToBodyTrack(guestId, "Fitbit", Arrays.asList(metric+"Intraday"), data);
         }
         return null;
     }
