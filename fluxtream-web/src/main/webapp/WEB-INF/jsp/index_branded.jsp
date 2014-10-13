@@ -90,7 +90,7 @@
         </div>
         <div class="connector-img-cloud connector-img-cloud-lg col-xs-12 col-sm-12 col-md-12 col-lg-12">
             <div class="connector-cloud"></div>
-            <a href="#" class="hire-advert" title="contact">Need something custom? <strong>Hire us!</strong></a>
+            <a href="mailto:info@fluxtream.org" class="hire-advert" title="contact">Need something custom? <strong>Hire us!</strong></a>
 
         </div>
     </section>
