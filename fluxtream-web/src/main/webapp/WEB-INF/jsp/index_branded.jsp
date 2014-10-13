@@ -59,8 +59,9 @@
             <div class="col-xs-12 col-sm-5 col-sm-offset-1 col-md-5 col-lg-4 col-lg-offset-1">
                 <iframe src="//www.youtube.com/embed/D85ICrW52e0?hd=1&controls=0&showinfo=0" frameborder="0" allowfullscreen></iframe>
             </div>
-            <div class="intro_txt col-xs-12 col-sm-6 col-md-6 col-lg-5 col-lg-offset-0">
-                <p>An open-source non-profit personal data visualization framework to help you make sense of your life and compare hypotheses about what affects your well-being</p>
+            <div class="intro_txt col-xs-12 col-sm-6 col-md-6 col-lg-5">
+                <p>An <a href="https://github.com/fluxtream/fluxtream-app" title="github repo" target="_blank">open-source</a> non-profit personal data visualization framework to help you make sense of your life and compare hypotheses about what affects your well-being
+                </p>
                 <div class="row">
                     <div class="register_txt col-xs-6 col-md-6 col-lg-6">
                         <p>It's free!</p>
@@ -71,6 +72,11 @@
                 </div> <!-- /.row -->
             </div> <!-- /.col -->
         </section> <!-- /.row -->
+        <div class="api-hire-row">
+            <div class="api-advert-container">
+                <a href="/dev" class="api-advert">We have an <span>API!</span></a>
+            </div>
+        </div> <!-- /.row -->
     </div> <!-- /.container -->
 </div> <!-- /.lasagna-layer-1 -->
 <div class="container-fluid hidden-xs hidden-sm">
@@ -84,6 +90,8 @@
         </div>
         <div class="connector-img-cloud connector-img-cloud-lg col-xs-12 col-sm-12 col-md-12 col-lg-12">
             <div class="connector-cloud"></div>
+            <a href="#" class="hire-advert" title="contact">Need something custom? <strong>Hire us!</strong></a>
+
         </div>
     </section>
 </div>
@@ -118,6 +126,7 @@
         </div>
         <div class="connector-img-cloud-sm connector-img-cloud col-xs-12 col-sm-12 col-md-12 col-lg-12">
             <div class="connector-cloud"></div>
+            <a class="hire-advert" href="#" title="contact">Need something custom? <strong>Hire us!</strong></a>
         </div>
     </section>
 </div>
@@ -224,6 +233,11 @@
                 </ul>
             </div> <!-- /.nav -->
         </div> <!-- /.row -->
+        <div class="row">
+          <div class="col-xs-12 col-sm-12">
+            <a class="github" href="https://github.com/fluxtream/fluxtream-app"><span class="linkgithub">Fork me on </span><span class="text-hide">GitHub</span></a>
+          </div>
+        </div>
     </div> <!-- /.container -->
 </div> <!-- /.lasagna-layer-4 -->
 
@@ -236,7 +250,7 @@
         <div class="creator col-sm-8 col-md-6 col-md-offset-1 col-lg-5 col-lg-offset-1">
             The BodyTrack Team @ CMU CREATE Lab & Candide Kemmler.
         </div>
-        <div class="copyright col-sm-8 col-sm-offset-4 col-md-6 col-md-offset-6 col-lg-5 col-lg-offset-7">
+        <div class="copyright col-sm-8 col-sm-offset-4 col-md-6 col-md-offset-6 col-lg-5 col-lg-offset-6">
             Copyright &copy; 2011<%=until %> - All rights reserved.
         </div>
     </div>
@@ -359,4 +373,3 @@
 
 </body>
 </html>
-

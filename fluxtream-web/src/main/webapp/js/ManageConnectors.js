@@ -347,10 +347,9 @@ define(["core/grapher/BTCore",
         $.ajax({
             url:"/api/v1/updates/" + connector.connectorName + "?page=0&pageSize=50",
             success: function(updates) {
-                for (var i=0; i<updates.length; i++)
-                    updates[i].time = App.formatDate(updates[i].ts, true);
-                var html = template.render({connectorName : connectorName,
-                                            updates : updates});
+                for (var i=0; i<updates["updates"].length; i++)
+                    updates["updates"][i].time = App.formatDate(updates["updates"][i]["ts"], true);
+                var html = template.render(updates);
 
                 App.makeModal(html);
             }

@@ -24,7 +24,7 @@ body, html {
   background: radial-gradient(ellipse at center,  #3096e5 0%,#196cae 100%); /* W3C */
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3096e5', endColorstr='#196cae',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
   padding-top: 1em;
-  padding-bottom: 1em;
+/*   padding-bottom: 1em; */
   padding-left: 20px;
   padding-right: 20px;
   border: 1px solid #1965a3;
@@ -128,6 +128,46 @@ iframe { width: 280px; height: 210px; }
 .connector_img {
   background: transparent url("../images/connectors.png") no-repeat center top;
   height: 992px;
+}
+
+.api-hire-row {
+  padding-top: 1em;
+}
+
+.api-advert {
+  display: block;
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
+  border-radius: 50%;
+  padding: 2em 1em;
+  background: #135a91;
+  color: #f1f1f1;
+  z-index: 58;
+  position: absolute;
+  top: -3em;
+  left:-3em;
+  width: 100px;
+  height: 100px;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 4px #135a91;
+  transition: box-shadow 0.2s ease-in-out;
+  font-size: 15px;
+  transform: rotate(-7deg);
+}
+.api-advert span {
+  text-decoration: underline;
+}
+.api-advert-container {position: relative;}
+
+.api-advert:hover {
+  color: #fff; 
+  text-decoration: none;
+  box-shadow: 0 0 0 6px #135a91;
+}
+
+.api-advert img {
+  display: block;
+  margin: 0 auto 5px;
 }
 
 .screenshot_img_general {
@@ -348,9 +388,39 @@ footer {
 }
 
 .connector-img-cloud-open {
-  height: 317px;
+  height: 375px;
 }
 
+.hire-advert {
+  display: block;
+  padding: 1.5em 0;
+  background: #f1f2f3;
+  font-size: 1.1em;
+}
+.hire-advert:hover {
+  text-decoration: none;
+  border-bottom: 2px solid #2A6496;  
+}
+
+.github {
+  display: table;
+  vertical-align: middle;
+  text-align: center;
+  margin: 0 auto;
+}
+
+.github span {
+  display: table-cell;
+  vertical-align: middle;
+  padding: 0 1em;
+}
+
+.github .text-hide {
+  background: url(../images/GitHub.svg) no-repeat center center;
+  width: 70px;
+  height: 30px;
+  background-size: 100%;
+}
 
 @media screen and (max-width: 767px) {
   .logo { 
@@ -466,6 +536,9 @@ footer {
   .take-control {
     padding-top: 2.3em;
   }
+  .api-advert, .hire-us {
+/*     margin-bottom: 1em; */
+  } 
 }
 
 
@@ -488,7 +561,7 @@ footer {
   }
   .lasagna-layer-1 {
     padding-top: 1em;
-    padding-bottom: 1em;
+/*     padding-bottom: 1em; */
     padding-left: 0;
     padding-right: 0;
   }
@@ -502,6 +575,7 @@ footer {
   }
   
   .intro_txt p { margin-bottom: 2em; margin-left: 1em;}
+  .intro_txt a { color: #fff; text-decoration:none; border-bottom: 2px solid #fff; }
   
   label { font-weight: normal; }
   .main-content { padding-top: 2em; }
@@ -604,6 +678,15 @@ footer {
   .connector-img-cloud-open .connector-cloud {
     opacity: 1;
   }
+  
+  .api-advert {
+    left:33em;
+    transform: rotate(7deg);
+  }  
+  .api-advert, .hire-us {
+    margin-top: 1em;
+    margin-bottom: 0;
+  } 
 }
 @media screen and (min-width: 992px){
     iframe {
@@ -625,6 +708,11 @@ footer {
     background-image: url(../images/connector-cloud.png);
     background-size: auto;
   }
+  .api-advert {
+    left: auto;
+    right:12em;
+    transform: rotate(7deg);
+  }  
 }
 @media screen and (min-width: 1260px){
     iframe {
