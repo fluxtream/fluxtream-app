@@ -33,7 +33,7 @@ public class WWOHelper {
         if (env.get("wwo.key")==null)
             return weather;
 
-		String wwoUrl = "http://api.worldweatheronline.com/premium/v1/weather.ashx?" +
+		String wwoUrl = "http://api.worldweatheronline.com/premium/v1/past-weather.ashx?" +
 "key=" + env.get("wwo.key") + "&format=json&q=" + latitude + "," + longitude + "&date=" + fdate;
         long then = System.currentTimeMillis();
 		String wwoJson = fetch(wwoUrl);
