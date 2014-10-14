@@ -1,4 +1,4 @@
-<template id="twitter-tweet">
+ <template id="twitter-tweet">
    <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon twitter-tweet"></span>
        <div class="facetDetails">
@@ -1079,5 +1079,52 @@
             <a class="btn" data-dismiss="modal">Close</a>
         </div>
     </div>
-
 </template>
+ <template id="sleep_as_android-sleep">
+   <div class="flx-box" style="border-left-color:{{color}}">
+     <span class="flx-deviceIcon sleep_as_android"></span>
+     <div class="facetDetails">
+       {{#facets}}
+       <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+         <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+         {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+         <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
+         <div class="flx-data">
+           <div>
+             <div>
+               <span class="flx-dataLabel">Bed Time</span>
+               <span class="flx-text">{{#startTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{/startTime}}</span>
+             </div>
+             <div>
+               <span class="flx-dataLabel">Time Asleep</span>
+               <span class="flx-text">{{#timeAsleep}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{/timeAsleep}} </span>
+             </div>
+             <div>
+               <span class="flx-dataLabel">Sleeping </span>
+               <span class="flx-text bold">{{timeSleeping.hours}}</span><span class="flx-text"> hours</span>
+               <span class="flx-text bold">{{timeSleeping.minutes}}</span><span class="flx-text"> min</span>
+             </div>
+             <div>
+               <span class="flx-dataLabel">Awake during </span>
+               <span class="flx-text bold">{{timeAwake.hours}}</span><span class="flx-text"> hours</span>
+               <span class="flx-text bold">{{timeAwake.minutes}}</span><span class="flx-text"> min</span>
+             </div>
+             <div>
+               <span class="flx-dataLabel">Woke Up </span>
+               <span class="flx-text">{{#wakeUpTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{/wakeUpTime}} </span>
+             </div>
+             <div>
+               <span class="flx-dataLabel">Out of bed </span>
+               <span class="flx-text">{{#endTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</span>
+             </div>
+           </div>
+         </div>
+         <div class="flx-data">
+           <img src="{{snapshot_image}}" style="height:75px; width:300px">
+         </div>
+         {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+       </div>
+       {{/facets}}
+     </div>
+   </div>
+ </template>
