@@ -709,7 +709,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             var configFilterLabel = connectorConfig.filterLabel,
                 filterLabel = configFilterLabel || connector.prettyName;
 
-            filterLabel = filterLabel.replace("_", " ");
+            filterLabel = filterLabel.replace(/_/g, " ");
 
             buttonLink
                 .toggleClass("flx-disconnected", !connected)
