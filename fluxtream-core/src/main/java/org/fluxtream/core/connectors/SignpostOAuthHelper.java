@@ -1,17 +1,18 @@
 package org.fluxtream.core.connectors;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import oauth.signpost.OAuthConsumer;
+import oauth.signpost.basic.DefaultOAuthConsumer;
+import org.apache.commons.io.IOUtils;
 import org.fluxtream.core.connectors.updaters.RateLimitReachedException;
 import org.fluxtream.core.connectors.updaters.UnexpectedResponseCodeException;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.services.GuestService;
-import oauth.signpost.OAuthConsumer;
-import oauth.signpost.basic.DefaultOAuthConsumer;
-import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 @Component
 public class SignpostOAuthHelper extends ApiClientSupport {
@@ -20,12 +21,12 @@ public class SignpostOAuthHelper extends ApiClientSupport {
     GuestService guestService;
 
 	public final String makeRestCall(ApiKey apiKey,
-			int objectTypes, String urlString) throws RateLimitReachedException, UnexpectedResponseCodeException {
+			int objectTypes, String urlString) throws UnexpectedResponseCodeException, RateLimitReachedException {
 
-		if (hasReachedRateLimit(apiKey.getConnector(), apiKey.getGuestId()))
-			throw new RateLimitReachedException();
+        if (hasReachedRateLimit(apiKey.getConnector(), apiKey.getGuestId()))
+            throw new RateLimitReachedException();
 
-		try {
+        try {
 			long then = System.currentTimeMillis();
 			URL url = new URL(urlString);
 			HttpURLConnection request = (HttpURLConnection) url.openConnection();

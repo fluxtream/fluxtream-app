@@ -1,13 +1,13 @@
 package org.fluxtream.core.domain;
 
+import com.google.gson.annotations.Expose;
+import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Type;
+
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-
-import com.google.gson.annotations.Expose;
-import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Type;
 
 @Entity(name="ApiUpdates")
 @NamedQueries ( {
@@ -32,6 +32,7 @@ import org.hibernate.annotations.Type;
 		query="SELECT updt FROM ApiUpdates updt WHERE updt.apiKeyId=? and updt.success=true ORDER BY updt.ts DESC"),
 	@NamedQuery( name="apiUpdates.last.successful.byApiAndObjectTypes",
 		query="SELECT updt FROM ApiUpdates updt WHERE updt.apiKeyId=? and updt.objectTypes=? and updt.success=true ORDER BY updt.ts DESC")})
+
 public class ApiUpdate extends AbstractEntity {
 
     /**
@@ -52,8 +53,10 @@ public class ApiUpdate extends AbstractEntity {
     public Long apiKeyId;
 
     @Index(name="httpResponseCode")
+    @Expose
     public Integer httpResponseCode;
 
+    @Expose
     public String reason;
 
     /**
