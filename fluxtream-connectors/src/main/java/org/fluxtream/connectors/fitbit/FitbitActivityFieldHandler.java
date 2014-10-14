@@ -147,14 +147,14 @@ public class FitbitActivityFieldHandler implements FieldHandler {
         List<List<Object>> data = new ArrayList<List<Object>>();
 
         long midnight = ISODateTimeFormat.date().withZoneUTC().parseDateTime(fitbitActivityFacet.date).toDateMidnight().getMillis();
-        JSONObject stepsJson = JSONObject.fromObject(field.get(fitbitActivityFacet));
+        JSONObject intradayJson = JSONObject.fromObject(field.get(fitbitActivityFacet));
 
         final String intradayMetricKey = "activities-log-" + metric + "-intraday";
 
-        if (stepsJson.has(intradayMetricKey)) {
-            JSONObject stepsIntradayJson = stepsJson.getJSONObject(intradayMetricKey);
-            if (stepsIntradayJson.has(DATASET_KEY)) {
-                JSONArray intradayDataArray = stepsIntradayJson.getJSONArray(DATASET_KEY);
+        if (intradayJson.has(intradayMetricKey)) {
+            JSONObject intradayDataJson = intradayJson.getJSONObject(intradayMetricKey);
+            if (intradayDataJson.has(DATASET_KEY)) {
+                JSONArray intradayDataArray = intradayDataJson.getJSONArray(DATASET_KEY);
                 for (int i=0; i<intradayDataArray.size(); i++) {
                     JSONObject intradayDataRecord = intradayDataArray.getJSONObject(i);
                     String time = intradayDataRecord.getString("time") + "Z";
@@ -164,10 +164,20 @@ public class FitbitActivityFieldHandler implements FieldHandler {
                     List<Object> record = new ArrayList<Object>();
                     record.add(timeGmt);
                     record.add(value);
+                    if (metric.equals("calories")) {
+                        int level = intradayDataRecord.getInt("level");
+                        record.add(level);
+                        int mets = intradayDataRecord.getInt("mets");
+                        record.add(mets);
+                    }
                     data.add(record);
                 }
             }
-            return bodyTrackHelper.uploadToBodyTrack(guestId, "Fitbit", Arrays.asList(metric+"Intraday"), data);
+            final List<String> channelNames = !metric.equals("calories")
+                                            ? Arrays.asList(metric + "Intraday")
+                                            : Arrays.asList(metric + "Intraday", "levelsIntraday", "metsIntraday");
+
+            return bodyTrackHelper.uploadToBodyTrack(guestId, "Fitbit", channelNames, data);
         }
         return null;
     }
