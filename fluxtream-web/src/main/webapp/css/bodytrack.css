@@ -157,7 +157,7 @@
 }
 
 ._timeline_channel table ._timeline_yaxistd {
-    width: 30px;
+    width: 48px;
 }
 
 ._timeline_channelTabAndPlot {
@@ -363,7 +363,7 @@
 ._timeline_dateAxisContainer {
     width: auto;
     height: 35px;
-    margin: 0 53px 0 0px;
+    margin: 0 72px 0 0px;
     padding: 0;
     border: 1px solid #CCCCCC;
     border-bottom-width: 0;
@@ -629,7 +629,7 @@
 }
 
 ._timeline_yAxis {
-    width: 30px;
+    width: 48px;
     min-height: 67px;
     height: 67px;
 }
