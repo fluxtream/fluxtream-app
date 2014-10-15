@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 @Component
@@ -187,26 +188,33 @@ public class SleepAsAndroidUpdater extends AbstractUpdater {
 
                         }
 
-                        facet.sleepTags = new ArrayList<String>();
+                        List<String> sleepTags = new LinkedList<String>();
                         if (sleepObject.has("tags")) {
                             JSONArray tags = sleepObject.getJSONArray("tags");
                             for (int i = 0; i < tags.size(); i++) {
-                                facet.sleepTags.add(tags.getString(i));
+                                sleepTags.add(tags.getString(i));
                             }
                         }
 
-                        facet.actiGraph = new ArrayList<Double>();
-                        JSONArray actiGraph = sleepObject.getJSONArray("actigraph");
-                        for (int i = 0; i < actiGraph.size(); i++) {
-                            facet.actiGraph.add(actiGraph.getDouble(i));
+                        facet.setSleepTags(sleepTags);
+
+                        List<Double> actiGraph = new LinkedList<Double>();
+                        JSONArray actiGraphObject = sleepObject.getJSONArray("actigraph");
+                        for (int i = 0; i < actiGraphObject.size(); i++) {
+                            actiGraph.add(actiGraphObject.getDouble(i));
                         }
 
-                        facet.eventLabels = new ArrayList<Pair<String,Long>>();
+                        facet.setActiGraph(actiGraph);
+
+                        List<Pair<String,Long>> eventLabels = new LinkedList<Pair<String,Long>>();
                         JSONArray labels = sleepObject.getJSONArray("labels");
                         for (int i = 0; i < labels.size(); i++) {
                             JSONObject label = labels.getJSONObject(i);
-                            facet.eventLabels.add(new Pair<String,Long>(label.getString("label"), label.getLong("timestamp")));
+                            eventLabels.add(new Pair<String,Long>(label.getString("label"), label.getLong("timestamp")));
                         }
+
+                        facet.setEventLabels(eventLabels);
+
                         return facet;
                     }
 

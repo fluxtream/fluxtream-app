@@ -2,13 +2,17 @@ package org.fluxtream.connectors.sleep_as_android;
 
 
 import com.google.gdata.util.common.base.Pair;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 import org.fluxtream.core.domain.AbstractFacet;
 
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
-import java.util.ArrayList;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 // note: in this class we used ArrayList<T> for lists instead of the generic List<T> structure since ArrayList<T>
@@ -37,15 +41,80 @@ public class SleepFacet extends AbstractFacet {
 
     //the actigaph is evenly sampled over the duration of the sleep. each value represents activity level (no upper bound)
     @Lob
-    public ArrayList<Double> actiGraph;
+    public String actiGraph;
 
     //Tags associated with this sleep
     @Lob
-    public ArrayList<String> sleepTags;
+    public String sleepTags;
 
     //Labels different events that occur throughout the night
     @Lob
-    public ArrayList<Pair<String,Long>> eventLabels;
+    public String eventLabels;
+
+    public void setActiGraph(List<Double> actiGraph){
+        try{
+            this.actiGraph = new ObjectMapper().writeValueAsString(actiGraph);
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
+
+    }
+
+    public List<Double> getActiGraph(){
+        try {
+            return  new ObjectMapper().readValue(actiGraph, TypeFactory.defaultInstance().constructCollectionType(List.class, Double.class));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+    }
+
+    public void setSleepTags(List<String> sleepTags){
+        try{
+            this.sleepTags = new ObjectMapper().writeValueAsString(sleepTags);
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
+
+    }
+
+    public List<String> getSleepTags(){
+        try {
+            return  new ObjectMapper().readValue(sleepTags, TypeFactory.defaultInstance().constructCollectionType(List.class, String.class));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+    }
+
+    public void setEventLabels(List<Pair<String,Long>> eventLabels){
+        try{
+            this.eventLabels = new ObjectMapper().writeValueAsString(eventLabels);
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
+
+    }
+
+    public List<Pair<String,Long>> getEventLabels(){
+        try {
+            List<Pair<String,Long>> list = new LinkedList<Pair<String,Long>>();
+            JsonNode rootNode = new ObjectMapper().readTree(this.eventLabels);
+            for (Iterator<JsonNode> i = rootNode.getElements(); i.hasNext();){
+                JsonNode node = i.next();
+                list.add(new Pair<String,Long>(node.get("first").asText(),node.get("second").asLong()));
+            }
+            return list;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
 
     @Override

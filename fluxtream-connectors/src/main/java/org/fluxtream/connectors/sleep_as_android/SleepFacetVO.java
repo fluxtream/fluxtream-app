@@ -27,6 +27,6 @@ public class SleepFacetVO extends AbstractTimedFacetVO<SleepFacet> {
         this.ratioDeepSleep = facet.ratioDeepSleep;
         this.snoringSeconds = facet.snoringSeconds;
         this.noiseLevel = facet.noiseLevel;
-        this.sleepTags = facet.sleepTags;
+        this.sleepTags = facet.getSleepTags();
     }
 }

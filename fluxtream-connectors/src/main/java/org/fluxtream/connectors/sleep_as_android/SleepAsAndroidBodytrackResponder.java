@@ -36,7 +36,7 @@ public class SleepAsAndroidBodytrackResponder extends AbstractBodytrackResponder
             TimespanModel buildingDeepModel = null;
             TimespanModel buildingRemModel = null;
             //since we know these are sorted by time we won't need to worry about an end before a start
-            for (Pair<String,Long> eventLabel : sleepFacet.eventLabels) {
+            for (Pair<String,Long> eventLabel : sleepFacet.getEventLabels()) {
                 String s = eventLabel.getFirst();
                 if (s.equals("DEEP_START")) {
                     buildingDeepModel = new TimespanModel(eventLabel.getSecond(),eventLabel.getSecond(),"deep",objectTypeName);
