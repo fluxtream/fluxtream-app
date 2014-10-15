@@ -20,17 +20,25 @@ import org.fluxtream.core.connectors.updaters.AbstractUpdater;
 import org.fluxtream.core.connectors.updaters.UpdateFailedException;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.domain.Notification;
 import org.fluxtream.core.services.ApiDataService;
+import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.utils.Utils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 @Component
-@Updater(prettyName = "Sleep_As_Android", value = 351, objectTypes={SleepFacet.class})
+@Updater(prettyName = "Sleep_As_Android", value = 351, objectTypes={SleepFacet.class}, bodytrackResponder=SleepAsAndroidBodytrackResponder.class)
 public class SleepAsAndroidUpdater extends AbstractUpdater {
+
+    @Autowired
+    BodyTrackHelper bodyTrackHelper;
 
 
     @Override
@@ -41,6 +49,51 @@ public class SleepAsAndroidUpdater extends AbstractUpdater {
 
     @Override
     protected void updateConnectorData(UpdateInfo updateInfo) throws Exception {
+        List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey);
+        if (mappings.size() == 0){
+            ChannelMapping mapping = new ChannelMapping();
+            mapping.deviceName = "sleep_as_android";
+            mapping.channelName = "sleep";
+            mapping.timeType = ChannelMapping.TimeType.gmt;
+            mapping.channelType = ChannelMapping.ChannelType.timespan;
+            mapping.guestId = updateInfo.getGuestId();
+            mapping.apiKeyId = updateInfo.apiKey.getId();
+            bodyTrackHelper.persistChannelMapping(mapping);
+
+            BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
+            channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
+            channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
+            channelStyle.timespanStyles.defaultStyle.fillColor = "#33b5e5";
+            channelStyle.timespanStyles.defaultStyle.borderColor = "#33b5e5";
+            channelStyle.timespanStyles.defaultStyle.borderWidth = 0;
+            channelStyle.timespanStyles.defaultStyle.top = 1.00;
+            channelStyle.timespanStyles.defaultStyle.bottom = 0.67;
+            channelStyle.timespanStyles.values = new HashMap();
+
+            BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
+            stylePart.top = 0.67;
+            stylePart.bottom = 1.00;
+            stylePart.fillColor = "#33b5e5";
+            stylePart.borderColor = "#33b5e5";
+            channelStyle.timespanStyles.values.put("light",stylePart);
+
+            stylePart = new BodyTrackHelper.TimespanStyle();
+            stylePart.top = 0.33;
+            stylePart.bottom = 0.67;
+            stylePart.fillColor = "#0099cc";
+            stylePart.borderColor = "#0099cc";
+            channelStyle.timespanStyles.values.put("deep",stylePart);
+
+            stylePart = new BodyTrackHelper.TimespanStyle();
+            stylePart.top = 0.00;
+            stylePart.bottom = 0.33;
+            stylePart.fillColor = "#ff8800";
+            stylePart.borderColor = "#ff8800";
+            channelStyle.timespanStyles.values.put("rem",stylePart);
+
+            bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"sleep_as_android","sleep",channelStyle);
+        }
+
         GoogleCredential credentials = getCredentials(updateInfo.apiKey);
 
         long then = System.currentTimeMillis();

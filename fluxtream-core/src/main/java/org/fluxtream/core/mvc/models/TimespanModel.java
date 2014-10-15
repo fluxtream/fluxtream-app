@@ -20,4 +20,8 @@ public class TimespanModel {
         this(start,end,value,objectType);
         this.style = style;
     }
+
+    public void setEnd(long end){
+        this.end = end / 1000.0;
+    }
 }
