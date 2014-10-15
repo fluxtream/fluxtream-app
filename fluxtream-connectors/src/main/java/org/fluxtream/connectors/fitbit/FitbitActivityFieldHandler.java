@@ -1,13 +1,19 @@
 package org.fluxtream.connectors.fitbit;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.services.impl.FieldHandler;
+import org.joda.time.LocalTime;
+import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  *
@@ -16,11 +22,15 @@ import org.springframework.stereotype.Component;
 @Component("fitbitActivity")
 public class FitbitActivityFieldHandler implements FieldHandler {
 
+    private static final String DATASET_KEY = "dataset";
     @Autowired
     BodyTrackHelper bodyTrackHelper;
 
     @Override
     public List<BodyTrackHelper.BodyTrackUploadResult> handleField ( final long guestId, AbstractFacet facet) {
+
+        List<BodyTrackHelper.BodyTrackUploadResult> results = new ArrayList<BodyTrackHelper.BodyTrackUploadResult>();
+
         FitbitTrackerActivityFacet fitbitActivityFacet = (FitbitTrackerActivityFacet) facet;
 
         // The Fitbit activity data is daily data that covers an entire day.  The start/end time may be the
@@ -105,8 +115,71 @@ public class FitbitActivityFieldHandler implements FieldHandler {
 
         data.add(record);
 
+        results.add(bodyTrackHelper.uploadToBodyTrack(guestId, "Fitbit", channelNames, data));
+
+        List<String> metrics = Arrays.asList("steps", "calories", "distance", "floors", "elevation");
+
+        for (String metric : metrics) {
+            try {
+                Field jsonField = FitbitTrackerActivityFacet.class.getField(metric + "Json");
+                if (jsonField.get(fitbitActivityFacet)!=null) {
+                    final BodyTrackHelper.BodyTrackUploadResult bodyTrackUploadResult = addIntradayData(guestId, fitbitActivityFacet, jsonField, metric);
+                    if (bodyTrackUploadResult!=null)
+                        results.add(bodyTrackUploadResult);
+                }
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+                continue;
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+                continue;
+            }
+        }
+
         // TODO: check the status code in the BodyTrackUploadResult
-        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(guestId, "Fitbit", channelNames, data));
+        return results;
+    }
+
+    private BodyTrackHelper.BodyTrackUploadResult addIntradayData(final long guestId,
+                                                                  FitbitTrackerActivityFacet fitbitActivityFacet,
+                                                                  final Field field,
+                                                                  final String metric) throws IllegalAccessException {
+        List<List<Object>> data = new ArrayList<List<Object>>();
+
+        long midnight = ISODateTimeFormat.date().withZoneUTC().parseDateTime(fitbitActivityFacet.date).toDateMidnight().getMillis();
+        JSONObject intradayJson = JSONObject.fromObject(field.get(fitbitActivityFacet));
+
+        final String intradayMetricKey = "activities-log-" + metric + "-intraday";
+
+        if (intradayJson.has(intradayMetricKey)) {
+            JSONObject intradayDataJson = intradayJson.getJSONObject(intradayMetricKey);
+            if (intradayDataJson.has(DATASET_KEY)) {
+                JSONArray intradayDataArray = intradayDataJson.getJSONArray(DATASET_KEY);
+                for (int i=0; i<intradayDataArray.size(); i++) {
+                    JSONObject intradayDataRecord = intradayDataArray.getJSONObject(i);
+                    String time = intradayDataRecord.getString("time") + "Z";
+                    final LocalTime localTime = ISODateTimeFormat.timeNoMillis().parseLocalTime(time);
+                    final long timeGmt = (midnight + localTime.getMillisOfDay())/1000;
+                    int value = intradayDataRecord.getInt("value");
+                    List<Object> record = new ArrayList<Object>();
+                    record.add(timeGmt);
+                    record.add(value);
+                    if (metric.equals("calories")) {
+                        int level = intradayDataRecord.getInt("level");
+                        record.add(level);
+                        int mets = intradayDataRecord.getInt("mets");
+                        record.add(mets);
+                    }
+                    data.add(record);
+                }
+            }
+            final List<String> channelNames = !metric.equals("calories")
+                                            ? Arrays.asList(metric + "Intraday")
+                                            : Arrays.asList(metric + "Intraday", "levelsIntraday", "metsIntraday");
+
+            return bodyTrackHelper.uploadToBodyTrack(guestId, "Fitbit", channelNames, data);
+        }
+        return null;
     }
 
 }
