@@ -19,6 +19,7 @@ import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
 import org.fluxtream.core.connectors.updaters.UpdateFailedException;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
+import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.domain.Notification;
@@ -149,10 +150,13 @@ public class SleepAsAndroidUpdater extends AbstractUpdater {
         JSONObject topLevelObject = JSONObject.fromObject(json);
         JSONArray sleepsArray = topLevelObject.getJSONArray("sleeps");
         Long oldestFacetTime = null;
+        List<AbstractFacet> newFacets = new LinkedList<AbstractFacet>();
         for (int i = 0; i < sleepsArray.size(); i++){
             SleepFacet newFacet = createOrUpdateFacet(updateInfo, sleepsArray.getJSONObject(i));
+            newFacets.add(newFacet);
             oldestFacetTime = oldestFacetTime == null ? newFacet.end : Math.max(oldestFacetTime, newFacet.end);
         }
+        bodyTrackStorageService.storeApiData(updateInfo.getGuestId(),newFacets);
         return oldestFacetTime;
     }
 
