@@ -1,15 +1,16 @@
 package org.fluxtream.connectors.fitbit;
 
-import javax.persistence.Entity;
-import javax.persistence.Lob;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
 import org.fluxtream.core.domain.AbstractLocalTimeFacet;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.Updatable;
 import org.hibernate.search.annotations.Indexed;
+
+import javax.persistence.Entity;
+import javax.persistence.Lob;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 
 @Entity(name="Facet_FitbitActivity")
 @ObjectTypeSpec(name = "activity_summary", value = 1, extractor= FitbitActivityFacetExtractor.class, prettyname = "Activity Summary", isDateBased = true)
@@ -44,6 +45,15 @@ public class FitbitTrackerActivityFacet extends AbstractLocalTimeFacet implement
 	
 	@Lob
 	public String caloriesJson;
+
+    @Lob
+    public String distanceJson;
+
+    @Lob
+    public String floorsJson;
+
+    @Lob
+    public String elevationJson;
 
     public FitbitTrackerActivityFacet() {
         super();

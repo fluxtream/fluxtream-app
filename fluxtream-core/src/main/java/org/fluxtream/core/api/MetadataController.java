@@ -58,7 +58,6 @@ public class MetadataController {
     @ApiOperation(value = "Set the main city for a given day using lat/lon coordinates.", response = String.class,
             notes="(we figure out the actual city from the coordinates)",
             authorizations = {@Authorization(value="oauth2")})
-    @Produces({ MediaType.APPLICATION_JSON } )
     public Response setDayMainCity(@ApiParam(value="Latitude", required=true) @FormParam("latitude") float latitude,
                                       @ApiParam(value="Longitude", required=true) @FormParam("longitude") float longitude,
                                       @ApiParam(value="Date (YYYY-MM-DD)", required=true) @PathParam("date") String date) {

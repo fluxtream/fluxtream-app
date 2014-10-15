@@ -90,7 +90,7 @@
         </div>
         <div class="connector-img-cloud connector-img-cloud-lg col-xs-12 col-sm-12 col-md-12 col-lg-12">
             <div class="connector-cloud"></div>
-            <a href="#" class="hire-advert" title="contact">Need something custom? <strong>Hire us!</strong></a>
+            <a href="mailto:info@fluxtream.org" class="hire-advert" title="contact">Need something custom? <strong>Hire us!</strong></a>
 
         </div>
     </section>
@@ -235,7 +235,7 @@
         </div> <!-- /.row -->
         <div class="row">
           <div class="col-xs-12 col-sm-12">
-            <a class="github" href=""><span class="linkgithub">Fork on </span><span class="text-hide">GitHub</span></a>
+            <a class="github" href="https://github.com/fluxtream/fluxtream-app"><span class="linkgithub">Fork me on </span><span class="text-hide">GitHub</span></a>
           </div>
         </div>
     </div> <!-- /.container -->
