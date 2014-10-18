@@ -774,7 +774,6 @@ public class BodyTrackController {
             @ApiResponse(code=200, message="Channel style set"),
             @ApiResponse(code=403, message="In case of unauthorized access")
     })
-    @Produces({MediaType.APPLICATION_JSON})
     public Response setDefaultStyle(@ApiParam(value="User ID", required = true) @PathParam("UID") Long uid,
                                     @ApiParam(value="Device name", required = true) @PathParam("DeviceNickname") String deviceNickname,
                                     @ApiParam(value="Channel name", required = true) @PathParam("ChannelName") String channelName,
