@@ -36,7 +36,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Component
-@Updater(prettyName = "Sleep_As_Android", value = 351, objectTypes={SleepFacet.class}, bodytrackResponder=SleepAsAndroidBodytrackResponder.class)
+@Updater(prettyName = "Sleep_As_Android", value = 351, objectTypes={SleepFacet.class}, bodytrackResponder=SleepAsAndroidBodytrackResponder.class,
+         defaultChannels = {"sleep_as_android.sleep","sleep_as_android.actiGraph","sleep_as_android.cycles"})
 public class SleepAsAndroidUpdater extends AbstractUpdater {
 
     @Autowired
