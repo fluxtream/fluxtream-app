@@ -32,19 +32,7 @@ public class LastFmBodytrackResponder extends AbstractBodytrackResponder {
         final ObjectType recent_track = ObjectType.getObjectType(connector, "recent_track");
 
         String objectTypeName = apiKey.getConnector().getName() + "-" + recent_track.getName();
-        List<AbstractFacet> facets = getFacetsInTimespan(timeInterval,apiKey, recent_track);
-        //TODO: IMPORTANT we need to fetche these in sorted order, not sort them ourselves!
-        Collections.sort(facets, new Comparator<AbstractFacet>(){
-            public int compare(AbstractFacet o1, AbstractFacet o2) {
-                long diff = o1.end - o2.end;
-                if (diff < 0)
-                    return -1;
-                else if (diff > 0)
-                    return 1;
-                else
-                    return 0;
-            }
-        });
+        List<AbstractFacet> facets = getFacetsInTimespanOrderedByEnd(timeInterval,apiKey, recent_track);
 
         // Sadly, the start and end times of track facets are the same.  Assume that the
         // start time is correct and arbitrarily draw a box that's 3 mins or

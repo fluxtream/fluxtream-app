@@ -122,14 +122,20 @@ public class JPAFacetDao implements FacetDao {
 
 	@Override
 	public List<AbstractFacet> getFacetsBetween(final ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval) {
-        return getFacetsBetween(apiKey, objectType, timeInterval, null);
+        return getFacetsBetween(apiKey, objectType, timeInterval, null, null);
+    }
+
+    @Override
+    public List<AbstractFacet> getFacetsBetween(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval, @Nullable TagFilter tagFilter) {
+        return getFacetsBetween(apiKey, objectType, timeInterval, tagFilter, null);
     }
 
     @Override
     public List<AbstractFacet> getFacetsBetween(final ApiKey apiKey,
                                                 final ObjectType objectType,
                                                 final TimeInterval timeInterval,
-                                                @Nullable final TagFilter tagFilter) {
+                                                @Nullable final TagFilter tagFilter,
+                                                @Nullable final String orderByString) {
         if (objectType==null) {
             return getFacetsBetween(apiKey, timeInterval, tagFilter);
         } else {
@@ -142,11 +148,14 @@ public class JPAFacetDao implements FacetDao {
             if (tagFilter != null) additionalWhereClause.append(" AND (").append(tagFilter.getWhereClause()).append(")");
             if (objectType.isMixedType()) additionalWhereClause.append(" AND facet.allDayEvent=false ");
             if (objectType.visibleClause()!=null) additionalWhereClause.append(" AND ").append(objectType.visibleClause()).append(" ");
-            String queryString = new StringBuilder("SELECT facet FROM ")
+            StringBuilder queryStringBuilder = new StringBuilder("SELECT facet FROM ")
                     .append(facetName)
                     .append(" facet WHERE facet.apiKeyId=? AND facet.end>=? AND facet.start<=?")
-                    .append(additionalWhereClause)
-                    .toString();
+                    .append(additionalWhereClause);
+            if (orderByString != null){
+                queryStringBuilder.append(" ORDER BY ").append(orderByString);
+            }
+            String queryString= queryStringBuilder.toString();
             final TypedQuery<AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
             query.setParameter(1, apiKey.getId());
             query.setParameter(2, timeInterval.getStart());

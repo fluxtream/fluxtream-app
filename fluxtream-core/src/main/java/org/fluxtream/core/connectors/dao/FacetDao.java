@@ -19,6 +19,8 @@ public interface FacetDao {
 
     public List<AbstractFacet> getFacetsBetween(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval, @Nullable TagFilter tagFilter);
 
+    public List<AbstractFacet> getFacetsBetween(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval, @Nullable TagFilter tagFilter, @Nullable String orderByString);
+
     public AbstractFacet getOldestFacet(ApiKey apiKey, ObjectType objectType);
 
     public AbstractFacet getLatestFacet(ApiKey apiKey, ObjectType objectType);

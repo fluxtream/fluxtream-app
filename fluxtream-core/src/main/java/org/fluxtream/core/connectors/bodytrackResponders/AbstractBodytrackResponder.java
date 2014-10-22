@@ -60,6 +60,10 @@ public abstract class AbstractBodytrackResponder {
         //}
     }
 
+    protected List<AbstractFacet> getFacetsInTimespanOrderedByEnd(TimeInterval timeInterval, ApiKey apiKey, ObjectType objectType){
+        return apiDataService.getApiDataFacets(apiKey,objectType,timeInterval,null,"facet.end ASC");
+    }
+
     protected List<AbstractFacetVO<AbstractFacet>> getFacetVOsForFacets(List<AbstractFacet> facets,TimeInterval timeInterval, GuestSettings guestSettings){
         List<AbstractFacetVO<AbstractFacet>> facetVOs = new ArrayList<AbstractFacetVO<AbstractFacet>>();
 

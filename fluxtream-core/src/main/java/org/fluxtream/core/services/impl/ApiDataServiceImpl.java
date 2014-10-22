@@ -325,6 +325,15 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
     }
 
     @Override
+    public List<AbstractFacet> getApiDataFacets(ApiKey apiKey,
+                                                ObjectType objectType,
+                                                TimeInterval timeInterval,
+                                                @Nullable TagFilter tagFilter,
+                                                @Nullable String orderByString) {
+        return jpaDao.getFacetsBetween(apiKey,objectType,timeInterval,tagFilter,orderByString);
+    }
+
+    @Override
     public AbstractFacet getOldestApiDataFacet(ApiKey apiKey, ObjectType objectType){
         return jpaDao.getOldestFacet(apiKey, objectType);
     }
