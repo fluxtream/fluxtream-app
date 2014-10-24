@@ -25,7 +25,7 @@ public class FitbitAdminHelper {
 		
 		String json = signpostHelper
 				.makeRestCall(apiKey, -10,
-						"http://api.fitbit.com/1/user/-/apiSubscriptions.json");
+						"https://api.fitbit.com/1/user/-/apiSubscriptions.json");
 
 		JSONObject wrapper = JSONObject.fromObject(json);
 		JSONArray jsonSubscriptions = wrapper.getJSONArray("apiSubscriptions");
@@ -37,7 +37,7 @@ public class FitbitAdminHelper {
 		
 		String json = signpostHelper
 				.makeRestCall(apiKey, -10,
-						"http://api.fitbit.com/1/user/-/apiSubscriptions.json");
+						"https://api.fitbit.com/1/user/-/apiSubscriptions.json");
 
 		JSONObject wrapper = JSONObject.fromObject(json);
 		JSONArray jsonSubscriptions = wrapper.getJSONArray("apiSubscriptions");
