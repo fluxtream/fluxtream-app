@@ -68,9 +68,9 @@ public class FitbitOAuthController {
 				consumerSecret);
 
 		OAuthProvider provider = new DefaultOAuthProvider(
-				"http://api.fitbit.com/oauth/request_token",
-				"http://api.fitbit.com/oauth/access_token",
-				"http://api.fitbit.com/oauth/authorize");
+				"https://api.fitbit.com/oauth/request_token",
+				"https://api.fitbit.com/oauth/access_token",
+				"https://api.fitbit.com/oauth/authorize");
 
 		request.getSession().setAttribute(FITBIT_OAUTH_CONSUMER, consumer);
 		request.getSession().setAttribute(FITBIT_OAUTH_PROVIDER, provider);

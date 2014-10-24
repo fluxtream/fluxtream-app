@@ -274,7 +274,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         String json = "";
         try {
             json = makeRestCall(updateInfo,
-                    uri.hashCode(), "http://api.fitbit.com/1/user/-/" + uri
+                    uri.hashCode(), "https://api.fitbit.com/1/user/-/" + uri
                             + "/date/today/max.json");
         } catch (Throwable t) {
             // elevation and floors are not available for earlier trackers, so we can safely ignore them
@@ -540,7 +540,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
     private JSONArray getDeviceStatusesArray(final UpdateInfo updateInfo)
             throws RateLimitReachedException, UpdateFailedException, AuthExpiredException {
-        String urlString = "http://api.fitbit.com/1/user/-/devices.json";
+        String urlString = "https://api.fitbit.com/1/user/-/devices.json";
 
         final ObjectType customObjectType = ObjectType.getCustomObjectType(GET_USER_DEVICES_CALL);
         final int getUserDevicesObjectTypeID = customObjectType.value();
@@ -674,7 +674,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         if (facet.date != null) {
             String json = makeRestCall(updateInfo,
                     String.format("activities/log/%s/date", metric).hashCode(),
-                    String.format("http://api.fitbit.com/1/user/-/activities/log/%s/date/", metric)
+                    String.format("https://api.fitbit.com/1/user/-/activities/log/%s/date/", metric)
                             + facet.date + "/1d.json");
             field.set(facet, json);
             facetDao.merge(facet);
@@ -838,7 +838,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
 	private String getSleepData(UpdateInfo updateInfo, String formattedDate)
             throws RateLimitReachedException, UnexpectedResponseCodeException {
-		String urlString = "http://api.fitbit.com/1/user/-/sleep/date/"
+		String urlString = "https://api.fitbit.com/1/user/-/sleep/date/"
 				+ formattedDate + ".json";
 
 		String json = signpostHelper.makeRestCall(updateInfo.apiKey, sleepOT.value(), urlString);
@@ -848,7 +848,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
     private String getWeightData(UpdateInfo updateInfo, String formattedDate)
             throws RateLimitReachedException, UnexpectedResponseCodeException {
-        String urlString = "http://api.fitbit.com/1/user/-/body/log/weight/date/"
+        String urlString = "https://api.fitbit.com/1/user/-/body/log/weight/date/"
                            + formattedDate + ".json";
 
         String json = signpostHelper.makeRestCall(updateInfo.apiKey, weightOT.value(), urlString);
@@ -858,7 +858,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
     private String getBodyFatData(UpdateInfo updateInfo, String formattedDate)
             throws RateLimitReachedException, UnexpectedResponseCodeException {
-        String urlString = "http://api.fitbit.com/1/user/-/body/log/fat/date/"
+        String urlString = "https://api.fitbit.com/1/user/-/body/log/fat/date/"
                            + formattedDate + ".json";
 
         String json = signpostHelper.makeRestCall(updateInfo.apiKey, weightOT.value(), urlString);
@@ -869,7 +869,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
     private String getActivityData(UpdateInfo updateInfo, String formattedDate)
             throws RateLimitReachedException, UnexpectedResponseCodeException {
 
-		String urlString = "http://api.fitbit.com/1/user/-/activities/date/"
+		String urlString = "https://api.fitbit.com/1/user/-/activities/date/"
 				+ formattedDate + ".json";
 
 		String json = signpostHelper.makeRestCall(updateInfo.apiKey, activityOT.value()+loggedActivityOT.value(), urlString);
