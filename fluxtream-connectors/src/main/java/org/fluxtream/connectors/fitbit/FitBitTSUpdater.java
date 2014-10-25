@@ -8,7 +8,6 @@ import org.apache.commons.io.IOUtils;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.connectors.Autonomous;
 import org.fluxtream.core.connectors.ObjectType;
-import org.fluxtream.core.connectors.SignpostOAuthHelper;
 import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.updaters.*;
 import org.fluxtream.core.domain.AbstractFacet;
@@ -53,9 +52,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
     private final String INTRADAY_HISTORY_IMPORT_COMPLETE_ATT = "intraday.history.import.complete";
 
     FlxLogger logger = FlxLogger.getLogger(FitBitTSUpdater.class);
-
-	@Autowired
-	SignpostOAuthHelper signpostHelper;
 
 	@Autowired
 	MetadataService metadataService;
@@ -274,7 +270,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         String json = "";
         try {
             json = makeRestCall(updateInfo,
-                    uri.hashCode(), "http://api.fitbit.com/1/user/-/" + uri
+                    uri.hashCode(), "https://api.fitbit.com/1/user/-/" + uri
                             + "/date/today/max.json");
         } catch (Throwable t) {
             // elevation and floors are not available for earlier trackers, so we can safely ignore them
@@ -540,7 +536,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
     private JSONArray getDeviceStatusesArray(final UpdateInfo updateInfo)
             throws RateLimitReachedException, UpdateFailedException, AuthExpiredException {
-        String urlString = "http://api.fitbit.com/1/user/-/devices.json";
+        String urlString = "https://api.fitbit.com/1/user/-/devices.json";
 
         final ObjectType customObjectType = ObjectType.getCustomObjectType(GET_USER_DEVICES_CALL);
         final int getUserDevicesObjectTypeID = customObjectType.value();
@@ -674,7 +670,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         if (facet.date != null) {
             String json = makeRestCall(updateInfo,
                     String.format("activities/log/%s/date", metric).hashCode(),
-                    String.format("http://api.fitbit.com/1/user/-/activities/log/%s/date/", metric)
+                    String.format("https://api.fitbit.com/1/user/-/activities/log/%s/date/", metric)
                             + facet.date + "/1d.json");
             field.set(facet, json);
             facetDao.merge(facet);
@@ -837,42 +833,42 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 	}
 
 	private String getSleepData(UpdateInfo updateInfo, String formattedDate)
-            throws RateLimitReachedException, UnexpectedResponseCodeException {
-		String urlString = "http://api.fitbit.com/1/user/-/sleep/date/"
+            throws RateLimitReachedException, UnexpectedResponseCodeException, UpdateFailedException, AuthExpiredException {
+		String urlString = "https://api.fitbit.com/1/user/-/sleep/date/"
 				+ formattedDate + ".json";
 
-		String json = signpostHelper.makeRestCall(updateInfo.apiKey, sleepOT.value(), urlString);
+		String json = makeRestCall(updateInfo, sleepOT.value(), urlString);
 
 		return json;
 	}
 
     private String getWeightData(UpdateInfo updateInfo, String formattedDate)
-            throws RateLimitReachedException, UnexpectedResponseCodeException {
-        String urlString = "http://api.fitbit.com/1/user/-/body/log/weight/date/"
+            throws RateLimitReachedException, UnexpectedResponseCodeException, UpdateFailedException, AuthExpiredException {
+        String urlString = "https://api.fitbit.com/1/user/-/body/log/weight/date/"
                            + formattedDate + ".json";
 
-        String json = signpostHelper.makeRestCall(updateInfo.apiKey, weightOT.value(), urlString);
+        String json = makeRestCall(updateInfo, weightOT.value(), urlString);
 
         return json;
     }
 
     private String getBodyFatData(UpdateInfo updateInfo, String formattedDate)
-            throws RateLimitReachedException, UnexpectedResponseCodeException {
-        String urlString = "http://api.fitbit.com/1/user/-/body/log/fat/date/"
+            throws RateLimitReachedException, UnexpectedResponseCodeException, UpdateFailedException, AuthExpiredException {
+        String urlString = "https://api.fitbit.com/1/user/-/body/log/fat/date/"
                            + formattedDate + ".json";
 
-        String json = signpostHelper.makeRestCall(updateInfo.apiKey, weightOT.value(), urlString);
+        String json = makeRestCall(updateInfo, weightOT.value(), urlString);
 
         return json;
     }
 
     private String getActivityData(UpdateInfo updateInfo, String formattedDate)
-            throws RateLimitReachedException, UnexpectedResponseCodeException {
+            throws RateLimitReachedException, UnexpectedResponseCodeException, UpdateFailedException, AuthExpiredException {
 
-		String urlString = "http://api.fitbit.com/1/user/-/activities/date/"
+		String urlString = "https://api.fitbit.com/1/user/-/activities/date/"
 				+ formattedDate + ".json";
 
-		String json = signpostHelper.makeRestCall(updateInfo.apiKey, activityOT.value()+loggedActivityOT.value(), urlString);
+		String json = makeRestCall(updateInfo, activityOT.value() + loggedActivityOT.value(), urlString);
 
 		return json;
 	}
