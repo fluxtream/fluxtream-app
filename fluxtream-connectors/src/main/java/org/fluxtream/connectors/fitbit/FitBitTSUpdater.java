@@ -294,6 +294,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                                                        date);
                 if (facet == null) {
                     facet = new FitbitSleepFacet(updateInfo.apiKey.getId());
+                    facet.isEmpty = true;
                     facet.date = date;
                     facet.api = connector().value();
                     facet.guestId = updateInfo.apiKey.getGuestId();
@@ -369,9 +370,17 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 			String fieldName) {
 		if (fieldName.equals("startTime")) {
 			storeTime(entry.getString("value"), facet);
-		} else
-			setFieldValue(facet, fieldName, entry.getString("value"));
-		facetDao.merge(facet);
+            // let's delete empty sleep entries as soon as we can
+            if (facet.start==0)
+                facetDao.delete(facet);
+            else {
+                facet.isEmpty = false;
+                facetDao.merge(facet);
+            }
+		} else {
+            setFieldValue(facet, fieldName, entry.getString("value"));
+            facetDao.merge(facet);
+        }
 	}
 
 	private final static DateTimeFormatter format = DateTimeFormat

@@ -1,6 +1,5 @@
 package org.fluxtream.core.connectors.dao;
 
-import java.util.List;
 import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.domain.AbstractFacet;
@@ -8,6 +7,8 @@ import org.fluxtream.core.domain.AbstractRepeatableFacet;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.TagFilter;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public interface FacetDao {
 
@@ -42,4 +43,6 @@ public interface FacetDao {
     public void persist(Object o);
 
     public void merge(Object o);
+
+    public void delete(AbstractFacet facet);
 }

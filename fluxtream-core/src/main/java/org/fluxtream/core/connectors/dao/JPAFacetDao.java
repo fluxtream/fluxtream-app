@@ -1,15 +1,5 @@
 package org.fluxtream.core.connectors.dao;
 
-import java.lang.reflect.Method;
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.TemporalType;
-import javax.persistence.TypedQuery;
 import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.connectors.Connector;
@@ -32,6 +22,12 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.*;
+import java.lang.reflect.Method;
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 @Repository
 @Component
@@ -432,5 +428,12 @@ public class JPAFacetDao implements FacetDao {
 	public void merge(Object o) {
 		em.merge(o);
 	}
+
+    @Override
+    @Transactional(readOnly=false)
+    public void delete(AbstractFacet facet) {
+        AbstractFacet merged = em.merge(facet);
+        em.remove(merged);
+    }
 
 }

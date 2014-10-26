@@ -14,6 +14,10 @@ define([],function(){
             var details = currentArray[0].getDetails(currentArray);
             var content = $(templates.item.render({item:details.outerHTML()}));
             var hasAllDayData = false;
+            // let's not append empty events
+            if (!_.isUndefined(currentArray[0]["isEmpty"])&&currentArray[0]["isEmpty"]){
+                return false;
+            }
             if (!_.isUndefined(currentArray[0]["allDay"])&&currentArray[0]["allDay"]){
                 hasAllDayData = true;
                 allDay.append(content);
