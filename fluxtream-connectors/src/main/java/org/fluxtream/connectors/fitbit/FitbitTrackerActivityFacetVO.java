@@ -1,12 +1,13 @@
 package org.fluxtream.connectors.fitbit;
 
-import java.util.ArrayList;
-import java.util.List;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.connectors.vos.AbstractLocalTimeInstantFacetVO;
 import org.fluxtream.core.domain.GuestSettings;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class FitbitTrackerActivityFacetVO extends AbstractLocalTimeInstantFacetVO<FitbitTrackerActivityFacet> {
 
@@ -16,6 +17,8 @@ public class FitbitTrackerActivityFacetVO extends AbstractLocalTimeInstantFacetV
 	List<FitbitCaloriesVO> caloriesPerMinute;
     public int activeScore;
     public float MET;
+    public final boolean allDay = true;
+
 	@Override
 	public void fromFacet(FitbitTrackerActivityFacet facet, TimeInterval timeInterval, GuestSettings settings) {
         this.date = facet.date;

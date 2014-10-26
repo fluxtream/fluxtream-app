@@ -222,7 +222,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
 		for (var i = 0; i < items.length; i++) {
 			try {
 				var item = items[i];
-                if (item.type==="google_calendar-entry"&&item.allDay)
+                if (!_.isUndefined(item["allDay"])&&item["allDay"])
                     continue;
                 var color = getItemColor(item);
                 var strokeWidth = getStrokeWidth(item);
