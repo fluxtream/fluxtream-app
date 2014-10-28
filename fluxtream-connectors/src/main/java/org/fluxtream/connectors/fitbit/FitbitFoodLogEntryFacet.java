@@ -4,6 +4,8 @@ import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 import org.fluxtream.core.domain.AbstractLocalTimeFacet;
 
 import javax.persistence.Entity;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 
 /**
  * User: candide
@@ -12,6 +14,12 @@ import javax.persistence.Entity;
  */
 @Entity(name="Facet_FitbitFoodLogEntry")
 @ObjectTypeSpec(name = "food_log_entry", value = 16, prettyname = "Food Log Entry", isDateBased = true)
+@NamedQueries({
+        @NamedQuery(name = "fitbit.foodLog.entry.byDate",
+                query = "SELECT facet FROM Facet_FitbitFoodLogEntry facet WHERE facet.apiKeyId=? AND facet.date=?"),
+        @NamedQuery(name = "fitbit.foodLog.entry.latest",
+                query = "SELECT facet FROM Facet_FitbitFoodLogEntry facet WHERE facet.apiKeyId=? ORDER BY facet.start DESC")
+})
 public class FitbitFoodLogEntryFacet extends AbstractLocalTimeFacet {
 
     public String accessLevel;
@@ -35,6 +43,8 @@ public class FitbitFoodLogEntryFacet extends AbstractLocalTimeFacet {
     public float NV_Sodium;
 
     public FitbitFoodLogEntryFacet() {super();}
+
+    public FitbitFoodLogEntryFacet(final long apiKeyId) {super(apiKeyId);}
 
     @Override
     protected void makeFullTextIndexable() {
