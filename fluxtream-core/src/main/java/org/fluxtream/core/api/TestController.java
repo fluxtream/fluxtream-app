@@ -120,10 +120,10 @@ public class TestController {
         String fitbitSubscriberId = env.get("fitbitSubscriberId");
         final Guest guest = AuthHelper.getGuest();
         ApiKey apiKey = guestService.getApiKey(guest.getId(), Connector.getConnector("fitbit"));
-//        final String fitbitResponse = makeRestCall(apiKey, ObjectType.getCustomObjectType(SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL).value(),
-//                "https://api.fitbit.com/1/user/-/apiSubscriptions/" + fitbitSubscriberId + ".json", "POST");
         final String fitbitResponse = makeRestCall(apiKey, ObjectType.getCustomObjectType(SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL).value(),
-                "https://api.fitbit.com/1/user/-/activities/date/2013-02-25.json");
+                "https://api.fitbit.com/1/user/-/apiSubscriptions/" + fitbitSubscriberId + ".json", "POST");
+//        final String fitbitResponse = makeRestCall(apiKey, ObjectType.getCustomObjectType(SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL).value(),
+//                "https://api.fitbit.com/1/user/-/activities/date/2013-02-25.json");
         return Response.ok().entity(fitbitResponse).build();
     }
 
