@@ -37,7 +37,6 @@
     <http pattern="/widgets/**" security="none" />
 
     <!-- api ping -->
-    <http pattern="/api/v1/test/**" security="none" />
     <http pattern="/api/v1/ping" security="none" />
 
     <!-- facebook login and sharing -->
