@@ -139,30 +139,31 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 	@Override
 	public void updateConnectorDataHistory(UpdateInfo updateInfo)
 			throws Exception {
-        // sleep
 
+        // sleep
+        
         loadTimeSeries("sleep/timeInBed", updateInfo, sleepOT,
-                       "timeInBed");
+                "timeInBed");
         loadTimeSeries("sleep/startTime", updateInfo, sleepOT,
-                       "startTime");
+                "startTime");
         loadTimeSeries("sleep/minutesAsleep", updateInfo, sleepOT,
-                       "minutesAsleep");
+                "minutesAsleep");
         loadTimeSeries("sleep/minutesAwake", updateInfo, sleepOT,
-                       "minutesAwake");
+                "minutesAwake");
         loadTimeSeries("sleep/minutesToFallAsleep", updateInfo,
-                       sleepOT, "minutesToFallAsleep");
+                sleepOT, "minutesToFallAsleep");
         loadTimeSeries("sleep/minutesAfterWakeup", updateInfo,
-                       sleepOT, "minutesAfterWakeup");
+                sleepOT, "minutesAfterWakeup");
         loadTimeSeries("sleep/awakeningsCount", updateInfo, sleepOT, "awakeningsCount");
 
         // activities
 
         loadTimeSeries("activities/tracker/calories", updateInfo,
-                       activityOT, "caloriesOut");
+                activityOT, "caloriesOut");
         loadTimeSeries("activities/tracker/steps", updateInfo,
-                       activityOT, "steps");
+                activityOT, "steps");
         loadTimeSeries("activities/tracker/distance", updateInfo,
-                       activityOT, "totalDistance");
+                activityOT, "totalDistance");
 
         // The floors and elevation APIs report 400 errors if called on
         // an account which has never been bound to a Fitbit device which
@@ -170,21 +171,21 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         // reading these APIs.  In the future, perhaps check the device
         // type and conditionally call these APIs.
         loadTimeSeries("activities/tracker/floors", updateInfo,
-                       activityOT, "floors");
+                activityOT, "floors");
         loadTimeSeries("activities/tracker/elevation", updateInfo,
-                       activityOT, "elevation");
+                activityOT, "elevation");
         loadTimeSeries("activities/tracker/minutesSedentary",
-                       updateInfo, activityOT, "sedentaryMinutes");
+                updateInfo, activityOT, "sedentaryMinutes");
         loadTimeSeries("activities/tracker/minutesLightlyActive",
-                       updateInfo, activityOT, "lightlyActiveMinutes");
+                updateInfo, activityOT, "lightlyActiveMinutes");
         loadTimeSeries("activities/tracker/minutesFairlyActive",
-                       updateInfo, activityOT, "fairlyActiveMinutes");
+                updateInfo, activityOT, "fairlyActiveMinutes");
         loadTimeSeries("activities/tracker/minutesVeryActive",
-                       updateInfo, activityOT, "veryActiveMinutes");
+                updateInfo, activityOT, "veryActiveMinutes");
         loadTimeSeries("activities/tracker/activeScore", updateInfo,
-                       activityOT, "activeScore");
+                activityOT, "activeScore");
         loadTimeSeries("activities/tracker/activityCalories",
-                       updateInfo, activityOT, "activityCalories");
+                updateInfo, activityOT, "activityCalories");
 
         // weight
         // Store the time when we're asking about the weight in case this
@@ -192,11 +193,11 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         long weightRequestMillis = System.currentTimeMillis();
 
         loadTimeSeries("body/weight", updateInfo, weightOT,
-                       "weight");
+                "weight");
         loadTimeSeries("body/bmi", updateInfo, weightOT,
-                       "bmi");
+                "bmi");
         loadTimeSeries("body/fat", updateInfo, weightOT,
-                       "fat");
+                "fat");
 
         jpaDaoService.execute("DELETE FROM Facet_FitbitSleep sleep WHERE sleep.start=0");
         final JSONArray deviceStatusesArray = getDeviceStatusesArray(updateInfo);
@@ -206,19 +207,18 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
         try {
             trackerLastSyncDate = getLastServerSyncMillis(deviceStatusesArray, "TRACKER");
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             logger.info("guestId=" + updateInfo.getGuestId() +
-                        " connector=fitbit action=updateConnectorDataHistory " +
-                        " message=\"Error getting TRACKER.lastSyncDate\" stackTrace=<![CDATA[\"" + t.getStackTrace() + "]]>");
+                    " connector=fitbit action=updateConnectorDataHistory " +
+                    " message=\"Error getting TRACKER.lastSyncDate\" stackTrace=<![CDATA[\"" + t.getStackTrace() + "]]>");
         }
 
-        if(trackerLastSyncDate==-1) {
+        if (trackerLastSyncDate == -1) {
             // Default to yesterday if no better value is available
             trackerLastSyncDate = System.currentTimeMillis() - DateTimeConstants.MILLIS_PER_DAY;
         }
         guestService.setApiKeyAttribute(updateInfo.apiKey, "TRACKER.lastSyncDate",
-                                        String.valueOf(trackerLastSyncDate));
+                String.valueOf(trackerLastSyncDate));
 
         // Store SCALE.lastSyncDate
         long scaleLastSyncDate = -1;
@@ -227,20 +227,19 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             scaleLastSyncDate = getLastServerSyncMillis(deviceStatusesArray, "SCALE");
         } catch (Throwable t) {
             logger.info("guestId=" + updateInfo.getGuestId() +
-                        " connector=fitbit action=updateConnectorDataHistory " +
-                        " message=\"Error getting SCALE.lastSyncDate\" stackTrace=<![CDATA[\"" + t.getStackTrace() + "]]>");
+                    " connector=fitbit action=updateConnectorDataHistory " +
+                    " message=\"Error getting SCALE.lastSyncDate\" stackTrace=<![CDATA[\"" + t.getStackTrace() + "]]>");
         }
 
         // In the case that the scale doesn't have a valid scaleLastSyncDate, store
         // the timestamp for when we asked about the weight for use in doing incremental
         // weight updates later on
-        if(scaleLastSyncDate == -1) {
+        if (scaleLastSyncDate == -1) {
             guestService.setApiKeyAttribute(updateInfo.apiKey, "SCALE.lastSyncDate",
-                                                        String.valueOf(weightRequestMillis));
-        }
-        else {
+                    String.valueOf(weightRequestMillis));
+        } else {
             guestService.setApiKeyAttribute(updateInfo.apiKey, "SCALE.lastSyncDate",
-                                        String.valueOf(scaleLastSyncDate));
+                    String.valueOf(scaleLastSyncDate));
         }
 
         // Flush the initial fitbit history data to the datastore.
@@ -265,13 +264,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         }
     }
 
-	private boolean isToday(String date, long guestId) {
-		TimeZone tz = metadataService.getCurrentTimeZone(guestId);
-		String today = TimeUtils.dateFormatter.withZone(DateTimeZone.forTimeZone(tz)).print(
-				System.currentTimeMillis());
-		return date.equals(today);
-	}
-
 	public void loadTimeSeries(String uri, UpdateInfo updateInfo,
 			ObjectType objectType, String fieldName)
 			throws RateLimitReachedException {
@@ -290,8 +282,15 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             }
         }
 
-		JSONObject timeSeriesJson = JSONObject.fromObject(json);
-		String resourceName = uri.replace('/', '-');
+
+		JSONObject timeSeriesJson;
+        try {
+            timeSeriesJson = JSONObject.fromObject(json);
+        } catch (Throwable t) {
+            logger.warn("Could not load time series, objectType=" + objectType.getName() + ", fieldName=" + fieldName);
+            return;
+        }
+ 		String resourceName = uri.replace('/', '-');
 		JSONArray timeSeriesArray = timeSeriesJson.getJSONArray(resourceName);
 		for (int i = 0; i < timeSeriesArray.size(); i++) {
             JSONObject entry = timeSeriesArray.getJSONObject(i);
@@ -648,7 +647,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         maybeRetrieveFitbitUserInfo(updateInfo);
 
         // Also, food logging requires that the user subscribe to fitbit's notifications
-        maybeSubscribeToFitbitNotifications(updateInfo);
+//        maybeSubscribeToFitbitNotifications(updateInfo);
 
         // We want to fill-in the historical caloriesIn data
         maybeImportCaloriesInHistory(updateInfo);
@@ -659,6 +658,10 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             return;
         loadTimeSeries("foods/log/caloriesIn", updateInfo, foodLogSummaryOT,
                 "calories");
+        // add in water intake for good measure
+        loadTimeSeries("foods/log/water", updateInfo, foodLogSummaryOT,
+                "water");
+        // TODO: force datastore re-import here
         guestService.setApiKeyAttribute(updateInfo.apiKey, CALORIES_IN_HISTORY_IMPORTED, String.valueOf(true));
     }
 
@@ -669,10 +672,13 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         try {
             String fitbitSubscriberId = env.get("fitbitSubscriberId");
             makeRestCall(updateInfo, ObjectType.getCustomObjectType(SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL).value(),
-                    "https://api.fitbit.com/1/user/-/apiSubscriptions/" + fitbitSubscriberId + ".json");
+                    "https://api.fitbit.com/1/user/-/apiSubscriptions/" + fitbitSubscriberId + ".json", "POST");
         } catch (UnexpectedResponseCodeException e) {
-            notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
-                    "Subscription Conflict", "It looks like you are already subscribed to notifications with this key on another server (http error code: " + e.responseCode + ")");
+            if (e.responseCode==429) {
+                notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
+                        "Subscription Conflict", "It looks like you are already subscribed to notifications with this key on another server (http error code: " + e.responseCode + ")");
+            }
+            logger.warn("Could not subscribe guest " + updateInfo.getGuestId() + " to fitbit notifications (Fitbit API's HTTP code: " + e.responseCode + ")");
             return;
         }
 
@@ -1104,7 +1110,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 	}
 
     public final String makeRestCall(final UpdateInfo updateInfo,
-                                     final int objectTypes, final String urlString)
+                                     final int objectTypes, final String urlString, final String...method)
             throws RateLimitReachedException, UpdateFailedException, AuthExpiredException, UnexpectedResponseCodeException {
 
         // if we're calling the API from this thread multiple times, the allowed remaining API calls will be saved
@@ -1131,6 +1137,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             } catch (Exception e) {
                 throw new RuntimeException("OAuth exception: " + e.getMessage());
             }
+            if (method!=null && method.length>0)
+                request.setRequestMethod(method[0]);
             request.connect();
             final int httpResponseCode = request.getResponseCode();
 
