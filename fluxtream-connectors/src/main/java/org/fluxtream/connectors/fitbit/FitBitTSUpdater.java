@@ -634,22 +634,27 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         }
 
         // now let's backfill logged activities, sleep and food as far in the past as we can
-        boolean rateLimitReached = false;
-        DateTimeZone zone = getFitbitUserTimezone(updateInfo);
-        LocalDate date = new LocalDate(zone);
-        while (!rateLimitReached) {
-            try {
-                String formattedDate = TimeUtils.dateFormatter.print(date);
-                loadActivityDataForOneDay(updateInfo, formattedDate);
-                loadSleepDataForOneDay(updateInfo, formattedDate);
-                loadFoodDataForOneDay(updateInfo, formattedDate);
-                loadIntradayDataForOneDay(updateInfo, formattedDate);
-            } catch (RateLimitReachedException rlre) {
-                rateLimitReached = true;
+        // but leaving 50 "spare" API calls for other updates
+        // note: we know that updateInfo's remainingAPICalls property has been set since there is always a mandatory
+        // call to getDeviceStatusesArray() (https://api.fitbit.com/1/user/-/devices.json)
+        // TODO: incrementally go farther back in time, keep track of up to when we've got to and start from there next time
+        if (updateInfo.getRemainingAPICalls("fitbit")>50) {
+            boolean rateLimitReached = false;
+            DateTimeZone zone = getFitbitUserTimezone(updateInfo);
+            LocalDate date = new LocalDate(zone);
+            while (!rateLimitReached) {
+                try {
+                    String formattedDate = TimeUtils.dateFormatter.print(date);
+                    loadActivityDataForOneDay(updateInfo, formattedDate);
+                    loadSleepDataForOneDay(updateInfo, formattedDate);
+                    loadFoodDataForOneDay(updateInfo, formattedDate);
+                    loadIntradayDataForOneDay(updateInfo, formattedDate);
+                } catch (RateLimitReachedException rlre) {
+                    rateLimitReached = true;
+                }
+                date = date.minusDays(1);
             }
-            date = date.minusDays(1);
         }
-
         initChannelMapping(updateInfo);
 	}
 
@@ -1140,8 +1145,22 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             throws RateLimitReachedException, UpdateFailedException, AuthExpiredException, UnexpectedResponseCodeException {
 
         // if we're calling the API from this thread multiple times, the allowed remaining API calls will be saved
-        // in the updateInfo. This assumes that an updater will not be called
+        // in the updateInfo
         final Integer remainingAPICalls = updateInfo.getRemainingAPICalls("fitbit");
+        if (remainingAPICalls==null) {
+            // remainingAPICalls not being in the updateInfo means this is the first time we are calling the API
+            // from within this update and so we should be able to get it from the apiKey (unless this is the
+            // very first call for this connector, in which case we are most probably not rate limited)
+            String apiKeyAttResetTime = guestService.getApiKeyAttribute(updateInfo.apiKey, "resetTime");
+            if (apiKeyAttResetTime!=null) {
+                long resetTime = Long.valueOf(apiKeyAttResetTime);
+                if (resetTime<System.currentTimeMillis()) {
+                    // reset updateInfo's reset time to this stored value so we don't delay next update to a default amount
+                    updateInfo.setResetTime("fitbit", resetTime);
+                    throw new RateLimitReachedException();
+                }
+            }
+        }
         if (remainingAPICalls!=null&&remainingAPICalls<1)
             throw new RateLimitReachedException();
 
@@ -1191,12 +1210,17 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                 // Check for response code 429 which is Fitbit's over rate limit error
                 if(httpResponseCode == 429) {
                     // try to retrieve the reset time from Fitbit, otherwise default to a one hour delay
+                    // also, set resetTime as an apiKey attribute so we don't retry calling the API too soon
                     final String rateLimitResetSeconds = request.getHeaderField("Fitbit-Rate-Limit-Reset");
                     if (rateLimitResetSeconds!=null) {
                         int millisUntilReset = Integer.valueOf(rateLimitResetSeconds)*1000;
-                        updateInfo.setResetTime("fitbit", System.currentTimeMillis()+millisUntilReset);
+                        final long resetTime = System.currentTimeMillis() + millisUntilReset;
+                        guestService.setApiKeyAttribute(updateInfo.apiKey, "resetTime", String.valueOf(resetTime));
+                        updateInfo.setResetTime("fitbit", resetTime);
                     } else {
-                        updateInfo.setResetTime("fitbit", System.currentTimeMillis()+60*DateTimeConstants.MILLIS_PER_HOUR);
+                        final long resetTime = System.currentTimeMillis() + 60 * DateTimeConstants.MILLIS_PER_HOUR;
+                        guestService.setApiKeyAttribute(updateInfo.apiKey, "resetTime", String.valueOf(resetTime));
+                        updateInfo.setResetTime("fitbit", resetTime);
                     }
                     throw new RateLimitReachedException();
                 }
