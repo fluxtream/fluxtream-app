@@ -52,7 +52,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Component;
 
-@Path("/admin")
+@Path("/v1/admin")
 @Component("RESTAdminController")
 @Scope("request")
 public class AdminController {

@@ -701,6 +701,7 @@ public class MetadataServiceImpl implements MetadataService {
                 newCity = getClosestCity(locationResource.latitude, locationResource.longitude);
             }
 
+            //TODO: gracefully handle if bad data comes in from database (ie no timezone/invalid timezone)
             String newDate = TimeUtils.dateFormatter.withZone(DateTimeZone.forID(newCity.geo_timezone)).print(locationResource.timestampMs);
             final boolean dateChanged = !newDate.equals(currentDate);
             final boolean cityChanged = newCity.geo_id!=anchorCity.geo_id;
