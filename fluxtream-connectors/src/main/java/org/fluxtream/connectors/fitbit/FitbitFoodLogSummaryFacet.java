@@ -13,7 +13,7 @@ import javax.persistence.NamedQuery;
  * Time: 01:08
  */
 @Entity(name="Facet_FitbitFoodLogSummary")
-@ObjectTypeSpec(name = "food_log_summary", value = 32, prettyname = "Food Log Summary", isDateBased = true)
+@ObjectTypeSpec(name = "food_log_summary", value = 32, extractor= FitbitFoodLogFacetExtractor.class, prettyname = "Food Log Summary", isDateBased = true)
 @NamedQueries({
         @NamedQuery(name = "fitbit.foodLog.summary.byDate",
                 query = "SELECT facet FROM Facet_FitbitFoodLogSummary facet WHERE facet.apiKeyId=? AND facet.date=?"),

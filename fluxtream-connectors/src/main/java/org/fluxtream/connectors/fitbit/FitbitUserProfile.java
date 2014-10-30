@@ -1,17 +1,20 @@
 package org.fluxtream.connectors.fitbit;
 
-import java.util.TimeZone;
+import org.fluxtream.core.domain.AbstractUserProfile;
 
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-
-import org.fluxtream.core.domain.AbstractUserProfile;
+import java.util.TimeZone;
 
 @Entity(name="FitbitUserProfile")
 @NamedQueries ( {
 	@NamedQuery( name="fitbitUser.byEncodedId",
-			query="SELECT fitbitUser FROM FitbitUserProfile fitbitUser WHERE fitbitUser.encodedId=?")
+			query="SELECT fitbitUser FROM FitbitUserProfile fitbitUser WHERE fitbitUser.encodedId=?"),
+    @NamedQuery( name="fitbitUser.byGuestId",
+            query="SELECT fitbitUser FROM FitbitUserProfile fitbitUser WHERE fitbitUser.guestId=?"),
+    @NamedQuery( name="fitbitUser.delete",
+            query="DELETE FROM FitbitUserProfile fitbitUser WHERE fitbitUser.guestId=?")
 })
 public class FitbitUserProfile extends AbstractUserProfile {
 

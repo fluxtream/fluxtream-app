@@ -37,9 +37,9 @@ public class FitbitFoodLogFacetExtractor extends AbstractFacetExtractor {
                 " connector=fitbit action=extractFacets objectType="
                 + objectType.getName());
 
-        if (objectType.getName().equals("activity_summary"))
+        if (objectType.getName().equals("food_log_summary"))
             extractFoodLogSummaryInfo(apiData, fitbitResponse, facets);
-        else if (objectType.getName().equals("logged_activity"))
+        else if (objectType.getName().equals("food_log_entry"))
             extractFoodLogEntries(apiData, fitbitResponse, facets);
         else
             logger.info("guestId=" + apiData.updateInfo.getGuestId() +
@@ -127,7 +127,7 @@ public class FitbitFoodLogFacetExtractor extends AbstractFacetExtractor {
                 if (loggedFood.has("accessLevel"))
                     facet.accessLevel = loggedFood.getString("accessLevel");
                 if (loggedFood.has("amount"))
-                    facet.amount = (float) loggedFood.getDouble("accessLevel");
+                    facet.amount = (float) loggedFood.getDouble("amount");
                 if (loggedFood.has("brand"))
                     facet.brand = loggedFood.getString("brand");
                 if (loggedFood.has("calories"))

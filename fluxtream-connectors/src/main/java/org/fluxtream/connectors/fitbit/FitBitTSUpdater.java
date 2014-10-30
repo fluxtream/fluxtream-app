@@ -46,7 +46,8 @@ import java.util.*;
 @Controller
 @Updater(prettyName = "Fitbit", value = 7, objectTypes = {
 		FitbitTrackerActivityFacet.class, FitbitLoggedActivityFacet.class,
-		FitbitSleepFacet.class, FitbitWeightFacet.class },
+		FitbitSleepFacet.class, FitbitWeightFacet.class, FitbitFoodLogSummaryFacet.class,
+        FitbitFoodLogEntryFacet.class},
         bodytrackResponder = FitbitBodytrackResponder.class,
         defaultChannels = {"Fitbit.steps","Fitbit.caloriesOut"})
 public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
@@ -141,7 +142,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 			throws Exception {
 
         // sleep
-        
+
         loadTimeSeries("sleep/timeInBed", updateInfo, sleepOT,
                 "timeInBed");
         loadTimeSeries("sleep/startTime", updateInfo, sleepOT,
@@ -487,7 +488,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             // For the tracker, we only want to update if the device has really updated and we want to update
             // from the date corresponding to trackerLastStoredSyncMillis
             // to the date of scaleLastServerSyncMillis
-            return getListOfDatesBetween(lastStoredSyncMillis, trackerLastServerSyncMillis);
+            return getListOfDatesBetween(updateInfo, lastStoredSyncMillis, trackerLastServerSyncMillis);
         }
         else if (deviceType.equals("SCALE")) {
             // In the case of an account without a hardware scale, the server never returns a valid scale sync time,
@@ -516,8 +517,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                 return new ArrayList<String>();
             }
 
-            return getListOfDatesBetween(lastStoredSyncMillis,
-                                         endMillis);
+            return getListOfDatesBetween(updateInfo, lastStoredSyncMillis, endMillis);
         }
         return new ArrayList<String>();
     }
@@ -540,16 +540,16 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         return -1;
     }
 
-    private List<String> getListOfDatesBetween(final long startMillis, final long endMillis) {
+    private List<String> getListOfDatesBetween(final UpdateInfo updateInfo, final long startMillis, final long endMillis) {
         List<String> dates = new ArrayList<String>();
         // TODO: what really matters here is the date that the Fitbit server uses for the
         // tracker update times, so this isn't quite right
-        final DateTimeZone utc = DateTimeZone.UTC;
-        final LocalDate startDate = new LocalDate(startMillis, utc);
+        final DateTimeZone zone = getFitbitUserTimezone(updateInfo);
+        final LocalDate startDate = new LocalDate(startMillis, zone);
         // in order to have the date of endMillis in the resulting list we need to add a
         // a day
         final long dayAfterEnd = endMillis + DateTimeConstants.MILLIS_PER_DAY;
-        int days = Days.daysBetween(startDate, new LocalDate(dayAfterEnd, utc)).getDays();
+        int days = Days.daysBetween(startDate, new LocalDate(dayAfterEnd, zone)).getDays();
         for (int i = 0; i < days; i++) {
             LocalDate d = startDate.withFieldAdded(DurationFieldType.days(), i);
             String dateString = TimeUtils.dateFormatter.print(d.toDateTimeAtStartOfDay().getMillis());
@@ -632,8 +632,34 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                                                 String.valueOf(scaleLastServerSyncMillis));
             }
         }
+
+        // now let's backfill logged activities, sleep and food as far in the past as we can
+        boolean rateLimitReached = false;
+        DateTimeZone zone = getFitbitUserTimezone(updateInfo);
+        LocalDate date = new LocalDate(zone);
+        while (!rateLimitReached) {
+            try {
+                String formattedDate = TimeUtils.dateFormatter.print(date);
+                loadActivityDataForOneDay(updateInfo, formattedDate);
+                loadSleepDataForOneDay(updateInfo, formattedDate);
+                loadFoodDataForOneDay(updateInfo, formattedDate);
+                loadIntradayDataForOneDay(updateInfo, formattedDate);
+            } catch (RateLimitReachedException rlre) {
+                rateLimitReached = true;
+            }
+            date = date.minusDays(1);
+        }
+
         initChannelMapping(updateInfo);
 	}
+
+    private DateTimeZone getFitbitUserTimezone(UpdateInfo updateInfo) {
+        DateTimeZone zone = DateTimeZone.UTC;
+        FitbitUserProfile userProfile = jpaDaoService.findOne("fitbitUser.byGuestId", FitbitUserProfile.class, updateInfo.getGuestId());
+        if (userProfile!=null)
+            try { zone = DateTimeZone.forID(userProfile.timezone);} catch(Exception e){}
+        return zone;
+    }
 
     private void checkLateAdditions(UpdateInfo updateInfo) throws RateLimitReachedException, UpdateFailedException, AuthExpiredException, NoSuchFieldException, IllegalAccessException, UnexpectedResponseCodeException {
         // 10/2/2014 We want to add support for intraday data. Since it's a "late addition", existing connectors
@@ -647,7 +673,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         maybeRetrieveFitbitUserInfo(updateInfo);
 
         // Also, food logging requires that the user subscribe to fitbit's notifications
-//        maybeSubscribeToFitbitNotifications(updateInfo);
+        maybeSubscribeToFitbitNotifications(updateInfo);
 
         // We want to fill-in the historical caloriesIn data
         maybeImportCaloriesInHistory(updateInfo);
@@ -661,7 +687,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         // add in water intake for good measure
         loadTimeSeries("foods/log/water", updateInfo, foodLogSummaryOT,
                 "water");
-        // TODO: force datastore re-import here
+        bodyTrackStorageService.storeInitialHistory(updateInfo.apiKey, foodLogSummaryOT.value());
         guestService.setApiKeyAttribute(updateInfo.apiKey, CALORIES_IN_HISTORY_IMPORTED, String.valueOf(true));
     }
 
@@ -769,7 +795,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_INTRADAY_DATE_ATT, lastIntradayDate);
         }
         final long then = ISODateTimeFormat.date().withZoneUTC().parseDateTime(lastIntradayDate).toDateMidnight().getMillis();
-        List<String> daysToUpdate = getListOfDatesBetween(then, System.currentTimeMillis());
+        List<String> daysToUpdate = getListOfDatesBetween(updateInfo, then, System.currentTimeMillis());
         final List<AbstractFacet> facetsByDates = facetDao.getFacetsByDates(updateInfo.apiKey, ObjectType.getObjectType(connector(), 1), daysToUpdate);
         // not sure the facets are going to be returned in any particular order, thus use daysToUpdate to
         // iterate through them
@@ -1098,7 +1124,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 				connectorUpdateService.scheduleUpdate(apiKey,
 						objectTypes,
 						UpdateInfo.UpdateType.PUSH_TRIGGERED_UPDATE,
-						System.currentTimeMillis() + 5000,
+						System.currentTimeMillis(),
 						jsonParams.toString());
 			}
 		} catch (Exception e) {
@@ -1123,6 +1149,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             long then = System.currentTimeMillis();
             URL url = new URL(urlString);
             HttpURLConnection request = (HttpURLConnection) url.openConnection();
+            if (method!=null && method.length>0)
+                request.setRequestMethod(method[0]);
 
             OAuthConsumer consumer = new DefaultOAuthConsumer(
                     getConsumerKey(updateInfo.apiKey), getConsumerSecret(updateInfo.apiKey));
@@ -1137,8 +1165,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             } catch (Exception e) {
                 throw new RuntimeException("OAuth exception: " + e.getMessage());
             }
-            if (method!=null && method.length>0)
-                request.setRequestMethod(method[0]);
             request.connect();
             final int httpResponseCode = request.getResponseCode();
 

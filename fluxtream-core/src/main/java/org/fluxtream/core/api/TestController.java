@@ -150,6 +150,8 @@ public class TestController {
             long then = System.currentTimeMillis();
             URL url = new URL(urlString);
             HttpURLConnection request = (HttpURLConnection) url.openConnection();
+            if (method!=null && method.length>0)
+                request.setRequestMethod(method[0]);
 
             OAuthConsumer consumer = new DefaultOAuthConsumer(
                     getConsumerKey(apiKey), getConsumerSecret(apiKey));
@@ -164,8 +166,6 @@ public class TestController {
             } catch (Exception e) {
                 throw new RuntimeException("OAuth exception: " + e.getMessage());
             }
-            if (method!=null && method.length>0)
-                request.setRequestMethod(method[0]);
             request.connect();
             final int httpResponseCode = request.getResponseCode();
 
