@@ -175,7 +175,7 @@ public class BodyTrackController {
     @POST
 	@Path("/uploadHistory")
     @Secured("ROLE_ADMIN")
-	@Produces({ MediaType.APPLICATION_JSON })
+	@Produces("text/plain")
 	public Response loadHistory(@QueryParam("username") String username,
 			@QueryParam("connectorName") String connectorName) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
@@ -201,7 +201,7 @@ public class BodyTrackController {
     @DELETE
     @Path("/users/{UID}/views/{id}")
     @ApiOperation(value = "Delete a view")
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces("text/plain")
     @ApiResponses({
             @ApiResponse(code=200, message="Successfully deleted view {viewId}")
     })
