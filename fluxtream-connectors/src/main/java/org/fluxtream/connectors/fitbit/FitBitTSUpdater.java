@@ -1154,7 +1154,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             String apiKeyAttResetTime = guestService.getApiKeyAttribute(updateInfo.apiKey, "resetTime");
             if (apiKeyAttResetTime!=null) {
                 long resetTime = Long.valueOf(apiKeyAttResetTime);
-                if (resetTime<System.currentTimeMillis()) {
+                if (resetTime>System.currentTimeMillis()) {
                     // reset updateInfo's reset time to this stored value so we don't delay next update to a default amount
                     updateInfo.setResetTime("fitbit", resetTime);
                     throw new RateLimitReachedException();
