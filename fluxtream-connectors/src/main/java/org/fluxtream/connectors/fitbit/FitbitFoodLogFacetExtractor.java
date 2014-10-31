@@ -162,6 +162,8 @@ public class FitbitFoodLogFacetExtractor extends AbstractFacetExtractor {
                 if (nutritionalValues.has("sodium"))
                     facet.NV_Sodium = nutritionalValues.getInt("sodium");
             }
+
+            facets.add(facet);
         }
 
     }
