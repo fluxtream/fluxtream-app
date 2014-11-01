@@ -5,6 +5,8 @@ import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.connectors.vos.AbstractLocalTimeTimedFacetVO;
 import org.fluxtream.core.connectors.vos.AllDayVO;
 import org.fluxtream.core.domain.GuestSettings;
+import org.joda.time.DateTime;
+import org.joda.time.format.ISODateTimeFormat;
 
 /**
  * User: candide
@@ -39,14 +41,39 @@ public class FitbitFoodLogEntryFacetVO extends AbstractLocalTimeTimedFacetVO<Fit
         this.brand = facet.brand;
         this.calories = facet.calories;
         this.mealTypeId = facet.mealTypeId;
+        // the following is a hack: eventStart is computed off facet.start so we modify that in order
+        // to set eventStart to the value we want
+        // the arbitrary times of day are just a way to get the facets to be properly ordered in the web app
+        final DateTime entryStartTime = ISODateTimeFormat.dateTime().parseDateTime(facet.startTimeStorage+"Z");
         switch (mealTypeId) {
-            case 1: meal="Breakfast"; break;
-            case 2: meal="Morning Snack"; break;
-            case 3: meal="Lunch"; break;
-            case 4: meal="Afternoon Snack"; break;
-            case 5: meal="Dinner"; break;
-            case 6: meal="After Dinner"; break;
-            default: meal="Anytime"; break;
+            case 1:
+                facet.start = entryStartTime.plusHours(8).getMillis();
+                meal="Breakfast";
+                break;
+            case 2:
+                facet.start = entryStartTime.plusHours(10).getMillis();
+                meal="Morning Snack";
+                break;
+            case 3:
+                facet.start = entryStartTime.plusHours(13).getMillis();
+                meal="Lunch";
+                break;
+            case 4:
+                facet.start = entryStartTime.plusHours(17).getMillis();
+                meal="Afternoon Snack";
+                break;
+            case 5:
+                facet.start = entryStartTime.plusHours(19).getMillis();
+                meal="Dinner";
+                break;
+            case 6:
+                facet.start = entryStartTime.plusHours(22).getMillis();
+                meal="After Dinner";
+                break;
+            default:
+                facet.start = entryStartTime.plusHours(6).getMillis();
+                meal="Anytime";
+                break;
         }
         this.locale = facet.locale;
         this.name = facet.name;
