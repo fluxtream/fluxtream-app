@@ -1,6 +1,5 @@
 package org.fluxtream.connectors.fitbit;
 
-import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.fluxtream.core.ApiData;
 import org.fluxtream.core.aspects.FlxLogger;
@@ -15,7 +14,6 @@ import org.joda.time.DateTimeConstants;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -39,11 +37,6 @@ public class FitbitFoodLogFacetExtractor extends AbstractFacetExtractor {
 
         if (objectType.getName().equals("food_log_summary"))
             extractFoodLogSummaryInfo(apiData, fitbitResponse, facets);
-//        else if (objectType.getName().equals("food_log_entry"))
-//            extractFoodLogEntries(apiData, fitbitResponse, facets);
-        else
-            logger.info("guestId=" + apiData.updateInfo.getGuestId() +
-                    " connector=fitbit action=extractFacets error=no such objectType");
 
         return facets;
     }
@@ -100,72 +93,6 @@ public class FitbitFoodLogFacetExtractor extends AbstractFacetExtractor {
 
         facet.startTimeStorage = facet.date + "T00:00:00.000";
         facet.endTimeStorage = facet.date + "T23:59:59.999";
-    }
-
-    private void extractFoodLogEntries(ApiData apiData, JSONObject fitbitResponse, List<AbstractFacet> facets) {
-        logger.info("guestId=" + apiData.updateInfo.getGuestId() +
-                " connector=fitbit action=extractFoodLogEntries");
-
-        JSONArray foodEntries = fitbitResponse.getJSONArray("foods");
-
-        if (foodEntries == null || foodEntries.size() == 0)
-            return;
-
-        Iterator iterator = foodEntries.iterator();
-        while (iterator.hasNext()) {
-            JSONObject foodEntry = (JSONObject) iterator.next();
-
-            FitbitFoodLogEntryFacet facet = new FitbitFoodLogEntryFacet(apiData.updateInfo.apiKey.getId());
-            super.extractCommonFacetData(facet, apiData);
-
-            setFacetTimeBounds(apiData, facet);
-
-            facet.isFavorite = foodEntry.getBoolean("isFavorite");
-            facet.logId = foodEntry.getLong("logId");
-            if (foodEntry.has("loggedFood")) {
-                JSONObject loggedFood = foodEntry.getJSONObject("loggedFood");
-                if (loggedFood.has("accessLevel"))
-                    facet.accessLevel = loggedFood.getString("accessLevel");
-                if (loggedFood.has("amount"))
-                    facet.amount = (float) loggedFood.getDouble("amount");
-                if (loggedFood.has("brand"))
-                    facet.brand = loggedFood.getString("brand");
-                if (loggedFood.has("calories"))
-                    facet.calories = loggedFood.getInt("calories");
-                if (loggedFood.has("foodId"))
-                    facet.foodId = loggedFood.getLong("foodId");
-                if (loggedFood.has("mealTypeId"))
-                    facet.mealTypeId = loggedFood.getInt("mealTypeId");
-                if (loggedFood.has("locale"))
-                    facet.locale = loggedFood.getString("locale");
-                if (loggedFood.has("name"))
-                    facet.name = loggedFood.getString("name");
-                if (loggedFood.has("unit")) {
-                    JSONObject unit = loggedFood.getJSONObject("unit");
-                    facet.unitId = unit.getInt("id");
-                    facet.unitName = unit.getString("name");
-                    facet.unitPlural = unit.getString("plural");
-                }
-            }
-            if (foodEntry.has("nutritionalValues")) {
-                JSONObject nutritionalValues = foodEntry.getJSONObject("nutritionalValues");
-                if (nutritionalValues.has("calories"))
-                    facet.NV_Calories = nutritionalValues.getInt("calories");
-                if (nutritionalValues.has("carbs"))
-                    facet.NV_Carbs = nutritionalValues.getInt("carbs");
-                if (nutritionalValues.has("fat"))
-                    facet.NV_Fat = nutritionalValues.getInt("fat");
-                if (nutritionalValues.has("fiber"))
-                    facet.NV_Fiber = nutritionalValues.getInt("fiber");
-                if (nutritionalValues.has("protein"))
-                    facet.NV_Protein = nutritionalValues.getInt("protein");
-                if (nutritionalValues.has("sodium"))
-                    facet.NV_Sodium = nutritionalValues.getInt("sodium");
-            }
-
-            facets.add(facet);
-        }
-
     }
 
 }
