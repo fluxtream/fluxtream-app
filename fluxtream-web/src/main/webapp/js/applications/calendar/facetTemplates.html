@@ -138,12 +138,14 @@
                 <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 <div class="flx-data">
                     <span class="flx-dataLabel">Total calories consumed</span>
-                    <span class="flx-text">{{_calories}} kcal</span>
+                    <span class="flx-text">{{_calories}}</span>
+                    <span class="flx-dataLabel">kcal</span>
                 </div>
                 {{#water}}
                 <div class="flx-data">
                     <span class="flx-dataLabel">Water</span>
-                    <span class="flx-text">{{_water}} ml</span>
+                    <span class="flx-text">{{_water}}</span>
+                    <span class="flx-dataLabel">ml</span>
                 </div>
                 {{/water}}
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
@@ -160,17 +162,16 @@
             <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
                 <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 <div class="flx-data">
-                    <span class="flx-dataLabel">You ate</span>
-                    <span class="flx-text">{{name}} ({{amount}} {{unit}})</span>
+                    <span class="flx-text"><code>{{meal}}</code> {{name}} ({{amount}} {{unit}})</span>
                 </div>
                 <div class="flx-data">
                     <span class="flx-dataLabel">Calories</span>
                     <span class="flx-text">{{_calories}}</span>
-                </div>
-                <div class="flx-data">
+                    <span class="flx-dataLabel">Calories</span>
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
+            <div style="margin-bottom:1em"></div>
             {{/facets}}
         </div>
     </div>

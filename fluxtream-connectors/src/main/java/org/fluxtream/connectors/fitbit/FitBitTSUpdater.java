@@ -637,23 +637,17 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         // but leaving 50 "spare" API calls for other updates
         // note: we know that updateInfo's remainingAPICalls property has been set since there is always a mandatory
         // call to getDeviceStatusesArray() (https://api.fitbit.com/1/user/-/devices.json)
-        // TODO: incrementally go farther back in time, keep track of up to when we've got to and start from there next time
-        if (updateInfo.getRemainingAPICalls("fitbit")>50) {
-            boolean rateLimitReached = false;
-            DateTimeZone zone = getFitbitUserTimezone(updateInfo);
-            LocalDate date = new LocalDate(zone);
-            while (!rateLimitReached) {
-                try {
-                    String formattedDate = TimeUtils.dateFormatter.print(date);
-                    loadActivityDataForOneDay(updateInfo, formattedDate);
-                    loadSleepDataForOneDay(updateInfo, formattedDate);
-                    loadFoodDataForOneDay(updateInfo, formattedDate);
-                    loadIntradayDataForOneDay(updateInfo, formattedDate);
-                } catch (RateLimitReachedException rlre) {
-                    rateLimitReached = true;
-                }
-                date = date.minusDays(1);
-            }
+        // TODO: incrementally go farther back in time up to a given backfill limit (e.g. one month),
+        // TODO: (cont'd) keep track of up to when we've got to and start from there next time
+        DateTimeZone zone = getFitbitUserTimezone(updateInfo);
+        LocalDate date = new LocalDate(zone);
+        while (updateInfo.getRemainingAPICalls("fitbit")>50) {
+            String formattedDate = TimeUtils.dateFormatter.print(date);
+            loadActivityDataForOneDay(updateInfo, formattedDate);
+            loadSleepDataForOneDay(updateInfo, formattedDate);
+            loadFoodDataForOneDay(updateInfo, formattedDate);
+            loadIntradayDataForOneDay(updateInfo, formattedDate);
+            date = date.minusDays(1);
         }
         initChannelMapping(updateInfo);
 	}
@@ -1024,12 +1018,103 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         apiDataService.eraseApiData(updateInfo.apiKey, foodLogEntryOT, Arrays.asList(formattedDate));
         apiDataService.eraseApiData(updateInfo.apiKey, foodLogSummaryOT, Arrays.asList(formattedDate));
         if (json != null) {
+            JSONObject fitbitResponse = JSONObject.fromObject(json);
+            JSONArray foodEntries = fitbitResponse.getJSONArray("foods");
+
+            if (foodEntries == null || foodEntries.size() == 0)
+                return;
+
+            Iterator iterator = foodEntries.iterator();
+            // use createOrUpdate for food log entries (can't rely on date boundaries for unicity)
+            while (iterator.hasNext()) {
+                JSONObject foodEntry = (JSONObject) iterator.next();
+                createOrUpdateFoodEntry(updateInfo, foodEntry);
+            }
+            // but continue using the facet extraction method for summaries as they are date-unique
             apiDataService.cacheApiDataJSON(updateInfo, json,
                     TimeUtils.fromMidnight(date.getTime(), utc),
                     TimeUtils.toMidnight(date.getTime(), utc),
                     objectTypes);
         }
     }
+
+    private void createOrUpdateFoodEntry(final UpdateInfo updateInfo, final JSONObject foodEntry) throws Exception {
+        final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery(
+                "e.apiKeyId=? AND e.logId=?",
+                updateInfo.apiKey.getId(), foodEntry.getLong("logId"));
+        final ApiDataService.FacetModifier<FitbitFoodLogEntryFacet> facetModifier = new ApiDataService.FacetModifier<FitbitFoodLogEntryFacet>() {
+
+            @Override
+            public FitbitFoodLogEntryFacet createOrModify(FitbitFoodLogEntryFacet facet, Long apiKeyId) throws Exception {
+                if (facet == null) {
+                    facet = new FitbitFoodLogEntryFacet(updateInfo.apiKey.getId());
+                    extractCommonFacetData(facet, updateInfo);
+                }
+
+                setFacetTimeBounds(updateInfo, facet);
+
+                facet.isFavorite = foodEntry.getBoolean("isFavorite");
+                facet.logId = foodEntry.getLong("logId");
+                if (foodEntry.has("loggedFood")) {
+                    JSONObject loggedFood = foodEntry.getJSONObject("loggedFood");
+                    if (loggedFood.has("accessLevel"))
+                        facet.accessLevel = loggedFood.getString("accessLevel");
+                    if (loggedFood.has("amount"))
+                        facet.amount = (float) loggedFood.getDouble("amount");
+                    if (loggedFood.has("brand"))
+                        facet.brand = loggedFood.getString("brand");
+                    if (loggedFood.has("calories"))
+                        facet.calories = loggedFood.getInt("calories");
+                    if (loggedFood.has("foodId"))
+                        facet.foodId = loggedFood.getLong("foodId");
+                    if (loggedFood.has("mealTypeId"))
+                        facet.mealTypeId = loggedFood.getInt("mealTypeId");
+                    if (loggedFood.has("locale"))
+                        facet.locale = loggedFood.getString("locale");
+                    if (loggedFood.has("name"))
+                        facet.name = loggedFood.getString("name");
+                    if (loggedFood.has("unit")) {
+                        JSONObject unit = loggedFood.getJSONObject("unit");
+                        facet.unitId = unit.getInt("id");
+                        facet.unitName = unit.getString("name");
+                        facet.unitPlural = unit.getString("plural");
+                    }
+                }
+                if (foodEntry.has("nutritionalValues")) {
+                    JSONObject nutritionalValues = foodEntry.getJSONObject("nutritionalValues");
+                    if (nutritionalValues.has("calories"))
+                        facet.NV_Calories = nutritionalValues.getInt("calories");
+                    if (nutritionalValues.has("carbs"))
+                        facet.NV_Carbs = nutritionalValues.getInt("carbs");
+                    if (nutritionalValues.has("fat"))
+                        facet.NV_Fat = nutritionalValues.getInt("fat");
+                    if (nutritionalValues.has("fiber"))
+                        facet.NV_Fiber = nutritionalValues.getInt("fiber");
+                    if (nutritionalValues.has("protein"))
+                        facet.NV_Protein = nutritionalValues.getInt("protein");
+                    if (nutritionalValues.has("sodium"))
+                        facet.NV_Sodium = nutritionalValues.getInt("sodium");
+                }
+                return facet;
+            }
+
+        };
+        apiDataService.createOrReadModifyWrite(FitbitFoodLogEntryFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
+    }
+
+    private void setFacetTimeBounds(final UpdateInfo updateInfo, AbstractLocalTimeFacet facet) {
+        facet.date = (String) updateInfo.getContext("date");
+
+        final DateTime dateTime = TimeUtils.dateFormatterUTC.parseDateTime(facet.date);
+
+        // returns the starting midnight for the date
+        facet.start = dateTime.getMillis();
+        facet.end = dateTime.getMillis()+ DateTimeConstants.MILLIS_PER_DAY-1;
+
+        facet.startTimeStorage = facet.date + "T00:00:00.000";
+        facet.endTimeStorage = facet.date + "T23:59:59.999";
+    }
+
 
     private String getSleepData(UpdateInfo updateInfo, String formattedDate)
             throws RateLimitReachedException, UnexpectedResponseCodeException, UpdateFailedException, AuthExpiredException {
@@ -1144,13 +1229,14 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                                      final int objectTypes, final String urlString, final String...method)
             throws RateLimitReachedException, UpdateFailedException, AuthExpiredException, UnexpectedResponseCodeException {
 
-        // if we're calling the API from this thread multiple times, the allowed remaining API calls will be saved
+        // if we're have already called the API from within this thread, the allowed remaining API calls will be saved
         // in the updateInfo
         final Integer remainingAPICalls = updateInfo.getRemainingAPICalls("fitbit");
         if (remainingAPICalls==null) {
-            // remainingAPICalls not being in the updateInfo means this is the first time we are calling the API
-            // from within this update and so we should be able to get it from the apiKey (unless this is the
-            // very first call for this connector, in which case we are most probably not rate limited)
+            // otherwise, it means this is the first time we are calling the API
+            // from within this update. It is possible that a previous update has consumed the entire API quota.
+            // In this case, it has saved Fitbit's reset time as an ApiKey attribute. If however, this is the
+            // very first API call for this connector, we are most probably not rate limited and so we can continue.
             String apiKeyAttResetTime = guestService.getApiKeyAttribute(updateInfo.apiKey, "resetTime");
             if (apiKeyAttResetTime!=null) {
                 long resetTime = Long.valueOf(apiKeyAttResetTime);
@@ -1193,6 +1279,9 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             final String remainingCalls = request.getHeaderField("Fitbit-Rate-Limit-Remaining");
             if (remainingCalls!=null) {
                 updateInfo.setRemainingAPICalls("fitbit", Integer.valueOf(remainingCalls));
+                guestService.setApiKeyAttribute(updateInfo.apiKey, "remainingCalls", remainingCalls);
+                if (Integer.valueOf(remainingCalls)==0)
+                    setResetTime(updateInfo, request);
             }
 
             if (httpResponseCode == 200) {
@@ -1209,27 +1298,21 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                         urlString, false, httpResponseCode, httpResponseMessage);
                 // Check for response code 429 which is Fitbit's over rate limit error
                 if(httpResponseCode == 429) {
-                    // try to retrieve the reset time from Fitbit, otherwise default to a one hour delay
-                    // also, set resetTime as an apiKey attribute so we don't retry calling the API too soon
-                    final String rateLimitResetSeconds = request.getHeaderField("Fitbit-Rate-Limit-Reset");
-                    if (rateLimitResetSeconds!=null) {
-                        int millisUntilReset = Integer.valueOf(rateLimitResetSeconds)*1000;
-                        final long resetTime = System.currentTimeMillis() + millisUntilReset;
-                        guestService.setApiKeyAttribute(updateInfo.apiKey, "resetTime", String.valueOf(resetTime));
-                        updateInfo.setResetTime("fitbit", resetTime);
+                    if (objectTypes==ObjectType.getCustomObjectType(SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL).value()) {
+                        // this is to account for this method being called when adding an api Subscription
+                        throw new UnexpectedResponseCodeException(429, httpResponseMessage, urlString);
                     } else {
-                        final long resetTime = System.currentTimeMillis() + 60 * DateTimeConstants.MILLIS_PER_HOUR;
-                        guestService.setApiKeyAttribute(updateInfo.apiKey, "resetTime", String.valueOf(resetTime));
-                        updateInfo.setResetTime("fitbit", resetTime);
+                        logger.warn("Darn, we hit Fitbit's rate limit again! url=" + urlString + ", guest=" + updateInfo.getGuestId());
+                        // try to retrieve the reset time from Fitbit, otherwise default to a one hour delay
+                        // also, set resetTime as an apiKey attribute so we don't retry calling the API too soon
+                        setResetTime(updateInfo, request);
+                        throw new RateLimitReachedException();
                     }
-                    throw new RateLimitReachedException();
                 }
                 else {
                     // Otherwise throw the same error that SignpostOAuthHelper used to throw
                     if (httpResponseCode == 401)
                         throw new AuthExpiredException();
-                    else if (httpResponseCode==429)
-                        throw new UnexpectedResponseCodeException(429, httpResponseMessage, urlString);
                     else if (httpResponseCode >= 400 && httpResponseCode < 500)
                         throw new UpdateFailedException("Unexpected response code: " + httpResponseCode, true,
                                 ApiKey.PermanentFailReason.clientError(httpResponseCode));
@@ -1238,6 +1321,20 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             }
         } catch (IOException exc) {
             throw new RuntimeException("IOException trying to make rest call: " + exc.getMessage());
+        }
+    }
+
+    private void setResetTime(UpdateInfo updateInfo, HttpURLConnection request) {
+        final String rateLimitResetSeconds = request.getHeaderField("Fitbit-Rate-Limit-Reset");
+        if (rateLimitResetSeconds!=null) {
+            int millisUntilReset = Integer.valueOf(rateLimitResetSeconds)*1000;
+            final long resetTime = System.currentTimeMillis() + millisUntilReset;
+            guestService.setApiKeyAttribute(updateInfo.apiKey, "resetTime", String.valueOf(resetTime));
+            updateInfo.setResetTime("fitbit", resetTime);
+        } else {
+            final long resetTime = System.currentTimeMillis() + 60 * DateTimeConstants.MILLIS_PER_HOUR;
+            guestService.setApiKeyAttribute(updateInfo.apiKey, "resetTime", String.valueOf(resetTime));
+            updateInfo.setResetTime("fitbit", resetTime);
         }
     }
 

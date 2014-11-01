@@ -30,6 +30,7 @@ public class FitbitFoodLogEntryFacetVO extends AbstractLocalTimeTimedFacetVO<Fit
     public float NV_Sodium;
 
     public String unit;
+    public String meal;
 
     @Override
     protected void fromFacet(FitbitFoodLogEntryFacet facet, TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
@@ -38,6 +39,15 @@ public class FitbitFoodLogEntryFacetVO extends AbstractLocalTimeTimedFacetVO<Fit
         this.brand = facet.brand;
         this.calories = facet.calories;
         this.mealTypeId = facet.mealTypeId;
+        switch (mealTypeId) {
+            case 1: meal="Breakfast"; break;
+            case 2: meal="Morning Snack"; break;
+            case 3: meal="Lunch"; break;
+            case 4: meal="Afternoon Snack"; break;
+            case 5: meal="Dinner"; break;
+            case 6: meal="After Dinner"; break;
+            default: meal="Anytime"; break;
+        }
         this.locale = facet.locale;
         this.name = facet.name;
         this.unitName = facet.unitName;

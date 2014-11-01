@@ -39,8 +39,8 @@ public class FitbitFoodLogFacetExtractor extends AbstractFacetExtractor {
 
         if (objectType.getName().equals("food_log_summary"))
             extractFoodLogSummaryInfo(apiData, fitbitResponse, facets);
-        else if (objectType.getName().equals("food_log_entry"))
-            extractFoodLogEntries(apiData, fitbitResponse, facets);
+//        else if (objectType.getName().equals("food_log_entry"))
+//            extractFoodLogEntries(apiData, fitbitResponse, facets);
         else
             logger.info("guestId=" + apiData.updateInfo.getGuestId() +
                     " connector=fitbit action=extractFacets error=no such objectType");
