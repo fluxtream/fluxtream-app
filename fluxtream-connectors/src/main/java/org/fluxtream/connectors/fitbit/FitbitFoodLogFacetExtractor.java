@@ -147,8 +147,8 @@ public class FitbitFoodLogFacetExtractor extends AbstractFacetExtractor {
                     facet.unitPlural = unit.getString("plural");
                 }
             }
-            if (foodEntry.has("nutritionalValues ")) {
-                JSONObject nutritionalValues = foodEntry.getJSONObject("nutrionalValues");
+            if (foodEntry.has("nutritionalValues")) {
+                JSONObject nutritionalValues = foodEntry.getJSONObject("nutritionalValues");
                 if (nutritionalValues.has("calories"))
                     facet.NV_Calories = nutritionalValues.getInt("calories");
                 if (nutritionalValues.has("carbs"))

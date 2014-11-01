@@ -131,14 +131,21 @@
 </template>
 <template id="fitbit-food_log_summary">
     <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon fitbit-food_log_summary"></span>
         <div class="facetDetails">
             <span class="flx-text">{{#facets}}</span>
             <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
                 <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 <div class="flx-data">
+                    <span class="flx-dataLabel">Total calories consumed</span>
+                    <span class="flx-text">{{_calories}} kcal</span>
                 </div>
+                {{#water}}
                 <div class="flx-data">
+                    <span class="flx-dataLabel">Water</span>
+                    <span class="flx-text">{{_water}} ml</span>
                 </div>
+                {{/water}}
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
@@ -147,11 +154,18 @@
 </template>
 <template id="fitbit-food_log_entry">
     <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon fitbit-food_log_entry"></span>
         <div class="facetDetails">
             <span class="flx-text">{{#facets}}</span>
             <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
                 <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 <div class="flx-data">
+                    <span class="flx-dataLabel">You ate</span>
+                    <span class="flx-text">{{name}} ({{amount}} {{unit}})</span>
+                </div>
+                <div class="flx-data">
+                    <span class="flx-dataLabel">Calories</span>
+                    <span class="flx-text">{{_calories}}</span>
                 </div>
                 <div class="flx-data">
                 </div>

@@ -3,6 +3,7 @@ package org.fluxtream.connectors.fitbit;
 import org.fluxtream.core.OutsideTimeBoundariesException;
 import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.connectors.vos.AbstractLocalTimeTimedFacetVO;
+import org.fluxtream.core.connectors.vos.AllDayVO;
 import org.fluxtream.core.domain.GuestSettings;
 
 /**
@@ -10,9 +11,7 @@ import org.fluxtream.core.domain.GuestSettings;
  * Date: 31/10/14
  * Time: 21:09
  */
-public class FitbitFoodLogSummaryFacetVO extends AbstractLocalTimeTimedFacetVO<FitbitFoodLogSummaryFacet> {
-
-    public boolean allDay = true;
+public class FitbitFoodLogSummaryFacetVO extends AbstractLocalTimeTimedFacetVO<FitbitFoodLogSummaryFacet> implements AllDayVO {
 
     public float calories;
     public float carbs;
@@ -26,6 +25,7 @@ public class FitbitFoodLogSummaryFacetVO extends AbstractLocalTimeTimedFacetVO<F
 
     @Override
     protected void fromFacet(FitbitFoodLogSummaryFacet facet, TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
+        if (facet.calories==0) this.isEmpty = true;
         this.calories = facet.calories;
         this.carbs = facet.carbs;
         this.fiber = facet.fiber;
@@ -34,6 +34,11 @@ public class FitbitFoodLogSummaryFacetVO extends AbstractLocalTimeTimedFacetVO<F
         this.water = facet.water;
         this.caloriesGoal = facet.caloriesGoal;
         this.caloriesOutGoal = facet.caloriesOutGoal;
+    }
+
+    @Override
+    public boolean allDay() {
+        return true;
     }
 
 }

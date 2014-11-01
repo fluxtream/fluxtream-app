@@ -10,7 +10,6 @@ public class FitbitSleepFacetVO extends AbstractLocalTimeTimedFacetVO<FitbitSlee
 	public DurationModel minutesAsleep;
 	public DurationModel minutesAwake;
 	public DurationModel minutesToFallAsleep;
-    public Boolean isEmpty;
 
 	@Override
 	public void fromFacet(FitbitSleepFacet facet, TimeInterval timeInterval, GuestSettings settings) {

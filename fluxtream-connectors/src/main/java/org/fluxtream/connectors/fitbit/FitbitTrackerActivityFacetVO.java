@@ -33,21 +33,23 @@ public class FitbitTrackerActivityFacetVO extends AbstractLocalTimeInstantFacetV
                 JSONObject json = JSONObject.fromObject(facet.caloriesJson);
                 JSONObject intraday = json.getJSONObject("activities-log-calories-intraday");
                 if (intraday != null) {
-                    JSONArray stepsArray = intraday.getJSONArray("dataset");
+                    if (intraday.has("dataset")) {
+                        JSONArray stepsArray = intraday.getJSONArray("dataset");
 
-                    for (int i = 0; i < stepsArray.size(); i++) {
-                        JSONObject entry = stepsArray.getJSONObject(i);
-                        int calories = entry.getInt("value");
-                        int level = entry.getInt("level");
-                        String time = entry.getString("time");
-                        String[] timeParts = time.split(":");
-                        int hours = Integer.valueOf(timeParts[0]);
-                        int minutes = Integer.valueOf(timeParts[1]);
-                        FitbitCaloriesVO caloriesIntraday = new FitbitCaloriesVO();
-                        caloriesIntraday.calories = calories;
-                        caloriesIntraday.level = level;
-                        caloriesIntraday.minute = hours * 60 + minutes;
-                        this.caloriesPerMinute.add(caloriesIntraday);
+                        for (int i = 0; i < stepsArray.size(); i++) {
+                            JSONObject entry = stepsArray.getJSONObject(i);
+                            int calories = entry.getInt("value");
+                            int level = entry.getInt("level");
+                            String time = entry.getString("time");
+                            String[] timeParts = time.split(":");
+                            int hours = Integer.valueOf(timeParts[0]);
+                            int minutes = Integer.valueOf(timeParts[1]);
+                            FitbitCaloriesVO caloriesIntraday = new FitbitCaloriesVO();
+                            caloriesIntraday.calories = calories;
+                            caloriesIntraday.level = level;
+                            caloriesIntraday.minute = hours * 60 + minutes;
+                            this.caloriesPerMinute.add(caloriesIntraday);
+                        }
                     }
                 }
             }
