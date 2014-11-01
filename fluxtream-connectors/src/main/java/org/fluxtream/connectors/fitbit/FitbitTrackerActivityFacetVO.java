@@ -31,11 +31,10 @@ public class FitbitTrackerActivityFacetVO extends AbstractLocalTimeInstantFacetV
 			
             if (facet.caloriesJson!=null) {
                 JSONObject json = JSONObject.fromObject(facet.caloriesJson);
-                JSONObject intraday = json.getJSONObject("activities-log-calories-intraday");
-                if (intraday != null) {
+                if (json.has("activities-log-calories-intraday")) {
+                    JSONObject intraday = json.getJSONObject("activities-log-calories-intraday");
                     if (intraday.has("dataset")) {
                         JSONArray stepsArray = intraday.getJSONArray("dataset");
-
                         for (int i = 0; i < stepsArray.size(); i++) {
                             JSONObject entry = stepsArray.getJSONObject(i);
                             int calories = entry.getInt("value");
