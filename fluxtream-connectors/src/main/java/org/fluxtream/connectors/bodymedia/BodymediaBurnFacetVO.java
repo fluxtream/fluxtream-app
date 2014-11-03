@@ -16,6 +16,7 @@ public class BodymediaBurnFacetVO extends AbstractInstantFacetVO<BodymediaBurnFa
     @Override
     protected void fromFacet(final BodymediaBurnFacet facet, final TimeInterval timeInterval, final GuestSettings settings) {
         this.totalCalories = facet.totalCalories;
+        if (totalCalories==0) this.isEmpty = true;
         this.estimatedCalories = facet.estimatedCalories;
         this.predictedCalories = facet.predictedCalories;
         this.date = facet.date;

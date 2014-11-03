@@ -24,6 +24,8 @@ public class FitbitTrackerActivityFacetVO extends AbstractLocalTimeInstantFacetV
         this.date = facet.date;
 		steps = facet.steps;
 		caloriesOut = facet.caloriesOut;
+        if (steps==0)
+            isEmpty = true;
 		activeScore = facet.activeScore;
 		MET = round(activeScore*0.01f+1, 2);
 		if (facet.caloriesJson!=null) {
