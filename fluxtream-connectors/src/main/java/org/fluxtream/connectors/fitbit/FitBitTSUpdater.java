@@ -580,9 +580,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             switch(updateInfo.objectTypes) {
                 case 3: // activities
                     loadActivityDataForOneDay(updateInfo, formattedDate);
-                    JSONArray deviceStatusesArray = getDeviceStatusesArray(updateInfo);
-                    final long trackerLastServerSyncMillis = getLastServerSyncMillis(deviceStatusesArray, "TRACKER");
-                    updateOneDayOfTrackerData(updateInfo, formattedDate, trackerLastServerSyncMillis);
                     final List<AbstractFacet> facetsByDates = facetDao.getFacetsByDates(updateInfo.apiKey, activityOT, Arrays.asList(formattedDate));
                     if (facetsByDates.size()>0) {
                         final FitbitTrackerActivityFacet activityFacet = (FitbitTrackerActivityFacet) facetsByDates.get(0);
@@ -593,7 +590,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                     loadSleepDataForOneDay(updateInfo, formattedDate);
                     break;
                 case 8: // body
-                    deviceStatusesArray = getDeviceStatusesArray(updateInfo);
+                    final JSONArray deviceStatusesArray = getDeviceStatusesArray(updateInfo);
                     // will return -1 if there is no scale in the devicesStatuses, which is interpreted as
                     // a manual weight entry in the updateOneDayOfScaleData method
                     final long scaleLastServerSyncMillis = getLastServerSyncMillis(deviceStatusesArray, "SCALE");
@@ -645,8 +642,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         String backSyncDateGoal = getBackSyncDateGoal(updateInfo);
         while (updateInfo.getRemainingAPICalls("fitbit")>50) {
             String formattedDate = TimeUtils.dateFormatter.print(startDate);
-            System.out.println("backsyncing, we have " + updateInfo.getRemainingAPICalls("fitbit") +
-                    " API calls left, startDate=" + formattedDate + ", goal=" + backSyncDateGoal);
+            System.out.println("backsynching, we have " + updateInfo.getRemainingAPICalls("fitbit") +
+                    " API calls left, apiKeyId=" + updateInfo.apiKey.getId() + ", startDate=" + formattedDate + ", goal=" + backSyncDateGoal);
             loadActivityDataForOneDay(updateInfo, formattedDate); if (updateInfo.getRemainingAPICalls("fitbit")<=50) break;
             loadSleepDataForOneDay(updateInfo, formattedDate); if (updateInfo.getRemainingAPICalls("fitbit")<=50) break;
             loadFoodDataForOneDay(updateInfo, formattedDate); if (updateInfo.getRemainingAPICalls("fitbit")<=50) break;
@@ -1028,6 +1025,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         Date date = new Date(TimeUtils.dateFormatter.withZone( DateTimeZone.forTimeZone(utc)).parseMillis(formattedDate));
 		String json = getActivityData(updateInfo, formattedDate);
         apiDataService.eraseApiData(updateInfo.apiKey, activityOT, Arrays.asList(formattedDate));
+        apiDataService.eraseApiData(updateInfo.apiKey, loggedActivityOT, Arrays.asList(formattedDate));
 		long fromMidnight = TimeUtils.fromMidnight(date.getTime(), utc);
 		long toMidnight = TimeUtils.toMidnight(date.getTime(), utc);
 		logger.info("guestId=" + updateInfo.getGuestId() +
