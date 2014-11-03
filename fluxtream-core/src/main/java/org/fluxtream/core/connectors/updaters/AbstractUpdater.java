@@ -399,4 +399,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
 	protected abstract void updateConnectorData(UpdateInfo updateInfo)
 			throws Exception;
 
+    public void afterConnectorUpdate(final UpdateInfo updateInfo)
+        throws Exception {}
+
 }

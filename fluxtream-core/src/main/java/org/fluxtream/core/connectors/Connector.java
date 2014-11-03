@@ -199,6 +199,7 @@ public class Connector {
         objectType.isMixedType = ots.isMixedType();
         objectType.isClientFacet = ots.clientFacet();
         objectType.visibleClause = ots.visibleClause().equals("")?null:ots.visibleClause();
+        objectType.orderBy = ots.orderBy().equals("")?null:ots.orderBy();
         if (ots.extractor() != null && ots.extractor()!=AbstractFacetExtractor.class) {
             connector.addObjectTypeExtractorClass(
                     objectType.value, ots.extractor(),

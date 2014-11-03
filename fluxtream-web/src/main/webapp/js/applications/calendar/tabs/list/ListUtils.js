@@ -13,10 +13,16 @@ define([],function(){
         function appendItems(currentArray,allDay,normal){
             var details = currentArray[0].getDetails(currentArray);
             var content = $(templates.item.render({item:details.outerHTML()}));
-            if (currentArray[0].allDay){
+            var hasAllDayData = false;
+            // let's not append empty events
+            if (!_.isUndefined(currentArray[0]["isEmpty"])&&currentArray[0]["isEmpty"]){
+                return false;
+            }
+            if (!_.isUndefined(currentArray[0]["allDay"])&&currentArray[0]["allDay"]){
+                hasAllDayData = true;
                 allDay.append(content);
             }
-            else{
+            else {
                 normal.append(content);
             }
             details.on("contentchange",function(){
@@ -24,6 +30,7 @@ define([],function(){
                 App.apps.calendar.rebindDetailsControls(content,facets);
             });
             details.trigger("contentchange");
+            return hasAllDayData;
         }
 
         App.apps.calendar.processFacets(facets);//ensure we can build details
@@ -39,6 +46,7 @@ define([],function(){
             return a.date> b.date?1 : -1;
         });
 
+        var hasAllDayData = false;
         for (var i = 0, li = facets.length; i < li; i++){
             var facet = facets[i];
             var facetCity = App.getFacetCity(facet, citiesList);
@@ -58,7 +66,7 @@ define([],function(){
                     var curContainer = $(templates.itemContainer.render({}));
                     list.append(curContainer);
                 }
-                appendItems(currentArray,curContainer.find(".allDayContainer"),curContainer.find(".normalContainer"));
+                hasAllDayData |= appendItems(currentArray,curContainer.find(".allDayContainer"),curContainer.find(".normalContainer"));
                 currentArray = [facet];
                 currentDate = facetCity.dateWithTimezone;
                 currentCity = facetCity;
@@ -70,8 +78,16 @@ define([],function(){
                 var curContainer = $(templates.itemContainer.render({}));
                 list.append(curContainer);
             }
-            appendItems(currentArray,curContainer.find(".allDayContainer"),curContainer.find(".normalContainer"));
+            hasAllDayData |= appendItems(currentArray,curContainer.find(".allDayContainer"),curContainer.find(".normalContainer"));
         }
+        console.log("hasAllDayData: " + hasAllDayData);
+
+        if (hasAllDayData==1) {
+            console.log("we should show timePeriod headers");
+            curContainer.find(".timePeriod").show();
+        } else
+            curContainer.find(".timePeriod").hide();
+
         if (list.children().length == 0)
             list.append("Sorry, no data to show.");
         var photos = list.find(".flx-photo");
