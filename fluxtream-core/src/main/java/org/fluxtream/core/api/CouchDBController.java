@@ -3,10 +3,16 @@ package org.fluxtream.core.api;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.HttpEntity;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.aspects.FlxLogger;
@@ -15,6 +21,8 @@ import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -26,6 +34,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -51,6 +60,7 @@ public class CouchDBController {
     class CouchDBCredentials {
         public String user_login, user_token;
         public int status;
+        public String statusMessage;
     }
 
     @PUT
@@ -66,9 +76,17 @@ public class CouchDBController {
             couchDBCredentials.user_login = getBase64URLSafeUsername();
             couchDBCredentials.user_token = userTokenBuffer.toString();
             couchDBCredentials.status = status;
+            couchDBCredentials.statusMessage = "OK";
+            createCouchUser(getBase64URLSafeUsername(), couchDBCredentials.user_token);
             createCouchDatabase(getBase64URLSafeUsername());
             return Response.ok().entity(couchDBCredentials).build();
-        } catch (Throwable t) {
+        } catch (UnexpectedHttpResponseCodeException e) {
+          final CouchDBCredentials couchDBCredentials = new CouchDBCredentials();
+          couchDBCredentials.status = e.getHttpResponseCode();
+          couchDBCredentials.statusMessage = e.getHttpResponseMessage();
+          return Response.serverError().entity(couchDBCredentials).build();
+        }
+        catch (Throwable t) {
             final CouchDBCredentials couchDBCredentials = new CouchDBCredentials();
             couchDBCredentials.status = 2;
             return Response.serverError().entity(couchDBCredentials).build();
@@ -192,21 +210,105 @@ public class CouchDBController {
         try {
             final String couchdbHost = env.get("couchdb.host");
             final String couchdbPort = env.get("couchdb.port");
-            HttpPut put = new HttpPut(String.format("http://%s:%s/", couchdbHost, couchdbPort) + dbUsername);
+            final String couchdbAdminLogin = env.get("couchdb.admin_login");
+            final String couchdbAdminPasword = env.get("couchdb.admin_password");
+            String userPassword = couchdbAdminLogin + ":" + couchdbAdminPasword;
+            byte[] encodedCredentials = Base64.encodeBase64(userPassword.getBytes());
+
+            final String request = String.format("http://%s:%s/", couchdbHost, couchdbPort) + dbUsername;
+            HttpPut put = new HttpPut(request);
+            put.addHeader("Authorization", "Basic " + new String(encodedCredentials));
 
             HttpResponse response = client.execute(put);
 
-            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                throw new UnexpectedHttpResponseCodeException(response.getStatusLine().getStatusCode(),
-                        response.getStatusLine().getReasonPhrase());
+            HttpEntity entity = response.getEntity();
+            String responseString = EntityUtils.toString(entity, "UTF-8");
+
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED) {
+                throw new UnexpectedHttpResponseCodeException(response.getStatusLine().getStatusCode(), responseString);
             }
+
+            // Add user to the members
+            // TODO create two different databases
+            // TODO check if the database already exists
+            final String userRequest = String.format("http://%s:%s/%s/_security", couchdbHost, couchdbPort, dbUsername);
+            put = new HttpPut(userRequest);
+            put.addHeader("Authorization", "Basic " + new String(encodedCredentials));
+            put.addHeader("Content-Type", "application/json");
+            put.addHeader("Accept", "application/json");
+
+            JSONObject keyArgMembers = new JSONObject();
+            JSONObject keyArgAdmins = new JSONObject();
+            JSONObject keyArg = new JSONObject();
+            JSONArray namesArray = new JSONArray();
+            namesArray.put(dbUsername);
+            keyArgMembers.put("names", namesArray);
+            JSONArray rolesArray = new JSONArray();
+            rolesArray.put("producer");
+            rolesArray.put("consumer");
+            keyArgMembers.put("roles", rolesArray);
+            keyArg.put("admins", keyArgAdmins);
+            keyArg.put("members", keyArgMembers);
+            StringEntity input;
+            input = new StringEntity(keyArg.toString());
+            put.setEntity(input);
+
+            response = client.execute(put);
+
         } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             client.getConnectionManager().shutdown();
         }
+    }
+
+    private void createCouchUser(final String username, final String password) throws UnexpectedHttpResponseCodeException {
+      HttpClient client = new DefaultHttpClient();
+      try {
+        final String couchdbHost = env.get("couchdb.host");
+        final String couchdbPort = env.get("couchdb.port");
+        final String couchdbAdminLogin = env.get("couchdb.admin_login");
+        final String couchdbAdminPasword = env.get("couchdb.admin_password");
+        String userPassword = couchdbAdminLogin + ":" + couchdbAdminPasword;
+        byte[] encodedCredentials = Base64.encodeBase64(userPassword.getBytes());
+
+        final String request = String.format("http://%s:%s/_users/org.couchdb.user:%s", couchdbHost, couchdbPort, username);
+        HttpPut put = new HttpPut(request);
+        put.addHeader("Authorization", "Basic " + new String(encodedCredentials));
+        put.addHeader("Content-Type", "application/json");
+        put.addHeader("Accept", "application/json");
+
+        JSONObject keyArg = new JSONObject();
+        keyArg.put("_id", "org.couchdb.user:"+ username);
+        keyArg.put("name", username);
+        keyArg.put("password", password);
+        keyArg.put("roles", new JSONArray());
+        keyArg.put("type", "user");
+        StringEntity input;
+        input = new StringEntity(keyArg.toString());
+        put.setEntity(input);
+
+        HttpResponse response = client.execute(put);
+
+        HttpEntity entity = response.getEntity();
+        // TODO check if the user already exists
+        String responseString = EntityUtils.toString(entity, "UTF-8");
+
+        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED) {
+          throw new UnexpectedHttpResponseCodeException(response.getStatusLine().getStatusCode(), responseString);
+        }
+      } catch (ClientProtocolException e) {
+        e.printStackTrace();
+      } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+      } catch (IOException e) {
+        // Error handler should be here
+        e.printStackTrace();
+      }
     }
 
 }
