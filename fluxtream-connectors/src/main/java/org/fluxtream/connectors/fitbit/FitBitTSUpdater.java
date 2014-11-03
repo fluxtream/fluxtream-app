@@ -633,13 +633,14 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         }
 
         // now let's backsync logged activities, sleep and food which can be manually entered and potentially
-        // not caught by the subscription/notification mechanics
+        // not caught by the subscription/notification mechanism
         // note: we know that updateInfo's remainingAPICalls property has been set since there is always a mandatory
         // call to getDeviceStatusesArray() (https://api.fitbit.com/1/user/-/devices.json)
         // We are incrementally going farther back in time up to a given backfill limit ("fitbit.backsync.days"),
         // keeping track of up to when we've got to and starting from there next time
         LocalDate startDate = getBackSyncStartDate(updateInfo);
         String backSyncDateGoal = getBackSyncDateGoal(updateInfo);
+
         while (updateInfo.getRemainingAPICalls("fitbit")>50) {
             String formattedDate = TimeUtils.dateFormatter.print(startDate);
             System.out.println("backsynching, we have " + updateInfo.getRemainingAPICalls("fitbit") +
@@ -649,7 +650,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             loadFoodDataForOneDay(updateInfo, formattedDate); if (updateInfo.getRemainingAPICalls("fitbit")<=50) break;
             loadIntradayDataForOneDay(updateInfo, formattedDate);
             // start over when we have reached our goal
-            if (startDate.equals(backSyncDateGoal)) {
+            if (isGoalReached(startDate, backSyncDateGoal)) {
                 guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), BACKSYNC_START_DATE_ATT_KEY);
                 guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), BACKSYNC_DAYS_GOAL_ATT_KEY);
                 startDate = getBackSyncStartDate(updateInfo);
@@ -660,12 +661,23 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                 guestService.setApiKeyAttribute(updateInfo.apiKey, BACKSYNC_START_DATE_ATT_KEY, TimeUtils.dateFormatter.print(startDate));
             }
         }
+	}
+
+    public void afterConnectorUpdate(final UpdateInfo updateInfo) {
         // exceptionnally override the standard update scheduling mechanism: fitbit doesn't support updatedSince
         // semantics meaning we have to be aggressive about synching
+        System.out.println("scheduling next backsynching operations an hour from now, apiKeyId=" + updateInfo.apiKey.getId());
         connectorUpdateService.scheduleUpdate(updateInfo.apiKey, 0, UpdateInfo.UpdateType.INCREMENTAL_UPDATE,
-                System.currentTimeMillis()+DateTimeConstants.MILLIS_PER_HOUR);
+                System.currentTimeMillis() + DateTimeConstants.MILLIS_PER_HOUR);
         initChannelMapping(updateInfo);
-	}
+    }
+
+    static boolean isGoalReached(LocalDate startDate, String backSyncDateGoal) {
+        LocalDate backSyncDate = new LocalDate(backSyncDateGoal);
+        if (backSyncDate.isEqual(startDate)||backSyncDate.isAfter(startDate))
+            return true;
+        return false;
+    }
 
     private LocalDate getBackSyncStartDate(final UpdateInfo updateInfo) {
         // return either today (and store it as an ApiKeyAttribute) or what we have already saved from a previous run
@@ -705,11 +717,17 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         return zone;
     }
 
+    private boolean isIntradayDataEnabled() {
+        final String intradayEnabledProperty = env.get("fitbit.intraday.enabled");
+        if (intradayEnabledProperty !=null && Boolean.valueOf(intradayEnabledProperty))
+            return true;
+        return false;
+    }
+
     private void checkLateAdditions(UpdateInfo updateInfo) throws RateLimitReachedException, UpdateFailedException, AuthExpiredException, NoSuchFieldException, IllegalAccessException, UnexpectedResponseCodeException {
         // 10/2/2014 We want to add support for intraday data. Since it's a "late addition", existing connectors
         // need to have a chance to do a history update for the intraday data
-        final String intradayEnabledProperty = env.get("fitbit.intraday.enabled");
-        if (intradayEnabledProperty !=null && Boolean.valueOf(intradayEnabledProperty))
+        if (isIntradayDataEnabled())
             updateHistoryIntradayData(updateInfo);
 
         // 10/27/2014 Adding support for food logging. This requires Fitbit's User info to be persisted
@@ -805,6 +823,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
     private void loadIntradayDataForOneDay(UpdateInfo updateInfo, String dateString)
             throws AuthExpiredException, RateLimitReachedException, UpdateFailedException, NoSuchFieldException, IllegalAccessException, UnexpectedResponseCodeException {
+        if (!isIntradayDataEnabled()) return;
         final List<AbstractFacet> facetsByDates = facetDao.getFacetsByDates(updateInfo.apiKey, ObjectType.getObjectType(connector(), 1), Arrays.asList(dateString));
         if (facetsByDates.size()>0) {
             final AbstractFacet facet = facetsByDates.get(0);
