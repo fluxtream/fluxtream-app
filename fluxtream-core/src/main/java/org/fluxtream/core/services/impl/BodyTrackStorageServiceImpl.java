@@ -125,8 +125,11 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 
     private List<BodyTrackHelper.BodyTrackUploadResult> uploadIntradayData(long guestId, List<AbstractFacet> deviceFacets, FieldHandler fieldHandler) {
         List<BodyTrackHelper.BodyTrackUploadResult> results = new ArrayList<BodyTrackHelper.BodyTrackUploadResult>();
-        for (AbstractFacet deviceFacet : deviceFacets)
-            results.addAll(fieldHandler.handleField(guestId, deviceFacet));
+        for (AbstractFacet deviceFacet : deviceFacets) {
+            List<BodyTrackHelper.BodyTrackUploadResult> facetResults = fieldHandler.handleField(guestId, deviceFacet);
+            if (facetResults != null)
+                results.addAll(facetResults);
+        }
         return results;
     }
 
