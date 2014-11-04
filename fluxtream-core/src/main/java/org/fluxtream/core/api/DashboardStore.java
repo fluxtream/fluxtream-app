@@ -309,7 +309,7 @@ import java.util.ListIterator;
 
     @POST
     @Path("/{dashboardId}/widgets/{widgetName}/settings")
-    @ApiOperation(value = "Save a widget's settings", response = DashboardModel.class, responseContainer = "Array")
+    @ApiOperation(value = "Save a widget's settings")
     public Response saveWidgetSettings(@PathParam("dashboardId") long dashboardId,
                                        @PathParam("widgetName") String widgetName,
                                        @FormParam("settingsJSON") String settingsJSON) throws UnsupportedEncodingException {

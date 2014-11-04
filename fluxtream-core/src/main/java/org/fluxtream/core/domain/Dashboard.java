@@ -1,10 +1,12 @@
 package org.fluxtream.core.domain;
 
+import com.wordnik.swagger.annotations.ApiModel;
+import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Type;
+
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Type;
 
 /**
  * @author Candide Kemmler (candide@fluxtream.com)

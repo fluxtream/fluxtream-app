@@ -1,29 +1,38 @@
 package org.fluxtream.core.domain;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.xml.bind.annotation.XmlRootElement;
+import com.wordnik.swagger.annotations.ApiModel;
+import com.wordnik.swagger.annotations.ApiModelProperty;
 import net.sf.json.JSONObject;
 import org.codehaus.plexus.util.StringUtils;
+
+import javax.xml.bind.annotation.XmlRootElement;
+import java.util.*;
 
 /**
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
 @XmlRootElement
+@ApiModel("A widget's full definition (before it is added to a dashboard)")
 public class DashboardWidget {
 
+    @ApiModelProperty(value="Localized description", required=true)
     public Map<String,String> WidgetDescription = new HashMap<String,String>();
+    @ApiModelProperty(value="Localized title", required=true)
     public Map<String,String> WidgetTitle = new HashMap<String,String>();
+    @ApiModelProperty(value="Supported locales", required=true)
     public List<String> SupportedLanguages;
+    @ApiModelProperty(value="Who created this?", required=true)
     public String VendorIdentifier;
+    @ApiModelProperty(value="List of connectors that make this widget relevant", required=true)
     public List<String> RequiredConnectors;
+    @ApiModelProperty(value="Icon URL", required=true)
     public String WidgetIcon;
+    @ApiModelProperty(value="Name of the widget", required=true)
     public String WidgetName;
+    @ApiModelProperty(value="Where does this widget come from?", required=true)
     public String WidgetRepositoryURL;
+    @ApiModelProperty(value="Does it support settings?", required=true)
     public boolean HasSettings;
 
     public DashboardWidget() {
