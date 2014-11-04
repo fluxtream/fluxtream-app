@@ -1,7 +1,8 @@
 package org.fluxtream.core.api;
 
-import com.google.gson.Gson;
-import net.sf.json.JSONArray;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiParam;
 import net.sf.json.JSONObject;
 import org.apache.velocity.util.StringUtils;
 import org.fluxtream.core.aspects.FlxLogger;
@@ -9,6 +10,9 @@ import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.domain.Dashboard;
 import org.fluxtream.core.domain.DashboardWidget;
 import org.fluxtream.core.domain.WidgetSettings;
+import org.fluxtream.core.mvc.models.DashboardModel;
+import org.fluxtream.core.mvc.models.DashboardWidgetManifestModel;
+import org.fluxtream.core.mvc.models.DashboardWidgetModel;
 import org.fluxtream.core.services.DashboardsService;
 import org.fluxtream.core.services.WidgetsService;
 import org.fluxtream.core.utils.Utils;
@@ -31,6 +35,7 @@ import java.util.ListIterator;
  */
 @Path("/v1/dashboards")
 @Component("RESTDashboardStore")
+@Api(value = "/dashboards", description = "Widget dashboards API")
 @Scope("request")
     public class DashboardStore {
 
@@ -42,91 +47,77 @@ import java.util.ListIterator;
     @Autowired
     WidgetsService widgetsService;
 
-    Gson gson = new Gson();
-
     @GET
+    @ApiOperation(value = "Get a user's dashboards", response = DashboardModel.class, responseContainer = "Array")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getDashboards() {
         long guestId = AuthHelper.getGuestId();
         try {
             List<Dashboard> dashboards = dashboardsService.getDashboards(guestId);
             Collections.sort(dashboards);
-            JSONArray jsonArray = new JSONArray();
+            List<DashboardModel> dashboardModels = new ArrayList<DashboardModel>();
             for (final ListIterator eachDashboard = dashboards.listIterator(); eachDashboard.hasNext(); ) {
                 final Dashboard dashboard = (Dashboard)eachDashboard.next();
-                JSONObject dashboardJson = toDashboardJson(dashboard, guestId);
-                jsonArray.add(dashboardJson);
+                DashboardModel dashboardModel = toDashboardModel(dashboard, guestId);
+                dashboardModels.add(dashboardModel);
             }
-            StringBuilder sb = new StringBuilder("module=API component=dashboardStore action=getDashboards")
-                    .append(" guestId=").append(guestId);
-            logger.info(sb.toString());
-            return Response.ok(jsonArray.toString()).build();
+            return Response.ok(dashboardModels).build();
         }
         catch (Exception e){
             return Response.serverError().entity("Failed to get dashboards: " + e.getMessage()).build();
         }
     }
 
-    private JSONObject toDashboardJson(final Dashboard dashboard, long guestId) {
-        JSONObject dashboardJson = new JSONObject();
-        dashboardJson.accumulate("id", dashboard.getId());
-        dashboardJson.accumulate("name", dashboard.name);
-        dashboardJson.accumulate("active", dashboard.active);
+    private DashboardModel toDashboardModel(final Dashboard dashboard, long guestId) {
+        DashboardModel dashboardModel = new DashboardModel();
+        dashboardModel.id = dashboard.getId();
+        dashboardModel.name = dashboard.name;
+        dashboardModel.active = dashboard.active;
         final List<DashboardWidget> availableWidgetsList = widgetsService.getAvailableWidgetsList(guestId);
         final String[] widgetNames = StringUtils.split(dashboard.widgetNames, ",");
-        JSONArray widgetsArray = new JSONArray();
+        List<DashboardWidgetModel> widgetModels = new ArrayList<DashboardWidgetModel>();
         there: for (String widgetName : widgetNames) {
             for (DashboardWidget dashboardWidget : availableWidgetsList) {
                 if (dashboardWidget.WidgetName.equals(widgetName)) {
-                    widgetsArray.add(toJSONObject(guestId, dashboard, dashboardWidget));
+                    widgetModels.add(toDashboardWidgetModel(dashboardWidget, dashboard, guestId));
                     continue there;
                 }
             }
         }
-        dashboardJson.accumulate("widgets", widgetsArray);
-        return dashboardJson;
+        dashboardModel.widgets = widgetModels;
+        return dashboardModel;
     }
 
-    private JSONObject toJSONObject(final long guestId, final Dashboard dashboard,
-                                    final DashboardWidget dashboardWidget) {
-        JSONObject manifestJSON = new JSONObject();
-        manifestJSON.accumulate("WidgetName", dashboardWidget.WidgetName);
-        manifestJSON.accumulate("WidgetRepositoryURL", dashboardWidget.WidgetRepositoryURL);
-        manifestJSON.accumulate("WidgetDescription", dashboardWidget.WidgetDescription);
-        manifestJSON.accumulate("WidgetTitle", dashboardWidget.WidgetTitle);
-        manifestJSON.accumulate("WidgetIcon", dashboardWidget.WidgetIcon);
-        manifestJSON.accumulate("HasSettings", dashboardWidget.HasSettings);
+    private DashboardWidgetModel toDashboardWidgetModel(final DashboardWidget dashboardWidget,
+                                                        final Dashboard dashboard,
+                                                        final Long guestId) {
+        DashboardWidgetManifestModel widgetManifestModel = new DashboardWidgetManifestModel();
+        widgetManifestModel.WidgetName = dashboardWidget.WidgetName;
+        widgetManifestModel.WidgetRepositoryURL = dashboardWidget.WidgetRepositoryURL;
+        widgetManifestModel.WidgetDescription = dashboardWidget.WidgetDescription;
+        widgetManifestModel.WidgetTitle = dashboardWidget.WidgetTitle;
+        widgetManifestModel.WidgetIcon = dashboardWidget.WidgetIcon;
+        widgetManifestModel.HasSettings = dashboardWidget.HasSettings;
 
-        JSONObject widgetJSON = new JSONObject();
-        widgetJSON.accumulate("manifest", manifestJSON);
+        DashboardWidgetModel widgetModel = new DashboardWidgetModel();
+        widgetModel.manifest = widgetManifestModel;
 
-        if (dashboardWidget.HasSettings) {
+        if (dashboard!=null && dashboardWidget.HasSettings) {
             final WidgetSettings widgetSettings = widgetsService.getWidgetSettings(guestId, dashboard.getId(),
-                                                                                   dashboardWidget.WidgetName);
-            final JSONObject jsonSettings = JSONObject.fromObject(widgetSettings.settingsJSON);
-            widgetJSON.accumulate("settings", jsonSettings);
+                    dashboardWidget.WidgetName);
+            widgetModel.settings = widgetSettings.settingsJSON;
         }
 
-        return widgetJSON;
-    }
-
-    private JSONArray toJsonArray(final String commaSeparatedWidgetNames) {
-        final String[] widgetNames = StringUtils.split(commaSeparatedWidgetNames, ",");
-        JSONArray names = new JSONArray();
-        for (String name : widgetNames)
-            names.add(name);
-        return names;
+        return widgetModel;
     }
 
     @POST
+    @ApiOperation(value = "Add a dashboard", response = DashboardModel.class, responseContainer = "Array")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response addDashboard(@FormParam("dashboardName") String dashboardName) throws UnsupportedEncodingException {
+    public Response addDashboard(@ApiParam(value="The dashboard's name", required=true) @FormParam("dashboardName") String dashboardName) throws UnsupportedEncodingException {
         long guestId = AuthHelper.getGuestId();
         try {
             dashboardsService.addDashboard(guestId, dashboardName);
-            StringBuilder sb = new StringBuilder("module=API component=dashboardStore action=addDashboard")
-                    .append(" guestId=").append(guestId);
-            logger.info(sb.toString());
             return getDashboards();
         }
         catch (Exception e) {
@@ -140,14 +131,12 @@ import java.util.ListIterator;
 
     @DELETE
     @Path("/{dashboardId}")
+    @ApiOperation(value = "Delete a dashboard", response = DashboardModel.class, responseContainer = "Array")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response removeDashboard(@PathParam("dashboardId") long dashboardId) throws UnsupportedEncodingException {
         long guestId = AuthHelper.getGuestId();
         try {
             dashboardsService.removeDashboard(guestId, dashboardId);
-            StringBuilder sb = new StringBuilder("module=API component=dashboardStore action=deleteDashboard")
-                    .append(" guestId=").append(guestId);
-            logger.info(sb.toString());
             return getDashboards();
         }
         catch (Exception e) {
@@ -161,12 +150,13 @@ import java.util.ListIterator;
 
     @GET
     @Path("/{dashboardId}/availableWidgets")
+    @ApiOperation(value = "List available widgets", response = DashboardWidget.class, responseContainer = "Array")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getAvailableWidgets(@PathParam("dashboardId") long dashboardId) {
         long guestId = AuthHelper.getGuestId();
         try {
-            final List<DashboardWidget> availableWidgetsList = widgetsService.getAvailableWidgetsList(guestId);
             final List<DashboardWidget> widgetsNotYetInDashboard = new ArrayList<DashboardWidget>();
+            final List<DashboardWidget> availableWidgetsList = widgetsService.getAvailableWidgetsList(guestId);
             final Dashboard dashboard = dashboardsService.getDashboard(guestId, dashboardId);
             final String[] dashboardWidgets = StringUtils.split(dashboard.widgetNames, ",");
             outerloop: for (DashboardWidget availableWidget : availableWidgetsList) {
@@ -176,9 +166,6 @@ import java.util.ListIterator;
                 }
                 widgetsNotYetInDashboard.add(availableWidget);
             }
-            StringBuilder sb = new StringBuilder("module=API component=dashboardStore action=getAvailableWidgets")
-                    .append(" guestId=").append(guestId);
-            logger.info(sb.toString());
             return Response.ok(widgetsNotYetInDashboard).build();
         }
         catch (Exception e) {
@@ -192,16 +179,14 @@ import java.util.ListIterator;
 
     @PUT
     @Path("/{dashboardId}/name")
+    @ApiOperation(value = "Rename a dashboard", response = DashboardModel.class, responseContainer = "Array")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response renameDashboard(@PathParam("dashboardId") long dashboardId,
-                                  @QueryParam("name") String newName) throws UnsupportedEncodingException {
+                                    @QueryParam("name") String newName) throws UnsupportedEncodingException {
         long guestId = AuthHelper.getGuestId();
         try {
             newName = URLDecoder.decode(newName, "UTF-8");
             dashboardsService.renameDashboard(guestId, dashboardId, newName);
-            StringBuilder sb = new StringBuilder("module=API component=dashboardStore action=renameDashboard")
-                    .append(" guestId=").append(guestId);
-            logger.info(sb.toString());
             return getDashboards();
         }
         catch (Exception e) {
@@ -215,15 +200,13 @@ import java.util.ListIterator;
 
     @PUT
     @Path("/{dashboardId}/active")
+    @ApiOperation(value = "Set current/active dashboard", response = DashboardModel.class, responseContainer = "Array")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response setActiveDashboard(@PathParam("dashboardId") long dashboardId)
             throws UnsupportedEncodingException {
         long guestId = AuthHelper.getGuestId();
         try {
             dashboardsService.setActiveDashboard(guestId, dashboardId);
-            StringBuilder sb = new StringBuilder("module=API component=dashboardStore action=setActiveDashboard")
-                    .append(" guestId=").append(guestId);
-            logger.info(sb.toString());
             return getDashboards();
         }
         catch (Exception e) {
@@ -237,16 +220,14 @@ import java.util.ListIterator;
 
     @POST
     @Path("/{dashboardId}/widgets")
+    @ApiOperation(value = "Add a widget to a dashboard", response = DashboardModel.class, responseContainer = "Array")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response addWidget(@PathParam("dashboardId") long dashboardId,
-                            @FormParam("widget") String widgetJson) throws UnsupportedEncodingException {
+                              @FormParam("widget") String widgetJson) throws UnsupportedEncodingException {
         long guestId = AuthHelper.getGuestId();
         try {
             widgetJson = URLDecoder.decode(widgetJson, "UTF-8");
             dashboardsService.addWidget(guestId, dashboardId, widgetJson);
-            StringBuilder sb = new StringBuilder("module=API component=dashboardStore action=addWidget")
-                    .append(" guestId=").append(guestId);
-            logger.info(sb.toString());
             return getDashboards();
         }
         catch (Exception e) {
@@ -260,16 +241,14 @@ import java.util.ListIterator;
 
     @DELETE
     @Path("/{dashboardId}/widgets/{widgetName}")
+    @ApiOperation(value = "Remove a widget from a dashboard", response = DashboardModel.class, responseContainer = "Array")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response removeWidget(@PathParam("dashboardId") long dashboardId,
-                               @PathParam("widgetName") String widgetName) throws UnsupportedEncodingException {
+                                 @PathParam("widgetName") String widgetName) throws UnsupportedEncodingException {
         long guestId = AuthHelper.getGuestId();
         try {
             widgetName = URLDecoder.decode(widgetName, "UTF-8");
             dashboardsService.removeWidget(guestId, dashboardId, widgetName);
-            StringBuilder sb = new StringBuilder("module=API component=dashboardStore action=removeWidget")
-                    .append(" guestId=").append(guestId);
-            logger.info(sb.toString());
             return getDashboards();
         }
         catch (Exception e) {
@@ -283,16 +262,14 @@ import java.util.ListIterator;
 
     @POST
     @Path("/{dashboardId}/widgets/reorder")
+    @ApiOperation(value = "Change the order of widgets in a dashboard", response = DashboardModel.class, responseContainer = "Array")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response setWidgetsOrder(@PathParam("dashboardId") long dashboardId,
-                                  @FormParam("widgetNames") String widgetNames) throws UnsupportedEncodingException {
+                                    @FormParam("widgetNames") String widgetNames) throws UnsupportedEncodingException {
         long guestId = AuthHelper.getGuestId();
         try {
             final String[] wNames = StringUtils.split(widgetNames, ",");
             dashboardsService.setWidgetsOrder(guestId, dashboardId, wNames);
-            StringBuilder sb = new StringBuilder("module=API component=dashboardStore action=setWidgetOrder")
-                    .append(" guestId=").append(guestId);
-            logger.info(sb.toString());
             return getDashboards();
         }
         catch (Exception e) {
@@ -306,6 +283,7 @@ import java.util.ListIterator;
 
     @POST
     @Path("/reorder")
+    @ApiOperation(value = "Change the order of dashboards", response = DashboardModel.class, responseContainer = "Array")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response setDashboardsOrder(@FormParam("dashboardIds") String dashboardIds) throws UnsupportedEncodingException {
         long guestId = AuthHelper.getGuestId();
@@ -318,9 +296,6 @@ import java.util.ListIterator;
                 ids[i++] = Long.valueOf(dName);
             }
             dashboardsService.setDashboardsOrder(guestId, ids);
-            StringBuilder sb = new StringBuilder("module=API component=dashboardStore action=setDashboardsOrder")
-                    .append(" guestId=").append(guestId);
-            logger.info(sb.toString());
             return getDashboards();
         }
         catch (Exception e) {
@@ -334,17 +309,14 @@ import java.util.ListIterator;
 
     @POST
     @Path("/{dashboardId}/widgets/{widgetName}/settings")
-    @Produces({ MediaType.APPLICATION_JSON })
+    @ApiOperation(value = "Save a widget's settings", response = DashboardModel.class, responseContainer = "Array")
     public Response saveWidgetSettings(@PathParam("dashboardId") long dashboardId,
-                                     @PathParam("widgetName") String widgetName,
-                                     @FormParam("settingsJSON") String settingsJSON) throws UnsupportedEncodingException {
+                                       @PathParam("widgetName") String widgetName,
+                                       @FormParam("settingsJSON") String settingsJSON) throws UnsupportedEncodingException {
         long guestId = AuthHelper.getGuestId();
         try {
             widgetName = URLDecoder.decode(widgetName, "UTF-8");
             widgetsService.saveWidgetSettings(guestId, dashboardId, widgetName, settingsJSON);
-            StringBuilder sb = new StringBuilder("module=API component=dashboardStore action=saveWidgetSettings")
-                    .append(" guestId=").append(guestId);
-            logger.info(sb.toString());
             return Response.ok("Successfully saved widget settings").build();
         }
         catch (Exception e) {
@@ -358,17 +330,15 @@ import java.util.ListIterator;
 
     @GET
     @Path("/{dashboardId}/widgets/{widgetName}/settings")
+    @ApiOperation(value = "Get a widget's settings", response = DashboardModel.class, responseContainer = "Array")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getWidgetSettings(@PathParam("dashboardId") long dashboardId,
-                                    @PathParam("widgetName") String widgetName) throws UnsupportedEncodingException {
+                                      @PathParam("widgetName") String widgetName) throws UnsupportedEncodingException {
         long guestId = AuthHelper.getGuestId();
         try{
             widgetName = URLDecoder.decode(widgetName, "UTF-8");
             final WidgetSettings settings = widgetsService.getWidgetSettings(guestId, dashboardId, widgetName);
             JSONObject jsonSettings = JSONObject.fromObject(settings.settingsJSON);
-            StringBuilder sb = new StringBuilder("module=API component=dashboardStore action=getWidgetSettings")
-                    .append(" guestId=").append(guestId);
-            logger.info(sb.toString());
             return Response.ok(jsonSettings.toString()).build();
         }
         catch (Exception e){
