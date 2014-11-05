@@ -663,6 +663,10 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         }
 	}
 
+    public void afterHistoryUpdate(final UpdateInfo updateInfo) {
+        afterConnectorUpdate(updateInfo);
+    }
+
     public void afterConnectorUpdate(final UpdateInfo updateInfo) {
         // exceptionnally override the standard update scheduling mechanism: fitbit doesn't support updatedSince
         // semantics meaning we have to be aggressive about synching

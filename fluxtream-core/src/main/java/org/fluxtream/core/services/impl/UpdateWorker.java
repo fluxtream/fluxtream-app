@@ -193,6 +193,11 @@ class UpdateWorker implements Runnable {
         UpdateResult updateResult = updater.updateDataHistory(updateInfo);
         syncSettings(updater, updateInfo, updateResult);
         handleUpdateResult(updateInfo, updateResult);
+        try {
+            updater.afterHistoryUpdate(updateInfo);
+        } catch (Exception e) {
+            logger.warn("afterHistoryUpdate failed: apiKeyId=" + apiKey.getId() + " connector=" + apiKey.getConnector().getName());
+        }
 	}
 
     private void updateData(final ApiKey apiKey, final AbstractUpdater updater) {
@@ -207,7 +212,7 @@ class UpdateWorker implements Runnable {
         try {
             updater.afterConnectorUpdate(updateInfo);
         } catch (Exception e) {
-            logger.warn("afterConnectorUpdate failed: " + apiKey.getId() + " connector=" + apiKey.getConnector().getName());
+            logger.warn("afterConnectorUpdate failed: apiKeyId=" + apiKey.getId() + " connector=" + apiKey.getConnector().getName());
         }
     }
 

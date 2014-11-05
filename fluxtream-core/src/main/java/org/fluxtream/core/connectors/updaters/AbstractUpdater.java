@@ -402,4 +402,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
     public void afterConnectorUpdate(final UpdateInfo updateInfo)
         throws Exception {}
 
+    public void afterHistoryUpdate(final UpdateInfo updateInfo)
+            throws Exception {}
+
 }
