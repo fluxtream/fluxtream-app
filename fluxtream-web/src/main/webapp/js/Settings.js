@@ -43,7 +43,7 @@ define(function() {
         }
         var distanceOptions = $("#distance_measure_unit").children();
         for (var i = 0; i < distanceOptions.length; i++){
-            if ($(distanceOptions[i]).attr("value") == settings.distanceUnit){
+            if ($(distanceOptions[i]).attr("value") == settings.distanceMeasureUnit){
                 $("#distance_measure_unit")[0].selectedIndex = i;
                 break;
             }
