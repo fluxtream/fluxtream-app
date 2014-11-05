@@ -1,9 +1,7 @@
 package org.fluxtream.core.services.impl;
 
-import java.io.Serializable;
-import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import com.google.gson.Gson;
+import org.apache.commons.lang.StringUtils;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.connectors.Connector;
@@ -11,12 +9,7 @@ import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
 import org.fluxtream.core.connectors.updaters.SettingsAwareUpdater;
 import org.fluxtream.core.connectors.updaters.UpdateFailedException;
-import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.ConnectorChannelSet;
-import org.fluxtream.core.domain.ConnectorFilterState;
-import org.fluxtream.core.domain.Guest;
-import org.fluxtream.core.domain.GuestAddress;
-import org.fluxtream.core.domain.GuestSettings;
+import org.fluxtream.core.domain.*;
 import org.fluxtream.core.domain.GuestSettings.DistanceMeasureUnit;
 import org.fluxtream.core.domain.GuestSettings.LengthMeasureUnit;
 import org.fluxtream.core.domain.GuestSettings.TemperatureUnit;
@@ -24,12 +17,15 @@ import org.fluxtream.core.domain.GuestSettings.WeightMeasureUnit;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.services.SettingsService;
 import org.fluxtream.core.utils.JPAUtils;
-import com.google.gson.Gson;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import java.io.Serializable;
+import java.util.List;
 
 @Service
 @Transactional(readOnly=true)
@@ -88,7 +84,6 @@ public class SettingsServiceImpl implements SettingsService {
 	public void setFirstname(long guestId, String firstname) {
 		Guest guest = guestService.getGuestById(guestId);
 		guest.firstname = firstname;
-		em.merge(guest);
 	}
 
 	@Override
@@ -96,7 +91,6 @@ public class SettingsServiceImpl implements SettingsService {
 	public void setLastname(long guestId, String lastname) {
 		Guest guest = guestService.getGuestById(guestId);
 		guest.lastname = lastname;
-		em.merge(guest);
 	}
 
 	@Override
@@ -105,7 +99,6 @@ public class SettingsServiceImpl implements SettingsService {
 		GuestSettings settings = JPAUtils.findUnique(em, GuestSettings.class,
 				"settings.byGuestId", guestId);
 		settings.weightMeasureUnit = unit;
-		em.merge(settings);
 	}
 
 	@Override
@@ -114,7 +107,6 @@ public class SettingsServiceImpl implements SettingsService {
 		GuestSettings settings = JPAUtils.findUnique(em, GuestSettings.class,
 				"settings.byGuestId", guestId);
 		settings.temperatureUnit = unit;
-		em.merge(settings);
 	}
 
     @Override
@@ -245,7 +237,6 @@ public class SettingsServiceImpl implements SettingsService {
 		GuestSettings settings = JPAUtils.findUnique(em, GuestSettings.class,
 				"settings.byGuestId", guestId);
 		settings.lengthMeasureUnit = unit;
-		em.merge(settings);
 	}
 
 	@Override
@@ -254,7 +245,6 @@ public class SettingsServiceImpl implements SettingsService {
 		GuestSettings settings = JPAUtils.findUnique(em, GuestSettings.class,
 				"settings.byGuestId", guestId);
 		settings.distanceMeasureUnit = unit;
-		em.merge(settings);
 	}
 
 	@Override
