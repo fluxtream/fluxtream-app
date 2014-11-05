@@ -766,7 +766,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             makeRestCall(updateInfo, ObjectType.getCustomObjectType(SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL).value(),
                     "https://api.fitbit.com/1/user/-/apiSubscriptions/" + fitbitSubscriberId + ".json", "POST");
         } catch (UnexpectedResponseCodeException e) {
-            if (e.responseCode==429) {
+            if (e.responseCode==409) {
                 notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING,
                         "Subscription Conflict", "It looks like you are already subscribed to notifications with this key on another server (http error code: " + e.responseCode + ")");
             }
