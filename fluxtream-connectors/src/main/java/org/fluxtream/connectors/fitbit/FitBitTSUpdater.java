@@ -1349,7 +1349,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                     setResetTime(updateInfo, request);
             }
 
-            if (httpResponseCode == 200) {
+            if (httpResponseCode == 200 || httpResponseCode == 201) {
                 String json = IOUtils.toString(request.getInputStream());
                 connectorUpdateService.addApiUpdate(updateInfo.apiKey,
                         objectTypes, then, System.currentTimeMillis() - then,
