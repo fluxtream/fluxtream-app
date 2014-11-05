@@ -50,7 +50,7 @@
 
     function injectGeneratedDocs() {
 
-        var sortedApis = ["guest", "buddies", "calendar", "bodytrack", "dashboards", "repositories", "sync", "comments", "metadata", "settings", "notifications"];
+        var sortedApis = ["guest", "buddies", "calendar", "bodytrack", "dashboards", "repositories", "widgets", "sync", "comments", "metadata", "settings", "notifications"];
 
         for (var i=0; i<sortedApis.length; i++) {
             var li = $("#resource_" + sortedApis[i]);
@@ -154,6 +154,10 @@
             <div id="repositories_narrative">
                 <h2>Manage widget repository hosts</h2>
                 <p>Guest are free to create their own widgets and upload them on their server(s). This endpoint lets guests add/remove widget repositories.</p>
+            </div>
+            <div id="widgets_narrative">
+                <h2>List/Refresh a guest's widgets</h2>
+                <p>List all of a guest's widgets. Refresh that list to take new widget repositories into account.</p>
             </div>
             <div id="sync_narrative">
                 <h2>Manage API data synchronization</h2>
