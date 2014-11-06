@@ -664,15 +664,19 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 	}
 
     public void afterHistoryUpdate(final UpdateInfo updateInfo) {
-        afterConnectorUpdate(updateInfo);
+        scheduleAggressiveBackSync(updateInfo, System.currentTimeMillis());
     }
 
     public void afterConnectorUpdate(final UpdateInfo updateInfo) {
-        // exceptionnally override the standard update scheduling mechanism: fitbit doesn't support updatedSince
-        // semantics meaning we have to be aggressive about synching
-        System.out.println("scheduling next backsynching operations an hour from now, apiKeyId=" + updateInfo.apiKey.getId());
+        scheduleAggressiveBackSync(updateInfo, System.currentTimeMillis() + DateTimeConstants.MILLIS_PER_HOUR);
+    }
+
+    // This allows to exceptionnally override the standard update scheduling mechanism: fitbit doesn't support updatedSince
+    // semantics meaning we have to be aggressive about synching
+    private void scheduleAggressiveBackSync(final UpdateInfo updateInfo, final long when) {
+        System.out.println("scheduling next backsynching operations , apiKeyId=" + updateInfo.apiKey.getId());
         connectorUpdateService.scheduleUpdate(updateInfo.apiKey, 0, UpdateInfo.UpdateType.INCREMENTAL_UPDATE,
-                System.currentTimeMillis() + DateTimeConstants.MILLIS_PER_HOUR);
+                when);
         initChannelMapping(updateInfo);
     }
 
@@ -1367,18 +1371,17 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                         urlString, false, httpResponseCode, httpResponseMessage);
                 // Check for response code 429 which is Fitbit's over rate limit error
                 if(httpResponseCode == 429) {
-                    if (objectTypes==ObjectType.getCustomObjectType(SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL).value()) {
-                        // this is to account for this method being called when adding an api Subscription
-                        throw new UnexpectedResponseCodeException(429, httpResponseMessage, urlString);
-                    } else {
-                        logger.warn("Darn, we hit Fitbit's rate limit again! url=" + urlString + ", guest=" + updateInfo.getGuestId());
-                        // try to retrieve the reset time from Fitbit, otherwise default to a one hour delay
-                        // also, set resetTime as an apiKey attribute so we don't retry calling the API too soon
-                        setResetTime(updateInfo, request);
-                        throw new RateLimitReachedException();
-                    }
+                    logger.warn("Darn, we hit Fitbit's rate limit again! url=" + urlString + ", guest=" + updateInfo.getGuestId());
+                    // try to retrieve the reset time from Fitbit, otherwise default to a one hour delay
+                    // also, set resetTime as an apiKey attribute so we don't retry calling the API too soon
+                    setResetTime(updateInfo, request);
+                    throw new RateLimitReachedException();
                 }
                 else {
+                    if (httpResponseCode == 409) {
+                        // this is to account for this method being called when adding an api Subscription
+                        throw new UnexpectedResponseCodeException(httpResponseCode, httpResponseMessage, urlString);
+                    } else
                     // Otherwise throw the same error that SignpostOAuthHelper used to throw
                     if (httpResponseCode == 401)
                         throw new AuthExpiredException();
