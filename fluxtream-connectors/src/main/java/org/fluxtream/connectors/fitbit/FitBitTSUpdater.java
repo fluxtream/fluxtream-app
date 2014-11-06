@@ -733,10 +733,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
     }
 
     private void checkLateAdditions(UpdateInfo updateInfo) throws RateLimitReachedException, UpdateFailedException, AuthExpiredException, NoSuchFieldException, IllegalAccessException, UnexpectedResponseCodeException {
-        // 10/2/2014 We want to add support for intraday data. Since it's a "late addition", existing connectors
-        // need to have a chance to do a history update for the intraday data
-        if (isIntradayDataEnabled())
-            updateHistoryIntradayData(updateInfo);
 
         // 10/27/2014 Adding support for food logging. This requires Fitbit's User info to be persisted
         // so we can retrieve a guest ID with Fitbit's 'encodedId' hash
@@ -825,6 +821,24 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             fitbitUserProfile.timezone = user.getString("timezone");
         if (user.has("weight"))
             fitbitUserProfile.weight = user.getDouble("weight");
+
+        if (user.has("memberSince"))
+            fitbitUserProfile.memberSince = user.getString("memberSince");
+        if (user.has("weightUnit"))
+            fitbitUserProfile.weightUnit = user.getString("weightUnit");
+        if (user.has("heightUnit"))
+            fitbitUserProfile.heightUnit = user.getString("heightUnit");
+        if (user.has("glucoseUnit"))
+            fitbitUserProfile.glucoseUnit = user.getString("glucoseUnit");
+        if (user.has("waterUnit"))
+            fitbitUserProfile.waterUnit = user.getString("waterUnit");
+        if (user.has("avatar"))
+            fitbitUserProfile.avatar = user.getString("avatar");
+        if (user.has("avatar150"))
+            fitbitUserProfile.avatar150 = user.getString("avatar150");
+        if (user.has("startDayOfWeek"))
+            fitbitUserProfile.startDayOfWeek = user.getString("startDayOfWeek");
+
         facetDao.persist(fitbitUserProfile);
         guestService.setApiKeyAttribute(updateInfo.apiKey, HAS_FITBIT_USER_PROFILE_ATT_KEY, String.valueOf(true));
     }
@@ -843,46 +857,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                 logger.warn("TRYING TO UPDATE INTRADAY DATA OF AN UNEXISTING FACET, dateString=" + dateString);
             }
         }
-    }
-
-    private void updateHistoryIntradayData(final UpdateInfo updateInfo) throws RateLimitReachedException, UpdateFailedException, AuthExpiredException, NoSuchFieldException, IllegalAccessException, UnexpectedResponseCodeException {
-        // if the intraday history has already completed, exit
-        final String historyCompleteAtt = guestService.getApiKeyAttribute(updateInfo.apiKey, INTRADAY_HISTORY_IMPORT_COMPLETE_ATT_KEY);
-        if (historyCompleteAtt!=null&&historyCompleteAtt.equals("true"))
-            return;
-        // Fetching the entire intraday history for each guest is probably too much so there needs to be
-        // a property specifying the number of days that we want to look back
-        // First check if the intraday history has been fetched
-        String lastIntradayDate = guestService.getApiKeyAttribute(updateInfo.apiKey, LAST_INTRADAY_DATE_ATT_KEY);
-        if (lastIntradayDate==null) {
-            // if no apiKey attribute found, compute it as:
-            // max(days since user subscribed, fitbit.intraday.lookback.days)
-            final String lookbackDays = env.get("fitbit.intraday.lookback.days");
-            long nDays = lookbackDays!=null ? Long.valueOf(lookbackDays) : 30;
-            final Instant firstDayToLookback = new Instant().minus(Duration.standardDays(nDays));
-            final Instant firstTimeTrackerData = new Instant(getMinTrackerTime(updateInfo));
-            final Instant mostRecentInstant = firstDayToLookback.isAfter(firstTimeTrackerData) ? firstDayToLookback : firstTimeTrackerData;
-            lastIntradayDate = ISODateTimeFormat.date().print(mostRecentInstant);
-            guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_INTRADAY_DATE_ATT_KEY, lastIntradayDate);
-        }
-        final long then = ISODateTimeFormat.date().withZoneUTC().parseDateTime(lastIntradayDate).toDateMidnight().getMillis();
-        List<String> daysToUpdate = getListOfDatesBetween(updateInfo, then, System.currentTimeMillis());
-        final List<AbstractFacet> facetsByDates = facetDao.getFacetsByDates(updateInfo.apiKey, ObjectType.getObjectType(connector(), 1), daysToUpdate);
-        // not sure the facets are going to be returned in any particular order, thus use daysToUpdate to
-        // iterate through them
-        updatingDates: for (String dayToUpdate : daysToUpdate) {
-            for (AbstractFacet facet : facetsByDates) {
-                FitbitTrackerActivityFacet activityFacet = (FitbitTrackerActivityFacet) facet;
-                if (activityFacet.date!=null&&activityFacet.date.equals(dayToUpdate)) {
-                    updateIntradayMetrics(updateInfo, activityFacet);
-                    bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), Arrays.asList(facet));
-                    guestService.setApiKeyAttribute(updateInfo.apiKey, LAST_INTRADAY_DATE_ATT_KEY, dayToUpdate);
-                    continue updatingDates;
-                }
-            }
-        }
-        // eventually, store a boolean to remember that we have completed the intraday history import
-        guestService.setApiKeyAttribute(updateInfo.apiKey, INTRADAY_HISTORY_IMPORT_COMPLETE_ATT_KEY, "true");
     }
 
     private void updateIntradayMetrics(UpdateInfo updateInfo, FitbitTrackerActivityFacet activityFacet) throws RateLimitReachedException, AuthExpiredException, UpdateFailedException, UnexpectedResponseCodeException {
@@ -905,11 +879,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         }
     }
 
-    private long getMinTrackerTime(UpdateInfo updateInfo) {
-        final String query = "SELECT min(start) FROM Facet_FitbitActivity WHERE apiKeyId=" + updateInfo.apiKey.getId();
-        final Long minActivityStartTime = jpaDaoService.executeNativeQuery(query);
-        return minActivityStartTime;
-    }
 
     public void updateIntradayMetric(final FitbitTrackerActivityFacet facet, final UpdateInfo updateInfo, final String metric)
             throws RateLimitReachedException, AuthExpiredException, UpdateFailedException, IllegalAccessException, NoSuchFieldException, UnexpectedResponseCodeException {

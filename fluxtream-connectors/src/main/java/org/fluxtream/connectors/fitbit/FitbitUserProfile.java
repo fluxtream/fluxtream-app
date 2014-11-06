@@ -34,6 +34,15 @@ public class FitbitUserProfile extends AbstractUserProfile {
 	public double strideLengthWalking;
 	public String timezone;
 	public double weight;
+
+    public String memberSince;
+    public String glucoseUnit;
+    public String heightUnit;
+    public String waterUnit;
+    public String weightUnit;
+    public String avatar;
+    public String avatar150;
+    public String startDayOfWeek;
 	
 	@Override
 	public TimeZone getTimeZone() {
