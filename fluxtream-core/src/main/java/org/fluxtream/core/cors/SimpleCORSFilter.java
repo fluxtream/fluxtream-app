@@ -27,7 +27,7 @@ public class SimpleCORSFilter implements Filter {
 
     public void setCORSHeaders(HttpServletRequest request, HttpServletResponse response) {
         response.setHeader("Access-Control-Allow-Origin", getAllowedOrigin(request.getHeader("Origin")));
-        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT");
         response.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type");
         response.setHeader("Access-Control-Allow-Credentials", "true");
         response.setHeader("Access-Control-Expose-Headers", "Accept-Ranges, Content-Encoding, Content-Length, Content-Range");
