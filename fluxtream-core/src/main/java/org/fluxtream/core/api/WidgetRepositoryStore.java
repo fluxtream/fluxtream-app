@@ -1,6 +1,8 @@
 package org.fluxtream.core.api;
 
 import com.google.gson.Gson;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
 import net.sf.json.JSONArray;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.domain.DashboardWidgetsRepository;
@@ -20,6 +22,7 @@ import java.util.List;
  */
 @Path("/v1/repositories")
 @Component("RESTWidgetRepositoryStore")
+@Api(value = "/repositories", description = "Widget repositories API - a widget repository is a user-configurable base URL for storing/retrieving widgets.")
 @Scope("request")
 public class WidgetRepositoryStore {
 
@@ -30,6 +33,7 @@ public class WidgetRepositoryStore {
 
     @GET
     @Path("/")
+    @ApiOperation(value = "Get a guest's list of widget repository URLs")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getWidgetRepositories() {
         try{
@@ -48,6 +52,7 @@ public class WidgetRepositoryStore {
 
     @POST
     @Path("/")
+    @ApiOperation(value = "Add a widget repository URL")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response addWidgetRepositoryURL(@FormParam("url") String url) {
         try{
@@ -62,6 +67,7 @@ public class WidgetRepositoryStore {
 
     @DELETE
     @Produces({ MediaType.APPLICATION_JSON })
+    @ApiOperation(value = "Remove a guest's widget repository URL")
     @Path("/")
     public Response removeWidgetRepositoryURL(@QueryParam("url") String url) {
         try{

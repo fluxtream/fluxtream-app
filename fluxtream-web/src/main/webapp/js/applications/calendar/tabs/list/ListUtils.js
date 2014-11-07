@@ -80,10 +80,8 @@ define([],function(){
             }
             hasAllDayData |= appendItems(currentArray,curContainer.find(".allDayContainer"),curContainer.find(".normalContainer"));
         }
-        console.log("hasAllDayData: " + hasAllDayData);
 
         if (hasAllDayData==1) {
-            console.log("we should show timePeriod headers");
             curContainer.find(".timePeriod").show();
         } else
             curContainer.find(".timePeriod").hide();

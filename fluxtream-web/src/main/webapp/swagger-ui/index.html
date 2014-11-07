@@ -50,7 +50,7 @@
 
     function injectGeneratedDocs() {
 
-        var sortedApis = ["guest", "buddies", "calendar", "bodytrack", "sync", "comments", "metadata", "settings", "notifications"];
+        var sortedApis = ["guest", "buddies", "calendar", "bodytrack", "dashboards", "repositories", "widgets", "sync", "comments", "metadata", "settings", "notifications"];
 
         for (var i=0; i<sortedApis.length; i++) {
             var li = $("#resource_" + sortedApis[i]);
@@ -145,6 +145,19 @@
                 <h2>Manage data for the BodyTrack Timeline</h2>
                 <p>The BodyTrack Timeline requires a tile-based API. Also, at this point, the BodyTrack API provides the only way that we support uploading
                 your own data. Photo upload also happens here.</p>
+            </div>
+            <div id="dashboards_narrative">
+                <h2>Create and arrange widget dashboards</h2>
+                <p>We provide support for widgets that consume our calendar-based API. These widgets can be added, removed and rearranged in
+                dashboards which in turn can be (re-)named and reordered.</p>
+            </div>
+            <div id="repositories_narrative">
+                <h2>Manage widget repository hosts</h2>
+                <p>Guest are free to create their own widgets and upload them on their server(s). This endpoint lets guests add/remove widget repositories.</p>
+            </div>
+            <div id="widgets_narrative">
+                <h2>List/Refresh a guest's widgets</h2>
+                <p>List all of a guest's widgets. Refresh that list to take new widget repositories into account.</p>
             </div>
             <div id="sync_narrative">
                 <h2>Manage API data synchronization</h2>

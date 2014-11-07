@@ -11,6 +11,6 @@ public interface BodyTrackStorageService {
 
     public void storeInitialHistory(ApiKey apiKey, int objectTypes);
 
-	public void storeApiData(long guestId, List<AbstractFacet> facet);
+	public void storeApiData(long guestId, List<? extends AbstractFacet> facet);
 	
 }

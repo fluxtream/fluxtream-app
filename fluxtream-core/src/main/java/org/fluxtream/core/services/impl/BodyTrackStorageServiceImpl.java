@@ -53,7 +53,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
     private Hashtable<String, FieldHandler> fieldHandlers = new Hashtable<String, FieldHandler>();
 
 	@Override
-	public void storeApiData(long guestId, List<AbstractFacet> facets) {
+	public void storeApiData(long guestId, List<? extends AbstractFacet> facets) {
         logStoreApiData(guestId, facets);
 
 		Map<String, List<AbstractFacet>> facetsByFacetName = sortFacetsByFacetName(facets);
@@ -75,7 +75,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 
 	}
 
-    private void logStoreApiData(final long guestId, final List<AbstractFacet> facets) {
+    private void logStoreApiData(final long guestId, final List<? extends AbstractFacet> facets) {
         StringBuilder sb = new StringBuilder("module=updateQueue component=bodytrackStorageService action=storeApiData")
                 .append(" guestId=").append(guestId);
         if (facets.size()>0) {
@@ -204,7 +204,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
         return channelValues;
     }
 
-    private Map<String, List<AbstractFacet>> sortFacetsByFacetName(List<AbstractFacet> facets) {
+    private Map<String, List<AbstractFacet>> sortFacetsByFacetName(List<? extends AbstractFacet> facets) {
 		Map<String, List<AbstractFacet>> facetsByDeviceNickname = new HashMap<String, List<AbstractFacet>>();
 		for (AbstractFacet facet : facets) {
 			Connector connector = Connector.fromValue(facet.api);
