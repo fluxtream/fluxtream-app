@@ -468,11 +468,11 @@ define(["core/grapher/BTCore",
             var confirmDelete = $("#confirmRemoveConnectorBtn");
             var cancelDelete = $("#cancelRemoveConnectorBtn");
 
-            cancelDelete.click(function() {
+            cancelDelete.unbind().click(function() {
                 $("#deleteConnectorConfirm").modal("hide");
             });
 
-            confirmDelete.click(function(){
+            confirmDelete.unbind().click(function(){
                 $.ajax({
                     url: "/api/v1/connectors/" + connectors[index].connectorName,
                     type:"DELETE",

@@ -150,10 +150,10 @@ public class Connector {
             connector.extractorClass = updaterAnnotation.extractor();
         if (facetTypes.length == 1) {
             connector.facetClass = facetTypes[0];
-            if (updaterAnnotation.userProfile() != AbstractUserProfile.class)
-                connector.userProfileClass = updaterAnnotation
-                        .userProfile();
         }
+        if (updaterAnnotation.userProfile() != AbstractUserProfile.class)
+            connector.userProfileClass = updaterAnnotation
+                    .userProfile();
         connector.defaultChannels = updaterAnnotation.defaultChannels();
         List<ObjectType> connectorObjectTypes = new ArrayList<ObjectType>();
         for (Class<? extends AbstractFacet> facetType : facetTypes) {
