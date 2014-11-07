@@ -42,19 +42,19 @@ public class FitbitFoodLogSummaryFieldHandler implements FieldHandler {
         record.add(dsTime);
 
         // Add each non-empty field to both the channelNames and data record so they correspond
-        if (fitbitFoodLogSummaryFacet.calories >= 0) {
+        if (fitbitFoodLogSummaryFacet.calories > 0) {
             channelNames.add("caloriesIn");
             record.add(fitbitFoodLogSummaryFacet.calories);
         }
-        if (fitbitFoodLogSummaryFacet.water >= 0) {
+        if (fitbitFoodLogSummaryFacet.water > 0) {
             channelNames.add("water");
             record.add(fitbitFoodLogSummaryFacet.water);
         }
-        if (fitbitFoodLogSummaryFacet.caloriesGoal >= 0) {
+        if (fitbitFoodLogSummaryFacet.caloriesGoal > 0) {
             channelNames.add("caloriesInGoal");
             record.add(fitbitFoodLogSummaryFacet.caloriesGoal);
         }
-        if (fitbitFoodLogSummaryFacet.caloriesOutGoal >= 0) {
+        if (fitbitFoodLogSummaryFacet.caloriesOutGoal > 0) {
             channelNames.add("caloriesOutGoal");
             record.add(fitbitFoodLogSummaryFacet.caloriesOutGoal);
         }

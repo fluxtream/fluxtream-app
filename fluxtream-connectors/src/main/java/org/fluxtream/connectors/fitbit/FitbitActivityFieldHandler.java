@@ -48,67 +48,67 @@ public class FitbitActivityFieldHandler implements FieldHandler {
         record.add(dsTime);
 
         // Add each non-empty field to both the channelNames and data record so they correspond
-        if (fitbitActivityFacet.activeScore >= 0) {
+        if (fitbitActivityFacet.activeScore > 0) {
             channelNames.add("activeScore");
             record.add(fitbitActivityFacet.activeScore);
         }
-        if (fitbitActivityFacet.floors >= 0) {
+        if (fitbitActivityFacet.floors > 0) {
             channelNames.add("floors");
             record.add(fitbitActivityFacet.floors);
         }
-        if (fitbitActivityFacet.elevation >= 0) {
+        if (fitbitActivityFacet.elevation > 0) {
             channelNames.add("elevation");
             record.add(fitbitActivityFacet.elevation);
         }
-		if (fitbitActivityFacet.caloriesOut >= 0) {
+		if (fitbitActivityFacet.caloriesOut > 0) {
             channelNames.add("caloriesOut");
             record.add(fitbitActivityFacet.caloriesOut);
         }
-		if (fitbitActivityFacet.fairlyActiveMinutes >= 0) {
+		if (fitbitActivityFacet.fairlyActiveMinutes > 0) {
             channelNames.add("fairlyActiveMinutes");
             record.add(fitbitActivityFacet.fairlyActiveMinutes);
         }
-		if (fitbitActivityFacet.lightlyActiveMinutes >= 0) {
+		if (fitbitActivityFacet.lightlyActiveMinutes > 0) {
             channelNames.add("lightlyActiveMinutes");
             record.add(fitbitActivityFacet.lightlyActiveMinutes);
         }
-		if (fitbitActivityFacet.sedentaryMinutes >= 0) {
+		if (fitbitActivityFacet.sedentaryMinutes > 0) {
             channelNames.add("sedentaryMinutes");
             record.add(fitbitActivityFacet.sedentaryMinutes);
         }
-		if (fitbitActivityFacet.veryActiveMinutes >= 0) {
+		if (fitbitActivityFacet.veryActiveMinutes > 0) {
             channelNames.add("veryActiveMinutes");
             record.add(fitbitActivityFacet.veryActiveMinutes);
         }
-		if (fitbitActivityFacet.steps >= 0) {
+		if (fitbitActivityFacet.steps > 0) {
             channelNames.add("steps");
             record.add(fitbitActivityFacet.steps);
         }
-        if (fitbitActivityFacet.trackerDistance >= 0) {
+        if (fitbitActivityFacet.trackerDistance > 0) {
             channelNames.add("trackerDistance");
             record.add(fitbitActivityFacet.trackerDistance);
         }
-        if (fitbitActivityFacet.loggedActivitiesDistance >= 0) {
+        if (fitbitActivityFacet.loggedActivitiesDistance > 0) {
             channelNames.add("loggedActivitiesDistance");
             record.add(fitbitActivityFacet.loggedActivitiesDistance);
         }
-        if (fitbitActivityFacet.veryActiveDistance >= 0) {
+        if (fitbitActivityFacet.veryActiveDistance > 0) {
             channelNames.add("veryActiveDistance");
             record.add(fitbitActivityFacet.veryActiveDistance);
         }
-        if (fitbitActivityFacet.totalDistance >= 0) {
+        if (fitbitActivityFacet.totalDistance > 0) {
             channelNames.add("totalDistance");
             record.add(fitbitActivityFacet.totalDistance);
         }
-        if (fitbitActivityFacet.moderatelyActiveDistance >= 0) {
+        if (fitbitActivityFacet.moderatelyActiveDistance > 0) {
             channelNames.add("moderatelyActiveDistance");
             record.add(fitbitActivityFacet.moderatelyActiveDistance);
         }
-        if (fitbitActivityFacet.lightlyActiveDistance >= 0) {
+        if (fitbitActivityFacet.lightlyActiveDistance > 0) {
             channelNames.add("lightlyActiveDistance");
             record.add(fitbitActivityFacet.lightlyActiveDistance);
         }
-        if (fitbitActivityFacet.sedentaryActiveDistance >= 0) {
+        if (fitbitActivityFacet.sedentaryActiveDistance > 0) {
             channelNames.add("sedentaryActiveDistance");
             record.add(fitbitActivityFacet.sedentaryActiveDistance);
         }

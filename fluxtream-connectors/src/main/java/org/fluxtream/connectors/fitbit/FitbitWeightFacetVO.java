@@ -2,14 +2,14 @@ package org.fluxtream.connectors.fitbit;
 
 import org.fluxtream.core.OutsideTimeBoundariesException;
 import org.fluxtream.core.TimeInterval;
-import org.fluxtream.core.connectors.vos.AbstractInstantFacetVO;
+import org.fluxtream.core.connectors.vos.AbstractLocalTimeInstantFacetVO;
 import org.fluxtream.core.domain.GuestSettings;
 import org.joda.time.DateTimeConstants;
 
 import java.util.Calendar;
 import java.util.TimeZone;
 
-public class FitbitWeightFacetVO extends AbstractInstantFacetVO<FitbitWeightFacet> {
+public class FitbitWeightFacetVO extends AbstractLocalTimeInstantFacetVO<FitbitWeightFacet> {
 
     public Boolean allDay;
     public double bmi;
