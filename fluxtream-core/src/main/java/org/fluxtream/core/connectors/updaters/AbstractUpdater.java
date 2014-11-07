@@ -181,21 +181,6 @@ public abstract class AbstractUpdater extends ApiClientSupport {
         }
 	}
 
-	@SuppressWarnings({"unchecked","unused"})
-	protected final <T extends AbstractUserProfile> T saveUserProfile(
-			UpdateInfo updateInfo, Class<T> clazz) throws Exception {
-		AbstractUserProfile loadUserProfile = loadUserProfile(updateInfo, clazz);
-		guestService.saveUserProfile(updateInfo.apiKey.getGuestId(),
-				loadUserProfile);
-		return (T) loadUserProfile;
-	}
-
-    @SuppressWarnings("unused")
-	protected <T extends AbstractUserProfile> T loadUserProfile(
-			UpdateInfo updateInfo, Class<T> clazz) throws Exception {
-		throw new RuntimeException("Not Implemented");
-	}
-
     /**
      * Updates all connector information
      * @param updateInfo update information for the connector

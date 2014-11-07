@@ -32,12 +32,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author candide
@@ -732,19 +734,13 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
     }
 
     private String getMemberSince(UpdateInfo updateInfo) {
-        FitbitUserProfile userProfile = jpaDaoService.findOne("fitbitUser.byGuestId", FitbitUserProfile.class, updateInfo.getGuestId());
+        FitbitUserProfile userProfile = jpaDaoService.findOne("fitbitUser.byApiKeyId", FitbitUserProfile.class, updateInfo.apiKey.getId());
         return userProfile.memberSince;
-    }
-
-    @RequestMapping("/fitbit/memberSince")
-    public Response getMemberSince() {
-        FitbitUserProfile userProfile = jpaDaoService.findOne("fitbitUser.byGuestId", FitbitUserProfile.class, 1l);
-        return Response.ok(userProfile.memberSince).build();
     }
 
     private DateTimeZone getFitbitUserTimezone(UpdateInfo updateInfo) {
         DateTimeZone zone = DateTimeZone.UTC;
-        FitbitUserProfile userProfile = jpaDaoService.findOne("fitbitUser.byGuestId", FitbitUserProfile.class, updateInfo.getGuestId());
+        FitbitUserProfile userProfile = jpaDaoService.findOne("fitbitUser.byApiKeyId", FitbitUserProfile.class, updateInfo.apiKey.getId());
         if (userProfile!=null)
             try { zone = DateTimeZone.forID(userProfile.timezone);} catch(Exception e){}
         return zone;
@@ -815,7 +811,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         JSONObject user = json.getJSONObject("user");
         FitbitUserProfile fitbitUserProfile = new FitbitUserProfile();
         fitbitUserProfile.encodedId = user.getString("encodedId");
-        fitbitUserProfile.guestId = updateInfo.getGuestId();
+        fitbitUserProfile.apiKeyId = updateInfo.apiKey.getId();
         if (user.has("aboutMe"))
             fitbitUserProfile.aboutMe = user.getString("aboutMe");
         if (user.has("city"))
@@ -1168,8 +1164,9 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                     objectTypes = 16+32;
                 }
 
+                ApiKey apiKey = guestService.getApiKey(userProfile.apiKeyId);
 				connectorUpdateService.addApiNotification(connector(),
-						userProfile.guestId, updatesString);
+						apiKey.getGuestId(), updatesString);
 
 				JSONObject jsonParams = new JSONObject();
 				jsonParams.accumulate("date", dateString)
@@ -1178,8 +1175,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
 				logger.info("action=scheduleUpdate connector=fitbit collectionType="
 						+ collectionType);
-
-                ApiKey apiKey = guestService.getApiKey(userProfile.guestId, connector());
 
 				connectorUpdateService.scheduleUpdate(apiKey,
 						objectTypes,

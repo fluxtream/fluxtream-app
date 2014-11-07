@@ -261,14 +261,7 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 		if (!apiKey.getConnector().hasFacets())
 			return;
 		jpaDao.deleteAllFacets(apiKey);
-		Class<? extends AbstractUserProfile> userProfileClass = apiKey.getConnector()
-				.userProfileClass();
-		if (userProfileClass != null
-				&& userProfileClass != AbstractUserProfile.class) {
-			Query deleteProfileQuery = em.createQuery("DELETE FROM "
-					+ userProfileClass.getName() + " WHERE guestId=" + apiKey.getGuestId());
-			deleteProfileQuery.executeUpdate();
-		}
+        guestService.deleteConnectorProfile(apiKey);
         // remove directory <connectorData.location>/<connectorName>/<apiKeyId>
         final String devKvsLocation = env.get("btdatastore.db.location");
         // let's not assume that everyone has set this value

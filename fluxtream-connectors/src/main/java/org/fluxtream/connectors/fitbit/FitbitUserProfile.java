@@ -5,16 +5,13 @@ import org.fluxtream.core.domain.AbstractUserProfile;
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import java.util.TimeZone;
 
 @Entity(name="FitbitUserProfile")
 @NamedQueries ( {
 	@NamedQuery( name="fitbitUser.byEncodedId",
 			query="SELECT fitbitUser FROM FitbitUserProfile fitbitUser WHERE fitbitUser.encodedId=?"),
-    @NamedQuery( name="fitbitUser.byGuestId",
-            query="SELECT fitbitUser FROM FitbitUserProfile fitbitUser WHERE fitbitUser.guestId=?"),
-    @NamedQuery( name="fitbitUser.delete",
-            query="DELETE FROM FitbitUserProfile fitbitUser WHERE fitbitUser.guestId=?")
+    @NamedQuery( name="fitbitUser.byApiKeyId",
+            query="SELECT fitbitUser FROM FitbitUserProfile fitbitUser WHERE fitbitUser.apiKeyId=?"),
 })
 public class FitbitUserProfile extends AbstractUserProfile {
 
@@ -43,10 +40,5 @@ public class FitbitUserProfile extends AbstractUserProfile {
     public String avatar;
     public String avatar150;
     public String startDayOfWeek;
-	
-	@Override
-	public TimeZone getTimeZone() {
-		return TimeZone.getTimeZone(timezone);
-	}
-	
+
 }

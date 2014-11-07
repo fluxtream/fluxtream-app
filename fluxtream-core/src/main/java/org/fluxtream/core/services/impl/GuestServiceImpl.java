@@ -30,11 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.Query;
 import java.io.IOException;
 import java.util.*;
 
@@ -191,6 +187,19 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
     }
 
     @Override
+    @Transactional(readOnly=false)
+    public void deleteConnectorProfile(final ApiKey apiKey) {
+        Class<? extends AbstractUserProfile> userProfileClass = apiKey.getConnector()
+                .userProfileClass();
+        if (userProfileClass != null
+                && userProfileClass != AbstractUserProfile.class) {
+            Query deleteProfileQuery = em.createQuery("DELETE FROM "
+                    + userProfileClass.getName() + " WHERE apiKeyId=" + apiKey.getId());
+            deleteProfileQuery.executeUpdate();
+        }
+    }
+
+    @Override
 	public Guest getGuest(String username) {
         return JPAUtils.findUnique(em, Guest.class,
                 "guest.byUsername", username);
@@ -239,8 +248,8 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
         return attributes;
     }
 
-    @Transactional(readOnly = false)
 	@Override
+    @Transactional(readOnly = false)
 	public void removeApiKey(long apiKeyId) {
 		ApiKey apiKey = em.find(ApiKey.class, apiKeyId);
 
@@ -259,7 +268,6 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
         }
         finally {
             em.remove(apiKey);
-            em.flush();
             // cleanup the data asynchrously in order not to block the user's flow
             bodyTrackHelper.deleteChannelMappings(apiKey);
             ApiDataCleanupWorker worker = beanFactory.getBean(ApiDataCleanupWorker.class);
@@ -412,7 +420,6 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
         JPAUtils.execute(em, "grapherView.delete.all", guest.getId());
         JPAUtils.execute(em, "widgetSettings.delete.all", guest.getId());
         JPAUtils.execute(em, "dashboards.delete.all", guest.getId());
-        JPAUtils.execute(em, "fitbitUser.delete", guest.getId());
     }
 
     private void revokeFacebookPermissions(final Guest guest) {
@@ -488,13 +495,6 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
 		em.persist(guest);
 	}
 
-	@Override
-	@Transactional(readOnly = false)
-	public void saveUserProfile(long guestId, AbstractUserProfile userProfile) {
-		userProfile.guestId = guestId;
-		em.persist(userProfile);
-	}
-
     @Override
     @Transactional(readOnly=false)
     public void setApiKeySettings(final long apiKeyId, final Object settings) {
@@ -502,23 +502,6 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
         apiKey.setSettings(settings);
         em.persist(apiKey);
     }
-
-    @Override
-	public <T extends AbstractUserProfile> T getUserProfile(long guestId,
-			Class<T> clazz) {
-		CriteriaBuilder qb = em.getCriteriaBuilder();
-		CriteriaQuery<T> c = qb.createQuery(clazz);
-		Root<T> from = c.from(clazz);
-		CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-		Predicate guestPredicate = criteriaBuilder.equal(from.get("guestId"),
-				guestId);
-		c.where(guestPredicate);
-		TypedQuery<T> query = em.createQuery(c);
-		List<T> resultList = query.getResultList();
-		if (resultList.size() > 0)
-			return resultList.get(0);
-		return null;
-	}
 
     @Override
     @Transactional(readOnly=false)
