@@ -63,7 +63,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
     public AbstractUpdater() {
 	}
 
-    protected void extractCommonFacetData(AbstractFacet facet, UpdateInfo updateInfo) {
+    public static void extractCommonFacetData(AbstractFacet facet, UpdateInfo updateInfo) {
         facet.apiKeyId = updateInfo.apiKey.getId();
         facet.guestId = updateInfo.apiKey.getGuestId();
         facet.api = updateInfo.apiKey.getConnector().value();

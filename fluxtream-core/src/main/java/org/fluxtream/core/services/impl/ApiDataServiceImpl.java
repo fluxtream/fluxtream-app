@@ -266,7 +266,7 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 		if (userProfileClass != null
 				&& userProfileClass != AbstractUserProfile.class) {
 			Query deleteProfileQuery = em.createQuery("DELETE FROM "
-					+ userProfileClass.getName());
+					+ userProfileClass.getName() + " WHERE guestId=" + apiKey.getGuestId());
 			deleteProfileQuery.executeUpdate();
 		}
         // remove directory <connectorData.location>/<connectorName>/<apiKeyId>

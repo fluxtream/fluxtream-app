@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
@@ -48,19 +49,21 @@ import java.util.*;
 		FitbitTrackerActivityFacet.class, FitbitLoggedActivityFacet.class,
 		FitbitSleepFacet.class, FitbitWeightFacet.class, FitbitFoodLogSummaryFacet.class,
         FitbitFoodLogEntryFacet.class},
+        userProfile = FitbitUserProfile.class,
         bodytrackResponder = FitbitBodytrackResponder.class,
         defaultChannels = {"Fitbit.steps","Fitbit.caloriesOut"})
 public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
     private static final String IS_GUEST_SUBSCRIBED_TO_FITBIT_NOTIFICATIONS_ATT_KEY = "isGuestSubscribedToFitbitNotifications";
     private static final String CALORIES_IN_HISTORY_IMPORTED_ATT_KEY = "caloriesInHistoryImported";
-    private static final String LAST_INTRADAY_DATE_ATT_KEY = "last.intraday.date";
-    private static final String INTRADAY_HISTORY_IMPORT_COMPLETE_ATT_KEY = "intraday.history.import.complete";
     private static final String HAS_FITBIT_USER_PROFILE_ATT_KEY = "hasFitbitUserProfile";
     private static final String BACKSYNC_DAYS_GOAL_ATT_KEY = "backsync.date.goal";
     private static final String BACKSYNC_START_DATE_ATT_KEY = "backsync.start.date";
 
     FlxLogger logger = FlxLogger.getLogger(FitBitTSUpdater.class);
+
+    @Autowired
+    FitbitPersistenceHelper fitbitPersistenceHelper;
 
 	@Autowired
 	MetadataService metadataService;
@@ -251,6 +254,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         // the above code does not do that so we explicity send the
         // Fitbit facet data to the datastore here.
         bodyTrackStorageService.storeInitialHistory(updateInfo.apiKey);
+
         initChannelMapping(updateInfo);
 
         checkLateAdditions(updateInfo);
@@ -275,7 +279,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         try {
             json = makeRestCall(updateInfo,
                     uri.hashCode(), "https://api.fitbit.com/1/user/-/" + uri
-                            + "/date/today/max.json");
+                            + "/date/today/1w.json");
         } catch (Throwable t) {
             // elevation and floors are not available for earlier trackers, so we can safely ignore them
             if (fieldName.equals("elevation")||fieldName.equals("floors")) {
@@ -711,10 +715,31 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                 fitbitBacksyncDays = Integer.valueOf(fitbitBacksyncDaysProperty);
             DateTimeZone fitbitUserTimezone = getFitbitUserTimezone(updateInfo);
             LocalDate today = new LocalDate(fitbitUserTimezone);
-            backSyncDateGoal = ISODateTimeFormat.date().print(today.minusDays(fitbitBacksyncDays));
+            String computedBackSyncDateGoal = ISODateTimeFormat.date().print(today.minusDays(fitbitBacksyncDays));
+            String memberSince = getMemberSince(updateInfo);
+            backSyncDateGoal = mostRecentDate(computedBackSyncDateGoal, memberSince);
             guestService.setApiKeyAttribute(updateInfo.apiKey, BACKSYNC_DAYS_GOAL_ATT_KEY, backSyncDateGoal);
         }
         return backSyncDateGoal;
+    }
+
+    private String mostRecentDate(String computedBackSyncDateGoal, String memberSince) {
+        LocalDate computedDate = ISODateTimeFormat.date().parseLocalDate(computedBackSyncDateGoal);
+        LocalDate memberSinceDate = ISODateTimeFormat.date().parseLocalDate(memberSince);
+        return computedDate.isAfter(memberSinceDate)
+                ? computedBackSyncDateGoal
+                : memberSince;
+    }
+
+    private String getMemberSince(UpdateInfo updateInfo) {
+        FitbitUserProfile userProfile = jpaDaoService.findOne("fitbitUser.byGuestId", FitbitUserProfile.class, updateInfo.getGuestId());
+        return userProfile.memberSince;
+    }
+
+    @RequestMapping("/fitbit/memberSince")
+    public Response getMemberSince() {
+        FitbitUserProfile userProfile = jpaDaoService.findOne("fitbitUser.byGuestId", FitbitUserProfile.class, 1l);
+        return Response.ok(userProfile.memberSince).build();
     }
 
     private DateTimeZone getFitbitUserTimezone(UpdateInfo updateInfo) {
@@ -974,27 +999,23 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             guestService.setApiKeyAttribute(updateInfo.apiKey, "SCALE.lastSyncDate",
                                             String.valueOf(dateEndMillis));
         }
-     }
+    }
 
     private void loadWeightDataForOneDay(UpdateInfo updateInfo, String formattedDate) throws Exception {
-        TimeZone utc = TimeZone.getTimeZone("UTC");
-        Date date = new Date(TimeUtils.dateFormatter.withZone(
-                DateTimeZone.forTimeZone(utc)).parseMillis(formattedDate));
         String json = getWeightData(updateInfo, formattedDate);
         String fatJson = getBodyFatData(updateInfo, formattedDate);
         JSONObject jsonWeight = JSONObject.fromObject(json);
         JSONObject jsonFat = JSONObject.fromObject(fatJson);
         json = mergeWeightInfos(jsonWeight, jsonFat);
-        long fromMidnight = TimeUtils.fromMidnight(date.getTime(), utc);
-        long toMidnight = TimeUtils.toMidnight(date.getTime(), utc);
         logger.info("guestId=" + updateInfo.getGuestId() +
                     " connector=fitbit action=loadWeightDataForOneDay json="
                     + json);
         apiDataService.eraseApiData(updateInfo.apiKey, weightOT, Arrays.asList(formattedDate));
         if (json != null) {
-            apiDataService.cacheApiDataJSON(updateInfo, json, fromMidnight, toMidnight, weightOT.value());
-        } else
-            apiDataService.cacheEmptyData(updateInfo, fromMidnight, toMidnight);
+            JSONObject fitbitResponse = JSONObject.fromObject(json);
+            final List<FitbitWeightFacet> createdOrUpdatedWeightFacets = fitbitPersistenceHelper.createOrUpdateWeightFacets(updateInfo, fitbitResponse);
+            bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), createdOrUpdatedWeightFacets);
+        }
     }
 
     private static String mergeWeightInfos(final JSONObject jsonWeight, final JSONObject jsonFat) {
@@ -1017,43 +1038,30 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
     private void loadActivityDataForOneDay(UpdateInfo updateInfo, String formattedDate) throws Exception {
         updateInfo.setContext("date", formattedDate);
-        TimeZone utc = TimeZone.getTimeZone("UTC");
-        Date date = new Date(TimeUtils.dateFormatter.withZone( DateTimeZone.forTimeZone(utc)).parseMillis(formattedDate));
 		String json = getActivityData(updateInfo, formattedDate);
-        apiDataService.eraseApiData(updateInfo.apiKey, activityOT, Arrays.asList(formattedDate));
-        apiDataService.eraseApiData(updateInfo.apiKey, loggedActivityOT, Arrays.asList(formattedDate));
-		long fromMidnight = TimeUtils.fromMidnight(date.getTime(), utc);
-		long toMidnight = TimeUtils.toMidnight(date.getTime(), utc);
 		logger.info("guestId=" + updateInfo.getGuestId() +
-				" connector=fitbit action=loadActivityDataForOneDay json="
-						+ json);
+				" connector=fitbit action=loadActivityDataForOneDay json=" + json);
 		if (json != null) {
-			apiDataService.cacheApiDataJSON(updateInfo, json, fromMidnight, toMidnight,
-                                            activityOT.value()+loggedActivityOT.value());
+            JSONObject fitbitResponse = JSONObject.fromObject(json);
+            fitbitPersistenceHelper.createOrUpdateLoggedActivities(updateInfo, fitbitResponse);
+            final FitbitTrackerActivityFacet createdOrUpdatedActivitySummary = fitbitPersistenceHelper.createOrUpdateActivitySummary(updateInfo, fitbitResponse);
+            bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), Arrays.asList(createdOrUpdatedActivitySummary));
 		}
 	}
 
 	private void loadSleepDataForOneDay(UpdateInfo updateInfo, String formattedDate) throws Exception {
         updateInfo.setContext("date", formattedDate);
-        TimeZone utc = TimeZone.getTimeZone("UTC");
-        Date date = new Date(TimeUtils.dateFormatter.withZone(
-                DateTimeZone.forTimeZone(utc)).parseMillis(formattedDate));
 		String json = getSleepData(updateInfo, formattedDate);
-		long fromMidnight = TimeUtils.fromMidnight(date.getTime(), utc);
-		long toMidnight = TimeUtils.toMidnight(date.getTime(), utc);
         apiDataService.eraseApiData(updateInfo.apiKey, sleepOT, Arrays.asList(formattedDate));
 		if (json != null) {
-			apiDataService.cacheApiDataJSON(updateInfo, json, fromMidnight,
-					toMidnight, sleepOT.value());
+            JSONObject fitbitResponse = JSONObject.fromObject(json);
+            fitbitPersistenceHelper.createOrUpdateSleepFacets(updateInfo, fitbitResponse);
 		}
 	}
 
     private void loadFoodDataForOneDay(UpdateInfo updateInfo, String formattedDate) throws Exception {
         updateInfo.setContext("date", formattedDate);
-        TimeZone utc = TimeZone.getTimeZone("UTC");
         final int objectTypes = foodLogEntryOT.value() + foodLogSummaryOT.value();
-        Date date = new Date(TimeUtils.dateFormatter.withZone(
-                DateTimeZone.forTimeZone(utc)).parseMillis(formattedDate));
         String urlString = "https://api.fitbit.com/1/user/-/foods/log/date/"
                 + formattedDate + ".json";
         String json = makeRestCall(updateInfo, objectTypes, urlString);
@@ -1070,93 +1078,13 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             // use createOrUpdate for food log entries (can't rely on date boundaries for unicity)
             while (iterator.hasNext()) {
                 JSONObject foodEntry = (JSONObject) iterator.next();
-                createOrUpdateFoodEntry(updateInfo, foodEntry);
+                fitbitPersistenceHelper.createOrUpdateFoodEntry(updateInfo, foodEntry);
             }
-            // but continue using the facet extraction method for summaries as they are date-unique
-            apiDataService.cacheApiDataJSON(updateInfo, json,
-                    TimeUtils.fromMidnight(date.getTime(), utc),
-                    TimeUtils.toMidnight(date.getTime(), utc),
-                    objectTypes);
+
+            final FitbitFoodLogSummaryFacet createdOrUpdatedFoodLogSummaryFacet = fitbitPersistenceHelper.createOrUpdateFoodLogSummaryFacet(updateInfo, fitbitResponse);
+            bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), Arrays.asList(createdOrUpdatedFoodLogSummaryFacet));
         }
     }
-
-    private void createOrUpdateFoodEntry(final UpdateInfo updateInfo, final JSONObject foodEntry) throws Exception {
-        final ApiDataService.FacetQuery facetQuery = new ApiDataService.FacetQuery(
-                "e.apiKeyId=? AND e.logId=?",
-                updateInfo.apiKey.getId(), foodEntry.getLong("logId"));
-        final ApiDataService.FacetModifier<FitbitFoodLogEntryFacet> facetModifier = new ApiDataService.FacetModifier<FitbitFoodLogEntryFacet>() {
-
-            @Override
-            public FitbitFoodLogEntryFacet createOrModify(FitbitFoodLogEntryFacet facet, Long apiKeyId) throws Exception {
-                if (facet == null) {
-                    facet = new FitbitFoodLogEntryFacet(updateInfo.apiKey.getId());
-                    extractCommonFacetData(facet, updateInfo);
-                }
-
-                setFacetTimeBounds(updateInfo, facet);
-
-                facet.isFavorite = foodEntry.getBoolean("isFavorite");
-                facet.logId = foodEntry.getLong("logId");
-                if (foodEntry.has("loggedFood")) {
-                    JSONObject loggedFood = foodEntry.getJSONObject("loggedFood");
-                    if (loggedFood.has("accessLevel"))
-                        facet.accessLevel = loggedFood.getString("accessLevel");
-                    if (loggedFood.has("amount"))
-                        facet.amount = (float) loggedFood.getDouble("amount");
-                    if (loggedFood.has("brand"))
-                        facet.brand = loggedFood.getString("brand");
-                    if (loggedFood.has("calories"))
-                        facet.calories = loggedFood.getInt("calories");
-                    if (loggedFood.has("foodId"))
-                        facet.foodId = loggedFood.getLong("foodId");
-                    if (loggedFood.has("mealTypeId"))
-                        facet.mealTypeId = loggedFood.getInt("mealTypeId");
-                    if (loggedFood.has("locale"))
-                        facet.locale = loggedFood.getString("locale");
-                    if (loggedFood.has("name"))
-                        facet.name = loggedFood.getString("name");
-                    if (loggedFood.has("unit")) {
-                        JSONObject unit = loggedFood.getJSONObject("unit");
-                        facet.unitId = unit.getInt("id");
-                        facet.unitName = unit.getString("name");
-                        facet.unitPlural = unit.getString("plural");
-                    }
-                }
-                if (foodEntry.has("nutritionalValues")) {
-                    JSONObject nutritionalValues = foodEntry.getJSONObject("nutritionalValues");
-                    if (nutritionalValues.has("calories"))
-                        facet.NV_Calories = nutritionalValues.getInt("calories");
-                    if (nutritionalValues.has("carbs"))
-                        facet.NV_Carbs = nutritionalValues.getInt("carbs");
-                    if (nutritionalValues.has("fat"))
-                        facet.NV_Fat = nutritionalValues.getInt("fat");
-                    if (nutritionalValues.has("fiber"))
-                        facet.NV_Fiber = nutritionalValues.getInt("fiber");
-                    if (nutritionalValues.has("protein"))
-                        facet.NV_Protein = nutritionalValues.getInt("protein");
-                    if (nutritionalValues.has("sodium"))
-                        facet.NV_Sodium = nutritionalValues.getInt("sodium");
-                }
-                return facet;
-            }
-
-        };
-        apiDataService.createOrReadModifyWrite(FitbitFoodLogEntryFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
-    }
-
-    private void setFacetTimeBounds(final UpdateInfo updateInfo, AbstractLocalTimeFacet facet) {
-        facet.date = (String) updateInfo.getContext("date");
-
-        final DateTime dateTime = TimeUtils.dateFormatterUTC.parseDateTime(facet.date);
-
-        // returns the starting midnight for the date
-        facet.start = dateTime.getMillis();
-        facet.end = dateTime.getMillis()+ DateTimeConstants.MILLIS_PER_DAY-1;
-
-        facet.startTimeStorage = facet.date + "T00:00:00.000";
-        facet.endTimeStorage = facet.date + "T23:59:59.999";
-    }
-
 
     private String getSleepData(UpdateInfo updateInfo, String formattedDate)
             throws RateLimitReachedException, UnexpectedResponseCodeException, UpdateFailedException, AuthExpiredException {
