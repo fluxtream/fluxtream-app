@@ -51,7 +51,7 @@ import java.util.*;
         FitbitFoodLogEntryFacet.class},
         userProfile = FitbitUserProfile.class,
         bodytrackResponder = FitbitBodytrackResponder.class,
-        defaultChannels = {"Fitbit.steps","Fitbit.caloriesOut"})
+        defaultChannels = {"Fitbit.steps","Fitbit.caloriesOut", "Fitbit.loggedActivitesDistance", "caloriesIn"})
 public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
     private static final String IS_GUEST_SUBSCRIBED_TO_FITBIT_NOTIFICATIONS_ATT_KEY = "isGuestSubscribedToFitbitNotifications";
@@ -279,7 +279,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         try {
             json = makeRestCall(updateInfo,
                     uri.hashCode(), "https://api.fitbit.com/1/user/-/" + uri
-                            + "/date/today/1w.json");
+                            + "/date/today/max.json");
         } catch (Throwable t) {
             // elevation and floors are not available for earlier trackers, so we can safely ignore them
             if (fieldName.equals("elevation")||fieldName.equals("floors")) {
