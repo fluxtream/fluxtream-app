@@ -710,14 +710,14 @@ public class AdminController {
 
     @GET
     @Path("/fitbit/apiSubscriptions/delete")
-    @Produces({MediaType.APPLICATION_JSON})
+    @Produces("text/plain")
     public Response deleteFitbitApiSubscription() throws UpdateFailedException, UnexpectedResponseCodeException, RateLimitReachedException, AuthExpiredException {
         String fitbitSubscriberId = env.get("fitbitSubscriberId");
         final Guest guest = AuthHelper.getGuest();
         ApiKey apiKey = guestService.getApiKey(guest.getId(), Connector.getConnector("fitbit"));
-        final String fitbitResponse = makeRestCall(apiKey, ObjectType.getCustomObjectType(SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL).value(),
+        makeRestCall(apiKey, ObjectType.getCustomObjectType(SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL).value(),
                 "https://api.fitbit.com/1/user/-/apiSubscriptions/" + fitbitSubscriberId + ".json", "DELETE");
-        return Response.ok().entity(fitbitResponse).build();
+        return Response.ok().entity("subscription deleted").build();
     }
 
     @GET
@@ -769,7 +769,7 @@ public class AdminController {
 
             final String httpResponseMessage = request.getResponseMessage();
 
-            if (httpResponseCode == 200) {
+            if (httpResponseCode == 200 || httpResponseCode == 201 || httpResponseCode == 204) {
                 String json = IOUtils.toString(request.getInputStream());
                 connectorUpdateService.addApiUpdate(apiKey,
                         objectTypes, then, System.currentTimeMillis() - then,
