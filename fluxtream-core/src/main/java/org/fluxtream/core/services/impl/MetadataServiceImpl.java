@@ -692,31 +692,37 @@ public class MetadataServiceImpl implements MetadataService {
         long start = locationResources.get(0).start;
 
         for (LocationFacet locationResource : locationResources) {
-            City newCity = anchorCity;
-            Point2D.Double location = new Point2D.Double(locationResource.latitude, locationResource.longitude);
-            boolean withinAnchorRange = isWithinRange(location, anchorLocation);
+            try {
+                City newCity = anchorCity;
+                Point2D.Double location = new Point2D.Double(locationResource.latitude, locationResource.longitude);
+                boolean withinAnchorRange = isWithinRange(location, anchorLocation);
 
-            if (!withinAnchorRange) {
-                anchorLocation = new Point2D.Double(locationResource.latitude, locationResource.longitude);
-                newCity = getClosestCity(locationResource.latitude, locationResource.longitude);
-            }
+                if (!withinAnchorRange) {
+                    anchorLocation = new Point2D.Double(locationResource.latitude, locationResource.longitude);
+                    newCity = getClosestCity(locationResource.latitude, locationResource.longitude);
+                }
 
-            String newDate = TimeUtils.dateFormatter.withZone(DateTimeZone.forID(newCity.geo_timezone)).print(locationResource.timestampMs);
-            final boolean dateChanged = !newDate.equals(currentDate);
-            final boolean cityChanged = newCity.geo_id!=anchorCity.geo_id;
-            if (dateChanged||cityChanged) {
-                if (count>0)
-                    storeCityInfo(lastLocationResourceMatchingAnchor, currentDate, anchorCity, start, count);
-                anchorCity = newCity;
-                start = locationResource.start;
-                count = 0;
+                String newDate = TimeUtils.dateFormatter.withZone(DateTimeZone.forID(newCity.geo_timezone)).print(locationResource.timestampMs);
+                final boolean dateChanged = !newDate.equals(currentDate);
+                final boolean cityChanged = newCity.geo_id!=anchorCity.geo_id;
+                if (dateChanged||cityChanged) {
+                    if (count>0)
+                        storeCityInfo(lastLocationResourceMatchingAnchor, currentDate, anchorCity, start, count);
+                    anchorCity = newCity;
+                    start = locationResource.start;
+                    count = 0;
+                }
+                count++;
+                // update count on the last location before we finish
+                if (locationResources.indexOf(locationResource)==locationResources.size()-1)
+                    storeCityInfo(locationResource, newDate, newCity, start, count);
+                currentDate = newDate;
+                lastLocationResourceMatchingAnchor = locationResource;
             }
-            count++;
-            // update count on the last location before we finish
-            if (locationResources.indexOf(locationResource)==locationResources.size()-1)
-                storeCityInfo(locationResource, newDate, newCity, start, count);
-            currentDate = newDate;
-            lastLocationResourceMatchingAnchor = locationResource;
+            catch (Exception e){
+                System.err.println("Exception occurred trying to store location metadata. Skipping datapoint...");
+                e.printStackTrace();
+            }
         }
         em.flush();
     }

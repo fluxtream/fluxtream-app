@@ -1,34 +1,21 @@
 package org.fluxtream.core.services.impl;
 
-import java.util.Date;
-import java.util.List;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import org.codehaus.plexus.util.ExceptionUtils;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.connectors.Connector;
-import org.fluxtream.core.connectors.updaters.AbstractUpdater;
-import org.fluxtream.core.connectors.updaters.SettingsAwareUpdater;
-import org.fluxtream.core.connectors.updaters.SharedConnectorSettingsAwareUpdater;
-import org.fluxtream.core.connectors.updaters.UpdateInfo;
-import org.fluxtream.core.connectors.updaters.UpdateResult;
-import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.ConnectorInfo;
-import org.fluxtream.core.domain.Notification;
-import org.fluxtream.core.domain.SharedConnector;
-import org.fluxtream.core.domain.UpdateWorkerTask;
+import org.fluxtream.core.connectors.updaters.*;
+import org.fluxtream.core.domain.*;
 import org.fluxtream.core.domain.UpdateWorkerTask.Status;
-import org.fluxtream.core.services.ApiDataService;
-import org.fluxtream.core.services.BuddiesService;
-import org.fluxtream.core.services.ConnectorUpdateService;
-import org.fluxtream.core.services.GuestService;
-import org.fluxtream.core.services.NotificationsService;
-import org.fluxtream.core.services.SettingsService;
-import org.fluxtream.core.services.SystemService;
+import org.fluxtream.core.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import java.util.Date;
+import java.util.List;
 
 @Component
 @Scope("prototype")
@@ -206,6 +193,11 @@ class UpdateWorker implements Runnable {
         UpdateResult updateResult = updater.updateDataHistory(updateInfo);
         syncSettings(updater, updateInfo, updateResult);
         handleUpdateResult(updateInfo, updateResult);
+        try {
+            updater.afterHistoryUpdate(updateInfo);
+        } catch (Exception e) {
+            logger.warn("afterHistoryUpdate failed: apiKeyId=" + apiKey.getId() + " connector=" + apiKey.getConnector().getName());
+        }
 	}
 
     private void updateData(final ApiKey apiKey, final AbstractUpdater updater) {
@@ -217,6 +209,11 @@ class UpdateWorker implements Runnable {
         UpdateResult result = updater.updateData(updateInfo);
         syncSettings(updater, updateInfo, result);
         handleUpdateResult(updateInfo, result);
+        try {
+            updater.afterConnectorUpdate(updateInfo);
+        } catch (Exception e) {
+            logger.warn("afterConnectorUpdate failed: apiKeyId=" + apiKey.getId() + " connector=" + apiKey.getConnector().getName());
+        }
     }
 
     private void syncSettings(final AbstractUpdater updater, final UpdateInfo updateInfo, final UpdateResult updateResult) {

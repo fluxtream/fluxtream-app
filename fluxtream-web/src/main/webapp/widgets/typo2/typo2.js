@@ -3,9 +3,10 @@ define(["core/DashboardWidget"], function(DashboardWidget) {
     var Typo2 = new DashboardWidget();
 
     Typo2.init = function() {
-        require(["text!" + this.manifest.WidgetRepositoryURL + "/"
-                + this.manifest.WidgetName + "/typo2.mustache"], function(template) {
-            Typo2.postLoad(template);
+        $.ajax({url:this.manifest.WidgetRepositoryURL + "/" + this.manifest.WidgetName + "/typo2.mustache",
+            success: function(template) {
+                Typo2.postLoad(template);
+            }
         });
     };
 

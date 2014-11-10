@@ -155,6 +155,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     Calendar.renderDefaultState = function() {
         Calendar.navigateState("clock/date/"+moment().format("YYYY-MM-DD"));
+//        Calendar.navigateState("timeline/week/"+moment().year()+"/"+moment().week());
     };
 
     function updateTimeRange(digest, state) {

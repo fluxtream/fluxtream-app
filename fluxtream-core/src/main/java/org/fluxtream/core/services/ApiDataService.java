@@ -43,6 +43,12 @@ public interface ApiDataService {
                                                 TimeInterval timeInterval,
                                                 @Nullable TagFilter tagFilter);
 
+    public List<AbstractFacet> getApiDataFacets(ApiKey apiKey,
+                                                ObjectType objectType,
+                                                TimeInterval timeInterval,
+                                                @Nullable TagFilter tagFilter,
+                                                @Nullable String orderByString);
+
     public AbstractFacet getOldestApiDataFacet(ApiKey apiKey, ObjectType objectType);
     public AbstractFacet getLatestApiDataFacet(ApiKey apiKey, ObjectType objectType);
 

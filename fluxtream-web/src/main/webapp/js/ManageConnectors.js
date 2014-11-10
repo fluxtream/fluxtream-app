@@ -330,6 +330,43 @@ define(["core/grapher/BTCore",
                 })
             });
             $("#resetSettingsButton").hide();
+
+            $("#connectorSettingsTab .selectAll").click(function(){
+                var elements = $("#connectorSettingsTab input[type='checkbox']");
+                for (var i = 0, li = elements.length; i < li; i++){
+                    elements[i].checked = true;
+                }
+                var channelList = "";
+                connector.channels = [];
+                for (var j = 0; source != null && j < source.channels.length; j++){
+                    connector.channels.push(source.name + "." + source.channels[j].name);
+                    if (channelList == "")
+                        channelList = source.name + "." + source.channels[j].name;
+                    else {
+                        channelList += "," + source.name + "." + source.channels[j].name;
+                    }
+                }
+                $.ajax({
+                    url:"/api/v1/connectors/" + connector.name + "/channels",
+                    type:"POST",
+                    data:{channels:channelList}
+                });
+                return false;
+            });
+            $("#connectorSettingsTab .selectNone").click(function(){
+                var elements = $("#connectorSettingsTab input[type='checkbox']");
+                for (var i = 0, li = elements.length; i < li; i++){
+                    elements[i].checked = false;
+                }
+                var channelList = "";
+                connector.channels = [];
+                $.ajax({
+                    url:"/api/v1/connectors/" + connector.name + "/channels",
+                    type:"POST",
+                    data:{channels:channelList}
+                });
+                return false;
+            });
         });
 
     }
@@ -431,11 +468,11 @@ define(["core/grapher/BTCore",
             var confirmDelete = $("#confirmRemoveConnectorBtn");
             var cancelDelete = $("#cancelRemoveConnectorBtn");
 
-            cancelDelete.click(function() {
+            cancelDelete.unbind().click(function() {
                 $("#deleteConnectorConfirm").modal("hide");
             });
 
-            confirmDelete.click(function(){
+            confirmDelete.unbind().click(function(){
                 $.ajax({
                     url: "/api/v1/connectors/" + connectors[index].connectorName,
                     type:"DELETE",

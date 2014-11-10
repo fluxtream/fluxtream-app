@@ -1,13 +1,14 @@
 package org.fluxtream.core.connectors.annotations;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import org.fluxtream.core.connectors.location.LocationFacet;
 import org.fluxtream.core.domain.DefaultPhotoFacetFinderStrategy;
 import org.fluxtream.core.domain.PhotoFacetFinderStrategy;
 import org.fluxtream.core.facets.extractors.AbstractFacetExtractor;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
@@ -26,5 +27,6 @@ public @interface ObjectTypeSpec {
     // is this a user-facing facet or just data that's necessary to maintain state in the context of API synchronization
     public boolean clientFacet() default true;
     public String visibleClause() default "";
+    public String orderBy() default "";
 
 }

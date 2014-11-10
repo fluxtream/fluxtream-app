@@ -78,7 +78,7 @@ public class DataUpdateDigestModel {
 
     private void addApiDataUpdate(DataUpdate update, GuestService guestService, final SettingsService settingsService){
         ApiKey api = guestService.getApiKey(update.apiKeyId);
-        if (api == null){
+        if (api == null || api.getConnector() == null){
             //This means the specific apikeyid was removed
             return;
         }

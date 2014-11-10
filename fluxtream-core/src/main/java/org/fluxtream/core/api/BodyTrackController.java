@@ -18,7 +18,9 @@ import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.connectors.bodytrackResponders.AbstractBodytrackResponder;
+import org.fluxtream.core.connectors.dao.FacetDao;
 import org.fluxtream.core.connectors.fluxtream_capture.FluxtreamCapturePhoto;
+import org.fluxtream.core.connectors.fluxtream_capture.FluxtreamCapturePhotoFacet;
 import org.fluxtream.core.connectors.fluxtream_capture.FluxtreamCapturePhotoStore;
 import org.fluxtream.core.connectors.vos.AbstractPhotoFacetVO;
 import org.fluxtream.core.domain.*;
@@ -86,6 +88,9 @@ public class BodyTrackController {
     @Autowired
 	protected ApiDataService apiDataService;
 
+    @Autowired
+    FacetDao facetDao;
+
     @Autowired JsonResponseHelper jsonResponseHelper;
 
     @Autowired
@@ -104,7 +109,7 @@ public class BodyTrackController {
                           @Context HttpServletResponse response){
         try{
             long loggedInUserId = AuthHelper.getGuestId();
-            boolean accessAllowed = checkForPermissionAccess(uid);
+            boolean accessAllowed = isOwnerOrAdmin(uid);
             CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
 
             if (!accessAllowed && coachee==null) {
@@ -175,7 +180,7 @@ public class BodyTrackController {
     @POST
 	@Path("/uploadHistory")
     @Secured("ROLE_ADMIN")
-	@Produces({ MediaType.APPLICATION_JSON })
+	@Produces("text/plain")
 	public Response loadHistory(@QueryParam("username") String username,
 			@QueryParam("connectorName") String connectorName) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
@@ -183,7 +188,7 @@ public class BodyTrackController {
         try{
             Guest guest = guestService.getGuest(username);
 
-            if (!checkForPermissionAccess(guest.getId())){
+            if (!isOwnerOrAdmin(guest.getId())){
                 response = Response.ok("Failure!").build();
             }
             else {
@@ -201,7 +206,7 @@ public class BodyTrackController {
     @DELETE
     @Path("/users/{UID}/views/{id}")
     @ApiOperation(value = "Delete a view")
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces("text/plain")
     @ApiResponses({
             @ApiResponse(code=200, message="Successfully deleted view {viewId}")
     })
@@ -209,7 +214,7 @@ public class BodyTrackController {
                                       @ApiParam(value="View ID", required=true) @PathParam("id") long viewId){
         Response response;
         try{
-            if (!checkForPermissionAccess(uid)){
+            if (!isOwnerOrAdmin(uid)){
                 uid = null;
             }
             bodyTrackHelper.deleteView(uid, viewId);
@@ -507,7 +512,7 @@ public class BodyTrackController {
         Long loggedInUserId = null;
         try {
             loggedInUserId = AuthHelper.getGuestId();
-            accessAllowed = checkForPermissionAccess(uid);
+            accessAllowed = isOwnerOrAdmin(uid);
             if (!accessAllowed) {
                 final CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
                 if (coachee != null) {
@@ -593,7 +598,7 @@ public class BodyTrackController {
                               @ApiParam(value="Offset of tile", required=true) @PathParam("Offset") long offset){
         try{
             long loggedInUserId = AuthHelper.getGuestId();
-            boolean accessAllowed = checkForPermissionAccess(uid);
+            boolean accessAllowed = isOwnerOrAdmin(uid);
             CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
             if (!accessAllowed&&coachee==null){
                 uid = null;
@@ -630,7 +635,7 @@ public class BodyTrackController {
     public Response getViews(@ApiParam(value="User ID", required=true) @PathParam("UID") Long uid) {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
-            boolean accessAllowed = checkForPermissionAccess(uid);
+            boolean accessAllowed = isOwnerOrAdmin(uid);
             CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
             if (!accessAllowed&&coachee==null){
                 uid = null;
@@ -653,7 +658,7 @@ public class BodyTrackController {
                                   @ApiParam(value="View ID", required= true) @PathParam("id") long id) {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
-            boolean accessAllowed = checkForPermissionAccess(uid);
+            boolean accessAllowed = isOwnerOrAdmin(uid);
             CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
 
             if (!accessAllowed && coachee==null) {
@@ -682,7 +687,7 @@ public class BodyTrackController {
                             @ApiParam(value="View data", required = true)  @FormParam("data") String data) {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
-            boolean accessAllowed = checkForPermissionAccess(uid);
+            boolean accessAllowed = isOwnerOrAdmin(uid);
             CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
 
             if (!accessAllowed && coachee==null) {
@@ -705,7 +710,7 @@ public class BodyTrackController {
     public Response getSourceList(@ApiParam(value= "User ID", required= true) @PathParam("UID") Long uid) {
         try{
             final long loggedInUserId = AuthHelper.getGuestId();
-            boolean accessAllowed = checkForPermissionAccess(uid);
+            boolean accessAllowed = isOwnerOrAdmin(uid);
             CoachingBuddy coachee = null;
             if (!accessAllowed) {
                 coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
@@ -732,7 +737,7 @@ public class BodyTrackController {
                                                   @ApiParam(value="Device name", required=true) @PathParam("source") String name) {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
-            boolean accessAllowed = checkForPermissionAccess(uid);
+            boolean accessAllowed = isOwnerOrAdmin(uid);
             CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
 
             if (!accessAllowed && coachee==null) {
@@ -755,7 +760,7 @@ public class BodyTrackController {
     public Response getAllTagsForUser(@ApiParam(value="User ID", required = true) @PathParam("UID") Long uid) {
         try {
             long loggedInUserId = AuthHelper.getGuestId();
-            boolean accessAllowed = checkForPermissionAccess(uid);
+            boolean accessAllowed = isOwnerOrAdmin(uid);
             CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
             if (!accessAllowed && coachee == null) {
                 uid = null;
@@ -779,7 +784,7 @@ public class BodyTrackController {
                                     @ApiParam(value="Channel name", required = true) @PathParam("ChannelName") String channelName,
                                     @ApiParam(value="Style data", required = true) @FormParam("user_default_style") String style) {
         try{
-            if (!checkForPermissionAccess(uid)){
+            if (!isOwnerOrAdmin(uid)){
                 uid = null;
             }
             bodyTrackHelper.setDefaultStyle(uid,deviceNickname,channelName,style);
@@ -801,7 +806,7 @@ public class BodyTrackController {
                                       @ApiParam(value="Tile offset", required = true) @PathParam("Offset") long offset) {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
-            boolean accessAllowed = checkForPermissionAccess(uid);
+            boolean accessAllowed = isOwnerOrAdmin(uid);
             CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
 
             if (!accessAllowed && coachee==null) {
@@ -879,17 +884,9 @@ public class BodyTrackController {
                                    @ApiParam(value="Tags for filtering", required = true) @QueryParam("tags") String tagsStr,
                                    @ApiParam(value="Tag matching strategy", required = true) @QueryParam("tag-match") String tagMatchingStrategyName) {
         try {
-            long loggedInUserId = AuthHelper.getGuestId();
-            boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
-
             final TagFilter.FilteringStrategy tagFilteringStrategy = TagFilter.FilteringStrategy.findByName(tagMatchingStrategyName);
 
-            if (!accessAllowed && coachee==null) {
-                uid = null;
-            }
-
-            if (uid == null) {
+            if (isUnauthorized(uid)) {
                 return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid User ID (null)").build();
             }
 
@@ -962,15 +959,11 @@ public class BodyTrackController {
                                                @ApiParam(value="Tags for matching", required = true) @QueryParam("tags") String tagsStr,
                                                @ApiParam(value="Tag matching strategy", required = true) @QueryParam("tag-match") String tagMatchingStrategyName) {
         try {
-            long loggedInUserId = AuthHelper.getGuestId();
-            boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
-
             final TagFilter.FilteringStrategy tagFilteringStrategy = TagFilter.FilteringStrategy.findByName(tagMatchingStrategyName);
 
-            if (!accessAllowed && coachee==null) {
-                return Response.status(Response.Status.BAD_REQUEST).entity("Invalid User ID (null)").build();
-             }
+            if (isUnauthorized(uid)) {
+                return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid User ID (null)").build();
+            }
 
             final TagFilter tagFilter = TagFilter.create(Tag.parseTagsIntoStrings(tagsStr, Tag.COMMA_DELIMITER), tagFilteringStrategy);
             final SortedSet<PhotoService.Photo> photos = photoService.getPhotos(uid, (long)(unixTimeInSecs * 1000), connectorPrettyName, objectTypeName, desiredCount, isGetPhotosBeforeTime, tagFilter);
@@ -988,6 +981,14 @@ public class BodyTrackController {
         }
     }
 
+    public boolean isUnauthorized(Long uid) {
+        long loggedInUserId = AuthHelper.getGuestId();
+        boolean accessAllowed = isOwnerOrAdmin(uid);
+        CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+
+        return !accessAllowed && coachee==null;
+    }
+
     @GET
     @Path("/metadata/{UID}/{ConnectorName}.{ObjectTypeName}/{facetId}/get")
     @ApiOperation(value="Get the metadata for a facet", response=FacetMetadata.class)
@@ -996,6 +997,9 @@ public class BodyTrackController {
                                      @ApiParam(value="Connector name", required = true) final @PathParam("ConnectorName") String connectorName,
                                      @ApiParam(value="Object type name", required = true) final @PathParam("ObjectTypeName") String objectTypeName,
                                      @ApiParam(value="Facet ID", required = true) final @PathParam("facetId") long facetId) {
+        if (isUnauthorized(uid)) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
 
         return executeFacetMetaDataOperation(uid, connectorName, objectTypeName, facetId, new FacetMetaDataOperation() {
             @Override
@@ -1044,6 +1048,37 @@ public class BodyTrackController {
         return jsonResponseHelper.badRequest("Nothing changed since comment and tags were both null");
     }
 
+    @DELETE
+    @Path("/photo/{UID}/{facetId}")
+    @ApiOperation(value="Delete a FluxtreamCapture photo")
+    @ApiResponses({
+            @ApiResponse(code=200, message="n/a"),
+            @ApiResponse(code=403, message="In case of unauthorized access")
+    })
+    public Response deletePhoto(@ApiParam(value="User ID", required = true) final @PathParam("UID") long uid,
+                                @ApiParam(value="Facet ID", required = true) final @PathParam("facetId") long facetId) {
+        // only the photo's owner (or admin) is allowed to delete a photo
+        if (!isOwnerOrAdmin(uid))
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+
+        return executeFacetMetaDataOperation(uid, "FluxtreamCapture", "photo", facetId, new FacetMetaDataOperation() {
+            @Override
+            @NotNull
+            public Response executeOperation(@NotNull final AbstractFacet facet) {
+                FluxtreamCapturePhotoFacet photoFacet = (FluxtreamCapturePhotoFacet) facet;
+                final String photoStoreKey = FluxtreamCapturePhoto.createPhotoStoreKey(photoFacet.guestId, photoFacet.getCaptureYYYYDDD(), photoFacet.start, photoFacet.getHash());
+                try {
+                    fluxtreamCapturePhotoStore.deletePhoto(photoStoreKey);
+                    facetDao.delete(facet);
+                } catch (FluxtreamCapturePhotoStore.StorageException e) {
+                    return Response.serverError().build();
+                }
+                return Response.status(Response.Status.OK).build();
+            }
+        });
+
+    }
+
     @ApiModel
     public static class FacetMetadata {
         @ApiModelProperty(value="The facet's user comment (if any)", required=true)
@@ -1079,7 +1114,7 @@ public class BodyTrackController {
                 Long loggedInUserId = null;
                 try {
                     loggedInUserId = AuthHelper.getGuestId();
-                    accessAllowed = checkForPermissionAccess(uid);
+                    accessAllowed = isOwnerOrAdmin(uid);
                     if (!accessAllowed) {
                         final CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
                         if (coachee != null) {
@@ -1153,7 +1188,7 @@ public class BodyTrackController {
         }
     }
 
-    private boolean checkForPermissionAccess(long targetUid){
+    private boolean isOwnerOrAdmin(long targetUid){
         Guest guest = AuthHelper.getGuest();
         return targetUid == guest.getId() || guest.hasRole(Guest.ROLE_ADMIN);
     }
