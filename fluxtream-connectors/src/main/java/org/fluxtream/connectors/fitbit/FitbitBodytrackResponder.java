@@ -32,12 +32,11 @@ public class FitbitBodytrackResponder extends AbstractBodytrackResponder {
         final ObjectType sleep = ObjectType.getObjectType(connector, "sleep");
 
         String objectTypeName = apiKey.getConnector().getName() + "-" + sleep.getName();
-        List<AbstractFacet> facets = getFacetsInTimespan(timeInterval,apiKey, sleep);
+        List<AbstractFacet> facets = getFacetsInTimespanOrderedByEnd(timeInterval,apiKey, sleep);
 
         for (AbstractFacet facet : facets){
             FitbitSleepFacet sleepFacet = (FitbitSleepFacet)facet;
-
-            items.add(new TimespanModel(sleepFacet.start,sleepFacet.end, "on",objectTypeName));
+            simpleMergeAddTimespan(items,new TimespanModel(sleepFacet.start,sleepFacet.end, "on",objectTypeName),startMillis,endMillis);
         }
 
         return items;

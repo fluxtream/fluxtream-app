@@ -150,10 +150,10 @@ public class Connector {
             connector.extractorClass = updaterAnnotation.extractor();
         if (facetTypes.length == 1) {
             connector.facetClass = facetTypes[0];
-            if (updaterAnnotation.userProfile() != AbstractUserProfile.class)
-                connector.userProfileClass = updaterAnnotation
-                        .userProfile();
         }
+        if (updaterAnnotation.userProfile() != AbstractUserProfile.class)
+            connector.userProfileClass = updaterAnnotation
+                    .userProfile();
         connector.defaultChannels = updaterAnnotation.defaultChannels();
         List<ObjectType> connectorObjectTypes = new ArrayList<ObjectType>();
         for (Class<? extends AbstractFacet> facetType : facetTypes) {
@@ -199,6 +199,7 @@ public class Connector {
         objectType.isMixedType = ots.isMixedType();
         objectType.isClientFacet = ots.clientFacet();
         objectType.visibleClause = ots.visibleClause().equals("")?null:ots.visibleClause();
+        objectType.orderBy = ots.orderBy().equals("")?null:ots.orderBy();
         if (ots.extractor() != null && ots.extractor()!=AbstractFacetExtractor.class) {
             connector.addObjectTypeExtractorClass(
                     objectType.value, ots.extractor(),

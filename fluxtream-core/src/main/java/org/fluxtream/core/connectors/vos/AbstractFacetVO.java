@@ -1,16 +1,5 @@
 package org.fluxtream.core.connectors.vos;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.Hashtable;
-import java.util.ResourceBundle;
-import java.util.SortedSet;
-import java.util.TimeZone;
-import java.util.TreeSet;
 import org.fluxtream.core.OutsideTimeBoundariesException;
 import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.connectors.Connector;
@@ -22,11 +11,16 @@ import org.fluxtream.core.utils.SecurityUtils;
 import org.fluxtream.core.utils.TimeUtils;
 import org.joda.time.DateTimeZone;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.*;
+
 public abstract class AbstractFacetVO<T extends AbstractFacet> {
 
 	public String type;
 	public String description;
 	public long id;
+    public Boolean isEmpty = false;
 	public String comment;
     public final SortedSet<String> tags = new TreeSet<String>();
 	public String subType;

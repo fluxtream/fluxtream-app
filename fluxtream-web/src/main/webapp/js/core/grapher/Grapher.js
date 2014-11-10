@@ -1600,6 +1600,8 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
                 commentsStyle['type-ui'] += '-filled';
             }
 
+            $("#" + channelId + "-config-zeo-show")[0].checked = isZeo;
+
             // don't show this section if this is a Zeo plot
             $("#" + channelId + "-config-lines").toggle(!isZeo);
 

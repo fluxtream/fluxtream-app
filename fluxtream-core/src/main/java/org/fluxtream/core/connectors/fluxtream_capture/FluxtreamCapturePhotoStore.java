@@ -1,18 +1,19 @@
 package org.fluxtream.core.connectors.fluxtream_capture;
 
-import java.io.File;
+import com.google.gson.Gson;
+import org.bodytrack.datastore.FilesystemKeyValueStore;
 import org.fluxtream.core.Configuration;
+import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.images.ImageType;
 import org.fluxtream.core.services.ApiDataService;
 import org.fluxtream.core.services.JPADaoService;
 import org.fluxtream.core.utils.ImageUtils;
-import com.google.gson.Gson;
-import org.fluxtream.core.aspects.FlxLogger;
-import org.bodytrack.datastore.FilesystemKeyValueStore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.File;
 
 /**
  * <p>
@@ -92,6 +93,10 @@ public final class FluxtreamCapturePhotoStore {
 
     private FluxtreamCapturePhotoStore() {
         // private to prevent instantiation
+    }
+
+    public boolean deletePhoto(final String photoStoreKey) throws StorageException {
+        return getFilesystemKeyValueStore().delete(photoStoreKey);
     }
 
     /**

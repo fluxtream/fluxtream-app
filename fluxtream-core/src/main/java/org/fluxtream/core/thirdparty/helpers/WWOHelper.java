@@ -1,17 +1,18 @@
 package org.fluxtream.core.thirdparty.helpers;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.domain.metadata.WeatherInfo;
 import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import static org.fluxtream.core.utils.HttpUtils.fetch;
 
@@ -32,8 +33,8 @@ public class WWOHelper {
         if (env.get("wwo.key")==null)
             return weather;
 
-		String wwoUrl = "http://www.worldweatheronline.com/feed/premium-weather-v2.ashx?" +
-"key=" + env.get("wwo.key") + "&feedkey=" + env.get("wwo.feedkey") + "&format=json&q=" + latitude + "," + longitude + "&date=" + fdate;
+		String wwoUrl = "http://api.worldweatheronline.com/premium/v1/past-weather.ashx?" +
+"key=" + env.get("wwo.key") + "&format=json&q=" + latitude + "," + longitude + "&date=" + fdate;
         long then = System.currentTimeMillis();
 		String wwoJson = fetch(wwoUrl);
         long now = System.currentTimeMillis();

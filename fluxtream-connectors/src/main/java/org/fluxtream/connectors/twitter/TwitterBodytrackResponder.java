@@ -35,6 +35,7 @@ public class TwitterBodytrackResponder extends AbstractBodytrackResponder {
         // 1/256 of the tile width, whichever is larger.
         long duration = Math.max((endMillis-startMillis)/256L, 60000L);
 
+        //TODO: support merging
         for (ObjectType objectType : connector.objectTypes()) {
             String objectTypeName = apiKey.getConnector().getName() + "-" + objectType.getName();
             List<AbstractFacet> objectTypeFacets = getFacetsInTimespan(timeInterval,apiKey, objectType);

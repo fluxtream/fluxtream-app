@@ -40,7 +40,7 @@ public class GoogleCalendarBodytrackResponder extends AbstractBodytrackResponder
         GoogleCalendarConnectorSettings connectorSettings = (GoogleCalendarConnectorSettings)settingsService.getConnectorSettings(apiKey.getId());
         final TimeInterval timeInterval = new SimpleTimeInterval(startMillis, endMillis, TimeUnit.ARBITRARY, TimeZone.getTimeZone("UTC"));
         String objectTypeName = apiKey.getConnector().getName() + "-event";
-        List<AbstractFacet> facets = getFacetsInTimespan(timeInterval,apiKey,null);
+        List<AbstractFacet> facets = getFacetsInTimespanOrderedByEnd(timeInterval,apiKey,null);
         facets = buddiesService.filterFacets(AuthHelper.getGuestId(), apiKey.getId(), facets);
 
         for (AbstractFacet facet : facets){
@@ -48,9 +48,9 @@ public class GoogleCalendarBodytrackResponder extends AbstractBodytrackResponder
             if (connectorSettings!=null) {
                 final CalendarConfig calendarConfig = connectorSettings.getCalendar(event.calendarId);
                 if (calendarConfig!=null&&!calendarConfig.hidden)
-                    items.add(new TimespanModel(event.start, event.end, ((GoogleCalendarEventFacet)facet).calendarId, objectTypeName));
+                    simpleMergeAddTimespan(items,new TimespanModel(event.start, event.end, ((GoogleCalendarEventFacet)facet).calendarId, objectTypeName),startMillis,endMillis);
             } else
-                items.add(new TimespanModel(event.start, event.end, ((GoogleCalendarEventFacet)facet).calendarId, objectTypeName));
+                simpleMergeAddTimespan(items,new TimespanModel(event.start, event.end, ((GoogleCalendarEventFacet)facet).calendarId, objectTypeName),startMillis,endMillis);
         }
         return items;
     }

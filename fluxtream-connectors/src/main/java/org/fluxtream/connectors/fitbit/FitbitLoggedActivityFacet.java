@@ -1,12 +1,13 @@
 package org.fluxtream.connectors.fitbit;
 
-import javax.persistence.Entity;
 import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 import org.fluxtream.core.domain.AbstractLocalTimeFacet;
 import org.hibernate.search.annotations.Indexed;
 
+import javax.persistence.Entity;
+
 @Entity(name="Facet_FitbitLoggedActivity")
-@ObjectTypeSpec(name = "logged_activity", value = 2, extractor= FitbitActivityFacetExtractor.class, prettyname = "Logged Activities", isDateBased = true)
+@ObjectTypeSpec(name = "logged_activity", value = 2, prettyname = "Logged Activities", isDateBased = true)
 @Indexed
 public class FitbitLoggedActivityFacet extends AbstractLocalTimeFacet {
 	

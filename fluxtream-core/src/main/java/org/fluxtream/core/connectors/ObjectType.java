@@ -18,6 +18,7 @@ public class ObjectType {
     boolean isMixedType;
     boolean isClientFacet;
     String visibleClause;
+    String orderBy;
 
 	private static Map<Connector,List<ObjectType>> connectorObjectTypes = new Hashtable<Connector,List<ObjectType>>();
 	
@@ -136,6 +137,11 @@ public class ObjectType {
     @ApiModelProperty(hidden=true)
     public String visibleClause() {
         return visibleClause;
+    }
+
+    @ApiModelProperty(hidden=true)
+    public String orderBy() {
+        return orderBy;
     }
 
     @Override

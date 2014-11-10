@@ -31,10 +31,11 @@ public class DefaultBodytrackResponder extends AbstractBodytrackResponder {
             String objectTypeName = apiKey.getConnector().getName() + "-" + objectType.getName();
             final TimeInterval timeInterval = new SimpleTimeInterval(startMillis, endMillis, TimeUnit.ARBITRARY, TimeZone.getTimeZone("UTC"));
 
-            List<AbstractFacet> facets = getFacetsInTimespan(timeInterval,apiKey,objectType);
+            List<AbstractFacet> facets = getFacetsInTimespanOrderedByEnd(timeInterval,apiKey,objectType);
+
 
             for (AbstractFacet facet : facets){
-                items.add(new TimespanModel(facet.start,facet.end,"on",objectTypeName));
+                simpleMergeAddTimespan(items,new TimespanModel(facet.start,facet.end,"on",objectTypeName),startMillis,endMillis);
             }
 
         }
