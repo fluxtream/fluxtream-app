@@ -1292,7 +1292,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         final String rateLimitResetSeconds = request.getHeaderField("Fitbit-Rate-Limit-Reset");
         if (rateLimitResetSeconds!=null) {
             int millisUntilReset = Integer.valueOf(rateLimitResetSeconds)*1000;
-            final long resetTime = System.currentTimeMillis() + millisUntilReset;
+            // delay by one minute to compensate for clock desynchronisation
+            final long resetTime = System.currentTimeMillis() + millisUntilReset + DateTimeConstants.MILLIS_PER_MINUTE;
             guestService.setApiKeyAttribute(updateInfo.apiKey, "resetTime", String.valueOf(resetTime));
             updateInfo.setResetTime("fitbit", resetTime);
         } else {
