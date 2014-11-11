@@ -17,6 +17,7 @@ CREATE TABLE `Facet_SleepAsAndroidSleep` (
   `noiseLevel` double NOT NULL,
   `rating` double NOT NULL,
   `ratioDeepSleep` double NOT NULL,
+  `sleepComment` varchar(255) DEFAULT NULL,
   `sleepTags` longtext,
   `snoringSeconds` int(11) NOT NULL,
   PRIMARY KEY (`id`),
@@ -28,4 +29,4 @@ CREATE TABLE `Facet_SleepAsAndroidSleep` (
   KEY `guestId_index` (`guestId`),
   KEY `apiKey` (`apiKeyId`),
   KEY `timeUpdated_index` (`timeUpdated`)
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;

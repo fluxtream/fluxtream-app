@@ -39,6 +39,9 @@ public class SleepFacet extends AbstractFacet {
     //what the noise level was like
     public double noiseLevel;
 
+    //comments that aren't tags on the sleep
+    public String sleepComment;
+
     //the actigaph is evenly sampled over the duration of the sleep. each value represents activity level (no upper bound)
     @Lob
     public String actiGraph;

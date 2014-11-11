@@ -97,15 +97,24 @@ public class SleepAsAndroidUpdater extends AbstractUpdater {
             bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"sleep_as_android","sleep",channelStyle);
         }
 
-        GoogleCredential credentials = getCredentials(updateInfo.apiKey);
 
-        long then = System.currentTimeMillis();
 
         Long latestData = getLatestFacetTime(updateInfo);
+        fetchSleeps(updateInfo, latestData, null);
 
-        String url = "https://sleep-cloud.appspot.com/fetchRecords?actigraph=true&labels=true&tags=true";
+
+    }
+
+    private void fetchSleeps(UpdateInfo updateInfo, Long latestData, String cursor) throws UpdateFailedException, IOException {
+        long then = System.currentTimeMillis();
+        GoogleCredential credentials = getCredentials(updateInfo.apiKey);
+
+
+        String url = "https://sleep-cloud.appspot.com/fetchRecords?actigraph=true&labels=true&tags=true&comments=true";
         if (latestData != null)
             url += "&timestamp=" + latestData;
+        if (cursor != null)
+            url += "&cursor=" + cursor;
 
         HttpGet get = new HttpGet(url);
         get.setHeader("Authorization","Bearer " + credentials.getAccessToken());
@@ -125,6 +134,11 @@ public class SleepAsAndroidUpdater extends AbstractUpdater {
                 updateLatestFacetTime(updateInfo, newLatestTime);
             }
             countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url);
+            JSONObject topLevelObject = JSONObject.fromObject(content);
+            String nextCursor = topLevelObject.has("cursor") ? topLevelObject.getString("cursor") : null;
+            if (nextCursor != null) {
+                fetchSleeps(updateInfo,latestData,cursor);
+            }
         }
         catch (Exception e){
             countFailedApiCall(updateInfo.apiKey,updateInfo.objectTypes,then,url, ExceptionUtils.getStackTrace(e),statusCode,statusMessage);
@@ -191,6 +205,13 @@ public class SleepAsAndroidUpdater extends AbstractUpdater {
                         else {
                             facet.snoringSeconds = 0;
 
+                        }
+
+                        if (sleepObject.has("comment")){
+                            facet.sleepComment = sleepObject.getString("comment");
+                        }
+                        else{
+                            facet.sleepComment = null;
                         }
 
                         List<String> sleepTags = new LinkedList<String>();

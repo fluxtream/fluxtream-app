@@ -19,6 +19,7 @@ public class SleepFacetVO extends AbstractTimedFacetVO<SleepFacet> {
     public int snoringSeconds;
     public double noiseLevel;
     public List<String> sleepTags;
+    public String sleepComment;
 
     @Override
     protected void fromFacet(SleepFacet facet, TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
@@ -28,5 +29,6 @@ public class SleepFacetVO extends AbstractTimedFacetVO<SleepFacet> {
         this.snoringSeconds = facet.snoringSeconds;
         this.noiseLevel = facet.noiseLevel;
         this.sleepTags = facet.getSleepTags();
+        this.sleepComment = facet.sleepComment;
     }
 }
