@@ -53,7 +53,6 @@ public class WidgetRepositoryStore {
     @POST
     @Path("/")
     @ApiOperation(value = "Add a widget repository URL")
-    @Produces({ MediaType.APPLICATION_JSON })
     public Response addWidgetRepositoryURL(@FormParam("url") String url) {
         try{
             long guestId = AuthHelper.getGuestId();
@@ -66,10 +65,9 @@ public class WidgetRepositoryStore {
     }
 
     @DELETE
-    @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "Remove a guest's widget repository URL")
     @Path("/")
-    public Response removeWidgetRepositoryURL(@QueryParam("url") String url) {
+    public Response removeWidgetRepositoryURL(@FormParam("url") String url) {
         try{
             long guestId = AuthHelper.getGuestId();
             widgetsService.removeWidgetRepositoryURL(guestId, url);
