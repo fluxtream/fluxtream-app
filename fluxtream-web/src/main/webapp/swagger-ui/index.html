@@ -17,6 +17,7 @@
   <script src='lib/swagger.js' type='text/javascript'></script>
   <script src='swagger-ui.min.js' type='text/javascript'></script>
   <script src='lib/highlight.7.3.pack.js' type='text/javascript'></script>
+  <script src='/static/js/bootstrap-3.2.0.min.js' type='text/javascript'></script>
 
   <!-- enabling this will enable oauth2 implicit scope support -->
   <!--<script src='lib/swagger-oauth.js' type='text/javascript'></script>-->
@@ -142,14 +143,88 @@
                 of the info they carry is usually specific.</p>
                 <div class="well">
                     <h4>Facet Models:</h4>
-                    <p>Call Log Entry</p>
+                    <ul class="dropdown-menu" aria-labelledby="dLabel" role="menu" id="connectorsmenu"></ul>
+                    <ul class="dropdown-menu" aria-labelledby="dLabel" role="menu" id="facetVosMenu"></ul>
+                    <script>
+                    $(document).ready(function(){
+                        $.ajax({
+                            url:"/api/v1/datamodel/facetVos",
+                            success : function(voData) {
+                                var dropdownMenu = $("<ul class=\"dropdown-menu\" role=\"menu\" aria-labelledby=\"connectorsMenuButton\"></ul>");
+                                for (var i=0; i<voData.length; i++) {
+                                    var dropdownSubmenuWrapper = $("<li role=\"menuitem\"><a href=\"javascript:void(0);\" class=\"connectorName-menuitem\" data-connectorName=\"" + voData[i]["connectorName"] + "\">" + voData[i]["connectorName"] + "</a></li>");
+                                    dropdownMenu.append(dropdownSubmenuWrapper);
+                                }
+                                var dropdown = $("<div class=\"dropdown\" style=\"display:inline\"></div>");
+                                dropdown.append("<button id=\"connectorsMenuButton\" class=\"btn btn-default dropdown-toggle\" type=\"button\" data-toggle=\"dropdown\">Please select a connector <span class=\"caret\"></span></button>");
+                                dropdown.append(dropdownMenu);
+                                $('.dropdown-toggle').dropdown()
+                                $("#connectorsmenu").replaceWith(dropdown);
+
+                                function createFacetVosMenu(facetVos) {
+                                    var dropdownMenu = $("<ul class=\"dropdown-menu\" role=\"menu\" aria-labelledby=\"facetVosMenuButton\"></ul>");
+                                    for (var i=0; i<facetVos.length; i++) {
+                                        var a = facetVos[i].split(".");
+                                        var shortVoName = a[a.length-1];
+                                        var dropdownSubmenuWrapper = $("<li role=\"menuitem\"><a href=\"javascript:void(0);\" class=\"vo-menuitem\" data-voName=\"" + facetVos[i] + "\">" + shortVoName + "</a></li>");
+                                        dropdownMenu.append(dropdownSubmenuWrapper);
+                                    }
+                                    var dropdown = $("<div class=\"dropdown\" id=\"facetVosMenu\" style=\"display:inline\"></div>");
+                                    dropdown.append("<button id=\"facetVosMenuButton\" class=\"btn btn-default dropdown-toggle\" type=\"button\" data-toggle=\"dropdown\">Please select a Model<span class=\"caret\"></span></button>");
+                                    dropdown.append(dropdownMenu);
+                                    $('.dropdown-toggle').dropdown()
+                                    $("#facetVosMenu").replaceWith(dropdown);
+                                    $(".vo-menuitem").unbind().click(function(event){
+                                        var clazzName = $(event.target).attr("data-voName");
+                                        console.log("clicked on " + clazzName);
+
+                                        $.ajax({url:"/api/v1/datamodel/get?class="+clazzName,
+                                            success: function(models) {
+                                                var sModel;
+                                                var referencedModels = [];
+                                                for (var i=0; i<models.length; i++) {
+                                                    if (models[i].qualifiedType===clazzName) {
+                                                        sModel = new SwaggerModel(models[i].name, models[i]);
+                                                        continue;
+                                                    }
+                                                    referencedModels.push(models[i]);
+                                                }
+                                                sModel.setReferencedModels(referencedModels);
+                                                var mockSignature = sModel.getMockSignature();
+                                                var sample = sModel.createJSONSample();
+                                                $(".description.facetvos").empty().html(mockSignature);
+//                                                $(".snippet.facetvos").empty().html("<pre><code>"+JSON.stringify(sample)+"</code></pre>");
+                                                console.log(sample);
+                                            }}
+                                        );
+
+                                    });
+                                }
+
+                                $(".connectorName-menuitem").click(function(event) {
+                                    var selectedConnectorName = $(event.target).attr("data-connectorName");
+                                    console.log("clicked on " + selectedConnectorName);
+                                    for (var i=0; i<voData.length; i++) {
+                                        if (selectedConnectorName===voData[i]["connectorName"]) {
+                                            createFacetVosMenu(voData[i]["facetVos"]);
+                                            $(".description.facetvos").empty();
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                    });
+                    </script>
                     <span class="model-signature">
                         <div>
                             <div>
-                                <ul class="signature-nav custom" data-clazz="org.fluxtream.connectors.sms_backup.CallLogEntryFacetVO">
-                                    <li><a class="description-link" href="javascript:void(0)">Model</a></li>
-                                    <li><a class="snippet-link selected" href="javascript:void(0)">Model Schema</a></li>
-                                </ul>
+                                <div>
+                                    <div class="signature-container">
+                                        <div class="description facetvos" style="margin-top:1em"></div>
+                                        <!--<div class="snippet facetvos">-->
+                                        <!--</div>-->
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </span>
@@ -157,13 +232,23 @@
                 <script>
                     $(".signature-nav.custom").click(function(){
                         var clazzName = $(this).attr("data-clazz");
-                        console.log("class name: " + clazzName);
                         $.ajax({url:"/api/v1/datamodel/get?class="+clazzName,
-                        success: function(model) {
-                            var sModel = new SwaggerModel(model.name, model);
-                            console.log("creating JSON sample...");
-                            var jsonSample = sModel.createJSONSample();
-                            console.log(jsonSample);
+                        success: function(models) {
+                            var sModel;
+                            var referencedModels = [];
+                            for (var i=0; i<models.length; i++) {
+                                if (models[i].name==="CallLogEntryFacetVO") {
+                                    sModel = new SwaggerModel(models[i].name, models[i]);
+                                    continue;
+                                }
+                                referencedModels.push(models[i]);
+                            }
+                            sModel.setReferencedModels(referencedModels);
+                            var mockSignature = sModel.getMockSignature();
+                            var sample = sModel.createJSONSample();
+                            $(".description.facetvos").empty().html(mockSignature);
+                            $(".snippet.facetvos").empty().html("<pre><code>"+JSON.stringify(sample)+"</code></pre>");
+                            console.log(sample);
                         }});
                     });
                 </script>
