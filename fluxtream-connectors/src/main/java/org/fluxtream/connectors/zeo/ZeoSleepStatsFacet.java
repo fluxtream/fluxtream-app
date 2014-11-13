@@ -1,12 +1,12 @@
 package org.fluxtream.connectors.zeo;
 
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.domain.AbstractLocalTimeFacet;
+
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
-import org.fluxtream.core.domain.AbstractLocalTimeFacet;
-import org.hibernate.search.annotations.Indexed;
 
 @Entity(name="Facet_ZeoSleepStats")
 @NamedQueries({
@@ -16,7 +16,6 @@ import org.hibernate.search.annotations.Indexed;
                       "ORDER BY facet.start DESC")
 })
 @ObjectTypeSpec(name = "sleep", value = 1, parallel=true, prettyname = "Sleep", isDateBased = true)
-@Indexed
 public class ZeoSleepStatsFacet extends AbstractLocalTimeFacet {
 
     public int zq;

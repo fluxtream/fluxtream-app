@@ -1,14 +1,12 @@
 package org.fluxtream.connectors.twitter;
 
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.domain.AbstractFacet;
+import org.hibernate.annotations.Index;
+
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-
-import org.hibernate.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
-
-import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
-import org.fluxtream.core.domain.AbstractFacet;
 
 @Entity(name="Facet_TwitterDirectMessage")
 @ObjectTypeSpec(name = "dm", value = 2, extractor=TwitterFacetExtractor.class, parallel=true, prettyname = "Direct Messages")
@@ -20,7 +18,6 @@ import org.fluxtream.core.domain.AbstractFacet;
 		@NamedQuery(name = "twitter.dm.smallestTwitterId", query = "SELECT facet FROM Facet_TwitterDirectMessage facet WHERE facet.guestId=? ORDER BY facet.twitterId ASC LIMIT 1"),
 		@NamedQuery(name = "twitter.dm.biggestTwitterId", query = "SELECT facet FROM Facet_TwitterDirectMessage facet WHERE facet.guestId=? ORDER BY facet.twitterId DESC LIMIT 1")
 })
-@Indexed
 public class TwitterDirectMessageFacet extends AbstractFacet {
 
 	public long twitterId;

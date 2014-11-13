@@ -1,14 +1,12 @@
 package org.fluxtream.connectors.lastfm;
 
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.domain.AbstractFacet;
+
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-
-import org.hibernate.search.annotations.Indexed;
-
-import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
-import org.fluxtream.core.domain.AbstractFacet;
 
 @Entity(name="Facet_LastFmRecentTrack")
 @ObjectTypeSpec(name = "recent_track", value = 2, extractor=LastFmFacetExtractor.class, parallel=true, prettyname = "Recent Tracks")
@@ -16,7 +14,6 @@ import org.fluxtream.core.domain.AbstractFacet;
 		@NamedQuery(name = "lastfm.recent_track.byStartEnd", query = "SELECT facet FROM Facet_LastFmRecentTrack facet WHERE facet.apiKeyId=? AND facet.start=? AND facet.end=?"),
 		@NamedQuery(name = "lastfm.recent_track.newest", query = "SELECT facet FROM Facet_LastFmRecentTrack facet WHERE facet.apiKeyId=? ORDER BY time DESC LIMIT 1")
 })
-@Indexed
 public class LastFmRecentTrackFacet extends AbstractFacet {
 
     String artist;
