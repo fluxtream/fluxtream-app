@@ -244,34 +244,34 @@
                 <p>As an example, we set up a widget repository on S3 at <a href="http://fluxtream-widgets.s3-website-us-east-1.amazonaws.com">http://fluxtream-widgets.s3-website-us-east-1.amazonaws.com</a></p>
                 <p>Here's my CORS config:</p>
                 <pre><code>
-    &lt;?xml version="1.0" encoding="UTF-8"?&gt;
-    &lt;CORSConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/"&gt;
-        &lt;CORSRule&gt;
-            &lt;AllowedOrigin&gt;*&lt;/AllowedOrigin&gt;
-            &lt;AllowedMethod&gt;GET&lt;/AllowedMethod&gt;
-            &lt;MaxAgeSeconds&gt;3000&lt;/MaxAgeSeconds&gt;
-            &lt;AllowedHeader&gt;Authorization&lt;/AllowedHeader&gt;
-        &lt;/CORSRule&gt;
-    &lt;/CORSConfiguration&gt;
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;CORSConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/"&gt;
+    &lt;CORSRule&gt;
+        &lt;AllowedOrigin&gt;*&lt;/AllowedOrigin&gt;
+        &lt;AllowedMethod&gt;GET&lt;/AllowedMethod&gt;
+        &lt;MaxAgeSeconds&gt;3000&lt;/MaxAgeSeconds&gt;
+        &lt;AllowedHeader&gt;Authorization&lt;/AllowedHeader&gt;
+    &lt;/CORSRule&gt;
+&lt;/CORSConfiguration&gt;
                 </code></pre>
 
                 <p>And here's our Permission Policy (as edited with the AWS Policy Generator):</p>
                 <pre><code>
-    {
-        "Version": "2008-10-17",
-        "Id": "Policy1415285252707",
-        "Statement": [
-            {
-                "Sid": "Stmt1415285246165",
-                "Effect": "Allow",
-                "Principal": {
-                    "AWS": "*"
-                },
-                "Action": "s3:GetObject",
-                "Resource": "arn:aws:s3:::fluxtream-widgets/*"
-            }
-        ]
-    }
+{
+    "Version": "2008-10-17",
+    "Id": "Policy1415285252707",
+    "Statement": [
+        {
+            "Sid": "Stmt1415285246165",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "*"
+            },
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::fluxtream-widgets/*"
+        }
+    ]
+}
                 </code></pre>
                 <p>When scanning your widget repository for widgets, the first thing Fluxtream will retrieve is a JSON
                     array of widget names from the [REPOSITORY_ROOT]/widgets/widgets/json URL</p>
@@ -287,17 +287,91 @@
 
             <div class="col-sm-12">
                 <h2>An example widget</h2>
-                <p>You can find an example widget <a href="https://github.com/fluxtream/fluxtream-app/tree/master/fluxtream-web/src/main/webapp/widgets/typo1">here</a></p>
+                <p>You can find a very basic example widget <a href="https://github.com/fluxtream/fluxtream-app/tree/master/fluxtream-web/src/main/webapp/widgets/typo1">here</a></p>
+                <p>There are 3 mandatory files for a widget: the manifest, the main javascript source file, the widget's icon</p>
+                <h3>1. The manifest</h3>
+                <p>Here's an example manifest.</p>
+                <pre><code>
+{
+    "WidgetDescription" : {"en" : "Typography example #1"},
+    "WidgetIcon" : "typo1.png",
+    "WidgetName" : "typo1",
+    "WidgetTitle" : {"en" : "Typography #1"},
+    "HasSettings" : false,
+    "SupportedLanguages" : "en",
+    "VendorIdentifier" : "Fluxtream.com",
+    "RequiredConnectors": null
+}
+                </code></pre>
+                <dl class="dl-horizontal">
+                    <dt>WidgetDescription</dt>
+                    <dd>Dictionary of language codes -> i10n description</dd>
+                    <dt>Widget Icon</dt>
+                    <dd>The name of the widget's icon (see below)</dd>
+                    <dt>WidgetName</dt>
+                    <dd>The non-localized name of the widget</dd>
+                    <dt>WidgetTitle</dt>
+                    <dd>Dictionary of language codes -> i10n user-visible name of the widget</dd>
+                    <dt>HasSettings</dt>
+                    <dd>Wether this widget exposes settings</dd>
+                    <dt>SupportedLanguages</dt>
+                    <dd>Languages in which this widget is available (unused)</dd>
+                    <dt>VendorIdentifier</dt>
+                    <dd>Who developed this widget</dd>
+                    <dt>RequiredConnectors</dt>
+                    <dd>This widget will not show up for guests who don't have any of the listed connectors</dd>
+                </dl>
+                <h3>2. The main javascript source file</h3>
+                <p>What follows is a very basic main js file for a widget. You will find a short tutorial below on how to
+                create more involved widgets – including accessing the digest, storing and accessing settings and loading
+                external javascript dependencies, but this will probably give you a taste.</p>
+                <pre><code>
+define(["core/DashboardWidget"], function(DashboardWidget) {
 
+    var Typo1 = new DashboardWidget();
+
+    // the init function is called upon instantiation - here we are fetching a mustache template
+    Typo1.init = function() {
+        $.ajax({url:this.manifest.WidgetRepositoryURL + "/" + this.manifest.WidgetName + "/typo1.mustache",
+            success: function(template) {
+                Typo1.postLoad(template);
+            }
+        });
+    };
+
+    // We use the $("&lt;widgetname&gt;- widget .flx-body") selector to dynamically hook into the dashboard's DOMs
+    Typo1.postLoad = function(template) {
+        var html = Hogan.compile(template);
+        $("#typo1-widget .flx-body").empty();
+        $("#typo1-widget .flx-body").append(
+        html.render({"manifest" : this.manifest})
+    );}
+
+    return Typo1;
+})
+                </code></pre>
+                <h3>3. The icon</h3>
+                <p>This has to be a 252x167 pixels png.</p>
+            </div>
+            <div class="col-sm-12">
+                <h2>Example of a more involved widget</h2>
+                <p>We will give a simple example of a somewhat more involved widget. We will cover:</p>
+                <ul>
+                    <li>accessing the digest, manifest and settings from the main js source file</li>
+                    <li>displaying and saving settings</li>
+                    <li>loading external js dependencies</li>
+                </ul>
             </div>
 
-            <div id="swagger-ui-container" style="display:none" class="swagger-ui-wrap">
-            </div>
+        <div style="margin-bottom:10em"></div>
+
+        <div id="swagger-ui-container" style="display:none" class="swagger-ui-wrap">
+        </div>
 
 
         </div>
-
     </div>
+
 
 </body>
 </html>
