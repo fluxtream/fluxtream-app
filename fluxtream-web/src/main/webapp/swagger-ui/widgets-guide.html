@@ -238,14 +238,57 @@
 
             <div class="col-sm-12">
                 <h2>Hosting your widgets</h2>
+                <p>All that is needed for hosting widgets is exposing a simple file hierarchy. Using S3 for instance,
+                all you have to do is to enable Static Website Hosting, a (liberal) permission policy and a simple CORS
+                configuration. </p>
+                <p>As an example, we set up a widget repository on S3 at <a href="http://fluxtream-widgets.s3-website-us-east-1.amazonaws.com">http://fluxtream-widgets.s3-website-us-east-1.amazonaws.com</a></p>
+                <p>Here's my CORS config:</p>
+                <pre><code>
+    &lt;?xml version="1.0" encoding="UTF-8"?&gt;
+    &lt;CORSConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/"&gt;
+        &lt;CORSRule&gt;
+            &lt;AllowedOrigin&gt;*&lt;/AllowedOrigin&gt;
+            &lt;AllowedMethod&gt;GET&lt;/AllowedMethod&gt;
+            &lt;MaxAgeSeconds&gt;3000&lt;/MaxAgeSeconds&gt;
+            &lt;AllowedHeader&gt;Authorization&lt;/AllowedHeader&gt;
+        &lt;/CORSRule&gt;
+    &lt;/CORSConfiguration&gt;
+                </code></pre>
+
+                <p>And here's our Permission Policy (as edited with the AWS Policy Generator):</p>
+                <pre><code>
+    {
+        "Version": "2008-10-17",
+        "Id": "Policy1415285252707",
+        "Statement": [
+            {
+                "Sid": "Stmt1415285246165",
+                "Effect": "Allow",
+                "Principal": {
+                    "AWS": "*"
+                },
+                "Action": "s3:GetObject",
+                "Resource": "arn:aws:s3:::fluxtream-widgets/*"
+            }
+        ]
+    }
+                </code></pre>
+                <p>When scanning your widget repository for widgets, the first thing Fluxtream will retrieve is a JSON
+                    array of widget names from the [REPOSITORY_ROOT]/widgets/widgets/json URL</p>
+                <p>Check out our example: <a target="_blank" href="http://fluxtream-widgets.s3-website-us-east-1.amazonaws.com/widgets/widgets.json">
+                    http://fluxtream-widgets.s3-website-us-east-1.amazonaws.com/widgets/widgets.json</a>
+                </p>
             </div>
 
             <div class="col-sm-12">
                 <h2>Accessing your widgets from Fluxtream</h2>
+                <p>In Fluxtream, go to Settings->More, and add the base URL of your widget repository (that would be <code>http://fluxtream-widgets.s3-website-us-east-1.amazonaws.com/</code> in our example).</p>
             </div>
 
             <div class="col-sm-12">
                 <h2>An example widget</h2>
+                <p>You can find an example widget <a href="https://github.com/fluxtream/fluxtream-app/tree/master/fluxtream-web/src/main/webapp/widgets/typo1">here</a></p>
+
             </div>
 
             <div id="swagger-ui-container" style="display:none" class="swagger-ui-wrap">
