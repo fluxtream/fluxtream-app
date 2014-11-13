@@ -1,15 +1,13 @@
 package glacier.toodledo;
 
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.domain.AbstractFacet;
+import org.hibernate.annotations.Index;
+
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-
-import org.hibernate.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
-
-import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
-import org.fluxtream.core.domain.AbstractFacet;
 
 @Entity(name="Facet_ToodledoGoal")
 @ObjectTypeSpec(name = "goal", value = 2, isImageType=false, prettyname = "Goals")
@@ -18,7 +16,6 @@ import org.fluxtream.core.domain.AbstractFacet;
 	@NamedQuery(name = "toodledo.goal.deleteAll", query = "DELETE FROM Facet_ToodledoGoal facet WHERE facet.guestId=?"),
 	@NamedQuery(name = "toodledo.goal.between", query = "SELECT facet FROM Facet_ToodledoGoal facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=?")
 })
-@Indexed
 public class ToodledoGoalFacet extends AbstractFacet {
 	
 	@Index(name="toodledo_id")

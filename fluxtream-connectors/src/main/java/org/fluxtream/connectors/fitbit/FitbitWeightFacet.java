@@ -2,7 +2,6 @@ package org.fluxtream.connectors.fitbit;
 
 import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 import org.fluxtream.core.domain.AbstractLocalTimeFacet;
-import org.hibernate.search.annotations.Indexed;
 
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
@@ -20,8 +19,6 @@ import javax.persistence.NamedQuery;
       @NamedQuery(name = "fitbit.weight.latest",
                   query = "SELECT facet FROM Facet_FitbitWeight facet WHERE facet.apiKeyId=? ORDER BY facet.start DESC")
 })
-
-@Indexed
 public class FitbitWeightFacet extends AbstractLocalTimeFacet {
 
     public double bmi;

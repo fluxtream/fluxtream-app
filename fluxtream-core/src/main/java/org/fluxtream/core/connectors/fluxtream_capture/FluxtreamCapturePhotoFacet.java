@@ -1,11 +1,5 @@
 package org.fluxtream.core.connectors.fluxtream_capture;
 
-import java.awt.Dimension;
-import java.io.Serializable;
-import javax.persistence.Entity;
-import javax.persistence.Lob;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
@@ -13,9 +7,15 @@ import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.Geolocation;
 import org.fluxtream.core.domain.Tag;
 import org.fluxtream.core.images.ImageOrientation;
-import org.hibernate.search.annotations.Indexed;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.persistence.Entity;
+import javax.persistence.Lob;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import java.awt.*;
+import java.io.Serializable;
 
 /**
  * @author Chris Bartley (bartley@cmu.edu)
@@ -27,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
     @NamedQuery(name = "fluxtream_capture.photo.newest", query = "SELECT facet FROM Facet_FluxtreamCapturePhoto facet WHERE facet.guestId=? ORDER BY facet.start DESC LIMIT 1"),
     @NamedQuery(name = "fluxtream_capture.photo.byId", query = "SELECT facet FROM Facet_FluxtreamCapturePhoto facet WHERE facet.guestId=? AND facet.id=?")
 })
-@Indexed
 public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Serializable, Geolocation {
 
     public static final int NUM_THUMBNAILS = 3;
