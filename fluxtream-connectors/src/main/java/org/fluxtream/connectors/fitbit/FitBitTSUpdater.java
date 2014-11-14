@@ -5,6 +5,7 @@ import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.basic.DefaultOAuthConsumer;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.connectors.Autonomous;
 import org.fluxtream.core.connectors.ObjectType;
@@ -32,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
@@ -1124,8 +1126,14 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 	}
 
 	@RequestMapping("/fitbit/notify")
-	public void notifyMeasurement(@RequestBody String updatesString)
+	public void notifyMeasurement(
+            HttpServletResponse response,
+            @RequestBody String updatesString)
 			throws Exception {
+
+        if (StringUtils.isEmpty(updatesString)) {
+            response.sendError(400);
+        }
 
 		String lines[] = updatesString.split("\\r?\\n");
 
