@@ -1,13 +1,13 @@
 package glacier.picasa;
 
-import java.io.Serializable;
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.domain.AbstractFacet;
+
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
-import org.fluxtream.core.domain.AbstractFacet;
-import org.hibernate.search.annotations.Indexed;
+import java.io.Serializable;
 
 @SuppressWarnings("serial")
 @Entity(name="Facet_PicasaPhotoEntry")
@@ -18,7 +18,6 @@ import org.hibernate.search.annotations.Indexed;
 	@NamedQuery(name = "picasa.photo.between", query = "SELECT facet FROM Facet_PicasaPhotoEntry facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=? ORDER BY facet.start ASC"),
     @NamedQuery(name = "picasa.photo.newest", query = "SELECT facet FROM Facet_PicasaPhotoEntry facet WHERE facet.guestId=? ORDER BY facet.start DESC LIMIT 1")
 })
-@Indexed
 public class PicasaPhotoFacet extends AbstractFacet implements Serializable {
 
 	public String photoId;

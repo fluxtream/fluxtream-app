@@ -193,6 +193,20 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
                     gps: false,
                     clock: ClockConfig.BODY_CATEGORY
                 },
+                food_log_summary:{
+                    list: true,
+                    photos: false,
+                    map: false,
+                    gps: false,
+                    clock: null
+                },
+                food_log_entry:{
+                    list: true,
+                    photos: false,
+                    map: false,
+                    gps: false,
+                    clock: null
+                },
                 sleep:{
                     list: true,
                     photos: false,

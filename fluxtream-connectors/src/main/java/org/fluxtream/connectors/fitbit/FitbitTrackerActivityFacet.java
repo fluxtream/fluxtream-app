@@ -1,24 +1,20 @@
 package org.fluxtream.connectors.fitbit;
 
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.domain.AbstractLocalTimeFacet;
+
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
-import org.fluxtream.core.connectors.updaters.AbstractUpdater;
-import org.fluxtream.core.domain.AbstractLocalTimeFacet;
-import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.Updatable;
-import org.hibernate.search.annotations.Indexed;
 
 @Entity(name="Facet_FitbitActivity")
-@ObjectTypeSpec(name = "activity_summary", value = 1, extractor= FitbitActivityFacetExtractor.class, prettyname = "Activity Summary", isDateBased = true)
+@ObjectTypeSpec(name = "activity_summary", value = 1, prettyname = "Activity Summary", isDateBased = true)
 @NamedQueries({
 		@NamedQuery(name = "fitbit.activity_summary.byDate",
 				query = "SELECT facet FROM Facet_FitbitActivity facet WHERE facet.apiKeyId=? AND facet.date=?")
 })
-@Indexed
-public class FitbitTrackerActivityFacet extends AbstractLocalTimeFacet implements Updatable {
+public class FitbitTrackerActivityFacet extends AbstractLocalTimeFacet {
 	
 	public int activeScore;
 	public int caloriesOut;
@@ -45,6 +41,15 @@ public class FitbitTrackerActivityFacet extends AbstractLocalTimeFacet implement
 	@Lob
 	public String caloriesJson;
 
+    @Lob
+    public String distanceJson;
+
+    @Lob
+    public String floorsJson;
+
+    @Lob
+    public String elevationJson;
+
     public FitbitTrackerActivityFacet() {
         super();
     }
@@ -55,12 +60,5 @@ public class FitbitTrackerActivityFacet extends AbstractLocalTimeFacet implement
 
     @Override
 	protected void makeFullTextIndexable() {}
-
-	@Override
-	public void update(AbstractUpdater updater, ApiKey apiKey) {
-        //try {
-        //    ((FitBitTSUpdater) updater).updateCaloriesIntraday(this, apiKey);
-        //} catch (RateLimitReachedException exc) {}
-	}
 
 }

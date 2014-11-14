@@ -1,7 +1,6 @@
 package org.fluxtream.core.services;
 
 import org.fluxtream.core.connectors.Connector;
-import org.fluxtream.core.domain.AbstractUserProfile;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.domain.ResetPasswordToken;
@@ -72,8 +71,6 @@ public interface GuestService {
 
 	public void removeApiKey(long apiKeyId);
 
-	public void saveUserProfile(long guestId, AbstractUserProfile userProfile);
-
     public void setApiKeySettings(long apiKeyId, Object settings);
 
 	public ResetPasswordToken getToken(String token);
@@ -81,9 +78,6 @@ public interface GuestService {
 	public ResetPasswordToken createToken(long guestId);
 	
 	public void deleteToken(String token);
-
-	public <T extends AbstractUserProfile> T getUserProfile(long guestId,
-			Class<T> clazz);
 
     public void removeApiKeyAttribute(long apiKeyId, String key);
 
@@ -94,4 +88,6 @@ public interface GuestService {
     void populateApiKey(long apiKeyId);
 
     void addDeveloperRole(Long guestId);
+
+    void deleteConnectorProfile(ApiKey apiKey);
 }

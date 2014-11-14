@@ -1,13 +1,12 @@
 package glacier.instagram;
 
-import javax.persistence.Entity;
 import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 import org.fluxtream.core.domain.AbstractFacet;
-import org.hibernate.search.annotations.Indexed;
+
+import javax.persistence.Entity;
 
 @Entity(name="Facet_InstagramPhoto")
 @ObjectTypeSpec(name = "photo", value = -1, isImageType=true, prettyname = "Photos")
-@Indexed
 public class InstagramPhotoFacet extends AbstractFacet {
 
 	public String instagramId;

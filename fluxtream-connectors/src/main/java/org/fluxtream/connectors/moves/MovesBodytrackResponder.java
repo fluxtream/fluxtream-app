@@ -39,6 +39,7 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
         final TimeInterval timeInterval = new SimpleTimeInterval(startMillis, endMillis, TimeUnit.ARBITRARY, TimeZone.getTimeZone("UTC"));
         ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
 
+        //TODO: support merging
         for (ObjectType objectType : objectTypes){
             String objectTypeName = apiKey.getConnector().getName() + "-" + objectType.getName();
             if (objectType.getName().equals("move")){

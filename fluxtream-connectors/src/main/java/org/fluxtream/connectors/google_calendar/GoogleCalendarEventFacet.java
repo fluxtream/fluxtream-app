@@ -1,18 +1,19 @@
 package org.fluxtream.connectors.google_calendar;
 
-import java.sql.Date;
-import java.util.List;
-import javax.persistence.Entity;
-import javax.persistence.Lob;
-import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
-import org.fluxtream.core.domain.AbstractRepeatableFacet;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttendee;
 import com.google.api.services.calendar.model.EventDateTime;
 import com.google.gson.Gson;
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.domain.AbstractRepeatableFacet;
 import org.hibernate.annotations.Index;
 import org.joda.time.DateTimeConstants;
+
+import javax.persistence.Entity;
+import javax.persistence.Lob;
+import java.sql.Date;
+import java.util.List;
 
 /**
  * User: candide
@@ -164,5 +165,10 @@ public class GoogleCalendarEventFacet extends AbstractRepeatableFacet {
     public void setUpdated(final DateTime updated) {
         if (updated!=null)
             this.eventUpdated = updated.getValue();
+    }
+
+    @Override
+    public boolean allDay() {
+        return true;
     }
 }

@@ -6,9 +6,6 @@ import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 import org.fluxtream.core.utils.JPAUtils;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.Store;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.DateTimeUtils;
 
@@ -16,7 +13,6 @@ import javax.persistence.*;
 import java.util.*;
 
 @MappedSuperclass
-@Indexed
 public abstract class AbstractFacet extends AbstractEntity {
     private static final FlxLogger LOG_DEBUG = FlxLogger.getLogger("Fluxtream");
 
@@ -45,7 +41,6 @@ public abstract class AbstractFacet extends AbstractEntity {
     public Long apiKeyId;
 
     @Index(name="guestId_index")
-	@Field
 	public long guestId;
 	
 	@Type(type="yes_no")
@@ -55,7 +50,6 @@ public abstract class AbstractFacet extends AbstractEntity {
 	@Index(name="timeUpdated_index")
 	public long timeUpdated;
 	
-	@Field(index=org.hibernate.search.annotations.Index.UN_TOKENIZED, store=Store.YES)
 	@Index(name="start_index")
 	public long start;
 	
@@ -80,10 +74,8 @@ public abstract class AbstractFacet extends AbstractEntity {
     public transient Set<Tag> tagSet;
 
 	@Lob
-	@Field(index=org.hibernate.search.annotations.Index.TOKENIZED, store=Store.YES)
 	public String comment;
 	
-	@Field(index=org.hibernate.search.annotations.Index.TOKENIZED, store=Store.YES)
 	@Lob
 	public String fullTextDescription;
 

@@ -37,7 +37,6 @@
     <http pattern="/widgets/**" security="none" />
 
     <!-- api ping -->
-    <http pattern="/api/v1/test/**" security="none" />
     <http pattern="/api/v1/ping" security="none" />
 
     <!-- facebook login and sharing -->
@@ -48,6 +47,7 @@
     <!-- api documentation -->
     <http pattern="/api/api-docs/**" security="none" />
     <http pattern="/api/api-docs*" security="none" />
+    <http pattern="/api/v1/datamodel/*" security="none" />
     <http pattern="/bootstrap/*" security="none" />
 
     <!-- oauth2 token exchange -->

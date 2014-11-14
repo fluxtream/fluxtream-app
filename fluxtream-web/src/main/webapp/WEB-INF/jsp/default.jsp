@@ -13,7 +13,7 @@
     <link href="/static/css/bootstrap-2.0.3.min.css" rel="stylesheet">
     <link href="/static/css/bootstrap-responsive-2.0.3.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/font-awesome-3.2.1.css">
-    <link href="/${release}/assets-home/css/style-responsive-default.css" rel="stylesheet">
+    <link href="/${release}/assets-home/css/style-responsive-red.css" rel="stylesheet">
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
     <!--<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>-->
@@ -22,10 +22,9 @@
     <script src="/static/js/modernizr-2.6.2-custom1.js"></script>
 
     <!-- For IE 7 and 8 Media Query Support -->
-    <script type="text/javascript" src="/${release}/assets-home/js/respond.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
     <script src="/static/js/bootstrap-2.0.2.min.js"></script>
-    <script type="text/javascript" src="/${release}/assets-home/js/welcome.js"></script>
+    <script type="text/javascript" src="/${release}/js/welcome.js"></script>
 
     <!-- fav icons -->
     <link rel="shortcut icon" href="/favicon.ico">

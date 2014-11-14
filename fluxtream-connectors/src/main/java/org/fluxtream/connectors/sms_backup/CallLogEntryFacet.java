@@ -1,16 +1,14 @@
 package org.fluxtream.connectors.sms_backup;
 
-import java.io.Serializable;
-import java.util.Date;
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.domain.AbstractFacet;
+import org.hibernate.annotations.Index;
 
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-
-import org.hibernate.search.annotations.Indexed;
-
-import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
-import org.fluxtream.core.domain.AbstractFacet;
+import java.io.Serializable;
+import java.util.Date;
 
 @SuppressWarnings("serial")
 @Entity(name="Facet_CallLog")
@@ -19,7 +17,6 @@ import org.fluxtream.core.domain.AbstractFacet;
 @NamedQueries({
 		@NamedQuery(name = "sms_backup.call_log.byEmailId", query = "SELECT facet FROM Facet_CallLog facet WHERE facet.apiKeyId=? AND facet.emailId=?")
 })
-@Indexed
 public class CallLogEntryFacet extends AbstractFacet implements Serializable {
 
     public CallLogEntryFacet() { super(); }
@@ -36,7 +33,10 @@ public class CallLogEntryFacet extends AbstractFacet implements Serializable {
 	public String personNumber;
 	public int seconds;
 	public Date date;
+
+    @Index(name="emailId")
     public String emailId;
+    
 	transient public int startMinute;
 	transient public int endMinute;
 	

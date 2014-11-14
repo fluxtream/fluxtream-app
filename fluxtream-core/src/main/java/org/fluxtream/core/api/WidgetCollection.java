@@ -1,6 +1,8 @@
 package org.fluxtream.core.api;
 
 import com.google.gson.Gson;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.domain.DashboardWidget;
 import org.fluxtream.core.services.WidgetsService;
@@ -22,6 +24,7 @@ import java.util.List;
  */
 @Path("/v1/widgets")
 @Component("RESTWidgetCollection")
+@Api(value = "/widgets", description = "Retrieve/update list of all available widgets from main and user-specified widget repositories.")
 @Scope("request")
 public class WidgetCollection {
 
@@ -31,6 +34,7 @@ public class WidgetCollection {
     Gson gson = new Gson();
 
     @GET
+    @ApiOperation(value = "Get a guest's list of all available widgets")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAvailableWidgetsList() {
         try{
@@ -45,6 +49,7 @@ public class WidgetCollection {
 
     @POST
     @Path("/refresh")
+    @ApiOperation(value = "Refresh the list of available widgets for this user, taking user-specified widget repositories into account")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response refreshWidgets() {
         try{

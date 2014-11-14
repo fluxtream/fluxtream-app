@@ -1,5 +1,6 @@
 package org.fluxtream.core.api;
 
+import org.fluxtream.core.Configuration;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.Guest;
@@ -32,6 +33,9 @@ public class TestController {
 
     @Autowired
     ConnectorUpdateService connectorUpdateService;
+
+    @Autowired
+    Configuration env;
 
     @GET
     @Path("/{username}/setAttribute")

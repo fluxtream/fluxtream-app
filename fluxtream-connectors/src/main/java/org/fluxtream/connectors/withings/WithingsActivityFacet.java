@@ -1,9 +1,9 @@
 package org.fluxtream.connectors.withings;
 
-import javax.persistence.Entity;
 import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 import org.fluxtream.core.domain.AbstractLocalTimeFacet;
-import org.hibernate.search.annotations.Indexed;
+
+import javax.persistence.Entity;
 
 /**
  * User: candide
@@ -12,7 +12,6 @@ import org.hibernate.search.annotations.Indexed;
  */
 @Entity(name="Facet_WithingsActivity")
 @ObjectTypeSpec(name = "activity", value = 8, prettyname = "Activity", isDateBased = true)
-@Indexed
 public class WithingsActivityFacet extends AbstractLocalTimeFacet {
 
     public String timezone;

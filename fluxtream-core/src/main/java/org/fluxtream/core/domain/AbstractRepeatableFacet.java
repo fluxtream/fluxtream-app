@@ -1,11 +1,13 @@
 package org.fluxtream.core.domain;
 
+import org.fluxtream.core.connectors.vos.AllDayVO;
+import org.fluxtream.core.utils.TimeUtils;
+import org.joda.time.LocalDate;
+
+import javax.persistence.MappedSuperclass;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.MappedSuperclass;
-import org.fluxtream.core.utils.TimeUtils;
-import org.joda.time.LocalDate;
 
 /**
  * User: candide
@@ -13,7 +15,7 @@ import org.joda.time.LocalDate;
  * Time: 19:27
  */
 @MappedSuperclass
-public abstract class AbstractRepeatableFacet extends AbstractFacet {
+public abstract class AbstractRepeatableFacet extends AbstractFacet implements AllDayVO {
 
     public Date startDate;
     public Date endDate;

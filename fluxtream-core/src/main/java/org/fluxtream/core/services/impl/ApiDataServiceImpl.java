@@ -261,14 +261,7 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 		if (!apiKey.getConnector().hasFacets())
 			return;
 		jpaDao.deleteAllFacets(apiKey);
-		Class<? extends AbstractUserProfile> userProfileClass = apiKey.getConnector()
-				.userProfileClass();
-		if (userProfileClass != null
-				&& userProfileClass != AbstractUserProfile.class) {
-			Query deleteProfileQuery = em.createQuery("DELETE FROM "
-					+ userProfileClass.getName());
-			deleteProfileQuery.executeUpdate();
-		}
+        guestService.deleteConnectorProfile(apiKey);
         // remove directory <connectorData.location>/<connectorName>/<apiKeyId>
         final String devKvsLocation = env.get("btdatastore.db.location");
         // let's not assume that everyone has set this value
@@ -322,6 +315,15 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
                                                 final TimeInterval timeInterval,
                                                 @Nullable final TagFilter tagFilter) {
         return jpaDao.getFacetsBetween(apiKey, objectType, timeInterval, tagFilter);
+    }
+
+    @Override
+    public List<AbstractFacet> getApiDataFacets(ApiKey apiKey,
+                                                ObjectType objectType,
+                                                TimeInterval timeInterval,
+                                                @Nullable TagFilter tagFilter,
+                                                @Nullable String orderByString) {
+        return jpaDao.getFacetsBetween(apiKey,objectType,timeInterval,tagFilter,orderByString);
     }
 
     @Override

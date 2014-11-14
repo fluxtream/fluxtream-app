@@ -38,7 +38,7 @@ public class JawboneUpBodytrackResponder extends AbstractBodytrackResponder {
 
         int sleepObjectTypeValue = ObjectType.getObjectTypeValue(JawboneUpSleepFacet.class);
         final ObjectType sleepObjectType = ObjectType.getObjectType(Connector.getConnector("up"), sleepObjectTypeValue);
-        List<AbstractFacet> facets = getFacetsInTimespan(timeInterval, apiKey, sleepObjectType);
+        List<AbstractFacet> facets = getFacetsInTimespanOrderedByEnd(timeInterval, apiKey, sleepObjectType);
         for (AbstractFacet facet : facets){
             JawboneUpSleepFacet sleepFacet = (JawboneUpSleepFacet) facet;
             if (StringUtils.isEmpty(sleepFacet.phasesStorage))
@@ -54,7 +54,7 @@ public class JawboneUpBodytrackResponder extends AbstractBodytrackResponder {
                     end = nextSleepPhase.getLong(0);
                 }
                 final TimespanModel moveTimespanModel = new TimespanModel(start*1000, end*1000-1, toPhaseString(phase), "up-sleep");
-                items.add(moveTimespanModel);
+                simpleMergeAddTimespan(items,moveTimespanModel,startMillis,endMillis);
             }
         }
         return items;
