@@ -47,7 +47,7 @@ public class JPAFacetDao implements FacetDao {
 	public JPAFacetDao() {}
 
     @Override
-    public List<AbstractFacet> getFacetsByDates(final ApiKey apiKey, ObjectType objectType, List<String> dates) {
+    public List<AbstractFacet> getFacetsByDates(final ApiKey apiKey, ObjectType objectType, List<String> dates, Long updatedSince) {
         if (!objectType.isClientFacet())
             return new ArrayList<AbstractFacet>();
         ArrayList<AbstractFacet> facets = new ArrayList<AbstractFacet>();
@@ -56,6 +56,9 @@ public class JPAFacetDao implements FacetDao {
         final String facetName = getEntityName(facetClass);
         StringBuilder additionalWhereClause = new StringBuilder();
         if (objectType.visibleClause()!=null) additionalWhereClause.append(" AND ").append(objectType.visibleClause()).append(" ");
+        if (updatedSince != null){
+            additionalWhereClause.append(" AND facet.timeUpdated > ").append(updatedSince);
+        }
         String queryString = new StringBuilder("SELECT facet FROM ")
                 .append(facetName)
                 .append(" facet WHERE facet.apiKeyId=:apiKeyId AND facet.date IN :dates")
@@ -71,7 +74,7 @@ public class JPAFacetDao implements FacetDao {
     }
 
     @Override
-    public List<AbstractRepeatableFacet> getFacetsBetweenDates(final ApiKey apiKey, final ObjectType objectType, final String startDateString, final String endDateString) {
+    public List<AbstractRepeatableFacet> getFacetsBetweenDates(final ApiKey apiKey, final ObjectType objectType, final String startDateString, final String endDateString, Long updatedSince) {
         if (!objectType.isClientFacet())
             return new ArrayList<AbstractRepeatableFacet>();
         ArrayList<AbstractRepeatableFacet> facets = new ArrayList<AbstractRepeatableFacet>();
@@ -80,6 +83,9 @@ public class JPAFacetDao implements FacetDao {
         final String facetName = getEntityName(facetClass);
         StringBuilder additionalWhereClause = new StringBuilder();
         if (objectType.visibleClause()!=null) additionalWhereClause.append(" AND ").append(objectType.visibleClause()).append(" ");
+        if (updatedSince != null){
+            additionalWhereClause.append(" AND facet.timeUpdated > ").append(updatedSince);
+        }
         StringBuilder queryBuilder = new StringBuilder("SELECT facet FROM ")
                 .append(facetName)
                 .append(" facet WHERE facet.apiKeyId=:apiKeyId AND NOT(facet.endDate<:startDate) AND NOT(facet.startDate>:endDate)")
@@ -120,13 +126,13 @@ public class JPAFacetDao implements FacetDao {
     }
 
 	@Override
-	public List<AbstractFacet> getFacetsBetween(final ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval) {
-        return getFacetsBetween(apiKey, objectType, timeInterval, null, null);
+	public List<AbstractFacet> getFacetsBetween(final ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval, Long updatedSince) {
+        return getFacetsBetween(apiKey, objectType, timeInterval, null, null, updatedSince);
     }
 
     @Override
-    public List<AbstractFacet> getFacetsBetween(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval, @Nullable TagFilter tagFilter) {
-        return getFacetsBetween(apiKey, objectType, timeInterval, tagFilter, null);
+    public List<AbstractFacet> getFacetsBetween(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval, @Nullable TagFilter tagFilter, Long updatedSince) {
+        return getFacetsBetween(apiKey, objectType, timeInterval, tagFilter, null, updatedSince);
     }
 
     @Override
@@ -134,9 +140,10 @@ public class JPAFacetDao implements FacetDao {
                                                 final ObjectType objectType,
                                                 final TimeInterval timeInterval,
                                                 @Nullable final TagFilter tagFilter,
-                                                @Nullable final String orderByString) {
+                                                @Nullable final String orderByString,
+                                                Long updatedSince) {
         if (objectType==null) {
-            return getFacetsBetween(apiKey, timeInterval, tagFilter);
+            return getFacetsBetween(apiKey, timeInterval, tagFilter, updatedSince);
         } else {
             if (!objectType.isClientFacet())
                 return new ArrayList<AbstractFacet>();
@@ -147,6 +154,9 @@ public class JPAFacetDao implements FacetDao {
             if (tagFilter != null) additionalWhereClause.append(" AND (").append(tagFilter.getWhereClause()).append(")");
             if (objectType.isMixedType()) additionalWhereClause.append(" AND facet.allDayEvent=false ");
             if (objectType.visibleClause()!=null) additionalWhereClause.append(" AND ").append(objectType.visibleClause()).append(" ");
+            if (updatedSince != null){
+                additionalWhereClause.append(" AND facet.timeUpdated > ").append(updatedSince);
+            }
             StringBuilder queryStringBuilder = new StringBuilder("SELECT facet FROM ")
                     .append(facetName)
                     .append(" facet WHERE facet.apiKeyId=? AND facet.end>=? AND facet.start<=?")
@@ -164,13 +174,13 @@ public class JPAFacetDao implements FacetDao {
         }
     }
 
-    private List<AbstractFacet> getFacetsBetween(final ApiKey apiKey, TimeInterval timeInterval, @Nullable final TagFilter tagFilter) {
+    private List<AbstractFacet> getFacetsBetween(final ApiKey apiKey, TimeInterval timeInterval, @Nullable final TagFilter tagFilter, Long updatedSince) {
         final ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
         List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         for (ObjectType type : objectTypes) {
             if (!type.isClientFacet())
                 continue;
-            facets.addAll(getFacetsBetween(apiKey, type, timeInterval, tagFilter));
+            facets.addAll(getFacetsBetween(apiKey, type, timeInterval, tagFilter, updatedSince));
         }
         return facets;
     }
