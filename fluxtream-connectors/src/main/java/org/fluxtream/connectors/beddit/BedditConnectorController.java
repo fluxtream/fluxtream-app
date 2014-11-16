@@ -74,7 +74,7 @@ public class BedditConnectorController {
                 String content = responseHandler.handleResponse(response);
                 JSONObject topLevelObject = JSONObject.fromObject(content);
                 String access_token = topLevelObject.getString("access_token");
-                int user = topLevelObject.getInt("user");
+                long user = topLevelObject.getLong("user");
 
                 //create the connector and set the api key attributes
                 final Connector connector = Connector.getConnector("beddit");
