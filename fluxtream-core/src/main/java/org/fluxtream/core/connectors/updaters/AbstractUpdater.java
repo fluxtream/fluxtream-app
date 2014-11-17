@@ -63,7 +63,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
     public AbstractUpdater() {
 	}
 
-    protected void extractCommonFacetData(AbstractFacet facet, UpdateInfo updateInfo) {
+    public static void extractCommonFacetData(AbstractFacet facet, UpdateInfo updateInfo) {
         facet.apiKeyId = updateInfo.apiKey.getId();
         facet.guestId = updateInfo.apiKey.getGuestId();
         facet.api = updateInfo.apiKey.getConnector().value();
@@ -179,21 +179,6 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                 logger.warn(sb.toString());
             }
         }
-	}
-
-	@SuppressWarnings({"unchecked","unused"})
-	protected final <T extends AbstractUserProfile> T saveUserProfile(
-			UpdateInfo updateInfo, Class<T> clazz) throws Exception {
-		AbstractUserProfile loadUserProfile = loadUserProfile(updateInfo, clazz);
-		guestService.saveUserProfile(updateInfo.apiKey.getGuestId(),
-				loadUserProfile);
-		return (T) loadUserProfile;
-	}
-
-    @SuppressWarnings("unused")
-	protected <T extends AbstractUserProfile> T loadUserProfile(
-			UpdateInfo updateInfo, Class<T> clazz) throws Exception {
-		throw new RuntimeException("Not Implemented");
 	}
 
     /**
@@ -398,5 +383,11 @@ public abstract class AbstractUpdater extends ApiClientSupport {
      */
 	protected abstract void updateConnectorData(UpdateInfo updateInfo)
 			throws Exception;
+
+    public void afterConnectorUpdate(final UpdateInfo updateInfo)
+        throws Exception {}
+
+    public void afterHistoryUpdate(final UpdateInfo updateInfo)
+            throws Exception {}
 
 }

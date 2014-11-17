@@ -1,25 +1,11 @@
 package org.fluxtream.core.api;
 
-import java.io.IOException;
-import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import com.google.gson.Gson;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import oauth.signpost.OAuthConsumer;
+import oauth.signpost.basic.DefaultOAuthConsumer;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -29,30 +15,32 @@ import org.fluxtream.core.Configuration;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.ObjectType;
-import org.fluxtream.core.connectors.updaters.ScheduleResult;
-import org.fluxtream.core.domain.AbstractFacet;
-import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.ApiKeyAttribute;
-import org.fluxtream.core.domain.ApiUpdate;
-import org.fluxtream.core.domain.ConnectorInfo;
-import org.fluxtream.core.domain.Guest;
+import org.fluxtream.core.connectors.updaters.*;
+import org.fluxtream.core.domain.*;
 import org.fluxtream.core.mvc.models.StatusModel;
-import org.fluxtream.core.services.ApiDataService;
-import org.fluxtream.core.services.ConnectorUpdateService;
-import org.fluxtream.core.services.GuestService;
-import org.fluxtream.core.services.JPADaoService;
-import org.fluxtream.core.services.MetadataService;
-import org.fluxtream.core.services.SystemService;
-import org.fluxtream.core.services.WidgetsService;
+import org.fluxtream.core.services.*;
 import org.fluxtream.core.services.impl.ExistingEmailException;
 import org.fluxtream.core.services.impl.UsernameAlreadyTakenException;
+import org.fluxtream.core.utils.RequestUtils;
 import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Component;
 
-@Path("/admin")
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.util.*;
+
+@Path("/v1/admin")
 @Component("RESTAdminController")
 @Scope("request")
 public class AdminController {
@@ -82,6 +70,12 @@ public class AdminController {
 
     @Autowired
     SystemService sysService;
+
+    public static final String SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL = "SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL";
+
+    static {
+        ObjectType.registerCustomObjectType(SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL);
+    }
 
     @GET
     @Secured({ "ROLE_ADMIN" })
@@ -701,6 +695,120 @@ public class AdminController {
         for (String userRole : userRoles)
             array.add(userRole);
         return array;
+    }
+
+    @GET
+    @Path("/fitbit/apiSubscriptions/list")
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response listFitbitApiSubscriptions() throws UpdateFailedException, UnexpectedResponseCodeException, RateLimitReachedException, AuthExpiredException {
+        final Guest guest = AuthHelper.getGuest();
+        ApiKey apiKey = guestService.getApiKey(guest.getId(), Connector.getConnector("fitbit"));
+        final String fitbitResponse = makeRestCall(apiKey, ObjectType.getCustomObjectType(SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL).value(),
+                "https://api.fitbit.com/1/user/-/apiSubscriptions.json");
+        return Response.ok().entity(fitbitResponse).build();
+    }
+
+    @GET
+    @Path("/fitbit/apiSubscriptions/delete")
+    @Produces("text/plain")
+    public Response deleteFitbitApiSubscription() throws UpdateFailedException, UnexpectedResponseCodeException, RateLimitReachedException, AuthExpiredException {
+        String fitbitSubscriberId = env.get("fitbitSubscriberId");
+        final Guest guest = AuthHelper.getGuest();
+        ApiKey apiKey = guestService.getApiKey(guest.getId(), Connector.getConnector("fitbit"));
+        makeRestCall(apiKey, ObjectType.getCustomObjectType(SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL).value(),
+                "https://api.fitbit.com/1/user/-/apiSubscriptions/" + fitbitSubscriberId + ".json", "DELETE");
+        return Response.ok().entity("subscription deleted").build();
+    }
+
+    @GET
+    @Path("/fitbit/apiSubscriptions/add")
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response addFitbitSubscription(@Context HttpServletRequest request,
+                                          @Context HttpServletResponse response) throws IOException, UpdateFailedException, UnexpectedResponseCodeException, RateLimitReachedException, AuthExpiredException {
+        // check that we're running locally
+        if (!RequestUtils.isDev(request)) {
+            response.setStatus(403);
+        }
+        String fitbitSubscriberId = env.get("fitbitSubscriberId");
+        final Guest guest = AuthHelper.getGuest();
+        ApiKey apiKey = guestService.getApiKey(guest.getId(), Connector.getConnector("fitbit"));
+        final String fitbitResponse = makeRestCall(apiKey, ObjectType.getCustomObjectType(SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL).value(),
+                "https://api.fitbit.com/1/user/-/apiSubscriptions/" + fitbitSubscriberId + ".json", "POST");
+//        final String fitbitResponse = makeRestCall(apiKey, ObjectType.getCustomObjectType(SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL).value(),
+//                "https://api.fitbit.com/1/user/-/activities/date/2013-02-25.json");
+        return Response.ok().entity(fitbitResponse).build();
+    }
+
+    public final String makeRestCall(final ApiKey apiKey,
+                                     final int objectTypes, final String urlString, final String...method)
+            throws RateLimitReachedException, UpdateFailedException, AuthExpiredException, UnexpectedResponseCodeException {
+
+
+        try {
+            long then = System.currentTimeMillis();
+            URL url = new URL(urlString);
+            HttpURLConnection request = (HttpURLConnection) url.openConnection();
+            if (method!=null && method.length>0)
+                request.setRequestMethod(method[0]);
+
+            OAuthConsumer consumer = new DefaultOAuthConsumer(
+                    getConsumerKey(apiKey), getConsumerSecret(apiKey));
+
+            consumer.setTokenWithSecret(
+                    guestService.getApiKeyAttribute(apiKey,"accessToken"),
+                    guestService.getApiKeyAttribute(apiKey,"tokenSecret"));
+
+            // sign the request (consumer is a Signpost DefaultOAuthConsumer)
+            try {
+                consumer.sign(request);
+            } catch (Exception e) {
+                throw new RuntimeException("OAuth exception: " + e.getMessage());
+            }
+            request.connect();
+            final int httpResponseCode = request.getResponseCode();
+
+            final String httpResponseMessage = request.getResponseMessage();
+
+            if (httpResponseCode == 200 || httpResponseCode == 201 || httpResponseCode == 204) {
+                String json = IOUtils.toString(request.getInputStream());
+                connectorUpdateService.addApiUpdate(apiKey,
+                        objectTypes, then, System.currentTimeMillis() - then,
+                        urlString, true, httpResponseCode, httpResponseMessage);
+                // logger.info(updateInfo.apiKey.getGuestId(), "REST call success: " +
+                // urlString);
+                return json;
+            } else {
+                connectorUpdateService.addApiUpdate(apiKey,
+                        objectTypes, then, System.currentTimeMillis() - then,
+                        urlString, false, httpResponseCode, httpResponseMessage);
+                // Check for response code 429 which is Fitbit's over rate limit error
+                if(httpResponseCode == 429) {
+                    // try to retrieve the reset time from Fitbit, otherwise default to a one hour delay
+                    throw new RateLimitReachedException();
+                }
+                else {
+                    // Otherwise throw the same error that SignpostOAuthHelper used to throw
+                    if (httpResponseCode == 401)
+                        throw new AuthExpiredException();
+                    else if (httpResponseCode >= 400 && httpResponseCode < 500)
+                        throw new UpdateFailedException("Unexpected response code: " + httpResponseCode, true,
+                                ApiKey.PermanentFailReason.clientError(httpResponseCode));
+                    throw new UpdateFailedException(false, "Error: " + httpResponseCode);
+                }
+            }
+        } catch (IOException exc) {
+            throw new RuntimeException("IOException trying to make rest call: " + exc.getMessage());
+        }
+    }
+
+    private String getConsumerSecret(ApiKey apiKey) {
+        String consumerSecret = guestService.getApiKeyAttribute(apiKey, apiKey.getConnector().getName() + "ConsumerSecret");
+        return consumerSecret == null ? "" : consumerSecret;
+    }
+
+    private String getConsumerKey(ApiKey apiKey) {
+        String consumerKey = guestService.getApiKeyAttribute(apiKey, apiKey.getConnector().getName() + "ConsumerKey");
+        return consumerKey == null ? "" : consumerKey;
     }
 
 }

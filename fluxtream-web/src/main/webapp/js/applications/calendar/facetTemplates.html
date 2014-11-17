@@ -129,6 +129,53 @@
         </div>
     </div>
 </template>
+<template id="fitbit-food_log_summary">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon fitbit-food_log_summary"></span>
+        <div class="facetDetails">
+            <span class="flx-text">{{#facets}}</span>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                <div class="flx-data">
+                    <span class="flx-dataLabel">Total calories consumed</span>
+                    <span class="flx-text">{{_calories}}</span>
+                    <span class="flx-dataLabel">kcal</span>
+                </div>
+                {{#water}}
+                <div class="flx-data">
+                    <span class="flx-dataLabel">Water</span>
+                    <span class="flx-text">{{_water}}</span>
+                    <span class="flx-dataLabel">ml</span>
+                </div>
+                {{/water}}
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
+<template id="fitbit-food_log_entry">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon fitbit-food_log_entry"></span>
+        <div class="facetDetails">
+            <span class="flx-text">{{#facets}}</span>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                <div class="flx-data">
+                    <span class="flx-text"><code>{{meal}}</code> {{name}} ({{amount}} {{unit}})</span>
+                </div>
+                <div class="flx-data">
+                    <span class="flx-dataLabel">Calories</span>
+                    <span class="flx-text">{{_calories}}</span>
+                    <span class="flx-dataLabel">Calories</span>
+                </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            </div>
+            <div style="margin-bottom:1em"></div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
 <template id="fitbit-activity_summary">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon fitbit-steps"></span>
@@ -189,24 +236,6 @@
                         <span class="flx-dataLabel">Calories Burned</span>
                         <span class="flx-text">{{totalCalories}} <span class="flx-dataLabel">kcal</span></span>
                     </div>
-                </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
-            </div>
-            {{/facets}}
-        </div>
-    </div>
-</template>
-<template id="fitbit-logged_activity">
-    <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon fitbit"></span>
-        <div class="facetDetails">
-            {{#facets}}
-            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
-                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
-                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
-                <div class="flx-data">
-                    <span class="flx-description">{{description}}</span>
                 </div>
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
@@ -291,6 +320,24 @@
         </div>
     </div>
 </template>
+<template id="fitbit-logged_activity">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon fitbit"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}}{{#endTime}} <span class="flx-dataLabel">-</span> {{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
+                <div class="flx-data">
+                    <span class="flx-description">{{name}}</span>
+                </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
 <template id="fitbit-weight">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon fitbit-weight"></span>
@@ -299,7 +346,9 @@
             <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
                 <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                {{^allDay}}
                 <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}}{{#endTime}} <span class="flx-dataLabel">-</span> {{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
+                {{/allDay}}
                 <div class="flx-data">
                     <span class="flx-dataLabel">Weight</span>
                     <span class="flx-text">{{weight}} {{weightUnitLabel}}</span>

@@ -1,15 +1,5 @@
 package org.fluxtream.core.connectors.dao;
 
-import java.lang.reflect.Method;
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.TemporalType;
-import javax.persistence.TypedQuery;
 import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.connectors.Connector;
@@ -32,6 +22,12 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.*;
+import java.lang.reflect.Method;
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 @Repository
 @Component
@@ -84,11 +80,14 @@ public class JPAFacetDao implements FacetDao {
         final String facetName = getEntityName(facetClass);
         StringBuilder additionalWhereClause = new StringBuilder();
         if (objectType.visibleClause()!=null) additionalWhereClause.append(" AND ").append(objectType.visibleClause()).append(" ");
-        String queryString = new StringBuilder("SELECT facet FROM ")
+        StringBuilder queryBuilder = new StringBuilder("SELECT facet FROM ")
                 .append(facetName)
                 .append(" facet WHERE facet.apiKeyId=:apiKeyId AND NOT(facet.endDate<:startDate) AND NOT(facet.startDate>:endDate)")
-                .append(additionalWhereClause)
-                .toString();
+                .append(additionalWhereClause);
+        String orderBy = objectType.orderBy();
+        if (orderBy!=null)
+            queryBuilder.append(" ORDER BY ").append(orderBy);
+        String queryString = queryBuilder.toString();
         final TypedQuery<? extends AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
         query.setParameter("apiKeyId", apiKey.getId());
         final DateTime time = TimeUtils.dateFormatterUTC.parseDateTime(startDateString);
@@ -122,14 +121,20 @@ public class JPAFacetDao implements FacetDao {
 
 	@Override
 	public List<AbstractFacet> getFacetsBetween(final ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval) {
-        return getFacetsBetween(apiKey, objectType, timeInterval, null);
+        return getFacetsBetween(apiKey, objectType, timeInterval, null, null);
+    }
+
+    @Override
+    public List<AbstractFacet> getFacetsBetween(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval, @Nullable TagFilter tagFilter) {
+        return getFacetsBetween(apiKey, objectType, timeInterval, tagFilter, null);
     }
 
     @Override
     public List<AbstractFacet> getFacetsBetween(final ApiKey apiKey,
                                                 final ObjectType objectType,
                                                 final TimeInterval timeInterval,
-                                                @Nullable final TagFilter tagFilter) {
+                                                @Nullable final TagFilter tagFilter,
+                                                @Nullable final String orderByString) {
         if (objectType==null) {
             return getFacetsBetween(apiKey, timeInterval, tagFilter);
         } else {
@@ -142,11 +147,14 @@ public class JPAFacetDao implements FacetDao {
             if (tagFilter != null) additionalWhereClause.append(" AND (").append(tagFilter.getWhereClause()).append(")");
             if (objectType.isMixedType()) additionalWhereClause.append(" AND facet.allDayEvent=false ");
             if (objectType.visibleClause()!=null) additionalWhereClause.append(" AND ").append(objectType.visibleClause()).append(" ");
-            String queryString = new StringBuilder("SELECT facet FROM ")
+            StringBuilder queryStringBuilder = new StringBuilder("SELECT facet FROM ")
                     .append(facetName)
                     .append(" facet WHERE facet.apiKeyId=? AND facet.end>=? AND facet.start<=?")
-                    .append(additionalWhereClause)
-                    .toString();
+                    .append(additionalWhereClause);
+            if (orderByString != null){
+                queryStringBuilder.append(" ORDER BY ").append(orderByString);
+            }
+            String queryString= queryStringBuilder.toString();
             final TypedQuery<AbstractFacet> query = em.createQuery(queryString, AbstractFacet.class);
             query.setParameter(1, apiKey.getId());
             query.setParameter(2, timeInterval.getStart());
@@ -423,5 +431,12 @@ public class JPAFacetDao implements FacetDao {
 	public void merge(Object o) {
 		em.merge(o);
 	}
+
+    @Override
+    @Transactional(readOnly=false)
+    public void delete(AbstractFacet facet) {
+        AbstractFacet merged = em.merge(facet);
+        em.remove(merged);
+    }
 
 }

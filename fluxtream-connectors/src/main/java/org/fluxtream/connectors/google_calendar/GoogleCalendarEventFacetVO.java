@@ -1,22 +1,24 @@
 package org.fluxtream.connectors.google_calendar;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttendee;
 import org.fluxtream.core.OutsideTimeBoundariesException;
 import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.connectors.vos.AbstractTimedFacetVO;
+import org.fluxtream.core.connectors.vos.AllDayVO;
 import org.fluxtream.core.domain.GuestSettings;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * User: candide
  * Date: 28/07/13
  * Time: 21:39
  */
-public class GoogleCalendarEventFacetVO extends AbstractTimedFacetVO<GoogleCalendarEventFacet> {
+public class GoogleCalendarEventFacetVO extends AbstractTimedFacetVO<GoogleCalendarEventFacet> implements AllDayVO {
 
     public String summary;
     public String description;
@@ -27,13 +29,13 @@ public class GoogleCalendarEventFacetVO extends AbstractTimedFacetVO<GoogleCalen
     public Event.Organizer organizer;
     public String location;
     public boolean recurringEvent;
-    public boolean allDay;
     public String hangoutLink;
+    private transient boolean allDayEvent;
 
     @Override
     protected void fromFacet(final GoogleCalendarEventFacet facet, final TimeInterval timeInterval, final GuestSettings settings) throws OutsideTimeBoundariesException {
         try {
-            this.allDay = facet.allDayEvent;
+            this.allDayEvent = facet.allDayEvent;
             JacksonFactory jacksonFactory = new JacksonFactory();
             if (facet.attendeesStorage!=null) {
                 this.attendees = new ArrayList<EventAttendee>();
@@ -72,5 +74,10 @@ public class GoogleCalendarEventFacetVO extends AbstractTimedFacetVO<GoogleCalen
         else if (responseStatus.equalsIgnoreCase("declined"))
             return "icon-ban-circle";
         return "";
+    }
+
+    @Override
+    public boolean allDay() {
+        return this.allDayEvent;
     }
 }

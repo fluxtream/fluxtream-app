@@ -1,21 +1,18 @@
 package org.fluxtream.connectors.fitbit;
 
+import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
+import org.fluxtream.core.domain.AbstractLocalTimeFacet;
+
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
-import org.fluxtream.core.domain.AbstractLocalTimeFacet;
-import org.hibernate.search.annotations.Indexed;
 
 @Entity(name="Facet_FitbitSleep")
-@ObjectTypeSpec(name = "sleep", value = 4, extractor=FitbitSleepFacetExtractor.class, prettyname = "Sleep", isDateBased = true)
+@ObjectTypeSpec(name = "sleep", value = 4, prettyname = "Sleep", isDateBased = true)
 @NamedQueries({
 		@NamedQuery(name = "fitbit.sleep.byDate",
 				query = "SELECT facet FROM Facet_FitbitSleep facet WHERE facet.apiKeyId=? AND facet.date=?")
 })
-
-//SELECT * FROM Facet_FitbitSleep facet WHERE facet.guestId=1 ORDER BY facet.start ASC LIMIT 1
-@Indexed
 public class FitbitSleepFacet extends AbstractLocalTimeFacet {
 
 	public boolean isMainSleep;

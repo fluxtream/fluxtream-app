@@ -1,19 +1,5 @@
 package org.fluxtream.core.services.impl;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import com.maxmind.geoip.Location;
 import com.maxmind.geoip.LookupService;
 import net.sf.json.JSONObject;
@@ -26,24 +12,9 @@ import org.fluxtream.core.auth.FlxUserDetails;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.OAuth2Helper;
 import org.fluxtream.core.connectors.location.LocationFacet;
-import org.fluxtream.core.domain.AbstractUserProfile;
-import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.ApiKeyAttribute;
-import org.fluxtream.core.domain.CoachingBuddy;
-import org.fluxtream.core.domain.ConnectorInfo;
-import org.fluxtream.core.domain.Guest;
-import org.fluxtream.core.domain.ResetPasswordToken;
-import org.fluxtream.core.services.ApiDataService;
-import org.fluxtream.core.services.ConnectorUpdateService;
-import org.fluxtream.core.services.GuestService;
-import org.fluxtream.core.services.MetadataService;
-import org.fluxtream.core.services.SettingsService;
-import org.fluxtream.core.services.SystemService;
-import org.fluxtream.core.utils.HttpUtils;
-import org.fluxtream.core.utils.JPAUtils;
-import org.fluxtream.core.utils.RandomString;
-import org.fluxtream.core.utils.SecurityUtils;
-import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
+import org.fluxtream.core.domain.*;
+import org.fluxtream.core.services.*;
+import org.fluxtream.core.utils.*;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +26,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import java.io.IOException;
+import java.util.*;
 
 @Service
 @Transactional(readOnly=true)
@@ -209,6 +187,19 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
     }
 
     @Override
+    @Transactional(readOnly=false)
+    public void deleteConnectorProfile(final ApiKey apiKey) {
+        Class<? extends AbstractUserProfile> userProfileClass = apiKey.getConnector()
+                .userProfileClass();
+        if (userProfileClass != null
+                && userProfileClass != AbstractUserProfile.class) {
+            Query deleteProfileQuery = em.createQuery("DELETE FROM "
+                    + userProfileClass.getName() + " WHERE apiKeyId=" + apiKey.getId());
+            deleteProfileQuery.executeUpdate();
+        }
+    }
+
+    @Override
 	public Guest getGuest(String username) {
         return JPAUtils.findUnique(em, Guest.class,
                 "guest.byUsername", username);
@@ -257,8 +248,8 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
         return attributes;
     }
 
-    @Transactional(readOnly = false)
 	@Override
+    @Transactional(readOnly = false)
 	public void removeApiKey(long apiKeyId) {
 		ApiKey apiKey = em.find(ApiKey.class, apiKeyId);
 
@@ -277,7 +268,6 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
         }
         finally {
             em.remove(apiKey);
-            em.flush();
             // cleanup the data asynchrously in order not to block the user's flow
             bodyTrackHelper.deleteChannelMappings(apiKey);
             ApiDataCleanupWorker worker = beanFactory.getBean(ApiDataCleanupWorker.class);
@@ -402,54 +392,34 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
         }
         JPAUtils.execute(em, "updateWorkerTasks.delete.all", guest.getId());
         em.remove(guest);
-        em.flush();
         List<ApiKey> apiKeys = getApiKeys(guest.getId());
         for (ApiKey key : apiKeys) {
             if(key!=null && key.getConnector()!=null) {
                 apiDataService.eraseApiData(key);
-                em.flush();
             }
         }
-        em.flush();
         for (ApiKey apiKey : apiKeys) {
             if(apiKey!=null){
                 em.remove(apiKey);
-                em.flush();
             }
         }
-        em.flush();
         JPAUtils.execute(em, "addresses.delete.all", guest.getId());
-        em.flush();
         JPAUtils.execute(em, "notifications.delete.all", guest.getId());
-        em.flush();
         JPAUtils.execute(em, "settings.delete.all", guest.getId());
-        em.flush();
         JPAUtils.execute(em, "location.delete.all", guest.getId());
-        em.flush();
         JPAUtils.execute(em, "visitedCities.delete.all", guest.getId());
-        em.flush();
         JPAUtils.execute(em, "updateWorkerTasks.delete.all", guest.getId());
-        em.flush();
         JPAUtils.execute(em, "tags.delete.all", guest.getId());
-        em.flush();
         JPAUtils.execute(em, "notifications.delete.all", guest.getId());
-        em.flush();
         final List<CoachingBuddy> coachingBuddies = JPAUtils.find(em, CoachingBuddy.class, "coachingBuddies.byGuestId", guest.getId());
         for (CoachingBuddy coachingBuddy : coachingBuddies)
             em.remove(coachingBuddy);
-        em.flush();
         JPAUtils.execute(em, "channelMapping.delete.all", guest.getId());
-        em.flush();
         JPAUtils.execute(em, "connectorFilterState.delete.all", guest.getId());
-        em.flush();
         JPAUtils.execute(em, "channelStyle.delete.all", guest.getId());
-        em.flush();
         JPAUtils.execute(em, "grapherView.delete.all", guest.getId());
-        em.flush();
         JPAUtils.execute(em, "widgetSettings.delete.all", guest.getId());
-        em.flush();
         JPAUtils.execute(em, "dashboards.delete.all", guest.getId());
-        em.flush();
     }
 
     private void revokeFacebookPermissions(final Guest guest) {
@@ -525,13 +495,6 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
 		em.persist(guest);
 	}
 
-	@Override
-	@Transactional(readOnly = false)
-	public void saveUserProfile(long guestId, AbstractUserProfile userProfile) {
-		userProfile.guestId = guestId;
-		em.persist(userProfile);
-	}
-
     @Override
     @Transactional(readOnly=false)
     public void setApiKeySettings(final long apiKeyId, final Object settings) {
@@ -539,23 +502,6 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
         apiKey.setSettings(settings);
         em.persist(apiKey);
     }
-
-    @Override
-	public <T extends AbstractUserProfile> T getUserProfile(long guestId,
-			Class<T> clazz) {
-		CriteriaBuilder qb = em.getCriteriaBuilder();
-		CriteriaQuery<T> c = qb.createQuery(clazz);
-		Root<T> from = c.from(clazz);
-		CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-		Predicate guestPredicate = criteriaBuilder.equal(from.get("guestId"),
-				guestId);
-		c.where(guestPredicate);
-		TypedQuery<T> query = em.createQuery(c);
-		List<T> resultList = query.getResultList();
-		if (resultList.size() > 0)
-			return resultList.get(0);
-		return null;
-	}
 
     @Override
     @Transactional(readOnly=false)

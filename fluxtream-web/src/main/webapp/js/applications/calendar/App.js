@@ -155,6 +155,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     Calendar.renderDefaultState = function() {
         Calendar.navigateState("clock/date/"+moment().format("YYYY-MM-DD"));
+//        Calendar.navigateState("timeline/week/"+moment().year()+"/"+moment().week());
     };
 
     function updateTimeRange(digest, state) {
@@ -331,16 +332,17 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 case "eventStart":
                     var eventStart = moment(facet[member], "YYYYMMDD'T'HHmmss.SSSZ");
                     facet.startMinute = eventStart.hour()*60+eventStart.minute();
-                    facet.startTime = {"hours" : eventStart.hour()>12?eventStart.hour()-12:eventStart.hour(), "minutes" : pad(eventStart.minute()), "ampm" : eventStart.hour()>=12?"pm":"am"};
+                    facet.startTime = {"hours" : eventStart.hour()==0 ? 12:eventStart.hour()>12?eventStart.hour()-12:eventStart.hour(), "minutes" : pad(eventStart.minute()), "ampm" : eventStart.hour()>=12?"pm":"am"};
                     facet.time = App.formatMinuteOfDay(facet.startMinute)[0];
                     facet.ampm = App.formatMinuteOfDay(facet.startMinute)[1];
                     facet.start = eventStart.utc().valueOf();
-                    facet.date = DateUtils.constrainDate(eventStart, Calendar.digest.calendar.state);
+                    if (_.isUndefined(facet.date))
+                        facet.date = DateUtils.constrainDate(eventStart, Calendar.digest.calendar.state);
                     break;
                 case "eventEnd":
                     var eventEnd = moment(facet[member], "YYYYMMDD'T'HHmmss.SSSZ");
                     facet.endMinute = eventEnd.hour()*60+eventEnd.minute();
-                    facet.endTime = {"hours" : eventEnd.hour()>12?eventEnd.hour()-12:eventEnd.hour(), "minutes" : pad(eventEnd.minute()), "ampm" : eventEnd.hour()>=12?"pm":"am"};
+                    facet.endTime = {"hours" : eventEnd.hour()==0 ? 12:eventEnd.hour()>12?eventEnd.hour()-12:eventEnd.hour(), "minutes" : pad(eventEnd.minute()), "ampm" : eventEnd.hour()>=12?"pm":"am"};
                     facet.end = eventEnd.utc().valueOf();
                     break;
             }
@@ -508,7 +510,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 return;
             App.loadMustacheTemplate(templatePath, name, function(template){
                 if (template == null) {
-                    console.log("WARNING: no template found for " + name + ".");
+                    //console.log("WARNING: no template found for " + name + ".");
                 }
                 Calendar.detailsTemplates[name] = template;
             });
@@ -709,7 +711,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
             var configFilterLabel = connectorConfig.filterLabel,
                 filterLabel = configFilterLabel || connector.prettyName;
 
-            filterLabel = filterLabel.replace("_", " ");
+            filterLabel = filterLabel.replace(/_/g, " ");
 
             buttonLink
                 .toggleClass("flx-disconnected", !connected)
@@ -740,7 +742,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     function buildAddressDetails(digest, address){
         if (Calendar.detailsTemplates["fluxtream-address"] == null){
-            console.log("WARNING: no template found for fluxtream-address.");
+//            console.log("WARNING: no template found for fluxtream-address.");
             return "";
         }
         var params = {};

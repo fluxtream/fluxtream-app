@@ -249,7 +249,14 @@
                         <th>Success</th>
                         <th style="width: 150px">Time</th>
                         <th>Elapsed</th>
-                        <th>Call Query</th>
+                        <th>Status</th>
+                        <th>Reason</th>
+                        {{#repeatable}}
+                        <th>URL</th>
+                        {{/repeatable}}
+                        {{^repeatable}}
+                        <th>URL (not repeatable)</th>
+                        {{/repeatable}}
                     </tr>
                 </thead>
                 <tbody>
@@ -258,7 +265,16 @@
                         <td class="syncStatus small"><span class="syncLED-{{^success}}no{{/success}}{{#success}}yes{{/success}}"></span></td>
                         <td>{{time}}</td>
                         <td>{{elapsed}} ms</td>
-                        <td><a href="{{query}}">{{query}}</a></td>
+                        <td>{{httpResponseCode}}</td>
+                        <td>{{reason}}</td>
+                        <td>
+                        {{#repeatable}}
+                            <a href="{{query}}">{{query}}</a>
+                        {{/repeatable}}
+                        {{^repeatable}}
+                            {{query}}
+                        {{/repeatable}}
+                         </td>
                     </tr>
                 {{/updates}}
                 </tbody>
@@ -307,6 +323,7 @@
 </template>
 <template id="channel-settings">
     <form class="form-inline">
+      <button class="selectAll btn">Select All</button>&nbsp;<button class="selectNone btn">Select None</button>
         <table class="table flx-channel-table">
             <thead>
             <tr>

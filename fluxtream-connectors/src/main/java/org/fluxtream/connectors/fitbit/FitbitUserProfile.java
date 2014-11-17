@@ -1,17 +1,17 @@
 package org.fluxtream.connectors.fitbit;
 
-import java.util.TimeZone;
+import org.fluxtream.core.domain.AbstractUserProfile;
 
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 
-import org.fluxtream.core.domain.AbstractUserProfile;
-
 @Entity(name="FitbitUserProfile")
 @NamedQueries ( {
 	@NamedQuery( name="fitbitUser.byEncodedId",
-			query="SELECT fitbitUser FROM FitbitUserProfile fitbitUser WHERE fitbitUser.encodedId=?")
+			query="SELECT fitbitUser FROM FitbitUserProfile fitbitUser WHERE fitbitUser.encodedId=?"),
+    @NamedQuery( name="fitbitUser.byApiKeyId",
+            query="SELECT fitbitUser FROM FitbitUserProfile fitbitUser WHERE fitbitUser.apiKeyId=?"),
 })
 public class FitbitUserProfile extends AbstractUserProfile {
 
@@ -31,10 +31,14 @@ public class FitbitUserProfile extends AbstractUserProfile {
 	public double strideLengthWalking;
 	public String timezone;
 	public double weight;
-	
-	@Override
-	public TimeZone getTimeZone() {
-		return TimeZone.getTimeZone(timezone);
-	}
-	
+
+    public String memberSince;
+    public String glucoseUnit;
+    public String heightUnit;
+    public String waterUnit;
+    public String weightUnit;
+    public String avatar;
+    public String avatar150;
+    public String startDayOfWeek;
+
 }
