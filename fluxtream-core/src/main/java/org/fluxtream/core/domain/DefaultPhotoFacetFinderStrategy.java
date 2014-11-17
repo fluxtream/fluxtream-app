@@ -18,7 +18,7 @@ public class DefaultPhotoFacetFinderStrategy implements PhotoFacetFinderStrategy
 
     @Override
     public List<AbstractFacet> findAll(final ApiKey apiKey, final ObjectType objectType, TimeInterval timeInterval) {
-        return apiDataService.getApiDataFacets(apiKey, objectType, timeInterval);
+        return apiDataService.getApiDataFacets(apiKey, objectType, timeInterval, null);
     }
 
     @Override
@@ -36,7 +36,7 @@ public class DefaultPhotoFacetFinderStrategy implements PhotoFacetFinderStrategy
                                        final ObjectType objectType,
                                        final TimeInterval timeInterval,
                                        @Nullable final TagFilter tagFilter) {
-        return apiDataService.getApiDataFacets(apiKey, objectType, timeInterval, tagFilter);
+        return apiDataService.getApiDataFacets(apiKey, objectType, timeInterval, tagFilter, null);
     }
 
     @Override

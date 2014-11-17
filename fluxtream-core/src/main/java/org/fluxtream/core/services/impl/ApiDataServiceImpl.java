@@ -322,8 +322,9 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
                                                 ObjectType objectType,
                                                 TimeInterval timeInterval,
                                                 @Nullable TagFilter tagFilter,
-                                                @Nullable String orderByString) {
-        return jpaDao.getFacetsBetween(apiKey,objectType,timeInterval,tagFilter,orderByString);
+                                                @Nullable String orderByString,
+                                                Long updatedSince) {
+        return jpaDao.getFacetsBetween(apiKey,objectType,timeInterval,tagFilter,orderByString, updatedSince);
     }
 
     @Override
