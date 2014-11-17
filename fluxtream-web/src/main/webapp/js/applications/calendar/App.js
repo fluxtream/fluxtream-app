@@ -336,7 +336,8 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                     facet.time = App.formatMinuteOfDay(facet.startMinute)[0];
                     facet.ampm = App.formatMinuteOfDay(facet.startMinute)[1];
                     facet.start = eventStart.utc().valueOf();
-                    facet.date = DateUtils.constrainDate(eventStart, Calendar.digest.calendar.state);
+                    if (_.isUndefined(facet.date))
+                        facet.date = DateUtils.constrainDate(eventStart, Calendar.digest.calendar.state);
                     break;
                 case "eventEnd":
                     var eventEnd = moment(facet[member], "YYYYMMDD'T'HHmmss.SSSZ");
@@ -509,7 +510,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 return;
             App.loadMustacheTemplate(templatePath, name, function(template){
                 if (template == null) {
-                    console.log("WARNING: no template found for " + name + ".");
+                    //console.log("WARNING: no template found for " + name + ".");
                 }
                 Calendar.detailsTemplates[name] = template;
             });
@@ -741,7 +742,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
 
     function buildAddressDetails(digest, address){
         if (Calendar.detailsTemplates["fluxtream-address"] == null){
-            console.log("WARNING: no template found for fluxtream-address.");
+//            console.log("WARNING: no template found for fluxtream-address.");
             return "";
         }
         var params = {};
