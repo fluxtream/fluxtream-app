@@ -88,7 +88,7 @@ define(["core/Tab",
             $("#dashboardsTab .tab-content").append(html);
             $(".flx-remove-widget").click(function() {
                 var widgetId = $(this).parent().parent().parent().attr("id");
-                var i = widgetId.indexOf("-widget");
+                var i = widgetId.lastIndexOf("-widget");
                 var widgetName = widgetId.substring(0, i);
                 removeWidget(widgetName);
             })
@@ -97,7 +97,6 @@ define(["core/Tab",
    }
 
     function removeWidget(widgetName) {
-        var that = this;
         $.ajax({
                url: "/api/v1/dashboards/" + dashboardsTab.activeDashboard + "/widgets/" + widgetName,
                type: "DELETE",
@@ -202,7 +201,6 @@ define(["core/Tab",
             data: {dashboardIds:ordering}
         })
     }
-
 
     var dashboardsTab = new Tab("calendar", "dashboards", "Candide Kemmler", "icon-dashboard", true);
     dashboardsTab.activeDashboard = null;
