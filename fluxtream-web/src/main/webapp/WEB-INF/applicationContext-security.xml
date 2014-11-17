@@ -57,6 +57,9 @@
     <!-- CORS -->
     <http pattern="/cors" security="none" />
 
+    <!-- Web hooks -->
+    <http pattern="/fitbit/notify" security="none" />
+
     <!-- swagger ui -->
     <http pattern="/swagger-ui/**" security="none" />
 

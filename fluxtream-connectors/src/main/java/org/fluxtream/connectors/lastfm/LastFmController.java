@@ -10,6 +10,8 @@ import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.StringUtils;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
@@ -144,6 +146,10 @@ public class LastFmController {
         HttpClient client = new DefaultHttpClient();
         response.setDateHeader("Expires", System.currentTimeMillis() + DateTimeConstants.MILLIS_PER_WEEK*30);
         try {
+            if (StringUtils.isEmpty(url)) {
+                response.setStatus(404);
+                return;
+            }
             HttpGet get = new HttpGet(url);
 
             HttpResponse lastfmResponse = client.execute(get);
