@@ -21,6 +21,7 @@ define(function() {
         var accessTokens = settings["accessTokens"];
         for (var i=0; i<accessTokens.length; i++)
             accessTokens[i].createdAt = moment(accessTokens[i]["creationTime"]).calendar();
+        settings.hasAccessTokens = !_.isUndefined(settings["accessTokens"])&&settings["accessTokens"].length > 0;
         return linkedAppsTemplate.render(settings);
     }
 
@@ -28,6 +29,7 @@ define(function() {
         var html = template.render();
         App.makeModal(html);
         var renderedLinkedAppsTemplate = renderLinkedAppsTemplate(settings);
+        renderWidgetRepositoriesTemplate();
         $("#apps-settings").append(renderedLinkedAppsTemplate);
         $("#password-settings").append(passwordTemplate.render());
         $("#username-uneditable").html(settings["username"]);
@@ -78,7 +80,67 @@ define(function() {
             }
         });
         bindLinkedAppsTemplate();
+        bindWidgetRepositoriesTemplate();
         $("#settingsTabs").tab();
+    }
+
+    function renderWidgetRepositoriesTemplate() {
+        var widgetRepositoriesTemplate = App.fetchCompiledMustacheTemplate("settingsTemplates.html", "widgetRepositories");
+        $.ajax({
+            url: "/api/v1/repositories/",
+            type: "GET",
+            success: function(repositoryURLs, statusText, jqXHR) {
+                var renderedWidgetRepositoriesTemplate = widgetRepositoriesTemplate.render({urls:repositoryURLs, hasUrls:repositoryURLs.length>0});
+                $("#widgetRepositoriesWrapper").empty().append(renderedWidgetRepositoriesTemplate);
+                bindWidgetRepositoriesTemplate();
+            },
+            error: function(jqXHR, statusText, errorThrown) {
+                var errorMessage = errorThrown + ": " + jqXHR.responseText;
+                console.log(errorMessage);
+                $("#apps-settings").empty().append("<h4>Something went wrong... please contact us</h1>")
+            }
+        });
+    }
+
+    function bindWidgetRepositoriesTemplate() {
+        $(".removeWidgetRepositoryURL").unbind().click(function(event){
+            var url = $(event.target).attr("data-url");
+            $.ajax({
+                url: "/api/v1/repositories/",
+                type: "DELETE",
+                data: { url : url },
+                success: function(body, statusText, jqXHR) {
+                    console.log(body);
+                    renderWidgetRepositoriesTemplate();
+                },
+                error: function(jqXHR, statusText, errorThrown) {
+                    var errorMessage = errorThrown + ": " + jqXHR.responseText;
+                    console.log(errorMessage);
+                    $("#widgetRepositoriesWrapper").empty().append("<h4>Something went wrong... please contact us</h1>")
+                }
+            });
+        });
+        var addWidgetRepository = function (){
+            var url = $("#widgetRepositoryURL").val();
+            $.ajax({
+                url: "/api/v1/repositories/",
+                type: "POST",
+                data: { url : url },
+                success: function(body, statusText, jqXHR) {
+                    console.log(body);
+                    renderWidgetRepositoriesTemplate();
+                },
+                error: function(jqXHR, statusText, errorThrown) {
+                    var errorMessage = errorThrown + ": " + jqXHR.responseText;
+                    alert(errorMessage);
+                }
+            });
+        };
+        $("#widgetRepositoryURL").keypress(function(e) {
+           if (e.which==13)
+           addWidgetRepository();
+        });
+        $("#addWidgetRepositoryURL").unbind().click(addWidgetRepository);
     }
 
     function bindLinkedAppsTemplate() {

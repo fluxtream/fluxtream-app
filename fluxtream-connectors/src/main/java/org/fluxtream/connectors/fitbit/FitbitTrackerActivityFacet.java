@@ -2,7 +2,6 @@ package org.fluxtream.connectors.fitbit;
 
 import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 import org.fluxtream.core.domain.AbstractLocalTimeFacet;
-import org.hibernate.search.annotations.Indexed;
 
 import javax.persistence.Entity;
 import javax.persistence.Lob;
@@ -15,7 +14,6 @@ import javax.persistence.NamedQuery;
 		@NamedQuery(name = "fitbit.activity_summary.byDate",
 				query = "SELECT facet FROM Facet_FitbitActivity facet WHERE facet.apiKeyId=? AND facet.date=?")
 })
-@Indexed
 public class FitbitTrackerActivityFacet extends AbstractLocalTimeFacet {
 	
 	public int activeScore;

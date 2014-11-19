@@ -1,19 +1,19 @@
 package org.fluxtream.connectors.bodymedia;
 
-import javax.persistence.Entity;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.utils.TimeUtils;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import org.hibernate.search.annotations.Indexed;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+
+import javax.persistence.Entity;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 
 /**
  * Stores data from the bodymedia burn api
@@ -25,7 +25,6 @@ import org.joda.time.format.DateTimeFormatter;
     @NamedQuery(name = "bodymedia.burn.getDaysPrior", query = "SELECT facet FROM Facet_BodymediaBurn facet WHERE facet.guestId=? AND facet.start<? ORDER BY facet.start DESC"),
     @NamedQuery(name = "bodymedia.burn.getByLastSync", query = "SELECT facet FROM Facet_BodymediaBurn facet WHERE facet.guestId=? ORDER BY facet.lastSync DESC")
 })
-@Indexed
 public class BodymediaBurnFacet extends BodymediaAbstractFacet {
 
     public int totalCalories = 0;

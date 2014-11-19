@@ -1,5 +1,7 @@
 package org.fluxtream.connectors.moves;
 
+import com.wordnik.swagger.annotations.ApiModel;
+import com.wordnik.swagger.annotations.ApiModelProperty;
 import org.codehaus.plexus.util.StringUtils;
 import org.fluxtream.core.OutsideTimeBoundariesException;
 import org.fluxtream.core.domain.GuestSettings;
@@ -17,17 +19,31 @@ import java.util.TimeZone;
  * Date: 20/06/13
  * Time: 17:33
  */
+@ApiModel(value="Moves Activity", description="")
 public class MovesActivityVO {
 
+    @ApiModelProperty(required=true)
     public String eventStart;
+    @ApiModelProperty(required=true)
     public String eventEnd;
+    @ApiModelProperty(required=true, value="Was this activity entered manually?")
     public boolean manual;
-    public String activity, activityCode = "generic";
+    @ApiModelProperty(required=true, value="This activity's human-readable name")
+    public String activity;
+
+    @ApiModelProperty(notes="For a complete list, please refer to https://dev.moves-app.com/docs/api_activity_list", value="The moves API code for this activity", required=true)
+    public String activityCode = "generic";
+    @ApiModelProperty(value="Generic Activity Code", allowableValues = "walking, cycling, transport, running", required=true)
     public String activityGroup;
+    @ApiModelProperty(required=true)
     public String distance;
+    @ApiModelProperty(required=true)
     public Integer steps;
+    @ApiModelProperty(required=true)
     public DurationModel duration;
+    @ApiModelProperty(required=true)
     public String date;
+    @ApiModelProperty(required=true)
     public final String type = "moves-move-activity";
 
     private static final ArrayList<String> validActivityCodes = new ArrayList<String>(Arrays.asList(new String[]{"running", "walking", "cycling", "transport"}));

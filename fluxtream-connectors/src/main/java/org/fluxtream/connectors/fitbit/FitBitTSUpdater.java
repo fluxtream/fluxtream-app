@@ -588,7 +588,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             switch(updateInfo.objectTypes) {
                 case 3: // activities
                     loadActivityDataForOneDay(updateInfo, formattedDate);
-                    final List<AbstractFacet> facetsByDates = facetDao.getFacetsByDates(updateInfo.apiKey, activityOT, Arrays.asList(formattedDate));
+                    final List<AbstractFacet> facetsByDates = facetDao.getFacetsByDates(updateInfo.apiKey, activityOT, Arrays.asList(formattedDate), null);
                     if (facetsByDates.size()>0) {
                         final FitbitTrackerActivityFacet activityFacet = (FitbitTrackerActivityFacet) facetsByDates.get(0);
                         updateIntradayMetrics(updateInfo, activityFacet);
@@ -869,7 +869,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
     private void loadIntradayDataForOneDay(UpdateInfo updateInfo, String dateString)
             throws AuthExpiredException, RateLimitReachedException, UpdateFailedException, NoSuchFieldException, IllegalAccessException, UnexpectedResponseCodeException {
         if (!isIntradayDataEnabled()) return;
-        final List<AbstractFacet> facetsByDates = facetDao.getFacetsByDates(updateInfo.apiKey, ObjectType.getObjectType(connector(), 1), Arrays.asList(dateString));
+        final List<AbstractFacet> facetsByDates = facetDao.getFacetsByDates(updateInfo.apiKey, ObjectType.getObjectType(connector(), 1), Arrays.asList(dateString), null);
         if (facetsByDates.size()>0) {
             final AbstractFacet facet = facetsByDates.get(0);
             if (facet!=null) {
