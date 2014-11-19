@@ -83,10 +83,12 @@
               <p>Because owning your data also means having the freedom to visualize it the way you want,
               Fluxtream can be customized with community contributed dashboard widgets. Provided the right CORS headers configuration,
               those widgets can be hosted on an external server (e.g. S3). This means that tech-savvy
-              end-users are able the tailor the UX to their own, specific needs without having to host their own server instance.</p>
+              end-users are able the tailor the UX to their own, specific needs without having to host their own server instance.
+              They are able to experiment with their custom widgets directly in the browser and share them with others
+              by just sharing the URL of their widgets repositories!</p>
               <h2>All your connector data is already there</h2>
               <p>Widgets are accessible from the dashboards tab in the Calendar app and they readily have access to
-              what we call the "digest" which contains all of the user's connector data for a day, a week or a month</p>
+              what we call the "digest" which contains all of the user's connectors data for a day, a week or a month</p>
               <p>The digest is documented in the JSON resulting from calling the following endpoints.</p>
             </div>
 
@@ -238,11 +240,11 @@
 
             <div class="col-sm-12">
                 <h2>Hosting your widgets</h2>
-                <p>All that is needed for hosting widgets is exposing a simple file hierarchy. Using S3 for instance,
+                <p>All that is needed for hosting widgets is exposing a simple file hierarchy. Using <a target="_blank" href="http://aws.amazon.com/s3">S3</a> for instance,
                 all you have to do is to enable Static Website Hosting, a (liberal) permission policy and a simple CORS
                 configuration. </p>
-                <p>As an example, we set up a widget repository on S3 at <a href="http://fluxtream-widgets.s3-website-us-east-1.amazonaws.com">http://fluxtream-widgets.s3-website-us-east-1.amazonaws.com</a></p>
-                <p>Here's my CORS config:</p>
+                <p>As an example, we set up a widget repository on S3 at <a target="_blank" href="http://fluxtream-widgets.s3-website-us-east-1.amazonaws.com">http://fluxtream-widgets.s3-website-us-east-1.amazonaws.com</a></p>
+                <p>Here are our CORS config:</p>
                 <pre><code>
 &lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;CORSConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/"&gt;
@@ -278,25 +280,28 @@
                 <p>Check out our example: <a target="_blank" href="http://fluxtream-widgets.s3-website-us-east-1.amazonaws.com/widgets/widgets.json">
                     http://fluxtream-widgets.s3-website-us-east-1.amazonaws.com/widgets/widgets.json</a>
                 </p>
+                <p>All examples given here are <a target="_blank" href="https://github.com/fluxtream/fluxtream-widgets">available from github</a>. The contents
+                of this repository can serve as a starting point for your own experimentations.</p>
             </div>
 
             <div class="col-sm-12">
                 <h2>Accessing your widgets from Fluxtream</h2>
-                <p>In Fluxtream, go to Settings->More, and add the base URL of your widget repository (that would be <code>http://fluxtream-widgets.s3-website-us-east-1.amazonaws.com/</code> in our example).</p>
+                <p>In Fluxtream, go to Settings->More, and add the base URL of your widget repository – that would be <code>http://fluxtream-widgets.s3-website-us-east-1.amazonaws.com/</code> in our example:</p>
+                <p><img src="/images/dev/fluxtream-widget-repositories.png" class="img-thumbnail"></p>
             </div>
 
             <div class="col-sm-12">
                 <h2>An example widget</h2>
-                <p>You can find a very basic example widget <a href="https://github.com/fluxtream/fluxtream-app/tree/master/fluxtream-web/src/main/webapp/widgets/typo1">here</a></p>
+                <p>To get bootstrapped, please find a very basic example widget <a target="_blank" href="https://github.com/fluxtream/fluxtream-widgets/tree/master/widgets/empty-widget">here</a></p>
                 <p>There are 3 mandatory files for a widget: the manifest, the main javascript source file, the widget's icon</p>
                 <h3>1. The manifest</h3>
                 <p>Here's an example manifest.</p>
                 <pre><code>
 {
-    "WidgetDescription" : {"en" : "Typography example #1"},
-    "WidgetIcon" : "typo1.png",
-    "WidgetName" : "typo1",
-    "WidgetTitle" : {"en" : "Typography #1"},
+    "WidgetDescription" : {"en" : "Dummy Widget Sample"},
+    "WidgetIcon" : "empty.png",
+    "WidgetName" : "empty-widget",
+    "WidgetTitle" : {"en" : "Empty Widget"},
     "HasSettings" : false,
     "SupportedLanguages" : "en",
     "VendorIdentifier" : "Fluxtream.com",
@@ -328,26 +333,34 @@
                 <pre><code>
 define(["core/DashboardWidget"], function(DashboardWidget) {
 
-    var Typo1 = new DashboardWidget();
+    var EmptyWidget = new DashboardWidget();
 
-    // the init function is called upon instantiation - here we are fetching a mustache template
-    Typo1.init = function() {
-        $.ajax({url:this.manifest.WidgetRepositoryURL + "/" + this.manifest.WidgetName + "/typo1.mustache",
-            success: function(template) {
-                Typo1.postLoad(template);
+    EmptyWidget.init = function() {
+        // loading our mustache template using the Widget's repository URL
+        // note that using requirejs to do this is theoretically possible as well, it's just
+        // more straightforward to do it using jQuery
+        $.ajax(
+            {
+                url:this.manifest.WidgetRepositoryURL + "/" + this.manifest.WidgetName + "/empty.mustache",
+                success: function(template) {
+                    EmptyWidget.postLoad(template);
+                }
             }
-        });
+        );
     };
 
-    // We use the $("&lt;widgetname&gt;- widget .flx-body") selector to dynamically hook into the dashboard's DOMs
-    Typo1.postLoad = function(template) {
+    // This is called after we have loaded all templates and dependencies and the widget has been
+    // properly initialized and has access to the digest, manifest and potentially settings
+    EmptyWidget.postLoad = function(template) {
+        // hogan is one of the pre-loaded libraries and we use it to compile our mustache template
         var html = Hogan.compile(template);
-        $("#typo1-widget .flx-body").empty();
-        $("#typo1-widget .flx-body").append(
+        $("#empty-widget-widget .flx-body").empty();
+        $("#empty-widget-widget .flx-body").append(
         html.render({"manifest" : this.manifest})
-    );}
+        );
+    }
 
-    return Typo1;
+    return EmptyWidget;
 })
                 </code></pre>
                 <h3>3. The icon</h3>
@@ -361,9 +374,199 @@ define(["core/DashboardWidget"], function(DashboardWidget) {
                     <li>displaying and saving settings</li>
                     <li>loading external js dependencies</li>
                 </ul>
+                <p>To illustrate these points, the next widget we're going to use as an example is called
+                    <a target="_blank" href="https://github.com/fluxtream/fluxtream-widgets/tree/master/widgets/moves-stats"> moves-stats</a>.
+                    It will use data coming from the moves connector. It's purpose is to show Walking stats for days,
+                    weeks and months. Users can use settings to show either aggregated or averaged out stats.</p>
+                <h3>Accessing the digest</h3>
+                <p>The digest is a big JSON document containing all the info needed for any of the Calendar App's tabs. It is
+                always readily available to widgets and is always up-to-date with respect to the current time period chosen
+                by the user. The following snippet illustrates how simple it is to process the digest's data.</p>
+                <pre><code>
+var movesFacets = this.digest.facets["moves-move"];
+var runningMinutes = 0, walkingMinutes = 0,
+transportMinutes = 0, cyclingMinutes = 0;
+// let's run through all moves activities and extract the durations for the different
+// types of activities
+if (movesFacets!=null) {
+for (var i=0; i&lt;movesFacets.length; i++) {
+    if (movesFacets[i]["hasActivities"]) {
+        var activities = movesFacets[i]["activities"];
+        for (var j=0; j&lt;activities.length; j++) {
+            var duration = activities[j]["duration"];
+            switch (activities[j]["activityGroup"]) {
+                case "walking":
+                    walkingMinutes += duration["totalSeconds"]/60;
+                    break;
+                case "cycling":
+                    cyclingMinutes += duration["totalSeconds"]/60;
+                    break;
+                case "transport":
+                    transportMinutes += duration["totalSeconds"]/60;
+                    break;
+                case "running":
+                    runningMinutes += duration["totalSeconds"]/60;
+                    break;
+                }
+            }
+        }
+    }
+}
+                </code></pre>
+                <p>Since we use mustache templates by default, injecting the data for dom rendering is trivial:</p>
+<pre><code>
+var activityDurations = {
+    walking : walkingMinutes>0 ? moment.duration(walkingMinutes, "minutes").humanize() : "-",
+    cycling : cyclingMinutes>0 ? moment.duration(cyclingMinutes, "minutes").humanize() : "-",
+    transport : transportMinutes>0 ? moment.duration(transportMinutes, "minutes").humanize() : "-",
+    running : runningMinutes>0 ? moment.duration(runningMinutes, "minutes").humanize() : "-"
+};
+$("#moves-stats-widget .flx-body").empty().append(
+    html.render({manifest : this.manifest,
+                 activityDurations : activityDurations,
+                 digest : this.digest
+                })
+);
+</code></pre>
+                <h3>Handling settings</h3>
+                <p>Settings are very straightforward to set up. First, you will have to set the <code>HasSettings</code> property
+                of your manifest to <code>true</code>. You then have to add one <code>settings.mustache</code> template to your widget's
+                directory. Finally, 3 callback functions need to be implemented in your main javascript source file.</p>
+                <p>In our example, all we want to know is if the user wants his moves stats averaged out or aggregated. Here's an
+                implementation of the settings callback function for this very simple case:</p>
+                <pre><code>
+// this gives us a chance to issue an error warning. If everything's OK, just save the settings and reload the view.
+MovesStats.validateSettings = function() {
+    var aggregateValues = $("input:radio[name=aggregateValues]:checked").val();
+    this.saveSettings({"aggregateValues" : aggregateValues});
+    MovesStats.reload();
+};
+
+// inject the widget's settings into our form
+MovesStats.bindWidgetSettings = function(widgetSettings) {
+    $("input:radio[name=aggregateValues][value=" + widgetSettings.aggregateValues + "]").attr("checked","checked");
+}
+
+// initialize settings on first run
+MovesStats.defaultSettings = function(widgetSettings) {
+    if (typeof(widgetSettings.aggregateValues)=="undefined")
+        $("input:radio[name=aggregateValues][value=no]").attr("checked","checked");
+}
+                </code></pre>
+                <p>The <code>settings.mustache</code> is a very simple form. Just remember we're using <a target="_blank" href="http://getbootstrap.com/2.3.2/base-css.html">Bootstrap 2.3.2</a></p>
+                <pre><code>
+&lt;form class="form-horizontal"&gt;
+    &lt;fieldset&gt;
+        &lt;div class="control-group"&gt;
+            &lt;label class="radio"&gt;
+              &lt;input type="radio" name="aggregateValues" value="yes"&gt;
+              Show aggregate values for weeks and months
+            &lt;/label&gt;
+            &lt;label class="radio"&gt;
+              &lt;input type="radio" name="aggregateValues" value="no" checked&gt;
+              Values per week/month are averaged out
+            &lt;/label&gt;
+        &lt;/div&gt;
+    &lt;/fieldset&gt;
+&lt;/form&gt;
+                </code></pre>
+                <p>That's it! Now settings are accessible from <code>this</code> in our main javascript:</p>
+                <pre><code>
+// average out duration if looking at weekly or monthly data
+if (this.settings.aggregateValues==="no") {
+    switch(this.digest.calendar.timeUnit) {
+        case "WEEK":
+            walkingMinutes/=7;
+            cyclingMinutes/=7;
+            transportMinutes/=7;
+            runningMinutes/=7;
+            break;
+        case "MONTH":
+            var year = Number(this.digest.calendar.state.substring(6, 10));
+            var month = Number(this.digest.calendar.state.substring(11));
+            var daysInMonth = new Date(year, month, 0).getDate();
+            walkingMinutes/=daysInMonth;
+            cyclingMinutes/=daysInMonth;
+            transportMinutes/=daysInMonth;
+            runningMinutes/=daysInMonth;
+            break;
+    }
+}
+                </code></pre>
+                <h3>Loading external dependencies</h3>
+                <p>Fluxtream comes preloaded with a few powerful and well-know javascript libraries:
+                    <ul>
+                        <li><a target="_blank" href="http://jquery.com/">jQuery (1.10.2)</a></li>
+                        <li><a target="_blank" href="http://underscorejs.org/">Underscore 1.3.3</a></li>
+                        <li><a target="_blank" href="http://backbonejs.org/">Backbone 1.0.0</a></li>
+                        <li><a target="_blank" href="http://momentjs.com/">moment.js (2.5.1)</a></li>
+                        <li><a target="_blank" href="http://twitter.github.io/hogan.js/">hogan (2.0.0)</a></li>
+                        <li><a target="_blank" href="http://raphaeljs.com/">raphael (2.1.0)</a></li>
+                        <li><a target="_blank" href="http://requirejs.org/">requirejs (1.0.3)</a></li>
+                    </ul>
+                </p>
+                <p>However, to create compelling widgets, you might want to tap into the abundance of super powerful
+                javascript charting libraries available these days. We did just that in the <a target="_blank" href="https://github.com/fluxtream/fluxtream-widgets/tree/master/widgets/moves-chart">moves-chart widget</a>.</p>
+                <p>Loading an external js library is done at initialization time and is, again, very straightforward, thanks to requirejs:</p>
+                <pre><code>
+MovesStats.init = function() {
+    // load Chartjs (http://www.chartjs.org/)
+    require([this.manifest.WidgetRepositoryURL + "/" + this.manifest.WidgetName + "/Chart.min.js"], function(Chart){
+        MovesStats.Chartjs = Chart.noConflict();
+    });
+
+    MovesStats.reload();
+};
+                </code></pre>
+                <p>In this case, our main template just contains a <code>canvas</code> tag addressable by id.</p>
+                <pre><code>
+&lt;div class="flx-widget-moves-stats"&gt;
+    &lt;canvas style="margin:0 auto;display:block; margin-top:40px;" id="activityChart"&gt;&lt;/canvas&gt;
+&lt;/div&gt;
+                </code></pre>
+                <p>Chartjs then makes it very easy to create e.g. a pie chart given a simple <code>data</code> object:</p>
+                <pre><code>
+var ctx = document.getElementById("activityChart").getContext("2d");
+var data = [
+    {
+        value: Math.round(walkingMinutes*100)/100,
+        color:"green",
+        highlight: "black",
+        label: "Walking"
+    },
+    {
+        value: Math.round(cyclingMinutes*100)/100,
+        color: "cyan",
+        highlight: "black",
+        label: "Cycling"
+    },
+    {
+        value: Math.round(transportMinutes*100)/100,
+        color: "gray",
+        highlight: "black",
+        label: "Transport"
+    },
+    {
+        value: Math.round(runningMinutes*100)/100,
+        color: "magenta",
+        highlight: "black",
+        label: "Running"
+    }
+]
+if (!_.isUndefined(this.Chartjs)) {
+    new this.Chartjs(ctx).Pie(data,{});
+}
+                </code></pre>
+            </div>
+            <div class="col-sm-12">
+                <h2>Conclusion</h2>
+                <p>We hope we have made it easy for developers to create widgets and to be able to experiment with them
+                directly in the browser. Our goal is to let as many people as possible explore and visualize their own
+                data in as many different ways as possible. Please help us make this a reality.</p>
+                <p>Above all, don't hesitate to contact us at info at fluxtream dot org!</p>
             </div>
 
-        <div style="margin-bottom:10em"></div>
+        <div style="margin-bottom:30em"></div>
 
         <div id="swagger-ui-container" style="display:none" class="swagger-ui-wrap">
         </div>
