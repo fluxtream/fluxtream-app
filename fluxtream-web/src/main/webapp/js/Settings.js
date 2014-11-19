@@ -120,7 +120,7 @@ define(function() {
                 }
             });
         });
-        $("#addWidgetRepositoryURL").unbind().click(function (event){
+        var addWidgetRepository = function (){
             var url = $("#widgetRepositoryURL").val();
             $.ajax({
                 url: "/api/v1/repositories/",
@@ -132,11 +132,15 @@ define(function() {
                 },
                 error: function(jqXHR, statusText, errorThrown) {
                     var errorMessage = errorThrown + ": " + jqXHR.responseText;
-                    console.log(errorMessage);
-                    $("#widgetRepositoriesWrapper").empty().append("<h4>Something went wrong... please contact us</h1>")
+                    alert(errorMessage);
                 }
             });
+        };
+        $("#widgetRepositoryURL").keypress(function(e) {
+           if (e.which==13)
+           addWidgetRepository();
         });
+        $("#addWidgetRepositoryURL").unbind().click(addWidgetRepository);
     }
 
     function bindLinkedAppsTemplate() {
