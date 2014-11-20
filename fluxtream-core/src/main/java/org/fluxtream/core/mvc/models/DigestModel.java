@@ -51,6 +51,9 @@ public class DigestModel {
 
     public Metadata metadata;
 
+    public DigestModel() {
+    }
+
     public DigestModel(TimeUnit timeUnit, AbstractTimespanMetadata metadata, Configuration env, CalendarModel calendarModel) {
         VisitedCityModel nic = null, pic = null;
         if (metadata.nextInferredCity!=null)
