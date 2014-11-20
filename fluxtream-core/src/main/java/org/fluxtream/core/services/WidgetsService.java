@@ -1,5 +1,6 @@
 package org.fluxtream.core.services;
 
+import java.net.MalformedURLException;
 import java.util.List;
 import org.fluxtream.core.domain.DashboardWidget;
 import org.fluxtream.core.domain.DashboardWidgetsRepository;

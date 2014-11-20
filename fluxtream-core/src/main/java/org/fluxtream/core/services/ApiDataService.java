@@ -34,20 +34,20 @@ public interface ApiDataService {
 			long end) throws Exception;
 
     public List<AbstractFacet> getApiDataFacets(ApiKey apiKey,
-                                                ObjectType objectType, List<String> dates);
+                                                ObjectType objectType, List<String> dates, Long updatedSince);
 
-    public List<AbstractFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval);
+    public List<AbstractFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval, Long updatedSince);
 
     public List<AbstractFacet> getApiDataFacets(ApiKey apiKey,
                                                 ObjectType objectType,
                                                 TimeInterval timeInterval,
-                                                @Nullable TagFilter tagFilter);
+                                                @Nullable TagFilter tagFilter, Long updatedSince);
 
     public List<AbstractFacet> getApiDataFacets(ApiKey apiKey,
                                                 ObjectType objectType,
                                                 TimeInterval timeInterval,
                                                 @Nullable TagFilter tagFilter,
-                                                @Nullable String orderByString);
+                                                @Nullable String orderByString, Long updatedSince);
 
     public AbstractFacet getOldestApiDataFacet(ApiKey apiKey, ObjectType objectType);
     public AbstractFacet getLatestApiDataFacet(ApiKey apiKey, ObjectType objectType);
@@ -107,7 +107,7 @@ public interface ApiDataService {
     @Transactional(readOnly=false)
     void setComment(String connectorName, String objectTypeName, long guestId, long facetId, String comment);
 
-    public List<AbstractRepeatableFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType, String startDate, String endDate);
+    public List<AbstractRepeatableFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType, String startDate, String endDate, Long updatedSince);
 
     // Pass this to createOrReadModifyWrite
     public interface FacetModifier<T extends AbstractFacet> {

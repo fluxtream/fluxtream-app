@@ -8,6 +8,7 @@
         <li><a style="padding-left:30px" href="#/general">General</a></li>
         <li><a style="padding-left:30px" href="#/authorization">Authorization</a></li>
         <li><a style="padding-left:30px" href="#/api-docs">Api Docs</a></li>
+        <li><a style="padding-left:30px" href="#/widgets-guide">Widgets Guide</a></li>
 
         <li><a href="/logout?r=/dev/"><img src="${avatarURL}">
             <span style="margin-left:3px">${guestName}</span>

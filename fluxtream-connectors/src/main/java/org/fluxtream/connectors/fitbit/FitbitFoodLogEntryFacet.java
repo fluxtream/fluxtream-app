@@ -2,6 +2,7 @@ package org.fluxtream.connectors.fitbit;
 
 import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 import org.fluxtream.core.domain.AbstractLocalTimeFacet;
+import org.hibernate.annotations.Index;
 
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
@@ -25,6 +26,8 @@ public class FitbitFoodLogEntryFacet extends AbstractLocalTimeFacet {
 
     public String accessLevel;
     public boolean isFavorite;
+
+    @Index(name="logId")
     public long logId;
     public float amount;
     public String brand;

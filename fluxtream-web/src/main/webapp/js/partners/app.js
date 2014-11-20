@@ -29,6 +29,9 @@ developerWebsiteApp.config(['$routeProvider', '$locationProvider',
                 templateUrl: 'partials/api-docs',
                 controller: 'ApiDocsCtrl'
             }).
+            when('/widgets-guide', {
+                templateUrl: 'partials/widgets-guide'
+            }).
             otherwise({
                 redirectTo: '/apps'
             });
