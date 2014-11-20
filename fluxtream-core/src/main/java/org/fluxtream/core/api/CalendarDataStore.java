@@ -101,7 +101,7 @@ public class CalendarDataStore {
         try {
             List<ApiKey> apiKeyList = getApiKeyListFromConnectorObjectsEncoding(guest,connectorObjectsEncoded);
             Map<ApiKey,List<ObjectType>> objectTypesMap = getObjectTypesFromConnectorObjectsEncoding(apiKeyList, connectorObjectsEncoded);
-            GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId()); 
+            GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
             ArbitraryTimespanMetadata timespanMetdata = new ArbitraryTimespanMetadata(Long.MIN_VALUE,Long.MAX_VALUE);
             timespanMetdata.timeInterval = new TimeInterval(){
                 public long getStart() {
@@ -143,6 +143,8 @@ public class CalendarDataStore {
             StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsDayData")
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
+
+            responseModel.generationTimestamp = new java.util.Date().getTime();
 
             return Response.ok(toJacksonJson(responseModel)).build();
         } catch (Exception e) {
@@ -216,6 +218,8 @@ public class CalendarDataStore {
             StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsAllData")
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
+
+            responseModel.generationTimestamp = new java.util.Date().getTime();
 
             return Response.ok(toJacksonJson(responseModel)).build();
         } catch (Exception e) {
@@ -787,6 +791,8 @@ public class CalendarDataStore {
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
 
+            day.generationTimestamp = new java.util.Date().getTime();
+
             return Response.ok(toJacksonJson(day)).build();
         }
         catch (Exception e){
@@ -866,6 +872,8 @@ public class CalendarDataStore {
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
 
+            day.generationTimestamp = new java.util.Date().getTime();
+
             return Response.ok(toJacksonJson(day)).build();
         }
         catch (Exception e){
@@ -933,6 +941,8 @@ public class CalendarDataStore {
                     .append(" timeTaken=").append(System.currentTimeMillis()-then)
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
+
+            day.generationTimestamp = new java.util.Date().getTime();
 
             return Response.ok(toJacksonJson(day)).build();
         }
