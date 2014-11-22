@@ -197,12 +197,12 @@ public class BodyTrackHelper {
 
     }
 
-    public BodyTrackUploadResult uploadToBodyTrack(final Long guestId,
+    public BodyTrackUploadResult uploadToBodyTrack(final ApiKey apiKey,
                                   final String deviceName,
                                   final Collection<String> channelNames,
                                   final List<List<Object>> data) {
         try{
-            if (guestId == null)
+            if (apiKey == null)
                 throw new IllegalArgumentException();
             final File tempFile = File.createTempFile("input",".json");
 
@@ -215,7 +215,7 @@ public class BodyTrackHelper {
             fos.write(bodyTrackJSONData.getBytes());
             fos.close();
 
-            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("import", new Object[]{guestId, deviceName, tempFile.getAbsolutePath()});
+            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("import", new Object[]{apiKey.getGuestId(), deviceName, tempFile.getAbsolutePath()});
             tempFile.delete();
             return new ParsedBodyTrackUploadResult(dataStoreExecutionResult,deviceName,gson);
         } catch (Exception e) {

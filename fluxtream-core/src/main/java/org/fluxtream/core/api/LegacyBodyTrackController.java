@@ -258,7 +258,8 @@ public class LegacyBodyTrackController {
                 }
             }
 
-            final BodyTrackHelper.BodyTrackUploadResult uploadResult = bodyTrackHelper.uploadToBodyTrack(guestId, deviceNickname, (Collection<String>)gson.fromJson(channels, channelsType), parsedData);
+            ApiKey fluxtreamCaptureApiKey = ensureFluxtreamCaptureApiKey(guestId);
+            final BodyTrackHelper.BodyTrackUploadResult uploadResult = bodyTrackHelper.uploadToBodyTrack(fluxtreamCaptureApiKey, deviceNickname, (Collection<String>)gson.fromJson(channels, channelsType), parsedData);
             if (uploadResult instanceof BodyTrackHelper.ParsedBodyTrackUploadResult){
                 BodyTrackHelper.ParsedBodyTrackUploadResult parsedResult = (BodyTrackHelper.ParsedBodyTrackUploadResult) uploadResult;
                 List<ApiKey> keys = guestService.getApiKeys(guestId,Connector.getConnector("fluxtream_capture"));
@@ -274,6 +275,14 @@ public class LegacyBodyTrackController {
             status = new StatusModel(false,"Upload failed!");
         }
         return gson.toJson(status);
+    }
+
+    private ApiKey ensureFluxtreamCaptureApiKey(long guestId) {
+        final Connector fluxtreamCapture = Connector.getConnector("fluxtream_capture");
+        ApiKey apiKey = guestService.getApiKey(guestId, fluxtreamCapture);
+        if (apiKey==null)
+            apiKey = guestService.createApiKey(guestId, fluxtreamCapture);
+        return apiKey;
     }
 
     @POST

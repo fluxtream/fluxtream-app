@@ -58,7 +58,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 
 		Map<String, List<AbstractFacet>> facetsByFacetName = sortFacetsByFacetName(facets);
         for (final String facetName : facetsByFacetName.keySet()) {
-            List<BodyTrackHelper.BodyTrackUploadResult> results = storeDeviceData(apiKey.getGuestId(), facetsByFacetName, facetName);
+            List<BodyTrackHelper.BodyTrackUploadResult> results = storeDeviceData(apiKey, facetsByFacetName, facetName);
             if (!results.isEmpty()){
                 AbstractFacet facet = facetsByFacetName.get(facetName).get(0);
                 long apiKeyId = facet.apiKeyId;
@@ -89,35 +89,43 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
         logger.info(sb.toString());
     }
 
-    private List<BodyTrackHelper.BodyTrackUploadResult> storeDeviceData(long guestId,
+    private List<BodyTrackHelper.BodyTrackUploadResult> storeDeviceData(ApiKey apiKey,
 			Map<String, List<AbstractFacet>> facetsByDeviceNickname,
 			String facetName) {
         List<BodyTrackHelper.BodyTrackUploadResult> results = new ArrayList<BodyTrackHelper.BodyTrackUploadResult>();
         String deviceName = getDeviceNickname(facetName);
         List<AbstractFacet> deviceFacets = facetsByDeviceNickname.get(facetName);
 
-        results.add(uploadDailyData(guestId, deviceName, deviceFacets, facetName));
+        results.add(uploadDailyData(apiKey, deviceName, deviceFacets, facetName));
 
         List<FieldHandler> facetFieldHandlers = getFieldHandlers(facetName);
         for (FieldHandler fieldHandler : facetFieldHandlers) {
-            results.addAll(uploadIntradayData(guestId, deviceFacets, fieldHandler));
+            results.addAll(uploadIntradayData(apiKey, deviceFacets, fieldHandler));
         }
         return results;
     }
 
-    private BodyTrackHelper.BodyTrackUploadResult uploadDailyData(long guestId, String deviceName, List<AbstractFacet> deviceFacets, String facetName) {
+    private BodyTrackHelper.BodyTrackUploadResult uploadDailyData(ApiKey apiKey, String deviceName, List<AbstractFacet> deviceFacets, String facetName) {
         List<String> datastoreChannelNames = getDailyDatastoreChannelNames(facetName);
         List<String> facetColumnNames = getFacetColumnNames(facetName);
         List<List<Object>> dailyDataChannelValues = getDailyDataChannelValues(deviceFacets, facetColumnNames);
 
+        ensureChannelMappingsExist(apiKey, datastoreChannelNames);
+
         // TODO: check the status code in the BodyTrackUploadResult
-        return bodyTrackHelper.uploadToBodyTrack(guestId, deviceName, datastoreChannelNames, dailyDataChannelValues);
+        return bodyTrackHelper.uploadToBodyTrack(apiKey, deviceName, datastoreChannelNames, dailyDataChannelValues);
     }
 
-    private List<BodyTrackHelper.BodyTrackUploadResult> uploadIntradayData(long guestId, List<AbstractFacet> deviceFacets, FieldHandler fieldHandler) {
+    private void ensureChannelMappingsExist(ApiKey apiKey, List<String> datastoreChannelNames) {
+        for (String channelName : datastoreChannelNames) {
+
+        }
+    }
+
+    private List<BodyTrackHelper.BodyTrackUploadResult> uploadIntradayData(ApiKey apiKey, List<AbstractFacet> deviceFacets, FieldHandler fieldHandler) {
         List<BodyTrackHelper.BodyTrackUploadResult> results = new ArrayList<BodyTrackHelper.BodyTrackUploadResult>();
         for (AbstractFacet deviceFacet : deviceFacets) {
-            List<BodyTrackHelper.BodyTrackUploadResult> facetResults = fieldHandler.handleField(guestId, deviceFacet);
+            List<BodyTrackHelper.BodyTrackUploadResult> facetResults = fieldHandler.handleField(apiKey, deviceFacet);
             if (facetResults != null)
                 results.addAll(facetResults);
         }

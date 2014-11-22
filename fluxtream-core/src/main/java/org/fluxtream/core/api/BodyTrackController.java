@@ -267,7 +267,8 @@ public class BodyTrackController {
                 }
             }
 
-            final BodyTrackHelper.BodyTrackUploadResult uploadResult = bodyTrackHelper.uploadToBodyTrack(guestId, deviceNickname, (Collection<String>)gson.fromJson(channels, channelsType), parsedData);
+            ApiKey fluxtreamCaptureApiKey = ensureFluxtreamCaptureApiKey(guestId);
+            final BodyTrackHelper.BodyTrackUploadResult uploadResult = bodyTrackHelper.uploadToBodyTrack(fluxtreamCaptureApiKey, deviceNickname, (Collection<String>)gson.fromJson(channels, channelsType), parsedData);
             if (uploadResult instanceof BodyTrackHelper.ParsedBodyTrackUploadResult){
                 BodyTrackHelper.ParsedBodyTrackUploadResult parsedResult = (BodyTrackHelper.ParsedBodyTrackUploadResult) uploadResult;
                 List<ApiKey> keys = guestService.getApiKeys(guestId,Connector.getConnector("fluxtream_capture"));
@@ -276,6 +277,9 @@ public class BodyTrackController {
                     apiKeyId = keys.get(0).getId();
                 }
                 dataUpdateService.logBodyTrackDataUpdate(guestId,apiKeyId,null,parsedResult);
+            } else {
+                // what else can it be, really ?
+                LOG.warn("Unexpected upload result type : " + uploadResult.getClass().getName() );
             }
             response = createResponseFromBodyTrackUploadResult(uploadResult);
         }
@@ -283,6 +287,14 @@ public class BodyTrackController {
             response = Response.serverError().entity("Upload failed!").build();
         }
         return response;
+    }
+
+    private ApiKey ensureFluxtreamCaptureApiKey(long guestId) {
+        final Connector fluxtreamCapture = Connector.getConnector("fluxtream_capture");
+        ApiKey apiKey = guestService.getApiKey(guestId, fluxtreamCapture);
+        if (apiKey==null)
+            apiKey = guestService.createApiKey(guestId, fluxtreamCapture);
+        return apiKey;
     }
 
     @POST

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.services.impl.FieldHandler;
 import net.sf.json.JSONArray;
@@ -25,7 +26,7 @@ public class RunkeeperPaceFieldHandler implements FieldHandler {
     public final static double MAX_MINUTES_PER_KM = 20.0;
 
     @Override
-    public List<BodyTrackHelper.BodyTrackUploadResult> handleField ( final long guestId, AbstractFacet facet) {
+    public List<BodyTrackHelper.BodyTrackUploadResult> handleField (final ApiKey apiKey, AbstractFacet facet) {
         RunKeeperFitnessActivityFacet activityFacet = (RunKeeperFitnessActivityFacet) facet;
         if (activityFacet.distanceStorage == null) {
             return Arrays.asList();
@@ -75,7 +76,7 @@ public class RunkeeperPaceFieldHandler implements FieldHandler {
         final List<String> channelNames = Arrays.asList("minutesPerKilometer", "minutesPerMile");
 
         // TODO: check the status code in the BodyTrackUploadResult
-        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(guestId, "runkeeper", channelNames, data));
+        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(apiKey, "runkeeper", channelNames, data));
     }
 
 }

@@ -3,6 +3,7 @@ package org.fluxtream.connectors.fitbit;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.services.impl.FieldHandler;
 import org.joda.time.LocalTime;
@@ -27,7 +28,7 @@ public class FitbitActivityFieldHandler implements FieldHandler {
     BodyTrackHelper bodyTrackHelper;
 
     @Override
-    public List<BodyTrackHelper.BodyTrackUploadResult> handleField ( final long guestId, AbstractFacet facet) {
+    public List<BodyTrackHelper.BodyTrackUploadResult> handleField (final ApiKey apiKey, AbstractFacet facet) {
 
         List<BodyTrackHelper.BodyTrackUploadResult> results = new ArrayList<BodyTrackHelper.BodyTrackUploadResult>();
 
@@ -115,7 +116,7 @@ public class FitbitActivityFieldHandler implements FieldHandler {
 
         data.add(record);
 
-        results.add(bodyTrackHelper.uploadToBodyTrack(guestId, "Fitbit", channelNames, data));
+        results.add(bodyTrackHelper.uploadToBodyTrack(apiKey, "Fitbit", channelNames, data));
 
         List<String> metrics = Arrays.asList("steps", "calories", "distance", "floors", "elevation");
 
@@ -123,7 +124,7 @@ public class FitbitActivityFieldHandler implements FieldHandler {
             try {
                 Field jsonField = FitbitTrackerActivityFacet.class.getField(metric + "Json");
                 if (jsonField.get(fitbitActivityFacet)!=null) {
-                    final BodyTrackHelper.BodyTrackUploadResult bodyTrackUploadResult = addIntradayData(guestId, fitbitActivityFacet, jsonField, metric);
+                    final BodyTrackHelper.BodyTrackUploadResult bodyTrackUploadResult = addIntradayData(apiKey, fitbitActivityFacet, jsonField, metric);
                     if (bodyTrackUploadResult!=null)
                         results.add(bodyTrackUploadResult);
                 }
@@ -140,7 +141,7 @@ public class FitbitActivityFieldHandler implements FieldHandler {
         return results;
     }
 
-    private BodyTrackHelper.BodyTrackUploadResult addIntradayData(final long guestId,
+    private BodyTrackHelper.BodyTrackUploadResult addIntradayData(final ApiKey apiKey,
                                                                   FitbitTrackerActivityFacet fitbitActivityFacet,
                                                                   final Field field,
                                                                   final String metric) throws IllegalAccessException {
@@ -177,7 +178,7 @@ public class FitbitActivityFieldHandler implements FieldHandler {
                                             ? Arrays.asList(metric + "Intraday")
                                             : Arrays.asList(metric + "Intraday", "levelsIntraday", "metsIntraday");
 
-            return bodyTrackHelper.uploadToBodyTrack(guestId, "Fitbit", channelNames, data);
+            return bodyTrackHelper.uploadToBodyTrack(apiKey, "Fitbit", channelNames, data);
         }
         return null;
     }
