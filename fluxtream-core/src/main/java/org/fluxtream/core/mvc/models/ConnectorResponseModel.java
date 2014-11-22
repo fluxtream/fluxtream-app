@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.wordnik.swagger.annotations.ApiModelProperty;
 import org.fluxtream.core.connectors.updaters.ScheduleResult;
 import org.fluxtream.core.connectors.updaters.UpdateResult;
 import org.fluxtream.core.connectors.vos.AbstractFacetVO;
@@ -16,6 +17,8 @@ public class ConnectorResponseModel {
 	public List<UpdateResult> updateResults;
 	public List<ScheduleResult> scheduleResults;
 	public Map<String,Collection<AbstractFacetVO<AbstractFacet>>> facets;
+    @ApiModelProperty(value="UTC timestamp of this model's generation", required=true)
+    public long generationTimestamp;
 	
 	public void addScheduleResult(ScheduleResult scheduleResult) {
 		if (scheduleResults==null) scheduleResults = new ArrayList<ScheduleResult>();

@@ -24,10 +24,7 @@ import org.fluxtream.core.domain.*;
 import org.fluxtream.core.domain.metadata.City;
 import org.fluxtream.core.domain.metadata.VisitedCity;
 import org.fluxtream.core.domain.metadata.WeatherInfo;
-import org.fluxtream.core.metadata.AbstractTimespanMetadata;
-import org.fluxtream.core.metadata.DayMetadata;
-import org.fluxtream.core.metadata.MonthMetadata;
-import org.fluxtream.core.metadata.WeekMetadata;
+import org.fluxtream.core.metadata.*;
 import org.fluxtream.core.mvc.models.*;
 import org.fluxtream.core.services.*;
 import org.fluxtream.core.utils.TimeUtils;
@@ -77,6 +74,162 @@ public class CalendarDataStore {
     Configuration env;
 
 	Gson gson = new Gson();
+
+    @GET
+    @Path("/{connectorObjectsEncoded}/all")
+    @ApiOperation(value = "Get all the user's connectors' data", response = ConnectorResponseModel.class)
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response getSpecificConnectorData(@ApiParam(value="an encoded list of the facet types to be returned. " +
+            "The encoding is <facetType>,<facetType>,... where <facetType> is " +
+            "<connectorIdentifier>(optionally attached: -<objectTypeName> " +
+            "where <connectorIdentifier> is either the connector name or the apiKey id " +
+            "and objectTypeName is the name of the facet Type - example: 64-weight,fitbit,withings-heart_pulse",
+            required=true) @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded,
+                                             @ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter,
+                                             @ApiParam(value="Updated Since Date", required = false) @QueryParam("updatedSince") String updatedSince) {
+
+        CoachingBuddy coachee;
+        try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, buddiesService);
+        } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
+        if (guest==null)
+            return Response.status(401).entity("You are no longer logged in").build();
+        long guestId = guest.getId();
+
+
+
+        try {
+            List<ApiKey> apiKeyList = getApiKeyListFromConnectorObjectsEncoding(guest,connectorObjectsEncoded);
+            Map<ApiKey,List<ObjectType>> objectTypesMap = getObjectTypesFromConnectorObjectsEncoding(apiKeyList, connectorObjectsEncoded);
+            GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
+            ArbitraryTimespanMetadata timespanMetdata = new ArbitraryTimespanMetadata(Long.MIN_VALUE,Long.MAX_VALUE);
+            timespanMetdata.timeInterval = new TimeInterval(){
+                public long getStart() {
+                    return Long.MIN_VALUE;
+                }
+                public long getEnd() {
+                    return Long.MAX_VALUE;
+                }
+                public TimeUnit getTimeUnit() {
+                    return TimeUnit.ARBITRARY;
+                }
+                public TimeZone getMainTimeZone() {
+                    return TimeZone.getTimeZone("utc");
+                }
+                public TimeZone getTimeZone(long time) throws OutsideTimeBoundariesException {
+                    return TimeZone.getTimeZone("utc");
+                }
+                public TimeZone getTimeZone(String date) throws OutsideTimeBoundariesException {
+                    return TimeZone.getTimeZone("utc");
+                }
+            };
+
+            ConnectorResponseModel responseModel = prepareConnectorResponseModel(timespanMetdata);
+
+            Long updatedSinceMillis = updatedSince == null ? null : ISODateTimeFormat.dateTime().parseMillis(updatedSince);
+
+            for (ApiKey apiKey : apiKeyList){
+                List<ObjectType> objectTypes = objectTypesMap.get(apiKey);
+                if (objectTypes.size() > 0) {
+                    for (ObjectType objectType : objectTypes) {
+                        appendFacetsToConnectorResponseModel(responseModel,getFacetCollection(timespanMetdata, settings, apiKey.getConnector(), objectType, updatedSinceMillis),apiKey.getConnector(),objectType);
+                    }
+                }
+                else {
+                    appendFacetsToConnectorResponseModel(responseModel,getFacetCollection(timespanMetdata,settings,apiKey.getConnector(),null, updatedSinceMillis),apiKey.getConnector(),null);
+                }
+            }
+
+            StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsDayData")
+                    .append(" guestId=").append(guestId);
+            logger.info(sb.toString());
+
+            responseModel.generationTimestamp = new java.util.Date().getTime();
+
+            return Response.ok(toJacksonJson(responseModel)).build();
+        } catch (Exception e) {
+            StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsWeekData")
+                    .append(" guestId=").append(guestId)
+                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
+            logger.warn(sb.toString());
+            return Response.serverError().entity(sb.toString()).build();
+        }
+    }
+
+    @GET
+    @Path("/all/all")
+    @ApiOperation(value = "Get all the user's connectors' data", response = ConnectorResponseModel.class)
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response getAllConnectorsData(@ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter,
+                                         @ApiParam(value="Updated Since Date", required = false) @QueryParam("updatedSince") String updatedSince) {
+
+        CoachingBuddy coachee;
+        try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, buddiesService);
+        } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
+        if (guest==null)
+            return Response.status(401).entity("You are no longer logged in").build();
+        long guestId = guest.getId();
+
+
+
+        try {
+            List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
+            GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
+
+            ArbitraryTimespanMetadata timespanMetdata = new ArbitraryTimespanMetadata(Long.MIN_VALUE,Long.MAX_VALUE);
+            timespanMetdata.timeInterval = new TimeInterval(){
+                public long getStart() {
+                    return Long.MIN_VALUE;
+                }
+                public long getEnd() {
+                    return Long.MAX_VALUE;
+                }
+                public TimeUnit getTimeUnit() {
+                    return TimeUnit.ARBITRARY;
+                }
+                public TimeZone getMainTimeZone() {
+                    return TimeZone.getTimeZone("utc");
+                }
+                public TimeZone getTimeZone(long time) throws OutsideTimeBoundariesException {
+                    return TimeZone.getTimeZone("utc");
+                }
+                public TimeZone getTimeZone(String date) throws OutsideTimeBoundariesException {
+                    return TimeZone.getTimeZone("utc");
+                }
+            };
+
+            ConnectorResponseModel responseModel = prepareConnectorResponseModel(timespanMetdata);
+
+            Long updatedSinceMillis = updatedSince == null ? null : ISODateTimeFormat.dateTime().parseMillis(updatedSince);
+
+            for (ApiKey apiKey : allApiKeys){
+                ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
+                if (objectTypes.length > 0) {
+                    for (ObjectType objectType : objectTypes) {
+                        appendFacetsToConnectorResponseModel(responseModel,getFacetCollection(timespanMetdata, settings, apiKey.getConnector(), objectType, updatedSinceMillis),apiKey.getConnector(),objectType);
+                    }
+                }
+                else {
+                    appendFacetsToConnectorResponseModel(responseModel,getFacetCollection(timespanMetdata,settings,apiKey.getConnector(),null, updatedSinceMillis),apiKey.getConnector(),null);
+                }
+            }
+
+            StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsAllData")
+                    .append(" guestId=").append(guestId);
+            logger.info(sb.toString());
+
+            responseModel.generationTimestamp = new java.util.Date().getTime();
+
+            return Response.ok(toJacksonJson(responseModel)).build();
+        } catch (Exception e) {
+            StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsAllData")
+                    .append(" guestId=").append(guestId)
+                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
+            logger.warn(sb.toString());
+            return Response.serverError().entity(sb.toString()).build();
+        }
+    }
 
     @GET
     @Path("/location/week/{year}/{week}")
@@ -638,6 +791,8 @@ public class CalendarDataStore {
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
 
+            day.generationTimestamp = new java.util.Date().getTime();
+
             return Response.ok(toJacksonJson(day)).build();
         }
         catch (Exception e){
@@ -717,6 +872,8 @@ public class CalendarDataStore {
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
 
+            day.generationTimestamp = new java.util.Date().getTime();
+
             return Response.ok(toJacksonJson(day)).build();
         }
         catch (Exception e){
@@ -785,6 +942,8 @@ public class CalendarDataStore {
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
 
+            day.generationTimestamp = new java.util.Date().getTime();
+
             return Response.ok(toJacksonJson(day)).build();
         }
         catch (Exception e){
@@ -824,7 +983,7 @@ public class CalendarDataStore {
                     if (!objectType.isClientFacet())
                         continue;
                     final TimeUnit timeUnit = timespanMetadata.getTimeInterval().getTimeUnit();
-                    if (timeUnit !=TimeUnit.DAY) {
+                    if (timeUnit !=TimeUnit.DAY && timeUnit != TimeUnit.ARBITRARY) {
                         if (!locationDataOnly&&objectType!=null&&objectType.getName().equals("location"))
                             continue;
                         else if (locationDataOnly &&
