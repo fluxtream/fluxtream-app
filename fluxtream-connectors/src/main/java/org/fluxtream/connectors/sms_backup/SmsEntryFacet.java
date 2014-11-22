@@ -3,7 +3,6 @@ package org.fluxtream.connectors.sms_backup;
 import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.hibernate.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
 
 import javax.persistence.Entity;
 import javax.persistence.Lob;
@@ -18,7 +17,6 @@ import java.util.Date;
 @NamedQueries({
 		@NamedQuery(name = "sms_backup.sms.byEmailId", query = "SELECT facet FROM Facet_SmsEntry facet WHERE facet.apiKeyId=? AND facet.emailId=?")
 })
-@Indexed
 public class SmsEntryFacet extends AbstractFacet implements Serializable {
 
 	private static final String UNKNOWN = "Unknown";

@@ -22,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -68,6 +70,16 @@ public class WidgetsServiceImpl implements WidgetsService {
     public void addWidgetRepositoryURL(final long guestId, final String url) {
         if (StringUtils.isEmpty(url))
             throw new RuntimeException("Null URL");
+        final List<DashboardWidgetsRepository> userRepositories = getWidgetRepositories(guestId);
+        // silently ignore an already added repository
+        for (DashboardWidgetsRepository userRepository : userRepositories) {
+            String addedRepositoryUrl = userRepository.url.toLowerCase();
+            String newRepositoryUrl = url.toLowerCase();
+            if (addedRepositoryUrl.endsWith("/")) addedRepositoryUrl = addedRepositoryUrl.substring(0, addedRepositoryUrl.length()-1);
+            if (newRepositoryUrl.endsWith("/")) newRepositoryUrl = newRepositoryUrl.substring(0, newRepositoryUrl.length()-1);
+            if (addedRepositoryUrl.equals(newRepositoryUrl))
+                return;
+        }
         DashboardWidgetsRepository repository = new DashboardWidgetsRepository();
         repository.guestId = guestId;
         repository.url = url;
@@ -189,6 +201,9 @@ public class WidgetsServiceImpl implements WidgetsService {
         JSONArray widgetsList = null;
         String widgetListString = null;
         try {
+            // be robust about missing trailing /
+            if (!baseURL.endsWith("/"))
+                baseURL += "/";
             widgetListString = HttpUtils.fetch(baseURL + "widgets/widgets.json");
         }
         catch (IOException e) {

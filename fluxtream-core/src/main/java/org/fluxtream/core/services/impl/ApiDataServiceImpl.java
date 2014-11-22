@@ -236,7 +236,7 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 	public void eraseApiData(ApiKey apiKey,
 			ObjectType objectType, TimeInterval timeInterval) {
 		List<AbstractFacet> facets = getApiDataFacets(apiKey, objectType,
-				timeInterval);
+				timeInterval, null);
 		if (facets != null) {
 			for (AbstractFacet facet : facets)
 				em.remove(facet);
@@ -247,7 +247,7 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
     @Transactional(readOnly = false)
     public void eraseApiData(ApiKey apiKey,
                              ObjectType objectType, List<String> dates) {
-        final List<AbstractFacet> facets = jpaDao.getFacetsByDates(apiKey, objectType, dates);
+        final List<AbstractFacet> facets = jpaDao.getFacetsByDates(apiKey, objectType, dates, null);
         if (facets != null) {
             for (AbstractFacet facet : facets)
                 em.remove(facet);
@@ -295,26 +295,26 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 
     @Override
     public List<AbstractFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType,
-                                                List<String> dates) {
-        return jpaDao.getFacetsByDates(apiKey, objectType, dates);
+                                                List<String> dates, Long updatedSince) {
+        return jpaDao.getFacetsByDates(apiKey, objectType, dates, updatedSince);
     }
 
     @Override
-    public List<AbstractRepeatableFacet> getApiDataFacets(final ApiKey apiKey, final ObjectType objectType, final String startDate, final String endDate) {
-        return jpaDao.getFacetsBetweenDates(apiKey, objectType, startDate, endDate);
+    public List<AbstractRepeatableFacet> getApiDataFacets(final ApiKey apiKey, final ObjectType objectType, final String startDate, final String endDate, Long updatedSince) {
+        return jpaDao.getFacetsBetweenDates(apiKey, objectType, startDate, endDate, updatedSince);
     }
 
     @Override
-    public List<AbstractFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval) {
-        return getApiDataFacets(apiKey, objectType, timeInterval, (TagFilter)null);
+    public List<AbstractFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType, TimeInterval timeInterval, Long updatedSince) {
+        return getApiDataFacets(apiKey, objectType, timeInterval, (TagFilter)null, updatedSince);
     }
 
     @Override
     public List<AbstractFacet> getApiDataFacets(final ApiKey apiKey,
                                                 final ObjectType objectType,
                                                 final TimeInterval timeInterval,
-                                                @Nullable final TagFilter tagFilter) {
-        return jpaDao.getFacetsBetween(apiKey, objectType, timeInterval, tagFilter);
+                                                @Nullable final TagFilter tagFilter, Long updatedSince) {
+        return jpaDao.getFacetsBetween(apiKey, objectType, timeInterval, tagFilter, updatedSince);
     }
 
     @Override
@@ -322,8 +322,9 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
                                                 ObjectType objectType,
                                                 TimeInterval timeInterval,
                                                 @Nullable TagFilter tagFilter,
-                                                @Nullable String orderByString) {
-        return jpaDao.getFacetsBetween(apiKey,objectType,timeInterval,tagFilter,orderByString);
+                                                @Nullable String orderByString,
+                                                Long updatedSince) {
+        return jpaDao.getFacetsBetween(apiKey,objectType,timeInterval,tagFilter,orderByString, updatedSince);
     }
 
     @Override

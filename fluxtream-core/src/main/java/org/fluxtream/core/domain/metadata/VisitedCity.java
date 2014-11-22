@@ -8,8 +8,6 @@ import javax.persistence.NamedQuery;
 import org.fluxtream.core.connectors.location.LocationFacet;
 import org.fluxtream.core.domain.AbstractLocalTimeFacet;
 import org.fluxtream.core.utils.TimeUtils;
-import org.hibernate.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
@@ -20,7 +18,6 @@ import org.joda.time.DateTimeZone;
  * Time: 10:31
  */
 @Entity(name="Facet_VisitedCity")
-@Indexed
 @NamedQueries( {
        @NamedQuery( name="visitedCities.delete.all",
                     query="DELETE FROM Facet_VisitedCity cities WHERE cities.guestId=? "),
@@ -31,7 +28,6 @@ import org.joda.time.DateTimeZone;
 })
 public class VisitedCity extends AbstractLocalTimeFacet implements Comparable<VisitedCity>{
 
-    @Index(name="locationSource_index")
     public LocationFacet.Source locationSource;
 
     public int sunrise;

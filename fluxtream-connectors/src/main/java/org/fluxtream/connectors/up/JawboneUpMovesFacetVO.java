@@ -3,6 +3,7 @@ package org.fluxtream.connectors.up;
 import org.fluxtream.core.OutsideTimeBoundariesException;
 import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.connectors.vos.AbstractFacetVO;
+import org.fluxtream.core.connectors.vos.AllDayVO;
 import org.fluxtream.core.domain.GuestSettings;
 
 /**
@@ -10,7 +11,7 @@ import org.fluxtream.core.domain.GuestSettings;
  * Date: 04/02/14
  * Time: 13:43
  */
-public class JawboneUpMovesFacetVO extends AbstractFacetVO<JawboneUpMovesFacet> {
+public class JawboneUpMovesFacetVO extends AbstractFacetVO<JawboneUpMovesFacet> implements AllDayVO {
 
     public String title;
     public String date;
@@ -55,4 +56,8 @@ public class JawboneUpMovesFacetVO extends AbstractFacetVO<JawboneUpMovesFacet> 
         this.wo_longest = facet.wo_longest;
     }
 
+    @Override
+    public boolean allDay() {
+        return true;
+    }
 }

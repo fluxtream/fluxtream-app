@@ -5,6 +5,7 @@ import net.sf.json.JSONObject;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.basic.DefaultOAuthConsumer;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.connectors.Autonomous;
 import org.fluxtream.core.connectors.ObjectType;
@@ -32,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
@@ -586,7 +588,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             switch(updateInfo.objectTypes) {
                 case 3: // activities
                     loadActivityDataForOneDay(updateInfo, formattedDate);
-                    final List<AbstractFacet> facetsByDates = facetDao.getFacetsByDates(updateInfo.apiKey, activityOT, Arrays.asList(formattedDate));
+                    final List<AbstractFacet> facetsByDates = facetDao.getFacetsByDates(updateInfo.apiKey, activityOT, Arrays.asList(formattedDate), null);
                     if (facetsByDates.size()>0) {
                         final FitbitTrackerActivityFacet activityFacet = (FitbitTrackerActivityFacet) facetsByDates.get(0);
                         updateIntradayMetrics(updateInfo, activityFacet);
@@ -867,7 +869,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
     private void loadIntradayDataForOneDay(UpdateInfo updateInfo, String dateString)
             throws AuthExpiredException, RateLimitReachedException, UpdateFailedException, NoSuchFieldException, IllegalAccessException, UnexpectedResponseCodeException {
         if (!isIntradayDataEnabled()) return;
-        final List<AbstractFacet> facetsByDates = facetDao.getFacetsByDates(updateInfo.apiKey, ObjectType.getObjectType(connector(), 1), Arrays.asList(dateString));
+        final List<AbstractFacet> facetsByDates = facetDao.getFacetsByDates(updateInfo.apiKey, ObjectType.getObjectType(connector(), 1), Arrays.asList(dateString), null);
         if (facetsByDates.size()>0) {
             final AbstractFacet facet = facetsByDates.get(0);
             if (facet!=null) {
@@ -1124,8 +1126,14 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 	}
 
 	@RequestMapping("/fitbit/notify")
-	public void notifyMeasurement(@RequestBody String updatesString)
+	public void notifyMeasurement(
+            HttpServletResponse response,
+            @RequestBody String updatesString)
 			throws Exception {
+
+        if (StringUtils.isEmpty(updatesString)) {
+            response.sendError(400);
+        }
 
 		String lines[] = updatesString.split("\\r?\\n");
 
@@ -1292,7 +1300,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         final String rateLimitResetSeconds = request.getHeaderField("Fitbit-Rate-Limit-Reset");
         if (rateLimitResetSeconds!=null) {
             int millisUntilReset = Integer.valueOf(rateLimitResetSeconds)*1000;
-            final long resetTime = System.currentTimeMillis() + millisUntilReset;
+            // delay by one minute to compensate for clock desynchronisation
+            final long resetTime = System.currentTimeMillis() + millisUntilReset + DateTimeConstants.MILLIS_PER_MINUTE;
             guestService.setApiKeyAttribute(updateInfo.apiKey, "resetTime", String.valueOf(resetTime));
             updateInfo.setResetTime("fitbit", resetTime);
         } else {

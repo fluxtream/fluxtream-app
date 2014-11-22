@@ -41,13 +41,13 @@ public class CalendarDataHelper {
 
     public List<AbstractFacet> getFacets(Connector connector,
                                          ObjectType objectType,
-                                         List<String> dates) {
+                                         List<String> dates, Long updatedSince) {
         List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
         try {
             if (AuthHelper.isViewingGranted(connector.getName(), buddiesService)) {
                 final ApiKey apiKey = guestService.getApiKey(AuthHelper.getVieweeId(), connector);
                 facets = apiDataService.getApiDataFacets(apiKey, objectType,
-                        dates);
+                        dates, updatedSince);
                 facets = buddiesService.filterFacets(AuthHelper.getGuestId(), apiKey.getId(), facets);
             }
         } catch (Throwable t) {
@@ -57,12 +57,12 @@ public class CalendarDataHelper {
     }
 
 	public List<AbstractFacet> getFacets(Connector connector,
-			ObjectType objectType, AbstractTimespanMetadata timespanMetadata) {
+			ObjectType objectType, AbstractTimespanMetadata timespanMetadata, Long updatedSince) {
 		List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
 		try {
             if (AuthHelper.isViewingGranted(connector.getName(), buddiesService)) {
                 final ApiKey apiKey = guestService.getApiKey(AuthHelper.getVieweeId(), connector);
-                facets = apiDataService.getApiDataFacets(apiKey, objectType, timespanMetadata.getTimeInterval());
+                facets = apiDataService.getApiDataFacets(apiKey, objectType, timespanMetadata.getTimeInterval(), updatedSince);
                 facets = buddiesService.filterFacets(AuthHelper.getGuestId(), apiKey.getId(), facets);
             }
 		} catch (Throwable t) {
@@ -71,13 +71,13 @@ public class CalendarDataHelper {
 		return facets;
 	}
 
-    public List<AbstractRepeatableFacet> getFacets(final Connector connector, final ObjectType objectType, final String startDate, final String endDate) {
+    public List<AbstractRepeatableFacet> getFacets(final Connector connector, final ObjectType objectType, final String startDate, final String endDate, Long updatedSince) {
         List<AbstractRepeatableFacet> facets = new ArrayList<AbstractRepeatableFacet>();
         try {
             if (AuthHelper.isViewingGranted(connector.getName(), buddiesService)) {
                 final ApiKey apiKey = guestService.getApiKey(AuthHelper.getVieweeId(), connector);
                 facets = apiDataService.getApiDataFacets(apiKey, objectType,
-                        startDate, endDate);
+                        startDate, endDate, updatedSince);
                 facets = buddiesService.filterFacets(AuthHelper.getGuestId(), apiKey.getId(), facets);
             }
         } catch (Throwable t) {

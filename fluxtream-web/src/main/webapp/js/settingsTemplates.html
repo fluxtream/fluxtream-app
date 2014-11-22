@@ -87,6 +87,9 @@
                     <div class="tab-pane settings-tab" id="apps-settings">
                     </div>
                     <div class="tab-pane settings-tab" id="more-settings">
+                        <div id="widgetRepositoriesWrapper">
+
+                        </div>
                         <h3>Delete my account</h3>
                         <a href="javascript:App.eraseEverything();"
                            style="font-size: 13px">Erase all my data</a>
@@ -100,9 +103,39 @@
         </div>
     </div>
 </template>
+<template id="widgetRepositories">
+    <h3>Widget Repositories</h3>
+    {{#hasUrls}}
+    <small>You have added the following widget repository URLs:</small>
+    {{/hasUrls}}
+    {{^hasUrls}}
+    <small>You haven't added any external widget repository URL, yet.</small>
+    {{/hasUrls}}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>URL</th>
+                <th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#urls}}
+            <tr>
+                <td>{{.}}</td>
+                <td><a href="javascript:void(0)" class="removeWidgetRepositoryURL" data-url="{{.}}">Remove URL</a></td>
+            </tr>
+            {{/urls}}
+            <tr>
+                <td colspan="2"><form class="form-inline" action="javascript:void(0);"><input type="text" placeholder="url" id="widgetRepositoryURL">
+                    <a style="margin-left: 1em" id="addWidgetRepositoryURL" href="javascript:void(0)">Add Widget Repository URL</a></form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</template>
 <template id="linkedApps">
     <h3>Applications</h3>
-    {{#accessTokens}}
+    {{#hasAccessTokens}}
     <small>You have given the following apps access to your data:</small>
     <table class="table">
         <thead>
@@ -129,10 +162,10 @@
         {{/accessTokens}}
         </tbody>
     </table>
-    {{/accessTokens}}
-    {{^accessTokens}}
+    {{/hasAccessTokens}}
+    {{^hasAccessTokens}}
     <small>Currently, you haven't given access to your data to any app.</small>
-    {{/accessTokens}}
+    {{/hasAccessTokens}}
 </template>
 <template id="resetPassword">
     <h3>Change Your Password</h3>

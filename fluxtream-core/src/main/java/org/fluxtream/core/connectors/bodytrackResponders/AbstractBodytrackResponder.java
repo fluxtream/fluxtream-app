@@ -56,12 +56,12 @@ public abstract class AbstractBodytrackResponder {
         //
         //}
         //else {
-            return apiDataService.getApiDataFacets(apiKey,objectType,timeInterval);
+            return apiDataService.getApiDataFacets(apiKey,objectType,timeInterval, null);
         //}
     }
 
     protected List<AbstractFacet> getFacetsInTimespanOrderedByEnd(TimeInterval timeInterval, ApiKey apiKey, ObjectType objectType){
-        return apiDataService.getApiDataFacets(apiKey,objectType,timeInterval,null,"facet.end ASC");
+        return apiDataService.getApiDataFacets(apiKey,objectType,timeInterval,null,"facet.end ASC", null);
     }
 
     protected List<AbstractFacetVO<AbstractFacet>> getFacetVOsForFacets(List<AbstractFacet> facets,TimeInterval timeInterval, GuestSettings guestSettings){

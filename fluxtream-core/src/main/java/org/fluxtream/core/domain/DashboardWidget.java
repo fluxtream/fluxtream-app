@@ -4,6 +4,7 @@ import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 import net.sf.json.JSONObject;
 import org.codehaus.plexus.util.StringUtils;
+import org.fluxtream.core.utils.RequestUtils;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.*;
@@ -61,12 +62,16 @@ public class DashboardWidget {
                     )
             );
             VendorIdentifier = manifestJSON.getString("VendorIdentifier");
-            RequiredConnectors = new ArrayList<String>(
-                    Arrays.asList(
-                            StringUtils.split(manifestJSON.getString("RequiredConnectors"),
-                                              ",")
-                    )
-            );
+            final String manifestRequiredConnectors = manifestJSON.getString("RequiredConnectors");
+            if (!manifestRequiredConnectors.equals("null")) {
+                RequiredConnectors = new ArrayList<String>(
+                        Arrays.asList(
+                                StringUtils.split(manifestRequiredConnectors,
+                                                  ",")
+                        )
+                );
+            } else
+                RequiredConnectors = null;
         } catch (Throwable t) {
             throw new RuntimeException("Invalid manifest JSON (" + t.getMessage() + ")");
         }
@@ -78,6 +83,7 @@ public class DashboardWidget {
     }
 
     public boolean matchesUserConnectors(List<String> userConnectorNames, boolean isDev) {
+        if (RequiredConnectors==null) return true;
         for (String requiredConnector : RequiredConnectors) {
             if (isDev && requiredConnector.equals("dev"))
                 return true;

@@ -245,7 +245,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
                     " guestId=" + apiKey.getGuestId() + " connector=" + apiKey.getConnector().getName());
 		TimeInterval timeInterval = new SimpleTimeInterval(0,
 				System.currentTimeMillis(), TimeUnit.ARBITRARY, TimeZone.getDefault());
-		List<AbstractFacet> facets = apiDataService.getApiDataFacets(apiKey, null, timeInterval);
+		List<AbstractFacet> facets = apiDataService.getApiDataFacets(apiKey, null, timeInterval, null);
 		storeApiData(apiKey.getGuestId(), facets);
 	}
 
@@ -258,7 +258,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
                 System.currentTimeMillis(), TimeUnit.ARBITRARY, TimeZone.getDefault());
         final ObjectType[] objectTypesForValue = apiKey.getConnector().getObjectTypesForValue(objectTypes);
         for (ObjectType objectType : objectTypesForValue) {
-            List<AbstractFacet> facets = apiDataService.getApiDataFacets(apiKey, objectType, timeInterval);
+            List<AbstractFacet> facets = apiDataService.getApiDataFacets(apiKey, objectType, timeInterval, null);
             storeApiData(apiKey.getGuestId(), facets);
         }
     }

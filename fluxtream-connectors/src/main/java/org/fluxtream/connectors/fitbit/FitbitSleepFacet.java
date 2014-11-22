@@ -2,7 +2,7 @@ package org.fluxtream.connectors.fitbit;
 
 import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 import org.fluxtream.core.domain.AbstractLocalTimeFacet;
-import org.hibernate.search.annotations.Indexed;
+import org.hibernate.annotations.Index;
 
 import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
@@ -14,12 +14,11 @@ import javax.persistence.NamedQuery;
 		@NamedQuery(name = "fitbit.sleep.byDate",
 				query = "SELECT facet FROM Facet_FitbitSleep facet WHERE facet.apiKeyId=? AND facet.date=?")
 })
-
-//SELECT * FROM Facet_FitbitSleep facet WHERE facet.guestId=1 ORDER BY facet.start ASC LIMIT 1
-@Indexed
 public class FitbitSleepFacet extends AbstractLocalTimeFacet {
 
 	public boolean isMainSleep;
+
+    @Index(name="logId")
 	public long logId;
 	public int minutesToFallAsleep;
 	public int minutesAfterWakeup;
