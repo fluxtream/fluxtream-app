@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Swagger UI</title>
+  <link href='css/reset.css' media='screen' rel='stylesheet' type='text/css'/>
+  <link href='css/screen.css' media='screen' rel='stylesheet' type='text/css'/>
+  <link href='/static/css/bootstrap-3.2.0.min.css' media='screen' rel='stylesheet' type='text/css'/>
+<!--   <link href='/0.9.0032_768812f11a4b/css/styles.css' rel="stylesheet" type="text/css"> -->
+  <script type="text/javascript" src="lib/shred.bundle.js"></script>
+  <script src='lib/jquery-1.8.0.min.js' type='text/javascript'></script>
+  <script src='lib/jquery.slideto.min.js' type='text/javascript'></script>
+  <script src='lib/jquery.wiggle.min.js' type='text/javascript'></script>
+  <script src='lib/jquery.ba-bbq.min.js' type='text/javascript'></script>
+  <script src='lib/handlebars-1.0.0.js' type='text/javascript'></script>
+  <script src='lib/underscore-min.js' type='text/javascript'></script>
+  <script src='lib/backbone-min.js' type='text/javascript'></script>
+  <script src='lib/swagger.js' type='text/javascript'></script>
+  <script src='swagger-ui.min.js' type='text/javascript'></script>
+  <script src='lib/highlight.7.3.pack.js' type='text/javascript'></script>
+  <script src='/static/js/bootstrap-3.2.0.min.js' type='text/javascript'></script>
+
+  <!-- enabling this will enable oauth2 implicit scope support -->
+  <!--<script src='lib/swagger-oauth.js' type='text/javascript'></script>-->
+
+  <script type="text/javascript">
+    function getParameterByName(name) {
+        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+            results = regex.exec(location.search);
+        return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    }
+    var apiDocsURL = getParameterByName("apiDocsURL");
+    var onCompleteCount = 0;
+    $(function () {
+      window.swaggerUi = new SwaggerUi({
+      url: apiDocsURL,
+      dom_id: "swagger-ui-container",
+      supportedSubmitMethods: ['get', 'post', 'put', 'delete'],
+      onComplete: function(swaggerApi, swaggerUi){
+        onCompleteCount++;
+        // strangely, this callback method is always invoked 3 times...
+        if (onCompleteCount==3) {
+            injectGeneratedDocs();
+        }
+      },
+      onFailure: function(data) {
+        log("Unable to Load SwaggerUI");
+      },
+      docExpansion: "list"
+    });
+
+    function injectGeneratedDocs() {
+        $(".api-endpoints").each(function(){
+            var endpointsUl = $("<ul class=\"endpoints\" id=\"guest_endpoint_list\" style=\"overflow: hidden;\">")
+            var endpointLi = $("<li class=\"endpoint\">");
+            var operationsUl = $("<ul class=\"operations\">");
+            endpointLi.append(operationsUl);
+            endpointsUl.append(endpointLi);
+            $(this).find(".api-endpoint").each(function(){
+                var endpointId = $(this).attr("data-endpointId");
+                operationsUl.append($("#"+endpointId).clone(true));
+            })
+            $(this).replaceWith(endpointsUl);
+        });
+        $("#resources").attr("id", "resources-hidden");
+        $("#resources-rearranged").attr("id", "resources");
+        $(".endpoints").css("height", "");
+
+    }
+
+    window.swaggerUi.load();
+  });
+  </script>
+</head>
+
+<body class="swagger-section">
+
+    <div class="container-fluid">
+        <div class="swagger-ui-wrap row">
+            <div class="col-sm-12">
+              <h1>Widgets Guide</h1>
+              <h2>We all have different visualization needs</h2>
+              <p>Because owning your data also means having the freedom to visualize it the way you want,
+              Fluxtream can be customized with community contributed dashboard widgets. Provided the right CORS headers configuration,
+              those widgets can be hosted on an external server (e.g. S3). This means that tech-savvy
+              end-users are able the tailor the UX to their own, specific needs without having to host their own server instance.
+              They are able to experiment with their custom widgets directly in the browser and share them with others
+              by just sharing the URL of their widgets repositories!</p>
+              <h2>All your connector data is already there</h2>
+              <p>Widgets are accessible from the dashboards tab in the Calendar app and they readily have access to
+              what we call the "digest" which contains all of the user's connectors data for a day, a week or a month</p>
+              <p>The digest is documented in the JSON resulting from calling the following endpoints.</p>
+            </div>
+
+            <div class="col-sm-12">
+
+                <ul id="resources-rearranged" class="resources">
+                    <li class="resource">
+                        <div class="api-endpoints">
+                            <div class="api-endpoint" data-endpointId="calendar_getAllConnectorsDayData"/>
+                            <div class="api-endpoint" data-endpointId="calendar_getAllConnectorsWeekData"/>
+                            <div class="api-endpoint" data-endpointId="calendar_getAllConnectorsMonthData"/>
+                        </div>
+                    </li>
+                </ul>
+
+            </div>
+
+            <div class="col-sm-12">
+                <p><small>Note: as a widget
+                    developer you don't have to make these calls yourself - they are made by the javascript framework as the
+                    user browses in time.</small></p>
+            </div>
+            <div class="col-sm-12">
+                <p>As you can see from the description of the JSON responses above, one of the main pieces of information, the
+                DigestModel's <code>facets</code> field, is given as simply a <code>Map&lt;String,java.util.Collection&gt;</code>.
+                The keys for this map (or dictionary, or associative array) follow the pattern <code>[name of connector]-[name of connector object type]</code>.
+                The following widget documents the different types of facet models exposed by each connector:</p>
+            </div>
+
+            <div class="col-sm-12">
+              <div id="resources_container">
+                  <div class="well">
+                      <h4>Facet Models:</h4>
+                      <ul class="dropdown-menu" aria-labelledby="dLabel" role="menu" id="connectorsmenu"></ul>
+                      <ul class="dropdown-menu" aria-labelledby="dLabel" role="menu" id="facetVosMenu"></ul>
+                      <script>
+                          $(document).ready(function(){
+                              $.ajax({
+                                  url:"/api/v1/datamodel/facetVos",
+                                  success : function(voData) {
+                                      var dropdownMenu = $("<ul class=\"dropdown-menu\" role=\"menu\" aria-labelledby=\"connectorsMenuButton\"></ul>");
+                                      for (var i=0; i<voData.length; i++) {
+                                          var dropdownSubmenuWrapper = $("<li role=\"menuitem\"><a href=\"javascript:void(0);\" class=\"connectorName-menuitem\" data-connectorName=\"" + voData[i]["connectorName"] + "\">" + voData[i]["connectorName"] + "</a></li>");
+                                          dropdownMenu.append(dropdownSubmenuWrapper);
+                                      }
+                                      var dropdown = $("<div class=\"dropdown\" style=\"display:inline\"></div>");
+                                      dropdown.append("<button id=\"connectorsMenuButton\" class=\"btn btn-default dropdown-toggle\" type=\"button\" data-toggle=\"dropdown\">Please select a connector <span class=\"caret\"></span></button>");
+                                      dropdown.append(dropdownMenu);
+                                      $('.dropdown-toggle').dropdown()
+                                      $("#connectorsmenu").replaceWith(dropdown);
+
+                                      function getShortVoName(clazzName) {
+                                          var a = clazzName.split(".");
+                                          var shortVoName = a[a.length-1];
+                                          return shortVoName;
+                                      }
+
+                                      function createFacetVosMenu(facetVos) {
+                                          var dropdownMenu = $("<ul class=\"dropdown-menu\" role=\"menu\" aria-labelledby=\"facetVosMenuButton\"></ul>");
+                                          for (var i=0; i<facetVos.length; i++) {
+                                              var shortVoName = getShortVoName(facetVos[i]);
+                                              var dropdownSubmenuWrapper = $("<li role=\"menuitem\"><a href=\"javascript:void(0);\" class=\"vo-menuitem\" data-voName=\"" + facetVos[i] + "\">" + shortVoName + "</a></li>");
+                                              dropdownMenu.append(dropdownSubmenuWrapper);
+                                          }
+                                          var dropdown = $("<div class=\"dropdown\" id=\"facetVosMenu\" style=\"display:inline\"></div>");
+                                          dropdown.append("<button id=\"facetVosMenuButton\" class=\"btn btn-default dropdown-toggle\" type=\"button\" data-toggle=\"dropdown\">Please select a Model <span class=\"caret\"></span></button>");
+                                          dropdown.append(dropdownMenu);
+                                          $('.dropdown-toggle').dropdown()
+                                          $("#facetVosMenu").replaceWith(dropdown);
+                                          $(".vo-menuitem").unbind().click(function(event){
+                                              var clazzName = $(event.target).attr("data-voName");
+                                              console.log("clicked on " + clazzName);
+                                              var shortVoName = getShortVoName(clazzName);
+                                              $("#facetVosMenuButton").html(shortVoName + " <span class=\"caret\"></span>");
+
+                                              $.ajax({url:"/api/v1/datamodel/get?class="+clazzName,
+                                                          success: function(models) {
+                                                              var sModel;
+                                                              var referencedModels = [];
+                                                              for (var i=0; i<models.length; i++) {
+                                                                  if (models[i]["qualifiedType"]===clazzName) {
+                                                                      sModel = new SwaggerModel(models[i].name, models[i]);
+                                                                      continue;
+                                                                  }
+                                                                  referencedModels.push(models[i]);
+                                                              }
+                                                              sModel.setReferencedModels(referencedModels);
+                                                              var mockSignature = sModel.getMockSignature();
+                                                              var mockSignatures = [mockSignature];
+                                                              for (var i=0; i<referencedModels.length; i++) {
+                                                                  var rModel = new SwaggerModel(referencedModels[i].name, referencedModels[i]);
+                                                                  mockSignatures.push(rModel.getMockSignature());
+                                                              }
+                                                              var signatures = mockSignatures.join("<br>");
+                                                              var sample = sModel.createJSONSample();
+                                                              $(".description.facetvos").empty().html(signatures);
+                                                              $(".snippet.facetvos").empty().html("<code><pre>"+JSON.stringify(sample, null, 3)+"</pre></code>");
+                                                              console.log(sample);
+                                                          }}
+                                              );
+
+                                          });
+                                      }
+
+                                      $(".connectorName-menuitem").click(function(event) {
+                                          var selectedConnectorName = $(event.target).attr("data-connectorName");
+                                          $("#connectorsMenuButton").html(selectedConnectorName + " <span class=\"caret\"></span>")
+                                          for (var i=0; i<voData.length; i++) {
+                                              if (selectedConnectorName===voData[i]["connectorName"]) {
+                                                  createFacetVosMenu(voData[i]["facetVos"]);
+                                                  $(".description.facetvos").empty().append("Please choose a connector/facet model above");
+                                                  $(".snippet.facetvos").empty().append("Please choose a connector/facet model above");
+                                              }
+                                          }
+                                      });
+                                  }
+                              });
+                          });
+                      </script>
+    <span class="model-signature">
+        <div>
+            <div>
+                <div>
+                    <div class="signature-container">
+
+                        <ul class="nav nav-pills" role="tablist" style="margin-top:1em">
+                            <li class="active"><a href="#facetvo-description" role="tab" data-toggle="pill">Description</a></li>
+                            <li><a href="#facetvo-snippet" role="tab" data-toggle="pill">Snippet</a></li>
+                        </ul>
+
+                        <!-- Tab panes -->
+                        <div class="tab-content">
+                            <div class="tab-pane active description facetvos" id="facetvo-description" style="margin:1em 0 0 0">
+                                Please choose a connector/facet model above
+                            </div>
+                            <div class="tab-pane snippet facetvos" id="facetvo-snippet" style="margin-top: 1em">
+                                Please choose a connector/facet model above
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </span>
+                  </div>
+
+              </div>
+            </div>
+
+            <div class="col-sm-12">
+                <h2>Hosting your widgets</h2>
+                <p>All that is needed for hosting widgets is exposing a simple file hierarchy. Using <a target="_blank" href="http://aws.amazon.com/s3">S3</a> for instance,
+                all you have to do is to enable Static Website Hosting, a (liberal) permission policy and a simple CORS
+                configuration. </p>
+                <p>As an example, we set up a widget repository on S3 at <a target="_blank" href="http://fluxtream-widgets.s3-website-us-east-1.amazonaws.com">http://fluxtream-widgets.s3-website-us-east-1.amazonaws.com</a></p>
+                <p>Here are our CORS config:</p>
+                <pre><code>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;CORSConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/"&gt;
+    &lt;CORSRule&gt;
+        &lt;AllowedOrigin&gt;*&lt;/AllowedOrigin&gt;
+        &lt;AllowedMethod&gt;GET&lt;/AllowedMethod&gt;
+        &lt;MaxAgeSeconds&gt;3000&lt;/MaxAgeSeconds&gt;
+        &lt;AllowedHeader&gt;Authorization&lt;/AllowedHeader&gt;
+    &lt;/CORSRule&gt;
+&lt;/CORSConfiguration&gt;
+                </code></pre>
+
+                <p>And here's our Permission Policy (as edited with the AWS Policy Generator):</p>
+                <pre><code>
+{
+    "Version": "2008-10-17",
+    "Id": "Policy1415285252707",
+    "Statement": [
+        {
+            "Sid": "Stmt1415285246165",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "*"
+            },
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::fluxtream-widgets/*"
+        }
+    ]
+}
+                </code></pre>
+                <p>When scanning your widget repository for widgets, the first thing Fluxtream will retrieve is a JSON
+                    array of widget names from the [REPOSITORY_ROOT]/widgets/widgets/json URL</p>
+                <p>Check out our example: <a target="_blank" href="http://fluxtream-widgets.s3-website-us-east-1.amazonaws.com/widgets/widgets.json">
+                    http://fluxtream-widgets.s3-website-us-east-1.amazonaws.com/widgets/widgets.json</a>
+                </p>
+                <p>All examples given here are <a target="_blank" href="https://github.com/fluxtream/fluxtream-widgets">available from github</a>. The contents
+                of this repository can serve as a starting point for your own experimentations.</p>
+            </div>
+
+            <div class="col-sm-12">
+                <h2>Accessing your widgets from Fluxtream</h2>
+                <p>In Fluxtream, go to Settings->More, and add the base URL of your widget repository – that would be <code>http://fluxtream-widgets.s3-website-us-east-1.amazonaws.com/</code> in our example:</p>
+                <p><img src="/images/dev/fluxtream-widget-repositories.png" class="img-thumbnail"></p>
+            </div>
+
+            <div class="col-sm-12">
+                <h2>An example widget</h2>
+                <p>To get bootstrapped, please find a very basic example widget <a target="_blank" href="https://github.com/fluxtream/fluxtream-widgets/tree/master/widgets/empty-widget">here</a></p>
+                <p>There are 3 mandatory files for a widget: the manifest, the main javascript source file, the widget's icon</p>
+                <h3>1. The manifest</h3>
+                <p>Here's an example manifest.</p>
+                <pre><code>
+{
+    "WidgetDescription" : {"en" : "Dummy Widget Sample"},
+    "WidgetIcon" : "empty.png",
+    "WidgetName" : "empty-widget",
+    "WidgetTitle" : {"en" : "Empty Widget"},
+    "HasSettings" : false,
+    "SupportedLanguages" : "en",
+    "VendorIdentifier" : "Fluxtream.com",
+    "RequiredConnectors": null
+}
+                </code></pre>
+                <dl class="dl-horizontal">
+                    <dt>WidgetDescription</dt>
+                    <dd>Dictionary of language codes -> i10n description</dd>
+                    <dt>Widget Icon</dt>
+                    <dd>The name of the widget's icon (see below)</dd>
+                    <dt>WidgetName</dt>
+                    <dd>The non-localized name of the widget</dd>
+                    <dt>WidgetTitle</dt>
+                    <dd>Dictionary of language codes -> i10n user-visible name of the widget</dd>
+                    <dt>HasSettings</dt>
+                    <dd>Wether this widget exposes settings</dd>
+                    <dt>SupportedLanguages</dt>
+                    <dd>Languages in which this widget is available (unused)</dd>
+                    <dt>VendorIdentifier</dt>
+                    <dd>Who developed this widget</dd>
+                    <dt>RequiredConnectors</dt>
+                    <dd>This widget will not show up for guests who don't have any of the listed connectors</dd>
+                </dl>
+                <h3>2. The main javascript source file</h3>
+                <p>What follows is a very basic main js file for a widget. You will find a short tutorial below on how to
+                create more involved widgets – including accessing the digest, storing and accessing settings and loading
+                external javascript dependencies, but this will probably give you a taste.</p>
+                <pre><code>
+define(["core/DashboardWidget"], function(DashboardWidget) {
+
+    var EmptyWidget = new DashboardWidget();
+
+    EmptyWidget.init = function() {
+        // loading our mustache template using the Widget's repository URL
+        // note that using requirejs to do this is theoretically possible as well, it's just
+        // more straightforward to do it using jQuery
+        $.ajax(
+            {
+                url:this.manifest.WidgetRepositoryURL + "/" + this.manifest.WidgetName + "/empty.mustache",
+                success: function(template) {
+                    EmptyWidget.postLoad(template);
+                }
+            }
+        );
+    };
+
+    // This is called after we have loaded all templates and dependencies and the widget has been
+    // properly initialized and has access to the digest, manifest and potentially settings
+    EmptyWidget.postLoad = function(template) {
+        // hogan is one of the pre-loaded libraries and we use it to compile our mustache template
+        var html = Hogan.compile(template);
+        $("#empty-widget-widget .flx-body").empty();
+        $("#empty-widget-widget .flx-body").append(
+        html.render({"manifest" : this.manifest})
+        );
+    }
+
+    return EmptyWidget;
+})
+                </code></pre>
+                <h3>3. The icon</h3>
+                <p>This has to be a 252x167 pixels png.</p>
+            </div>
+            <div class="col-sm-12">
+                <h2>Example of a more involved widget</h2>
+                <p>We will give a simple example of a somewhat more involved widget. We will cover:</p>
+                <ul>
+                    <li>accessing the digest, manifest and settings from the main js source file</li>
+                    <li>displaying and saving settings</li>
+                    <li>loading external js dependencies</li>
+                </ul>
+                <p>To illustrate these points, the next widget we're going to use as an example is called
+                    <a target="_blank" href="https://github.com/fluxtream/fluxtream-widgets/tree/master/widgets/moves-stats"> moves-stats</a>.
+                    It will use data coming from the moves connector. It's purpose is to show Walking stats for days,
+                    weeks and months. Users can use settings to show either aggregated or averaged out stats.</p>
+                <h3>Accessing the digest</h3>
+                <p>The digest is a big JSON document containing all the info needed for any of the Calendar App's tabs. It is
+                always readily available to widgets and is always up-to-date with respect to the current time period chosen
+                by the user. The following snippet illustrates how simple it is to process the digest's data.</p>
+                <pre><code>
+var movesFacets = this.digest.facets["moves-move"];
+var runningMinutes = 0, walkingMinutes = 0,
+transportMinutes = 0, cyclingMinutes = 0;
+// let's run through all moves activities and extract the durations for the different
+// types of activities
+if (movesFacets!=null) {
+for (var i=0; i&lt;movesFacets.length; i++) {
+    if (movesFacets[i]["hasActivities"]) {
+        var activities = movesFacets[i]["activities"];
+        for (var j=0; j&lt;activities.length; j++) {
+            var duration = activities[j]["duration"];
+            switch (activities[j]["activityGroup"]) {
+                case "walking":
+                    walkingMinutes += duration["totalSeconds"]/60;
+                    break;
+                case "cycling":
+                    cyclingMinutes += duration["totalSeconds"]/60;
+                    break;
+                case "transport":
+                    transportMinutes += duration["totalSeconds"]/60;
+                    break;
+                case "running":
+                    runningMinutes += duration["totalSeconds"]/60;
+                    break;
+                }
+            }
+        }
+    }
+}
+                </code></pre>
+                <p>Since we use mustache templates by default, injecting the data for dom rendering is trivial:</p>
+<pre><code>
+var activityDurations = {
+    walking : walkingMinutes>0 ? moment.duration(walkingMinutes, "minutes").humanize() : "-",
+    cycling : cyclingMinutes>0 ? moment.duration(cyclingMinutes, "minutes").humanize() : "-",
+    transport : transportMinutes>0 ? moment.duration(transportMinutes, "minutes").humanize() : "-",
+    running : runningMinutes>0 ? moment.duration(runningMinutes, "minutes").humanize() : "-"
+};
+$("#moves-stats-widget .flx-body").empty().append(
+    html.render({manifest : this.manifest,
+                 activityDurations : activityDurations,
+                 digest : this.digest
+                })
+);
+</code></pre>
+                <h3>Handling settings</h3>
+                <p>Settings are very straightforward to set up. First, you will have to set the <code>HasSettings</code> property
+                of your manifest to <code>true</code>. You then have to add one <code>settings.mustache</code> template to your widget's
+                directory. Finally, 3 callback functions need to be implemented in your main javascript source file.</p>
+                <p>In our example, all we want to know is if the user wants his moves stats averaged out or aggregated. Here's an
+                implementation of the settings callback function for this very simple case:</p>
+                <pre><code>
+// this gives us a chance to issue an error warning. If everything's OK, just save the settings and reload the view.
+MovesStats.validateSettings = function() {
+    var aggregateValues = $("input:radio[name=aggregateValues]:checked").val();
+    this.saveSettings({"aggregateValues" : aggregateValues});
+    MovesStats.reload();
+};
+
+// inject the widget's settings into our form
+MovesStats.bindWidgetSettings = function(widgetSettings) {
+    $("input:radio[name=aggregateValues][value=" + widgetSettings.aggregateValues + "]").attr("checked","checked");
+}
+
+// initialize settings on first run
+MovesStats.defaultSettings = function(widgetSettings) {
+    if (typeof(widgetSettings.aggregateValues)=="undefined")
+        $("input:radio[name=aggregateValues][value=no]").attr("checked","checked");
+}
+                </code></pre>
+                <p>The <code>settings.mustache</code> is a very simple form. Just remember we're using <a target="_blank" href="http://getbootstrap.com/2.3.2/base-css.html">Bootstrap 2.3.2</a></p>
+                <pre><code>
+&lt;form class="form-horizontal"&gt;
+    &lt;fieldset&gt;
+        &lt;div class="control-group"&gt;
+            &lt;label class="radio"&gt;
+              &lt;input type="radio" name="aggregateValues" value="yes"&gt;
+              Show aggregate values for weeks and months
+            &lt;/label&gt;
+            &lt;label class="radio"&gt;
+              &lt;input type="radio" name="aggregateValues" value="no" checked&gt;
+              Values per week/month are averaged out
+            &lt;/label&gt;
+        &lt;/div&gt;
+    &lt;/fieldset&gt;
+&lt;/form&gt;
+                </code></pre>
+                <p>That's it! Now settings are accessible from <code>this</code> in our main javascript:</p>
+                <pre><code>
+// average out duration if looking at weekly or monthly data
+if (this.settings.aggregateValues==="no") {
+    switch(this.digest.calendar.timeUnit) {
+        case "WEEK":
+            walkingMinutes/=7;
+            cyclingMinutes/=7;
+            transportMinutes/=7;
+            runningMinutes/=7;
+            break;
+        case "MONTH":
+            var year = Number(this.digest.calendar.state.substring(6, 10));
+            var month = Number(this.digest.calendar.state.substring(11));
+            var daysInMonth = new Date(year, month, 0).getDate();
+            walkingMinutes/=daysInMonth;
+            cyclingMinutes/=daysInMonth;
+            transportMinutes/=daysInMonth;
+            runningMinutes/=daysInMonth;
+            break;
+    }
+}
+                </code></pre>
+                <h3>Loading external dependencies</h3>
+                <p>Fluxtream comes preloaded with a few powerful and well-know javascript libraries:
+                    <ul>
+                        <li><a target="_blank" href="http://jquery.com/">jQuery (1.10.2)</a></li>
+                        <li><a target="_blank" href="http://underscorejs.org/">Underscore 1.3.3</a></li>
+                        <li><a target="_blank" href="http://backbonejs.org/">Backbone 1.0.0</a></li>
+                        <li><a target="_blank" href="http://momentjs.com/">moment.js (2.5.1)</a></li>
+                        <li><a target="_blank" href="http://twitter.github.io/hogan.js/">hogan (2.0.0)</a></li>
+                        <li><a target="_blank" href="http://raphaeljs.com/">raphael (2.1.0)</a></li>
+                        <li><a target="_blank" href="http://requirejs.org/">requirejs (1.0.3)</a></li>
+                    </ul>
+                </p>
+                <p>However, to create compelling widgets, you might want to tap into the abundance of super powerful
+                javascript charting libraries available these days. We did just that in the <a target="_blank" href="https://github.com/fluxtream/fluxtream-widgets/tree/master/widgets/moves-chart">moves-chart widget</a>.</p>
+                <p>Loading an external js library is done at initialization time and is, again, very straightforward, thanks to requirejs:</p>
+                <pre><code>
+MovesStats.init = function() {
+    // load Chartjs (http://www.chartjs.org/)
+    require([this.manifest.WidgetRepositoryURL + "/" + this.manifest.WidgetName + "/Chart.min.js"], function(Chart){
+        MovesStats.Chartjs = Chart.noConflict();
+    });
+
+    MovesStats.reload();
+};
+                </code></pre>
+                <p>In this case, our main template just contains a <code>canvas</code> tag addressable by id.</p>
+                <pre><code>
+&lt;div class="flx-widget-moves-stats"&gt;
+    &lt;canvas style="margin:0 auto;display:block; margin-top:40px;" id="activityChart"&gt;&lt;/canvas&gt;
+&lt;/div&gt;
+                </code></pre>
+                <p>Chartjs then makes it very easy to create e.g. a pie chart given a simple <code>data</code> object:</p>
+                <pre><code>
+var ctx = document.getElementById("activityChart").getContext("2d");
+var data = [
+    {
+        value: Math.round(walkingMinutes*100)/100,
+        color:"green",
+        highlight: "black",
+        label: "Walking"
+    },
+    {
+        value: Math.round(cyclingMinutes*100)/100,
+        color: "cyan",
+        highlight: "black",
+        label: "Cycling"
+    },
+    {
+        value: Math.round(transportMinutes*100)/100,
+        color: "gray",
+        highlight: "black",
+        label: "Transport"
+    },
+    {
+        value: Math.round(runningMinutes*100)/100,
+        color: "magenta",
+        highlight: "black",
+        label: "Running"
+    }
+]
+if (!_.isUndefined(this.Chartjs)) {
+    new this.Chartjs(ctx).Pie(data,{});
+}
+                </code></pre>
+            </div>
+            <div class="col-sm-12">
+                <h2>Conclusion</h2>
+                <p>We hope we have made it easy for developers to create widgets and to be able to experiment with them
+                directly in the browser. Our goal is to let as many people as possible explore and visualize their own
+                data in as many different ways as possible. Please help us make this a reality.</p>
+                <p>Above all, don't hesitate to contact us at info at fluxtream dot org!</p>
+            </div>
+
+        <div style="margin-bottom:30em"></div>
+
+        <div id="swagger-ui-container" style="display:none" class="swagger-ui-wrap">
+        </div>
+
+
+        </div>
+    </div>
+
+
+</body>
+</html>

@@ -2,6 +2,7 @@ package org.fluxtream.connectors.fitbit;
 
 import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 import org.fluxtream.core.domain.AbstractLocalTimeFacet;
+import org.hibernate.annotations.Index;
 
 import javax.persistence.Entity;
 
@@ -15,6 +16,8 @@ public class FitbitLoggedActivityFacet extends AbstractLocalTimeFacet {
 	public double distance;
 	public int duration;
 	public boolean isFavorite;
+
+    @Index(name="logId")
 	public long logId;
 	public String name;
 	public int steps;

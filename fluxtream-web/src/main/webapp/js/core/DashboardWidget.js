@@ -11,7 +11,7 @@ define(function() {
             this.settings = widgetInfo.settings;
             this.defaultSettings(this.settings);
             var that = this;
-            $("#" + widgetInfo.manifest.WidgetName + "-widget-settings").click(function () {
+            $("#" + widgetInfo.manifest.WidgetName + "-widget-settings").unbind().click(function () {
                 that.showSettingsDialog(that.settings);
             });
         }
@@ -67,11 +67,12 @@ define(function() {
 
     DashboardWidget.prototype.loadWidgetSettingsForm = function() {
         var that = this;
-        require(["text!" + this.manifest.WidgetRepositoryURL + "/"
-                     + this.manifest.WidgetName + "/settings.mustache"], function(html) {
-            var selector = "#" + that.manifest.WidgetName + "-widgetSettings";
-            $(selector).replaceWith(html);
-            that.loadWidgetSettingsData();
+        $.ajax({url:this.manifest.WidgetRepositoryURL + "/" + this.manifest.WidgetName + "/settings.mustache",
+            success: function(html) {
+                var selector = "#" + that.manifest.WidgetName + "-widgetSettings";
+                $(selector).replaceWith(html);
+                that.loadWidgetSettingsData();
+            }
         });
     }
 
