@@ -12,6 +12,7 @@ import org.fluxtream.core.Configuration;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.ConnectorInfo;
+import org.fluxtream.core.domain.Gestalt;
 import org.fluxtream.core.services.ConnectorUpdateService;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.services.JPADaoService;
@@ -328,6 +329,17 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
 		return scopedApis.get(scope);
 	}
 
+    boolean channelMappingsFixupWasExecuted() {
+        final List<Gestalt> gestalts = jpaDaoService.findWithQuery("SELECT gestalt FROM Gestalt", Gestalt.class);
+        if (gestalts.size()>1)
+            throw new RuntimeException("Illegal State: multiple Gestalts have been found");
+        if (gestalts.size()==1) {
+            Gestalt gestalt = gestalts.get(0);
+            return gestalt.channelMappingsFixupWasExecuted;
+        } else
+            return false;
+    }
+
     @Transactional(readOnly = false)
     public void resetConnectorList() throws Exception {
         System.out.println("Resetting connector table");
@@ -416,6 +428,12 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
                 resetConnectorList();
                 resetSynchingApiKeys();
                 List<ConnectorInfo> connectors = getConnectors();
+                if (!channelMappingsFixupWasExecuted()) {
+                    String msg = "***** Exiting execution because the channel mappings fixup has not been executed yet.\n  Check out fluxtream-admin-tools project, build, and execute 'java -jar target/flx-admin-tools.jar 8'";
+                    logger.info(msg);
+                    System.out.println(msg);
+                    System.exit(-1);
+                }
                 boolean missingKeys=checkConnectorInstanceKeys(connectors);
 
                 if(missingKeys) {

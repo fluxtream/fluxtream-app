@@ -9,12 +9,12 @@ import javax.persistence.Entity;
  * Date: 30/09/14
  * Time: 14:30
  */
-@Entity(name="SystemInfo")
-public class SystemInfo extends AbstractEntity  {
+@Entity(name="Gestalt")
+public class Gestalt extends AbstractEntity  {
 
     @Type(type="yes_no")
     public boolean channelMappingsFixupWasExecuted;
 
-    public SystemInfo() {}
+    public Gestalt() {}
 
 }

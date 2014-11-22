@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Type;
 
 @Entity(name="ChannelMapping")
 @NamedQueries({
@@ -46,5 +47,13 @@ public class ChannelMapping extends AbstractEntity {
 
     public String internalDeviceName = null;
     public String internalChannelName = null;
+
+    @Type(type="yes_no")
+    @Index(name="fixUp")
+    /**
+     * Was this entry added during fixup
+     */
+    public boolean fixUp;
+
 
 }
