@@ -10,6 +10,7 @@ import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.services.*;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -49,6 +53,8 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
     @Autowired
     BeanFactory beanFactory;
 
+    @PersistenceContext
+    EntityManager em;
 
     private Hashtable<String, FieldHandler> fieldHandlers = new Hashtable<String, FieldHandler>();
 
@@ -110,15 +116,41 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
         List<String> facetColumnNames = getFacetColumnNames(facetName);
         List<List<Object>> dailyDataChannelValues = getDailyDataChannelValues(deviceFacets, facetColumnNames);
 
-        ensureChannelMappingsExist(apiKey, datastoreChannelNames);
-
         // TODO: check the status code in the BodyTrackUploadResult
-        return bodyTrackHelper.uploadToBodyTrack(apiKey, deviceName, datastoreChannelNames, dailyDataChannelValues);
+        final BodyTrackHelper.BodyTrackUploadResult bodyTrackUploadResult = bodyTrackHelper.uploadToBodyTrack(apiKey, deviceName, datastoreChannelNames, dailyDataChannelValues);
+        if (bodyTrackUploadResult.isSuccess())
+            // if the upload operation was a success make sure we register it as a ChannelMapping
+            // the internalDeviceName param can be null since this method is always called exclusively for storing
+            // connector data in the datastore
+            ensureDataChannelMappingsExist(apiKey, datastoreChannelNames, null);
+        return bodyTrackUploadResult;
     }
 
-    private void ensureChannelMappingsExist(ApiKey apiKey, List<String> datastoreChannelNames) {
+    @Override
+    public void ensureDataChannelMappingsExist(ApiKey apiKey, List<String> datastoreChannelNames,
+                                           final String internalDeviceName) {
         for (String channelName : datastoreChannelNames) {
-
+            final TypedQuery<ChannelMapping> query = em.createQuery("SELECT mapping FROM ChannelMapping mapping WHERE mapping.apiKeyId=? AND mapping.deviceName=? AND mapping.channelName=?", ChannelMapping.class);
+            query.setParameter(1, apiKey.getId());
+            query.setParameter(2, apiKey.getConnector().getDeviceNickname());
+            query.setParameter(3, channelName);
+            final List<ChannelMapping> mappings = query.getResultList();
+            if (mappings==null||mappings.size()==0) {
+                ChannelMapping mapping = new ChannelMapping();
+                mapping.apiKeyId = apiKey.getId();
+                mapping.deviceName = apiKey.getConnector().getDeviceNickname();
+                mapping.channelName = channelName;
+                if (mapping.deviceName.equalsIgnoreCase("Fitbit")||mapping.deviceName.equalsIgnoreCase("Zeo"))
+                    mapping.timeType = ChannelMapping.TimeType.local;
+                else mapping.timeType = ChannelMapping.TimeType.gmt;
+                mapping.channelType = ChannelMapping.ChannelType.data;
+                mapping.internalChannelName = channelName;
+                mapping.internalDeviceName = internalDeviceName!=null
+                                           ? internalDeviceName
+                                           : apiKey.getConnector().getDeviceNickname();
+                mapping.fixUp = false;
+                em.persist(mapping);
+            }
         }
     }
 

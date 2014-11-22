@@ -2,15 +2,18 @@ package org.fluxtream.core.services;
 
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 
 import java.util.List;
 
 public interface BodyTrackStorageService {
 
-	public void storeInitialHistory(ApiKey apiKey);
+    void ensureDataChannelMappingsExist(ApiKey apiKey, List<String> datastoreChannelNames, String internalDeviceName);
 
-    public void storeInitialHistory(ApiKey apiKey, int objectTypes);
+    void storeInitialHistory(ApiKey apiKey);
 
-	public void storeApiData(ApiKey apiKey, List<? extends AbstractFacet> facet);
-	
+    void storeInitialHistory(ApiKey apiKey, int objectTypes);
+
+	void storeApiData(ApiKey apiKey, List<? extends AbstractFacet> facet);
+
 }
