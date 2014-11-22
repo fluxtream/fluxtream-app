@@ -193,7 +193,7 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
                                 newFacets.add(createOrUpdateSleepFacet((JSONObject)o, updateInfo, d, tzMap));
                         }
                     }
-                    bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), newFacets);
+                    bodyTrackStorageService.storeApiData(updateInfo.apiKey, newFacets);
                 }
 
                 current = current.plusDays(increment);

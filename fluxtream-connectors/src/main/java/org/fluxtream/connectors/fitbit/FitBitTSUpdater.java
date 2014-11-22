@@ -875,7 +875,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             if (facet!=null) {
                 FitbitTrackerActivityFacet activityFacet = (FitbitTrackerActivityFacet) facet;
                 updateIntradayMetrics(updateInfo, activityFacet);
-                bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), Arrays.asList(facet));
+                bodyTrackStorageService.storeApiData(updateInfo.apiKey, Arrays.asList(facet));
             } else {
                 logger.warn("TRYING TO UPDATE INTRADAY DATA OF AN UNEXISTING FACET, dateString=" + dateString);
             }
@@ -1012,7 +1012,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         if (json != null) {
             JSONObject fitbitResponse = JSONObject.fromObject(json);
             final List<FitbitWeightFacet> createdOrUpdatedWeightFacets = fitbitPersistenceHelper.createOrUpdateWeightFacets(updateInfo, fitbitResponse);
-            bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), createdOrUpdatedWeightFacets);
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey, createdOrUpdatedWeightFacets);
         }
     }
 
@@ -1043,7 +1043,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             JSONObject fitbitResponse = JSONObject.fromObject(json);
             fitbitPersistenceHelper.createOrUpdateLoggedActivities(updateInfo, fitbitResponse);
             final FitbitTrackerActivityFacet createdOrUpdatedActivitySummary = fitbitPersistenceHelper.createOrUpdateActivitySummary(updateInfo, fitbitResponse);
-            bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), Arrays.asList(createdOrUpdatedActivitySummary));
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey, Arrays.asList(createdOrUpdatedActivitySummary));
 		}
 	}
 
@@ -1080,7 +1080,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             }
 
             final FitbitFoodLogSummaryFacet createdOrUpdatedFoodLogSummaryFacet = fitbitPersistenceHelper.createOrUpdateFoodLogSummaryFacet(updateInfo, fitbitResponse);
-            bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), Arrays.asList(createdOrUpdatedFoodLogSummaryFacet));
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey, Arrays.asList(createdOrUpdatedFoodLogSummaryFacet));
         }
     }
 

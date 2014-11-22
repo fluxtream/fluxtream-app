@@ -314,7 +314,7 @@ public class JawboneUpUpdater extends AbstractUpdater {
         if (newFacet!=null) {
             List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
             newFacets.add(newFacet);
-            bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey, newFacets);
         }
     }
 
@@ -501,7 +501,7 @@ public class JawboneUpUpdater extends AbstractUpdater {
         if (newFacet!=null) {
             List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
             newFacets.add(newFacet);
-            bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey, newFacets);
         }
     }
 

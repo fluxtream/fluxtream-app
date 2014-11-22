@@ -53,12 +53,12 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
     private Hashtable<String, FieldHandler> fieldHandlers = new Hashtable<String, FieldHandler>();
 
 	@Override
-	public void storeApiData(long guestId, List<? extends AbstractFacet> facets) {
-        logStoreApiData(guestId, facets);
+	public void storeApiData(ApiKey apiKey, List<? extends AbstractFacet> facets) {
+        logStoreApiData(apiKey.getGuestId(), facets);
 
 		Map<String, List<AbstractFacet>> facetsByFacetName = sortFacetsByFacetName(facets);
         for (final String facetName : facetsByFacetName.keySet()) {
-            List<BodyTrackHelper.BodyTrackUploadResult> results = storeDeviceData(guestId, facetsByFacetName, facetName);
+            List<BodyTrackHelper.BodyTrackUploadResult> results = storeDeviceData(apiKey.getGuestId(), facetsByFacetName, facetName);
             if (!results.isEmpty()){
                 AbstractFacet facet = facetsByFacetName.get(facetName).get(0);
                 long apiKeyId = facet.apiKeyId;
@@ -67,7 +67,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
                     if (!(result instanceof BodyTrackHelper.ParsedBodyTrackUploadResult))
                         continue;
                     BodyTrackHelper.ParsedBodyTrackUploadResult parsedResult = (BodyTrackHelper.ParsedBodyTrackUploadResult) result;
-                    dataUpdateSerivce.logBodyTrackDataUpdate(guestId,apiKeyId,objectTypeId,parsedResult);
+                    dataUpdateSerivce.logBodyTrackDataUpdate(apiKey.getGuestId(),apiKeyId,objectTypeId,parsedResult);
 
                 }
             }
@@ -246,7 +246,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 		TimeInterval timeInterval = new SimpleTimeInterval(0,
 				System.currentTimeMillis(), TimeUnit.ARBITRARY, TimeZone.getDefault());
 		List<AbstractFacet> facets = apiDataService.getApiDataFacets(apiKey, null, timeInterval, null);
-		storeApiData(apiKey.getGuestId(), facets);
+		storeApiData(apiKey, facets);
 	}
 
     @Override
@@ -259,7 +259,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
         final ObjectType[] objectTypesForValue = apiKey.getConnector().getObjectTypesForValue(objectTypes);
         for (ObjectType objectType : objectTypesForValue) {
             List<AbstractFacet> facets = apiDataService.getApiDataFacets(apiKey, objectType, timeInterval, null);
-            storeApiData(apiKey.getGuestId(), facets);
+            storeApiData(apiKey, facets);
         }
     }
 

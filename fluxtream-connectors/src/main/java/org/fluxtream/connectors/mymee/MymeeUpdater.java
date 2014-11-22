@@ -145,7 +145,7 @@ public class MymeeUpdater extends AbstractUpdater {
 
 
             // Write the new set of observations into the datastore
-            bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey, newFacets);
 
             lastSeq = newLastSeq;
 
@@ -422,7 +422,7 @@ public class MymeeUpdater extends AbstractUpdater {
             newFacets.add(facet);
         }
         if(incremental) {
-            bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey, newFacets);
         }
         return channelNames;
     }
