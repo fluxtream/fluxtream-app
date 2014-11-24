@@ -30,7 +30,7 @@ public class BedditBodytrackResponder extends AbstractBodytrackResponder {
         String objectTypeName = apiKey.getConnector().getName() + "-" + sleep_type.getName();
         List<AbstractFacet> facets = getFacetsInTimespan(timeInterval,apiKey, sleep_type);
 
-        if (channelName.equals("sleep_stages")) {
+        if (channelName.equals("sleepStages")) {
             for (AbstractFacet facet : facets) {
                 SleepFacet sleepFacet = (SleepFacet) facet;
                 int lastStage = -1;
@@ -68,7 +68,7 @@ public class BedditBodytrackResponder extends AbstractBodytrackResponder {
             }
 
         }
-        else if (channelName.equals("snoring_episodes")) {
+        else if (channelName.equals("snoringEpisodes")) {
             for (AbstractFacet facet : facets) {
                 SleepFacet sleepFacet = (SleepFacet) facet;
                 for (Pair<Long,Double> episode : sleepFacet.getSnoringEpisodes()) {

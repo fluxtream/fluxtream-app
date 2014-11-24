@@ -9,6 +9,7 @@ import org.codehaus.jackson.map.type.TypeFactory;
 import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 import org.fluxtream.core.domain.AbstractFacet;
 
+import javax.annotation.Nullable;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 import java.io.IOException;
@@ -42,10 +43,12 @@ public class SleepFacet extends AbstractFacet {
     public double restingHeartRate;
 
     //average respiration rate for sleep session.
-    public double respirationRate;
+    @Nullable
+    public Double respirationRate;
 
     //number of seconds it took to fall asleep from start
-    public double timeToFallAsleep;
+    @Nullable
+    public Double timeToFallAsleep;
 
     //number of times away from bed during session
     public int awayCount;

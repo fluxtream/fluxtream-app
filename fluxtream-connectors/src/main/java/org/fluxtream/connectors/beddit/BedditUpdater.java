@@ -19,6 +19,7 @@ import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
 import org.fluxtream.core.connectors.updaters.UpdateFailedException;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
+import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.domain.Notification;
@@ -32,10 +33,12 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 @Component
-@Updater(prettyName = "Beddit", value = 352, objectTypes={SleepFacet.class}, bodytrackResponder=BedditBodytrackResponder.class)
+@Updater(prettyName = "Beddit", value = 352, objectTypes={SleepFacet.class}, bodytrackResponder=BedditBodytrackResponder.class,
+        defaultChannels = {"beddit.sleepStages", "beddit.snoringEpisodes","beddit.sleepCycles","sleep_as_android.heartRate"})
 public class BedditUpdater extends AbstractUpdater {
 
     @Autowired
@@ -56,7 +59,7 @@ public class BedditUpdater extends AbstractUpdater {
         if (mappings.size() == 0){
             ChannelMapping mapping = new ChannelMapping();
             mapping.deviceName = "beddit";
-            mapping.channelName = "sleep_stages";
+            mapping.channelName = "sleepStages";
             mapping.timeType = ChannelMapping.TimeType.gmt;
             mapping.channelType = ChannelMapping.ChannelType.timespan;
             mapping.guestId = updateInfo.getGuestId();
@@ -66,8 +69,8 @@ public class BedditUpdater extends AbstractUpdater {
             BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
             channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
             channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
-            channelStyle.timespanStyles.defaultStyle.fillColor = "#33b5e5";
-            channelStyle.timespanStyles.defaultStyle.borderColor = "#33b5e5";
+            channelStyle.timespanStyles.defaultStyle.fillColor = "#A3A3A3";
+            channelStyle.timespanStyles.defaultStyle.borderColor = "#A3A3A3";
             channelStyle.timespanStyles.defaultStyle.borderWidth = 0;
             channelStyle.timespanStyles.defaultStyle.top = 1.00;
             channelStyle.timespanStyles.defaultStyle.bottom = 0.67;
@@ -76,29 +79,29 @@ public class BedditUpdater extends AbstractUpdater {
             BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
             stylePart.top = 0.67;
             stylePart.bottom = 1.00;
-            stylePart.fillColor = "#33b5e5";
-            stylePart.borderColor = "#33b5e5";
+            stylePart.fillColor = "#A3A3A3";
+            stylePart.borderColor = "#A3A3A3";
             channelStyle.timespanStyles.values.put("away",stylePart);
 
             stylePart = new BodyTrackHelper.TimespanStyle();
             stylePart.top = 0.33;
             stylePart.bottom = 0.67;
-            stylePart.fillColor = "#0099cc";
-            stylePart.borderColor = "#0099cc";
+            stylePart.fillColor = "#85D3EF";
+            stylePart.borderColor = "#85D3EF";
             channelStyle.timespanStyles.values.put("awake",stylePart);
 
             stylePart = new BodyTrackHelper.TimespanStyle();
             stylePart.top = 0.00;
             stylePart.bottom = 0.33;
-            stylePart.fillColor = "#ff8800";
-            stylePart.borderColor = "#ff8800";
+            stylePart.fillColor = "#2EA3CE";
+            stylePart.borderColor = "#2EA3CE";
             channelStyle.timespanStyles.values.put("asleep",stylePart);
 
-            bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"beddit","sleep_stages",channelStyle);
+            bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"beddit","sleepStages",channelStyle);
 
             mapping = new ChannelMapping();
             mapping.deviceName = "beddit";
-            mapping.channelName = "snoring_episodes";
+            mapping.channelName = "snoringEpisodes";
             mapping.timeType = ChannelMapping.TimeType.gmt;
             mapping.channelType = ChannelMapping.ChannelType.timespan;
             mapping.guestId = updateInfo.getGuestId();
@@ -115,7 +118,7 @@ public class BedditUpdater extends AbstractUpdater {
             channelStyle.timespanStyles.defaultStyle.bottom = 0.0;
             channelStyle.timespanStyles.values = new HashMap();
 
-            bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"beddit","snoring_episodes",channelStyle);
+            bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"beddit","snoringEpisodes",channelStyle);
         }
 
         long userId = Long.parseLong(guestService.getApiKeyAttribute(updateInfo.apiKey, "userid"));
@@ -159,10 +162,13 @@ public class BedditUpdater extends AbstractUpdater {
     private Double createOrUpdateFacets(UpdateInfo updateInfo, String json) throws Exception {
         JSONArray sleepsArray = JSONArray.fromObject(json);
         Double oldestFacetTime = null;
+        List<AbstractFacet> newFacets = new LinkedList<AbstractFacet>();
         for (int i = 0; i < sleepsArray.size(); i++){
             SleepFacet newFacet = createOrUpdateFacet(updateInfo, sleepsArray.getJSONObject(i));
             oldestFacetTime = oldestFacetTime == null ? newFacet.updatedTime : Math.max(oldestFacetTime, newFacet.updatedTime);
+            newFacets.add(newFacet);
         }
+        bodyTrackStorageService.storeApiData(updateInfo.getGuestId(),newFacets);
         return oldestFacetTime;
     }
 
@@ -190,8 +196,8 @@ public class BedditUpdater extends AbstractUpdater {
                         facet.sleepTimeTarget = propertiesObject.getDouble("sleep_time_target");
                         facet.snoringAmount = propertiesObject.getDouble("total_snoring_episode_duration");
                         facet.restingHeartRate = propertiesObject.getDouble("resting_heart_rate");
-                        facet.respirationRate = propertiesObject.has("average_respiration_rate") ? propertiesObject.getDouble("average_respiration_rate") : 0.0;
-                        facet.timeToFallAsleep = propertiesObject.has("sleep_latency") ? propertiesObject.getDouble("sleep_latency") : 0.0;
+                        facet.respirationRate = propertiesObject.has("average_respiration_rate") ? propertiesObject.getDouble("average_respiration_rate") : null;
+                        facet.timeToFallAsleep = propertiesObject.has("sleep_latency") ? propertiesObject.getDouble("sleep_latency") : null;
                         facet.awayCount = (int) propertiesObject.getDouble("away_episode_count");
                         facet.totalAwayTime = propertiesObject.getDouble("stage_duration_A");
                         facet.totalSleepTime = propertiesObject.getDouble("stage_duration_S");
