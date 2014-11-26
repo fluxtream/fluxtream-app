@@ -74,7 +74,6 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
                         continue;
                     BodyTrackHelper.ParsedBodyTrackUploadResult parsedResult = (BodyTrackHelper.ParsedBodyTrackUploadResult) result;
                     dataUpdateSerivce.logBodyTrackDataUpdate(apiKey.getGuestId(),apiKeyId,objectTypeId,parsedResult);
-
                 }
             }
         }
@@ -92,8 +91,10 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 
         final Connector connector = apiKey.getConnector();
 
-        Query deleteExistingMappingsQuery = em.createQuery("DELETE mapping FROM ChannelMapping mapping WHERE mapping.apiKeyId=?");
+        // only delete mappings that were previously created by this method
+        Query deleteExistingMappingsQuery = em.createQuery("DELETE mapping FROM ChannelMapping mapping WHERE mapping.apiKeyId=? AND mapping.creationType=?");
         deleteExistingMappingsQuery.setParameter(1, apiKey.getId());
+        deleteExistingMappingsQuery.setParameter(2, ChannelMapping.CreationType.mapChannels);
         deleteExistingMappingsQuery.executeUpdate();
 
         final AbstractBodytrackResponder bodytrackResponder = connector.getBodytrackResponder(beanFactory);
@@ -101,7 +102,8 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
             final List<ChannelMapping> responderMappings = new ArrayList<ChannelMapping>();
             bodytrackResponder.addToDeclaredChannelMappings(apiKey, responderMappings);
             for (ChannelMapping responderMapping : responderMappings) {
-                persistDeclaredChannelMapping(responderMapping);
+                responderMapping.setCreationType(ChannelMapping.CreationType.mapChannels);
+                em.persist(responderMapping);
             }
         }
         final Iterator<String> keys = env.bodytrackProperties.getKeys();
@@ -118,13 +120,16 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
                 final String facetName = keySplits[0] + "." + objectTypeName;
                 final List<String> facetFieldChannelNames = getDatastoreChannelNames(facetName);
                 for (String facetFieldChannelName : facetFieldChannelNames) {
-                    processFacetFieldChanneMapping(facetFieldChannelName, apiKey, objectType);
+                    final ChannelMapping facetFieldChannelMapping = createFacetFieldChanneMapping(facetFieldChannelName, apiKey, objectType);
+                    facetFieldChannelMapping.setCreationType(ChannelMapping.CreationType.mapChannels);
+                    em.persist(facetFieldChannelMapping);
                 }
                 final FieldHandler fieldHandler = getFieldHandler(facetName);
                 final List<ChannelMapping> fieldHandlerMappings = new ArrayList<ChannelMapping>();
                 fieldHandler.addToDeclaredChannelMappings(apiKey, fieldHandlerMappings);
                 for (ChannelMapping fieldHandlerMapping : fieldHandlerMappings) {
-                    persistDeclaredChannelMapping(fieldHandlerMapping);
+                    fieldHandlerMapping.setCreationType(ChannelMapping.CreationType.mapChannels);
+                    em.persist(fieldHandlerMapping);
                 }
             }
         }
@@ -134,7 +139,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
         updater.setDefaultChannelStyles(apiKey);
     }
 
-    private void processFacetFieldChanneMapping(String facetFieldChannelName, ApiKey apiKey, ObjectType objectType) {
+    private ChannelMapping createFacetFieldChanneMapping(String facetFieldChannelName, ApiKey apiKey, ObjectType objectType) {
         ChannelMapping.ChannelType channelType = ChannelMapping.ChannelType.data;
         if (objectType.isImageType())
             channelType = ChannelMapping.ChannelType.photo;
@@ -147,11 +152,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
                 channelType, timeType, objectType.value(),
                 deviceName, facetFieldChannelName,
                 deviceName, facetFieldChannelName);
-        persistDeclaredChannelMapping(declaredMapping);
-    }
-
-    private void persistDeclaredChannelMapping(ChannelMapping declaredMapping) {
-
+        return declaredMapping;
     }
 
     private void logStoreApiData(final long guestId, final List<? extends AbstractFacet> facets) {
@@ -216,13 +217,13 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
             final List<ChannelMapping> mappings = query.getResultList();
             if (mappings==null||mappings.size()==0) {
                 ChannelMapping.TimeType timeType = ChannelMapping.TimeType.gmt;
-                if (apiKey.getConnector().getName().equals("fitbit")||apiKey.getConnector().getName().equals("zeo")||
-                        apiKey.getConnector().getName().equals("flickr"))
+                if (Arrays.asList("zeo", "flickr", "fitbit").contains(apiKey.getConnector().getName()))
                     timeType = ChannelMapping.TimeType.local;
                 ChannelMapping mapping = new ChannelMapping(apiKey.getId(), apiKey.getGuestId(),
                         channelType, timeType, objectTypeId,
                         apiKey.getConnector().getDeviceNickname(), "photo",
                         internalDeviceName!=null ? internalDeviceName : apiKey.getConnector().getDeviceNickname(), "photo");
+                mapping.setCreationType(ChannelMapping.CreationType.dynamic);
                 em.persist(mapping);
             }
         }

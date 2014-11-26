@@ -26,6 +26,7 @@ import java.util.List;
                   query="DELETE FROM ChannelMapping mapping WHERE mapping.apiKeyId=?")
 })
 public class ChannelMapping extends AbstractEntity {
+
     public Long getApiKeyId() {
         return apiKeyId;
     }
@@ -93,12 +94,16 @@ public class ChannelMapping extends AbstractEntity {
 
     String internalChannelName = null;
 
+    public void setCreationType(CreationType creationType) {
+        this.creationType = creationType;
+    }
+
     /**
      * Was this entry added during fixup, a history/incremental update or dynamically when data was uploaded
      */
     @Index(name="creationType")
     CreationType creationType = CreationType.legacy;
-    public enum CreationType {legacy, fixUp, update, dynamic};
+    public enum CreationType {legacy, fixUp, mapChannels, dynamic};
 
     public ChannelMapping(Long apiKeyId, Long guestId,
                           ChannelType channelType, TimeType timeType, Integer objectTypes,
