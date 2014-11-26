@@ -12,6 +12,7 @@ import org.fluxtream.core.connectors.bodytrackResponders.AbstractBodytrackRespon
 import org.fluxtream.core.connectors.vos.AbstractFacetVO;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.domain.GuestSettings;
 import org.fluxtream.core.mvc.models.TimespanModel;
 import org.springframework.stereotype.Component;
@@ -56,6 +57,20 @@ public class FitbitBodytrackResponder extends AbstractBodytrackResponder {
         List<AbstractFacet> facets = getFacetsInTimespan(timeInterval, apiKey, sleep);
 
         return getFacetVOsForFacets(facets, timeInterval, guestSettings);
+    }
+
+    @Override
+    public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
+        List<ChannelMapping> mappings = new ArrayList<ChannelMapping>();
+        final Connector connector = Connector.getConnector("fitbit");
+        ChannelMapping sleepChannelMapping = new ChannelMapping(
+                apiKey.getId(), apiKey.getGuestId(),
+                ChannelMapping.ChannelType.timespan,
+                ChannelMapping.TimeType.local,
+                ObjectType.getObjectType(connector, "sleep").value(),
+                connector.getDeviceNickname(), "sleep",
+                connector.getDeviceNickname(), "sleep");
+        channelMappings.add(sleepChannelMapping);
     }
 
 }

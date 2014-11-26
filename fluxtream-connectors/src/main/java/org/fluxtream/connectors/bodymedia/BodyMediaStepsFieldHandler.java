@@ -2,10 +2,10 @@ package org.fluxtream.connectors.bodymedia;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.services.impl.FieldHandler;
 import net.sf.json.JSONArray;
@@ -48,6 +48,11 @@ public class BodyMediaStepsFieldHandler implements FieldHandler {
 
         // TODO: check the status code in the BodyTrackUploadResult
         return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(apiKey, "BodyMedia", channelNames, data));
+    }
+
+    @Override
+    public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
+        ChannelMapping.addToDeclaredMappings(apiKey, 2, "BodyMedia", "stepsGraph", channelMappings);
     }
 
 }

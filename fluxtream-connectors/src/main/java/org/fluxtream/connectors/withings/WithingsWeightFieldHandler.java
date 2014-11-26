@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.services.impl.FieldHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,4 +33,9 @@ public class WithingsWeightFieldHandler implements FieldHandler {
         // TODO: check the status code in the BodyTrackUploadResult
         return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(apiKey , "Withings", Arrays.asList("weight"), data));
     }
+
+    public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
+        ChannelMapping.addToDeclaredMappings(apiKey, 1, "Withings", "weight", channelMappings);
+    }
+
 }

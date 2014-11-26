@@ -6,6 +6,8 @@ import javax.persistence.NamedQuery;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
+import java.util.List;
+
 @Entity(name="ChannelMapping")
 @NamedQueries({
       @NamedQuery(name="channelMapping.delete.all",
@@ -24,36 +26,114 @@ import org.hibernate.annotations.Type;
                   query="DELETE FROM ChannelMapping mapping WHERE mapping.apiKeyId=?")
 })
 public class ChannelMapping extends AbstractEntity {
+    public Long getApiKeyId() {
+        return apiKeyId;
+    }
+
     @Index(name = "apiKey")
-    public Long apiKeyId = null;
+    Long apiKeyId = null;
 
     @Index(name="guestId")
-    public Long guestId = null;
+    Long guestId = null;
 
-    public Integer objectTypeId = null;
+    public Integer getObjectTypes() {
+        return objectTypes;
+    }
+
+    Integer objectTypes = null;
 
     @Index(name="deviceName")
-    public String deviceName = null;
+    String deviceName = null;
+
+    public Long getGuestId() {
+        return guestId;
+    }
+
+    public TimeType getTimeType() {
+        return timeType;
+    }
+
+    public CreationType getCreationType() {
+        return creationType;
+    }
+
+    public String getDeviceName() {
+
+        return deviceName;
+    }
+
+    public String getChannelName() {
+        return channelName;
+    }
+
     @Index(name="channelName")
-    public String channelName = null;
+    String channelName = null;
 
     public enum ChannelType {data,timespan,photo};
 
-    public ChannelType channelType = null;
+    public ChannelType getChannelType() {
+        return channelType;
+    }
+
+    ChannelType channelType = null;
 
     public enum TimeType {gmt,local};
 
-    public TimeType timeType = null;
+    TimeType timeType = null;
 
-    public String internalDeviceName = null;
-    public String internalChannelName = null;
+    public String getInternalDeviceName() {
+        return internalDeviceName;
+    }
 
-    @Type(type="yes_no")
-    @Index(name="fixUp")
+    String internalDeviceName = null;
+
+    public String getInternalChannelName() {
+        return internalChannelName;
+    }
+
+    String internalChannelName = null;
+
     /**
-     * Was this entry added during fixup
+     * Was this entry added during fixup, a history/incremental update or dynamically when data was uploaded
      */
-    public boolean fixUp;
+    @Index(name="creationType")
+    CreationType creationType = CreationType.legacy;
+    public enum CreationType {legacy, fixUp, update, dynamic};
 
+    public ChannelMapping(Long apiKeyId, Long guestId,
+                          ChannelType channelType, TimeType timeType, Integer objectTypes,
+                          String deviceName, String channelName,
+                          String internalDeviceName, String internalChannelName) {
+        this.apiKeyId = apiKeyId;
+        this.guestId = guestId;
+        this.objectTypes = objectTypes;
+        this.deviceName = deviceName;
+        this.channelName = channelName;
+        this.channelType = channelType;
+        this.timeType = timeType;
+        this.internalDeviceName = internalDeviceName;
+        this.internalChannelName = internalChannelName;
+    }
+
+    /**
+     * Adds a channelMapping with passed parameter and a gmt timeType, 'data' channelType to the supplied channelMappings list
+     * @param apiKey
+     * @param objectTypes
+     * @param deviceName
+     * @param channelName
+     * @param channelMappings
+     */
+    public static void addToDeclaredMappings(ApiKey apiKey, Integer objectTypes,
+                                             String deviceName, String channelName, List<ChannelMapping> channelMappings) {
+        ChannelMapping mapping = new ChannelMapping(apiKey.getId(), apiKey.getGuestId(), ChannelType.data, TimeType.gmt, objectTypes,
+                deviceName, channelName, deviceName, channelName);
+        channelMappings.add(mapping);
+    }
+    public static void addToDeclaredMappings(ApiKey apiKey, ChannelType channelType, TimeType timeType, Integer objectTypes,
+                                             String deviceName, String channelName, List<ChannelMapping> channelMappings) {
+        ChannelMapping mapping = new ChannelMapping(apiKey.getId(), apiKey.getGuestId(), channelType, timeType, objectTypes,
+                deviceName, channelName, deviceName, channelName);
+        channelMappings.add(mapping);
+    }
 
 }

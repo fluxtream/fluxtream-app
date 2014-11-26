@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.services.impl.FieldHandler;
 import net.sf.json.JSONArray;
@@ -50,6 +51,14 @@ public class BodyMediaBurnFieldHandler implements FieldHandler {
 
         // TODO: check the status code in the BodyTrackUploadResult
         return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(apiKey, "BodyMedia", channelNames, data));
+    }
+
+    @Override
+    public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
+        ChannelMapping.addToDeclaredMappings(apiKey, 1, "BodyMedia", "onBody", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, 1, "BodyMedia", "mets", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, 1, "BodyMedia", "caloriesBurned", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, 1, "BodyMedia", "activityType", channelMappings);
     }
 
     private int intensity(final String activityType) {

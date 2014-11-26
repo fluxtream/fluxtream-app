@@ -12,6 +12,7 @@ import org.fluxtream.core.connectors.bodytrackResponders.AbstractBodytrackRespon
 import org.fluxtream.core.connectors.vos.AbstractFacetVO;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.domain.GuestSettings;
 import org.fluxtream.core.mvc.models.TimespanModel;
 import org.springframework.stereotype.Component;
@@ -59,6 +60,20 @@ public class TwitterBodytrackResponder extends AbstractBodytrackResponder {
         List<AbstractFacet> facets = getFacetsInTimespan(timeInterval, apiKey, objectType);
 
         return getFacetVOsForFacets(facets,timeInterval,guestSettings);
+    }
+
+    @Override
+    public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
+        final Connector connector = Connector.getConnector("twitter");
+        ChannelMapping twitterChannelMapping = new ChannelMapping(
+                apiKey.getId(), apiKey.getGuestId(),
+                ChannelMapping.ChannelType.timespan,
+                ChannelMapping.TimeType.gmt,
+                ObjectType.getObjectType(connector, "tweet").value() + ObjectType.getObjectType(connector, "dm").value() +
+                        ObjectType.getObjectType(connector, "mention").value(),
+                connector.getDeviceNickname(), "activity",
+                connector.getDeviceNickname(), "activity");
+        channelMappings.add(twitterChannelMapping);
     }
 
 }

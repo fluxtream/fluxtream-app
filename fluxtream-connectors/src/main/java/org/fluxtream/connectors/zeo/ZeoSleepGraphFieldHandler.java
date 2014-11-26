@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.services.impl.FieldHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +61,11 @@ public class ZeoSleepGraphFieldHandler implements FieldHandler {
         record.add(time);
         record.add(5-Integer.valueOf(""+sleepGraph.charAt(i)));
         data.add(record);
+    }
+
+    @Override
+    public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
+        ChannelMapping.addToDeclaredMappings(apiKey, 1, "Zeo", "Sleep_Graph", channelMappings);
     }
 
 }

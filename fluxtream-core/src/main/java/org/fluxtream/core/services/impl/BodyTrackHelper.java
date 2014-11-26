@@ -260,8 +260,8 @@ public class BodyTrackHelper {
             if (guestId == null)
                 throw new IllegalArgumentException();
             ChannelMapping mapping = getChannelMapping(guestId, deviceNickname,channelName);
-            String internalDeviceName = mapping != null ? mapping.internalDeviceName : deviceNickname;
-            String internalChannelName = mapping != null ? mapping.internalChannelName : channelName;
+            String internalDeviceName = mapping != null ? mapping.getInternalDeviceName() : deviceNickname;
+            String internalChannelName = mapping != null ? mapping.getInternalChannelName() : channelName;
             final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("gettile", new Object[]{guestId, internalDeviceName + "." + internalChannelName, level, offset});
             String result = dataStoreExecutionResult.getResponse();
 
@@ -390,7 +390,7 @@ public class BodyTrackHelper {
 
             final List<ChannelMapping> channelMappings = getChannelMappings(guestId);
             for (ChannelMapping mapping : channelMappings){
-                ApiKey api = guestService.getApiKey(mapping.apiKeyId);
+                ApiKey api = guestService.getApiKey(mapping.getApiKeyId());
                 // This is to prevent a rare condition when working, under development, on a branch that
                 // doesn't yet support a connector that is supported on another branch and resulted
                 // in data being populated in the database which is going to cause a crash here
@@ -399,19 +399,19 @@ public class BodyTrackHelper {
                 // filter out not shared connectors
                 if (coachee!=null&& buddiesService.getSharedConnector(api.getId(), AuthHelper.getGuestId())==null)
                     continue;
-                Source source = response.hasSource(mapping.deviceName);
+                Source source = response.hasSource(mapping.getDeviceName());
                 if (source == null){
                     source = new Source();
                     response.sources.add(source);
-                    source.name = mapping.deviceName;
+                    source.name = mapping.getDeviceName();
                     source.channels = new ArrayList<Channel>();
                     source.min_time = Double.MAX_VALUE;
                     source.max_time = Double.MIN_VALUE;
                 }
                 Channel channel = new Channel();
-                channel.name = mapping.channelName;
-                channel.type = mapping.channelType.name();
-                channel.time_type = mapping.timeType.name();
+                channel.name = mapping.getChannelName();
+                channel.type = mapping.getChannelType().name();
+                channel.time_type = mapping.getTimeType().name();
                 source.channels.add(channel);
 
                 // Set builtin default style and style to a line by default
@@ -425,8 +425,8 @@ public class BodyTrackHelper {
                 if (userStyle != null)
                     channel.style = userStyle;
 
-                if (mapping.apiKeyId != null){
-                    final AbstractBodytrackResponder bodytrackResponder = api.getConnector().getBodytrackResponder(beanFactory);
+                final AbstractBodytrackResponder bodytrackResponder = api.getConnector().getBodytrackResponder(beanFactory);
+                if (bodytrackResponder != null){
                     AbstractBodytrackResponder.Bounds bounds = bodytrackResponder.getBounds(mapping);
                     channel.min_time = bounds.min_time;
                     channel.max_time = bounds.max_time;
@@ -620,9 +620,9 @@ public class BodyTrackHelper {
             for (ChannelMapping mapping : channelMappings){
                 Channel c = new Channel();
                 s.channels.add(c);
-                c.name =  mapping.channelName;
-                c.type = mapping.channelType.name();
-                c.time_type = mapping.timeType.name();
+                c.name =  mapping.getChannelName();
+                c.type = mapping.getChannelType().name();
+                c.time_type = mapping.getTimeType().name();
             }
         }
         return s;

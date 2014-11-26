@@ -10,6 +10,7 @@ import org.fluxtream.core.connectors.bodytrackResponders.AbstractBodytrackRespon
 import org.fluxtream.core.connectors.vos.AbstractFacetVO;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.domain.GuestSettings;
 import org.fluxtream.core.domain.metadata.FoursquareVenue;
 import org.fluxtream.core.mvc.models.TimespanModel;
@@ -146,6 +147,18 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
             deduped.add(f);
         }
         return deduped;
+    }
+
+    public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
+        final Connector connector = Connector.getConnector("moves");
+        ChannelMapping movesDataChannelMapping = new ChannelMapping(
+                apiKey.getId(), apiKey.getGuestId(),
+                ChannelMapping.ChannelType.timespan,
+                ChannelMapping.TimeType.gmt,
+                ObjectType.getObjectType(connector, "move").value() + ObjectType.getObjectType(connector, "place").value(),
+                connector.getDeviceNickname(), "data",
+                connector.getDeviceNickname(), "data");
+        channelMappings.add(movesDataChannelMapping);
     }
 
 }

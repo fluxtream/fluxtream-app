@@ -133,12 +133,12 @@ public abstract class AbstractBodytrackResponder {
             return Long.MAX_VALUE;
     }
 
-    protected long getMaxTimeForApiKey(long apiKeyId, Integer objectTypeId){
+    protected long getMaxTimeForApiKey(long apiKeyId, Integer objectTypesMask){
         ApiKey apiKey = guestService.getApiKey(apiKeyId);
 
         ObjectType[] objectTypes;
-        if (objectTypeId != null)
-            objectTypes = apiKey.getConnector().getObjectTypesForValue(objectTypeId);
+        if (objectTypesMask != null)
+            objectTypes = apiKey.getConnector().getObjectTypesForValue(objectTypesMask);
         else
             objectTypes = apiKey.getConnector().objectTypes();
         if (objectTypes == null || objectTypes.length == 0){
@@ -183,7 +183,7 @@ public abstract class AbstractBodytrackResponder {
     public Bounds getBounds(final ChannelMapping mapping) {
 
         Bounds bounds = new Bounds();
-        switch (mapping.channelType){
+        switch (mapping.getChannelType()){
             case photo:
                 bounds.min = 0.6;
                 bounds.max = 1;
@@ -193,8 +193,8 @@ public abstract class AbstractBodytrackResponder {
                 bounds.max = 1;
                 break;
         }
-        long maxTime = getMaxTimeForApiKey(mapping.apiKeyId,mapping.objectTypeId);
-        long minTime = getMinTimeForApiKey(mapping.apiKeyId, mapping.objectTypeId);
+        long maxTime = getMaxTimeForApiKey(mapping.getApiKeyId(), mapping.getObjectTypes());
+        long minTime = getMinTimeForApiKey(mapping.getApiKeyId(), mapping.getObjectTypes());
         if (maxTime < minTime){
             bounds.max_time = 0;
             bounds.min_time = 0;
@@ -225,4 +225,7 @@ public abstract class AbstractBodytrackResponder {
         list.add(newModel);
 
     }
+
+    public abstract void addToDeclaredChannelMappings(ApiKey apiKey, List<ChannelMapping> mappings);
+
 }

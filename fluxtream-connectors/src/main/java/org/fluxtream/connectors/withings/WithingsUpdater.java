@@ -438,4 +438,8 @@ public class WithingsUpdater extends AbstractUpdater {
         final AbstractFacet createdOrModifiedFacet = apiDataService.createOrReadModifyWrite(WithingsActivityFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
         bodyTrackStorageService.storeApiData(updateInfo.apiKey, Arrays.asList(createdOrModifiedFacet));
     }
+
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {}
+
 }

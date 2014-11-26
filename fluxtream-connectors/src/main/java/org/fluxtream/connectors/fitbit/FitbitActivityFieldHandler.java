@@ -2,8 +2,10 @@ package org.fluxtream.connectors.fitbit;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.fluxtream.core.Configuration;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.services.impl.FieldHandler;
 import org.joda.time.LocalTime;
@@ -26,6 +28,9 @@ public class FitbitActivityFieldHandler implements FieldHandler {
     private static final String DATASET_KEY = "dataset";
     @Autowired
     BodyTrackHelper bodyTrackHelper;
+
+    @Autowired
+    Configuration env;
 
     @Override
     public List<BodyTrackHelper.BodyTrackUploadResult> handleField (final ApiKey apiKey, AbstractFacet facet) {
@@ -118,7 +123,7 @@ public class FitbitActivityFieldHandler implements FieldHandler {
 
         results.add(bodyTrackHelper.uploadToBodyTrack(apiKey, "Fitbit", channelNames, data));
 
-        List<String> metrics = Arrays.asList("steps", "calories", "distance", "floors", "elevation");
+        List<String> metrics = getWantedMetrics();
 
         for (String metric : metrics) {
             try {
@@ -139,6 +144,17 @@ public class FitbitActivityFieldHandler implements FieldHandler {
 
         // TODO: check the status code in the BodyTrackUploadResult
         return results;
+    }
+
+    private List<String> getWantedMetrics() {
+        List<String> wantedMetrics = Arrays.asList("steps", "calories", "distance", "floors", "elevation");
+        final Object wantedMetricsProperty = env.oauth.getProperty("fitbit.intraday.metrics.wanted");
+        if (wantedMetricsProperty!=null&&wantedMetricsProperty instanceof List) {
+            List<String> wantedMetricsConfig = (List<String>) wantedMetricsProperty;
+            if (wantedMetricsConfig.size()>0)
+                wantedMetrics = wantedMetricsConfig;
+        }
+        return wantedMetrics;
     }
 
     private BodyTrackHelper.BodyTrackUploadResult addIntradayData(final ApiKey apiKey,
@@ -181,6 +197,21 @@ public class FitbitActivityFieldHandler implements FieldHandler {
             return bodyTrackHelper.uploadToBodyTrack(apiKey, "Fitbit", channelNames, data);
         }
         return null;
+    }
+
+    @Override
+    public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
+        final List<String> wantedMetrics = getWantedMetrics();
+        for (String wantedMetric : wantedMetrics) {
+            ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local,
+                    1, "Fitbit", wantedMetric + "Intraday", channelMappings);
+            if (wantedMetric.equals("calories")) {
+                ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local,
+                        1, "Fitbit", "levelsIntraday", channelMappings);
+                ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local,
+                        1, "Fitbit", "metsIntraday", channelMappings);
+            }
+        }
     }
 
 }

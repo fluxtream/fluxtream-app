@@ -4,8 +4,14 @@ import com.google.gson.Gson;
 import org.bodytrack.datastore.FilesystemKeyValueStore;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.aspects.FlxLogger;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.connectors.ObjectType;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.images.ImageType;
 import org.fluxtream.core.services.ApiDataService;
+import org.fluxtream.core.services.BodyTrackStorageService;
+import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.services.JPADaoService;
 import org.fluxtream.core.utils.ImageUtils;
 import org.jetbrains.annotations.NotNull;
@@ -14,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.util.Arrays;
 
 /**
  * <p>
@@ -27,6 +34,12 @@ public final class FluxtreamCapturePhotoStore {
 
     private static final FlxLogger LOG = FlxLogger.getLogger(FluxtreamCapturePhotoStore.class);
     private static final FlxLogger LOG_DEBUG = FlxLogger.getLogger("Fluxtream");
+
+    @Autowired
+    BodyTrackStorageService bodyTrackStorageService;
+
+    @Autowired
+    GuestService guestService;
 
     public enum Operation {
         CREATED("created"), UPDATED("updated");
@@ -275,6 +288,17 @@ public final class FluxtreamCapturePhotoStore {
             final String message = "Upload failed because the ApiDataService failed to save the facet and returned null";
             LOG.error("FluxtreamCapturePhotoStore.saveOrUpdatePhoto(): " + message);
             throw new StorageException(message);
+        }
+
+        // make sure that we have a proper ChannelMapping for photos
+        try {
+            final ApiKey apiKey = guestService.getApiKey(apiKeyId);
+            bodyTrackStorageService.ensurePhotoChannelMappingsExist(apiKey, Arrays.asList("photo"), "FluxtreamCapture",
+                    ObjectType.getObjectType(Connector.getConnector("fluxtream_capture"), "photo").value());
+        } catch (Exception e) {
+            final String message = "Photo upload failed because an Exception occurred while writing the photo to the database";
+            LOG.error("FluxtreamCapturePhotoStore.saveOrUpdatePhoto(): " + message, e);
+            throw new StorageException(message, e);
         }
 
         // If we got this far, then we know everything succeeded, so simply return the boolean to indicate whether

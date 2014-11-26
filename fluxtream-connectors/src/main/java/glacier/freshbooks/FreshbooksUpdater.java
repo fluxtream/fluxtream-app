@@ -10,6 +10,7 @@ import oauth.signpost.basic.DefaultOAuthConsumer;
 import oauth.signpost.signature.PlainTextMessageSigner;
 
 import org.apache.commons.io.IOUtils;
+import org.fluxtream.core.domain.ApiKey;
 import org.springframework.stereotype.Component;
 
 import org.fluxtream.core.TimeInterval;
@@ -76,5 +77,8 @@ public class FreshbooksUpdater extends AbstractUpdater {
 			throw new Exception("Unexpected response code: " + request.getResponseCode());
 		}
 	}
+
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {}
 
 }

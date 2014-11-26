@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.services.impl.FieldHandler;
 import net.sf.json.JSONArray;
@@ -88,6 +89,12 @@ public class BodyMediaSleepFieldHandler implements FieldHandler {
             lyingData.add(standingRecord);
             sleepingData.add(standingRecord);
         }
+    }
+
+    @Override
+    public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
+        ChannelMapping.addToDeclaredMappings(apiKey, 4, "BodyMedia", "sleeping", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, 4, "BodyMedia", "lying", channelMappings);
     }
 
 }

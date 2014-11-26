@@ -237,8 +237,6 @@ public class BodyTrackController {
         Response response;
         try{
             long guestId = AuthHelper.getGuestId();
-            Type channelsType =  new TypeToken<Collection<String>>(){}.getType();
-
             List<List<Object>> parsedData = new ArrayList<List<Object>>();
 
             //Gson doesn't seem to be able to handle arrays with mixed types nicely
@@ -268,7 +266,7 @@ public class BodyTrackController {
             }
 
             ApiKey fluxtreamCaptureApiKey = ensureFluxtreamCaptureApiKey(guestId);
-            final List<String> channelNames = gson.fromJson(channels, channelsType);
+            final List<String> channelNames = gson.fromJson(channels, new TypeToken<Collection<String>>(){}.getType());
             final BodyTrackHelper.BodyTrackUploadResult uploadResult = bodyTrackHelper.uploadToBodyTrack(fluxtreamCaptureApiKey, deviceNickname, channelNames, parsedData);
             if (uploadResult instanceof BodyTrackHelper.ParsedBodyTrackUploadResult){
                 BodyTrackHelper.ParsedBodyTrackUploadResult parsedResult = (BodyTrackHelper.ParsedBodyTrackUploadResult) uploadResult;

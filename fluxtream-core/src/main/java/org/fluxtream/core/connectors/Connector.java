@@ -171,8 +171,9 @@ public class Connector {
         if (connector.prettyName != null) {
             connectorsByPrettyName.put(connector.prettyName.toLowerCase(), connector);
         }
-        connector.bodytrackResponder = updaterAnnotation.bodytrackResponder();
-
+        final Class<? extends AbstractBodytrackResponder> bodytrackResponderClass = updaterAnnotation.bodytrackResponder();
+        if (!(bodytrackResponderClass == AbstractBodytrackResponder.class))
+            connector.bodytrackResponder = bodytrackResponderClass;
     }
 
     private static ObjectType getFacetTypeMetadata(final Connector connector,
@@ -422,14 +423,17 @@ public class Connector {
 
     public AbstractBodytrackResponder getBodytrackResponder(BeanFactory beanFactory){
         try{
-            final AbstractBodytrackResponder bean = beanFactory.getBean(bodytrackResponder);
-            return bean;
+            if (bodytrackResponder!=null) {
+                final AbstractBodytrackResponder bean = beanFactory.getBean(bodytrackResponder);
+                return bean;
+            }
         }
         catch (Exception e){
             System.out.println("COULD NOT INSTANTIATE RESPONDER: " + bodytrackResponder);
             System.out.println("PLEASE CHECK THAT IT HAS THE @Component ANNOTATION!");
             return null;
         }
+        return null;
     }
 
 }

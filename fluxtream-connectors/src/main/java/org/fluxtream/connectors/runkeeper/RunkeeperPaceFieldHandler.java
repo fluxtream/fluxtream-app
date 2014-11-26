@@ -3,8 +3,12 @@ package org.fluxtream.connectors.runkeeper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.services.impl.FieldHandler;
 import net.sf.json.JSONArray;
@@ -77,6 +81,19 @@ public class RunkeeperPaceFieldHandler implements FieldHandler {
 
         // TODO: check the status code in the BodyTrackUploadResult
         return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(apiKey, "runkeeper", channelNames, data));
+    }
+
+    @Override
+    public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
+        final Connector connector = Connector.getConnector("runkeeper");
+        ChannelMapping channelMapping = new ChannelMapping(
+                apiKey.getId(), apiKey.getGuestId(),
+                ChannelMapping.ChannelType.timespan,
+                ChannelMapping.TimeType.local,
+                ObjectType.getObjectType(connector, "fitnessActivity").value(),
+                connector.getDeviceNickname(), "pace",
+                connector.getDeviceNickname(), "pace");
+        channelMappings.add(channelMapping);
     }
 
 }

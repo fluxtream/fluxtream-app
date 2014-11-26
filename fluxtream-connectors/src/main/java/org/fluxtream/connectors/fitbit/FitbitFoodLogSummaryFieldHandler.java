@@ -2,6 +2,7 @@ package org.fluxtream.connectors.fitbit;
 
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.services.impl.FieldHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +67,14 @@ public class FitbitFoodLogSummaryFieldHandler implements FieldHandler {
 
         // TODO: check the status code in the BodyTrackUploadResult
         return results;
+    }
+
+    @Override
+    public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
+        ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local, 32, "Fitbit", "caloriesIn", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local, 32, "Fitbit", "water", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local, 32, "Fitbit", "caloriesInGoal", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local, 32, "Fitbit", "caloriesOutGoal", channelMappings);
     }
 
 }

@@ -626,5 +626,9 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
             throw new Exception("Error: " + statusCode + " Unexpected error trying to bodymedia timezone for user " + updateInfo.apiKey.getGuestId());
         }
     }
+
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {}
+
 }
 

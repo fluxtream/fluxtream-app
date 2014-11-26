@@ -1,5 +1,6 @@
 package glacier.dropbox;
 
+import org.fluxtream.core.domain.ApiKey;
 import org.springframework.stereotype.Component;
 
 import org.fluxtream.core.connectors.annotations.Updater;
@@ -27,6 +28,8 @@ public class DropboxUpdater extends AbstractUpdater {
 	public void updateConnectorDataHistory(UpdateInfo updateInfo) {
 		
 	}
-	
+
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {}
 
 }

@@ -10,10 +10,13 @@ public interface BodyTrackStorageService {
 
     void ensureDataChannelMappingsExist(ApiKey apiKey, List<String> datastoreChannelNames, String internalDeviceName);
 
+    void ensurePhotoChannelMappingsExist(ApiKey apiKey, List<String> datastoreChannelNames, String internalDeviceName, Integer objectTypeId);
+
     void storeInitialHistory(ApiKey apiKey);
 
     void storeInitialHistory(ApiKey apiKey, int objectTypes);
 
 	void storeApiData(ApiKey apiKey, List<? extends AbstractFacet> facet);
 
+    void mapChannels(final ApiKey apiKey);
 }

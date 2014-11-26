@@ -228,8 +228,6 @@ public class LegacyBodyTrackController {
         StatusModel status;
         try{
             long guestId = AuthHelper.getGuestId();
-            Type channelsType =  new TypeToken<Collection<String>>(){}.getType();
-
             List<List<Object>> parsedData = new ArrayList<List<Object>>();
 
             //Gson doesn't seem to be able to handle arrays with mixed types nicely
@@ -259,15 +257,15 @@ public class LegacyBodyTrackController {
             }
 
             ApiKey fluxtreamCaptureApiKey = ensureFluxtreamCaptureApiKey(guestId);
-            final BodyTrackHelper.BodyTrackUploadResult uploadResult = bodyTrackHelper.uploadToBodyTrack(fluxtreamCaptureApiKey, deviceNickname, (Collection<String>)gson.fromJson(channels, channelsType), parsedData);
+            final List<String> channelNames = gson.fromJson(channels, new TypeToken<Collection<String>>(){}.getType());
+            final BodyTrackHelper.BodyTrackUploadResult uploadResult = bodyTrackHelper.uploadToBodyTrack(fluxtreamCaptureApiKey, deviceNickname, channelNames, parsedData);
             if (uploadResult instanceof BodyTrackHelper.ParsedBodyTrackUploadResult){
                 BodyTrackHelper.ParsedBodyTrackUploadResult parsedResult = (BodyTrackHelper.ParsedBodyTrackUploadResult) uploadResult;
-                List<ApiKey> keys = guestService.getApiKeys(guestId,Connector.getConnector("fluxtream_capture"));
-                long apiKeyId = -1;
-                if (keys.size() > 0){
-                    apiKeyId = keys.get(0).getId();
-                }
-                dataUpdateService.logBodyTrackDataUpdate(guestId,apiKeyId,null,parsedResult);
+                bodytrackStorageService.ensureDataChannelMappingsExist(fluxtreamCaptureApiKey, channelNames, deviceNickname);
+                dataUpdateService.logBodyTrackDataUpdate(guestId,fluxtreamCaptureApiKey.getId(),null,parsedResult);
+            } else {
+                // what else can it be, really ?
+                LOG.warn("Unexpected upload result type : " + uploadResult.getClass().getName() );
             }
             status = createStatusModelFromBodyTrackUploadResult(uploadResult);
         }
