@@ -42,6 +42,6 @@ public class ZeoBedTimeFieldHandler implements FieldHandler {
 
     @Override
     public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
-        ChannelMapping.addToDeclaredMappings(apiKey, 1, "Zeo", "bedTime", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, 1, apiKey.getConnector().getDeviceNickname(), "bedTime", channelMappings);
     }
 }

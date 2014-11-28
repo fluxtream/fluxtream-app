@@ -43,7 +43,7 @@ public class ZeoRiseTimeFieldHandler implements FieldHandler {
 
     @Override
     public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
-        ChannelMapping.addToDeclaredMappings(apiKey, 1, "Zeo", "riseTime", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, 1, apiKey.getConnector().getDeviceNickname(), "riseTime", channelMappings);
     }
 
 }

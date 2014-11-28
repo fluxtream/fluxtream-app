@@ -330,7 +330,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
 	}
 
     boolean channelMappingsFixupWasExecuted() {
-        final List<Gestalt> gestalts = jpaDaoService.findWithQuery("SELECT gestalt FROM Gestalt", Gestalt.class);
+        final List<Gestalt> gestalts = jpaDaoService.findWithQuery("SELECT gestalt FROM Gestalt gestalt", Gestalt.class);
         if (gestalts.size()>1)
             throw new RuntimeException("Illegal State: multiple Gestalts have been found");
         if (gestalts.size()==1) {

@@ -90,14 +90,13 @@ public class JawboneUpBodytrackResponder extends AbstractBodytrackResponder {
 
     @Override
     public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
-        final Connector connector = Connector.getConnector("up");
         ChannelMapping sleepChannelMapping = new ChannelMapping(
                 apiKey.getId(), apiKey.getGuestId(),
                 ChannelMapping.ChannelType.timespan,
                 ChannelMapping.TimeType.gmt,
-                ObjectType.getObjectType(connector, "sleep").value(),
-                connector.getDeviceNickname(), "up-sleep",
-                connector.getDeviceNickname(), "up-sleep");
+                ObjectType.getObjectType(apiKey.getConnector(), "sleep").value(),
+                apiKey.getConnector().getDeviceNickname(), "up-sleep",
+                apiKey.getConnector().getDeviceNickname(), "up-sleep");
         channelMappings.add(sleepChannelMapping);
     }
 

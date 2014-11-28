@@ -15,7 +15,7 @@ import java.util.List;
       @NamedQuery(name="channelMapping.byApiKey",
                   query="SELECT mapping FROM ChannelMapping mapping WHERE mapping.guestId=? AND mapping.apiKeyId=?"),
       @NamedQuery(name="channelMapping.byApiKeyAndObjectType",
-                  query="SELECT mapping FROM ChannelMapping mapping WHERE mapping.guestId=? AND mapping.apiKeyId=? AND mapping.objectTypeId=?"),
+                  query="SELECT mapping FROM ChannelMapping mapping WHERE mapping.guestId=? AND mapping.apiKeyId=? AND mapping.objectTypes=?"),
       @NamedQuery(name="channelMapping.byDisplayName",
                   query="SELECT mapping FROM ChannelMapping mapping WHERE mapping.guestId=? AND mapping.deviceName=? AND mapping.channelName=?"),
       @NamedQuery(name="channelMapping.all",

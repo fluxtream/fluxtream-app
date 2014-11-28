@@ -71,10 +71,10 @@ public class FitbitFoodLogSummaryFieldHandler implements FieldHandler {
 
     @Override
     public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
-        ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local, 32, "Fitbit", "caloriesIn", channelMappings);
-        ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local, 32, "Fitbit", "water", channelMappings);
-        ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local, 32, "Fitbit", "caloriesInGoal", channelMappings);
-        ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local, 32, "Fitbit", "caloriesOutGoal", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local, 32, apiKey.getConnector().getDeviceNickname(), "caloriesIn", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local, 32, apiKey.getConnector().getDeviceNickname(), "water", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local, 32, apiKey.getConnector().getDeviceNickname(), "caloriesInGoal", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local, 32, apiKey.getConnector().getDeviceNickname(), "caloriesOutGoal", channelMappings);
     }
 
 }

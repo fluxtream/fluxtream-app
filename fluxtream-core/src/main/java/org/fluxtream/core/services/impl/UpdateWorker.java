@@ -221,10 +221,14 @@ class UpdateWorker implements Runnable {
     }
 
     private void applyConnectorUpgrades(UpdateInfo updateInfo) {
-        final String channelsAreMapped = guestService.getApiKeyAttribute(updateInfo.apiKey, "channelMappings");
-        if (channelsAreMapped==null||channelsAreMapped.equals("dirty")) {
-            bodyTrackStorageService.mapChannels(updateInfo.apiKey);
-            guestService.setApiKeyAttribute(updateInfo.apiKey, "channelMappings", "clean");
+        try {
+            final String channelsAreMapped = guestService.getApiKeyAttribute(updateInfo.apiKey, "channelMappings");
+            if (channelsAreMapped == null || channelsAreMapped.equals("dirty")) {
+                bodyTrackStorageService.mapChannels(updateInfo.apiKey);
+                guestService.setApiKeyAttribute(updateInfo.apiKey, "channelMappings", "clean");
+            }
+        } catch (Throwable e) {
+            logger.warn("Could not apply connector upgrades apiKeyId=" + updateInfo.apiKey.getId());
         }
     }
 

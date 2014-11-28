@@ -204,12 +204,12 @@ public class FitbitActivityFieldHandler implements FieldHandler {
         final List<String> wantedMetrics = getWantedMetrics();
         for (String wantedMetric : wantedMetrics) {
             ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local,
-                    1, "Fitbit", wantedMetric + "Intraday", channelMappings);
+                    1, apiKey.getConnector().getDeviceNickname(), wantedMetric + "Intraday", channelMappings);
             if (wantedMetric.equals("calories")) {
                 ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local,
-                        1, "Fitbit", "levelsIntraday", channelMappings);
+                        1, apiKey.getConnector().getDeviceNickname(), "levelsIntraday", channelMappings);
                 ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local,
-                        1, "Fitbit", "metsIntraday", channelMappings);
+                        1, apiKey.getConnector().getDeviceNickname(), "metsIntraday", channelMappings);
             }
         }
     }

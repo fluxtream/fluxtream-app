@@ -65,7 +65,7 @@ public class ZeoSleepGraphFieldHandler implements FieldHandler {
 
     @Override
     public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
-        ChannelMapping.addToDeclaredMappings(apiKey, 1, "Zeo", "Sleep_Graph", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, 1, apiKey.getConnector().getDeviceNickname(), "Sleep_Graph", channelMappings);
     }
 
 }

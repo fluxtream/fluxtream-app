@@ -36,6 +36,6 @@ public class WithingsFatRatioFieldHandler implements FieldHandler {
 
     @Override
     public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
-        ChannelMapping.addToDeclaredMappings(apiKey, 1, "Withings", "fatRatio", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, 1, apiKey.getConnector().getDeviceNickname(), "fatRatio", channelMappings);
     }
 }

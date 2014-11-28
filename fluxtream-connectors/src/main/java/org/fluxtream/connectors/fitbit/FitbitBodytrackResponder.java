@@ -61,15 +61,13 @@ public class FitbitBodytrackResponder extends AbstractBodytrackResponder {
 
     @Override
     public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
-        List<ChannelMapping> mappings = new ArrayList<ChannelMapping>();
-        final Connector connector = Connector.getConnector("fitbit");
         ChannelMapping sleepChannelMapping = new ChannelMapping(
                 apiKey.getId(), apiKey.getGuestId(),
                 ChannelMapping.ChannelType.timespan,
                 ChannelMapping.TimeType.local,
-                ObjectType.getObjectType(connector, "sleep").value(),
-                connector.getDeviceNickname(), "sleep",
-                connector.getDeviceNickname(), "sleep");
+                ObjectType.getObjectType(apiKey.getConnector(), "sleep").value(),
+                apiKey.getConnector().getDeviceNickname(), "sleep",
+                apiKey.getConnector().getDeviceNickname(), "sleep");
         channelMappings.add(sleepChannelMapping);
     }
 

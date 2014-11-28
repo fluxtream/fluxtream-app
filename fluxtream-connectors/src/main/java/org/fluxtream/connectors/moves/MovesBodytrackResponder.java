@@ -150,14 +150,13 @@ public class MovesBodytrackResponder extends AbstractBodytrackResponder {
     }
 
     public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
-        final Connector connector = Connector.getConnector("moves");
         ChannelMapping movesDataChannelMapping = new ChannelMapping(
                 apiKey.getId(), apiKey.getGuestId(),
                 ChannelMapping.ChannelType.timespan,
                 ChannelMapping.TimeType.gmt,
-                ObjectType.getObjectType(connector, "move").value() + ObjectType.getObjectType(connector, "place").value(),
-                connector.getDeviceNickname(), "data",
-                connector.getDeviceNickname(), "data");
+                ObjectType.getObjectType(apiKey.getConnector(), "move").value() + ObjectType.getObjectType(apiKey.getConnector(), "place").value(),
+                apiKey.getConnector().getDeviceNickname(), "data",
+                apiKey.getConnector().getDeviceNickname(), "data");
         channelMappings.add(movesDataChannelMapping);
     }
 

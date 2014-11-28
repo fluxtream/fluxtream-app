@@ -48,7 +48,7 @@ public class JawboneUpMovesIntensityFieldHandler implements FieldHandler {
 
     @Override
     public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
-        ChannelMapping.addToDeclaredMappings(apiKey, 2, "Jawbone_UP", "intensity", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, 2, apiKey.getConnector().getDeviceNickname(), "intensity", channelMappings);
     }
 
 }

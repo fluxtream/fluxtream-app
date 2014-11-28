@@ -18,6 +18,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -87,12 +88,13 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
      * @param apiKey
      */
     @Override
+    @Transactional(readOnly=false)
     public void mapChannels(ApiKey apiKey) {
 
         final Connector connector = apiKey.getConnector();
 
         // only delete mappings that were previously created by this method
-        Query deleteExistingMappingsQuery = em.createQuery("DELETE mapping FROM ChannelMapping mapping WHERE mapping.apiKeyId=? AND mapping.creationType=?");
+        Query deleteExistingMappingsQuery = em.createQuery("DELETE FROM ChannelMapping mapping WHERE mapping.apiKeyId=? AND mapping.creationType=?");
         deleteExistingMappingsQuery.setParameter(1, apiKey.getId());
         deleteExistingMappingsQuery.setParameter(2, ChannelMapping.CreationType.mapChannels);
         deleteExistingMappingsQuery.executeUpdate();
@@ -124,12 +126,14 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
                     facetFieldChannelMapping.setCreationType(ChannelMapping.CreationType.mapChannels);
                     em.persist(facetFieldChannelMapping);
                 }
-                final FieldHandler fieldHandler = getFieldHandler(facetName);
-                final List<ChannelMapping> fieldHandlerMappings = new ArrayList<ChannelMapping>();
-                fieldHandler.addToDeclaredChannelMappings(apiKey, fieldHandlerMappings);
-                for (ChannelMapping fieldHandlerMapping : fieldHandlerMappings) {
-                    fieldHandlerMapping.setCreationType(ChannelMapping.CreationType.mapChannels);
-                    em.persist(fieldHandlerMapping);
+                final List<FieldHandler> handlers = getFieldHandlers(facetName);
+                for (FieldHandler fieldHandler : handlers) {
+                    final List<ChannelMapping> fieldHandlerMappings = new ArrayList<ChannelMapping>();
+                    fieldHandler.addToDeclaredChannelMappings(apiKey, fieldHandlerMappings);
+                    for (ChannelMapping fieldHandlerMapping : fieldHandlerMappings) {
+                        fieldHandlerMapping.setCreationType(ChannelMapping.CreationType.mapChannels);
+                        em.persist(fieldHandlerMapping);
+                    }
                 }
             }
         }
@@ -241,19 +245,19 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
     }
 
     private FieldHandler getFieldHandler(String fieldHandlerName) {
-        String HandlerName = fieldHandlerName.substring(1);
-        if (fieldHandlers.get(HandlerName)==null) {
+        if (fieldHandlers.get(fieldHandlerName)==null) {
             FieldHandler fieldHandler;
-            fieldHandler = (FieldHandler)beanFactory.getBean(HandlerName);
-            fieldHandlers.put(HandlerName, fieldHandler);
+            fieldHandler = (FieldHandler)beanFactory.getBean(fieldHandlerName);
+            fieldHandlers.put(fieldHandlerName, fieldHandler);
         }
-        return fieldHandlers.get(HandlerName);
+        return fieldHandlers.get(fieldHandlerName);
     }
 
     private List<String> getDatastoreChannelNames(String facetName) {
-        String[] channelNamesMappings = env.bodytrackProperties.getString(facetName + ".channel_names").split(",");
+        List<Object> channelNamesMappings = env.bodytrackProperties.getList(facetName + ".channel_names");
         List<String> channelNames = new ArrayList<String>();
-        for (String mapping : channelNamesMappings) {
+        for (Object mappingObj : channelNamesMappings) {
+            String mapping = (String) mappingObj;
             String[] terms = StringUtils.split(mapping, ":");
             if (terms[1].startsWith("#"))
                 continue;
@@ -263,9 +267,10 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
     }
 
     private List<String> getFacetColumnNames(String facetName) {
-        String[] channelNamesMappings = env.bodytrackProperties.getString(facetName + ".channel_names").split(",");
+        List<Object> channelNamesMappings = env.bodytrackProperties.getList(facetName + ".channel_names");
         List<String> channelNames = new ArrayList<String>();
-        for (String mapping : channelNamesMappings) {
+        for (Object mappingObj : channelNamesMappings) {
+            String mapping = (String) mappingObj;
             String[] terms = StringUtils.split(mapping, ":");
             if (terms[1].startsWith("#"))
                 continue;
@@ -275,15 +280,16 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
     }
 
     private List<FieldHandler> getFieldHandlers(String facetName) {
-        String[] channelNamesMappings = env.bodytrackProperties.getString(facetName + ".channel_names").split(",");
+        List<Object> channelNamesMappings = env.bodytrackProperties.getList(facetName + ".channel_names");
         List<FieldHandler> fieldHandlers = new ArrayList<FieldHandler>();
-        for (String mapping : channelNamesMappings) {
+        for (Object mappingObj : channelNamesMappings) {
+            String mapping = (String) mappingObj;
             String[] terms = StringUtils.split(mapping, ":");
             if (terms[1].startsWith("#")) {
                 String handlerName = terms[1].substring(1);
                 if (handlerName.equalsIgnoreCase("NOOP")||handlerName.equalsIgnoreCase("OOP"))
                     continue;
-                FieldHandler fieldHandler = getFieldHandler(handlerName);
+                FieldHandler fieldHandler = getFieldHandler(handlerName.substring(1));
                 fieldHandlers.add(fieldHandler);
             }
         }

@@ -64,15 +64,14 @@ public class TwitterBodytrackResponder extends AbstractBodytrackResponder {
 
     @Override
     public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
-        final Connector connector = Connector.getConnector("twitter");
         ChannelMapping twitterChannelMapping = new ChannelMapping(
                 apiKey.getId(), apiKey.getGuestId(),
                 ChannelMapping.ChannelType.timespan,
                 ChannelMapping.TimeType.gmt,
-                ObjectType.getObjectType(connector, "tweet").value() + ObjectType.getObjectType(connector, "dm").value() +
-                        ObjectType.getObjectType(connector, "mention").value(),
-                connector.getDeviceNickname(), "activity",
-                connector.getDeviceNickname(), "activity");
+                ObjectType.getObjectType(apiKey.getConnector(), "tweet").value() + ObjectType.getObjectType(apiKey.getConnector(), "dm").value() +
+                        ObjectType.getObjectType(apiKey.getConnector(), "mention").value(),
+                apiKey.getConnector().getDeviceNickname(), "activity",
+                apiKey.getConnector().getDeviceNickname(), "activity");
         channelMappings.add(twitterChannelMapping);
     }
 

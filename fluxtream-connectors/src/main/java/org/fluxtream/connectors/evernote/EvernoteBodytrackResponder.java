@@ -93,14 +93,13 @@ public class EvernoteBodytrackResponder extends AbstractBodytrackResponder {
 
     @Override
     public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
-        final Connector connector = Connector.getConnector("evernote");
         ChannelMapping sleepChannelMapping = new ChannelMapping(
                 apiKey.getId(), apiKey.getGuestId(),
                 ChannelMapping.ChannelType.timespan,
                 ChannelMapping.TimeType.gmt,
-                ObjectType.getObjectType(connector, "note").value(),
-                connector.getDeviceNickname(), "up-sleep",
-                connector.getDeviceNickname(), "up-sleep");
+                ObjectType.getObjectType(apiKey.getConnector(), "note").value(),
+                apiKey.getConnector().getDeviceNickname(), "notes",
+                apiKey.getConnector().getDeviceNickname(), "notes");
         channelMappings.add(sleepChannelMapping);
     }
 

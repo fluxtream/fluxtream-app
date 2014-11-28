@@ -63,14 +63,13 @@ public class LastFmBodytrackResponder extends AbstractBodytrackResponder {
 
     @Override
     public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
-        final Connector connector = Connector.getConnector("lastfm");
         ChannelMapping lastfmChannelMapping = new ChannelMapping(
                 apiKey.getId(), apiKey.getGuestId(),
                 ChannelMapping.ChannelType.timespan,
                 ChannelMapping.TimeType.gmt,
-                ObjectType.getObjectType(connector, "recent_tracks").value(),
-                connector.getDeviceNickname(), "tracks",
-                connector.getDeviceNickname(), "tracks");
+                ObjectType.getObjectType(apiKey.getConnector(), "recent_track").value(),
+                apiKey.getConnector().getDeviceNickname(), "tracks",
+                apiKey.getConnector().getDeviceNickname(), "tracks");
         channelMappings.add(lastfmChannelMapping);
     }
 

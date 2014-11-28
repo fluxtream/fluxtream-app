@@ -35,7 +35,7 @@ public class WithingsWeightFieldHandler implements FieldHandler {
     }
 
     public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
-        ChannelMapping.addToDeclaredMappings(apiKey, 1, "Withings", "weight", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, 1, apiKey.getConnector().getDeviceNickname(), "weight", channelMappings);
     }
 
 }

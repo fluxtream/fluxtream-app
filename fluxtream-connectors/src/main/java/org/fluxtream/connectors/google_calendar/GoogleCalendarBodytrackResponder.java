@@ -88,14 +88,13 @@ public class GoogleCalendarBodytrackResponder extends AbstractBodytrackResponder
 
     @Override
     public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
-        final Connector connector = Connector.getConnector("google_calendar");
         ChannelMapping sleepChannelMapping = new ChannelMapping(
                 apiKey.getId(), apiKey.getGuestId(),
                 ChannelMapping.ChannelType.timespan,
                 ChannelMapping.TimeType.local,
-                ObjectType.getObjectType(connector, "entry").value(),
-                connector.getDeviceNickname(), "entries",
-                connector.getDeviceNickname(), "entries");
+                ObjectType.getObjectType(apiKey.getConnector(), "entry").value(),
+                apiKey.getConnector().getDeviceNickname(), "entries",
+                apiKey.getConnector().getDeviceNickname(), "entries");
         channelMappings.add(sleepChannelMapping);
     }
 

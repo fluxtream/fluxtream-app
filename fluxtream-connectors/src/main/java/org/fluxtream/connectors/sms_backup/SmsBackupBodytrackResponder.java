@@ -23,7 +23,7 @@ public class SmsBackupBodytrackResponder extends BaseBodytrackResponder {
 
     @Override
     public void addToDeclaredChannelMappings(ApiKey apiKey, List<ChannelMapping> channelMappings) {
-        ChannelMapping.addToDeclaredMappings(apiKey, 3, "sms_backup", "data", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, 3, apiKey.getConnector().getDeviceNickname(), "data", channelMappings);
     }
 
 }

@@ -586,15 +586,6 @@ public class BodyTrackHelper {
         return channelMapping;
     }
 
-    public List<ChannelMapping> getChannelMappings(ApiKey apiKey, int objectTypeId){
-        return JPAUtils.find(em,ChannelMapping.class,"channelMapping.byApiKeyAndObjectType",apiKey.getGuestId(),apiKey.getId(),objectTypeId);
-    }
-
-    public List<ChannelMapping> getChannelMappings(ApiKey apiKey){
-        return JPAUtils.find(em,ChannelMapping.class,"channelMapping.byApiKey",apiKey.getGuestId(),apiKey.getId());
-    }
-
-
     public List<ChannelMapping> getChannelMappings(long guestId){
         return JPAUtils.find(em,ChannelMapping.class,"channelMapping.all",guestId);
     }
@@ -604,28 +595,6 @@ public class BodyTrackHelper {
         query.setParameter(1,apiKey.getGuestId());
         query.setParameter(2,apiKey.getId());
         query.executeUpdate();
-    }
-
-    public void persistChannelMapping(ChannelMapping mapping){
-        em.persist(mapping);
-    }
-
-    public Source getSourceForApiKey(ApiKey key){
-        List<ChannelMapping> channelMappings = JPAUtils.find(em, ChannelMapping.class, "channelMapping.byApiKeyID", key.getGuestId(), key.getId());
-        Source s = null;
-        if (channelMappings.size() > 0){
-            s = new Source();
-            s.channels = new ArrayList<Channel>();
-            s.name = key.getConnector().getName();
-            for (ChannelMapping mapping : channelMappings){
-                Channel c = new Channel();
-                s.channels.add(c);
-                c.name =  mapping.getChannelName();
-                c.type = mapping.getChannelType().name();
-                c.time_type = mapping.getTimeType().name();
-            }
-        }
-        return s;
     }
 
     public void setBuiltinDefaultStyle(final Long guestId, final String deviceName, final String channelName, final ChannelStyle style){
