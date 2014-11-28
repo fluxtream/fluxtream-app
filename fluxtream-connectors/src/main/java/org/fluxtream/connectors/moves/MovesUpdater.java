@@ -270,7 +270,7 @@ public class MovesUpdater extends AbstractUpdater {
         stylePart.borderColor = "#6f6f6d";
         channelStyle.timespanStyles.values.put("trp",stylePart);
 
-        bodyTrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(),"moves","data",channelStyle);
+        bodyTrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), apiKey.getConnector().getName(), "data", channelStyle);
     }
 
 

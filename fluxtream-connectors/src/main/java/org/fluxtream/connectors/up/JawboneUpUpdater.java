@@ -132,7 +132,7 @@ public class JawboneUpUpdater extends AbstractUpdater {
         stylePart.borderColor = "#f87d04";
         channelStyle.timespanStyles.values.put("wake",stylePart);
 
-        bodyTrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), "Jawbone_UP", "sleep", channelStyle);
+        bodyTrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), apiKey.getConnector().getName(), "sleep", channelStyle);
     }
 
     @Override

@@ -714,6 +714,32 @@ public class BodyTrackController {
             @ApiResponse(code=403, message="In case of unauthorized access")
     })
     @Produces({MediaType.APPLICATION_JSON})
+    public Response getGuestSourceList(@ApiParam(value= "User ID", required= true) @PathParam("UID") Long uid) {
+        try{
+            final long loggedInUserId = AuthHelper.getGuestId();
+            boolean accessAllowed = isOwnerOrAdmin(uid);
+            CoachingBuddy coachee = null;
+            if (!accessAllowed) {
+                coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+                accessAllowed = (coachee!=null);
+            }
+            if (!accessAllowed){
+                uid = null;
+            }
+            return Response.ok(bodyTrackHelper.getSourcesResponse(uid)).build();
+        }
+        catch (Exception e){
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
+        }
+    }
+
+    @GET
+    @Path("/none/{UID}/sources/list")
+    @ApiOperation(value="Retrieves a list of devices and channels that data can be retrieved from", response=BodyTrackHelper.SourcesResponse.class)
+    @ApiResponses({
+            @ApiResponse(code=403, message="In case of unauthorized access")
+    })
+    @Produces({MediaType.APPLICATION_JSON})
     public Response getSourceList(@ApiParam(value= "User ID", required= true) @PathParam("UID") Long uid) {
         try{
             final long loggedInUserId = AuthHelper.getGuestId();

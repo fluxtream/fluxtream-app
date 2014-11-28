@@ -279,10 +279,16 @@ public class BodyTrackHelper {
         }
     }
 
-
-
     public String fetchTile(Long guestId, String deviceNickname, String channelName, int level, long offset){
         return gson.toJson(fetchTileObject(guestId,deviceNickname,channelName,level,offset));
+    }
+
+    public String getSourcesResponse(Long guestId) {
+        final SourcesResponse response = new SourcesResponse();
+        final List<ChannelMapping> channelMappings = getChannelMappings(guestId);
+        populateResponseWithChannelMappings(guestId, null, response, channelMappings);
+        final String jsonResponse = gson.toJson(response);
+        return jsonResponse;
     }
 
     public String listSources(Long guestId, CoachingBuddy coachee){
@@ -389,53 +395,7 @@ public class BodyTrackHelper {
             response.deleteSource("SMS_Backup");
 
             final List<ChannelMapping> channelMappings = getChannelMappings(guestId);
-            for (ChannelMapping mapping : channelMappings){
-                ApiKey api = guestService.getApiKey(mapping.getApiKeyId());
-                // This is to prevent a rare condition when working, under development, on a branch that
-                // doesn't yet support a connector that is supported on another branch and resulted
-                // in data being populated in the database which is going to cause a crash here
-                if (api.getConnector()==null)
-                    continue;
-                // filter out not shared connectors
-                if (coachee!=null&& buddiesService.getSharedConnector(api.getId(), AuthHelper.getGuestId())==null)
-                    continue;
-                Source source = response.hasSource(mapping.getDeviceName());
-                if (source == null){
-                    source = new Source();
-                    response.sources.add(source);
-                    source.name = mapping.getDeviceName();
-                    source.channels = new ArrayList<Channel>();
-                    source.min_time = Double.MAX_VALUE;
-                    source.max_time = Double.MIN_VALUE;
-                }
-                Channel channel = new Channel();
-                channel.name = mapping.getChannelName();
-                channel.type = mapping.getChannelType().name();
-                channel.time_type = mapping.getTimeType().name();
-                source.channels.add(channel);
-
-                // Set builtin default style and style to a line by default
-                channel.builtin_default_style = ChannelStyle.getDefaultChannelStyle(channel.name);
-                channel.style = channel.builtin_default_style;
-
-                // getDefaultStyle checks for user-generated overrides in the database.
-                // If it returns non-null we set style to the user-generated value, otherwise we leave
-                // it as the builtin default
-                ChannelStyle userStyle = getDefaultStyle(guestId,source.name,channel.name);
-                if (userStyle != null)
-                    channel.style = userStyle;
-
-                final AbstractBodytrackResponder bodytrackResponder = api.getConnector().getBodytrackResponder(beanFactory);
-                if (bodytrackResponder != null){
-                    AbstractBodytrackResponder.Bounds bounds = bodytrackResponder.getBounds(mapping);
-                    channel.min_time = bounds.min_time;
-                    channel.max_time = bounds.max_time;
-                    channel.min = bounds.min;
-                    channel.max = bounds.max;
-                    source.min_time = Math.min(source.min_time,channel.min_time);
-                    source.max_time = Math.max(source.max_time,channel.max_time);
-                }
-            }
+            populateResponseWithChannelMappings(guestId, coachee, response, channelMappings);
 
             // add the All photos block to the response
             if (!photoChannelTimeRanges.isEmpty()) {
@@ -468,6 +428,57 @@ public class BodyTrackHelper {
             logger.error(sb.toString());
 
             return gson.toJson(new SourcesResponse(null, guestId, coachee));
+        }
+    }
+
+    private void populateResponseWithChannelMappings(Long guestId, CoachingBuddy coachee, SourcesResponse response, List<ChannelMapping> channelMappings) {
+        for (ChannelMapping mapping : channelMappings){
+            ApiKey api = guestService.getApiKey(mapping.getApiKeyId());
+            // This is to prevent a rare condition when working, under development, on a branch that
+            // doesn't yet support a connector that is supported on another branch and resulted
+            // in data being populated in the database which is going to cause a crash here
+            if (api.getConnector()==null)
+                continue;
+            // filter out not shared connectors
+            if (coachee!=null&& buddiesService.getSharedConnector(api.getId(), AuthHelper.getGuestId())==null)
+                continue;
+            Source source = response.hasSource(mapping.getDeviceName());
+            if (source == null){
+                source = new Source();
+                response.sources.add(source);
+                source.name = mapping.getDeviceName();
+                source.channels = new ArrayList<Channel>();
+                source.min_time = Double.MAX_VALUE;
+                source.max_time = Double.MIN_VALUE;
+            }
+            Channel channel = new Channel();
+            channel.name = mapping.getChannelName();
+            channel.type = mapping.getChannelType().name();
+            channel.time_type = mapping.getTimeType().name();
+            source.channels.add(channel);
+
+            // Set builtin default style and style to a line by default
+            channel.builtin_default_style = ChannelStyle.getDefaultChannelStyle(channel.name);
+            channel.style = channel.builtin_default_style;
+
+            // getDefaultStyle checks for user-generated overrides in the database.
+            // If it returns non-null we set style to the user-generated value, otherwise we leave
+            // it as the builtin default
+            ChannelStyle userStyle = getDefaultStyle(guestId,api.getConnector().getDeviceNickname(),channel.name);
+            if (userStyle != null) {
+                channel.style = userStyle;
+            }
+
+            final AbstractBodytrackResponder bodytrackResponder = api.getConnector().getBodytrackResponder(beanFactory);
+            if (bodytrackResponder != null){
+                AbstractBodytrackResponder.Bounds bounds = bodytrackResponder.getBounds(mapping);
+                channel.min_time = bounds.min_time;
+                channel.max_time = bounds.max_time;
+                channel.min = bounds.min;
+                channel.max = bounds.max;
+                source.min_time = Math.min(source.min_time,channel.min_time);
+                source.max_time = Math.max(source.max_time,channel.max_time);
+            }
         }
     }
 
@@ -598,7 +609,7 @@ public class BodyTrackHelper {
     }
 
     public void setBuiltinDefaultStyle(final Long guestId, final String deviceName, final String channelName, final ChannelStyle style){
-        setBuiltinDefaultStyle(guestId,deviceName,channelName,gson.toJson(style));
+        setBuiltinDefaultStyle(guestId, deviceName, channelName, gson.toJson(style));
     }
 
     @Transactional(readOnly = false)
@@ -821,7 +832,9 @@ public class BodyTrackHelper {
     @ApiModel
     public class SourcesResponse {
         @ApiModelProperty
-        public List<Source> sources;
+        public List<Source> sources = new ArrayList<Source>();
+
+        public SourcesResponse() {}
 
         public SourcesResponse(ChannelInfoResponse infoResponse, Long guestId, CoachingBuddy coachee){
             sources = new ArrayList<Source>();

@@ -55,10 +55,10 @@ public class BodyMediaBurnFieldHandler implements FieldHandler {
 
     @Override
     public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
-        ChannelMapping.addToDeclaredMappings(apiKey, 1, "BodyMedia", "onBody", channelMappings);
-        ChannelMapping.addToDeclaredMappings(apiKey, 1, "BodyMedia", "mets", channelMappings);
-        ChannelMapping.addToDeclaredMappings(apiKey, 1, "BodyMedia", "caloriesBurned", channelMappings);
-        ChannelMapping.addToDeclaredMappings(apiKey, 1, "BodyMedia", "activityType", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, 1, apiKey.getConnector().getDeviceNickname(), "onBody", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, 1, apiKey.getConnector().getDeviceNickname(), "mets", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, 1, apiKey.getConnector().getDeviceNickname(), "caloriesBurned", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, 1, apiKey.getConnector().getDeviceNickname(), "activityType", channelMappings);
     }
 
     private int intensity(final String activityType) {

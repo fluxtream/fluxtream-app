@@ -101,9 +101,9 @@ public class RunKeeperUpdater  extends AbstractUpdater {
     public void setDefaultChannelStyles(ApiKey apiKey) {
         // Set the channel defaults for the Runkeeper datastore channels. Set most of the channels to
         // default to show as bars rather than lines
-        bodytrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), "runkeeper", "minutesPerKilometer", barsStyle);
-        bodytrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), "runkeeper", "minutesPerMile", barsStyle);
-        bodytrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), "runkeeper", "totalCalories", barsStyle);
+        bodytrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), apiKey.getConnector().getName(), "minutesPerKilometer", barsStyle);
+        bodytrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), apiKey.getConnector().getName(), "minutesPerMile", barsStyle);
+        bodytrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), apiKey.getConnector().getName(), "totalCalories", barsStyle);
     }
 
 

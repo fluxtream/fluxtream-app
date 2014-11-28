@@ -52,7 +52,7 @@ public class BodyMediaStepsFieldHandler implements FieldHandler {
 
     @Override
     public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
-        ChannelMapping.addToDeclaredMappings(apiKey, 2, "BodyMedia", "stepsGraph", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, 2, apiKey.getConnector().getDeviceNickname(), "stepsGraph", channelMappings);
     }
 
 }

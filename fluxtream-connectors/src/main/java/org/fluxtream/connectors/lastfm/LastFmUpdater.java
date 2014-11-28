@@ -76,7 +76,7 @@ public class LastFmUpdater extends AbstractUpdater {
         stylePart.borderColor = "#fd4938";
         channelStyle.timespanStyles.values.put("on",stylePart);
 
-        bodyTrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(),"lastfm","tracks",channelStyle);
+        bodyTrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), apiKey.getConnector().getName(), "tracks", channelStyle);
     }
 
     private void retrieveTracks(final UpdateInfo updateInfo, final long fromTime, final String tracksType) throws Exception {

@@ -95,8 +95,8 @@ public class JawboneUpBodytrackResponder extends AbstractBodytrackResponder {
                 ChannelMapping.ChannelType.timespan,
                 ChannelMapping.TimeType.gmt,
                 ObjectType.getObjectType(apiKey.getConnector(), "sleep").value(),
-                apiKey.getConnector().getDeviceNickname(), "up-sleep",
-                apiKey.getConnector().getDeviceNickname(), "up-sleep");
+                apiKey.getConnector().getDeviceNickname(), "sleep",
+                apiKey.getConnector().getDeviceNickname(), "sleep");
         channelMappings.add(sleepChannelMapping);
     }
 

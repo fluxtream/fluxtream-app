@@ -120,6 +120,8 @@ public class ChannelMapping extends AbstractEntity {
         this.internalChannelName = internalChannelName;
     }
 
+    public ChannelMapping() {}
+
     /**
      * Adds a channelMapping with passed parameter and a gmt timeType, 'data' channelType to the supplied channelMappings list
      * @param apiKey

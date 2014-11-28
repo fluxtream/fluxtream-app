@@ -520,7 +520,7 @@ public class TwitterFeedUpdater extends AbstractUpdater {
         stylePart.borderColor = "#92EF75";
         channelStyle.timespanStyles.values.put("mention",stylePart);
 
-        bodyTrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), "twitter", "activity", channelStyle);
+        bodyTrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), apiKey.getConnector().getName(), "activity", channelStyle);
     }
 
 }

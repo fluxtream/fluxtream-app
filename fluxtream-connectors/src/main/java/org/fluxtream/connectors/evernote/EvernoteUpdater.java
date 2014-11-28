@@ -268,8 +268,8 @@ public class EvernoteUpdater extends AbstractUpdater implements SettingsAwareUpd
 
         addStyleParts(notebookConfigs, channelStyle);
 
-        bodyTrackHelper.deleteStyle(apiKey.getGuestId(), "Evernote");
-        bodyTrackHelper.setDefaultStyle(apiKey.getGuestId(), "Evernote", "note", channelStyle);
+        bodyTrackHelper.deleteStyle(apiKey.getGuestId(), apiKey.getConnector().getName());
+        bodyTrackHelper.setDefaultStyle(apiKey.getGuestId(), apiKey.getConnector().getName(), "notes", channelStyle);
     }
 
     private int getNumberOfVisibleNotebooks(final List<NotebookConfig> notebookConfigs) {

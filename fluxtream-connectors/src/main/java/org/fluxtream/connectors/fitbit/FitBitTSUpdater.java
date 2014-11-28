@@ -1299,7 +1299,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         stylePart.borderColor = "#21b5cf";
         channelStyle.timespanStyles.values.put("on",stylePart);
 
-        bodyTrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(),"fitbit","sleep",channelStyle);
+        bodyTrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), apiKey.getConnector().getName(),"sleep",channelStyle);
     }
 
 }

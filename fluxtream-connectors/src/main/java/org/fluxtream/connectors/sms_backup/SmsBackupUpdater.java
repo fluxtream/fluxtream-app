@@ -929,7 +929,7 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
         channelStyle.timespanStyles.defaultStyle.top = 0.0;
         channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
 
-        bodyTrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(),"sms_backup","call_log",channelStyle);
+        bodyTrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), apiKey.getConnector().getName(), "data", channelStyle);
     }
 
 }

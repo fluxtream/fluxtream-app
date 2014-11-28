@@ -93,8 +93,8 @@ public class BodyMediaSleepFieldHandler implements FieldHandler {
 
     @Override
     public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
-        ChannelMapping.addToDeclaredMappings(apiKey, 4, "BodyMedia", "sleeping", channelMappings);
-        ChannelMapping.addToDeclaredMappings(apiKey, 4, "BodyMedia", "lying", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, 4, apiKey.getConnector().getDeviceNickname(), "sleeping", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, 4, apiKey.getConnector().getDeviceNickname(), "lying", channelMappings);
     }
 
 }
