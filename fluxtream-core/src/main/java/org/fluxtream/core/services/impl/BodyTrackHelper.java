@@ -598,7 +598,7 @@ public class BodyTrackHelper {
     }
 
     public List<ChannelMapping> getChannelMappings(long guestId){
-        return JPAUtils.find(em,ChannelMapping.class,"channelMapping.all",guestId);
+        return JPAUtils.find(em, ChannelMapping.class, "channelMapping.all",guestId);
     }
 
     public void deleteChannelMappings(ApiKey apiKey){

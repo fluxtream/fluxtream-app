@@ -138,6 +138,20 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
             }
         }
 
+        // add photo channels
+        ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
+        for (ObjectType objectType : objectTypes) {
+            if (objectType.isImageType()) {
+                ChannelMapping.TimeType timeType = getTimeType(connector);
+                ChannelMapping photoChannelMapping = new ChannelMapping(apiKey.getId(), apiKey.getGuestId(),
+                        ChannelMapping.ChannelType.photo, timeType, objectType.value(),
+                        apiKey.getConnector().getDeviceNickname(), "photo",
+                        apiKey.getConnector().getDeviceNickname(), "photo");
+                photoChannelMapping.setCreationType(ChannelMapping.CreationType.mapChannels);
+                em.persist(photoChannelMapping);
+            }
+        }
+
         // finally, possibly create default ChannelStyles
         final AbstractUpdater updater = beanFactory.getBean(connector.getUpdaterClass());
         updater.setDefaultChannelStyles(apiKey);
@@ -149,14 +163,19 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
             channelType = ChannelMapping.ChannelType.photo;
         Connector connector = apiKey.getConnector();
         final String deviceName = connector.getDeviceNickname();
-        ChannelMapping.TimeType timeType = ChannelMapping.TimeType.gmt;
-        if (Arrays.asList("zeo", "flickr", "fitbit").contains(connector.getName()))
-            timeType = ChannelMapping.TimeType.local;
+        ChannelMapping.TimeType timeType = getTimeType(connector);
         ChannelMapping declaredMapping = new ChannelMapping(apiKey.getId(), apiKey.getGuestId(),
                 channelType, timeType, objectType.value(),
                 deviceName, facetFieldChannelName,
                 deviceName, facetFieldChannelName);
         return declaredMapping;
+    }
+
+    private ChannelMapping.TimeType getTimeType(Connector connector) {
+        ChannelMapping.TimeType timeType = ChannelMapping.TimeType.gmt;
+        if (Arrays.asList("zeo", "flickr", "fitbit").contains(connector.getName()))
+            timeType = ChannelMapping.TimeType.local;
+        return timeType;
     }
 
     private void logStoreApiData(final long guestId, final List<? extends AbstractFacet> facets) {
@@ -220,9 +239,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
             query.setParameter(3, channelName);
             final List<ChannelMapping> mappings = query.getResultList();
             if (mappings==null||mappings.size()==0) {
-                ChannelMapping.TimeType timeType = ChannelMapping.TimeType.gmt;
-                if (Arrays.asList("zeo", "flickr", "fitbit").contains(apiKey.getConnector().getName()))
-                    timeType = ChannelMapping.TimeType.local;
+                ChannelMapping.TimeType timeType = getTimeType(apiKey.getConnector());
                 ChannelMapping mapping = new ChannelMapping(apiKey.getId(), apiKey.getGuestId(),
                         channelType, timeType, objectTypeId,
                         apiKey.getConnector().getDeviceNickname(), "photo",
