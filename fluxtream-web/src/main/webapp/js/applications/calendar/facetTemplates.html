@@ -1128,5 +1128,28 @@
             <a class="btn" data-dismiss="modal">Close</a>
         </div>
     </div>
-
+</template>
+<template id="beddit-sleep">
+  <div class="flx-box" style="border-left-color:{{color}}">
+    <span class="flx-deviceIcon sleep_as_android"></span>
+    <div class="facetDetails">
+      {{#facets}}
+      <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+        <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+        {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+        <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
+        <div class="flx-data">
+          <div>Target Amount of Sleep: {{sleepTimeTarget}} seconds</div>
+          <div>Time Asleep: {{totalSleepTime}} seconds</div>
+          {{#timeToFallAsleep}}<div>Time to Fall Asleep: {{.}} seconds</div>{{/timeToFallAsleep}}
+          <div>Total Time Snoring: {{snoringAmount}} seconds</div>
+          <div>Resting Heart Rate: {{restingHeartRate}} bpm</div>
+          {{#respirationRate}}<div>Average Respiration Rate: {{.}}</div>{{/respirationRate}}
+          <div>Sleep Tags: {{#sleepTags}}#{{.}} {{/sleepTags}}</div>
+        </div>
+        {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+      </div>
+      {{/facets}}
+    </div>
+  </div>
 </template>

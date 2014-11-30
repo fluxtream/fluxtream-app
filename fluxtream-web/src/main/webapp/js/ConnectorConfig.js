@@ -493,6 +493,18 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
                 }
             }
         },
+        beddit: {
+            color: "rgb(255,100,0)",
+            facets: {
+                sleep: {
+                    list: true,
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: ClockConfig.BODY_CATEGORY
+                }
+            }
+        },
         zeo:{
             hasTimelineSettings: true,
             device_name:"Zeo",
