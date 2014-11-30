@@ -174,23 +174,23 @@ public class BedditUpdater extends AbstractUpdater {
 
     private SleepFacet createOrUpdateFacet(final UpdateInfo updateInfo, final JSONObject sleepObject) throws Exception {
         final DateTimeZone timezone = DateTimeZone.forID(sleepObject.getString("timezone"));
-        final long facetStart = getUTCMillis(sleepObject.getDouble("start_timestamp"),timezone);
-        final long facetEnd =  getUTCMillis(sleepObject.getDouble("end_timestamp"),timezone);
 
         return apiDataService.createOrReadModifyWrite(SleepFacet.class,new ApiDataService.FacetQuery(
-                "e.apiKeyId = ? AND e.start = ? AND e.end = ?",
-                updateInfo.apiKey.getId(), facetStart, facetEnd),
+                "e.apiKeyId = ? AND e.date = ?",
+                updateInfo.apiKey.getId(), sleepObject.getString("date")),
                 new ApiDataService.FacetModifier<SleepFacet>() {
                     @Override
                     public SleepFacet createOrModify(SleepFacet facet, Long apiKeyId) {
                         if (facet == null){
                             facet = new SleepFacet(updateInfo.apiKey.getId());
                             facet.api = updateInfo.apiKey.getConnector().value();
-                            facet.start = facetStart;
-                            facet.end = facetEnd;
+                            facet.date = sleepObject.getString("date");
                         }
 
                         facet.updatedTime = sleepObject.getDouble("updated");
+
+                        facet.start = getUTCMillis(sleepObject.getDouble("start_timestamp"),timezone);
+                        facet.end = getUTCMillis(sleepObject.getDouble("end_timestamp"),timezone);
 
                         JSONObject propertiesObject = sleepObject.getJSONObject("properties");
                         facet.sleepTimeTarget = propertiesObject.getDouble("sleep_time_target");

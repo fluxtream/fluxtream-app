@@ -33,6 +33,9 @@ public class SleepFacet extends AbstractFacet {
     //time the data corresponding to this facet was updated on beddit's server. Stored as seconds double to match the API format
     public double updatedTime;
 
+    //The date for the facet. It's used to uniquely identify each entry
+    public String date;
+
     //Target sleep amount for user in seconds
     public double sleepTimeTarget;
 
