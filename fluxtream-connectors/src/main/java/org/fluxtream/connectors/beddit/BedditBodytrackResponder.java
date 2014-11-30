@@ -47,6 +47,9 @@ public class BedditBodytrackResponder extends AbstractBodytrackResponder {
                             case SleepFacet.STATE_ASLEEP:
                                 items.add(new TimespanModel(lastTimestamp,stage.first,"asleep",objectTypeName));
                                 break;
+                            case SleepFacet.STATE_MEASUREMENT_GAP:
+                                //we don't create an element for measurement gaps.
+                                break;
                         }
                     }
                     lastTimestamp = stage.first;
@@ -62,6 +65,9 @@ public class BedditBodytrackResponder extends AbstractBodytrackResponder {
                             break;
                         case SleepFacet.STATE_ASLEEP:
                             items.add(new TimespanModel(lastTimestamp,facet.end,"asleep",objectTypeName));
+                            break;
+                        case SleepFacet.STATE_MEASUREMENT_GAP:
+                            //we don't create an element for measurement gaps.
                             break;
                     }
                 }
