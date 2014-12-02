@@ -98,6 +98,7 @@ import java.util.ListIterator;
         widgetManifestModel.WidgetTitle = dashboardWidget.WidgetTitle;
         widgetManifestModel.WidgetIcon = dashboardWidget.WidgetIcon;
         widgetManifestModel.HasSettings = dashboardWidget.HasSettings;
+        widgetManifestModel.RequiredConnectors = dashboardWidget.RequiredConnectors;
 
         DashboardWidgetModel widgetModel = new DashboardWidgetModel();
         widgetModel.manifest = widgetManifestModel;

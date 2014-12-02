@@ -3,6 +3,7 @@ package org.fluxtream.core.mvc.models;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,4 +26,6 @@ public class DashboardWidgetManifestModel {
     public String WidgetIcon;
     @ApiModelProperty(value="Does it support settings?", required=true)
     public boolean HasSettings;
+    @ApiModelProperty(value="Required Connectors", required=true)
+    public List<String> RequiredConnectors;
 }

@@ -1,7 +1,7 @@
 define(["core/Tab",
         "applications/calendar/App", "applications/calendar/tabs/dashboards/ManageDashboards",
-        "applications/calendar/tabs/dashboards/AddWidget"],
-       function(Tab, Calendar, ManageDashboards, AddWidget) {
+        "applications/calendar/tabs/dashboards/AddWidget", "core/widgetSandbox/SandboxedWidget"],
+       function(Tab, Calendar, ManageDashboards, AddWidget, SandboxedWidget) {
 	
 	var digest, dashboardData;
 
@@ -109,6 +109,7 @@ define(["core/Tab",
     }
 
     function loadWidgets(activeWidgetInfos) {
+        App.clearAllSandboxMessageListeners();
         for (var i=0; i<activeWidgetInfos.length; i++) {
             var widgetInfo = activeWidgetInfos[i];
             loadWidget(widgetInfo);
@@ -134,9 +135,7 @@ define(["core/Tab",
                    });
        }
        else{ //we didn't host the widget so we have to sandbox it
-           require(["core/widgetSandbox/SandboxedWidget"],function(SandboxWidgetModule) {
-               SandboxWidgetModule.load(widgetInfo,digest,dashboardsTab.activeDashboard);
-           });
+           new SandboxedWidget().load(widgetInfo,digest,dashboardsTab.activeDashboard);
 
        }
    }
