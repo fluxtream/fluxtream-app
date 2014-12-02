@@ -116,14 +116,29 @@ define(["core/Tab",
         doneLoading();
     }
 
+
+   function getWidgetHostName(widgetInfo){
+       var parser = document.createElement("a");
+       parser.href = widgetInfo.manifest.WidgetRepositoryURL;
+       return parser.host;
+   }
+
    function loadWidget(widgetInfo) {
        var that = this;
-       require([widgetInfo.manifest.WidgetRepositoryURL + "/"
-                    + widgetInfo.manifest.WidgetName + "/"
-                    + widgetInfo.manifest.WidgetName + ".js"],
-               function(WidgetModule) {
-                   WidgetModule.load(widgetInfo, digest, dashboardsTab.activeDashboard);
-               });
+       if (window.location.host == getWidgetHostName(widgetInfo)) {
+           require([widgetInfo.manifest.WidgetRepositoryURL + "/"
+                        + widgetInfo.manifest.WidgetName + "/"
+                        + widgetInfo.manifest.WidgetName + ".js"],
+                   function(WidgetModule) {
+                       WidgetModule.load(widgetInfo, digest, dashboardsTab.activeDashboard);
+                   });
+       }
+       else{ //we didn't host the widget so we have to sandbox it
+           require(["core/widgetSandbox/SandboxedWidget"],function(SandboxWidgetModule) {
+               SandboxWidgetModule.load(widgetInfo,digest,dashboardsTab.activeDashboard);
+           });
+
+       }
    }
 
     function getActiveWidgetInfos(dashboards) {
