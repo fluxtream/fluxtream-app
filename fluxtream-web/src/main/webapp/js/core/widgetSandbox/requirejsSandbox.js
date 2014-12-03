@@ -1,31 +1,73 @@
 (function($){
+
     window.define = function(modules,newModule){
         if (typeof modules == "function"){
             newModule = modules;
             modules = [];
         }
         var args = [];
-        for (var i = 0, li = modules.length; i < li; i++) {
-            if (modules[i].substring(0,4) != "http"){
-                var prefix = "/" + window.FLX_RELEASE_NUMBER + "/js";
-                modules[i] = prefix + (modules[i].charAt(0) == '/' ? "" : "/") + modules[i];
+
+        var onDone = {
+            onDefineDone: function(returnVal){
+                console.warn("Define done missed!!");
+            },
+            isDefineObject: true
+        };
+
+        (function getNextScript(i){
+            if (i >= modules.length){
+                onAllScriptsReady();
+                return;
             }
-            modules[i] = modules[i] + ".js";
-            $.ajax(modules[i],{
+            var url = modules[i];
+            if (url.substring(0,4) != "http"){
+                var prefix = "/" + window.FLX_RELEASE_NUMBER + "/js";
+                url = prefix + (modules[i].charAt(0) == '/' ? "" : "/") + url;
+            }
+            url = url + ".js";
+            $.ajax(url,{
                 dataType: "text",
-                async: false,
                 success: function(result){
-                    args.push(eval(result));
+                    var ret = eval(result);
+                    if (typeof ret == "object" && ret.isDefineObject){
+                        ret.onDefineDone = function(returnVal){
+                            args.push(returnVal);
+                            getNextScript(i+1);
+                        }
+
+                    }
+                    else{
+                        args.push(ret);
+                        getNextScript(i+1);
+                    }
                 },
-                errror: function(){
+                error: function(){
                     console.log(args);
                 }
-            })
+            });
+        })(0);
+
+        function onAllScriptsReady(){
+            var ret = newModule.apply(window,args);
+            if (typeof ret == "object" && ret.isDefineObject){
+                ret.onDefineDone = function(returnVal){
+                    doDone(returnVal);
+                }
+            }
+            else{
+                doDone(ret);
+            }
         }
-        return newModule.apply(window,args);
+
+        function doDone(returnVal){
+            setTimeout(function(){
+                onDone.onDefineDone(returnVal);
+            },10);
+        }
+        return onDone;
     }
 
     window.require = function(modules,newModule) {
-        window.define(modules,newModule);
+        window.define(modules,newModule).onDefineDone = function(){};
     }
 })(jQuery);
