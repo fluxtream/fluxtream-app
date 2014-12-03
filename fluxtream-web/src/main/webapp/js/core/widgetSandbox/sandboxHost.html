@@ -14,8 +14,22 @@
         document.head.appendChild(script);
         script = document.createElement("script");
         script.type = "text/javascript";
-        script.src = "/" + window.FLX_RELEASE_NUMBER + "/js/core/widgetSandbox/sandboxInitializationScript.js";
+        script.src = "/" + window.FLX_RELEASE_NUMBER + "/js/core/widgetSandbox/sandboxedApp.js";
         document.head.appendChild(script);
+        function runInit(){
+          var script = document.createElement("script");
+          script.type = "text/javascript";
+          script.src = "/" + window.FLX_RELEASE_NUMBER + "/js/core/widgetSandbox/sandboxInitializationScript.js";
+          document.head.appendChild(script);
+        }
+
+        var waitForEverything = setInterval(function(){
+          if (window.jQuery != null && window._ != null && window.Hogan != null && window.define != null && window.require != null && window.App != null) {
+            clearInterval(waitForEverything);
+            runInit();
+          }
+        },10);
+
       })();
     </script>
   </head>

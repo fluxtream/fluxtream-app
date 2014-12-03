@@ -28,12 +28,13 @@
                     widgetRepository = window.location.origin + widgetRepository;
                 }
                 require([widgetRepository + "/" + window.manifest.WidgetName + "/" + window.manifest.WidgetName],function(Widget){
-                    Widget.load({manifest:window.manifest}, message.data, null);
+                    Widget.load({manifest:window.manifest,settings:window.settings}, message.data, null);
                 });
             }
             else if (message.type == "manifest") {
                 if (window.manifest == null) {
-                    window.manifest = message.data;
+                    window.manifest = message.data.manifest;
+                    window.settings = message.data.settings;
                     init();
                 }
             }

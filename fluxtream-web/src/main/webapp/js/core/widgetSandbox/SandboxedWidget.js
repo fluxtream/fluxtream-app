@@ -43,7 +43,10 @@ define(["core/DashboardWidget"],function(DashboardWidget){
         if (message.messagerId != this.messagerId)
             return;
         if (message.type == "getManifest") {
-            this.sendMessage("manifest",this.manifest);
+            this.sendMessage("manifest",{
+                manifest: this.manifest,
+                settings: this.settings
+            });
         }
         if (message.widgetName != this.manifest.WidgetName)
             return;
@@ -54,7 +57,33 @@ define(["core/DashboardWidget"],function(DashboardWidget){
             this.sendInfo = null;
         }
         if (message.type == "ready") {
-            var digestStrippedDown = {};
+            var digestStrippedDown = {
+                facets: {},
+                settings: this.digest.settings,
+                metadata: this.digest.metadata
+            };
+            if (this.manifest.RequiredConnectors != null) {
+                for (var i = 0, li = this.manifest.RequiredConnectors.length; i < li; i++){
+                    var connectorName = this.manifest.RequiredConnectors[i];
+                    for (var facetType in this.digest.facets) {
+                        if (digestStrippedDown.facets[facetType] != null)
+                            continue;
+                        if (facetType.split("-")[0] == connectorName){
+                            digestStrippedDown.facets[facetType] = [];
+                            for (var j = 0, lj = this.digest.facets[facetType].length; j < lj; j++){
+                                var sourceFacet = this.digest.facets[facetType][j];
+                                var newFacet = {};
+                                for (var member in sourceFacet){
+                                    //Objects with functions can't be passed through postMessage
+                                    if (typeof sourceFacet[member] != "function")
+                                        newFacet[member] = sourceFacet[member];
+                                }
+                                digestStrippedDown.facets[facetType].push(newFacet);
+                            }
+                        }
+                    }
+                }
+            }
             this.sendMessage("digest",digestStrippedDown);
         }
         else if (message.type == "ajax") {

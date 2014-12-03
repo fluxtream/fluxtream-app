@@ -20,25 +20,38 @@
                 return;
             }
             var url = modules[i];
+            if (modules[i].indexOf("text!") == 0){
+                url = url.substring("text!".length);
+            }
             if (url.substring(0,4) != "http"){
                 var prefix = "/" + window.FLX_RELEASE_NUMBER + "/js";
-                url = prefix + (modules[i].charAt(0) == '/' ? "" : "/") + url;
+                if (url.indexOf("widgets") == 0 || (url.indexOf("widgets") == 1 && url.charAt(0) == '/')){
+                    prefix = "";
+                }
+                url = prefix + (url.charAt(0) == '/' ? "" : "/") + url;
             }
-            url = url + ".js";
+            if (modules[i].indexOf("text!") != 0)
+                url = url + ".js";
             $.ajax(url,{
                 dataType: "text",
                 success: function(result){
-                    var ret = eval(result);
-                    if (typeof ret == "object" && ret.isDefineObject){
-                        ret.onDefineDone = function(returnVal){
-                            args.push(returnVal);
-                            getNextScript(i+1);
-                        }
-
+                    if (modules[i].indexOf("text!") == 0){
+                        args.push(result);
+                        getNextScript(i+1);
                     }
                     else{
-                        args.push(ret);
-                        getNextScript(i+1);
+                        var ret = eval(result);
+                        if (typeof ret == "object" && ret.isDefineObject){
+                            ret.onDefineDone = function(returnVal){
+                                args.push(returnVal);
+                                getNextScript(i+1);
+                            }
+
+                        }
+                        else{
+                            args.push(ret);
+                            getNextScript(i+1);
+                        }
                     }
                 },
                 error: function(){
