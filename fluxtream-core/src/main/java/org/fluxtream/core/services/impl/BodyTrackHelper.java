@@ -3,17 +3,20 @@ package org.fluxtream.core.services.impl;
 import com.google.gson.*;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
-import org.fluxtream.core.connectors.bodytrackResponders.AbstractBodytrackResponder;
+import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.domain.*;
 import org.fluxtream.core.services.*;
 import org.fluxtream.core.utils.JPAUtils;
 import org.fluxtream.core.utils.Utils;
+import org.joda.time.DateTime;
+import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -49,6 +52,143 @@ public class BodyTrackHelper {
 
         /** Returns <code>true</code> if the upload was successful, <code>false</code> otherwise. */
         boolean isSuccess();
+    }
+
+    protected long getMinTimeForApiKey(long apiKeyId, Integer objectTypeId){
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
+
+        ObjectType[] objectTypes;
+        if (objectTypeId != null)
+            objectTypes = apiKey.getConnector().getObjectTypesForValue(objectTypeId);
+        else
+            objectTypes = apiKey.getConnector().objectTypes();
+        if (objectTypes == null || objectTypes.length == 0){
+            final String minTimeAtt = guestService.getApiKeyAttribute(apiKey, ApiKeyAttribute.MIN_TIME_KEY);
+            if (minTimeAtt !=null && StringUtils.isNotEmpty(minTimeAtt)) {
+                final DateTime dateTime = ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().parseDateTime(minTimeAtt);
+                return dateTime.getMillis();
+            }
+        }
+        else{
+            long minTime = Long.MAX_VALUE;
+            for (ObjectType objectType : objectTypes){
+                final String minTimeAtt = guestService.getApiKeyAttribute(apiKey, objectType.getApiKeyAttributeName(ApiKeyAttribute.MIN_TIME_KEY));
+                if (minTimeAtt !=null && StringUtils.isNotEmpty(minTimeAtt)) {
+                    final DateTime dateTime = ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().parseDateTime(minTimeAtt);
+                    minTime = Math.min(minTime, dateTime.getMillis());
+                }
+
+            }
+            if (minTime < Long.MAX_VALUE)
+                return minTime;
+        }
+        //if we couldn't get the minTime from ApiKey Attributes fallback to oldest facet
+        AbstractFacet facet;
+        if (objectTypes == null || objectTypes.length == 0){
+            facet = apiDataService.getOldestApiDataFacet(apiKey,null);
+        }
+        else{
+            facet = null;
+            for (ObjectType objectType : objectTypes){
+                AbstractFacet potentialFacet = apiDataService.getOldestApiDataFacet(apiKey,objectType);
+                if (facet == null || facet.start > potentialFacet.start)
+                    facet = potentialFacet;
+            }
+        }
+        if (facet != null)
+            return facet.start;
+        else
+            return Long.MAX_VALUE;
+    }
+
+    protected long getMaxTimeForApiKey(long apiKeyId, Integer objectTypesMask){
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
+
+        ObjectType[] objectTypes;
+        if (objectTypesMask != null)
+            objectTypes = apiKey.getConnector().getObjectTypesForValue(objectTypesMask);
+        else
+            objectTypes = apiKey.getConnector().objectTypes();
+        if (objectTypes == null || objectTypes.length == 0){
+            final String maxTimeAtt = guestService.getApiKeyAttribute(apiKey, ApiKeyAttribute.MAX_TIME_KEY);
+            if (maxTimeAtt !=null && StringUtils.isNotEmpty(maxTimeAtt)) {
+                final DateTime dateTime = ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().parseDateTime(maxTimeAtt);
+                return dateTime.getMillis();
+            }
+        }
+        else{
+            long maxTime = Long.MIN_VALUE;
+            for (ObjectType objectType : objectTypes){
+                final String maxTimeAtt= guestService.getApiKeyAttribute(apiKey, objectType.getApiKeyAttributeName(ApiKeyAttribute.MAX_TIME_KEY));
+                if (maxTimeAtt !=null && StringUtils.isNotEmpty(maxTimeAtt)) {
+                    final DateTime dateTime = ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().parseDateTime(maxTimeAtt);
+                    maxTime = Math.max(maxTime,dateTime.getMillis());
+                }
+
+            }
+            if (maxTime > Long.MIN_VALUE)
+                return maxTime;
+        }
+        //if we couldn't get the minTime from ApiKey Attributes fallback to oldest facet
+        AbstractFacet facet;
+        if (objectTypes == null || objectTypes.length == 0){
+            facet = apiDataService.getLatestApiDataFacet(apiKey,null);
+        }
+        else{
+            facet = null;
+            for (ObjectType objectType : objectTypes){
+                AbstractFacet potentialFacet = apiDataService.getLatestApiDataFacet(apiKey,objectType);
+                if (potentialFacet != null && (facet == null || facet.end < potentialFacet.end))
+                    facet = potentialFacet;
+            }
+        }
+        if (facet != null)
+            return facet.end;
+        else
+            return Long.MIN_VALUE;
+    }
+
+    public void setChannelBounds(final ChannelMapping mapping, final Channel channel, ChannelInfoResponse infoResponse) {
+        Set<String> channelNames = infoResponse.channel_specs.keySet();
+        switch (mapping.getChannelType()){
+            case photo:
+                channel.min = 0.6;
+                channel.max = 1;
+                break;
+            case data:
+                Connector connector = Connector.fromDeviceNickname(mapping.getDeviceName());
+                if (connector!=null) {
+                    // historically, some channels have used a device nickname, others a connector name
+                    String deviceChannelName = new StringBuilder(connector.getName()).append(".").append(mapping.getChannelName()).toString();
+                    String deviceNicknameChannelName = new StringBuilder(mapping.getDeviceName()).append(".").append(mapping.getChannelName()).toString();
+                    for (String channelName : channelNames) {
+                        if (channelName.equals(deviceChannelName) || channelName.equals(deviceNicknameChannelName)) {
+                            ChannelSpecs channelSpecs = infoResponse.channel_specs.get(channelName);
+                            channel.min = channelSpecs.channel_bounds.min_value;
+                            channel.max = channelSpecs.channel_bounds.max_value;
+                            break;
+                        }
+                    }
+                } else {
+                    channel.min = 0;
+                    channel.max = 1;
+                }
+                break;
+            default:
+                channel.min = 0;
+                channel.max = 1;
+                break;
+        }
+        long maxTime = getMaxTimeForApiKey(mapping.getApiKeyId(), mapping.getObjectTypes());
+        long minTime = getMinTimeForApiKey(mapping.getApiKeyId(), mapping.getObjectTypes());
+        if (maxTime < minTime){
+            channel.max_time = 0d;
+            channel.min_time = 0d;
+        }
+        else{
+            channel.max_time = maxTime / 1000.0;
+            channel.min_time = minTime / 1000.0;
+        }
     }
 
     @PersistenceContext
@@ -285,8 +425,27 @@ public class BodyTrackHelper {
 
     public String getSourcesResponse(Long guestId) {
         final SourcesResponse response = new SourcesResponse();
+
+        final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("info",new Object[]{"-r",guestId});
+        String result = dataStoreExecutionResult.getResponse();
+
+        // Iterate over the various (photo) connectors (if any), manually inserting each into the ChannelSpecs
+        final Map<String, TimeInterval> photoChannelTimeRanges = photoService.getPhotoChannelTimeRanges(guestId, null);
+
+        // TODO: check statusCode in DataStoreExecutionResult
+        ChannelInfoResponse infoResponse = gson.fromJson(result, ChannelInfoResponse.class);
+
+        // create the 'All' photos block
+        final Source allPhotosSource = getAllPhotosSource(infoResponse, photoChannelTimeRanges);
+
         final List<ChannelMapping> channelMappings = getChannelMappings(guestId);
-        populateResponseWithChannelMappings(guestId, null, response, channelMappings);
+        populateResponseWithChannelMappings(guestId, null, response, channelMappings, infoResponse);
+
+        // add the All photos block to the response
+        if (!photoChannelTimeRanges.isEmpty()) {
+            response.sources.add(allPhotosSource);
+        }
+
         final String jsonResponse = gson.toJson(response);
         return jsonResponse;
     }
@@ -307,58 +466,7 @@ public class BodyTrackHelper {
             final Map<String, TimeInterval> photoChannelTimeRanges = photoService.getPhotoChannelTimeRanges(guestId, coachee);
 
             // create the 'All' photos block
-            final Source allPhotosSource = new Source();
-            if (!photoChannelTimeRanges.isEmpty()) {
-                allPhotosSource.name = PhotoService.ALL_DEVICES_NAME;
-                allPhotosSource.channels = new ArrayList<Channel>();
-                final Channel allPhotosChannel = new Channel();
-                allPhotosSource.channels.add(allPhotosChannel);
-                allPhotosChannel.name = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;   // photo channels are always named the same
-                allPhotosChannel.objectTypeName = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
-                allPhotosChannel.type = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
-                allPhotosChannel.builtin_default_style = new ChannelStyle();
-                allPhotosChannel.style = allPhotosChannel.builtin_default_style;
-                allPhotosChannel.min = .6;
-                allPhotosChannel.max = 1;
-                allPhotosChannel.min_time = Double.MAX_VALUE;
-                allPhotosChannel.max_time = Double.MIN_VALUE;
-
-                final double defaultTimeForNullTimeIntervals = System.currentTimeMillis() / 1000;
-
-                for (final String channelName : photoChannelTimeRanges.keySet()) {
-                    final ChannelSpecs channelSpecs = new ChannelSpecs();
-                    final TimeInterval timeInterval = photoChannelTimeRanges.get(channelName);
-
-                    // mark this channel as a photo channel so that the grapher can properly render it as a photo channel
-                    channelSpecs.channelType = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
-                    final String[] connectorNameAndObjectTypeName = channelName.split("\\.");
-                    if (connectorNameAndObjectTypeName.length > 1) {
-                        channelSpecs.objectTypeName = connectorNameAndObjectTypeName[1];
-                    }
-
-                    channelSpecs.channel_bounds = new ChannelBounds();
-                    if (timeInterval == null) {
-                        channelSpecs.channel_bounds.min_time = defaultTimeForNullTimeIntervals;
-                        channelSpecs.channel_bounds.max_time = defaultTimeForNullTimeIntervals;
-                    }
-                    else {
-                        channelSpecs.channel_bounds.min_time = timeInterval.getStart() / 1000;
-                        channelSpecs.channel_bounds.max_time = timeInterval.getEnd() / 1000;
-                    }
-                    channelSpecs.channel_bounds.min_value = .6;
-                    channelSpecs.channel_bounds.max_value = 1;
-
-                    infoResponse.channel_specs.put(channelName, channelSpecs);
-
-                    if (timeInterval != null) {
-                        // update the min/max times in ChannelInfoResponse and in the All photos channel
-                        infoResponse.min_time = Math.min(infoResponse.min_time, channelSpecs.channel_bounds.min_time);
-                        infoResponse.max_time = Math.max(infoResponse.max_time, channelSpecs.channel_bounds.max_time);
-                        allPhotosChannel.min_time = Math.min(allPhotosChannel.min_time, channelSpecs.channel_bounds.min_time);
-                        allPhotosChannel.max_time = Math.max(allPhotosChannel.max_time, channelSpecs.channel_bounds.max_time);
-                    }
-                }
-            }
+            final Source allPhotosSource = getAllPhotosSource(infoResponse, photoChannelTimeRanges);
 
             // create the respone
             response = new SourcesResponse(infoResponse, guestId, coachee);
@@ -395,7 +503,7 @@ public class BodyTrackHelper {
             response.deleteSource("SMS_Backup");
 
             final List<ChannelMapping> channelMappings = getChannelMappings(guestId);
-            populateResponseWithChannelMappings(guestId, coachee, response, channelMappings);
+            populateResponseWithChannelMappings(guestId, coachee, response, channelMappings, infoResponse);
 
             // add the All photos block to the response
             if (!photoChannelTimeRanges.isEmpty()) {
@@ -431,7 +539,67 @@ public class BodyTrackHelper {
         }
     }
 
-    private void populateResponseWithChannelMappings(Long guestId, CoachingBuddy coachee, SourcesResponse response, List<ChannelMapping> channelMappings) {
+    private Source getAllPhotosSource(ChannelInfoResponse infoResponse, Map<String, TimeInterval> photoChannelTimeRanges) {
+        final Source allPhotosSource = new Source();
+        if (!photoChannelTimeRanges.isEmpty()) {
+            allPhotosSource.name = PhotoService.ALL_DEVICES_NAME;
+            allPhotosSource.channels = new ArrayList<Channel>();
+            final Channel allPhotosChannel = new Channel();
+            allPhotosSource.channels.add(allPhotosChannel);
+            allPhotosChannel.name = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;   // photo channels are always named the same
+            allPhotosChannel.objectTypeName = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
+            allPhotosChannel.type = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
+            allPhotosChannel.builtin_default_style = new ChannelStyle();
+            allPhotosChannel.style = allPhotosChannel.builtin_default_style;
+            allPhotosChannel.min = .6;
+            allPhotosChannel.max = 1;
+            allPhotosChannel.min_time = Double.MAX_VALUE;
+            allPhotosChannel.max_time = Double.MIN_VALUE;
+
+            final double defaultTimeForNullTimeIntervals = System.currentTimeMillis() / 1000;
+
+            for (final String channelName : photoChannelTimeRanges.keySet()) {
+                final ChannelSpecs channelSpecs = new ChannelSpecs();
+                final TimeInterval timeInterval = photoChannelTimeRanges.get(channelName);
+
+                // mark this channel as a photo channel so that the grapher can properly render it as a photo channel
+                channelSpecs.channelType = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
+                final String[] connectorNameAndObjectTypeName = channelName.split("\\.");
+                if (connectorNameAndObjectTypeName.length > 1) {
+                    channelSpecs.objectTypeName = connectorNameAndObjectTypeName[1];
+                }
+
+                channelSpecs.channel_bounds = new ChannelBounds();
+                if (timeInterval == null) {
+                    channelSpecs.channel_bounds.min_time = defaultTimeForNullTimeIntervals;
+                    channelSpecs.channel_bounds.max_time = defaultTimeForNullTimeIntervals;
+                }
+                else {
+                    channelSpecs.channel_bounds.min_time = timeInterval.getStart() / 1000;
+                    channelSpecs.channel_bounds.max_time = timeInterval.getEnd() / 1000;
+                }
+                channelSpecs.channel_bounds.min_value = .6;
+                channelSpecs.channel_bounds.max_value = 1;
+
+                infoResponse.channel_specs.put(channelName, channelSpecs);
+
+                if (timeInterval != null) {
+                    // update the min/max times in ChannelInfoResponse and in the All photos channel
+                    infoResponse.min_time = Math.min(infoResponse.min_time, channelSpecs.channel_bounds.min_time);
+                    infoResponse.max_time = Math.max(infoResponse.max_time, channelSpecs.channel_bounds.max_time);
+                    allPhotosChannel.min_time = Math.min(allPhotosChannel.min_time, channelSpecs.channel_bounds.min_time);
+                    allPhotosChannel.max_time = Math.max(allPhotosChannel.max_time, channelSpecs.channel_bounds.max_time);
+                }
+            }
+        }
+        return allPhotosSource;
+    }
+
+    private void populateResponseWithChannelMappings(Long guestId,
+                                                     CoachingBuddy coachee,
+                                                     SourcesResponse response,
+                                                     List<ChannelMapping> channelMappings,
+                                                     ChannelInfoResponse infoResponse) {
         for (ChannelMapping mapping : channelMappings){
             ApiKey api = guestService.getApiKey(mapping.getApiKeyId());
             // This is to prevent a rare condition when working, under development, on a branch that
@@ -442,11 +610,19 @@ public class BodyTrackHelper {
             // filter out not shared connectors
             if (coachee!=null&& buddiesService.getSharedConnector(api.getId(), AuthHelper.getGuestId())==null)
                 continue;
-            Source source = response.hasSource(mapping.getDeviceName());
+            Source source;
+            String deviceName;
+            if (mapping.getInternalDeviceName()!=null&&!mapping.getInternalDeviceName().equals(mapping.getDeviceName())) {
+                source = response.hasSource(mapping.getInternalDeviceName());
+                deviceName = mapping.getInternalDeviceName();
+            } else {
+                source = response.hasSource(mapping.getDeviceName());
+                deviceName = mapping.getDeviceName();
+            }
             if (source == null){
                 source = new Source();
                 response.sources.add(source);
-                source.name = mapping.getDeviceName();
+                source.name = deviceName;
                 source.channels = new ArrayList<Channel>();
                 source.min_time = Double.MAX_VALUE;
                 source.max_time = Double.MIN_VALUE;
@@ -467,18 +643,15 @@ public class BodyTrackHelper {
             ChannelStyle userStyle = getDefaultStyle(guestId,api.getConnector().getDeviceNickname(),channel.name);
             if (userStyle != null) {
                 channel.style = userStyle;
+            } else {
+                userStyle = getDefaultStyle(guestId,api.getConnector().getName(),channel.name);
+                if (userStyle != null)
+                    channel.style = userStyle;
             }
 
-            final AbstractBodytrackResponder bodytrackResponder = api.getConnector().getBodytrackResponder(beanFactory);
-            if (bodytrackResponder != null){
-                AbstractBodytrackResponder.Bounds bounds = bodytrackResponder.getBounds(mapping);
-                channel.min_time = bounds.min_time;
-                channel.max_time = bounds.max_time;
-                channel.min = bounds.min;
-                channel.max = bounds.max;
-                source.min_time = Math.min(source.min_time,channel.min_time);
-                source.max_time = Math.max(source.max_time,channel.max_time);
-            }
+            setChannelBounds(mapping, channel, infoResponse);
+            source.min_time = Math.min(source.min_time,channel.min_time);
+            source.max_time = Math.max(source.max_time,channel.max_time);
         }
     }
 

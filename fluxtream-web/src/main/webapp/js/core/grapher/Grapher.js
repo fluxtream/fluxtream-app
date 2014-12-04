@@ -1456,7 +1456,6 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
 
                 // Show PhotoSeriesPlot config
                 $("#" + channelElementId + " ._timeline_photo_series_plot_config").show();
-                showAllY();
             } else if (plot instanceof TimespanSeriesPlot){
                 yAxis.setMaxRange(0,1);
                 $("#" + channelElementId + " #" + channelElementId + "_btnShowAllY").click(function(event){

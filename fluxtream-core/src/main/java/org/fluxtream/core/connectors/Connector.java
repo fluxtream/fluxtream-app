@@ -407,7 +407,7 @@ public class Connector {
     }
 
     public static Connector fromDeviceNickname(String deviceNickname) {
-        return connectorsByDeviceNickname.get(deviceNickname.toLowerCase());
+        return connectorsByDeviceNickname.get(deviceNickname);
     }
 
     /**
