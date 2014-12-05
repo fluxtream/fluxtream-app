@@ -135,16 +135,16 @@ define(["core/DashboardWidget", "core/widgetComponents/GrapherComponent", "core/
             return tileURIs;
         }
 
-        GrapherWidget.validateSettings = function(){
+        GrapherWidget.validateSettings = function(onDone){
             this.saveSettings({
                 deviceName:$("#deviceSelector").val(),
                 channelName:$("#channelSelector").val(),
                 style:this.getStyleFromConfigurationControls(),
                 title:$("#titleInput").val()
-            });
+            },onDone);
         }
 
-        GrapherWidget.bindWidgetSettings = function(widgetSettings){
+        GrapherWidget.bindWidgetSettings = function(widgetSettings,onDone){
             $("#titleInput").val(widgetSettings.title);
             bindStyleEditor(widgetSettings.style);
             BodyTrack.SOURCES.getAvailableList(function (sources){
@@ -168,12 +168,13 @@ define(["core/DashboardWidget", "core/widgetComponents/GrapherComponent", "core/
                 }
                 $("#deviceSelector").enable();
                 $("#channelSelector").enable();
+                onDone();
             });
         }
 
 
         var defaultStyle = {styles:[{type:"lollipop",show:true,lineWidth:5,radius:0,color:"rgb(0, 102, 0)",fill:false},{type:"value",show:true,fillColor:"rgb(0, 102, 0)",marginWidth:5,verticalOffset:7,numberFormat:"###,##0"}],highlight:{styles:[{type:"value",show:true,fillColor:"rgb(0, 102, 0)",marginWidth:5,verticalOffset:7,numberFormat:"###,##0"}],lineWidth:5}};
-        GrapherWidget.defaultSettings = function(widgetSettings){
+        GrapherWidget.defaultSettings = function(widgetSettings,onDone){
             if (widgetSettings.deviceName == null)
                 widgetSettings.deviceName = "Fitbit";
             if (widgetSettings.channelName == null)
@@ -182,7 +183,7 @@ define(["core/DashboardWidget", "core/widgetComponents/GrapherComponent", "core/
                 widgetSettings.style = defaultStyle;
             if (widgetSettings.title == null)
                 widgetSettings.title = "Grapher";
-            return widgetSettings;
+            onDone();
         }
 
         function bindStyleEditor(style){
