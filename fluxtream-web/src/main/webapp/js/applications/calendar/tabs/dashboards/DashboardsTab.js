@@ -126,7 +126,7 @@ define(["core/Tab",
 
    function loadWidget(widgetInfo) {
        var that = this;
-       if (window.location.host == getWidgetHostName(widgetInfo)) {
+       if (window.location.host == getWidgetHostName(widgetInfo) && false) {
            require([widgetInfo.manifest.WidgetRepositoryURL + "/"
                         + widgetInfo.manifest.WidgetName + "/"
                         + widgetInfo.manifest.WidgetName + ".js"],
