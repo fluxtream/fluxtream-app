@@ -56,11 +56,15 @@ define(function() {
         onDone();
     }
 
+    DashboardWidget.prototype.getSaveSettingsUrl = function(){
+        return "/api/v1/dashboards/" + this.dashboardId + "/widgets/" + this.manifest.WidgetName + "/settings";
+    }
+
     DashboardWidget.prototype.saveSettings = function(settings,onDone) {
         this.settings = settings;
         var that = this;
         $.ajax({
-            url: "/api/v1/dashboards/" + that.dashboardId + "/widgets/" + that.manifest.WidgetName + "/settings",
+            url: that.getSaveSettingsUrl(),
             type: "POST",
             data: {settingsJSON : JSON.stringify(settings)},
             success: function() {

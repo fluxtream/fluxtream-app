@@ -4,6 +4,8 @@ define(["core/DashboardWidget"],function(DashboardWidget){
         this.communicationLinkReady = false;
         this.messageBacklog = [];
         this.defaultSettingsCalls = 0;
+        this.bindWidgetSettingsCalls = 0;
+        this.validateSettingsCalls = 0;
         this.callbacks = {};
         this.defaultSettingsObjects = {};
     };
@@ -25,9 +27,40 @@ define(["core/DashboardWidget"],function(DashboardWidget){
         var parser = document.createElement("a");
         parser.href = url;
         if (parser.origin == window.location.origin) {
-            return parser.pathname.toLowerCase().startsWith("/api/");
+            if (parser.pathname.toLowerCase().startsWith("/api/")) {
+                if (parser.pathname.toLowerCase() == this.getSaveSettingsUrl().toLowerCase()) {
+                    //whitelist this so the widget is free to save settings.
+                    return false;
+                }
+                return true;
+            }
+
         }
         return false;
+    };
+
+    SandboxedWidget.prototype.cloneTransportableObject = function(object) {
+        if (typeof object == "object") {
+            if (Object.prototype.toString.call(object) === '[object Array]'){
+                var newObject = [];
+                for (var i = 0; i < object.length; i++){
+                    newObject[i] = this.cloneTransportableObject(object[i]);
+                }
+            }
+            else{
+                var newObject = {};
+                for (var member in object) {
+                    if (typeof object[member] == "function") {
+                        continue;
+                    }
+                    newObject[member] = this.cloneTransportableObject(object[member]);
+                }
+            }
+            return newObject;
+        }
+        else{
+            return object;
+        }
     };
 
     SandboxedWidget.prototype.messageListener = function(event) {
@@ -67,20 +100,16 @@ define(["core/DashboardWidget"],function(DashboardWidget){
                             if (facetType.split("-")[0] == connectorName){
                                 digestStrippedDown.facets[facetType] = [];
                                 for (var j = 0, lj = this.digest.facets[facetType].length; j < lj; j++){
-                                    var sourceFacet = this.digest.facets[facetType][j];
-                                    var newFacet = {};
-                                    for (var member in sourceFacet){
-                                        //Objects with functions can't be passed through postMessage
-                                        if (typeof sourceFacet[member] != "function")
-                                            newFacet[member] = sourceFacet[member];
-                                    }
-                                    digestStrippedDown.facets[facetType].push(newFacet);
+                                    digestStrippedDown.facets[facetType].push(this.cloneTransportableObject(this.digest.facets[facetType][j]));
                                 }
                             }
                         }
                     }
                 }
-                this.sendMessage("digest",digestStrippedDown);
+                this.sendMessage("digest",{
+                    digest: digestStrippedDown,
+                    dashboardId: this.dashboardId
+                });
                 break;
             }
             case "defaultSettings":
@@ -99,6 +128,29 @@ define(["core/DashboardWidget"],function(DashboardWidget){
                 callback();
                 break;
             }
+            case "bindWidgetSettings":
+            {
+                var callId = message.data.callId;
+                var callback = this.callbacks["bindWidgetSettings" + callId];
+                delete this.callbacks["bindWidgetSettings" + callId];
+                //TODO: sanitize html of any scripts
+                $("#widgetSettings").html(message.data.htmlOutput);
+                callback();
+                break;
+            }
+            case "validateSettings":
+            {
+                var callId = message.data.callId;
+                var callback = this.callbacks["validateSettings" + callId];
+                delete this.callbacks["validateSettings" + callId];
+                callback();
+                break;
+            }
+            case "App.closeModal":
+            {
+                App.closeModal();
+                break;
+            }
             case "ajax":
             {
                 var that = this;
@@ -108,7 +160,8 @@ define(["core/DashboardWidget"],function(DashboardWidget){
                     this.sendMessage("ajaxResponse",{
                         id: requestId,
                         success: false
-                    })
+                    });
+                    console.log("Blocked request to " + ajaxOptions.url);
                 }
                 if (ajaxOptions.dataType == "script")
                     ajaxOptions.dataType = "text";
@@ -163,7 +216,29 @@ define(["core/DashboardWidget"],function(DashboardWidget){
             callId: this.defaultSettingsCalls++,
             widgetSettings: widgetSettings
         });
+    };
 
+    SandboxedWidget.prototype.bindWidgetSettings = function(widgetSettings,onDone) {
+        var inputHtml = $("#widgetSettings").html();
+        this.callbacks["bindWidgetSettings" + this.bindWidgetSettingsCalls] = onDone;
+        this.sendMessage("bindWidgetSettings",{
+            callId: this.bindWidgetSettingsCalls++,
+            inputHtml: inputHtml,
+            widgetSettings: widgetSettings
+        });
+    };
+
+    SandboxedWidget.prototype.validateSettings = function(onDone) {
+        var widgetSettings = $("#widgetSettings");
+        widgetSettings.find("input").each(function(){
+            this.setAttribute("value",this.value);
+        });
+        var inputHtml = widgetSettings.html();
+        this.callbacks["validateSettings" + this.validateSettingsCalls] = onDone;
+        this.sendMessage("validateSettings",{
+            callId: this.validateSettingsCalls++,
+            inputHtml: inputHtml
+        })
     }
 
     function Message(type,data) {

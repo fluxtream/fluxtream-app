@@ -1,86 +1,42 @@
+//A custom implementation of requirejs that allows us to operate properly sandboxed
 (function($){
 
-    window.define = function(modules,newModule){
-        if (typeof modules == "function"){
-            newModule = modules;
-            modules = [];
+    window.rewriteUrl = function(url){
+        if (url.indexOf("./") == 0){
+            url = url.substring(2);
+            var prefix = "/" + window.FLX_RELEASE_NUMBER + "/js";
+            if (url.indexOf("widgets") == 0 || (url.indexOf("widgets") == 1 && url.charAt(0) == '/')){
+                prefix = "";
+            }
+            url = prefix + (url.charAt(0) == '/' ? "" : "/") + url;
         }
-        var args = [];
+        return url;
 
-        var onDone = {
-            onDefineDone: function(returnVal){
-                console.warn("Define done missed!!");
-            },
-            isDefineObject: true
-        };
 
-        (function getNextScript(i){
-            if (i >= modules.length){
-                onAllScriptsReady();
-                return;
-            }
-            var url = modules[i];
-            if (modules[i].indexOf("text!") == 0){
-                url = url.substring("text!".length);
-            }
-            if (url.substring(0,4) != "http"){
-                var prefix = "/" + window.FLX_RELEASE_NUMBER + "/js";
-                if (url.indexOf("widgets") == 0 || (url.indexOf("widgets") == 1 && url.charAt(0) == '/')){
-                    prefix = "";
-                }
-                url = prefix + (url.charAt(0) == '/' ? "" : "/") + url;
-            }
-            if (modules[i].indexOf("text!") != 0)
-                url = url + ".js";
-            $.ajax(url,{
-                dataType: "text",
-                success: function(result){
-                    if (modules[i].indexOf("text!") == 0){
-                        args.push(result);
-                        getNextScript(i+1);
-                    }
-                    else{
-                        var ret = eval(result);
-                        if (typeof ret == "object" && ret.isDefineObject){
-                            ret.onDefineDone = function(returnVal){
-                                args.push(returnVal);
-                                getNextScript(i+1);
-                            }
-
-                        }
-                        else{
-                            args.push(ret);
-                            getNextScript(i+1);
-                        }
-                    }
-                },
-                error: function(){
-                    console.log(args);
-                }
-            });
-        })(0);
-
-        function onAllScriptsReady(){
-            var ret = newModule.apply(window,args);
-            if (typeof ret == "object" && ret.isDefineObject){
-                ret.onDefineDone = function(returnVal){
-                    doDone(returnVal);
-                }
-            }
-            else{
-                doDone(ret);
-            }
-        }
-
-        function doDone(returnVal){
-            setTimeout(function(){
-                onDone.onDefineDone(returnVal);
-            },10);
-        }
-        return onDone;
     }
 
-    window.require = function(modules,newModule) {
-        window.define(modules,newModule).onDefineDone = function(){};
-    }
+    //modified version of requirejs.attach that will rewrite the url and send the query through the sandbox proxy
+    /**
+     * Attaches the script represented by the URL to the current
+     * environment. Right now only supports browser loading,
+     * but can be redefined in other environments to do the right thing.
+     * @param {String} url the url of the script to attach.
+     * @param {Object} context the context that wants the script.
+     * @param {moduleName} the name of the module that is associated with the script.
+     * @param {Function} [callback] optional callback, defaults to require.onScriptLoad
+     * @param {String} [type] optional type, defaults to text/javascript
+     * @param {Function} [fetchOnlyFunction] optional function to indicate the script node
+     * should be set up to fetch the script but do not attach it to the DOM
+     * so that it can later be attached to execute it. This is a way for the
+     * order plugin to support ordered loading in IE. Once the script is fetched,
+     * but not executed, the fetchOnlyFunction will be called.
+     */
+    var oldAttach = window.requirejs.attach;
+    window.requirejs.attach = function (url, context, moduleName, callback, type, fetchOnlyFunction) {
+        //rewrite urls to use proper prefixes if they are local
+        url = rewriteUrl(url);
+        oldAttach.apply(this,[url,context,moduleName,callback,type,fetchOnlyFunction]);
+    };
+    window.requireJsModsDone();
+
 })(jQuery);

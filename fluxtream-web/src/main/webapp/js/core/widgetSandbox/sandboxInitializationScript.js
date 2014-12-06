@@ -13,8 +13,7 @@
     }
 
     function init(){
-        $("body").append("<div class='flx-widget' id='" + window.manifest.WidgetName + "-widget'><div class='flx-body'></div></div>");
-        $("head").append('<link rel="stylesheet" type="text/css" href="/' + window.FLX_RELEASE_NUMBER + '/css/sandbox.css">');
+        $(".flx-widget")[0].setAttribute("id",window.manifest.WidgetName + "-widget");
         sendMessage("ready");
     }
 
@@ -45,7 +44,9 @@
         sendMessage("ajax",{
             url: url,
             id: request,
-            dataType: options.dataType
+            dataType: options.dataType,
+            type: options.type,
+            data: options.data
         });
     }
 
@@ -61,12 +62,38 @@
         ajaxRequest(options.url,{
             success:options.success,
             error: options.error,
-            dataType: options.dataType
+            dataType: options.dataType,
+            type: options.type,
+            data: options.data
         });
         if (options.async == false){
             console.warn("cannot do synchronous ajax in a widget.");
         }
-    }
+    };
+
+    //a very rough and unfinished wrapper for XMLHttpRequests to go through ajax proxy. Works well enough for requirejs text dependencies
+    var oldXMLHttpRequest = window.XMLHttpRequest;
+    window.XMLHttpRequest = function(){
+    };
+    window.XMLHttpRequest.prototype.open = function(method,url,async){
+        this.url = rewriteUrl(url);
+        this.async = async;
+        this.method = method;
+    };
+    window.XMLHttpRequest.prototype.send = function(data) {
+        var that = this;
+        $.ajax(this.url,{
+            method: this.method,
+            async: this.async,
+            data: data,
+            success: function(data){
+                that.responseText = data;
+                that.readyState = 4;
+                that.onreadystatechange();
+            }
+        });
+    };
+    window.XMLHttpRequest.prototype.onreadystatechange = function(){};
 
     function assureWidgetReady(doFunction) {
         if (widgetReady) {
@@ -97,9 +124,9 @@
                     if (widgetRepository.charAt(0) == "/") {
                         widgetRepository = window.location.origin + widgetRepository;
                     }
-                    require([widgetRepository + "/" + window.manifest.WidgetName + "/" + window.manifest.WidgetName],function(WidgetObject){
+                    require([widgetRepository + "/" + window.manifest.WidgetName + "/" + window.manifest.WidgetName + ".js"],function(WidgetObject){
                         Widget = WidgetObject;
-                        Widget.load({manifest:window.manifest,settings:window.settings}, message.data, null);
+                        Widget.load({manifest:window.manifest,settings:window.settings}, message.data.digest, message.data.dashboardId);
                         setWidgetReady();
                     });
                     break;
@@ -138,10 +165,42 @@
                             });
                         });
                     break;
+                case "bindWidgetSettings":
+                    assureWidgetReady(function() {
+                        var input = $("<div id='widgetSettings' style='display:none !important;'>" + message.data.inputHtml + "</div>");
+                        $("body").append(input);
+                        Widget.bindWidgetSettings(message.data.widgetSettings, function(){
+                            input.remove();
+                            input.find("input").each(function(){
+                                this.setAttribute("value",this.value);
+                            });
+                            sendMessage("bindWidgetSettings",{
+                                callId: message.data.callId,
+                                htmlOutput: input.html()
+                            });
+                        });
+                    });
+                    break;
+                case "validateSettings":
+                    assureWidgetReady(function() {
+                        var input = $("<div id='widgetSettings' style='display:none !important;'>" + message.data.inputHtml + "</div>");
+                        $("body").append(input);
+                        Widget.validateSettings(function(){
+                            input.remove();
+                            sendMessage("validateSettings",{
+                                callId: message.data.callId
+                            });
+                        })
+                    });
+                    break;
                 default:
                     console.log("Sandboxed widget received unknown message type: " + message.type);
             }
         }, false);
+    }
+
+    App.closeModal = function () {
+        sendMessage("App.closeModal");
     }
 
 
