@@ -1,5 +1,83 @@
 define(["core/DashboardWidget"],function(DashboardWidget){
 
+    //from http://www.w3schools.com/tags/ref_eventattributes.asp
+    var scriptAttributes = [
+        "onafterprint",
+        "onbeforeprint",
+        "onbeforeunload",
+        "onerror",
+        "onhashchange",
+        "onload",
+        "onmessage",
+        "onoffline",
+        "ononline",
+        "onpagehide",
+        "onpageshow",
+        "onpopstate",
+        "onresize",
+        "onstorage",
+        "onunload",
+        "onblur",
+        "onchange",
+        "oncontextmenu",
+        "onfocus",
+        "oninput",
+        "oninvalid",
+        "onreset",
+        "onsearch",
+        "onselect",
+        "onsubmit",
+        "onkeydown",
+        "onkeypress",
+        "onkeyup",
+        "onclick",
+        "ondblclick",
+        "ondrag",
+        "ondragend",
+        "ondragenter",
+        "ondragleave",
+        "ondragover",
+        "ondragstart",
+        "ondrop",
+        "onmousedown",
+        "onmousemove",
+        "onmouseout",
+        "onmouseover",
+        "onmouseup",
+        "onmousewheel",
+        "onscroll",
+        "onwheel",
+        "oncopy",
+        "oncut",
+        "onpaste",
+        "onabort",
+        "oncanplay",
+        "oncanplaythrough",
+        "oncuechange",
+        "ondurationchange",
+        "onemptied",
+        "onended",
+        "onerror",
+        "onloadeddata",
+        "onloadmetadata",
+        "onloadstart",
+        "onpause",
+        "onplay",
+        "onplaying",
+        "onprogess",
+        "onratechange",
+        "onseeked",
+        "onseeking",
+        "onstalled",
+        "onsuspend",
+        "ontimeupdate",
+        "onvolumechange",
+        "onwaiting",
+        "onerror",
+        "onshow",
+        "ontoggle"
+    ];
+
     var SandboxedWidget = function(){
         this.communicationLinkReady = false;
         this.messageBacklog = [];
@@ -16,7 +94,7 @@ define(["core/DashboardWidget"],function(DashboardWidget){
 
     SandboxedWidget.prototype.init = function() {
         this.messagerId = ++App.sandboxCounter;
-        this.iframe = $("<iframe src= '" + window.location.origin + "/" + window.FLX_RELEASE_NUMBER + "/js/core/widgetSandbox/sandboxHost.html?id=" + this.messagerId + "' class='widgetSandboxIframe' sandbox='allow-scripts' scrolling='no'></iframe>");
+        this.iframe = $("<iframe src= '/" + window.FLX_RELEASE_NUMBER + "/js/core/widgetSandbox/sandboxHost.html?id=" + this.messagerId + "' class='widgetSandboxIframe' sandbox='allow-scripts' scrolling='no'></iframe>");
         var that = this;
         this.iframe.addClass("flx-body");
         App.addSandboxMessageListener(this.messageListener);
@@ -62,6 +140,44 @@ define(["core/DashboardWidget"],function(DashboardWidget){
             return object;
         }
     };
+
+    SandboxedWidget.prototype.sanitizeHtml = function(html) {
+        var container = $("<div>" + html + "</div>");
+        //The easy part.... find and remove all script elements
+        container.find("script").remove();
+        container.find("iframe").remove();
+        container.find("frame").remove();
+        //The hard part... find and remove all attributes containing scripts
+        var processQueue = [];
+        for (var i = 0; i < container[0].children.length; i++) {
+            processQueue.push(container[0].children[i]);
+        }
+        processQueue = processQueue.concat();
+        console.log(processQueue);
+        while (processQueue.length > 0) {
+            var curEle = processQueue.pop();
+            //add all children to be looked at
+            for (var i = 0; i < curEle.children.length; i++) {
+                processQueue.push(curEle.children[i]);
+            }
+            //remove all attributes that could contain scripts
+            for (var i = 0, li = scriptAttributes.length; i < li; i++){
+                curEle.removeAttribute(scriptAttributes[i]);
+            }
+            //remove javascript in anchor links
+            if (curEle.tagName.toLowerCase() == "a" && curEle.href.toLowerCase().startsWith("javascript:")) {
+                curEle.href = "#";
+            }
+            if (curEle.tagName.toLowerCase() == "form") {
+                curEle.removeAttribute("action");
+                curEle.removeAttribute("method");
+                //add in a handler to disable form submission
+                $(curEle).attr("onsubmit","return false")
+            }
+        }
+
+        return container.html();
+    }
 
     SandboxedWidget.prototype.messageListener = function(event) {
         var message = event.data;
@@ -133,8 +249,7 @@ define(["core/DashboardWidget"],function(DashboardWidget){
                 var callId = message.data.callId;
                 var callback = this.callbacks["bindWidgetSettings" + callId];
                 delete this.callbacks["bindWidgetSettings" + callId];
-                //TODO: sanitize html of any scripts
-                $("#widgetSettings").html(message.data.htmlOutput);
+                $("#widgetSettings").html(this.sanitizeHtml(message.data.htmlOutput));
                 callback();
                 break;
             }
