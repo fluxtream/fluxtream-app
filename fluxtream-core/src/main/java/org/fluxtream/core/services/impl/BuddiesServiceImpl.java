@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -219,5 +220,45 @@ public class BuddiesServiceImpl implements BuddiesService {
         final SharedConnector sharedConnector = em.find(SharedConnector.class, sharedConnectorId);
         sharedConnector.filterJson = filterJson;
         em.persist(sharedConnector);
+    }
+
+    @Override
+    public List<SharedChannel> getSharedChannels(long trustedBuddyId, long trustingBuddyId) {
+        List<SharedChannel> sharedChannels = JPAUtils.find(em, SharedChannel.class, "sharedChannel.byTrustedBuddyId", trustingBuddyId, trustedBuddyId);
+        return sharedChannels;
+    }
+
+    @Override
+    public List<SharedChannel> getSharedChannels(long trustedBuddyId, long trustingBuddyId, long apiKeyId) {
+        List<SharedChannel> sharedChannels = JPAUtils.find(em, SharedChannel.class, "sharedChannel.byApiKeyId", trustingBuddyId, trustedBuddyId, apiKeyId);
+        return sharedChannels;
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public SharedChannel addSharedChannel(long trustedBuddyId, long trustingBuddyId, long channelMappingId) {
+        ChannelMapping channelMapping = em.find(ChannelMapping.class, channelMappingId);
+        final CoachingBuddy coachingBuddy = JPAUtils.findUnique(em, CoachingBuddy.class, "coachingBuddies.byGuestAndBuddyId", trustingBuddyId, trustedBuddyId);
+        List<SharedChannel> alreadyShared = JPAUtils.find(em, SharedChannel.class, "sharedChannel.byBuddyAndChannelMapping", trustingBuddyId, trustedBuddyId, channelMappingId);
+        if (alreadyShared==null||alreadyShared.size()>0)
+            return null;
+        SharedChannel sharedChannel = new SharedChannel(coachingBuddy, channelMapping);
+        em.persist(sharedChannel);
+        return sharedChannel;
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void removeSharedChannel(long trustedBuddyId, long trustingBuddyId, long channelMappingId) {
+        SharedChannel sharedChannel = JPAUtils.findUnique(em, SharedChannel.class, "sharedChannel.byBuddyAndChannelMapping", trustingBuddyId, trustedBuddyId, channelMappingId);
+        em.remove(sharedChannel);
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void removeAllSharedChannels(long trustingBuddyId) {
+        Query query = em.createQuery("DELETE FROM ChannelMapping channelMapping WHERE channelMapping.buddy.guestId=?");
+        query.setParameter(1, trustingBuddyId);
+        query.executeUpdate();
     }
 }

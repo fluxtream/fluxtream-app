@@ -19,4 +19,7 @@ public interface BodyTrackStorageService {
 	void storeApiData(ApiKey apiKey, List<? extends AbstractFacet> facet);
 
     void mapChannels(final ApiKey apiKey);
+
+    List<ChannelMapping> getChannelMappings(final long apiKeyId);
+
 }

@@ -41,4 +41,15 @@ public interface BuddiesService {
     List<SharedConnector> getSharedConnectors(ApiKey apiKey);
 
     void setSharedConnectorFilter(long sharedConnectorId, String filterJson);
+
+    List<SharedChannel> getSharedChannels(long trustedBuddyId, long trustingBuddyId);
+
+    List<SharedChannel> getSharedChannels(long trustedBuddyId, long trustingBuddyId, long apiKeyId);
+
+    public SharedChannel addSharedChannel(long trustedBuddyId, long trustingBuddyId, long channelMappingId);
+
+    public void removeSharedChannel(long trustedBuddyId, long trustingBuddyId, long channelMappingId);
+
+    public void removeAllSharedChannels(long trustingBuddyId);
+
 }

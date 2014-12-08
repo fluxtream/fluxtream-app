@@ -157,6 +157,14 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
         updater.setDefaultChannelStyles(apiKey);
     }
 
+    @Override
+    public List<ChannelMapping> getChannelMappings(long apiKeyId) {
+        Query query = em.createQuery("SELECT channelMapping FROM ChannelMapping channelMapping WHERE channelMapping.apiKeyId=?");
+        query.setParameter(1, apiKeyId);
+        List mappings = query.getResultList();
+        return mappings;
+    }
+
     private ChannelMapping createFacetFieldChanneMapping(String facetFieldChannelName, ApiKey apiKey, ObjectType objectType) {
         ChannelMapping.ChannelType channelType = ChannelMapping.ChannelType.data;
         if (objectType.isImageType())
