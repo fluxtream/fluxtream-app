@@ -46,7 +46,6 @@ import org.springframework.stereotype.Component;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import java.lang.reflect.Type;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
@@ -107,9 +106,9 @@ public class LegacyBodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+            TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
 
-            if (!accessAllowed && coachee==null) {
+            if (!accessAllowed && trustingBuddy==null) {
                 uid = null;
             }
 
@@ -508,9 +507,9 @@ public class LegacyBodyTrackController {
             loggedInUserId = AuthHelper.getGuestId();
             accessAllowed = checkForPermissionAccess(uid);
             if (!accessAllowed) {
-                final CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
-                if (coachee != null) {
-                    accessAllowed = coachee.hasAccessToConnector("fluxtream_capture");
+                final TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+                if (trustingBuddy != null) {
+                    accessAllowed = trustingBuddy.hasAccessToConnector("fluxtream_capture");
                 }
             }
         }
@@ -591,8 +590,8 @@ public class LegacyBodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
-            if (!accessAllowed&&coachee==null){
+            TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+            if (!accessAllowed&&trustingBuddy==null){
                 uid = null;
             }
             return bodyTrackHelper.fetchTile(uid, deviceNickname, channelName, level, offset);
@@ -610,8 +609,8 @@ public class LegacyBodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
-            if (!accessAllowed&&coachee==null){
+            TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+            if (!accessAllowed&&trustingBuddy==null){
                 uid = null;
             }
             return bodyTrackHelper.listViews(uid);
@@ -631,9 +630,9 @@ public class LegacyBodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+            TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
 
-            if (!accessAllowed && coachee==null) {
+            if (!accessAllowed && trustingBuddy==null) {
                 uid = null;
             }
             String result = bodyTrackHelper.getView(uid,id);
@@ -655,9 +654,9 @@ public class LegacyBodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+            TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
 
-            if (!accessAllowed && coachee==null) {
+            if (!accessAllowed && trustingBuddy==null) {
                 uid = null;
             }
             return bodyTrackHelper.saveView(uid, name, data);
@@ -676,15 +675,15 @@ public class LegacyBodyTrackController {
         try{
             final long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = null;
+            TrustingBuddy trustingBuddy = null;
             if (!accessAllowed) {
-                coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
-                accessAllowed = (coachee!=null);
+                trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+                accessAllowed = (trustingBuddy!=null);
             }
             if (!accessAllowed){
                 uid = null;
             }
-            return bodyTrackHelper.listSources(uid, coachee);
+            return bodyTrackHelper.listSources(uid, trustingBuddy);
         }
         catch (Exception e){
             return gson.toJson(new StatusModel(false,"Access Denied"));
@@ -701,9 +700,9 @@ public class LegacyBodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+            TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
 
-            if (!accessAllowed && coachee==null) {
+            if (!accessAllowed && trustingBuddy==null) {
                 uid = null;
             }
             return bodyTrackHelper.getSourceInfo(uid, name);
@@ -722,8 +721,8 @@ public class LegacyBodyTrackController {
         try {
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
-            if (!accessAllowed && coachee == null) {
+            TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+            if (!accessAllowed && trustingBuddy == null) {
                 uid = null;
             }
             return bodyTrackHelper.getAllTagsForUser(uid);
@@ -767,9 +766,9 @@ public class LegacyBodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+            TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
 
-            if (!accessAllowed && coachee==null) {
+            if (!accessAllowed && trustingBuddy==null) {
                 uid = null;
             }
 
@@ -836,11 +835,11 @@ public class LegacyBodyTrackController {
         try {
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+            TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
 
             final TagFilter.FilteringStrategy tagFilteringStrategy = TagFilter.FilteringStrategy.findByName(tagMatchingStrategyName);
 
-            if (!accessAllowed && coachee==null) {
+            if (!accessAllowed && trustingBuddy==null) {
                 uid = null;
             }
 
@@ -917,11 +916,11 @@ public class LegacyBodyTrackController {
         try {
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = checkForPermissionAccess(uid);
-            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+            TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
 
             final TagFilter.FilteringStrategy tagFilteringStrategy = TagFilter.FilteringStrategy.findByName(tagMatchingStrategyName);
 
-            if (!accessAllowed && coachee==null) {
+            if (!accessAllowed && trustingBuddy==null) {
                 return gson.toJson(new StatusModel(false, "Invalid User ID (null)"));
              }
 
@@ -1031,9 +1030,9 @@ public class LegacyBodyTrackController {
                     loggedInUserId = AuthHelper.getGuestId();
                     accessAllowed = checkForPermissionAccess(uid);
                     if (!accessAllowed) {
-                        final CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
-                        if (coachee != null) {
-                            accessAllowed = coachee.hasAccessToConnector(connector.getName());
+                        final TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+                        if (trustingBuddy != null) {
+                            accessAllowed = trustingBuddy.hasAccessToConnector(connector.getName());
                         }
                     }
                 }

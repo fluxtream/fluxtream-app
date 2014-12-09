@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.wordnik.swagger.annotations.*;
 import net.sf.json.JSONObject;
 import org.fluxtream.core.auth.AuthHelper;
-import org.fluxtream.core.auth.CoachRevokedException;
+import org.fluxtream.core.auth.TrustRelationshipRevokedException;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.updaters.ScheduleResult;
 import org.fluxtream.core.domain.*;
@@ -69,10 +69,10 @@ public class SyncController {
 
     private Response sync(final String connectorName, final String buddyToAccessParameter, final boolean force) {
         try{
-            CoachingBuddy coachee;
-            try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, buddiesService);
-            } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-            Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
+            TrustingBuddy trustingBuddy;
+            try { trustingBuddy = AuthHelper.getTrustingBuddy(buddyToAccessParameter, buddiesService);
+            } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+            Guest guest = ApiHelper.getBuddyToAccess(guestService, trustingBuddy);
             final long guestId = guest.getId();
             final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
             guestService.setApiKeyToSynching(apiKey.getId(), true);
@@ -106,10 +106,10 @@ public class SyncController {
     private Response syncConnectorObjectType(final String connectorName, final String buddyToAccessParameter,
                                              final int objectTypes, final boolean force) {
         try {
-            CoachingBuddy coachee;
-            try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, buddiesService);
-            } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-            Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
+            TrustingBuddy trustingBuddy;
+            try { trustingBuddy = AuthHelper.getTrustingBuddy(buddyToAccessParameter, buddiesService);
+            } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+            Guest guest = ApiHelper.getBuddyToAccess(guestService, trustingBuddy);
             final long guestId = guest.getId();
 
             final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
@@ -131,10 +131,10 @@ public class SyncController {
     })
     @Produces({MediaType.APPLICATION_JSON})
     public Response updateAllConnectors(@ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter){
-        CoachingBuddy coachee;
-        try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, buddiesService);
-        } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-        Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
+        TrustingBuddy trustingBuddy;
+        try { trustingBuddy = AuthHelper.getTrustingBuddy(buddyToAccessParameter, buddiesService);
+        } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustingBuddy);
         final long guestId = guest.getId();
         try {
             final List<ScheduleResult> scheduleResults = connectorUpdateService.updateAllConnectors(guestId, true);

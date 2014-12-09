@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.wordnik.swagger.annotations.ApiParam;
 import org.fluxtream.core.auth.AuthHelper;
-import org.fluxtream.core.auth.CoachRevokedException;
-import org.fluxtream.core.domain.CoachingBuddy;
+import org.fluxtream.core.auth.TrustRelationshipRevokedException;
+import org.fluxtream.core.domain.TrustingBuddy;
 import org.fluxtream.core.domain.DataUpdate;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.mvc.models.DataUpdateDigestModel;
@@ -48,10 +48,10 @@ public class DataUpdateStore {
     public Response getDataUpdates(@QueryParam("since") String since,
                                    @ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter){
         try{
-            CoachingBuddy coachee;
-            try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, buddiesService);
-            } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-            Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
+            TrustingBuddy trustingBuddy;
+            try { trustingBuddy = AuthHelper.getTrustingBuddy(buddyToAccessParameter, buddiesService);
+            } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+            Guest guest = ApiHelper.getBuddyToAccess(guestService, trustingBuddy);
             if (guest==null)
                 return Response.status(401).entity("You are no longer logged in").build();
             long guestId = guest.getId();

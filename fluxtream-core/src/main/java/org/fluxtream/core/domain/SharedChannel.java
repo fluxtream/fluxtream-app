@@ -15,14 +15,14 @@ import java.io.Serializable;
 public class SharedChannel extends AbstractEntity implements Serializable {
 
     @ManyToOne(fetch= FetchType.EAGER)
-    public CoachingBuddy buddy;
+    public TrustingBuddy buddy;
 
     @OneToOne(fetch= FetchType.EAGER)
     public ChannelMapping channelMapping;
 
     public SharedChannel() {}
 
-    public SharedChannel(CoachingBuddy buddy, ChannelMapping mapping) {
+    public SharedChannel(TrustingBuddy buddy, ChannelMapping mapping) {
         this.buddy = buddy;
         this.channelMapping = mapping;
     }

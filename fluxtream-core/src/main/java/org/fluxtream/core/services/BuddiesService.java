@@ -20,17 +20,17 @@ public interface BuddiesService {
 
     public void removeSharedConnector(long guestId, String username, String connectorName);
 
-    public boolean isViewingGranted(long guestId, long coacheeId, String connectorName);
+    public boolean isViewingGranted(long guestId, long trustingBuddyId, String connectorName);
 
     public List<Guest> getTrustingBuddies(long guestId);
 
     public List<Guest> getTrustedBuddies(long guestId);
 
-    public CoachingBuddy getTrustedBuddy(long guestId, String username);
+    public TrustingBuddy getTrustedBuddy(long guestId, String username);
 
-    public CoachingBuddy getTrustingBuddy(long guestId, String username);
+    public TrustingBuddy getTrustingBuddy(long guestId, String username);
 
-    public CoachingBuddy getTrustingBuddy(long guestId, long coacheeId);
+    public TrustingBuddy getTrustingBuddy(long guestId, long trustingBuddyId);
 
     public <T extends AbstractFacet> List<T> filterFacets(long viewerId, long apiKeyId, List<T> facets);
 

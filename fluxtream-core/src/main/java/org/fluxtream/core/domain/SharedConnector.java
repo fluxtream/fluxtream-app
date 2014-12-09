@@ -18,7 +18,7 @@ import java.io.Serializable;
 public class SharedConnector extends AbstractEntity implements Serializable {
 
     @ManyToOne
-    public CoachingBuddy buddy;
+    public TrustingBuddy buddy;
 
     @Index(name = "connectorName")
     public String connectorName;
