@@ -438,11 +438,18 @@ public class BodyTrackHelper {
         // create the 'All' photos block
         final Source allPhotosSource = getAllPhotosSource(infoResponse, photoChannelTimeRanges);
 
+        // retrieve channel mappings directly if trustedBuddy is null or through the SharedChannels otherwise
         final List<ChannelMapping> channelMappings = getChannelMappings(guestId, trustedBuddy);
-        populateResponseWithChannelMappings(guestId, null, response, channelMappings, infoResponse);
 
-        // add the All photos block to the response
-        if (!photoChannelTimeRanges.isEmpty()) {
+        // populateResponseWithChannelMappings is meant to be backward compatible with the LegacyBodytrackController
+        // and so it includes a trustedBuddy parameter because it has another (deprecated) way of figuring out
+        // access permissions to a buddy's info - here it has to be null since we have already filtered out
+        // Channels to which the loggedIn guest doesn't have access
+        populateResponseWithChannelMappings(guestId, null /*IMPORTANT: trustedBuddy needs to be null here*/,
+                response, channelMappings, infoResponse);
+
+        // if trustedBuddy is null, add the All photos block to the response
+        if (trustedBuddy==null&&!photoChannelTimeRanges.isEmpty()) {
             response.sources.add(allPhotosSource);
         }
 
@@ -559,6 +566,7 @@ public class BodyTrackHelper {
             final double defaultTimeForNullTimeIntervals = System.currentTimeMillis() / 1000;
 
             for (final String channelName : photoChannelTimeRanges.keySet()) {
+
                 final ChannelSpecs channelSpecs = new ChannelSpecs();
                 final TimeInterval timeInterval = photoChannelTimeRanges.get(channelName);
 

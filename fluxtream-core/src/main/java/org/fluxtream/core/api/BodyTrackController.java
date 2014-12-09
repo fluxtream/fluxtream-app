@@ -522,7 +522,12 @@ public class BodyTrackController {
             if (!accessAllowed) {
                 final TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
                 if (trustedBuddy != null) {
-                    accessAllowed = trustedBuddy.hasAccessToConnector("fluxtream_capture");
+                    List<ApiKey> flxApiKeys = guestService.getApiKeys(trustedBuddy.guestId, Connector.getConnector("fluxtream_capture"));
+                    if (flxApiKeys==null||flxApiKeys.size()==0) accessAllowed = false;
+                    else {
+                        ApiKey flxApiKey = flxApiKeys.get(0);
+                        accessAllowed = hasSharedChannel(flxApiKey, trustedBuddy, "photo");
+                    }
                 }
             }
         }
@@ -726,32 +731,6 @@ public class BodyTrackController {
                 uid = null;
             }
             return Response.ok(bodyTrackHelper.getSourcesResponse(uid, trustedBuddy)).build();
-        }
-        catch (Exception e){
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
-        }
-    }
-
-    @GET
-    @Path("/none/{UID}/sources/list")
-    @ApiOperation(value="Retrieves a list of devices and channels that data can be retrieved from", response=BodyTrackHelper.SourcesResponse.class)
-    @ApiResponses({
-            @ApiResponse(code=403, message="In case of unauthorized access")
-    })
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response getSourceList(@ApiParam(value= "User ID", required= true) @PathParam("UID") Long uid) {
-        try{
-            final long loggedInUserId = AuthHelper.getGuestId();
-            boolean accessAllowed = isOwnerOrAdmin(uid);
-            TrustedBuddy trustedBuddy = null;
-            if (!accessAllowed) {
-                trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
-                accessAllowed = (trustedBuddy !=null);
-            }
-            if (!accessAllowed){
-                uid = null;
-            }
-            return Response.ok(bodyTrackHelper.listSources(uid, trustedBuddy)).build();
         }
         catch (Exception e){
             return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
