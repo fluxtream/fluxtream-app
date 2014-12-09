@@ -109,9 +109,9 @@ public class BodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = isOwnerOrAdmin(uid);
-            TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+            TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
 
-            if (!accessAllowed && trustingBuddy==null) {
+            if (!accessAllowed && trustedBuddy ==null) {
                 uid = null;
             }
 
@@ -520,9 +520,9 @@ public class BodyTrackController {
             loggedInUserId = AuthHelper.getGuestId();
             accessAllowed = isOwnerOrAdmin(uid);
             if (!accessAllowed) {
-                final TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
-                if (trustingBuddy != null) {
-                    accessAllowed = trustingBuddy.hasAccessToConnector("fluxtream_capture");
+                final TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
+                if (trustedBuddy != null) {
+                    accessAllowed = trustedBuddy.hasAccessToConnector("fluxtream_capture");
                 }
             }
         }
@@ -605,17 +605,17 @@ public class BodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = isOwnerOrAdmin(uid);
-            TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
-            if (!accessAllowed&&trustingBuddy==null){
+            TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
+            if (!accessAllowed&& trustedBuddy ==null){
                 uid = null;
             }
-//            if (trustingBuddy!=null) {
-//                ApiKey apiKey = getApiKeyFromDeviceNickname(deviceNickname, trustingBuddy.guestId);
-//                if (apiKey==null)
-//                    return Response.status(Response.Status.BAD_REQUEST).entity("Couldn't find connector with device nickname=" + deviceNickname).build();
-//                else if (buddiesService.getSharedConnector(apiKey.getId(), AuthHelper.getGuestId())==null)
-//                    return Response.status(Response.Status.UNAUTHORIZED).entity("Access denied to device " + deviceNickname).build();
-//            }
+            if (trustedBuddy!=null) {
+                ApiKey apiKey = getApiKeyFromDeviceNickname(deviceNickname, trustedBuddy.guestId);
+                if (apiKey==null)
+                    return Response.status(Response.Status.BAD_REQUEST).entity("Couldn't find connector with device nickname=" + deviceNickname).build();
+                else if (!hasSharedChannel(apiKey, trustedBuddy, channelName))
+                    return Response.status(Response.Status.UNAUTHORIZED).entity("Access denied to device " + deviceNickname).build();
+            }
             return Response.ok(bodyTrackHelper.fetchTile(uid, deviceNickname, channelName, level, offset)).build();
         } catch (Exception e) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
@@ -642,8 +642,8 @@ public class BodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = isOwnerOrAdmin(uid);
-            TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
-            if (!accessAllowed&&trustingBuddy==null){
+            TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
+            if (!accessAllowed&& trustedBuddy ==null){
                 uid = null;
             }
             return Response.ok(bodyTrackHelper.listViews(uid)).build();
@@ -665,9 +665,9 @@ public class BodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = isOwnerOrAdmin(uid);
-            TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+            TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
 
-            if (!accessAllowed && trustingBuddy==null) {
+            if (!accessAllowed && trustedBuddy ==null) {
                 uid = null;
             }
             String result = bodyTrackHelper.getView(uid,id);
@@ -694,9 +694,9 @@ public class BodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = isOwnerOrAdmin(uid);
-            TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+            TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
 
-            if (!accessAllowed && trustingBuddy==null) {
+            if (!accessAllowed && trustedBuddy ==null) {
                 uid = null;
             }
             return Response.ok(bodyTrackHelper.saveView(uid, name, data)).build();
@@ -717,15 +717,15 @@ public class BodyTrackController {
         try{
             final long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = isOwnerOrAdmin(uid);
-            TrustingBuddy trustingBuddy = null;
+            TrustedBuddy trustedBuddy = null;
             if (!accessAllowed) {
-                trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
-                accessAllowed = (trustingBuddy!=null);
+                trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
+                accessAllowed = (trustedBuddy !=null);
             }
             if (!accessAllowed){
                 uid = null;
             }
-            return Response.ok(bodyTrackHelper.getSourcesResponse(uid, trustingBuddy)).build();
+            return Response.ok(bodyTrackHelper.getSourcesResponse(uid, trustedBuddy)).build();
         }
         catch (Exception e){
             return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
@@ -743,15 +743,15 @@ public class BodyTrackController {
         try{
             final long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = isOwnerOrAdmin(uid);
-            TrustingBuddy trustingBuddy = null;
+            TrustedBuddy trustedBuddy = null;
             if (!accessAllowed) {
-                trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
-                accessAllowed = (trustingBuddy!=null);
+                trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
+                accessAllowed = (trustedBuddy !=null);
             }
             if (!accessAllowed){
                 uid = null;
             }
-            return Response.ok(bodyTrackHelper.listSources(uid, trustingBuddy)).build();
+            return Response.ok(bodyTrackHelper.listSources(uid, trustedBuddy)).build();
         }
         catch (Exception e){
             return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
@@ -770,9 +770,9 @@ public class BodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = isOwnerOrAdmin(uid);
-            TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+            TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
 
-            if (!accessAllowed && trustingBuddy==null) {
+            if (!accessAllowed && trustedBuddy ==null) {
                 uid = null;
             }
             return Response.ok(bodyTrackHelper.getSourceInfo(uid, name)).build();
@@ -793,8 +793,8 @@ public class BodyTrackController {
         try {
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = isOwnerOrAdmin(uid);
-            TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
-            if (!accessAllowed && trustingBuddy == null) {
+            TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
+            if (!accessAllowed && trustedBuddy == null) {
                 uid = null;
             }
             return Response.ok(bodyTrackHelper.getAllTagsForUser(uid)).build();
@@ -839,9 +839,9 @@ public class BodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = isOwnerOrAdmin(uid);
-            TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+            TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
 
-            if (!accessAllowed && trustingBuddy==null) {
+            if (!accessAllowed && trustedBuddy ==null) {
                 uid = null;
             }
 
@@ -854,7 +854,7 @@ public class BodyTrackController {
 
             api = getApiKeyFromConnectorName(connectorName, keys, api);
 
-            if (trustingBuddy!=null && buddiesService.getSharedConnector(api.getId(), AuthHelper.getGuestId())==null)
+            if (trustedBuddy !=null && !hasSharedChannel(api, trustedBuddy, objectTypeName))
                 return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied to connector " + connectorName).build();
 
             if (api == null) {
@@ -876,6 +876,15 @@ public class BodyTrackController {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
         }
 
+    }
+
+    private boolean hasSharedChannel(ApiKey api, TrustedBuddy trustedBuddy, String objectTypeName) {
+        List<SharedChannel> sharedChannels = buddiesService.getSharedChannels(trustedBuddy.buddyId, trustedBuddy.guestId, api.getId());
+        for (SharedChannel sharedChannel : sharedChannels) {
+            if (sharedChannel.channelMapping.getChannelName().equals(objectTypeName))
+                return true;
+        }
+        return false;
     }
 
     private ApiKey  getApiKeyFromConnectorName(String connectorName, List<ApiKey> keys, ApiKey api) {
@@ -1016,9 +1025,9 @@ public class BodyTrackController {
     public boolean isUnauthorized(Long uid) {
         long loggedInUserId = AuthHelper.getGuestId();
         boolean accessAllowed = isOwnerOrAdmin(uid);
-        TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+        TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
 
-        return !accessAllowed && trustingBuddy==null;
+        return !accessAllowed && trustedBuddy ==null;
     }
 
     @GET
@@ -1148,9 +1157,9 @@ public class BodyTrackController {
                     loggedInUserId = AuthHelper.getGuestId();
                     accessAllowed = isOwnerOrAdmin(uid);
                     if (!accessAllowed) {
-                        final TrustingBuddy trustingBuddy = buddiesService.getTrustingBuddy(loggedInUserId, uid);
-                        if (trustingBuddy != null) {
-                            accessAllowed = trustingBuddy.hasAccessToConnector(connector.getName());
+                        final TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
+                        if (trustedBuddy != null) {
+                            accessAllowed = trustedBuddy.hasAccessToConnector(connector.getName());
                         }
                     }
                 }

@@ -10,7 +10,7 @@ import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.auth.TrustRelationshipRevokedException;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.TrustingBuddy;
+import org.fluxtream.core.domain.TrustedBuddy;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.mvc.models.AvatarImageModel;
 import org.fluxtream.core.mvc.models.guest.GuestModel;
@@ -59,13 +59,13 @@ public class GuestController {
                                     @ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter) throws InstantiationException,
 			IllegalAccessException, ClassNotFoundException {
         try{
-            TrustingBuddy trustingBuddy;
-            try { trustingBuddy = AuthHelper.getTrustingBuddy(buddyToAccessParameter, buddiesService);
+            TrustedBuddy trustedBuddy;
+            try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
             } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-            Guest guest = ApiHelper.getBuddyToAccess(guestService, trustingBuddy);
+            Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
             if (guest==null)
                 return Response.status(401).entity("You are no longer logged in").build();
-            GuestModel guestModel = new GuestModel(guest, trustingBuddy!=null);
+            GuestModel guestModel = new GuestModel(guest, trustedBuddy !=null);
             if (includeAvatar)
                 guestModel.avatar = getAvatarImageModel(buddyToAccessParameter, guest);
             return Response.ok(guestModel).build();
@@ -94,9 +94,9 @@ public class GuestController {
         String type = "none";
         String url;
         try {
-            final TrustingBuddy trustingBuddy = AuthHelper.getTrustingBuddy(buddyToAccessParameter, buddiesService);
-            if (trustingBuddy!=null)
-                guest = guestService.getGuestById(trustingBuddy.guestId);
+            final TrustedBuddy trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+            if (trustedBuddy !=null)
+                guest = guestService.getGuestById(trustedBuddy.guestId);
         }
         catch (TrustRelationshipRevokedException e) {}
         if (guest.registrationMethod == Guest.RegistrationMethod.REGISTRATION_METHOD_FACEBOOK||

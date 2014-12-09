@@ -16,18 +16,18 @@ import org.hibernate.annotations.Index;
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
-@Entity(name = "TrustingBuddies")
+@Entity(name = "TrustedBuddies")
 @NamedQueries({
-      @NamedQuery(name = "trustingBuddies.byGuestId",
-                  query = "SELECT buddy FROM TrustingBuddies buddy WHERE buddy.guestId=?"),
-      @NamedQuery(name = "trustingBuddies.byBuddyId",
-                  query = "SELECT buddy FROM TrustingBuddies buddy WHERE buddy.buddyId=?"),
-      @NamedQuery(name = "trustingBuddies.byGuestAndBuddyId",
-                  query = "SELECT buddy FROM TrustingBuddies buddy WHERE buddy.guestId=? AND buddy.buddyId=?"),
-      @NamedQuery(name = "trustingBuddies.delete.all",
-                  query = "DELETE FROM TrustingBuddies buddy WHERE buddy.guestId=?")
+      @NamedQuery(name = "trustedBuddies.byGuestId",
+                  query = "SELECT buddy FROM TrustedBuddies buddy WHERE buddy.guestId=?"),
+      @NamedQuery(name = "trustedBuddies.byBuddyId",
+                  query = "SELECT buddy FROM TrustedBuddies buddy WHERE buddy.buddyId=?"),
+      @NamedQuery(name = "trustedBuddies.byGuestAndBuddyId",
+                  query = "SELECT buddy FROM TrustedBuddies buddy WHERE buddy.guestId=? AND buddy.buddyId=?"),
+      @NamedQuery(name = "trustedBuddies.delete.all",
+                  query = "DELETE FROM TrustedBuddies buddy WHERE buddy.guestId=?")
 })
-public class TrustingBuddy extends AbstractEntity implements Serializable {
+public class TrustedBuddy extends AbstractEntity implements Serializable {
 
     @Index(name = "guestId")
     public long guestId;
@@ -55,9 +55,9 @@ public class TrustingBuddy extends AbstractEntity implements Serializable {
     }
 
     public boolean equals(Object o) {
-        if (!(o instanceof TrustingBuddy))
+        if (!(o instanceof TrustedBuddy))
             return false;
-        TrustingBuddy buddy = (TrustingBuddy) o;
+        TrustedBuddy buddy = (TrustedBuddy) o;
         return buddy.guestId == guestId && buddy.buddyId == buddyId;
     }
 

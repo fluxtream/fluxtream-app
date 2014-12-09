@@ -203,8 +203,6 @@ public class AppController {
 	@RequestMapping(value = { "/app*", "/app/**" })
 	public ModelAndView welcomeHome(HttpServletRequest request, HttpServletResponse response)
 			throws IOException, NoSuchAlgorithmException {
-        // always reset the target user to the logged in user when the app starts (or a browser reload happens)
-        AuthHelper.as(null);
 		if (!hasTimezoneCookie(request)|| AuthHelper.getGuest()==null)
 			return new ModelAndView("redirect:/welcome?signIn");
         SavedRequest savedRequest =

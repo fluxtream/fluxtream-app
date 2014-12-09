@@ -423,7 +423,7 @@ public class BodyTrackHelper {
         return gson.toJson(fetchTileObject(guestId,deviceNickname,channelName,level,offset));
     }
 
-    public String getSourcesResponse(Long guestId, TrustingBuddy trustingBuddy) {
+    public String getSourcesResponse(Long guestId, TrustedBuddy trustedBuddy) {
         final SourcesResponse response = new SourcesResponse();
 
         final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("info",new Object[]{"-r",guestId});
@@ -438,7 +438,7 @@ public class BodyTrackHelper {
         // create the 'All' photos block
         final Source allPhotosSource = getAllPhotosSource(infoResponse, photoChannelTimeRanges);
 
-        final List<ChannelMapping> channelMappings = getChannelMappings(guestId, trustingBuddy);
+        final List<ChannelMapping> channelMappings = getChannelMappings(guestId, trustedBuddy);
         populateResponseWithChannelMappings(guestId, null, response, channelMappings, infoResponse);
 
         // add the All photos block to the response
@@ -450,7 +450,7 @@ public class BodyTrackHelper {
         return jsonResponse;
     }
 
-    public String listSources(Long guestId, TrustingBuddy trustingBuddy){
+    public String listSources(Long guestId, TrustedBuddy trustedBuddy){
         SourcesResponse response = null;
         try{
             if (guestId == null) {
@@ -463,21 +463,21 @@ public class BodyTrackHelper {
             ChannelInfoResponse infoResponse = gson.fromJson(result,ChannelInfoResponse.class);
 
             // Iterate over the various (photo) connectors (if any), manually inserting each into the ChannelSpecs
-            final Map<String, TimeInterval> photoChannelTimeRanges = photoService.getPhotoChannelTimeRanges(guestId, trustingBuddy);
+            final Map<String, TimeInterval> photoChannelTimeRanges = photoService.getPhotoChannelTimeRanges(guestId, trustedBuddy);
 
             // create the 'All' photos block
             final Source allPhotosSource = getAllPhotosSource(infoResponse, photoChannelTimeRanges);
 
             // create the respone
-            response = new SourcesResponse(infoResponse, guestId, trustingBuddy);
+            response = new SourcesResponse(infoResponse, guestId, trustedBuddy);
 
             // filter out photo connectors that aren't shared with this user
-            if (trustingBuddy!=null) {
+            if (trustedBuddy !=null) {
                 List<String> sourcesToRemove = new ArrayList<String>();
                 for (Source source : response.sources) {
                     final Connector photoConnectorForSource = Connector.fromDeviceNickname(source.name);
                     if (photoConnectorForSource!=null) {
-                        final List<ApiKey> apiKeys = guestService.getApiKeys(trustingBuddy.guestId, photoConnectorForSource);
+                        final List<ApiKey> apiKeys = guestService.getApiKeys(trustedBuddy.guestId, photoConnectorForSource);
                         for (ApiKey apiKey : apiKeys) {
                             if (buddiesService.getSharedConnector(apiKey.getId(), AuthHelper.getGuestId())==null) {
                                 sourcesToRemove.add(source.name);
@@ -502,8 +502,8 @@ public class BodyTrackHelper {
             response.deleteSource("Flickr");
             response.deleteSource("SMS_Backup");
 
-            final List<ChannelMapping> channelMappings = getChannelMappings(guestId, trustingBuddy);
-            populateResponseWithChannelMappings(guestId, trustingBuddy, response, channelMappings, infoResponse);
+            final List<ChannelMapping> channelMappings = getChannelMappings(guestId, trustedBuddy);
+            populateResponseWithChannelMappings(guestId, trustedBuddy, response, channelMappings, infoResponse);
 
             // add the All photos block to the response
             if (!photoChannelTimeRanges.isEmpty()) {
@@ -535,7 +535,7 @@ public class BodyTrackHelper {
 
             logger.error(sb.toString());
 
-            return gson.toJson(new SourcesResponse(null, guestId, trustingBuddy));
+            return gson.toJson(new SourcesResponse(null, guestId, trustedBuddy));
         }
     }
 
@@ -596,7 +596,7 @@ public class BodyTrackHelper {
     }
 
     private void populateResponseWithChannelMappings(Long guestId,
-                                                     TrustingBuddy trustingBuddy,
+                                                     TrustedBuddy trustedBuddy,
                                                      SourcesResponse response,
                                                      List<ChannelMapping> channelMappings,
                                                      ChannelInfoResponse infoResponse) {
@@ -608,7 +608,7 @@ public class BodyTrackHelper {
             if (api.getConnector()==null)
                 continue;
             // filter out not shared connectors
-            if (trustingBuddy!=null&& buddiesService.getSharedConnector(api.getId(), AuthHelper.getGuestId())==null)
+            if (trustedBuddy !=null&& buddiesService.getSharedConnector(api.getId(), AuthHelper.getGuestId())==null)
                 continue;
             Source source;
             String deviceName;
@@ -770,11 +770,11 @@ public class BodyTrackHelper {
         return channelMapping;
     }
 
-    public List<ChannelMapping> getChannelMappings(long guestId, TrustingBuddy trustingBuddy){
-        if (trustingBuddy==null)
+    public List<ChannelMapping> getChannelMappings(long guestId, TrustedBuddy trustedBuddy){
+        if (trustedBuddy ==null)
             return JPAUtils.find(em, ChannelMapping.class, "channelMapping.all",guestId);
         else {
-            List<SharedChannel> sharedChannels = buddiesService.getSharedChannels(trustingBuddy.buddyId, trustingBuddy.guestId);
+            List<SharedChannel> sharedChannels = buddiesService.getSharedChannels(trustedBuddy.buddyId, trustedBuddy.guestId);
             List<ChannelMapping> channelMappings = new ArrayList<ChannelMapping>();
             for (SharedChannel sharedChannel : sharedChannels) {
                 channelMappings.add(sharedChannel.channelMapping);
@@ -1018,7 +1018,7 @@ public class BodyTrackHelper {
 
         public SourcesResponse() {}
 
-        public SourcesResponse(ChannelInfoResponse infoResponse, Long guestId, TrustingBuddy trustingBuddy){
+        public SourcesResponse(ChannelInfoResponse infoResponse, Long guestId, TrustedBuddy trustedBuddy){
             sources = new ArrayList<Source>();
             if (infoResponse == null)
                 return;
@@ -1033,7 +1033,7 @@ public class BodyTrackHelper {
                 String deviceName = split[0];
                 String objectTypeName = split[1];
                 Source source = null;
-                if (trustingBuddy==null || trustingBuddy.hasAccessToDevice(deviceName, env)) {
+                if (trustedBuddy ==null || trustedBuddy.hasAccessToDevice(deviceName, env)) {
                     for (Source src : sources)
                         if (src.name.equals(deviceName)){
                             source = src;

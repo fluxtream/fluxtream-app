@@ -1,0 +1,1 @@
+ALTER TABLE CoachingBuddies RENAME TrustedBuddies;

@@ -411,9 +411,9 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
         JPAUtils.execute(em, "updateWorkerTasks.delete.all", guest.getId());
         JPAUtils.execute(em, "tags.delete.all", guest.getId());
         JPAUtils.execute(em, "notifications.delete.all", guest.getId());
-        final List<TrustingBuddy> coachingBuddies = JPAUtils.find(em, TrustingBuddy.class, "trustingBuddies.byGuestId", guest.getId());
-        for (TrustingBuddy trustingBuddy : coachingBuddies)
-            em.remove(trustingBuddy);
+        final List<TrustedBuddy> coachingBuddies = JPAUtils.find(em, TrustedBuddy.class, "trustedBuddies.byGuestId", guest.getId());
+        for (TrustedBuddy trustedBuddy : coachingBuddies)
+            em.remove(trustedBuddy);
         JPAUtils.execute(em, "channelMapping.delete.all", guest.getId());
         JPAUtils.execute(em, "connectorFilterState.delete.all", guest.getId());
         JPAUtils.execute(em, "channelStyle.delete.all", guest.getId());

@@ -11,7 +11,7 @@ import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.auth.TrustRelationshipRevokedException;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.TrustingBuddy;
+import org.fluxtream.core.domain.TrustedBuddy;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.mvc.models.guest.GuestModel;
@@ -81,9 +81,9 @@ public class LegacyGuestController {
         String type = "none";
         String url;
         try {
-            final TrustingBuddy trustingBuddy = AuthHelper.getTrustingBuddy();
-            if (trustingBuddy!=null)
-                guest = guestService.getGuestById(trustingBuddy.guestId);
+            final TrustedBuddy trustedBuddy = AuthHelper.getTrustedBuddy();
+            if (trustedBuddy !=null)
+                guest = guestService.getGuestById(trustedBuddy.guestId);
         }
         catch (TrustRelationshipRevokedException e) {
             // TODO: do something about this

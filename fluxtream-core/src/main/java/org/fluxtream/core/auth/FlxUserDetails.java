@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import org.fluxtream.core.domain.TrustingBuddy;
+import org.fluxtream.core.domain.TrustedBuddy;
 import org.fluxtream.core.domain.Guest;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,7 +15,7 @@ public class FlxUserDetails implements UserDetails, Serializable {
 
 	private Guest guest;
     public long guestId;
-    public TrustingBuddy trustingBuddy;
+    public TrustedBuddy trustedBuddy;
 
 	public FlxUserDetails(Guest guest) {
 		this.guest = guest;

@@ -1,7 +1,7 @@
 package org.fluxtream.core.auth;
 
 import org.apache.commons.lang.StringUtils;
-import org.fluxtream.core.domain.TrustingBuddy;
+import org.fluxtream.core.domain.TrustedBuddy;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.services.BuddiesService;
 import org.springframework.security.core.Authentication;
@@ -14,7 +14,7 @@ import java.util.Set;
 
 public class AuthHelper {
 
-    private static Map<Long,Set<TrustingBuddy>> viewees = new Hashtable<Long,Set<TrustingBuddy>>();
+    private static Map<Long,Set<TrustedBuddy>> viewees = new Hashtable<Long,Set<TrustedBuddy>>();
 
 	public static long getGuestId() {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -32,41 +32,41 @@ public class AuthHelper {
     public static boolean isViewingGranted(String connectorName, BuddiesService buddiesService) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         final FlxUserDetails principal = (FlxUserDetails) auth.getPrincipal();
-        if (principal.trustingBuddy==null)
+        if (principal.trustedBuddy ==null)
             return true;
         else {
-            return buddiesService.isViewingGranted(principal.guestId, principal.trustingBuddy.guestId, connectorName);
+            return buddiesService.isViewingGranted(principal.guestId, principal.trustedBuddy.guestId, connectorName);
         }
     }
 
-    public static void as(TrustingBuddy trustingBuddy) {
+    public static void as(TrustedBuddy trustedBuddy) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         final FlxUserDetails principal = (FlxUserDetails) auth.getPrincipal();
-        addViewee(principal.guestId, trustingBuddy);
-        principal.trustingBuddy = trustingBuddy;
+        addViewee(principal.guestId, trustedBuddy);
+        principal.trustedBuddy = trustedBuddy;
     }
 
-    private static void addViewee(final Long id, final TrustingBuddy trustingBuddy) {
+    private static void addViewee(final Long id, final TrustedBuddy trustedBuddy) {
         if (viewees.get(id)==null);
-            viewees.put(id, new HashSet<TrustingBuddy>());
-        if (!viewees.get(id).contains(trustingBuddy))
-            viewees.get(id).add(trustingBuddy);
+            viewees.put(id, new HashSet<TrustedBuddy>());
+        if (!viewees.get(id).contains(trustedBuddy))
+            viewees.get(id).add(trustedBuddy);
     }
 
     /**
      * This is called by coachingService when a trustingBuddy no longer wants to be coached by
      * some coach
      * @param id coach id
-     * @param trustingBuddy The user who just revoked the coach
+     * @param trustedBuddy The user who just revoked the coach
      */
-    public static void revokeCoach(final Long id, final TrustingBuddy trustingBuddy) {
-        final Set<TrustingBuddy> buddies = viewees.get(id);
+    public static void revokeCoach(final Long id, final TrustedBuddy trustedBuddy) {
+        final Set<TrustedBuddy> buddies = viewees.get(id);
         if (buddies==null)
             return;
-        TrustingBuddy toRemove = null;
-        for (TrustingBuddy buddy : buddies) {
+        TrustedBuddy toRemove = null;
+        for (TrustedBuddy buddy : buddies) {
             if (buddy==null) continue;
-            if (buddy.getId()==trustingBuddy.getId()) {
+            if (buddy.getId()== trustedBuddy.getId()) {
                 toRemove = buddy;
                 break;
             }
@@ -77,54 +77,54 @@ public class AuthHelper {
     public static long getVieweeId() throws TrustRelationshipRevokedException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         final FlxUserDetails principal = (FlxUserDetails) auth.getPrincipal();
-        if (principal.trustingBuddy==null)
+        if (principal.trustedBuddy ==null)
             return principal.guestId;
         else {
-            final Set<TrustingBuddy> gueststrustingBuddies = viewees.get(principal.guestId);
-            if (gueststrustingBuddies.contains(principal.trustingBuddy))
-                return principal.trustingBuddy.guestId;
+            final Set<TrustedBuddy> trustedBuddies = viewees.get(principal.guestId);
+            if (trustedBuddies.contains(principal.trustedBuddy))
+                return principal.trustedBuddy.guestId;
             else {
-                principal.trustingBuddy = null;
+                principal.trustedBuddy = null;
                 throw new TrustRelationshipRevokedException();
             }
         }
     }
 
-    public static TrustingBuddy getTrustingBuddy(String buddyToAccessParameter, BuddiesService buddiesService) throws TrustRelationshipRevokedException {
+    public static TrustedBuddy getTrustedBuddy(String buddyToAccessParameter, BuddiesService buddiesService) throws TrustRelationshipRevokedException {
         if (buddyToAccessParameter==null || buddyToAccessParameter!=null&&buddyToAccessParameter.equals("self")) {
             as(null);
             return null;
         } else if (buddyToAccessParameter !=null&&!buddyToAccessParameter.equals("self")) {
-            TrustingBuddy trustingBuddy;
+            TrustedBuddy trustedBuddy;
             if (StringUtils.isNumeric(buddyToAccessParameter)) {
-                final Long trustingBuddyId = Long.valueOf(buddyToAccessParameter, 10);
-                if (trustingBuddyId==AuthHelper.getGuestId())
+                final Long trustedBuddyId = Long.valueOf(buddyToAccessParameter, 10);
+                if (trustedBuddyId==AuthHelper.getGuestId())
                     return null;
-                trustingBuddy = buddiesService.getTrustingBuddy(getGuestId(), trustingBuddyId);
+                trustedBuddy = buddiesService.getTrustedBuddy(getGuestId(), trustedBuddyId);
             } else
-                trustingBuddy = buddiesService.getTrustingBuddy(getGuestId(), buddyToAccessParameter);
+                trustedBuddy = buddiesService.getTrustedBuddy(getGuestId(), buddyToAccessParameter);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             final FlxUserDetails principal = (FlxUserDetails) auth.getPrincipal();
-            if (trustingBuddy!=null) {
-                addViewee(principal.guestId, trustingBuddy);
-                principal.trustingBuddy = trustingBuddy;
-                return trustingBuddy;
+            if (trustedBuddy !=null) {
+                addViewee(principal.guestId, trustedBuddy);
+                principal.trustedBuddy = trustedBuddy;
+                return trustedBuddy;
             }
             else {
-                principal.trustingBuddy = null;
+                principal.trustedBuddy = null;
                 throw new TrustRelationshipRevokedException();
             }
-        } else return getTrustingBuddy();
+        } else return getTrustedBuddy();
     }
 
-    public static TrustingBuddy getTrustingBuddy() throws TrustRelationshipRevokedException {
+    public static TrustedBuddy getTrustedBuddy() throws TrustRelationshipRevokedException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         final FlxUserDetails principal = (FlxUserDetails) auth.getPrincipal();
-        if (principal.trustingBuddy!=null && viewees.size()>0)
-            if (viewees.get(principal.guestId).contains(principal.trustingBuddy))
-                return principal.trustingBuddy;
+        if (principal.trustedBuddy !=null && viewees.size()>0)
+            if (viewees.get(principal.guestId).contains(principal.trustedBuddy))
+                return principal.trustedBuddy;
             else {
-                principal.trustingBuddy = null;
+                principal.trustedBuddy = null;
                 throw new TrustRelationshipRevokedException();
             }
         return null;

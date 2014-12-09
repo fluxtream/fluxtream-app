@@ -69,10 +69,10 @@ public class SyncController {
 
     private Response sync(final String connectorName, final String buddyToAccessParameter, final boolean force) {
         try{
-            TrustingBuddy trustingBuddy;
-            try { trustingBuddy = AuthHelper.getTrustingBuddy(buddyToAccessParameter, buddiesService);
+            TrustedBuddy trustedBuddy;
+            try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
             } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-            Guest guest = ApiHelper.getBuddyToAccess(guestService, trustingBuddy);
+            Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
             final long guestId = guest.getId();
             final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
             guestService.setApiKeyToSynching(apiKey.getId(), true);
@@ -106,10 +106,10 @@ public class SyncController {
     private Response syncConnectorObjectType(final String connectorName, final String buddyToAccessParameter,
                                              final int objectTypes, final boolean force) {
         try {
-            TrustingBuddy trustingBuddy;
-            try { trustingBuddy = AuthHelper.getTrustingBuddy(buddyToAccessParameter, buddiesService);
+            TrustedBuddy trustedBuddy;
+            try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
             } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-            Guest guest = ApiHelper.getBuddyToAccess(guestService, trustingBuddy);
+            Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
             final long guestId = guest.getId();
 
             final ApiKey apiKey = guestService.getApiKey(guestId, Connector.getConnector(connectorName));
@@ -131,10 +131,10 @@ public class SyncController {
     })
     @Produces({MediaType.APPLICATION_JSON})
     public Response updateAllConnectors(@ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter){
-        TrustingBuddy trustingBuddy;
-        try { trustingBuddy = AuthHelper.getTrustingBuddy(buddyToAccessParameter, buddiesService);
+        TrustedBuddy trustedBuddy;
+        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
         } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustingBuddy);
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
         final long guestId = guest.getId();
         try {
             final List<ScheduleResult> scheduleResults = connectorUpdateService.updateAllConnectors(guestId, true);

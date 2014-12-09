@@ -26,11 +26,9 @@ public interface BuddiesService {
 
     public List<Guest> getTrustedBuddies(long guestId);
 
-    public TrustingBuddy getTrustedBuddy(long guestId, String username);
+    public TrustedBuddy getTrustedBuddy(long guestId, String username);
 
-    public TrustingBuddy getTrustingBuddy(long guestId, String username);
-
-    public TrustingBuddy getTrustingBuddy(long guestId, long trustingBuddyId);
+    public TrustedBuddy getTrustedBuddy(long guestId, long trustingBuddyId);
 
     public <T extends AbstractFacet> List<T> filterFacets(long viewerId, long apiKeyId, List<T> facets);
 

@@ -88,10 +88,10 @@ public class CalendarDataStore {
                                              @ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter,
                                              @ApiParam(value="Updated Since Date", required = false) @QueryParam("updatedSince") String updatedSince) {
 
-        TrustingBuddy trustingBuddy;
-        try { trustingBuddy = AuthHelper.getTrustingBuddy(buddyToAccessParameter, buddiesService);
+        TrustedBuddy trustedBuddy;
+        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
         } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustingBuddy);
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
         if (guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
         long guestId = guest.getId();
@@ -163,10 +163,10 @@ public class CalendarDataStore {
     public Response getAllConnectorsData(@ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter,
                                          @ApiParam(value="Updated Since Date", required = false) @QueryParam("updatedSince") String updatedSince) {
 
-        TrustingBuddy trustingBuddy;
-        try { trustingBuddy = AuthHelper.getTrustingBuddy(buddyToAccessParameter, buddiesService);
+        TrustedBuddy trustedBuddy;
+        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
         } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustingBuddy);
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
         if (guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
         long guestId = guest.getId();
@@ -265,10 +265,10 @@ public class CalendarDataStore {
                               boolean locationDataOnly,
                               final String buddyToAccessParameter,
                               final String updatedSince) {
-        TrustingBuddy trustingBuddy;
-        try { trustingBuddy = AuthHelper.getTrustingBuddy(buddyToAccessParameter, buddiesService);
+        TrustedBuddy trustedBuddy;
+        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
         } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustingBuddy);
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
         if (guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
         long guestId = guest.getId();
@@ -291,10 +291,10 @@ public class CalendarDataStore {
             digest.tbounds = getStartEndResponseBoundaries(weekMetadata.start,
                                                            weekMetadata.end);
 
-            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, trustingBuddy);
+            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, trustedBuddy);
             digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
             List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
-            allApiKeys = removeConnectorsWithoutFacets(allApiKeys, trustingBuddy);
+            allApiKeys = removeConnectorsWithoutFacets(allApiKeys, trustedBuddy);
             digest.nApis = allApiKeys.size();
             GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
 
@@ -359,10 +359,10 @@ public class CalendarDataStore {
     }
 
     private Response getMonthData(final int year, final int month, String filter, boolean locationDataOnly, String buddyToAccessParameter, String updatedSince) {
-        TrustingBuddy trustingBuddy;
-        try { trustingBuddy = AuthHelper.getTrustingBuddy(buddyToAccessParameter, buddiesService);
+        TrustedBuddy trustedBuddy;
+        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
         } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustingBuddy);
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
         if (guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
         long guestId = guest.getId();
@@ -383,10 +383,10 @@ public class CalendarDataStore {
             digest.tbounds = getStartEndResponseBoundaries(monthMetadata.start,
                                                            monthMetadata.end);
 
-            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, trustingBuddy);
+            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, trustedBuddy);
             digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
             List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
-            allApiKeys = removeConnectorsWithoutFacets(allApiKeys, trustingBuddy);
+            allApiKeys = removeConnectorsWithoutFacets(allApiKeys, trustedBuddy);
             digest.nApis = allApiKeys.size();
             GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
 
@@ -431,10 +431,10 @@ public class CalendarDataStore {
     public Response getWeatherDataForADay(@ApiParam(value="Date", required=true) @PathParam("date") String date,
                                               @ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter) {
 
-        TrustingBuddy trustingBuddy;
-        try { trustingBuddy = AuthHelper.getTrustingBuddy(buddyToAccessParameter, buddiesService);
+        TrustedBuddy trustedBuddy;
+        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
         } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustingBuddy);
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
         if (guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
         long guestId = guest.getId();
@@ -493,10 +493,10 @@ public class CalendarDataStore {
                                             @ApiParam(value="Updated Since Date", required = false) @QueryParam("updatedSince") String updatedSince) throws InstantiationException,
             IllegalAccessException, ClassNotFoundException, UpdateFailedException, OutsideTimeBoundariesException, IOException {
         if (StringUtils.isEmpty(filter)) filter = "{}";
-        TrustingBuddy trustingBuddy;
-        try { trustingBuddy = AuthHelper.getTrustingBuddy(buddyToAccessParameter, buddiesService);
+        TrustedBuddy trustedBuddy;
+        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
         } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustingBuddy);
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
         if (guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
         long guestId = guest.getId();
@@ -519,10 +519,10 @@ public class CalendarDataStore {
         if (digest.metadata.mainCity!=null)
             setSolarInfo(digest, dayMetadata.consensusVisitedCity.city, guestId, dayMetadata);
 
-        List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, trustingBuddy);
+        List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, trustedBuddy);
         digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
         List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
-        allApiKeys = removeConnectorsWithoutFacets(allApiKeys, trustingBuddy);
+        allApiKeys = removeConnectorsWithoutFacets(allApiKeys, trustedBuddy);
         digest.nApis = allApiKeys.size();
         GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
 
@@ -580,11 +580,11 @@ public class CalendarDataStore {
         digest.metadata.consensusCities = consensusCityModels;
     }
 
-	private List<ApiKey> removeConnectorsWithoutFacets(List<ApiKey> allApiKeys, TrustingBuddy trustingBuddy) {
+	private List<ApiKey> removeConnectorsWithoutFacets(List<ApiKey> allApiKeys, TrustedBuddy trustedBuddy) {
 		List<ApiKey> apiKeys = new ArrayList<ApiKey>();
 		for (ApiKey apiKey : allApiKeys) {
             if (apiKey!=null && apiKey.getConnector()!=null && apiKey.getConnector().hasFacets()
-                && (trustingBuddy==null||trustingBuddy.hasAccessToConnector(apiKey.getConnector().getName()))) {
+                && (trustedBuddy ==null|| trustedBuddy.hasAccessToConnector(apiKey.getConnector().getName()))) {
                 apiKeys.add(apiKey);
             }
 		}
@@ -748,10 +748,10 @@ public class CalendarDataStore {
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
         try{
-            TrustingBuddy trustingBuddy;
-            try { trustingBuddy = AuthHelper.getTrustingBuddy(buddyToAccessParameter, buddiesService);
+            TrustedBuddy trustedBuddy;
+            try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
             } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-            Guest guest = ApiHelper.getBuddyToAccess(guestService, trustingBuddy);
+            Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
             if (guest==null)
                 return Response.status(401).entity("You are no longer logged in").build();
             long guestId = guest.getId();
@@ -829,14 +829,14 @@ public class CalendarDataStore {
             } catch (Throwable e) {
                 return Response.status(401).entity("You are no longer logged in. Please reload your browser window").build();
             }
-            TrustingBuddy trustingBuddy = null;
+            TrustedBuddy trustedBuddy = null;
             try {
-                trustingBuddy = AuthHelper.getTrustingBuddy(buddyToAccessParameter, buddiesService);
+                trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
             } catch (TrustRelationshipRevokedException e) {
                 return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();
             }
-            if (trustingBuddy!=null) {
-                guestId = trustingBuddy.guestId;
+            if (trustedBuddy !=null) {
+                guestId = trustedBuddy.guestId;
                 guest = guestService.getGuestById(guestId);
             }
 
@@ -901,10 +901,10 @@ public class CalendarDataStore {
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
         try{
-            TrustingBuddy trustingBuddy;
-            try { trustingBuddy = AuthHelper.getTrustingBuddy(buddyToAccessParameter, buddiesService);
+            TrustedBuddy trustedBuddy;
+            try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
             } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-            Guest guest = ApiHelper.getBuddyToAccess(guestService, trustingBuddy);
+            Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
             if (guest==null)
                 return Response.status(401).entity("You are no longer logged in").build();
             long guestId = guest.getId();
@@ -1206,7 +1206,7 @@ public class CalendarDataStore {
         return  connectors;
     }
 
-	private List<ApiKey> getApiKeySelection(long guestId, String filter, TrustingBuddy trustingBuddy) {
+	private List<ApiKey> getApiKeySelection(long guestId, String filter, TrustedBuddy trustedBuddy) {
 		List<ApiKey> userKeys = guestService.getApiKeys(guestId);
 		String[] uncheckedConnectors = filter.split(",");
 		List<String> filteredOutConnectors = new ArrayList<String>();
@@ -1215,12 +1215,12 @@ public class CalendarDataStore {
                     Arrays.asList(uncheckedConnectors));
         }
 		List<ApiKey> apiKeySelection = getCheckedApiKeys(userKeys,
-				filteredOutConnectors, trustingBuddy);
+				filteredOutConnectors, trustedBuddy);
 		return apiKeySelection;
 	}
 
 	private List<ApiKey> getCheckedApiKeys(List<ApiKey> apiKeys,
-			List<String> uncheckedConnectors, TrustingBuddy trustingBuddy) {
+			List<String> uncheckedConnectors, TrustedBuddy trustedBuddy) {
 		List<ApiKey> result = new ArrayList<ApiKey>();
 		there: for (ApiKey apiKey : apiKeys) {
 
@@ -1229,7 +1229,7 @@ public class CalendarDataStore {
                 continue;
             }
 
-            if (trustingBuddy!=null && !trustingBuddy.hasAccessToConnector((apiKey.getConnector().getName())))
+            if (trustedBuddy !=null && !trustedBuddy.hasAccessToConnector((apiKey.getConnector().getName())))
                 continue;
 
             // Check if apiKey should be skipped due to being in uncheckedConnectors list.

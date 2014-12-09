@@ -157,10 +157,10 @@ public class ConnectorStore {
             @ApiResponse(code = 403, message = "Buddy-to-access authorization has been revoked")
     })
     public Response getInstalledConnectors(@ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter){
-        TrustingBuddy trustingBuddy;
-        try { trustingBuddy = AuthHelper.getTrustingBuddy(buddyToAccessParameter, buddiesService);
+        TrustedBuddy trustedBuddy;
+        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
         } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustingBuddy);
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
         if (guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
 
@@ -225,7 +225,7 @@ public class ConnectorStore {
                 }
             }
             if (buddyToAccessParameter!=null) {
-                final List<SharedConnector> sharedConnectors = buddiesService.getSharedConnectors(AuthHelper.getGuestId(), trustingBuddy.guestId);
+                final List<SharedConnector> sharedConnectors = buddiesService.getSharedConnectors(AuthHelper.getGuestId(), trustedBuddy.guestId);
                 List<ConnectorModelFull> unshared = new ArrayList<ConnectorModelFull>();
 
                 eachTrustingBuddyConnector:for (int i=0; i<connectorsArray.size(); i++) {
@@ -488,14 +488,14 @@ public class ConnectorStore {
         if(guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
 
-        TrustingBuddy trustingBuddy;
+        TrustedBuddy trustedBuddy;
         try {
-            trustingBuddy = AuthHelper.getTrustingBuddy(buddyToAccessParameter, buddiesService);
+            trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
         } catch (TrustRelationshipRevokedException e) {
             return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();
         }
-        if (trustingBuddy!=null) {
-            guest = guestService.getGuestById(trustingBuddy.guestId);
+        if (trustedBuddy !=null) {
+            guest = guestService.getGuestById(trustedBuddy.guestId);
         }
 
         String [] objectTypeNameParts = objectTypeName.split("-");

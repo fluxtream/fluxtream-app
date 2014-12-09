@@ -108,11 +108,11 @@ public class BuddiesController {
                                             @ApiParam(value="The channel ID", required=true) @PathParam("channelId") long channelId,
                                             @ApiParam(value="Share the channel?", required=true) @FormParam("value") boolean shared) {
         final long trustingBuddyId = AuthHelper.getGuestId();
-        final TrustingBuddy trustingBuddy = buddiesService.getTrustedBuddy(trustingBuddyId, username);
-        if (trustingBuddy ==null)
+        final TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(trustingBuddyId, username);
+        if (trustedBuddy ==null)
             return Response.status(Response.Status.NOT_FOUND).entity("Could not buddy with username '" + username + "'").build();
         if (!shared) {
-            List<SharedChannel> sharedChannels = buddiesService.getSharedChannels(trustingBuddy.buddyId, trustingBuddyId);
+            List<SharedChannel> sharedChannels = buddiesService.getSharedChannels(trustedBuddy.buddyId, trustingBuddyId);
             boolean foundChannel = false;
             for (SharedChannel sharedChannel : sharedChannels) {
                 if (sharedChannel.channelMapping.getId() == channelId) {
@@ -122,9 +122,9 @@ public class BuddiesController {
             }
             if (!foundChannel)
                 return Response.status(Response.Status.NOT_FOUND).entity("Could not find channel [" + channelId + "]").build();
-            buddiesService.removeSharedChannel(trustingBuddy.buddyId, trustingBuddyId, channelId);
+            buddiesService.removeSharedChannel(trustedBuddy.buddyId, trustingBuddyId, channelId);
         } else
-            buddiesService.addSharedChannel(trustingBuddy.buddyId, trustingBuddyId, channelId);
+            buddiesService.addSharedChannel(trustedBuddy.buddyId, trustingBuddyId, channelId);
         return Response.ok().build();
     }
 
@@ -136,8 +136,8 @@ public class BuddiesController {
     @Produces({MediaType.APPLICATION_JSON})
     public CoachModel getConnectorSharingInfo(@ApiParam(value="The buddy's username", required=true) @PathParam("username") String username) {
         final long trustingBuddyId = AuthHelper.getGuestId();
-        final TrustingBuddy trustingBuddy = buddiesService.getTrustedBuddy(trustingBuddyId, username);
-        final Set<SharedConnector> sharedConnectors = trustingBuddy.sharedConnectors;
+        final TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(trustingBuddyId, username);
+        final Set<SharedConnector> sharedConnectors = trustedBuddy.sharedConnectors;
         final List<ApiKey> apiKeys = guestService.getApiKeys(trustingBuddyId);
         CoachModel coach = new CoachModel();
         Guest trustedBuddyGuest = guestService.getGuest(username);
@@ -220,10 +220,10 @@ public class BuddiesController {
     @ApiOperation(value = "Retrieve the list of buddies whose data we may have access to",
             response = GuestModel.class, responseContainer = "Array")
     @Produces({MediaType.APPLICATION_JSON})
-    public List<GuestModel> getTrustingBuddies(){
+    public List<GuestModel> getTrustedBuddies(){
         Guest guest = AuthHelper.getGuest();
-        final List<Guest> trustingBuddies = buddiesService.getTrustedBuddies(guest.getId());
-        final List<GuestModel> guestModels = toGuestModels(trustingBuddies);
+        final List<Guest> trustedBuddies = buddiesService.getTrustedBuddies(guest.getId());
+        final List<GuestModel> guestModels = toGuestModels(trustedBuddies);
         return guestModels;
     }
 
@@ -232,10 +232,10 @@ public class BuddiesController {
     @ApiOperation(value = "Retrieve the list of buddies with whom the calling guest may have shared data",
             response = GuestModel.class, responseContainer = "Array")
     @Produces({MediaType.APPLICATION_JSON})
-    public List<GuestModel> getCoaches(){
+    public List<GuestModel> getTrustingBuddies(){
         final long guestId = AuthHelper.getGuestId();
-        final List<Guest> coaches = buddiesService.getTrustingBuddies(guestId);
-        final List<GuestModel> guestModels = toGuestModels(coaches);
+        final List<Guest> trustingBuddies = buddiesService.getTrustingBuddies(guestId);
+        final List<GuestModel> guestModels = toGuestModels(trustingBuddies);
         return guestModels;
     }
 

@@ -43,7 +43,7 @@ public class BuddiesServiceImpl implements BuddiesService {
     public void addTrustedBuddy(final long guestId, final String username) {
         final Guest buddyGuest = guestService.getGuest(username);
         if (getTrustedBuddy(guestId, username)==null) {
-            TrustingBuddy buddy = new TrustingBuddy();
+            TrustedBuddy buddy = new TrustedBuddy();
             buddy.guestId = guestId;
             buddy.buddyId = buddyGuest.getId();
             em.persist(buddy);
@@ -57,12 +57,12 @@ public class BuddiesServiceImpl implements BuddiesService {
     public void removeTrustedBuddy(final long guestId, final String username) {
         final Guest buddyGuest = guestService.getGuest(username);
         if (buddyGuest==null) return;
-        final TrustingBuddy trustingBuddy = JPAUtils.findUnique(em, TrustingBuddy.class,
-                                                              "trustingBuddies.byGuestAndBuddyId",
+        final TrustedBuddy trustedBuddy = JPAUtils.findUnique(em, TrustedBuddy.class,
+                                                              "trustedBuddies.byGuestAndBuddyId",
                                                               guestId, buddyGuest.getId());
-        if (trustingBuddy ==null) return;
-        AuthHelper.revokeCoach(trustingBuddy.buddyId, trustingBuddy);
-        em.remove(trustingBuddy);
+        if (trustedBuddy ==null) return;
+        AuthHelper.revokeCoach(trustedBuddy.buddyId, trustedBuddy);
+        em.remove(trustedBuddy);
     }
 
     @Override
@@ -70,21 +70,21 @@ public class BuddiesServiceImpl implements BuddiesService {
     public SharedConnector addSharedConnector(final long guestId, final String username, final String connectorName, final String filterJson) {
         final Guest buddyGuest = guestService.getGuest(username);
         if (buddyGuest==null) throw new RuntimeException("No such guest: " + username);
-        final TrustingBuddy trustingBuddy = JPAUtils.findUnique(em, TrustingBuddy.class,
-                                                              "trustingBuddies.byGuestAndBuddyId",
+        final TrustedBuddy trustedBuddy = JPAUtils.findUnique(em, TrustedBuddy.class,
+                                                              "trustedBuddies.byGuestAndBuddyId",
                                                               guestId, buddyGuest.getId());
-        if (trustingBuddy ==null) throw new RuntimeException("Guest doesn't have a coaching buddy for this connector");
-        for(SharedConnector sharedConnector : trustingBuddy.sharedConnectors) {
+        if (trustedBuddy ==null) throw new RuntimeException("Guest doesn't have a coaching buddy for this connector");
+        for(SharedConnector sharedConnector : trustedBuddy.sharedConnectors) {
             if (sharedConnector.connectorName.equals(connectorName))
                 return null;
         }
         SharedConnector sharedConnector = new SharedConnector();
         sharedConnector.connectorName = connectorName;
         sharedConnector.filterJson = filterJson;
-        trustingBuddy.sharedConnectors.add(sharedConnector);
-        sharedConnector.buddy = trustingBuddy;
+        trustedBuddy.sharedConnectors.add(sharedConnector);
+        sharedConnector.buddy = trustedBuddy;
         em.persist(sharedConnector);
-        em.merge(trustingBuddy);
+        em.merge(trustedBuddy);
         return sharedConnector;
     }
 
@@ -93,37 +93,37 @@ public class BuddiesServiceImpl implements BuddiesService {
     public void removeSharedConnector(final long guestId, final String username, final String connectorName) {
         final Guest buddyGuest = guestService.getGuest(username);
         if (buddyGuest==null) return;
-        final TrustingBuddy trustingBuddy = JPAUtils.findUnique(em, TrustingBuddy.class,
-                                                              "trustingBuddies.byGuestAndBuddyId",
+        final TrustedBuddy trustedBuddy = JPAUtils.findUnique(em, TrustedBuddy.class,
+                                                              "trustedBuddies.byGuestAndBuddyId",
                                                               guestId, buddyGuest.getId());
-        if (trustingBuddy ==null) return;
+        if (trustedBuddy ==null) return;
         SharedConnector toRemove = null;
-        for(SharedConnector sharedConnector : trustingBuddy.sharedConnectors) {
+        for(SharedConnector sharedConnector : trustedBuddy.sharedConnectors) {
             if (sharedConnector.connectorName.equals(connectorName)) {
                 toRemove = sharedConnector;
                 break;
             }
         }
         if (toRemove!=null) {
-            trustingBuddy.sharedConnectors.remove(toRemove);
+            trustedBuddy.sharedConnectors.remove(toRemove);
             toRemove.buddy = null;
             em.remove(toRemove);
-            em.merge(trustingBuddy);
+            em.merge(trustedBuddy);
         }
     }
 
     @Override
     public boolean isViewingGranted(final long guestId, final long trustingBuddyId, final String connectorName) {
-        final TrustingBuddy trustingBuddy = JPAUtils.findUnique(em, TrustingBuddy.class, "trustingBuddies.byGuestAndBuddyId", trustingBuddyId, guestId);
-        boolean granted = trustingBuddy.hasAccessToConnector(connectorName);
+        final TrustedBuddy trustedBuddy = JPAUtils.findUnique(em, TrustedBuddy.class, "trustedBuddies.byGuestAndBuddyId", trustingBuddyId, guestId);
+        boolean granted = trustedBuddy.hasAccessToConnector(connectorName);
         return granted;
     }
 
     @Override
     public List<Guest> getTrustedBuddies(final long guestId) {
-        final List<TrustingBuddy> coachingBuddies = JPAUtils.find(em, TrustingBuddy.class, "trustingBuddies.byGuestId", guestId);
+        final List<TrustedBuddy> coachingBuddies = JPAUtils.find(em, TrustedBuddy.class, "trustedBuddies.byGuestId", guestId);
         final List<Guest> coaches = new ArrayList<Guest>();
-        for (TrustingBuddy sharingBuddy : coachingBuddies) {
+        for (TrustedBuddy sharingBuddy : coachingBuddies) {
             final Guest buddyGuest = guestService.getGuestById(sharingBuddy.buddyId);
             if (buddyGuest!=null)
                 coaches.add(buddyGuest);
@@ -133,9 +133,9 @@ public class BuddiesServiceImpl implements BuddiesService {
 
     @Override
     public List<Guest> getTrustingBuddies(final long guestId) {
-        final List<TrustingBuddy> trustingBuddyBuddies = JPAUtils.find(em, TrustingBuddy.class, "trustingBuddies.byBuddyId", guestId);
+        final List<TrustedBuddy> trustedBuddies = JPAUtils.find(em, TrustedBuddy.class, "trustedBuddies.byBuddyId", guestId);
         final List<Guest> trustingBuddies = new ArrayList<Guest>();
-        for (TrustingBuddy sharingBuddy : trustingBuddyBuddies) {
+        for (TrustedBuddy sharingBuddy : trustedBuddies) {
             final Guest buddyGuest = guestService.getGuestById(sharingBuddy.guestId);
             trustingBuddies.add(buddyGuest);
         }
@@ -143,29 +143,19 @@ public class BuddiesServiceImpl implements BuddiesService {
     }
 
     @Override
-    public TrustingBuddy getTrustedBuddy(final long guestId, final String username) {
+    public TrustedBuddy getTrustedBuddy(final long guestId, final String username) {
         final Guest buddyGuest = guestService.getGuest(username);
         if (buddyGuest==null) return null;
-        final TrustingBuddy trustingBuddy = JPAUtils.findUnique(em, TrustingBuddy.class,
-                                                              "trustingBuddies.byGuestAndBuddyId",
+        final TrustedBuddy trustedBuddy = JPAUtils.findUnique(em, TrustedBuddy.class,
+                                                              "trustedBuddies.byGuestAndBuddyId",
                                                               guestId, buddyGuest.getId());
-        return trustingBuddy;
+        return trustedBuddy;
     }
 
     @Override
-    public TrustingBuddy getTrustingBuddy(final long guestId, final String username) {
-        final Guest buddyGuest = guestService.getGuest(username);
-        if (buddyGuest==null) return null;
-        final TrustingBuddy trustingBuddy = JPAUtils.findUnique(em, TrustingBuddy.class,
-                                                                "trustingBuddies.byGuestAndBuddyId",
-                                                                buddyGuest.getId(), guestId);
-        return trustingBuddy;
-    }
-
-    @Override
-    public TrustingBuddy getTrustingBuddy(final long guestId, final long trustingBuddyId) {
-        final TrustingBuddy trustingBuddy = JPAUtils.findUnique(em, TrustingBuddy.class, "trustingBuddies.byGuestAndBuddyId", trustingBuddyId, guestId);
-        return trustingBuddy;
+    public TrustedBuddy getTrustedBuddy(final long guestId, final long trustingBuddyId) {
+        final TrustedBuddy trustedBuddy = JPAUtils.findUnique(em, TrustedBuddy.class, "trustedBuddies.byGuestAndBuddyId", trustingBuddyId, guestId);
+        return trustedBuddy;
     }
 
     @Override
@@ -238,11 +228,11 @@ public class BuddiesServiceImpl implements BuddiesService {
     @Transactional(readOnly=false)
     public SharedChannel addSharedChannel(long trustedBuddyId, long trustingBuddyId, long channelMappingId) {
         ChannelMapping channelMapping = em.find(ChannelMapping.class, channelMappingId);
-        final TrustingBuddy trustingBuddy = JPAUtils.findUnique(em, TrustingBuddy.class, "trustingBuddies.byGuestAndBuddyId", trustingBuddyId, trustedBuddyId);
+        final TrustedBuddy trustedBuddy = JPAUtils.findUnique(em, TrustedBuddy.class, "trustedBuddies.byGuestAndBuddyId", trustingBuddyId, trustedBuddyId);
         List<SharedChannel> alreadyShared = JPAUtils.find(em, SharedChannel.class, "sharedChannel.byBuddyAndChannelMapping", trustingBuddyId, trustedBuddyId, channelMappingId);
         if (alreadyShared==null||alreadyShared.size()>0)
             return null;
-        SharedChannel sharedChannel = new SharedChannel(trustingBuddy, channelMapping);
+        SharedChannel sharedChannel = new SharedChannel(trustedBuddy, channelMapping);
         em.persist(sharedChannel);
         return sharedChannel;
     }
