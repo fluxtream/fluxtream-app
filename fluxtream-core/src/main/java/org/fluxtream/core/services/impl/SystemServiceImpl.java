@@ -69,6 +69,9 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         if (Connector.getConnector("sms_backup")!=null)
             scopedApis.put("https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/gmail.readonly",
                            Connector.getConnector("sms_backup"));
+        if (Connector.getConnector("sleep_as_android")!=null)
+            scopedApis.put("https://www.googleapis.com/auth/userinfo.email",
+                    Connector.getConnector("sleep_as_android"));
     }
 
     @Override
@@ -280,6 +283,16 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
                 "ajax:/beddit/enterAuthInfo",
                 Connector.getConnector("beddit"), order++, true,
                 false, true, null));
+        String[] sleepAsAndroidKeys = checkKeysExist("Sleep_As_Android", Arrays.asList("google.client.id", "google.client.secret"));
+        ConnectorInfo SleepAsAndroidConnectorInfo = new ConnectorInfo("Sleep_As_Android",
+                "/" + release + "/images/connectors/connector-sleep_as_android.jpg",
+                res.getString("sleep_as_android"),
+                "/google/oauth2/token?scope=https://www.googleapis.com/auth/userinfo.email",
+                Connector.getConnector("sleep_as_android"), order++, true,
+                false,true,sleepAsAndroidKeys);
+        SleepAsAndroidConnectorInfo.supportsRenewTokens = true;
+        SleepAsAndroidConnectorInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://www.googleapis.com/auth/userinfo.email";
+        em.persist(SleepAsAndroidConnectorInfo);
 	}
 
     @Transactional(readOnly = false)

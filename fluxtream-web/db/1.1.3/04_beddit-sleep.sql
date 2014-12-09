@@ -43,4 +43,4 @@ CREATE TABLE `Facet_BedditSleep` (
   KEY `guestId_index` (`guestId`),
   KEY `apiKey` (`apiKeyId`),
   KEY `timeUpdated_index` (`timeUpdated`)
-) ENGINE=InnoDB AUTO_INCREMENT=59 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=59 DEFAULT CHARSET=utf8;
