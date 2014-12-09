@@ -30,6 +30,37 @@ define(function() {
 		});
 	}
 
+    function submitBedditAuthInfo(fieldset) {
+        var emailField = fieldset.querySelector(".email");
+        var passwordField = fieldset.querySelector(".password");
+        var submitButton = fieldset.querySelector(".btn");
+        var email = emailField.value;
+        var password = passwordField.value;
+        emailField.disabled = true;
+        passwordField.disabled = true;
+        submitButton.disabled = true;
+        $.ajax({
+            url: "/beddit/setAuthInfo",
+            type: "POST",
+            data: {email: email, password: password},
+            success: function(response) {
+                if (response.result == "KO"){
+                    emailField.disabled = false;
+                    passwordField.disabled = false;
+                    submitButton.disabled = false;
+                    //TODO: we should notify the user there was an error
+                }
+                else if (response.result == "OK"){
+                    var element = fieldset;
+                    while (element != null && !$(element).hasClass("modal")){
+                        element = element.parentElement;
+                    }
+                    $(element).modal("hide");
+                }
+            }
+        })
+    }
+
     function submitNikePlusCredentials() {
         var username = $("input#nikeplus-username").val();
         $.ajax({
@@ -160,6 +191,7 @@ define(function() {
     Connectors.submitMymeeAuthInfo = submitMymeeAuthInfo;
 	Connectors.submitOpenPathKeypair = submitOpenPathKeypair;
     Connectors.getQuantifiedMindToken = getQuantifiedMindToken;
+    Connectors.submitBedditAuthInfo = submitBedditAuthInfo;
 
 	Connectors.submitBodytrackCredentials = function() {
 		var username = $("input#bodytrack-username").val(),
