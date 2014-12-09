@@ -1,6 +1,8 @@
 package org.fluxtream.connectors.sleep_as_android;
 
 import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.services.impl.FieldHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +19,7 @@ public class SleepAsAndroidActiGraphFieldHandler implements FieldHandler {
     BodyTrackHelper bodyTrackHelper;
 
     @Override
-    public List<BodyTrackHelper.BodyTrackUploadResult> handleField(long guestId, AbstractFacet facet) {
+    public List<BodyTrackHelper.BodyTrackUploadResult> handleField(ApiKey apiKey, AbstractFacet facet) {
         SleepFacet sleepFacet = (SleepFacet) facet;
         List<Double> actiGraph = sleepFacet.getActiGraph();
         double start = sleepFacet.start / 1000.0;
@@ -32,6 +34,11 @@ public class SleepAsAndroidActiGraphFieldHandler implements FieldHandler {
         }
         final List<String> channelNames = Arrays.asList("actiGraph");
 
-        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(guestId, "sleep_as_android", channelNames, data));
+        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(apiKey, "sleep_as_android", channelNames, data));
+    }
+
+    @Override
+    public void addToDeclaredChannelMappings(ApiKey apiKey, List<ChannelMapping> channelMappings) {
+        ChannelMapping.addToDeclaredMappings(apiKey, 1, apiKey.getConnector().getDeviceNickname(), "actiGraph", channelMappings);
     }
 }

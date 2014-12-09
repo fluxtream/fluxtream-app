@@ -55,72 +55,6 @@ public class BedditUpdater extends AbstractUpdater {
 
     @Override
     protected void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-        List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey);
-        if (mappings.size() == 0){
-            ChannelMapping mapping = new ChannelMapping();
-            mapping.deviceName = "beddit";
-            mapping.channelName = "sleepStages";
-            mapping.timeType = ChannelMapping.TimeType.gmt;
-            mapping.channelType = ChannelMapping.ChannelType.timespan;
-            mapping.guestId = updateInfo.getGuestId();
-            mapping.apiKeyId = updateInfo.apiKey.getId();
-            bodyTrackHelper.persistChannelMapping(mapping);
-
-            BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
-            channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
-            channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
-            channelStyle.timespanStyles.defaultStyle.fillColor = "#A3A3A3";
-            channelStyle.timespanStyles.defaultStyle.borderColor = "#A3A3A3";
-            channelStyle.timespanStyles.defaultStyle.borderWidth = 0;
-            channelStyle.timespanStyles.defaultStyle.top = 1.00;
-            channelStyle.timespanStyles.defaultStyle.bottom = 0.67;
-            channelStyle.timespanStyles.values = new HashMap();
-
-            BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
-            stylePart.top = 0.67;
-            stylePart.bottom = 1.00;
-            stylePart.fillColor = "#A3A3A3";
-            stylePart.borderColor = "#A3A3A3";
-            channelStyle.timespanStyles.values.put("away",stylePart);
-
-            stylePart = new BodyTrackHelper.TimespanStyle();
-            stylePart.top = 0.33;
-            stylePart.bottom = 0.67;
-            stylePart.fillColor = "#85D3EF";
-            stylePart.borderColor = "#85D3EF";
-            channelStyle.timespanStyles.values.put("awake",stylePart);
-
-            stylePart = new BodyTrackHelper.TimespanStyle();
-            stylePart.top = 0.00;
-            stylePart.bottom = 0.33;
-            stylePart.fillColor = "#2EA3CE";
-            stylePart.borderColor = "#2EA3CE";
-            channelStyle.timespanStyles.values.put("asleep",stylePart);
-
-            bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"beddit","sleepStages",channelStyle);
-
-            mapping = new ChannelMapping();
-            mapping.deviceName = "beddit";
-            mapping.channelName = "snoringEpisodes";
-            mapping.timeType = ChannelMapping.TimeType.gmt;
-            mapping.channelType = ChannelMapping.ChannelType.timespan;
-            mapping.guestId = updateInfo.getGuestId();
-            mapping.apiKeyId = updateInfo.apiKey.getId();
-            bodyTrackHelper.persistChannelMapping(mapping);
-
-            channelStyle = new BodyTrackHelper.ChannelStyle();
-            channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
-            channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
-            channelStyle.timespanStyles.defaultStyle.fillColor = "#33b5e5";
-            channelStyle.timespanStyles.defaultStyle.borderColor = "#33b5e5";
-            channelStyle.timespanStyles.defaultStyle.borderWidth = 0;
-            channelStyle.timespanStyles.defaultStyle.top = 1.00;
-            channelStyle.timespanStyles.defaultStyle.bottom = 0.0;
-            channelStyle.timespanStyles.values = new HashMap();
-
-            bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"beddit","snoringEpisodes",channelStyle);
-        }
-
         long userId = Long.parseLong(guestService.getApiKeyAttribute(updateInfo.apiKey, "userid"));
         String accessToken = guestService.getApiKeyAttribute(updateInfo.apiKey, "access_token");
 
@@ -159,6 +93,55 @@ public class BedditUpdater extends AbstractUpdater {
 
     }
 
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {
+        BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
+        channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
+        channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
+        channelStyle.timespanStyles.defaultStyle.fillColor = "#A3A3A3";
+        channelStyle.timespanStyles.defaultStyle.borderColor = "#A3A3A3";
+        channelStyle.timespanStyles.defaultStyle.borderWidth = 0;
+        channelStyle.timespanStyles.defaultStyle.top = 1.00;
+        channelStyle.timespanStyles.defaultStyle.bottom = 0.67;
+        channelStyle.timespanStyles.values = new HashMap();
+
+        BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
+        stylePart.top = 0.67;
+        stylePart.bottom = 1.00;
+        stylePart.fillColor = "#A3A3A3";
+        stylePart.borderColor = "#A3A3A3";
+        channelStyle.timespanStyles.values.put("away",stylePart);
+
+        stylePart = new BodyTrackHelper.TimespanStyle();
+        stylePart.top = 0.33;
+        stylePart.bottom = 0.67;
+        stylePart.fillColor = "#85D3EF";
+        stylePart.borderColor = "#85D3EF";
+        channelStyle.timespanStyles.values.put("awake",stylePart);
+
+        stylePart = new BodyTrackHelper.TimespanStyle();
+        stylePart.top = 0.00;
+        stylePart.bottom = 0.33;
+        stylePart.fillColor = "#2EA3CE";
+        stylePart.borderColor = "#2EA3CE";
+        channelStyle.timespanStyles.values.put("asleep",stylePart);
+
+        bodyTrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), "beddit", "sleepStages", channelStyle);
+
+        channelStyle = new BodyTrackHelper.ChannelStyle();
+        channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
+        channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
+        channelStyle.timespanStyles.defaultStyle.fillColor = "#33b5e5";
+        channelStyle.timespanStyles.defaultStyle.borderColor = "#33b5e5";
+        channelStyle.timespanStyles.defaultStyle.borderWidth = 0;
+        channelStyle.timespanStyles.defaultStyle.top = 1.00;
+        channelStyle.timespanStyles.defaultStyle.bottom = 0.0;
+        channelStyle.timespanStyles.values = new HashMap();
+
+        bodyTrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), "beddit", "snoringEpisodes", channelStyle);
+
+    }
+
     private Double createOrUpdateFacets(UpdateInfo updateInfo, String json) throws Exception {
         JSONArray sleepsArray = JSONArray.fromObject(json);
         Double oldestFacetTime = null;
@@ -168,7 +151,7 @@ public class BedditUpdater extends AbstractUpdater {
             oldestFacetTime = oldestFacetTime == null ? newFacet.updatedTime : Math.max(oldestFacetTime, newFacet.updatedTime);
             newFacets.add(newFacet);
         }
-        bodyTrackStorageService.storeApiData(updateInfo.getGuestId(),newFacets);
+        bodyTrackStorageService.storeApiData(updateInfo.apiKey, newFacets);
         return oldestFacetTime;
     }
 

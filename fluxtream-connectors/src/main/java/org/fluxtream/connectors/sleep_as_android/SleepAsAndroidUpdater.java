@@ -52,57 +52,44 @@ public class SleepAsAndroidUpdater extends AbstractUpdater {
 
     @Override
     protected void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-        List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey);
-        if (mappings.size() == 0){
-            ChannelMapping mapping = new ChannelMapping();
-            mapping.deviceName = "sleep_as_android";
-            mapping.channelName = "sleep";
-            mapping.timeType = ChannelMapping.TimeType.gmt;
-            mapping.channelType = ChannelMapping.ChannelType.timespan;
-            mapping.guestId = updateInfo.getGuestId();
-            mapping.apiKeyId = updateInfo.apiKey.getId();
-            bodyTrackHelper.persistChannelMapping(mapping);
-
-            BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
-            channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
-            channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
-            channelStyle.timespanStyles.defaultStyle.fillColor = "#33b5e5";
-            channelStyle.timespanStyles.defaultStyle.borderColor = "#33b5e5";
-            channelStyle.timespanStyles.defaultStyle.borderWidth = 0;
-            channelStyle.timespanStyles.defaultStyle.top = 1.00;
-            channelStyle.timespanStyles.defaultStyle.bottom = 0.67;
-            channelStyle.timespanStyles.values = new HashMap();
-
-            BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
-            stylePart.top = 0.67;
-            stylePart.bottom = 1.00;
-            stylePart.fillColor = "#33b5e5";
-            stylePart.borderColor = "#33b5e5";
-            channelStyle.timespanStyles.values.put("light",stylePart);
-
-            stylePart = new BodyTrackHelper.TimespanStyle();
-            stylePart.top = 0.33;
-            stylePart.bottom = 0.67;
-            stylePart.fillColor = "#0099cc";
-            stylePart.borderColor = "#0099cc";
-            channelStyle.timespanStyles.values.put("deep",stylePart);
-
-            stylePart = new BodyTrackHelper.TimespanStyle();
-            stylePart.top = 0.00;
-            stylePart.bottom = 0.33;
-            stylePart.fillColor = "#ff8800";
-            stylePart.borderColor = "#ff8800";
-            channelStyle.timespanStyles.values.put("rem",stylePart);
-
-            bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"sleep_as_android","sleep",channelStyle);
-        }
-
-
-
         Long latestData = getLatestFacetTime(updateInfo);
         fetchSleeps(updateInfo, latestData, null);
+    }
 
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {
+        BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
+        channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
+        channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
+        channelStyle.timespanStyles.defaultStyle.fillColor = "#33b5e5";
+        channelStyle.timespanStyles.defaultStyle.borderColor = "#33b5e5";
+        channelStyle.timespanStyles.defaultStyle.borderWidth = 0;
+        channelStyle.timespanStyles.defaultStyle.top = 1.00;
+        channelStyle.timespanStyles.defaultStyle.bottom = 0.67;
+        channelStyle.timespanStyles.values = new HashMap();
 
+        BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
+        stylePart.top = 0.67;
+        stylePart.bottom = 1.00;
+        stylePart.fillColor = "#33b5e5";
+        stylePart.borderColor = "#33b5e5";
+        channelStyle.timespanStyles.values.put("light",stylePart);
+
+        stylePart = new BodyTrackHelper.TimespanStyle();
+        stylePart.top = 0.33;
+        stylePart.bottom = 0.67;
+        stylePart.fillColor = "#0099cc";
+        stylePart.borderColor = "#0099cc";
+        channelStyle.timespanStyles.values.put("deep",stylePart);
+
+        stylePart = new BodyTrackHelper.TimespanStyle();
+        stylePart.top = 0.00;
+        stylePart.bottom = 0.33;
+        stylePart.fillColor = "#ff8800";
+        stylePart.borderColor = "#ff8800";
+        channelStyle.timespanStyles.values.put("rem",stylePart);
+
+        bodyTrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), "sleep_as_android", "sleep", channelStyle);
     }
 
     private void fetchSleeps(UpdateInfo updateInfo, Long latestData, String cursor) throws UpdateFailedException, IOException {
@@ -171,7 +158,7 @@ public class SleepAsAndroidUpdater extends AbstractUpdater {
             newFacets.add(newFacet);
             oldestFacetTime = oldestFacetTime == null ? newFacet.end : Math.max(oldestFacetTime, newFacet.end);
         }
-        bodyTrackStorageService.storeApiData(updateInfo.getGuestId(),newFacets);
+        bodyTrackStorageService.storeApiData(updateInfo.apiKey,newFacets);
         return oldestFacetTime;
     }
 

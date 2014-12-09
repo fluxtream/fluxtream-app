@@ -2,6 +2,8 @@ package org.fluxtream.connectors.beddit;
 
 import com.google.gdata.util.common.base.Pair;
 import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.services.impl.FieldHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +20,7 @@ public class BedditHeartRateFieldHandler implements FieldHandler {
     BodyTrackHelper bodyTrackHelper;
 
     @Override
-    public List<BodyTrackHelper.BodyTrackUploadResult> handleField(long guestId, AbstractFacet facet) {
+    public List<BodyTrackHelper.BodyTrackUploadResult> handleField(ApiKey apiKey, AbstractFacet facet) {
         SleepFacet sleepFacet = (SleepFacet) facet;
         List<Pair<Long,Double>> sleepCycles = sleepFacet.getHeartRateCurve();
         List<List<Object>> data = new ArrayList<List<Object>>();
@@ -30,6 +32,11 @@ public class BedditHeartRateFieldHandler implements FieldHandler {
         }
         final List<String> channelNames = Arrays.asList("heartRate");
 
-        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(guestId, "beddit", channelNames, data));
+        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(apiKey, "beddit", channelNames, data));
+    }
+
+    @Override
+    public void addToDeclaredChannelMappings(ApiKey apiKey, List<ChannelMapping> channelMappings) {
+        ChannelMapping.addToDeclaredMappings(apiKey, 1, apiKey.getConnector().getDeviceNickname(), "heartRate", channelMappings);
     }
 }

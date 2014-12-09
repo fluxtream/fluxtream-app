@@ -10,6 +10,7 @@ import org.fluxtream.core.connectors.bodytrackResponders.AbstractBodytrackRespon
 import org.fluxtream.core.connectors.vos.AbstractFacetVO;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.domain.GuestSettings;
 import org.fluxtream.core.mvc.models.TimespanModel;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,7 @@ import java.util.TimeZone;
 
 @Component
 public class BedditBodytrackResponder extends AbstractBodytrackResponder {
+
     @Override
     public List<TimespanModel> getTimespans(long startMillis, long endMillis, ApiKey apiKey, String channelName) {
         List<TimespanModel> items = new ArrayList<TimespanModel>();
@@ -100,5 +102,25 @@ public class BedditBodytrackResponder extends AbstractBodytrackResponder {
         List<AbstractFacet> facets = getFacetsInTimespan(timeInterval, apiKey, recent_track);
 
         return getFacetVOsForFacets(facets,timeInterval,guestSettings);
+    }
+
+    @Override
+    public void addToDeclaredChannelMappings(ApiKey apiKey, List<ChannelMapping> channelMappings) {
+        ChannelMapping sleepChannelMapping = new ChannelMapping(
+                apiKey.getId(), apiKey.getGuestId(),
+                ChannelMapping.ChannelType.timespan,
+                ChannelMapping.TimeType.gmt,
+                ObjectType.getObjectType(apiKey.getConnector(), "sleep").value(),
+                apiKey.getConnector().getDeviceNickname(), "sleepStages",
+                apiKey.getConnector().getDeviceNickname(), "sleepStages");
+        channelMappings.add(sleepChannelMapping);
+        ChannelMapping snoringEpisodesMapping = new ChannelMapping(
+                apiKey.getId(), apiKey.getGuestId(),
+                ChannelMapping.ChannelType.timespan,
+                ChannelMapping.TimeType.gmt,
+                ObjectType.getObjectType(apiKey.getConnector(), "sleep").value(),
+                apiKey.getConnector().getDeviceNickname(), "snoringEpisodes",
+                apiKey.getConnector().getDeviceNickname(), "snoringEpisodes");
+        channelMappings.add(snoringEpisodesMapping);
     }
 }
