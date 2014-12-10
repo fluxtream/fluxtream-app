@@ -43,7 +43,7 @@ public class SleepAsAndroidBodytrackResponder extends AbstractBodytrackResponder
                     buildingDeepModel = new TimespanModel(eventLabel.getSecond(),eventLabel.getSecond(),"deep",objectTypeName);
                 }
                 else if (s.equals("DEEP_END")) {
-                    buildingDeepModel.setEnd(eventLabel.getSecond());
+                    buildingDeepModel.setEnd(eventLabel.getSecond()/1000);
                     items.add(buildingDeepModel);
                     buildingDeepModel = null;
                 }
@@ -51,7 +51,7 @@ public class SleepAsAndroidBodytrackResponder extends AbstractBodytrackResponder
                     buildingLightModel = new TimespanModel(eventLabel.getSecond(),eventLabel.getSecond(),"light",objectTypeName);
                 }
                 else if (s.equals("LIGHT_END")) {
-                    buildingLightModel.setEnd(eventLabel.getSecond());
+                    buildingLightModel.setEnd(eventLabel.getSecond()/1000);
                     items.add(buildingLightModel);
                     buildingLightModel = null;
                 }
@@ -59,7 +59,7 @@ public class SleepAsAndroidBodytrackResponder extends AbstractBodytrackResponder
                     buildingRemModel = new TimespanModel(eventLabel.getSecond(),eventLabel.getSecond(),"rem",objectTypeName);
                 }
                 else if (s.equals("REM_END")) {
-                    buildingRemModel.setEnd(eventLabel.getSecond());
+                    buildingRemModel.setEnd(eventLabel.getSecond()/1000);
                     items.add(buildingRemModel);
                     buildingRemModel = null;
                 }
