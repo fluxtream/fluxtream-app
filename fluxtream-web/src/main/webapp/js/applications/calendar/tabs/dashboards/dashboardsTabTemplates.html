@@ -4,10 +4,15 @@
       <h3>Choose Connectors<a href="javascript:void(0)" class="close" data-dismiss="modal">&times;</a></h3>
     </div>
     <div class="modal-body">
-      {{WidgetName}} is not provided directly by Fluxtream. There is a risk with allowing it access to your data. {{WidgetName}} would like to have access to:<br><br>
-      {{#RequiredConnectors}}
-      <div class="checkbox"><label><input type="checkbox" checked name="{{.}}"> {{.}}</label></div>
-      {{/RequiredConnectors}}
+      <div {{#fullAccess}}style="display:none"{{/fullAccess}}>
+        {{WidgetName}} is not provided directly by Fluxtream. There is a risk with allowing it access to your data. {{WidgetName}} would like to have access to:<br><br>
+        {{#RequiredConnectors}}
+        <div class="checkbox"><label><input type="checkbox" checked name="{{.}}"> {{.}}</label></div>
+        {{/RequiredConnectors}}
+      </div>
+      <div {{^fullAccess}}style="display:none"{{/fullAccess}}>
+        {{WidgetName}} is not provided directly by Fluxtream. There is a risk with allowing it access to your data. {{WidgetName}} would like <b>unrestricted access</b> to <b>all</b> of your data on Fluxtream.
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn confirm btn-primary">Allow</button>

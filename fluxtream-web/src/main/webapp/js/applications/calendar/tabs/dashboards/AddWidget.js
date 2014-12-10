@@ -49,7 +49,7 @@ define(function() {
 
                             }
                         });
-                        addWidget(widgetName,allowedConnectors,false);
+                        addWidget(widgetName,allowedConnectors,widgetInfo.fullAccess);
                         modal.modal("hide");
                     });
                 });

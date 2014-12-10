@@ -28,4 +28,6 @@ public class DashboardWidgetManifestModel {
     public boolean HasSettings;
     @ApiModelProperty(value="Required Connectors", required=true)
     public List<String> RequiredConnectors;
+    @ApiModelProperty(value="Whether or not the widget needs access to everything in the client", required=true)
+    public boolean fullAccess;
 }

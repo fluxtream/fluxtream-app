@@ -101,11 +101,12 @@ import java.util.ListIterator;
         widgetManifestModel.WidgetIcon = dashboardWidget.WidgetIcon;
         widgetManifestModel.HasSettings = dashboardWidget.HasSettings;
         widgetManifestModel.RequiredConnectors = dashboardWidget.RequiredConnectors;
+        widgetManifestModel.fullAccess = dashboardWidget.fullAccess;
 
         DashboardWidgetModel widgetModel = new DashboardWidgetModel();
         widgetModel.manifest = widgetManifestModel;
 
-        if (dashboard!=null && dashboardWidget.HasSettings) {
+        if (dashboard!=null) {
             final WidgetSettings widgetSettings = widgetsService.getWidgetSettings(guestId, dashboard.getId(),
                     dashboardWidget.WidgetName);
             widgetModel.settings = widgetSettings.settingsJSON;

@@ -7,8 +7,8 @@ define(function() {
         this.digest = dgst;
         this.dashboardId = dashboardId;
         _.bindAll(this);
+        this.settings = widgetInfo.settings;
         if (this.manifest.HasSettings) {
-            this.settings = widgetInfo.settings;
             var that = this;
             this.defaultSettings(this.settings,function(){
                 $("#" + widgetInfo.manifest.WidgetName + "-widget-settings").unbind().click(function () {
