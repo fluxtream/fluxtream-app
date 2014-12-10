@@ -22,17 +22,17 @@ public class BedditHeartRateFieldHandler implements FieldHandler {
     @Override
     public List<BodyTrackHelper.BodyTrackUploadResult> handleField(ApiKey apiKey, AbstractFacet facet) {
         SleepFacet sleepFacet = (SleepFacet) facet;
-        List<Pair<Long,Double>> sleepCycles = sleepFacet.getHeartRateCurve();
         List<List<Object>> data = new ArrayList<List<Object>>();
-        for (Pair<Long,Double> dataPoint : sleepCycles){
-            List<Object> sample = new ArrayList<Object>();
-            sample.add(dataPoint.getFirst() / 1000.0);
-            sample.add(dataPoint.getSecond());
-            data.add(sample);
+        if (sleepFacet.heartRateCurveData!=null) {
+            List<Pair<Long,Double>> sleepCycles = sleepFacet.getHeartRateCurve();
+            for (Pair<Long,Double> dataPoint : sleepCycles){
+                List<Object> sample = new ArrayList<Object>();
+                sample.add(dataPoint.getFirst() / 1000.0);
+                sample.add(dataPoint.getSecond());
+                data.add(sample);
+            }
         }
-        final List<String> channelNames = Arrays.asList("heartRate");
-
-        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(apiKey, "beddit", channelNames, data));
+        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(apiKey, "beddit", Arrays.asList("heartRate"), data));
     }
 
     @Override

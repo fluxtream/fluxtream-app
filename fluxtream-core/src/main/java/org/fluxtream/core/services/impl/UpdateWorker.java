@@ -196,6 +196,7 @@ class UpdateWorker implements Runnable {
         UpdateResult updateResult = updater.updateDataHistory(updateInfo);
         syncSettings(updater, updateInfo, updateResult);
         handleUpdateResult(updateInfo, updateResult);
+        applyConnectorUpgrades(updateInfo);
         try {
             updater.afterHistoryUpdate(updateInfo);
         } catch (Exception e) {

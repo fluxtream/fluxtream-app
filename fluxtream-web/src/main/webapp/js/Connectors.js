@@ -30,33 +30,27 @@ define(function() {
 		});
 	}
 
-    function submitBedditAuthInfo(fieldset) {
-        var emailField = fieldset.querySelector(".email");
-        var passwordField = fieldset.querySelector(".password");
-        var submitButton = fieldset.querySelector(".btn");
-        var email = emailField.value;
-        var password = passwordField.value;
-        emailField.disabled = true;
-        passwordField.disabled = true;
-        submitButton.disabled = true;
+    function submitBedditAuthInfo(form) {
+        var emailField = form.find(".email");
+        var passwordField = form.find(".password");
+        var submitButton = form.find(".btn");
+        var email = emailField.val();
+        var password = passwordField.val();
+        emailField.attr("disabled", true);
+        passwordField.attr("disabled", true);
+        submitButton.attr("disabled", true);
         $.ajax({
             url: "/beddit/setAuthInfo",
             type: "POST",
             data: {email: email, password: password},
-            success: function(response) {
-                if (response.result == "KO"){
-                    emailField.disabled = false;
-                    passwordField.disabled = false;
-                    submitButton.disabled = false;
-                    //TODO: we should notify the user there was an error
-                }
-                else if (response.result == "OK"){
-                    var element = fieldset;
-                    while (element != null && !$(element).hasClass("modal")){
-                        element = element.parentElement;
-                    }
-                    $(element).modal("hide");
-                }
+            success: function() {
+                $(form.closest(".modal")).modal("hide");
+            },
+            error: function() {
+                emailField.attr("disabled", false);
+                passwordField.attr("disabled", false);
+                submitButton.attr("disabled", false);
+                // we should let the user that there was an error and that they can try again
             }
         })
     }

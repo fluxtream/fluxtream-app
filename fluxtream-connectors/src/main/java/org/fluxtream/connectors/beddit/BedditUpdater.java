@@ -12,6 +12,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
@@ -25,6 +26,7 @@ import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.domain.Notification;
 import org.fluxtream.core.services.ApiDataService;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
+import org.fluxtream.core.utils.HttpUtils;
 import org.fluxtream.core.utils.Utils;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +71,10 @@ public class BedditUpdater extends AbstractUpdater {
 
         HttpGet get = new HttpGet(url);
         get.setHeader("Authorization","UserToken " + accessToken);
-        HttpResponse response = env.getHttpClient().execute(get);
+        HttpClient httpClient = env.getHttpClient();
+        if (env.get("development")!=null&&env.get("development").equals("true"))
+            httpClient = HttpUtils.httpClientTrustingAllSSLCerts();
+        HttpResponse response = httpClient.execute(get);
         int statusCode = response.getStatusLine().getStatusCode();
         String statusMessage = response.getStatusLine().getReasonPhrase();
         if (statusCode != HttpStatus.SC_OK) {
@@ -178,7 +183,11 @@ public class BedditUpdater extends AbstractUpdater {
                         JSONObject propertiesObject = sleepObject.getJSONObject("properties");
                         facet.sleepTimeTarget = propertiesObject.getDouble("sleep_time_target");
                         facet.snoringAmount = propertiesObject.getDouble("total_snoring_episode_duration");
-                        facet.restingHeartRate = propertiesObject.getDouble("resting_heart_rate");
+                        if (propertiesObject.has("resting_heart_rate")) {
+                            Object o = propertiesObject.get("resting_heart-rate");
+                            if (o instanceof Number)
+                                facet.restingHeartRate = propertiesObject.getDouble("resting_heart_rate");
+                        }
                         facet.respirationRate = propertiesObject.has("average_respiration_rate") ? propertiesObject.getDouble("average_respiration_rate") : null;
                         facet.timeToFallAsleep = propertiesObject.has("sleep_latency") ? propertiesObject.getDouble("sleep_latency") : null;
                         facet.awayCount = (int) propertiesObject.getDouble("away_episode_count");
@@ -204,35 +213,53 @@ public class BedditUpdater extends AbstractUpdater {
 
                         JSONObject timeValueTracksObject = sleepObject.getJSONObject("time_value_tracks");
 
-                        JSONArray sleepCycles = timeValueTracksObject.getJSONObject("sleep_cycles").getJSONArray("items");
-                        List<Pair<Long,Double>> sleepCycleData = new ArrayList<Pair<Long,Double>>();
-                        for (int i = 0; i < sleepCycles.size(); i++) {
-                            sleepCycleData.add(new Pair<Long, Double>(getUTCMillis(sleepCycles.getJSONArray(i).getDouble(0), timezone), sleepCycles.getJSONArray(i).getDouble(1)));
+                        if (timeValueTracksObject.has("sleep_cycles")) {
+                            JSONObject sleep_cycles = timeValueTracksObject.getJSONObject("sleep_cycles");
+                            if (sleep_cycles!=null) {
+                                JSONArray sleepCycles = sleep_cycles.getJSONArray("items");
+                                List<Pair<Long, Double>> sleepCycleData = new ArrayList<Pair<Long, Double>>();
+                                for (int i = 0; i < sleepCycles.size(); i++) {
+                                    sleepCycleData.add(new Pair<Long, Double>(getUTCMillis(sleepCycles.getJSONArray(i).getDouble(0), timezone), sleepCycles.getJSONArray(i).getDouble(1)));
+                                }
+                                facet.setSleepCycles(sleepCycleData);
+                            }
                         }
-                        facet.setSleepCycles(sleepCycleData);
 
-                        JSONArray heartRateCurve = timeValueTracksObject.getJSONObject("heart_rate_curve").getJSONArray("items");
-                        List<Pair<Long,Double>> heartRateCurveData = new ArrayList<Pair<Long,Double>>();
-                        for (int i = 0; i < heartRateCurve.size(); i++) {
-                            heartRateCurveData.add(new Pair<Long, Double>(getUTCMillis(heartRateCurve.getJSONArray(i).getDouble(0), timezone), heartRateCurve.getJSONArray(i).getDouble(1)));
+                        if (timeValueTracksObject.has("heart_rate_curve")) {
+                            JSONObject heart_rate_curve = timeValueTracksObject.getJSONObject("heart_rate_curve");
+                            if (heart_rate_curve!=null) {
+                                JSONArray heartRateCurve = heart_rate_curve.getJSONArray("items");
+                                List<Pair<Long,Double>> heartRateCurveData = new ArrayList<Pair<Long,Double>>();
+                                for (int i = 0; i < heartRateCurve.size(); i++) {
+                                    heartRateCurveData.add(new Pair<Long, Double>(getUTCMillis(heartRateCurve.getJSONArray(i).getDouble(0), timezone), heartRateCurve.getJSONArray(i).getDouble(1)));
+                                }
+                                facet.setHeartRateCurve(heartRateCurveData);
+                            }
                         }
-                        facet.setHeartRateCurve(heartRateCurveData);
 
-                        JSONArray sleepStages = timeValueTracksObject.getJSONObject("sleep_stages").getJSONArray("items");
-                        List<Pair<Long,Integer>> sleepStagesData = new ArrayList<Pair<Long, Integer>>();
-                        for (int i = 0 ; i < sleepStages.size(); i++) {
-                            sleepStagesData.add(new Pair<Long, Integer>(getUTCMillis(sleepStages.getJSONArray(i).getDouble(0), timezone), sleepStages.getJSONArray(i).getInt(1)));
+                        if (timeValueTracksObject.has("sleep_stages")) {
+                            JSONObject sleep_stages = timeValueTracksObject.getJSONObject("sleep_stages");
+                            if (sleep_stages!=null) {
+                                JSONArray sleepStages = sleep_stages.getJSONArray("items");
+                                List<Pair<Long,Integer>> sleepStagesData = new ArrayList<Pair<Long, Integer>>();
+                                for (int i = 0 ; i < sleepStages.size(); i++) {
+                                    sleepStagesData.add(new Pair<Long, Integer>(getUTCMillis(sleepStages.getJSONArray(i).getDouble(0), timezone), sleepStages.getJSONArray(i).getInt(1)));
+                                }
+                                facet.setSleepStages(sleepStagesData);
+                            }
                         }
-                        facet.setSleepStages(sleepStagesData);
 
-                        JSONArray snoringEpisodes = timeValueTracksObject.getJSONObject("snoring_episodes").getJSONArray("items");
-                        List<Pair<Long,Double>> snoringEpisodesData = new ArrayList<Pair<Long, Double>>();
-                        for (int i = 0; i < snoringEpisodes.size(); i++) {
-                            snoringEpisodesData.add(new Pair<Long,Double>(getUTCMillis(snoringEpisodes.getJSONArray(i).getDouble(0), timezone), snoringEpisodes.getJSONArray(i).getDouble(1)));
+                        if (timeValueTracksObject.has("snoring_episodes")) {
+                            JSONObject snoring_episodes = timeValueTracksObject.getJSONObject("snoring_episodes");
+                            if (snoring_episodes!=null) {
+                                JSONArray snoringEpisodes = snoring_episodes.getJSONArray("items");
+                                List<Pair<Long,Double>> snoringEpisodesData = new ArrayList<Pair<Long, Double>>();
+                                for (int i = 0; i < snoringEpisodes.size(); i++) {
+                                    snoringEpisodesData.add(new Pair<Long,Double>(getUTCMillis(snoringEpisodes.getJSONArray(i).getDouble(0), timezone), snoringEpisodes.getJSONArray(i).getDouble(1)));
+                                }
+                                facet.setSnoringEpisodes(snoringEpisodesData);
+                            }
                         }
-                        facet.setSnoringEpisodes(snoringEpisodesData);
-
-
 
                         return facet;
                     }
