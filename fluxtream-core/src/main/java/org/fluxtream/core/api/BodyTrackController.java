@@ -45,7 +45,6 @@ import org.springframework.stereotype.Component;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import java.lang.reflect.Type;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
@@ -110,9 +109,9 @@ public class BodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = isOwnerOrAdmin(uid);
-            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+            TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
 
-            if (!accessAllowed && coachee==null) {
+            if (!accessAllowed && trustedBuddy ==null) {
                 uid = null;
             }
 
@@ -237,8 +236,6 @@ public class BodyTrackController {
         Response response;
         try{
             long guestId = AuthHelper.getGuestId();
-            Type channelsType =  new TypeToken<Collection<String>>(){}.getType();
-
             List<List<Object>> parsedData = new ArrayList<List<Object>>();
 
             //Gson doesn't seem to be able to handle arrays with mixed types nicely
@@ -267,15 +264,16 @@ public class BodyTrackController {
                 }
             }
 
-            final BodyTrackHelper.BodyTrackUploadResult uploadResult = bodyTrackHelper.uploadToBodyTrack(guestId, deviceNickname, (Collection<String>)gson.fromJson(channels, channelsType), parsedData);
+            ApiKey fluxtreamCaptureApiKey = ensureFluxtreamCaptureApiKey(guestId);
+            final List<String> channelNames = gson.fromJson(channels, new TypeToken<Collection<String>>(){}.getType());
+            final BodyTrackHelper.BodyTrackUploadResult uploadResult = bodyTrackHelper.uploadToBodyTrack(fluxtreamCaptureApiKey, deviceNickname, channelNames, parsedData);
             if (uploadResult instanceof BodyTrackHelper.ParsedBodyTrackUploadResult){
                 BodyTrackHelper.ParsedBodyTrackUploadResult parsedResult = (BodyTrackHelper.ParsedBodyTrackUploadResult) uploadResult;
-                List<ApiKey> keys = guestService.getApiKeys(guestId,Connector.getConnector("fluxtream_capture"));
-                long apiKeyId = -1;
-                if (keys.size() > 0){
-                    apiKeyId = keys.get(0).getId();
-                }
-                dataUpdateService.logBodyTrackDataUpdate(guestId,apiKeyId,null,parsedResult);
+                bodytrackStorageService.ensureDataChannelMappingsExist(fluxtreamCaptureApiKey, channelNames, deviceNickname);
+                dataUpdateService.logBodyTrackDataUpdate(guestId,fluxtreamCaptureApiKey.getId(),null,parsedResult);
+            } else {
+                // what else can it be, really ?
+                LOG.warn("Unexpected upload result type : " + uploadResult.getClass().getName() );
             }
             response = createResponseFromBodyTrackUploadResult(uploadResult);
         }
@@ -283,6 +281,14 @@ public class BodyTrackController {
             response = Response.serverError().entity("Upload failed!").build();
         }
         return response;
+    }
+
+    private ApiKey ensureFluxtreamCaptureApiKey(long guestId) {
+        final Connector fluxtreamCapture = Connector.getConnector("fluxtream_capture");
+        ApiKey apiKey = guestService.getApiKey(guestId, fluxtreamCapture);
+        if (apiKey==null)
+            apiKey = guestService.createApiKey(guestId, fluxtreamCapture);
+        return apiKey;
     }
 
     @POST
@@ -514,9 +520,14 @@ public class BodyTrackController {
             loggedInUserId = AuthHelper.getGuestId();
             accessAllowed = isOwnerOrAdmin(uid);
             if (!accessAllowed) {
-                final CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
-                if (coachee != null) {
-                    accessAllowed = coachee.hasAccessToConnector("fluxtream_capture");
+                final TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
+                if (trustedBuddy != null) {
+                    List<ApiKey> flxApiKeys = guestService.getApiKeys(trustedBuddy.guestId, Connector.getConnector("fluxtream_capture"));
+                    if (flxApiKeys==null||flxApiKeys.size()==0) accessAllowed = false;
+                    else {
+                        ApiKey flxApiKey = flxApiKeys.get(0);
+                        accessAllowed = hasSharedChannel(flxApiKey, trustedBuddy, "photo");
+                    }
                 }
             }
         }
@@ -599,17 +610,17 @@ public class BodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = isOwnerOrAdmin(uid);
-            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
-            if (!accessAllowed&&coachee==null){
+            TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
+            if (!accessAllowed&& trustedBuddy ==null){
                 uid = null;
             }
-//            if (coachee!=null) {
-//                ApiKey apiKey = getApiKeyFromDeviceNickname(deviceNickname, coachee.guestId);
-//                if (apiKey==null)
-//                    return Response.status(Response.Status.BAD_REQUEST).entity("Couldn't find connector with device nickname=" + deviceNickname).build();
-//                else if (buddiesService.getSharedConnector(apiKey.getId(), AuthHelper.getGuestId())==null)
-//                    return Response.status(Response.Status.UNAUTHORIZED).entity("Access denied to device " + deviceNickname).build();
-//            }
+            if (trustedBuddy!=null) {
+                ApiKey apiKey = getApiKeyFromDeviceNickname(deviceNickname, trustedBuddy.guestId);
+                if (apiKey==null)
+                    return Response.status(Response.Status.BAD_REQUEST).entity("Couldn't find connector with device nickname=" + deviceNickname).build();
+                else if (!hasSharedChannel(apiKey, trustedBuddy, channelName))
+                    return Response.status(Response.Status.UNAUTHORIZED).entity("Access denied to device " + deviceNickname).build();
+            }
             return Response.ok(bodyTrackHelper.fetchTile(uid, deviceNickname, channelName, level, offset)).build();
         } catch (Exception e) {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
@@ -636,8 +647,8 @@ public class BodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = isOwnerOrAdmin(uid);
-            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
-            if (!accessAllowed&&coachee==null){
+            TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
+            if (!accessAllowed&& trustedBuddy ==null){
                 uid = null;
             }
             return Response.ok(bodyTrackHelper.listViews(uid)).build();
@@ -659,9 +670,9 @@ public class BodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = isOwnerOrAdmin(uid);
-            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+            TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
 
-            if (!accessAllowed && coachee==null) {
+            if (!accessAllowed && trustedBuddy ==null) {
                 uid = null;
             }
             String result = bodyTrackHelper.getView(uid,id);
@@ -688,9 +699,9 @@ public class BodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = isOwnerOrAdmin(uid);
-            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+            TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
 
-            if (!accessAllowed && coachee==null) {
+            if (!accessAllowed && trustedBuddy ==null) {
                 uid = null;
             }
             return Response.ok(bodyTrackHelper.saveView(uid, name, data)).build();
@@ -707,19 +718,19 @@ public class BodyTrackController {
             @ApiResponse(code=403, message="In case of unauthorized access")
     })
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getSourceList(@ApiParam(value= "User ID", required= true) @PathParam("UID") Long uid) {
+    public Response getGuestSourceList(@ApiParam(value= "User ID", required= true) @PathParam("UID") Long uid) {
         try{
             final long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = isOwnerOrAdmin(uid);
-            CoachingBuddy coachee = null;
+            TrustedBuddy trustedBuddy = null;
             if (!accessAllowed) {
-                coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
-                accessAllowed = (coachee!=null);
+                trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
+                accessAllowed = (trustedBuddy !=null);
             }
             if (!accessAllowed){
                 uid = null;
             }
-            return Response.ok(bodyTrackHelper.listSources(uid, coachee)).build();
+            return Response.ok(bodyTrackHelper.getSourcesResponse(uid, trustedBuddy)).build();
         }
         catch (Exception e){
             return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
@@ -738,9 +749,9 @@ public class BodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = isOwnerOrAdmin(uid);
-            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+            TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
 
-            if (!accessAllowed && coachee==null) {
+            if (!accessAllowed && trustedBuddy ==null) {
                 uid = null;
             }
             return Response.ok(bodyTrackHelper.getSourceInfo(uid, name)).build();
@@ -761,8 +772,8 @@ public class BodyTrackController {
         try {
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = isOwnerOrAdmin(uid);
-            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
-            if (!accessAllowed && coachee == null) {
+            TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
+            if (!accessAllowed && trustedBuddy == null) {
                 uid = null;
             }
             return Response.ok(bodyTrackHelper.getAllTagsForUser(uid)).build();
@@ -807,9 +818,9 @@ public class BodyTrackController {
         try{
             long loggedInUserId = AuthHelper.getGuestId();
             boolean accessAllowed = isOwnerOrAdmin(uid);
-            CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+            TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
 
-            if (!accessAllowed && coachee==null) {
+            if (!accessAllowed && trustedBuddy ==null) {
                 uid = null;
             }
 
@@ -822,7 +833,7 @@ public class BodyTrackController {
 
             api = getApiKeyFromConnectorName(connectorName, keys, api);
 
-            if (coachee!=null && buddiesService.getSharedConnector(api.getId(), AuthHelper.getGuestId())==null)
+            if (trustedBuddy !=null && !hasSharedChannel(api, trustedBuddy, objectTypeName))
                 return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied to connector " + connectorName).build();
 
             if (api == null) {
@@ -844,6 +855,15 @@ public class BodyTrackController {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
         }
 
+    }
+
+    private boolean hasSharedChannel(ApiKey api, TrustedBuddy trustedBuddy, String objectTypeName) {
+        List<SharedChannel> sharedChannels = buddiesService.getSharedChannels(trustedBuddy.buddyId, trustedBuddy.guestId, api.getId());
+        for (SharedChannel sharedChannel : sharedChannels) {
+            if (sharedChannel.channelMapping.getChannelName().equals(objectTypeName))
+                return true;
+        }
+        return false;
     }
 
     private ApiKey  getApiKeyFromConnectorName(String connectorName, List<ApiKey> keys, ApiKey api) {
@@ -984,9 +1004,9 @@ public class BodyTrackController {
     public boolean isUnauthorized(Long uid) {
         long loggedInUserId = AuthHelper.getGuestId();
         boolean accessAllowed = isOwnerOrAdmin(uid);
-        CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
+        TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
 
-        return !accessAllowed && coachee==null;
+        return !accessAllowed && trustedBuddy ==null;
     }
 
     @GET
@@ -1116,9 +1136,9 @@ public class BodyTrackController {
                     loggedInUserId = AuthHelper.getGuestId();
                     accessAllowed = isOwnerOrAdmin(uid);
                     if (!accessAllowed) {
-                        final CoachingBuddy coachee = buddiesService.getTrustingBuddy(loggedInUserId, uid);
-                        if (coachee != null) {
-                            accessAllowed = coachee.hasAccessToConnector(connector.getName());
+                        final TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(loggedInUserId, uid);
+                        if (trustedBuddy != null) {
+                            accessAllowed = trustedBuddy.hasAccessToConnector(connector.getName());
                         }
                     }
                 }

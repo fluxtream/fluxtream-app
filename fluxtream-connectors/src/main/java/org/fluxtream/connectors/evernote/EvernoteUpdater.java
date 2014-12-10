@@ -249,18 +249,12 @@ public class EvernoteUpdater extends AbstractUpdater implements SettingsAwareUpd
         buddiesService.setSharedConnectorFilter(sharedConnector.getId(), toPersist);
     }
 
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {
+        // the styles for this connector depend on the number of notebooks available, so this is empty
+    }
+
     private void setChannelMapping(ApiKey apiKey, final List<NotebookConfig> notebookConfigs) {
-        bodyTrackHelper.deleteChannelMappings(apiKey);
-
-        ChannelMapping mapping = new ChannelMapping();
-        mapping.deviceName = "Evernote";
-        mapping.channelName = "note";
-        mapping.timeType = ChannelMapping.TimeType.gmt;
-        mapping.channelType = ChannelMapping.ChannelType.timespan;
-        mapping.guestId = apiKey.getGuestId();
-        mapping.apiKeyId = apiKey.getId();
-
-        bodyTrackHelper.persistChannelMapping(mapping);
 
         BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
         channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
@@ -274,8 +268,8 @@ public class EvernoteUpdater extends AbstractUpdater implements SettingsAwareUpd
 
         addStyleParts(notebookConfigs, channelStyle);
 
-        bodyTrackHelper.deleteStyle(apiKey.getGuestId(), "Evernote");
-        bodyTrackHelper.setDefaultStyle(apiKey.getGuestId(), "Evernote", "note", channelStyle);
+        bodyTrackHelper.deleteStyle(apiKey.getGuestId(), apiKey.getConnector().getName());
+        bodyTrackHelper.setDefaultStyle(apiKey.getGuestId(), apiKey.getConnector().getName(), "notes", channelStyle);
     }
 
     private int getNumberOfVisibleNotebooks(final List<NotebookConfig> notebookConfigs) {

@@ -247,19 +247,6 @@ public class FlickrUpdater extends AbstractUpdater {
     private JSONObject retrievePhotoHistory(UpdateInfo updateInfo, long from,
 			long to, int page) throws Exception {
 
-        List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey, ObjectType.getObjectType(updateInfo.apiKey.getConnector(),"photo").value());
-        if (mappings.size() == 0){
-            ChannelMapping mapping = new ChannelMapping();
-            mapping.deviceName = "Flickr";
-            mapping.channelName = "photo";
-            mapping.timeType = ChannelMapping.TimeType.local;
-            mapping.channelType = ChannelMapping.ChannelType.photo;
-            mapping.guestId = updateInfo.getGuestId();
-            mapping.apiKeyId = updateInfo.apiKey.getId();
-            mapping.objectTypeId = ObjectType.getObjectType(updateInfo.apiKey.getConnector(),"photo").value();
-            bodyTrackHelper.persistChannelMapping(mapping);
-        }
-
 		long then = System.currentTimeMillis();
 
         // The start/end upload dates should be in the form of a unix timestamp (see http://www.flickr.com/services/api/flickr.people.getPhotos.htm)
@@ -401,5 +388,8 @@ public class FlickrUpdater extends AbstractUpdater {
 
         locationResources.add(locationResource);
     }
+
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {}
 
 }

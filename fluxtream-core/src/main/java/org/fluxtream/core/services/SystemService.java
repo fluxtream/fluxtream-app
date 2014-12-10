@@ -12,5 +12,5 @@ public interface SystemService {
     public ConnectorInfo getConnectorInfo(String connectorName) throws Exception;
 	
 	public Connector getApiFromGoogleScope(String scope);
-	
+
 }

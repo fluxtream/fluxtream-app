@@ -4,7 +4,6 @@ import org.fluxtream.core.connectors.Connector.UpdateStrategyType;
 import org.fluxtream.core.connectors.DefaultSharedConnectorFilter;
 import org.fluxtream.core.connectors.SharedConnectorFilter;
 import org.fluxtream.core.connectors.bodytrackResponders.AbstractBodytrackResponder;
-import org.fluxtream.core.connectors.bodytrackResponders.DefaultBodytrackResponder;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.AbstractUserProfile;
 import org.fluxtream.core.facets.extractors.AbstractFacetExtractor;
@@ -41,7 +40,7 @@ public @interface Updater {
 
     public Class<? extends Object> settings() default EmptySettings.class;
 
-    public Class<? extends AbstractBodytrackResponder> bodytrackResponder() default DefaultBodytrackResponder.class;
+    public Class<? extends AbstractBodytrackResponder> bodytrackResponder() default AbstractBodytrackResponder.class;
 
     public int[] deleteOrder() default {-1};
 

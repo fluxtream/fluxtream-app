@@ -8,7 +8,7 @@ import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.connectors.vos.AbstractPhotoFacetVO;
-import org.fluxtream.core.domain.CoachingBuddy;
+import org.fluxtream.core.domain.TrustedBuddy;
 import org.fluxtream.core.domain.TagFilter;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,5 +89,5 @@ public interface PhotoService {
      * {@link Map}, but guaranteed to not return <code>null</code>.  Note that the {@link SimpleTimeInterval} for a channel
      * may be <code>null</code>, for example if the channel is a photo channel, but it currently contains no photos.
      */
-    Map<String, TimeInterval> getPhotoChannelTimeRanges(long guestId, final CoachingBuddy coachee);
+    Map<String, TimeInterval> getPhotoChannelTimeRanges(long guestId, final TrustedBuddy trustedBuddy);
 }

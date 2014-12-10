@@ -14,6 +14,7 @@ import org.fluxtream.core.connectors.location.LocationFacet;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.Tag;
 import org.fluxtream.core.services.ApiDataService.FacetModifier;
 import org.fluxtream.core.services.ApiDataService.FacetQuery;
@@ -145,7 +146,7 @@ public class MymeeUpdater extends AbstractUpdater {
 
 
             // Write the new set of observations into the datastore
-            bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey, newFacets);
 
             lastSeq = newLastSeq;
 
@@ -422,7 +423,7 @@ public class MymeeUpdater extends AbstractUpdater {
             newFacets.add(facet);
         }
         if(incremental) {
-            bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey, newFacets);
         }
         return channelNames;
     }
@@ -436,6 +437,9 @@ public class MymeeUpdater extends AbstractUpdater {
             return null;
         }
     }
+
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {}
 
     public static String getMainDir(String url) {
         try {

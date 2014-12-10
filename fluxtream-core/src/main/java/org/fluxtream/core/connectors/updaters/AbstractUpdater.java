@@ -390,4 +390,6 @@ public abstract class AbstractUpdater extends ApiClientSupport {
     public void afterHistoryUpdate(final UpdateInfo updateInfo)
             throws Exception {}
 
+    public abstract void setDefaultChannelStyles(ApiKey apiKey);
+
 }

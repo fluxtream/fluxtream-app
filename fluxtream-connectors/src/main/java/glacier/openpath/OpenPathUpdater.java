@@ -1,5 +1,6 @@
 package glacier.openpath;
 
+import org.fluxtream.core.domain.ApiKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,5 +31,8 @@ public class OpenPathUpdater extends AbstractUpdater {
 	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
 
 	}
+
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {}
 
 }

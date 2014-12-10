@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.services.impl.FieldHandler;
 import org.joda.time.DateTime;
@@ -22,8 +24,7 @@ public class ZeoBedTimeFieldHandler implements FieldHandler {
     BodyTrackHelper bodyTrackHelper;
 
     @Override
-    public List<BodyTrackHelper.BodyTrackUploadResult> handleField ( final long guestId, AbstractFacet facet) {
-        ZeoSleepStatsFacet sleepStatsFacet = (ZeoSleepStatsFacet) facet;
+    public List<BodyTrackHelper.BodyTrackUploadResult> handleField (final ApiKey apiKey, AbstractFacet facet) {
         DateTime startTimeJoda = new DateTime(facet.start,DateTimeZone.UTC);
         int stHour = startTimeJoda.getHourOfDay();
         int stMin = startTimeJoda.getMinuteOfHour();
@@ -36,6 +37,11 @@ public class ZeoBedTimeFieldHandler implements FieldHandler {
         data.add(record);
 
         // TODO: check the status code in the BodyTrackUploadResult
-        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(guestId , "Zeo", Arrays.asList("bedTime"), data));
+        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(apiKey , "Zeo", Arrays.asList("bedTime"), data));
+    }
+
+    @Override
+    public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
+        ChannelMapping.addToDeclaredMappings(apiKey, 1, apiKey.getConnector().getDeviceNickname(), "bedTime", channelMappings);
     }
 }

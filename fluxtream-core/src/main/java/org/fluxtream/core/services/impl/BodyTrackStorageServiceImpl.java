@@ -8,15 +8,22 @@ import org.fluxtream.core.TimeUnit;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.ObjectType;
+import org.fluxtream.core.connectors.bodytrackResponders.AbstractBodytrackResponder;
+import org.fluxtream.core.connectors.updaters.AbstractUpdater;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.services.*;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -35,11 +42,9 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 	@Autowired
 	GuestService guestService;
 
-    @Qualifier("apiDataServiceImpl")
     @Autowired
 	ApiDataService apiDataService;
 
-    @Qualifier("metadataServiceImpl")
     @Autowired
 	MetadataService metadataService;
 
@@ -49,16 +54,18 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
     @Autowired
     BeanFactory beanFactory;
 
+    @PersistenceContext
+    EntityManager em;
 
     private Hashtable<String, FieldHandler> fieldHandlers = new Hashtable<String, FieldHandler>();
 
 	@Override
-	public void storeApiData(long guestId, List<? extends AbstractFacet> facets) {
-        logStoreApiData(guestId, facets);
+	public void storeApiData(ApiKey apiKey, List<? extends AbstractFacet> facets) {
+        logStoreApiData(apiKey.getGuestId(), facets);
 
 		Map<String, List<AbstractFacet>> facetsByFacetName = sortFacetsByFacetName(facets);
         for (final String facetName : facetsByFacetName.keySet()) {
-            List<BodyTrackHelper.BodyTrackUploadResult> results = storeDeviceData(guestId, facetsByFacetName, facetName);
+            List<BodyTrackHelper.BodyTrackUploadResult> results = storeDeviceData(apiKey, facetsByFacetName, facetName);
             if (!results.isEmpty()){
                 AbstractFacet facet = facetsByFacetName.get(facetName).get(0);
                 long apiKeyId = facet.apiKeyId;
@@ -67,13 +74,117 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
                     if (!(result instanceof BodyTrackHelper.ParsedBodyTrackUploadResult))
                         continue;
                     BodyTrackHelper.ParsedBodyTrackUploadResult parsedResult = (BodyTrackHelper.ParsedBodyTrackUploadResult) result;
-                    dataUpdateSerivce.logBodyTrackDataUpdate(guestId,apiKeyId,objectTypeId,parsedResult);
-
+                    dataUpdateSerivce.logBodyTrackDataUpdate(apiKey.getGuestId(),apiKeyId,objectTypeId,parsedResult);
                 }
             }
         }
 
 	}
+
+    /**
+     * Channels can be thought of as containers: sometimes they have data, some times they don't. If a guest wants
+     * to share their data, these containers need to be explicitely listed, even if they are momentarily empty. This
+     * method will list all channels that we know of in advance, irrespective of their containing data or not.
+     * @param apiKey
+     */
+    @Override
+    @Transactional(readOnly=false)
+    public void mapChannels(ApiKey apiKey) {
+
+        final Connector connector = apiKey.getConnector();
+
+        // only delete mappings that were previously created by this method
+        Query deleteExistingMappingsQuery = em.createQuery("DELETE FROM ChannelMapping mapping WHERE mapping.apiKeyId=? AND mapping.creationType=?");
+        deleteExistingMappingsQuery.setParameter(1, apiKey.getId());
+        deleteExistingMappingsQuery.setParameter(2, ChannelMapping.CreationType.mapChannels);
+        deleteExistingMappingsQuery.executeUpdate();
+
+        final AbstractBodytrackResponder bodytrackResponder = connector.getBodytrackResponder(beanFactory);
+        if (bodytrackResponder!=null) {
+            final List<ChannelMapping> responderMappings = new ArrayList<ChannelMapping>();
+            bodytrackResponder.addToDeclaredChannelMappings(apiKey, responderMappings);
+            for (ChannelMapping responderMapping : responderMappings) {
+                responderMapping.setCreationType(ChannelMapping.CreationType.mapChannels);
+                em.persist(responderMapping);
+            }
+        }
+        final Iterator<String> keys = env.bodytrackProperties.getKeys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            if (key.startsWith(connector.getName())&&key.indexOf("channel_names")!=-1) {
+                String[] keySplits = key.split("\\.");
+                String objectTypeName = keySplits[1];
+                final ObjectType objectType = ObjectType.getObjectType(connector, objectTypeName);
+                if (objectType==null) {
+                    logger.warn("Could not find objectType named " + objectTypeName + " for connector " + connector.getName());
+                    continue;
+                }
+                final String facetName = keySplits[0] + "." + objectTypeName;
+                final List<String> facetFieldChannelNames = getDatastoreChannelNames(facetName);
+                for (String facetFieldChannelName : facetFieldChannelNames) {
+                    final ChannelMapping facetFieldChannelMapping = createFacetFieldChanneMapping(facetFieldChannelName, apiKey, objectType);
+                    facetFieldChannelMapping.setCreationType(ChannelMapping.CreationType.mapChannels);
+                    em.persist(facetFieldChannelMapping);
+                }
+                final List<FieldHandler> handlers = getFieldHandlers(facetName);
+                for (FieldHandler fieldHandler : handlers) {
+                    final List<ChannelMapping> fieldHandlerMappings = new ArrayList<ChannelMapping>();
+                    fieldHandler.addToDeclaredChannelMappings(apiKey, fieldHandlerMappings);
+                    for (ChannelMapping fieldHandlerMapping : fieldHandlerMappings) {
+                        fieldHandlerMapping.setCreationType(ChannelMapping.CreationType.mapChannels);
+                        em.persist(fieldHandlerMapping);
+                    }
+                }
+            }
+        }
+
+        // add photo channels
+        ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
+        for (ObjectType objectType : objectTypes) {
+            if (objectType.isImageType()) {
+                ChannelMapping.TimeType timeType = getTimeType(connector);
+                ChannelMapping photoChannelMapping = new ChannelMapping(apiKey.getId(), apiKey.getGuestId(),
+                        ChannelMapping.ChannelType.photo, timeType, objectType.value(),
+                        apiKey.getConnector().getDeviceNickname(), "photo",
+                        apiKey.getConnector().getDeviceNickname(), "photo");
+                photoChannelMapping.setCreationType(ChannelMapping.CreationType.mapChannels);
+                em.persist(photoChannelMapping);
+            }
+        }
+
+        // finally, possibly create default ChannelStyles
+        final AbstractUpdater updater = beanFactory.getBean(connector.getUpdaterClass());
+        updater.setDefaultChannelStyles(apiKey);
+    }
+
+    @Override
+    public List<ChannelMapping> getChannelMappings(long apiKeyId) {
+        Query query = em.createQuery("SELECT channelMapping FROM ChannelMapping channelMapping WHERE channelMapping.apiKeyId=?");
+        query.setParameter(1, apiKeyId);
+        List mappings = query.getResultList();
+        return mappings;
+    }
+
+    private ChannelMapping createFacetFieldChanneMapping(String facetFieldChannelName, ApiKey apiKey, ObjectType objectType) {
+        ChannelMapping.ChannelType channelType = ChannelMapping.ChannelType.data;
+        if (objectType.isImageType())
+            channelType = ChannelMapping.ChannelType.photo;
+        Connector connector = apiKey.getConnector();
+        final String deviceName = connector.getDeviceNickname();
+        ChannelMapping.TimeType timeType = getTimeType(connector);
+        ChannelMapping declaredMapping = new ChannelMapping(apiKey.getId(), apiKey.getGuestId(),
+                channelType, timeType, objectType.value(),
+                deviceName, facetFieldChannelName,
+                deviceName, facetFieldChannelName);
+        return declaredMapping;
+    }
+
+    private ChannelMapping.TimeType getTimeType(Connector connector) {
+        ChannelMapping.TimeType timeType = ChannelMapping.TimeType.gmt;
+        if (Arrays.asList("zeo", "flickr", "fitbit").contains(connector.getName()))
+            timeType = ChannelMapping.TimeType.local;
+        return timeType;
+    }
 
     private void logStoreApiData(final long guestId, final List<? extends AbstractFacet> facets) {
         StringBuilder sb = new StringBuilder("module=updateQueue component=bodytrackStorageService action=storeApiData")
@@ -89,35 +200,69 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
         logger.info(sb.toString());
     }
 
-    private List<BodyTrackHelper.BodyTrackUploadResult> storeDeviceData(long guestId,
+    private List<BodyTrackHelper.BodyTrackUploadResult> storeDeviceData(ApiKey apiKey,
 			Map<String, List<AbstractFacet>> facetsByDeviceNickname,
 			String facetName) {
         List<BodyTrackHelper.BodyTrackUploadResult> results = new ArrayList<BodyTrackHelper.BodyTrackUploadResult>();
         String deviceName = getDeviceNickname(facetName);
         List<AbstractFacet> deviceFacets = facetsByDeviceNickname.get(facetName);
 
-        results.add(uploadDailyData(guestId, deviceName, deviceFacets, facetName));
+        results.add(uploadDailyData(apiKey, deviceName, deviceFacets, facetName));
 
         List<FieldHandler> facetFieldHandlers = getFieldHandlers(facetName);
         for (FieldHandler fieldHandler : facetFieldHandlers) {
-            results.addAll(uploadIntradayData(guestId, deviceFacets, fieldHandler));
+            results.addAll(uploadIntradayData(apiKey, deviceFacets, fieldHandler));
         }
         return results;
     }
 
-    private BodyTrackHelper.BodyTrackUploadResult uploadDailyData(long guestId, String deviceName, List<AbstractFacet> deviceFacets, String facetName) {
-        List<String> datastoreChannelNames = getDailyDatastoreChannelNames(facetName);
+    private BodyTrackHelper.BodyTrackUploadResult uploadDailyData(ApiKey apiKey, String deviceName, List<AbstractFacet> deviceFacets, String facetName) {
+        List<String> datastoreChannelNames = getDatastoreChannelNames(facetName);
         List<String> facetColumnNames = getFacetColumnNames(facetName);
         List<List<Object>> dailyDataChannelValues = getDailyDataChannelValues(deviceFacets, facetColumnNames);
 
         // TODO: check the status code in the BodyTrackUploadResult
-        return bodyTrackHelper.uploadToBodyTrack(guestId, deviceName, datastoreChannelNames, dailyDataChannelValues);
+        final BodyTrackHelper.BodyTrackUploadResult bodyTrackUploadResult = bodyTrackHelper.uploadToBodyTrack(apiKey, deviceName, datastoreChannelNames, dailyDataChannelValues);
+        return bodyTrackUploadResult;
     }
 
-    private List<BodyTrackHelper.BodyTrackUploadResult> uploadIntradayData(long guestId, List<AbstractFacet> deviceFacets, FieldHandler fieldHandler) {
+    @Override
+    public void ensureDataChannelMappingsExist(ApiKey apiKey, List<String> datastoreChannelNames,
+                                           final String internalDeviceName) {
+        ensureChannelMappingsExist(apiKey, datastoreChannelNames, internalDeviceName, ChannelMapping.ChannelType.data, null);
+    }
+
+    @Override
+    public void ensurePhotoChannelMappingsExist(ApiKey apiKey, List<String> datastoreChannelNames,
+                                               final String internalDeviceName, Integer objectTypeId) {
+        ensureChannelMappingsExist(apiKey, datastoreChannelNames, internalDeviceName, ChannelMapping.ChannelType.data, objectTypeId);
+    }
+
+    private void ensureChannelMappingsExist(ApiKey apiKey, List<String> datastoreChannelNames, final String internalDeviceName,
+                                            final ChannelMapping.ChannelType channelType, Integer objectTypeId) {
+        for (String channelName : datastoreChannelNames) {
+            final TypedQuery<ChannelMapping> query = em.createQuery("SELECT mapping FROM ChannelMapping mapping WHERE mapping.apiKeyId=? AND mapping.deviceName=? AND mapping.channelName=?", ChannelMapping.class);
+            query.setParameter(1, apiKey.getId());
+            query.setParameter(2, apiKey.getConnector().getDeviceNickname());
+            query.setParameter(3, channelName);
+            final List<ChannelMapping> mappings = query.getResultList();
+            if (mappings==null||mappings.size()==0) {
+                ChannelMapping.TimeType timeType = getTimeType(apiKey.getConnector());
+                ChannelMapping mapping = new ChannelMapping(apiKey.getId(), apiKey.getGuestId(),
+                        channelType, timeType, objectTypeId,
+                        apiKey.getConnector().getDeviceNickname(), "photo",
+                        internalDeviceName!=null ? internalDeviceName : apiKey.getConnector().getDeviceNickname(), "photo");
+                mapping.setCreationType(ChannelMapping.CreationType.dynamic);
+                em.persist(mapping);
+            }
+        }
+    }
+
+
+    private List<BodyTrackHelper.BodyTrackUploadResult> uploadIntradayData(ApiKey apiKey, List<AbstractFacet> deviceFacets, FieldHandler fieldHandler) {
         List<BodyTrackHelper.BodyTrackUploadResult> results = new ArrayList<BodyTrackHelper.BodyTrackUploadResult>();
         for (AbstractFacet deviceFacet : deviceFacets) {
-            List<BodyTrackHelper.BodyTrackUploadResult> facetResults = fieldHandler.handleField(guestId, deviceFacet);
+            List<BodyTrackHelper.BodyTrackUploadResult> facetResults = fieldHandler.handleField(apiKey, deviceFacet);
             if (facetResults != null)
                 results.addAll(facetResults);
         }
@@ -125,16 +270,15 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
     }
 
     private FieldHandler getFieldHandler(String fieldHandlerName) {
-        String HandlerName = fieldHandlerName.substring(1);
-        if (fieldHandlers.get(HandlerName)==null) {
+        if (fieldHandlers.get(fieldHandlerName)==null) {
             FieldHandler fieldHandler;
-            fieldHandler = (FieldHandler)beanFactory.getBean(HandlerName);
-            fieldHandlers.put(HandlerName, fieldHandler);
+            fieldHandler = (FieldHandler)beanFactory.getBean(fieldHandlerName);
+            fieldHandlers.put(fieldHandlerName, fieldHandler);
         }
-        return fieldHandlers.get(HandlerName);
+        return fieldHandlers.get(fieldHandlerName);
     }
 
-    private List<String> getDailyDatastoreChannelNames(String facetName) {
+    private List<String> getDatastoreChannelNames(String facetName) {
         String[] channelNamesMappings = env.bodytrackProperties.getString(facetName + ".channel_names").split(",");
         List<String> channelNames = new ArrayList<String>();
         for (String mapping : channelNamesMappings) {
@@ -167,7 +311,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
                 String handlerName = terms[1].substring(1);
                 if (handlerName.equalsIgnoreCase("NOOP")||handlerName.equalsIgnoreCase("OOP"))
                     continue;
-                FieldHandler fieldHandler = getFieldHandler(handlerName);
+                FieldHandler fieldHandler = getFieldHandler(handlerName.substring(1));
                 fieldHandlers.add(fieldHandler);
             }
         }
@@ -246,7 +390,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
 		TimeInterval timeInterval = new SimpleTimeInterval(0,
 				System.currentTimeMillis(), TimeUnit.ARBITRARY, TimeZone.getDefault());
 		List<AbstractFacet> facets = apiDataService.getApiDataFacets(apiKey, null, timeInterval, null);
-		storeApiData(apiKey.getGuestId(), facets);
+		storeApiData(apiKey, facets);
 	}
 
     @Override
@@ -259,7 +403,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
         final ObjectType[] objectTypesForValue = apiKey.getConnector().getObjectTypesForValue(objectTypes);
         for (ObjectType objectType : objectTypesForValue) {
             List<AbstractFacet> facets = apiDataService.getApiDataFacets(apiKey, objectType, timeInterval, null);
-            storeApiData(apiKey.getGuestId(), facets);
+            storeApiData(apiKey, facets);
         }
     }
 

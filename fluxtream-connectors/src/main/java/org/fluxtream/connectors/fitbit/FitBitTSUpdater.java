@@ -38,10 +38,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author candide
@@ -110,41 +107,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
     public FitBitTSUpdater() {
 		super();
 	}
-
-    private void initChannelMapping(UpdateInfo updateInfo) {
-        //TODO: figure out how to support date-based facets in the timeline
-        //List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey);
-        //if (mappings.size() == 0){
-        //    ChannelMapping mapping = new ChannelMapping();
-        //    mapping.deviceName = "fitbit";
-        //    mapping.channelName = "sleep";
-        //    mapping.timeType = ChannelMapping.TimeType.gmt;
-        //    mapping.channelType = ChannelMapping.ChannelType.timespan;
-        //    mapping.guestId = updateInfo.getGuestId();
-        //    mapping.apiKeyId = updateInfo.apiKey.getId();
-        //    mapping.objectTypeId = ObjectType.getObjectType(updateInfo.apiKey.getConnector(), "sleep").value();
-        //    bodyTrackHelper.persistChannelMapping(mapping);
-        //
-        //    BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
-        //    channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
-        //    channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
-        //    channelStyle.timespanStyles.defaultStyle.fillColor = "#21b5cf";
-        //    channelStyle.timespanStyles.defaultStyle.borderColor = "#21b5cf";
-        //    channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
-        //    channelStyle.timespanStyles.defaultStyle.top = 0.0;
-        //    channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
-        //    channelStyle.timespanStyles.values = new HashMap();
-        //
-        //    BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
-        //    stylePart.top = 0.25;
-        //    stylePart.bottom = 0.75;
-        //    stylePart.fillColor = "#21b5cf";
-        //    stylePart.borderColor = "#21b5cf";
-        //    channelStyle.timespanStyles.values.put("on",stylePart);
-        //
-        //    bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"fitbit","sleep",channelStyle);
-        //}
-    }
 
 	@Override
 	public void updateConnectorDataHistory(UpdateInfo updateInfo)
@@ -258,8 +220,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         // the above code does not do that so we explicity send the
         // Fitbit facet data to the datastore here.
         bodyTrackStorageService.storeInitialHistory(updateInfo.apiKey);
-
-        initChannelMapping(updateInfo);
 
         checkLateAdditions(updateInfo);
 
@@ -685,7 +645,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         System.out.println("scheduling next backsynching operations , apiKeyId=" + updateInfo.apiKey.getId());
         connectorUpdateService.scheduleUpdate(updateInfo.apiKey, 0, UpdateInfo.UpdateType.INCREMENTAL_UPDATE,
                 when);
-        initChannelMapping(updateInfo);
     }
 
     static boolean isGoalReached(LocalDate startDate, String backSyncDateGoal) {
@@ -875,7 +834,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             if (facet!=null) {
                 FitbitTrackerActivityFacet activityFacet = (FitbitTrackerActivityFacet) facet;
                 updateIntradayMetrics(updateInfo, activityFacet);
-                bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), Arrays.asList(facet));
+                bodyTrackStorageService.storeApiData(updateInfo.apiKey, Arrays.asList(facet));
             } else {
                 logger.warn("TRYING TO UPDATE INTRADAY DATA OF AN UNEXISTING FACET, dateString=" + dateString);
             }
@@ -1012,7 +971,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         if (json != null) {
             JSONObject fitbitResponse = JSONObject.fromObject(json);
             final List<FitbitWeightFacet> createdOrUpdatedWeightFacets = fitbitPersistenceHelper.createOrUpdateWeightFacets(updateInfo, fitbitResponse);
-            bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), createdOrUpdatedWeightFacets);
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey, createdOrUpdatedWeightFacets);
         }
     }
 
@@ -1043,7 +1002,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             JSONObject fitbitResponse = JSONObject.fromObject(json);
             fitbitPersistenceHelper.createOrUpdateLoggedActivities(updateInfo, fitbitResponse);
             final FitbitTrackerActivityFacet createdOrUpdatedActivitySummary = fitbitPersistenceHelper.createOrUpdateActivitySummary(updateInfo, fitbitResponse);
-            bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), Arrays.asList(createdOrUpdatedActivitySummary));
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey, Arrays.asList(createdOrUpdatedActivitySummary));
 		}
 	}
 
@@ -1080,7 +1039,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             }
 
             final FitbitFoodLogSummaryFacet createdOrUpdatedFoodLogSummaryFacet = fitbitPersistenceHelper.createOrUpdateFoodLogSummaryFacet(updateInfo, fitbitResponse);
-            bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), Arrays.asList(createdOrUpdatedFoodLogSummaryFacet));
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey, Arrays.asList(createdOrUpdatedFoodLogSummaryFacet));
         }
     }
 
@@ -1319,6 +1278,28 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
     private String getConsumerKey(ApiKey apiKey) {
         String consumerKey = guestService.getApiKeyAttribute(apiKey, apiKey.getConnector().getName() + "ConsumerKey");
         return consumerKey == null ? "" : consumerKey;
+    }
+
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {
+        BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
+        channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
+        channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
+        channelStyle.timespanStyles.defaultStyle.fillColor = "#21b5cf";
+        channelStyle.timespanStyles.defaultStyle.borderColor = "#21b5cf";
+        channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
+        channelStyle.timespanStyles.defaultStyle.top = 0.0;
+        channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
+        channelStyle.timespanStyles.values = new HashMap();
+
+        BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
+        stylePart.top = 0.25;
+        stylePart.bottom = 0.75;
+        stylePart.fillColor = "#21b5cf";
+        stylePart.borderColor = "#21b5cf";
+        channelStyle.timespanStyles.values.put("on",stylePart);
+
+        bodyTrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), apiKey.getConnector().getName(),"sleep",channelStyle);
     }
 
 }

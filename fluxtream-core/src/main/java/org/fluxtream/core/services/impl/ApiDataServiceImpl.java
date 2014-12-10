@@ -399,7 +399,7 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 					newFacets.add(newFacet);
 			}
 		}
-		bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), newFacets);
+		bodyTrackStorageService.storeApiData(updateInfo.apiKey, newFacets);
         return newFacets;
 	}
 

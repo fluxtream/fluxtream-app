@@ -25,7 +25,7 @@ public class DigestModel {
     @ApiModelProperty(value="The list of this user's addresses", required=true)
     public Map<String,List<AddressModel>> addresses;
 
-    @ApiModelProperty(value="The list of this user's coachees", required=true)
+    @ApiModelProperty(value="The list of this user's trustingBuddies", required=true)
 	public SettingsModel settings;
 
     @ApiModelProperty(value="Background updates notifications, if any", required=false)
@@ -40,8 +40,8 @@ public class DigestModel {
     @ApiModelProperty(value="List of currently selected connectors", required=true)
 	public List<ConnectorDigestModel> selectedConnectors = new ArrayList<ConnectorDigestModel>();
 
-    @ApiModelProperty(value="The list of this user's coachees", required=true)
-    public List<GuestModel> coachees;
+    @ApiModelProperty(value="The list of this user's trustingBuddies", required=true)
+    public List<GuestModel> trustingBuddies;
 
     @ApiModelProperty(value="UTC timestamp of this model's generation", required=true)
     public long generationTimestamp;

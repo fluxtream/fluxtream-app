@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.services.impl.FieldHandler;
 import net.sf.json.JSONArray;
@@ -22,7 +24,7 @@ public class BodyMediaSleepFieldHandler implements FieldHandler {
     BodyTrackHelper bodyTrackHelper;
 
     @Override
-    public List<BodyTrackHelper.BodyTrackUploadResult> handleField ( final long guestId, AbstractFacet facet) {
+    public List<BodyTrackHelper.BodyTrackUploadResult> handleField (final ApiKey apiKey, AbstractFacet facet) {
         BodymediaSleepFacet sleepFacet = (BodymediaSleepFacet) facet;
         if (sleepFacet.json == null) {
             return Arrays.asList();
@@ -52,8 +54,8 @@ public class BodyMediaSleepFieldHandler implements FieldHandler {
             addStandingRecord(facet.start/1000+lastMinuteIndex*60, sleepingData, lyingData, 1440-lastMinuteIndex);
 
         // TODO: check the status code in the BodyTrackUploadResult
-        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(guestId, "BodyMedia", Arrays.asList("sleeping"), sleepingData),
-                    bodyTrackHelper.uploadToBodyTrack(guestId, "BodyMedia", Arrays.asList("lying"), lyingData));
+        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(apiKey, "BodyMedia", Arrays.asList("sleeping"), sleepingData),
+                    bodyTrackHelper.uploadToBodyTrack(apiKey, "BodyMedia", Arrays.asList("lying"), lyingData));
     }
 
     private void addSleepingRecord(long when, List<List<Object>> sleepingData, List<List<Object>> lyingData, int duration) {
@@ -87,6 +89,12 @@ public class BodyMediaSleepFieldHandler implements FieldHandler {
             lyingData.add(standingRecord);
             sleepingData.add(standingRecord);
         }
+    }
+
+    @Override
+    public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
+        ChannelMapping.addToDeclaredMappings(apiKey, 4, apiKey.getConnector().getDeviceNickname(), "sleeping", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, 4, apiKey.getConnector().getDeviceNickname(), "lying", channelMappings);
     }
 
 }

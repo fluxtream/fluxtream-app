@@ -1,6 +1,8 @@
 package org.fluxtream.connectors.fitbit;
 
 import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.services.impl.FieldHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,7 @@ public class FitbitFoodLogSummaryFieldHandler implements FieldHandler {
     BodyTrackHelper bodyTrackHelper;
 
     @Override
-    public List<BodyTrackHelper.BodyTrackUploadResult> handleField ( final long guestId, AbstractFacet facet) {
+    public List<BodyTrackHelper.BodyTrackUploadResult> handleField (final ApiKey apiKey, AbstractFacet facet) {
 
         List<BodyTrackHelper.BodyTrackUploadResult> results = new ArrayList<BodyTrackHelper.BodyTrackUploadResult>();
 
@@ -61,10 +63,18 @@ public class FitbitFoodLogSummaryFieldHandler implements FieldHandler {
 
         data.add(record);
 
-        results.add(bodyTrackHelper.uploadToBodyTrack(guestId, "Fitbit", channelNames, data));
+        results.add(bodyTrackHelper.uploadToBodyTrack(apiKey, "Fitbit", channelNames, data));
 
         // TODO: check the status code in the BodyTrackUploadResult
         return results;
+    }
+
+    @Override
+    public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
+        ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local, 32, apiKey.getConnector().getDeviceNickname(), "caloriesIn", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local, 32, apiKey.getConnector().getDeviceNickname(), "water", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local, 32, apiKey.getConnector().getDeviceNickname(), "caloriesInGoal", channelMappings);
+        ChannelMapping.addToDeclaredMappings(apiKey, ChannelMapping.ChannelType.data, ChannelMapping.TimeType.local, 32, apiKey.getConnector().getDeviceNickname(), "caloriesOutGoal", channelMappings);
     }
 
 }

@@ -3,17 +3,20 @@ package org.fluxtream.core.services.impl;
 import com.google.gson.*;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
-import org.fluxtream.core.connectors.bodytrackResponders.AbstractBodytrackResponder;
+import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.domain.*;
 import org.fluxtream.core.services.*;
 import org.fluxtream.core.utils.JPAUtils;
 import org.fluxtream.core.utils.Utils;
+import org.joda.time.DateTime;
+import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -49,6 +52,143 @@ public class BodyTrackHelper {
 
         /** Returns <code>true</code> if the upload was successful, <code>false</code> otherwise. */
         boolean isSuccess();
+    }
+
+    protected long getMinTimeForApiKey(long apiKeyId, Integer objectTypeId){
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
+
+        ObjectType[] objectTypes;
+        if (objectTypeId != null)
+            objectTypes = apiKey.getConnector().getObjectTypesForValue(objectTypeId);
+        else
+            objectTypes = apiKey.getConnector().objectTypes();
+        if (objectTypes == null || objectTypes.length == 0){
+            final String minTimeAtt = guestService.getApiKeyAttribute(apiKey, ApiKeyAttribute.MIN_TIME_KEY);
+            if (minTimeAtt !=null && StringUtils.isNotEmpty(minTimeAtt)) {
+                final DateTime dateTime = ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().parseDateTime(minTimeAtt);
+                return dateTime.getMillis();
+            }
+        }
+        else{
+            long minTime = Long.MAX_VALUE;
+            for (ObjectType objectType : objectTypes){
+                final String minTimeAtt = guestService.getApiKeyAttribute(apiKey, objectType.getApiKeyAttributeName(ApiKeyAttribute.MIN_TIME_KEY));
+                if (minTimeAtt !=null && StringUtils.isNotEmpty(minTimeAtt)) {
+                    final DateTime dateTime = ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().parseDateTime(minTimeAtt);
+                    minTime = Math.min(minTime, dateTime.getMillis());
+                }
+
+            }
+            if (minTime < Long.MAX_VALUE)
+                return minTime;
+        }
+        //if we couldn't get the minTime from ApiKey Attributes fallback to oldest facet
+        AbstractFacet facet;
+        if (objectTypes == null || objectTypes.length == 0){
+            facet = apiDataService.getOldestApiDataFacet(apiKey,null);
+        }
+        else{
+            facet = null;
+            for (ObjectType objectType : objectTypes){
+                AbstractFacet potentialFacet = apiDataService.getOldestApiDataFacet(apiKey,objectType);
+                if (facet == null || facet.start > potentialFacet.start)
+                    facet = potentialFacet;
+            }
+        }
+        if (facet != null)
+            return facet.start;
+        else
+            return Long.MAX_VALUE;
+    }
+
+    protected long getMaxTimeForApiKey(long apiKeyId, Integer objectTypesMask){
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
+
+        ObjectType[] objectTypes;
+        if (objectTypesMask != null)
+            objectTypes = apiKey.getConnector().getObjectTypesForValue(objectTypesMask);
+        else
+            objectTypes = apiKey.getConnector().objectTypes();
+        if (objectTypes == null || objectTypes.length == 0){
+            final String maxTimeAtt = guestService.getApiKeyAttribute(apiKey, ApiKeyAttribute.MAX_TIME_KEY);
+            if (maxTimeAtt !=null && StringUtils.isNotEmpty(maxTimeAtt)) {
+                final DateTime dateTime = ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().parseDateTime(maxTimeAtt);
+                return dateTime.getMillis();
+            }
+        }
+        else{
+            long maxTime = Long.MIN_VALUE;
+            for (ObjectType objectType : objectTypes){
+                final String maxTimeAtt= guestService.getApiKeyAttribute(apiKey, objectType.getApiKeyAttributeName(ApiKeyAttribute.MAX_TIME_KEY));
+                if (maxTimeAtt !=null && StringUtils.isNotEmpty(maxTimeAtt)) {
+                    final DateTime dateTime = ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().parseDateTime(maxTimeAtt);
+                    maxTime = Math.max(maxTime,dateTime.getMillis());
+                }
+
+            }
+            if (maxTime > Long.MIN_VALUE)
+                return maxTime;
+        }
+        //if we couldn't get the minTime from ApiKey Attributes fallback to oldest facet
+        AbstractFacet facet;
+        if (objectTypes == null || objectTypes.length == 0){
+            facet = apiDataService.getLatestApiDataFacet(apiKey,null);
+        }
+        else{
+            facet = null;
+            for (ObjectType objectType : objectTypes){
+                AbstractFacet potentialFacet = apiDataService.getLatestApiDataFacet(apiKey,objectType);
+                if (potentialFacet != null && (facet == null || facet.end < potentialFacet.end))
+                    facet = potentialFacet;
+            }
+        }
+        if (facet != null)
+            return facet.end;
+        else
+            return Long.MIN_VALUE;
+    }
+
+    public void setChannelBounds(final ChannelMapping mapping, final Channel channel, ChannelInfoResponse infoResponse) {
+        Set<String> channelNames = infoResponse.channel_specs.keySet();
+        switch (mapping.getChannelType()){
+            case photo:
+                channel.min = 0.6;
+                channel.max = 1;
+                break;
+            case data:
+                Connector connector = Connector.fromDeviceNickname(mapping.getDeviceName());
+                if (connector!=null) {
+                    // historically, some channels have used a device nickname, others a connector name
+                    String deviceChannelName = new StringBuilder(connector.getName()).append(".").append(mapping.getChannelName()).toString();
+                    String deviceNicknameChannelName = new StringBuilder(mapping.getDeviceName()).append(".").append(mapping.getChannelName()).toString();
+                    for (String channelName : channelNames) {
+                        if (channelName.equals(deviceChannelName) || channelName.equals(deviceNicknameChannelName)) {
+                            ChannelSpecs channelSpecs = infoResponse.channel_specs.get(channelName);
+                            channel.min = channelSpecs.channel_bounds.min_value;
+                            channel.max = channelSpecs.channel_bounds.max_value;
+                            break;
+                        }
+                    }
+                } else {
+                    channel.min = 0;
+                    channel.max = 1;
+                }
+                break;
+            default:
+                channel.min = 0;
+                channel.max = 1;
+                break;
+        }
+        long maxTime = getMaxTimeForApiKey(mapping.getApiKeyId(), mapping.getObjectTypes());
+        long minTime = getMinTimeForApiKey(mapping.getApiKeyId(), mapping.getObjectTypes());
+        if (maxTime < minTime){
+            channel.max_time = 0d;
+            channel.min_time = 0d;
+        }
+        else{
+            channel.max_time = maxTime / 1000.0;
+            channel.min_time = minTime / 1000.0;
+        }
     }
 
     @PersistenceContext
@@ -197,12 +337,12 @@ public class BodyTrackHelper {
 
     }
 
-    public BodyTrackUploadResult uploadToBodyTrack(final Long guestId,
+    public BodyTrackUploadResult uploadToBodyTrack(final ApiKey apiKey,
                                   final String deviceName,
                                   final Collection<String> channelNames,
                                   final List<List<Object>> data) {
         try{
-            if (guestId == null)
+            if (apiKey == null)
                 throw new IllegalArgumentException();
             final File tempFile = File.createTempFile("input",".json");
 
@@ -215,7 +355,7 @@ public class BodyTrackHelper {
             fos.write(bodyTrackJSONData.getBytes());
             fos.close();
 
-            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("import", new Object[]{guestId, deviceName, tempFile.getAbsolutePath()});
+            final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("import", new Object[]{apiKey.getGuestId(), deviceName, tempFile.getAbsolutePath()});
             tempFile.delete();
             return new ParsedBodyTrackUploadResult(dataStoreExecutionResult,deviceName,gson);
         } catch (Exception e) {
@@ -260,8 +400,8 @@ public class BodyTrackHelper {
             if (guestId == null)
                 throw new IllegalArgumentException();
             ChannelMapping mapping = getChannelMapping(guestId, deviceNickname,channelName);
-            String internalDeviceName = mapping != null ? mapping.internalDeviceName : deviceNickname;
-            String internalChannelName = mapping != null ? mapping.internalChannelName : channelName;
+            String internalDeviceName = mapping != null ? mapping.getInternalDeviceName() : deviceNickname;
+            String internalChannelName = mapping != null ? mapping.getInternalChannelName() : channelName;
             final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("gettile", new Object[]{guestId, internalDeviceName + "." + internalChannelName, level, offset});
             String result = dataStoreExecutionResult.getResponse();
 
@@ -279,13 +419,45 @@ public class BodyTrackHelper {
         }
     }
 
-
-
     public String fetchTile(Long guestId, String deviceNickname, String channelName, int level, long offset){
         return gson.toJson(fetchTileObject(guestId,deviceNickname,channelName,level,offset));
     }
 
-    public String listSources(Long guestId, CoachingBuddy coachee){
+    public String getSourcesResponse(Long guestId, TrustedBuddy trustedBuddy) {
+        final SourcesResponse response = new SourcesResponse();
+
+        final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("info",new Object[]{"-r",guestId});
+        String result = dataStoreExecutionResult.getResponse();
+
+        // Iterate over the various (photo) connectors (if any), manually inserting each into the ChannelSpecs
+        final Map<String, TimeInterval> photoChannelTimeRanges = photoService.getPhotoChannelTimeRanges(guestId, null);
+
+        // TODO: check statusCode in DataStoreExecutionResult
+        ChannelInfoResponse infoResponse = gson.fromJson(result, ChannelInfoResponse.class);
+
+        // create the 'All' photos block
+        final Source allPhotosSource = getAllPhotosSource(infoResponse, photoChannelTimeRanges);
+
+        // retrieve channel mappings directly if trustedBuddy is null or through the SharedChannels otherwise
+        final List<ChannelMapping> channelMappings = getChannelMappings(guestId, trustedBuddy);
+
+        // populateResponseWithChannelMappings is meant to be backward compatible with the LegacyBodytrackController
+        // and so it includes a trustedBuddy parameter because it has another (deprecated) way of figuring out
+        // access permissions to a buddy's info - here it has to be null since we have already filtered out
+        // Channels to which the loggedIn guest doesn't have access
+        populateResponseWithChannelMappings(guestId, null /*IMPORTANT: trustedBuddy needs to be null here*/,
+                response, channelMappings, infoResponse);
+
+        // if trustedBuddy is null, add the All photos block to the response
+        if (trustedBuddy==null&&!photoChannelTimeRanges.isEmpty()) {
+            response.sources.add(allPhotosSource);
+        }
+
+        final String jsonResponse = gson.toJson(response);
+        return jsonResponse;
+    }
+
+    public String listSources(Long guestId, TrustedBuddy trustedBuddy){
         SourcesResponse response = null;
         try{
             if (guestId == null) {
@@ -298,72 +470,21 @@ public class BodyTrackHelper {
             ChannelInfoResponse infoResponse = gson.fromJson(result,ChannelInfoResponse.class);
 
             // Iterate over the various (photo) connectors (if any), manually inserting each into the ChannelSpecs
-            final Map<String, TimeInterval> photoChannelTimeRanges = photoService.getPhotoChannelTimeRanges(guestId, coachee);
+            final Map<String, TimeInterval> photoChannelTimeRanges = photoService.getPhotoChannelTimeRanges(guestId, trustedBuddy);
 
             // create the 'All' photos block
-            final Source allPhotosSource = new Source();
-            if (!photoChannelTimeRanges.isEmpty()) {
-                allPhotosSource.name = PhotoService.ALL_DEVICES_NAME;
-                allPhotosSource.channels = new ArrayList<Channel>();
-                final Channel allPhotosChannel = new Channel();
-                allPhotosSource.channels.add(allPhotosChannel);
-                allPhotosChannel.name = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;   // photo channels are always named the same
-                allPhotosChannel.objectTypeName = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
-                allPhotosChannel.type = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
-                allPhotosChannel.builtin_default_style = new ChannelStyle();
-                allPhotosChannel.style = allPhotosChannel.builtin_default_style;
-                allPhotosChannel.min = .6;
-                allPhotosChannel.max = 1;
-                allPhotosChannel.min_time = Double.MAX_VALUE;
-                allPhotosChannel.max_time = Double.MIN_VALUE;
-
-                final double defaultTimeForNullTimeIntervals = System.currentTimeMillis() / 1000;
-
-                for (final String channelName : photoChannelTimeRanges.keySet()) {
-                    final ChannelSpecs channelSpecs = new ChannelSpecs();
-                    final TimeInterval timeInterval = photoChannelTimeRanges.get(channelName);
-
-                    // mark this channel as a photo channel so that the grapher can properly render it as a photo channel
-                    channelSpecs.channelType = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
-                    final String[] connectorNameAndObjectTypeName = channelName.split("\\.");
-                    if (connectorNameAndObjectTypeName.length > 1) {
-                        channelSpecs.objectTypeName = connectorNameAndObjectTypeName[1];
-                    }
-
-                    channelSpecs.channel_bounds = new ChannelBounds();
-                    if (timeInterval == null) {
-                        channelSpecs.channel_bounds.min_time = defaultTimeForNullTimeIntervals;
-                        channelSpecs.channel_bounds.max_time = defaultTimeForNullTimeIntervals;
-                    }
-                    else {
-                        channelSpecs.channel_bounds.min_time = timeInterval.getStart() / 1000;
-                        channelSpecs.channel_bounds.max_time = timeInterval.getEnd() / 1000;
-                    }
-                    channelSpecs.channel_bounds.min_value = .6;
-                    channelSpecs.channel_bounds.max_value = 1;
-
-                    infoResponse.channel_specs.put(channelName, channelSpecs);
-
-                    if (timeInterval != null) {
-                        // update the min/max times in ChannelInfoResponse and in the All photos channel
-                        infoResponse.min_time = Math.min(infoResponse.min_time, channelSpecs.channel_bounds.min_time);
-                        infoResponse.max_time = Math.max(infoResponse.max_time, channelSpecs.channel_bounds.max_time);
-                        allPhotosChannel.min_time = Math.min(allPhotosChannel.min_time, channelSpecs.channel_bounds.min_time);
-                        allPhotosChannel.max_time = Math.max(allPhotosChannel.max_time, channelSpecs.channel_bounds.max_time);
-                    }
-                }
-            }
+            final Source allPhotosSource = getAllPhotosSource(infoResponse, photoChannelTimeRanges);
 
             // create the respone
-            response = new SourcesResponse(infoResponse, guestId, coachee);
+            response = new SourcesResponse(infoResponse, guestId, trustedBuddy);
 
             // filter out photo connectors that aren't shared with this user
-            if (coachee!=null) {
+            if (trustedBuddy !=null) {
                 List<String> sourcesToRemove = new ArrayList<String>();
                 for (Source source : response.sources) {
                     final Connector photoConnectorForSource = Connector.fromDeviceNickname(source.name);
                     if (photoConnectorForSource!=null) {
-                        final List<ApiKey> apiKeys = guestService.getApiKeys(coachee.guestId, photoConnectorForSource);
+                        final List<ApiKey> apiKeys = guestService.getApiKeys(trustedBuddy.guestId, photoConnectorForSource);
                         for (ApiKey apiKey : apiKeys) {
                             if (buddiesService.getSharedConnector(apiKey.getId(), AuthHelper.getGuestId())==null) {
                                 sourcesToRemove.add(source.name);
@@ -388,54 +509,8 @@ public class BodyTrackHelper {
             response.deleteSource("Flickr");
             response.deleteSource("SMS_Backup");
 
-            final List<ChannelMapping> channelMappings = getChannelMappings(guestId);
-            for (ChannelMapping mapping : channelMappings){
-                ApiKey api = guestService.getApiKey(mapping.apiKeyId);
-                // This is to prevent a rare condition when working, under development, on a branch that
-                // doesn't yet support a connector that is supported on another branch and resulted
-                // in data being populated in the database which is going to cause a crash here
-                if (api.getConnector()==null)
-                    continue;
-                // filter out not shared connectors
-                if (coachee!=null&& buddiesService.getSharedConnector(api.getId(), AuthHelper.getGuestId())==null)
-                    continue;
-                Source source = response.hasSource(mapping.deviceName);
-                if (source == null){
-                    source = new Source();
-                    response.sources.add(source);
-                    source.name = mapping.deviceName;
-                    source.channels = new ArrayList<Channel>();
-                    source.min_time = Double.MAX_VALUE;
-                    source.max_time = Double.MIN_VALUE;
-                }
-                Channel channel = new Channel();
-                channel.name = mapping.channelName;
-                channel.type = mapping.channelType.name();
-                channel.time_type = mapping.timeType.name();
-                source.channels.add(channel);
-
-                // Set builtin default style and style to a line by default
-                channel.builtin_default_style = ChannelStyle.getDefaultChannelStyle(channel.name);
-                channel.style = channel.builtin_default_style;
-
-                // getDefaultStyle checks for user-generated overrides in the database.
-                // If it returns non-null we set style to the user-generated value, otherwise we leave
-                // it as the builtin default
-                ChannelStyle userStyle = getDefaultStyle(guestId,source.name,channel.name);
-                if (userStyle != null)
-                    channel.style = userStyle;
-
-                if (mapping.apiKeyId != null){
-                    final AbstractBodytrackResponder bodytrackResponder = api.getConnector().getBodytrackResponder(beanFactory);
-                    AbstractBodytrackResponder.Bounds bounds = bodytrackResponder.getBounds(mapping);
-                    channel.min_time = bounds.min_time;
-                    channel.max_time = bounds.max_time;
-                    channel.min = bounds.min;
-                    channel.max = bounds.max;
-                    source.min_time = Math.min(source.min_time,channel.min_time);
-                    source.max_time = Math.max(source.max_time,channel.max_time);
-                }
-            }
+            final List<ChannelMapping> channelMappings = getChannelMappings(guestId, trustedBuddy);
+            populateResponseWithChannelMappings(guestId, trustedBuddy, response, channelMappings, infoResponse);
 
             // add the All photos block to the response
             if (!photoChannelTimeRanges.isEmpty()) {
@@ -467,7 +542,124 @@ public class BodyTrackHelper {
 
             logger.error(sb.toString());
 
-            return gson.toJson(new SourcesResponse(null, guestId, coachee));
+            return gson.toJson(new SourcesResponse(null, guestId, trustedBuddy));
+        }
+    }
+
+    private Source getAllPhotosSource(ChannelInfoResponse infoResponse, Map<String, TimeInterval> photoChannelTimeRanges) {
+        final Source allPhotosSource = new Source();
+        if (!photoChannelTimeRanges.isEmpty()) {
+            allPhotosSource.name = PhotoService.ALL_DEVICES_NAME;
+            allPhotosSource.channels = new ArrayList<Channel>();
+            final Channel allPhotosChannel = new Channel();
+            allPhotosSource.channels.add(allPhotosChannel);
+            allPhotosChannel.name = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;   // photo channels are always named the same
+            allPhotosChannel.objectTypeName = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
+            allPhotosChannel.type = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
+            allPhotosChannel.builtin_default_style = new ChannelStyle();
+            allPhotosChannel.style = allPhotosChannel.builtin_default_style;
+            allPhotosChannel.min = .6;
+            allPhotosChannel.max = 1;
+            allPhotosChannel.min_time = Double.MAX_VALUE;
+            allPhotosChannel.max_time = Double.MIN_VALUE;
+
+            final double defaultTimeForNullTimeIntervals = System.currentTimeMillis() / 1000;
+
+            for (final String channelName : photoChannelTimeRanges.keySet()) {
+
+                final ChannelSpecs channelSpecs = new ChannelSpecs();
+                final TimeInterval timeInterval = photoChannelTimeRanges.get(channelName);
+
+                // mark this channel as a photo channel so that the grapher can properly render it as a photo channel
+                channelSpecs.channelType = PhotoService.DEFAULT_PHOTOS_CHANNEL_NAME;
+                final String[] connectorNameAndObjectTypeName = channelName.split("\\.");
+                if (connectorNameAndObjectTypeName.length > 1) {
+                    channelSpecs.objectTypeName = connectorNameAndObjectTypeName[1];
+                }
+
+                channelSpecs.channel_bounds = new ChannelBounds();
+                if (timeInterval == null) {
+                    channelSpecs.channel_bounds.min_time = defaultTimeForNullTimeIntervals;
+                    channelSpecs.channel_bounds.max_time = defaultTimeForNullTimeIntervals;
+                }
+                else {
+                    channelSpecs.channel_bounds.min_time = timeInterval.getStart() / 1000;
+                    channelSpecs.channel_bounds.max_time = timeInterval.getEnd() / 1000;
+                }
+                channelSpecs.channel_bounds.min_value = .6;
+                channelSpecs.channel_bounds.max_value = 1;
+
+                infoResponse.channel_specs.put(channelName, channelSpecs);
+
+                if (timeInterval != null) {
+                    // update the min/max times in ChannelInfoResponse and in the All photos channel
+                    infoResponse.min_time = Math.min(infoResponse.min_time, channelSpecs.channel_bounds.min_time);
+                    infoResponse.max_time = Math.max(infoResponse.max_time, channelSpecs.channel_bounds.max_time);
+                    allPhotosChannel.min_time = Math.min(allPhotosChannel.min_time, channelSpecs.channel_bounds.min_time);
+                    allPhotosChannel.max_time = Math.max(allPhotosChannel.max_time, channelSpecs.channel_bounds.max_time);
+                }
+            }
+        }
+        return allPhotosSource;
+    }
+
+    private void populateResponseWithChannelMappings(Long guestId,
+                                                     TrustedBuddy trustedBuddy,
+                                                     SourcesResponse response,
+                                                     List<ChannelMapping> channelMappings,
+                                                     ChannelInfoResponse infoResponse) {
+        for (ChannelMapping mapping : channelMappings){
+            ApiKey api = guestService.getApiKey(mapping.getApiKeyId());
+            // This is to prevent a rare condition when working, under development, on a branch that
+            // doesn't yet support a connector that is supported on another branch and resulted
+            // in data being populated in the database which is going to cause a crash here
+            if (api.getConnector()==null)
+                continue;
+            // filter out not shared connectors
+            if (trustedBuddy !=null&& buddiesService.getSharedConnector(api.getId(), AuthHelper.getGuestId())==null)
+                continue;
+            Source source;
+            String deviceName;
+            if (mapping.getInternalDeviceName()!=null&&!mapping.getInternalDeviceName().equals(mapping.getDeviceName())) {
+                source = response.hasSource(mapping.getInternalDeviceName());
+                deviceName = mapping.getInternalDeviceName();
+            } else {
+                source = response.hasSource(mapping.getDeviceName());
+                deviceName = mapping.getDeviceName();
+            }
+            if (source == null){
+                source = new Source();
+                response.sources.add(source);
+                source.name = deviceName;
+                source.channels = new ArrayList<Channel>();
+                source.min_time = Double.MAX_VALUE;
+                source.max_time = Double.MIN_VALUE;
+            }
+            Channel channel = new Channel();
+            channel.name = mapping.getChannelName();
+            channel.type = mapping.getChannelType().name();
+            channel.time_type = mapping.getTimeType().name();
+            source.channels.add(channel);
+
+            // Set builtin default style and style to a line by default
+            channel.builtin_default_style = ChannelStyle.getDefaultChannelStyle(channel.name);
+            channel.style = channel.builtin_default_style;
+
+            // getDefaultStyle checks for user-generated overrides in the database.
+            // If it returns non-null we set style to the user-generated value, otherwise we leave
+            // it as the builtin default
+            ChannelStyle userStyle = getDefaultStyle(guestId,api.getConnector().getDeviceNickname(),channel.name);
+            if (userStyle != null) {
+                channel.style = userStyle;
+            } else {
+                userStyle = getDefaultStyle(guestId,api.getConnector().getName(),channel.name);
+                if (userStyle != null)
+                    channel.style = userStyle;
+            }
+
+            setChannelBounds(mapping, channel, infoResponse);
+            source.min_time = Math.min(source.min_time,channel.min_time);
+            source.max_time = Math.max(source.max_time,channel.max_time);
         }
     }
 
@@ -586,17 +778,17 @@ public class BodyTrackHelper {
         return channelMapping;
     }
 
-    public List<ChannelMapping> getChannelMappings(ApiKey apiKey, int objectTypeId){
-        return JPAUtils.find(em,ChannelMapping.class,"channelMapping.byApiKeyAndObjectType",apiKey.getGuestId(),apiKey.getId(),objectTypeId);
-    }
-
-    public List<ChannelMapping> getChannelMappings(ApiKey apiKey){
-        return JPAUtils.find(em,ChannelMapping.class,"channelMapping.byApiKey",apiKey.getGuestId(),apiKey.getId());
-    }
-
-
-    public List<ChannelMapping> getChannelMappings(long guestId){
-        return JPAUtils.find(em,ChannelMapping.class,"channelMapping.all",guestId);
+    public List<ChannelMapping> getChannelMappings(long guestId, TrustedBuddy trustedBuddy){
+        if (trustedBuddy ==null)
+            return JPAUtils.find(em, ChannelMapping.class, "channelMapping.all",guestId);
+        else {
+            List<SharedChannel> sharedChannels = buddiesService.getSharedChannels(trustedBuddy.buddyId, trustedBuddy.guestId);
+            List<ChannelMapping> channelMappings = new ArrayList<ChannelMapping>();
+            for (SharedChannel sharedChannel : sharedChannels) {
+                channelMappings.add(sharedChannel.channelMapping);
+            }
+            return channelMappings;
+        }
     }
 
     public void deleteChannelMappings(ApiKey apiKey){
@@ -606,30 +798,8 @@ public class BodyTrackHelper {
         query.executeUpdate();
     }
 
-    public void persistChannelMapping(ChannelMapping mapping){
-        em.persist(mapping);
-    }
-
-    public Source getSourceForApiKey(ApiKey key){
-        List<ChannelMapping> channelMappings = JPAUtils.find(em, ChannelMapping.class, "channelMapping.byApiKeyID", key.getGuestId(), key.getId());
-        Source s = null;
-        if (channelMappings.size() > 0){
-            s = new Source();
-            s.channels = new ArrayList<Channel>();
-            s.name = key.getConnector().getName();
-            for (ChannelMapping mapping : channelMappings){
-                Channel c = new Channel();
-                s.channels.add(c);
-                c.name =  mapping.channelName;
-                c.type = mapping.channelType.name();
-                c.time_type = mapping.timeType.name();
-            }
-        }
-        return s;
-    }
-
     public void setBuiltinDefaultStyle(final Long guestId, final String deviceName, final String channelName, final ChannelStyle style){
-        setBuiltinDefaultStyle(guestId,deviceName,channelName,gson.toJson(style));
+        setBuiltinDefaultStyle(guestId, deviceName, channelName, gson.toJson(style));
     }
 
     @Transactional(readOnly = false)
@@ -852,9 +1022,11 @@ public class BodyTrackHelper {
     @ApiModel
     public class SourcesResponse {
         @ApiModelProperty
-        public List<Source> sources;
+        public List<Source> sources = new ArrayList<Source>();
 
-        public SourcesResponse(ChannelInfoResponse infoResponse, Long guestId, CoachingBuddy coachee){
+        public SourcesResponse() {}
+
+        public SourcesResponse(ChannelInfoResponse infoResponse, Long guestId, TrustedBuddy trustedBuddy){
             sources = new ArrayList<Source>();
             if (infoResponse == null)
                 return;
@@ -869,7 +1041,7 @@ public class BodyTrackHelper {
                 String deviceName = split[0];
                 String objectTypeName = split[1];
                 Source source = null;
-                if (coachee==null || coachee.hasAccessToDevice(deviceName, env)) {
+                if (trustedBuddy ==null || trustedBuddy.hasAccessToDevice(deviceName, env)) {
                     for (Source src : sources)
                         if (src.name.equals(deviceName)){
                             source = src;
