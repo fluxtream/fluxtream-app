@@ -32,7 +32,7 @@ define(["core/Tab",
     }
 
    function populateTemplate(dashboardsTemplateData) {
-       setTabParam(dashboardsTab.activeDashboard);
+        setTabParam(dashboardsTab.activeDashboard);
         this.getTemplate("text!applications/calendar/tabs/dashboards/dashboards.html", "dashboards",
                          function() {
                              makeDashboardTabs(dashboardsTemplateData,doneLoading);
@@ -125,17 +125,16 @@ define(["core/Tab",
    }
 
    function loadWidget(widgetInfo) {
-       if (window.location.host == getWidgetHostName(widgetInfo)) {
-           require([widgetInfo.manifest.WidgetRepositoryURL + "/"
-                        + widgetInfo.manifest.WidgetName + "/"
-                        + widgetInfo.manifest.WidgetName + ".js"],
-                   function(WidgetModule) {
-                       WidgetModule.load(widgetInfo, digest, dashboardsTab.activeDashboard);
-                   });
+       if (shouldSandboxWidget(widgetInfo) && !widgetInfo.settings.fullAccess) {
+           new SandboxedWidget().load(widgetInfo,digest,dashboardsTab.activeDashboard);
        }
        else{ //we didn't host the widget so we have to sandbox it
-           new SandboxedWidget().load(widgetInfo,digest,dashboardsTab.activeDashboard);
-
+           require([widgetInfo.manifest.WidgetRepositoryURL + "/"
+               + widgetInfo.manifest.WidgetName + "/"
+               + widgetInfo.manifest.WidgetName + ".js"],
+               function(WidgetModule) {
+                   WidgetModule.load(widgetInfo, digest, dashboardsTab.activeDashboard);
+               });
        }
    }
 
@@ -215,6 +214,11 @@ define(["core/Tab",
         })
     }
 
+    function shouldSandboxWidget(widgetInfo) {
+        return window.location.host != getWidgetHostName(widgetInfo);
+
+    }
+
     var dashboardsTab = new Tab("calendar", "dashboards", "Candide Kemmler", "icon-dashboard", true);
     dashboardsTab.activeDashboard = null;
 	dashboardsTab.render = render;
@@ -226,6 +230,7 @@ define(["core/Tab",
     dashboardsTab.promoteDashboard = promoteDashboard;
     dashboardsTab.updateDashboardTabs = makeDashboardTabs;
     dashboardsTab.reorderDone = reorderDone;
+    dashboardsTab.shouldSandboxWidget = shouldSandboxWidget;
 	return dashboardsTab;
 	
 });

@@ -117,6 +117,13 @@ define(["core/DashboardWidget"],function(DashboardWidget){
         return false;
     };
 
+    SandboxedWidget.prototype.isSaveSettingsUrl = function(url) {
+        var parser = document.createElement("a");
+        parser.href = url;
+        return parser.pathname.toLowerCase() == this.getSaveSettingsUrl().toLowerCase();
+
+    }
+
     SandboxedWidget.prototype.cloneTransportableObject = function(object) {
         if (typeof object == "object") {
             if (Object.prototype.toString.call(object) === '[object Array]'){
@@ -207,17 +214,15 @@ define(["core/DashboardWidget"],function(DashboardWidget){
                     settings: this.digest.settings,
                     metadata: this.digest.metadata
                 };
-                if (this.manifest.RequiredConnectors != null) {
-                    for (var i = 0, li = this.manifest.RequiredConnectors.length; i < li; i++){
-                        var connectorName = this.manifest.RequiredConnectors[i];
-                        for (var facetType in this.digest.facets) {
-                            if (digestStrippedDown.facets[facetType] != null)
-                                continue;
-                            if (facetType.split("-")[0] == connectorName){
-                                digestStrippedDown.facets[facetType] = [];
-                                for (var j = 0, lj = this.digest.facets[facetType].length; j < lj; j++){
-                                    digestStrippedDown.facets[facetType].push(this.cloneTransportableObject(this.digest.facets[facetType][j]));
-                                }
+                for (var i = 0, li = this.settings.allowedConnectors.length; i < li; i++){
+                    var connectorName = this.settings.allowedConnectors[i];
+                    for (var facetType in this.digest.facets) {
+                        if (digestStrippedDown.facets[facetType] != null)
+                            continue;
+                        if (facetType.split("-")[0] == connectorName){
+                            digestStrippedDown.facets[facetType] = [];
+                            for (var j = 0, lj = this.digest.facets[facetType].length; j < lj; j++){
+                                digestStrippedDown.facets[facetType].push(this.cloneTransportableObject(this.digest.facets[facetType][j]));
                             }
                         }
                     }
@@ -236,9 +241,13 @@ define(["core/DashboardWidget"],function(DashboardWidget){
                 var widgetSettingsObject = this.defaultSettingsObjects[callId];
                 delete this.defaultSettingsObjects[callId];
                 for (var member in widgetSettingsObject) {
+                    if (member == "allowedConnectors" || member == "fullAccess")
+                        continue;
                     delete widgetSettingsObject[member];
                 }
                 for (var member in message.data.widgetSettings) {
+                    if (member == "allowedConnectors" || member == "fullAccess")
+                        continue;
                     widgetSettingsObject[member] = message.data.widgetSettings[member];
                 }
                 callback();
@@ -277,6 +286,13 @@ define(["core/DashboardWidget"],function(DashboardWidget){
                         success: false
                     });
                     console.log("Blocked request to " + ajaxOptions.url);
+                }
+                else if (this.isSaveSettingsUrl(ajaxOptions.url)) {
+                    //do this to ensure that the sandboxed widget doesn't change the allowed connectors or fullAccess settings
+                    var widgetSettings = JSON.parse(ajaxOptions.data.settingsJSON);
+                    widgetSettings.allowedConnectors = this.settings.allowedConnectors;
+                    widgetSettings.fullAccess = this.settings.fullAccess;
+                    ajaxOptions.data.settingsJSON = JSON.stringify(widgetSettings);
                 }
                 if (ajaxOptions.dataType == "script")
                     ajaxOptions.dataType = "text";
