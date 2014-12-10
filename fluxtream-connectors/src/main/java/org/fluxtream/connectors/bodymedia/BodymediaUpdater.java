@@ -193,7 +193,7 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
                                 newFacets.add(createOrUpdateSleepFacet((JSONObject)o, updateInfo, d, tzMap));
                         }
                     }
-                    bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), newFacets);
+                    bodyTrackStorageService.storeApiData(updateInfo.apiKey, newFacets);
                 }
 
                 current = current.plusDays(increment);
@@ -626,5 +626,9 @@ public class BodymediaUpdater extends AbstractUpdater implements Autonomous {
             throw new Exception("Error: " + statusCode + " Unexpected error trying to bodymedia timezone for user " + updateInfo.apiKey.getGuestId());
         }
     }
+
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {}
+
 }
 

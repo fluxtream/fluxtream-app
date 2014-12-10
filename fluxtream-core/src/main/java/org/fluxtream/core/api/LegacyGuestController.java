@@ -8,10 +8,10 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.auth.AuthHelper;
-import org.fluxtream.core.auth.CoachRevokedException;
+import org.fluxtream.core.auth.TrustRelationshipRevokedException;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.CoachingBuddy;
+import org.fluxtream.core.domain.TrustedBuddy;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.mvc.models.guest.GuestModel;
@@ -81,11 +81,11 @@ public class LegacyGuestController {
         String type = "none";
         String url;
         try {
-            final CoachingBuddy coachee = AuthHelper.getCoachee();
-            if (coachee!=null)
-                guest = guestService.getGuestById(coachee.guestId);
+            final TrustedBuddy trustedBuddy = AuthHelper.getTrustedBuddy();
+            if (trustedBuddy !=null)
+                guest = guestService.getGuestById(trustedBuddy.guestId);
         }
-        catch (CoachRevokedException e) {
+        catch (TrustRelationshipRevokedException e) {
             // TODO: do something about this
         }
         if (guest.registrationMethod == Guest.RegistrationMethod.REGISTRATION_METHOD_FACEBOOK||
@@ -138,18 +138,18 @@ public class LegacyGuestController {
     }
 
     @GET
-    @Path("/coachees")
+    @Path("/trustingBuddies")
     @Produces({MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Retrieve the currently logged in guest's list of coachees", responseContainer = "Array",
+    @ApiOperation(value = "Retrieve the currently logged in guest's list of trustingBuddies", responseContainer = "Array",
             response = GuestModel.class)
     @Deprecated
-    public List<GuestModel> getCoachees() {
+    public List<GuestModel> getTrustingBuddies() {
         Guest guest = AuthHelper.getGuest();
-        final List<Guest> coachees = buddiesService.getTrustedBuddies(guest.getId());
-        final List<GuestModel> coacheeModels = new ArrayList<GuestModel>();
-        for (Guest coachee : coachees)
-            coacheeModels.add(new GuestModel(coachee, true));
-        return coacheeModels;
+        final List<Guest> trustingBuddies = buddiesService.getTrustedBuddies(guest.getId());
+        final List<GuestModel> trustingBuddyModels = new ArrayList<GuestModel>();
+        for (Guest trustingBuddy : trustingBuddies)
+            trustingBuddyModels.add(new GuestModel(trustingBuddy, true));
+        return trustingBuddyModels;
     }
 
 }

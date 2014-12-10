@@ -44,6 +44,9 @@ class UpdateWorker implements Runnable {
     @Autowired
     BuddiesService buddiesService;
 
+    @Autowired
+    BodyTrackStorageService bodyTrackStorageService;
+
 	@Autowired
 	Configuration env;
 
@@ -193,6 +196,7 @@ class UpdateWorker implements Runnable {
         UpdateResult updateResult = updater.updateDataHistory(updateInfo);
         syncSettings(updater, updateInfo, updateResult);
         handleUpdateResult(updateInfo, updateResult);
+        applyConnectorUpgrades(updateInfo);
         try {
             updater.afterHistoryUpdate(updateInfo);
         } catch (Exception e) {
@@ -209,10 +213,23 @@ class UpdateWorker implements Runnable {
         UpdateResult result = updater.updateData(updateInfo);
         syncSettings(updater, updateInfo, result);
         handleUpdateResult(updateInfo, result);
+        applyConnectorUpgrades(updateInfo);
         try {
             updater.afterConnectorUpdate(updateInfo);
         } catch (Exception e) {
             logger.warn("afterConnectorUpdate failed: apiKeyId=" + apiKey.getId() + " connector=" + apiKey.getConnector().getName());
+        }
+    }
+
+    private void applyConnectorUpgrades(UpdateInfo updateInfo) {
+        try {
+            final String channelsAreMapped = guestService.getApiKeyAttribute(updateInfo.apiKey, "channelMappings");
+            if (channelsAreMapped == null || channelsAreMapped.equals("dirty")) {
+                bodyTrackStorageService.mapChannels(updateInfo.apiKey);
+                guestService.setApiKeyAttribute(updateInfo.apiKey, "channelMappings", "clean");
+            }
+        } catch (Throwable e) {
+            logger.warn("Could not apply connector upgrades apiKeyId=" + updateInfo.apiKey.getId());
         }
     }
 

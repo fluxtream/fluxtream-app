@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.services.impl.FieldHandler;
 import net.sf.json.JSONArray;
@@ -23,7 +25,7 @@ public class JawboneUpMovesIntensityFieldHandler implements FieldHandler {
     BodyTrackHelper bodyTrackHelper;
 
     @Override
-    public List<BodyTrackHelper.BodyTrackUploadResult> handleField(final long guestId, final AbstractFacet facet) {
+    public List<BodyTrackHelper.BodyTrackUploadResult> handleField(final ApiKey apiKey, final AbstractFacet facet) {
         JawboneUpMovesFacet movesFacet = (JawboneUpMovesFacet) facet;
         if (movesFacet.intensityStorage==null|| StringUtils.isEmpty(movesFacet.intensityStorage))
             return null;
@@ -41,6 +43,12 @@ public class JawboneUpMovesIntensityFieldHandler implements FieldHandler {
         final List<String> channelNames = Arrays.asList("intensity");
 
         // TODO: check the status code in the BodyTrackUploadResult
-        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(guestId, "Jawbone_UP", channelNames, data));
+        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(apiKey, "Jawbone_UP", channelNames, data));
     }
+
+    @Override
+    public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
+        ChannelMapping.addToDeclaredMappings(apiKey, 2, apiKey.getConnector().getDeviceNickname(), "intensity", channelMappings);
+    }
+
 }

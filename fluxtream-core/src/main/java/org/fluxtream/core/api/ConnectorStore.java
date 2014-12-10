@@ -13,7 +13,7 @@ import org.fluxtream.core.Configuration;
 import org.fluxtream.core.api.gson.UpdateInfoSerializer;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.auth.AuthHelper;
-import org.fluxtream.core.auth.CoachRevokedException;
+import org.fluxtream.core.auth.TrustRelationshipRevokedException;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.connectors.bodytrackResponders.AbstractBodytrackResponder;
@@ -157,10 +157,10 @@ public class ConnectorStore {
             @ApiResponse(code = 403, message = "Buddy-to-access authorization has been revoked")
     })
     public Response getInstalledConnectors(@ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter){
-        CoachingBuddy coachee;
-        try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, buddiesService);
-        } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-        Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
+        TrustedBuddy trustedBuddy;
+        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+        } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
         if (guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
 
@@ -225,7 +225,7 @@ public class ConnectorStore {
                 }
             }
             if (buddyToAccessParameter!=null) {
-                final List<SharedConnector> sharedConnectors = buddiesService.getSharedConnectors(AuthHelper.getGuestId(), coachee.guestId);
+                final List<SharedConnector> sharedConnectors = buddiesService.getSharedConnectors(AuthHelper.getGuestId(), trustedBuddy.guestId);
                 List<ConnectorModelFull> unshared = new ArrayList<ConnectorModelFull>();
 
                 eachTrustingBuddyConnector:for (int i=0; i<connectorsArray.size(); i++) {
@@ -477,7 +477,7 @@ public class ConnectorStore {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiResponses({
         @ApiResponse(code = 401, message = "If the guest is no longer logged in"),
-        @ApiResponse(code = 403, message = "If this call is made by a coach and the coachee revoked access to this object type")
+        @ApiResponse(code = 403, message = "If this call is made by a coach and the trustingBuddy revoked access to this object type")
     })
     public Response getData(@PathParam("objectTypeName") String objectTypeName,
                             @QueryParam("start") long start,
@@ -488,14 +488,14 @@ public class ConnectorStore {
         if(guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
 
-        CoachingBuddy coachee;
+        TrustedBuddy trustedBuddy;
         try {
-            coachee = AuthHelper.getCoachee(buddyToAccessParameter, buddiesService);
-        } catch (CoachRevokedException e) {
+            trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+        } catch (TrustRelationshipRevokedException e) {
             return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();
         }
-        if (coachee!=null) {
-            guest = guestService.getGuestById(coachee.guestId);
+        if (trustedBuddy !=null) {
+            guest = guestService.getGuestById(trustedBuddy.guestId);
         }
 
         String [] objectTypeNameParts = objectTypeName.split("-");

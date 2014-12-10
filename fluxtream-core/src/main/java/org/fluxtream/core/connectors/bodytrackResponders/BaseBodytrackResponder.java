@@ -1,8 +1,5 @@
 package org.fluxtream.core.connectors.bodytrackResponders;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TimeZone;
 import org.fluxtream.core.SimpleTimeInterval;
 import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.TimeUnit;
@@ -13,10 +10,16 @@ import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.GuestSettings;
 import org.fluxtream.core.mvc.models.TimespanModel;
-import org.springframework.stereotype.Component;
 
-@Component
-public class DefaultBodytrackResponder extends AbstractBodytrackResponder {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TimeZone;
+
+/**
+ * Created by candide on 26/11/14.
+ */
+public abstract class BaseBodytrackResponder extends AbstractBodytrackResponder {
+
     @Override
     public List<TimespanModel> getTimespans(final long startMillis, final long endMillis, ApiKey apiKey, String channelName) {
         ObjectType objectType = null;
@@ -62,4 +65,5 @@ public class DefaultBodytrackResponder extends AbstractBodytrackResponder {
 
         return getFacetVOsForFacets(facets,timeInterval,guestSettings);
     }
+
 }

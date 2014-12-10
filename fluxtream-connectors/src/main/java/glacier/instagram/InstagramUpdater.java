@@ -3,6 +3,7 @@ package glacier.instagram;
 import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
+import org.fluxtream.core.domain.ApiKey;
 import org.springframework.stereotype.Component;
 
 import static org.fluxtream.core.utils.HttpUtils.fetch;
@@ -34,6 +35,9 @@ public class InstagramUpdater extends AbstractUpdater {
 			apiDataService.cacheApiDataJSON(updateInfo, json, -1, -1);
 		}
 	}
+
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {}
 
 
 }

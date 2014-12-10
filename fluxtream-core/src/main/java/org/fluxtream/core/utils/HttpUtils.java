@@ -2,6 +2,10 @@ package org.fluxtream.core.utils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -20,10 +24,16 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 public class HttpUtils {
 
@@ -41,6 +51,41 @@ public class HttpUtils {
             return new byte[0];
         }
     };
+
+
+    public static DefaultHttpClient httpClientTrustingAllSSLCerts() throws NoSuchAlgorithmException, KeyManagementException {
+        DefaultHttpClient httpclient = new DefaultHttpClient();
+
+        SSLContext sc = SSLContext.getInstance("SSL");
+        sc.init(null, getTrustingManager(), new java.security.SecureRandom());
+
+        SSLSocketFactory socketFactory = new SSLSocketFactory(sc);
+        Scheme sch = new Scheme("https", socketFactory, 443);
+        httpclient.getConnectionManager().getSchemeRegistry().register(sch);
+        return httpclient;
+    }
+
+    private static TrustManager[] getTrustingManager() {
+        TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+            @Override
+            public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+
+            }
+
+            @Override
+            public void checkServerTrusted(java.security.cert.X509Certificate[] x509Certificates, String s) throws CertificateException {
+
+            }
+
+            @Override
+            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
+
+        }};
+        return trustAllCerts;
+    }
+
 
     public static String fetch(String url, String username, String password) throws IOException {
         HttpClient client = new DefaultHttpClient();

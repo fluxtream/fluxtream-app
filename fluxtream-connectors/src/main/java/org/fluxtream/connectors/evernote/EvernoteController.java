@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.auth.AuthHelper;
-import org.fluxtream.core.auth.CoachRevokedException;
+import org.fluxtream.core.auth.TrustRelationshipRevokedException;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.Guest;
@@ -134,7 +134,7 @@ public class EvernoteController {
     @RequestMapping(value="/res/{apiKeyId}/{guid}")
     public void getResource(@PathVariable("apiKeyId") long apiKeyId,
                             @PathVariable("guid") String rawGuid,
-                            HttpServletResponse response) throws IOException, CoachRevokedException {
+                            HttpServletResponse response) throws IOException, TrustRelationshipRevokedException {
         String guid = rawGuid;
         Integer maxWidth = null;
         if (rawGuid.indexOf("@")!=-1) {

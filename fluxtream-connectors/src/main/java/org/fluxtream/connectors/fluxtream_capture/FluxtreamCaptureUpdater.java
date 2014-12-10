@@ -376,5 +376,9 @@ public class FluxtreamCaptureUpdater extends AbstractUpdater {
         if(nextUpdateStartTime!=null)
             guestService.setApiKeyAttribute(updateInfo.apiKey, updateKeyName, nextUpdateStartTime.toString());
     }
+
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {}
+
 }
 

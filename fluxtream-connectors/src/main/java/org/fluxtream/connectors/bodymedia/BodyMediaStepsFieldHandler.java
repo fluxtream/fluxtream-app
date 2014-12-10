@@ -2,9 +2,10 @@ package org.fluxtream.connectors.bodymedia;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.services.impl.FieldHandler;
 import net.sf.json.JSONArray;
@@ -23,7 +24,7 @@ public class BodyMediaStepsFieldHandler implements FieldHandler {
     BodyTrackHelper bodyTrackHelper;
 
     @Override
-    public List<BodyTrackHelper.BodyTrackUploadResult> handleField ( final long guestId, AbstractFacet facet) {
+    public List<BodyTrackHelper.BodyTrackUploadResult> handleField (final ApiKey apiKey, AbstractFacet facet) {
         BodymediaStepsFacet stepsFacet = (BodymediaStepsFacet) facet;
         if (stepsFacet.json == null) {
             return Arrays.asList();
@@ -46,7 +47,12 @@ public class BodyMediaStepsFieldHandler implements FieldHandler {
         final List<String> channelNames = Arrays.asList("stepsGraph");
 
         // TODO: check the status code in the BodyTrackUploadResult
-        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(guestId, "BodyMedia", channelNames, data));
+        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(apiKey, "BodyMedia", channelNames, data));
+    }
+
+    @Override
+    public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
+        ChannelMapping.addToDeclaredMappings(apiKey, 2, apiKey.getConnector().getDeviceNickname(), "stepsGraph", channelMappings);
     }
 
 }

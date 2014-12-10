@@ -3,6 +3,7 @@ package glacier.picasa;
 import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
+import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.services.GuestService;
 import org.springframework.stereotype.Component;
 
@@ -117,5 +118,8 @@ public class PicasaUpdater extends AbstractUpdater {
 	//	} else
 	//		throw new Exception("Null entries when loading picasa history");
 	}
+
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {}
 
 }

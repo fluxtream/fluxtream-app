@@ -230,6 +230,49 @@ public class MovesUpdater extends AbstractUpdater {
     }
 
 
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {
+        ChannelStyle channelStyle = new ChannelStyle();
+        channelStyle.timespanStyles = new MainTimespanStyle();
+        channelStyle.timespanStyles.defaultStyle = new TimespanStyle();
+        channelStyle.timespanStyles.defaultStyle.fillColor = "#e9e9e9";
+        channelStyle.timespanStyles.defaultStyle.borderColor = "#c9c9c9";
+        channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
+        channelStyle.timespanStyles.defaultStyle.top = 0.0;
+        channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
+        channelStyle.timespanStyles.values = new HashMap();
+
+        TimespanStyle stylePart = new TimespanStyle();
+        stylePart.top = 0.25;
+        stylePart.bottom = 0.75;
+        stylePart.fillColor = "#23ee70";
+        stylePart.borderColor = "#03ce50";
+        channelStyle.timespanStyles.values.put("wlk",stylePart);
+
+        stylePart = new TimespanStyle();
+        stylePart.top = 0.25;
+        stylePart.bottom = 0.75;
+        stylePart.fillColor = "#e674ec";
+        stylePart.borderColor = "#c654cc";
+        channelStyle.timespanStyles.values.put("run",stylePart);
+
+        stylePart = new TimespanStyle();
+        stylePart.top = 0.25;
+        stylePart.bottom = 0.75;
+        stylePart.fillColor = "#68abef";
+        stylePart.borderColor = "#488bcf";
+        channelStyle.timespanStyles.values.put("cyc",stylePart);
+
+        stylePart = new TimespanStyle();
+        stylePart.top = 0.25;
+        stylePart.bottom = 0.75;
+        stylePart.fillColor = "#8f8f8d";
+        stylePart.borderColor = "#6f6f6d";
+        channelStyle.timespanStyles.values.put("trp",stylePart);
+
+        bodyTrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), apiKey.getConnector().getName(), "data", channelStyle);
+    }
+
 
     // Get/update moves data for the range of dates start
     protected void updateMovesData(final UpdateInfo updateInfo, String fullUpdateStartDate, boolean performDataFixup) throws Exception {
@@ -255,57 +298,6 @@ public class MovesUpdater extends AbstractUpdater {
         // format (yyyy-mm-dd).  The list returned by getDatesSince includes the date passed in (in this case fullUpdateStartDate)
         // but getDatesBefore does not, so fullUpdateStartDate is processed as a full update.
 
-        List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey);
-        if (mappings.size() == 0){
-            ChannelMapping mapping = new ChannelMapping();
-            mapping.deviceName = "moves";
-            mapping.channelName = "data";
-            mapping.timeType = ChannelMapping.TimeType.gmt;
-            mapping.channelType = ChannelMapping.ChannelType.timespan;
-            mapping.guestId = updateInfo.getGuestId();
-            mapping.apiKeyId = updateInfo.apiKey.getId();
-            bodyTrackHelper.persistChannelMapping(mapping);
-
-            ChannelStyle channelStyle = new ChannelStyle();
-            channelStyle.timespanStyles = new MainTimespanStyle();
-            channelStyle.timespanStyles.defaultStyle = new TimespanStyle();
-            channelStyle.timespanStyles.defaultStyle.fillColor = "#e9e9e9";
-            channelStyle.timespanStyles.defaultStyle.borderColor = "#c9c9c9";
-            channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
-            channelStyle.timespanStyles.defaultStyle.top = 0.0;
-            channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
-            channelStyle.timespanStyles.values = new HashMap();
-
-            TimespanStyle stylePart = new TimespanStyle();
-            stylePart.top = 0.25;
-            stylePart.bottom = 0.75;
-            stylePart.fillColor = "#23ee70";
-            stylePart.borderColor = "#03ce50";
-            channelStyle.timespanStyles.values.put("wlk",stylePart);
-
-            stylePart = new TimespanStyle();
-            stylePart.top = 0.25;
-            stylePart.bottom = 0.75;
-            stylePart.fillColor = "#e674ec";
-            stylePart.borderColor = "#c654cc";
-            channelStyle.timespanStyles.values.put("run",stylePart);
-
-            stylePart = new TimespanStyle();
-            stylePart.top = 0.25;
-            stylePart.bottom = 0.75;
-            stylePart.fillColor = "#68abef";
-            stylePart.borderColor = "#488bcf";
-            channelStyle.timespanStyles.values.put("cyc",stylePart);
-
-            stylePart = new TimespanStyle();
-            stylePart.top = 0.25;
-            stylePart.bottom = 0.75;
-            stylePart.fillColor = "#8f8f8d";
-            stylePart.borderColor = "#6f6f6d";
-            channelStyle.timespanStyles.values.put("trp",stylePart);
-
-            bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(),"moves","data",channelStyle);
-        }
         final List<String> fullUpdateDates = getDatesSince(fullUpdateStartDate);
 
         // For the dates that aren't yet completed (fullUpdateStartDate through today), createOrUpdate with trackpoints.
