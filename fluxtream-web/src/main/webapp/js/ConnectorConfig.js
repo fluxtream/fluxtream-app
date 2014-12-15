@@ -61,7 +61,7 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
             },
             mapicon: {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/evernote.png",
-                size: new google.maps.Size(32,37)
+                size: new google.maps.Size(32,38)
             },
             facets:{
                 note:{
@@ -114,7 +114,7 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
             color: "#000",
             mapicon: {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/up.png",
-                size: new google.maps.Size(32,37)
+                size: new google.maps.Size(32,38)
             },
             mapshadow: null,
             facets:{
@@ -168,7 +168,7 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
             color: "#21b5cf",
             mapicon: {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/aed-2.png",
-                size: new google.maps.Size(32,37)
+                size: new google.maps.Size(32,38)
             },
             mapshadow: null,
             facets:{
@@ -227,7 +227,7 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
             color: "rgb(253, 73, 56)",
             mapicon: {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/music.png",
-                size: new google.maps.Size(32,37)
+                size: new google.maps.Size(32,38)
             },
             mapshadow: null,
             facets:{
@@ -253,7 +253,7 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
             color: "#16924e",
             mapicon: {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/medicalstore.png",
-                size: new google.maps.Size(32,37)
+                size: new google.maps.Size(32,38)
             },
             mapshadow: null,
             facets:{
@@ -292,7 +292,7 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
             color: "#8c2ebb",
             mapicon: {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/photo.png",
-                size: new google.maps.Size(32,37)
+                size: new google.maps.Size(32,38)
             },
             mapshadow: null,
             facets:{
@@ -313,7 +313,7 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
                 fitnessActivity:{
                     mapicon: {
                         url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/cup.png",
-                        size: new google.maps.Size(32,37)
+                        size: new google.maps.Size(32,38)
                     },
                     list:true,
                     map: true,
@@ -338,7 +338,7 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
             hasTimelineSettings: true,
             mapicon: {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/tweet.png",
-                size: new google.maps.Size(32,37)
+                size: new google.maps.Size(32,38)
             },
             mapshadow: null,
             facets:{
@@ -396,7 +396,7 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
             },
             mapicon: {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/calendar-3.png",
-                size: new google.maps.Size(32,37)
+                size: new google.maps.Size(32,38)
             },
             mapshadow: null,
             facets:{
@@ -460,7 +460,7 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
             color: "rgb(255, 0, 132)",
             mapicon: {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/photo.png",
-                size: new google.maps.Size(32,37)
+                size: new google.maps.Size(32,38)
             },
             mapshadow: null,
             facets: {
@@ -523,7 +523,7 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
             color: "rgb(255, 178, 0)",
             mapicon : {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/zeo.png",
-                size: new google.maps.Size(32,37)
+                size: new google.maps.Size(32,38)
             },
             mapshadow: null,
             facets: {
@@ -609,7 +609,7 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
             color : "rgb(5,5,5)",
             mapicon: {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/mymee.png",
-                size: new google.maps.Size(32,37)
+                size: new google.maps.Size(32,38)
             },
             mapshadow: null,
             facets : {
@@ -636,7 +636,7 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
                     clock: ClockConfig.SOCIAL_CATEGORY,
                     mapicon : {
                         url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/fluxcap.png",
-                        size: new google.maps.Size(32,37)
+                        size: new google.maps.Size(32,38)
                     },
                     mapshadow: null
                 },
@@ -659,14 +659,14 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
             color: "rgb(36, 77, 187)",
             mapicon : {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/glasses.png",
-                size: new google.maps.Size(32,37)
+                size: new google.maps.Size(32,38)
             },
             mapshadow: null,
             facets: {
                 "place":{
                     mapicon: {
                         url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/moves-place.png",
-                        size: new google.maps.Size(32,37)
+                        size: new google.maps.Size(32,38)
                     },
                     list:true,
                     map: true,

@@ -38,7 +38,7 @@
 <link rel="stylesheet" href="/static/css/font-awesome-3.2.1.css">
 
 <script
-	src="https://maps-api-ssl.google.com/maps/api/js?libraries=geometry&v=3&sensor=false"
+	src="https://maps-api-ssl.google.com/maps/api/js?libraries=geometry,visualization&v=3&sensor=false"
 	type="text/javascript"></script>
     <script src="/static/js/hogan-2.0.0.js"></script>
 

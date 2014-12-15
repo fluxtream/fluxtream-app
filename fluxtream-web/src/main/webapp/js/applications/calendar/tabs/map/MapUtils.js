@@ -962,6 +962,60 @@ define(["applications/calendar/tabs/map/MapConfig",
             map.fitBounds(marker.circle.getBounds());
     }
 
+    function showPaths(map,connectorEnabled){
+        for (var connectorId in map.markers){
+            if (!connectorEnabled[connectorId.split("-")[0]]) continue;
+            for (var i = 0; i < map.markers[connectorId].length; i++){
+                map.markers[connectorId][i].setMap(map);
+            }
+            if (map.gpsData[connectorId] != null){
+                for (var i = 0, li = map.gpsData[connectorId].gpsLines.length; i < li; i++){
+                    map.gpsData[connectorId].gpsLines[i].line.setMap(map);
+                    if (map.gpsData[connectorId].gpsLines[i].highlight != null)
+                        map.gpsData[connectorId].gpsLines[i].highlight.setMap(map);
+                }
+                if (map.gpsData[connectorId].dateMarker != null){
+                    map.gpsData[connectorId].dateMarker.setMap(null);
+                    map.gpsData[connectorId].dateMarker.circle.setMap(map);
+                }
+            }
+        }
+    }
+
+    function showHeatMap(map,connectorEnabled) {
+        console.log(connectorEnabled, map.heatMapData);
+        var heatMapData = [];
+        for (var name in map.heatMapData) {
+            if (connectorEnabled[name])
+                heatMapData = heatMapData.concat(map.heatMapData[name]);
+        }
+        map.heatMapLayer.setData(heatMapData);
+        map.heatMapLayer.setMap(map);
+    }
+
+    function hideHeatMap(map) {
+        map.heatMapLayer.setMap(null);
+    }
+
+    function hidePaths(map){
+        for (var connectorId in map.markers){
+            for (var i = 0; i < map.markers[connectorId].length; i++){
+                map.markers[connectorId][i].setMap(null);
+            }
+            if (map.gpsData[connectorId] != null){
+                for (var i = 0, li = map.gpsData[connectorId].gpsLines.length; i < li; i++){
+                    map.gpsData[connectorId].gpsLines[i].line.setMap(null);
+                    if (map.gpsData[connectorId].gpsLines[i].highlight != null)
+                        map.gpsData[connectorId].gpsLines[i].highlight.setMap(null);
+                }
+                if (map.gpsData[connectorId].dateMarker != null){
+                    map.gpsData[connectorId].dateMarker.setMap(null);
+                    map.gpsData[connectorId].dateMarker.circle.setMap(null);
+                }
+            }
+        }
+    }
+
     function hideData(map,connectorId){
         if (!map.hasData(connectorId))
             return;
@@ -1056,6 +1110,25 @@ define(["applications/calendar/tabs/map/MapConfig",
         map.setPreserveView = function(isSet){
             map._preserveViewBtn.checked = isSet;
         }
+
+        var heatMapContainer = $("<label style='cursor:pointer;'></label>")
+        var heatMap = $('<input type="checkbox">');
+        heatMap.css("margin-right","0.5em");
+        heatMap.css("float","left");
+        heatMapContainer.append(heatMap);
+        heatMapContainer.append("Heatmap");
+        control.append(heatMapContainer);
+
+        map._heatMapBtn = heatMap[0];
+        map.isHeatMapChecked = function(){
+            return map._heatMapBtn.checked;
+        }
+
+        heatMap.click(function() {
+            if (map.heatMapCheckboxChanged != null)
+                map.heatMapCheckboxChanged();
+        });
+
     }
 
     /*
@@ -1449,6 +1522,10 @@ define(["applications/calendar/tabs/map/MapConfig",
             map.highlightTimespan = function(start,end){highlightTimespan(map,start,end)};
             map.showData = function(connectorId){showData(map,connectorId)};
             map.hideData = function(connectorId){hideData(map,connectorId)};
+            map.showPaths = function(connectorEnabled){showPaths(map, connectorEnabled)};
+            map.hidePaths = function(){hidePaths(map)};
+            map.showHeatMap = function(connectorEnabled){showHeatMap(map,connectorEnabled)};
+            map.hideHeatMap = function(){hideHeatMap(map)};
             map.hasData = function(connectorId){return hasData(map,connectorId)};
             map.addItem = function(item,clickable){return addItemToMap(map,item,clickable)};
             map.zoomOnPoint = function(point){zoomOnPoint(map,point)};

@@ -566,6 +566,7 @@ define(
                 console.log("WARNING: No config found for Connector: " + App.getFacetConnector(facetName));
                 config = {};
             }
+            config.objectType = facetName;
             var finalConfig = $.extend({},config);
             finalConfig.facets = null;
             if (config.facets == null || config.facets[App.getFacetObjectType(facetName)] == null){

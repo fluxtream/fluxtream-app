@@ -6,7 +6,7 @@ define(["core/Tab",
 	var map = null;
     var digestData = null;
     var preserveView = false;
-
+    var heatMap = false;
     var lastTimestamp = null;
 
     var itemToShow = null;
@@ -113,7 +113,21 @@ define(["core/Tab",
                     }
                     map.preserveViewCheckboxChanged = function(){
                         preserveView = map.isPreserveViewChecked();
+                    };
+
+                    function toggleHeatMap() {
+                        heatMap = map.isHeatMapChecked();
+                        if (heatMap) {
+                            map.hidePaths();
+                            map.showHeatMap(connectorEnabled);
+                        } else {
+                            map.hideHeatMap();
+                            map.showPaths(connectorEnabled);
+                        }
                     }
+                    map.heatMapCheckboxChanged = function(){
+                        toggleHeatMap();
+                    };
                     if (itemToShow != null){
                         if (!digestData.delta)
                             map.zoomOnItemAndClick(itemToShow);
@@ -125,6 +139,7 @@ define(["core/Tab",
                         map.setCursorPosition(cursorPos);
 
                     $("#mapwrapper .noDataOverlay").css("display", map.hasAnyData() ? "none" : "block");
+                    toggleHeatMap();
                     doneLoading();
 
                 });
@@ -134,6 +149,9 @@ define(["core/Tab",
 
     function showData(connectorEnabled,bounds,doneLoading){
         var digest = digestData;
+        if (map.heatMapLayer!=null)
+            map.heatMapLayer.setData([]);
+        map.heatMapData = [];
         if (digest!=null && digest.facets!=null &&
             typeof(digest.facets["google_latitude-location"])!="undefined"
                 && digest.facets["google_latitude-location"] !=null &&
@@ -159,9 +177,8 @@ define(["core/Tab",
                     map.hideData(digest.selectedConnectors[i].facetTypes[j]);
                 }
         }
-
+        map.heatMapLayer = new google.maps.visualization.HeatmapLayer();
         doneLoading((map.isPreserveViewChecked() || digest.delta) ? bounds : map.gpsBounds);
-
     }
 
     function connectorToggled(connectorName,objectTypeNames,enabled){

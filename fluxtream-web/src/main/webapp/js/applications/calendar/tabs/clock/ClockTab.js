@@ -80,6 +80,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         else
             map.reset();
 
+        map.heatMapData = [];
         if (digest.facets != null && digest.facets["google_latitude-location"] != null)
             map.addGPSData(digest.facets["google_latitude-location"],App.getFacetConfig("google_latitude-location"),false);
         for (var objectType in digest.facets){
