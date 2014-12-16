@@ -989,8 +989,6 @@ define(["applications/calendar/tabs/map/MapConfig",
     }
 
     function hideData(map,connectorId){
-        if (!map.hasData(connectorId))
-            return;
         if (map.isHeatMapChecked()) {
             showHeatMap(map, Calendar.connectorEnabled.map);
         } else
@@ -998,6 +996,8 @@ define(["applications/calendar/tabs/map/MapConfig",
     }
 
     function hidePathData(map, connectorId) {
+        if (!map.hasData(connectorId))
+            return;
         if (map.connectorSelected == connectorId){
             map.infoWindow.close();
             map.connectorSelected = null;
