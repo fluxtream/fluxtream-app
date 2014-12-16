@@ -507,6 +507,7 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
         },
         sleep_as_android: {
             color: "rgb(0,128,0)",
+            filterLabel: "S. as Android",
             facets: {
                 sleep: {
                     list: true,
