@@ -151,6 +151,7 @@ define(["core/Tab",
 	}
 
     function showDataAsHeatMap(connectorEnabled,bounds,doneLoading){
+        $(".timeControlContainer").hide();
         var digest = digestData;
         if (map.heatMapLayer!=null)
             map.heatMapLayer.setData([]);
@@ -173,6 +174,7 @@ define(["core/Tab",
     }
 
     function showDataAsPaths(connectorEnabled,bounds,doneLoading){
+        $(".timeControlContainer").show();
         var digest = digestData;
 
         if (digest!=null && digest.facets!=null &&
