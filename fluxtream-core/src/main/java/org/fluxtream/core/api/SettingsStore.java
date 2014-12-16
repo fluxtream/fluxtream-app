@@ -199,4 +199,13 @@ public class SettingsStore {
         }
     }
 
+    @POST
+    @Path("/preferences")
+    @ApiOperation(value="Save miscellaneous preferences")
+    @Consumes("text/plain")
+    public Response savePreferences(@ApiParam(value="Raw preferences JSON", required=true) String prefsJSON) {
+        settingsService.setPreferences(AuthHelper.getGuestId(), prefsJSON);
+        return Response.ok().build();
+    }
+
 }

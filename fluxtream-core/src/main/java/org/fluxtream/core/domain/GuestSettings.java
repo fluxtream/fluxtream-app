@@ -57,6 +57,9 @@ public class GuestSettings extends AbstractEntity {
     @Lob
     public String messageDisplayCountersStorage;
 
+    @Lob
+    public String preferences;
+
     public void saveMessageDisplayCounters() {
         if (messageDisplayCounters==null) return;
         ObjectMapper mapper = new ObjectMapper();

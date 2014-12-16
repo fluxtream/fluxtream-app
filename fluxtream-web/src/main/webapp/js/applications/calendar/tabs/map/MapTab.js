@@ -133,6 +133,14 @@ define(["core/Tab",
                     $("#mapwrapper .noDataOverlay").css("display", map.hasAnyData() ? "none" : "block");
                     doneLoading();
                 }
+                var prefs = Calendar.digest.settings["preferences"];
+                var timeUnit = Calendar.digest.calendar.timeUnit;
+                var checkHeatMap = prefs["heatMap"][timeUnit];
+                if (checkHeatMap)
+                    $("#heatMapCheckbox").prop("checked", true);
+                else
+                    $("#heatMapCheckbox").prop("checked", false);
+
                 if (map.isHeatMapChecked()) {
                     showDataAsHeatMap(connectorEnabled, bounds, afterShowingData);
                 } else {
@@ -180,17 +188,17 @@ define(["core/Tab",
             map.addGPSData(digest.facets[objectType],App.getFacetConfig(objectType),true)
         }
 
-        //for(var objectTypeName in digest.facets) {
-        //    if (digest.facets[objectTypeName]==null||typeof(digest.facets[objectTypeName])=="undefined")
-        //        continue;
-        //    map.addData(digest.facets[objectTypeName], objectTypeName, true);
-        //}
-        //for (var i = 0; i < digest.selectedConnectors.length; i++){
-        //    if (!connectorEnabled[digest.selectedConnectors[i].connectorName])
-        //        for (var j = 0; j < digest.selectedConnectors[i].facetTypes.length; j++){
-        //            map.hideData(digest.selectedConnectors[i].facetTypes[j]);
-        //        }
-        //}
+        for(var objectTypeName in digest.facets) {
+            if (digest.facets[objectTypeName]==null||typeof(digest.facets[objectTypeName])=="undefined")
+                continue;
+            map.addData(digest.facets[objectTypeName], objectTypeName, true);
+        }
+        for (var i = 0; i < digest.selectedConnectors.length; i++){
+            if (!connectorEnabled[digest.selectedConnectors[i].connectorName])
+                for (var j = 0; j < digest.selectedConnectors[i].facetTypes.length; j++){
+                    map.hideData(digest.selectedConnectors[i].facetTypes[j]);
+                }
+        }
         map.hideHeatMap();
         map.showPaths(connectorEnabled);
         doneLoading((map.isPreserveViewChecked() || digest.delta) ? bounds : map.gpsBounds);

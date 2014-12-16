@@ -1097,7 +1097,7 @@ define(["applications/calendar/tabs/map/MapConfig",
         }
 
         var heatMapContainer = $("<label style='cursor:pointer;'></label>")
-        var heatMap = $('<input type="checkbox">');
+        var heatMap = $('<input id="heatMapCheckbox" type="checkbox">');
         heatMap.css("margin-right","0.5em");
         heatMap.css("float","left");
         heatMapContainer.append(heatMap);
@@ -1112,6 +1112,22 @@ define(["applications/calendar/tabs/map/MapConfig",
         heatMap.click(function() {
             if (map.heatMapCheckboxChanged != null)
                 map.heatMapCheckboxChanged();
+            console.log(Config, Calendar.settings);
+            var prefs = Calendar.digest.settings["preferences"];
+            var timeUnit = Calendar.digest.calendar.timeUnit;
+            prefs["heatMap"][timeUnit] = map.isHeatMapChecked();
+            $.ajax({
+                url: "/api/v1/settings/preferences",
+                type: "POST",
+                contentType: "text/plain",
+                data: JSON.stringify(prefs),
+                success: function() {
+
+                },
+                error: function() {
+
+                }
+            });
         });
 
     }

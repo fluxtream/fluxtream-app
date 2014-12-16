@@ -3,6 +3,7 @@ package org.fluxtream.core.mvc.models;
 import java.util.Map;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
+import org.codehaus.jackson.annotate.JsonRawValue;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.domain.GuestSettings;
 
@@ -23,6 +24,10 @@ public class SettingsModel {
                       required=true, allowableValues = "REGISTRATION_METHOD_FORM, REGISTRATION_METHOD_FACEBOOK, REGISTRATION_METHOD_FACEBOOK_WITH_PASSWORD")
     public String registrationMethod;
 
+    @JsonRawValue
+    @ApiModelProperty(value = "Misc UI Preferences", required=true)
+    public String preferences;
+
 	public SettingsModel(GuestSettings settings, Map<Long,Object> connectorSettings, Guest guest) {
         this.firstName = guest.firstname;
         this.lastName = guest.lastname;
@@ -33,6 +38,7 @@ public class SettingsModel {
         this.lengthMeasureUnit = settings.lengthMeasureUnit.name();
         this.connectorSettings = connectorSettings;
         this.messageDisplayCounters = settings.getMessageDisplayCounters();
+        this.preferences = settings.preferences;
 	}
 	
 }
