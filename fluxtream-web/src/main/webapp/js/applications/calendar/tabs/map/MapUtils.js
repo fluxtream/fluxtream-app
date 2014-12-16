@@ -955,7 +955,6 @@ define(["applications/calendar/tabs/map/MapConfig",
     }
 
     function showHeatMap(map,connectorEnabled) {
-        console.log(connectorEnabled, map.heatMapData);
         var heatMapData = [];
         for (var name in map.heatMapData) {
             if (connectorEnabled[name])
@@ -992,6 +991,13 @@ define(["applications/calendar/tabs/map/MapConfig",
     function hideData(map,connectorId){
         if (!map.hasData(connectorId))
             return;
+        if (map.isHeatMapChecked()) {
+            showHeatMap(map, Calendar.connectorEnabled.map);
+        } else
+            hidePathData(map, connectorId);
+    }
+
+    function hidePathData(map, connectorId) {
         if (map.connectorSelected == connectorId){
             map.infoWindow.close();
             map.connectorSelected = null;
@@ -1010,10 +1016,16 @@ define(["applications/calendar/tabs/map/MapConfig",
                 map.gpsData[connectorId].dateMarker.circle.setMap(null);
             }
         }
-
     }
 
     function showData(map,connectorId){
+        if (map.isHeatMapChecked()) {
+            showHeatMap(map, Calendar.connectorEnabled.map);
+        } else
+            showPathData(map, connectorId);
+    }
+
+    function showPathData(map, connectorId) {
         if (!map.hasData(connectorId))
             return;
         for (var i = 0; i < map.markers[connectorId].length; i++){

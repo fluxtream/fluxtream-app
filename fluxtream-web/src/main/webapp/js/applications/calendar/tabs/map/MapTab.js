@@ -6,7 +6,6 @@ define(["core/Tab",
 	var map = null;
     var digestData = null;
     var preserveView = false;
-    var heatMap = false;
     var lastTimestamp = null;
 
     var itemToShow = null;
@@ -131,7 +130,6 @@ define(["core/Tab",
                     if (cursorPos != null)
                         map.setCursorPosition(cursorPos);
 
-                    console.log("does the map have any data? " + map.hasAnyData());
                     $("#mapwrapper .noDataOverlay").css("display", map.hasAnyData() ? "none" : "block");
                     doneLoading();
                 }
