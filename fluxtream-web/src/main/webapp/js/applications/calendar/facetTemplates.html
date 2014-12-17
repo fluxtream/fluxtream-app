@@ -256,29 +256,29 @@
                     <div>
                         <div>
                             <span class="flx-dataLabel">Bed Time</span>
-                            <span class="flx-text">{{#startTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{/startTime}}</span>
+                            <span class="flx-text">{{#startTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel"> {{ampm}}</span>{{/startTime}}</span>
                         </div>
                         <div>
                             <span class="flx-dataLabel">Time Asleep</span>
-                            <span class="flx-text">{{#timeAsleep}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{/timeAsleep}} </span>
+                            <span class="flx-text">{{#timeAsleep}}{{hours}}:{{minutes}}<span class="flx-dataLabel"> {{ampm}}</span>{{/timeAsleep}} </span>
                         </div>
                         <div>
                             <span class="flx-dataLabel">Sleeping </span>
-                            <span class="flx-text bold">{{timeSleeping.hours}}</span><span class="flx-text"> hours</span>
-                            <span class="flx-text bold">{{timeSleeping.minutes}}</span><span class="flx-text"> min</span>
+                            {{#timeSleeping.hours}}<span class="flx-text bold">{{timeSleeping.hours}}</span><span class="flx-text"> hours</span>{{/timeSleeping.hours}}
+                            {{#timeSleeping.minutes}}<span class="flx-text bold">{{timeSleeping.minutes}}</span><span class="flx-text"> min</span>{{/timeSleeping.minutes}}
                         </div>
                         <div>
                             <span class="flx-dataLabel">Awake during </span>
-                            <span class="flx-text bold">{{timeAwake.hours}}</span><span class="flx-text"> hours</span>
-                            <span class="flx-text bold">{{timeAwake.minutes}}</span><span class="flx-text"> min</span>
+                            {{#timeAwake.hours}}<span class="flx-text bold">{{timeAwake.hours}}</span><span class="flx-text"> hours</span>{{/timeAwake.hours}}
+                            {{#timeAwake.minutes}}<span class="flx-text bold">{{timeAwake.minutes}}</span><span class="flx-text"> min</span>{{/timeAwake.minutes}}
                         </div>
                         <div>
                             <span class="flx-dataLabel">Woke Up </span>
-                            <span class="flx-text">{{#wakeUpTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{/wakeUpTime}} </span>
+                            <span class="flx-text">{{#wakeUpTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel"> {{ampm}}</span>{{/wakeUpTime}} </span>
                         </div>
                         <div>
                             <span class="flx-dataLabel">Out of bed </span>
-                            <span class="flx-text">{{#endTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</span>
+                            <span class="flx-text">{{#endTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel"> {{ampm}}</span>{{/endTime}}</span>
                         </div>
                     </div>
                 </div>
