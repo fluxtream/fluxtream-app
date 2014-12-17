@@ -33,9 +33,7 @@ public class CalendarDataHelper {
 	 * 
 	 */
 	TimeBoundariesModel getStartEndResponseBoundaries(AbstractTimespanMetadata dayMetadata) {
-		TimeBoundariesModel tb = new TimeBoundariesModel();
-		tb.start = dayMetadata.start;
-		tb.end = dayMetadata.end;
+		TimeBoundariesModel tb = new TimeBoundariesModel(dayMetadata.start, dayMetadata.end);
 		return tb;
 	}
 

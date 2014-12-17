@@ -492,6 +492,26 @@ public class CalendarDataStore {
                                             @ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter,
                                             @ApiParam(value="Updated Since Date", required = false) @QueryParam("updatedSince") String updatedSince) throws InstantiationException,
             IllegalAccessException, ClassNotFoundException, UpdateFailedException, OutsideTimeBoundariesException, IOException {
+        return getDayData(date, filter, buddyToAccessParameter, false, updatedSince);
+	}
+
+    @GET
+    @Path("/location/date/{date}")
+    @ApiOperation(value = "Get the user's connectors' data for a specific date", response = DigestModel.class)
+    @Produces({ MediaType.APPLICATION_JSON })
+    @ApiResponses({
+            @ApiResponse(code=401, message="The user is no longer logged in"),
+            @ApiResponse(code=403, message="Buddy-to-access authorization has been revoked")
+    })
+    public Response getLocationDayData(@ApiParam(value="Date (YYYY-MM-DD)", required=true) @PathParam("date") String date,
+                                            @ApiParam(value="Filter JSON", required=false) @QueryParam(value="filter") String filter,
+                                            @ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter,
+                                            @ApiParam(value="Updated Since Date", required = false) @QueryParam("updatedSince") String updatedSince) throws InstantiationException,
+            IllegalAccessException, ClassNotFoundException, UpdateFailedException, OutsideTimeBoundariesException, IOException {
+        return getDayData(date, filter, buddyToAccessParameter, true, updatedSince);
+    }
+
+    private Response getDayData(String date, String filter, String buddyToAccessParameter, boolean locationDataOnly, String updatedSince) throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException, UpdateFailedException, IOException {
         if (StringUtils.isEmpty(filter)) filter = "{}";
         TrustedBuddy trustedBuddy;
         try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
@@ -527,7 +547,7 @@ public class CalendarDataStore {
         GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
 
         Map<Long,Object> connectorSettings = new HashMap<Long,Object>();
-        setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection, dayMetadata, false, updatedSince);
+        setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection, dayMetadata, locationDataOnly, updatedSince);
 
         setNotifications(digest, AuthHelper.getGuestId());
         setCurrentAddress(digest, guestId, dayMetadata.start);
@@ -539,10 +559,10 @@ public class CalendarDataStore {
                 .append(" guestId=").append(guestId);
         logger.info(sb.toString());
 
-        digest.generationTimestamp = new java.util.Date().getTime();
+        digest.generationTimestamp = new Date().getTime();
 
         return Response.ok(toJacksonJson(digest)).build();
-	}
+    }
 
     private String toJacksonJson(final DigestModel digest) throws IOException {
         final ObjectMapper objectMapper = new ObjectMapper();
@@ -981,7 +1001,7 @@ public class CalendarDataStore {
                     if (!objectType.isClientFacet())
                         continue;
                     final TimeUnit timeUnit = timespanMetadata.getTimeInterval().getTimeUnit();
-                    if (timeUnit !=TimeUnit.DAY && timeUnit != TimeUnit.ARBITRARY) {
+                    if (timeUnit != TimeUnit.ARBITRARY) {
                         if (!locationDataOnly&&objectType!=null&&objectType.getName().equals("location"))
                             continue;
                         else if (locationDataOnly &&
@@ -1285,9 +1305,7 @@ public class CalendarDataStore {
 	}
 
 	TimeBoundariesModel getStartEndResponseBoundaries(long start, long end) {
-		TimeBoundariesModel tb = new TimeBoundariesModel();
-		tb.start = start;
-		tb.end = end;
+		TimeBoundariesModel tb = new TimeBoundariesModel(start, end);
 		return tb;
 	}
 }

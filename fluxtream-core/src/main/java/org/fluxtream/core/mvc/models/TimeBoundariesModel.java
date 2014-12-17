@@ -1,6 +1,7 @@
 package org.fluxtream.core.mvc.models;
 
 import com.wordnik.swagger.annotations.ApiModel;
+import org.codehaus.plexus.util.ExceptionUtils;
 
 @ApiModel(value = "Beginning end end time bounds in UTC")
 public class TimeBoundariesModel {
