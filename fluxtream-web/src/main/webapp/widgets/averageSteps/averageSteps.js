@@ -25,22 +25,25 @@ define(["core/DashboardWidget","core/widgetComponents/averageSteps"], function(D
         new averageStepsComponent(this,$("#averageStepsWidget"),stepsArray,stepsName);
     };
 
-    StepsTaken.validateSettings = function() {
+    StepsTaken.validateSettings = function(onDone) {
         var dailyThreshold = $("#averageStepsHappyDailyThreshold").val();
         if(isNaN(dailyThreshold)) {
             alert("You need to enter a valid integer here...");
+            onDone();
         } else {
-            this.saveSettings({"dailyThreshold" : dailyThreshold});
+            this.saveSettings({"dailyThreshold" : dailyThreshold},onDone);
         }
     };
 
-    StepsTaken.bindWidgetSettings = function(widgetSettings) {
+    StepsTaken.bindWidgetSettings = function(widgetSettings,onDone) {
         $("#averageStepsHappyDailyThreshold").val(widgetSettings.dailyThreshold);
+        onDone();
     }
 
-    StepsTaken.defaultSettings = function(widgetSettings) {
+    StepsTaken.defaultSettings = function(widgetSettings,onDone) {
         if (typeof(widgetSettings.dailyThreshold)=="undefined")
             widgetSettings.dailyThreshold = 0;
+        onDone();
     }
 
     return StepsTaken;

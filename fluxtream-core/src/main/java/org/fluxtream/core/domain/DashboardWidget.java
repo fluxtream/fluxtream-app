@@ -27,6 +27,8 @@ public class DashboardWidget {
     public String VendorIdentifier;
     @ApiModelProperty(value="List of connectors that make this widget relevant", required=true)
     public List<String> RequiredConnectors;
+    @ApiModelProperty(value="Whether or not the widget needs access to everything in the client", required=true)
+    public boolean fullAccess;
     @ApiModelProperty(value="Icon URL", required=true)
     public String WidgetIcon;
     @ApiModelProperty(value="Name of the widget", required=true)
@@ -72,6 +74,7 @@ public class DashboardWidget {
                 );
             } else
                 RequiredConnectors = null;
+            fullAccess = manifestJSON.has("fullAccess") ? manifestJSON.getBoolean("fullAccess") : false;
         } catch (Throwable t) {
             throw new RuntimeException("Invalid manifest JSON (" + t.getMessage() + ")");
         }

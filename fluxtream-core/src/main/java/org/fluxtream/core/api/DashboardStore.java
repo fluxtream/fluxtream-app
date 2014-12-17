@@ -5,6 +5,8 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
 import net.sf.json.JSONObject;
 import org.apache.velocity.util.StringUtils;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.domain.Dashboard;
@@ -98,11 +100,13 @@ import java.util.ListIterator;
         widgetManifestModel.WidgetTitle = dashboardWidget.WidgetTitle;
         widgetManifestModel.WidgetIcon = dashboardWidget.WidgetIcon;
         widgetManifestModel.HasSettings = dashboardWidget.HasSettings;
+        widgetManifestModel.RequiredConnectors = dashboardWidget.RequiredConnectors;
+        widgetManifestModel.fullAccess = dashboardWidget.fullAccess;
 
         DashboardWidgetModel widgetModel = new DashboardWidgetModel();
         widgetModel.manifest = widgetManifestModel;
 
-        if (dashboard!=null && dashboardWidget.HasSettings) {
+        if (dashboard!=null) {
             final WidgetSettings widgetSettings = widgetsService.getWidgetSettings(guestId, dashboard.getId(),
                     dashboardWidget.WidgetName);
             widgetModel.settings = widgetSettings.settingsJSON;
@@ -223,11 +227,16 @@ import java.util.ListIterator;
     @ApiOperation(value = "Add a widget to a dashboard", response = DashboardModel.class, responseContainer = "Array")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response addWidget(@PathParam("dashboardId") long dashboardId,
-                              @FormParam("widget") String widgetJson) throws UnsupportedEncodingException {
+                              @FormParam("widget") String widgetName,
+                              @FormParam("allowedConnectors") String allowedConnectorsJson,
+                              @FormParam("fullAccess") boolean fullAccess) throws UnsupportedEncodingException {
         long guestId = AuthHelper.getGuestId();
         try {
-            widgetJson = URLDecoder.decode(widgetJson, "UTF-8");
-            dashboardsService.addWidget(guestId, dashboardId, widgetJson);
+            List<String> allowedConnectors = new ObjectMapper().readValue(allowedConnectorsJson, TypeFactory.defaultInstance().constructCollectionType(List.class, String.class));
+            System.out.println(allowedConnectors);
+            System.out.println(fullAccess);
+            widgetName = URLDecoder.decode(widgetName, "UTF-8");
+            dashboardsService.addWidget(guestId, dashboardId, widgetName, allowedConnectors, fullAccess);
             return getDashboards();
         }
         catch (Exception e) {

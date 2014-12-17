@@ -1,7 +1,7 @@
 define(["core/Tab",
         "applications/calendar/App", "applications/calendar/tabs/dashboards/ManageDashboards",
-        "applications/calendar/tabs/dashboards/AddWidget"],
-       function(Tab, Calendar, ManageDashboards, AddWidget) {
+        "applications/calendar/tabs/dashboards/AddWidget", "core/widgetSandbox/SandboxedWidget"],
+       function(Tab, Calendar, ManageDashboards, AddWidget, SandboxedWidget) {
 	
 	var digest, dashboardData;
 
@@ -32,7 +32,7 @@ define(["core/Tab",
     }
 
    function populateTemplate(dashboardsTemplateData) {
-       setTabParam(dashboardsTab.activeDashboard);
+        setTabParam(dashboardsTab.activeDashboard);
         this.getTemplate("text!applications/calendar/tabs/dashboards/dashboards.html", "dashboards",
                          function() {
                              makeDashboardTabs(dashboardsTemplateData,doneLoading);
@@ -109,6 +109,7 @@ define(["core/Tab",
     }
 
     function loadWidgets(activeWidgetInfos) {
+        App.clearAllSandboxMessageListeners();
         for (var i=0; i<activeWidgetInfos.length; i++) {
             var widgetInfo = activeWidgetInfos[i];
             loadWidget(widgetInfo);
@@ -116,14 +117,25 @@ define(["core/Tab",
         doneLoading();
     }
 
+
+   function getWidgetHostName(widgetInfo){
+       var parser = document.createElement("a");
+       parser.href = widgetInfo.manifest.WidgetRepositoryURL;
+       return parser.host;
+   }
+
    function loadWidget(widgetInfo) {
-       var that = this;
-       require([widgetInfo.manifest.WidgetRepositoryURL + "/"
-                    + widgetInfo.manifest.WidgetName + "/"
-                    + widgetInfo.manifest.WidgetName + ".js"],
+       if (shouldSandboxWidget(widgetInfo) && !widgetInfo.settings.fullAccess) {
+           new SandboxedWidget().load(widgetInfo,digest,dashboardsTab.activeDashboard);
+       }
+       else{ //we didn't host the widget so we have to sandbox it
+           require([widgetInfo.manifest.WidgetRepositoryURL + "/"
+               + widgetInfo.manifest.WidgetName + "/"
+               + widgetInfo.manifest.WidgetName + ".js"],
                function(WidgetModule) {
                    WidgetModule.load(widgetInfo, digest, dashboardsTab.activeDashboard);
                });
+       }
    }
 
     function getActiveWidgetInfos(dashboards) {
@@ -202,6 +214,11 @@ define(["core/Tab",
         })
     }
 
+    function shouldSandboxWidget(widgetInfo) {
+        return window.location.host != getWidgetHostName(widgetInfo);
+
+    }
+
     var dashboardsTab = new Tab("calendar", "dashboards", "Candide Kemmler", "icon-dashboard", true);
     dashboardsTab.activeDashboard = null;
 	dashboardsTab.render = render;
@@ -213,6 +230,7 @@ define(["core/Tab",
     dashboardsTab.promoteDashboard = promoteDashboard;
     dashboardsTab.updateDashboardTabs = makeDashboardTabs;
     dashboardsTab.reorderDone = reorderDone;
+    dashboardsTab.shouldSandboxWidget = shouldSandboxWidget;
 	return dashboardsTab;
 	
 });

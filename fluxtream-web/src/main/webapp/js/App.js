@@ -1174,6 +1174,20 @@ define(
             });
         }
 
+        App.sandboxCounter = 0;
+        App.eventListeners = [];
+        App.addSandboxMessageListener = function(listener){
+            window.addEventListener("message",listener,false);
+            App.eventListeners.push(listener);
+        }
+
+        App.clearAllSandboxMessageListeners = function(){
+            while (App.eventListeners.length > 0){
+                window.removeEventListener("message",App.eventListeners.shift(),false);
+            }
+        }
+
+
         App.initialize = initialize;
         App.renderApp = renderApp;
         App.state = FlxState;

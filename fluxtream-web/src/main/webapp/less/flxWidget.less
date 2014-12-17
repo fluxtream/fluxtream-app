@@ -1,0 +1,61 @@
+@import 'constants.less';
+
+
+@media (max-width: 768px){
+  .flx-widget {
+    .big-data-figure { font-size: 2em; }
+    .flx-dashBMisc div { font-size: 14px; text-align: left; }
+  }
+}
+
+.flx-widget { background-color: #fff; margin-bottom : 20px; max-height: 300px; min-height:300px !important; overflow:hidden;
+  border : 1px solid @border-color; border-left:0; border-right:0; border-top:0;
+  header { padding: 4px 9px; background : @hd-bg-color;  .flx-clearfix; border-bottom: 1px solid @border-color; color: @grey;
+    .flx-widget-controls { .flx-floatR; font-size: 18px; padding-top:3px;
+      a { margin-left: 5px; }
+      a:hover { text-decoration:none; }
+    }
+  }
+  .flx-body { padding : 9px; }
+}
+
+//-------WIDGET TYPOGRAPHY
+
+.flx-widget {
+  color: lighten(@black, 20%);
+  .main-widget-data {
+    position: relative; height: 223px;
+  }
+  .big-data-figure {
+    position: absolute;
+    top: 50px;
+    left: 0;
+    color: lighten(@black, 40%);
+    font-size: 4em; width: 100%;
+    font-weight: bold;
+    font-family: inherit;
+    text-align: center;
+    overflow: hidden;
+    line-height: 1;
+    padding-bottom: 0.5em;
+    span {
+      font-size: 0.5em;
+      font-weight: normal;
+    }
+  }
+  .flx-dashBMisc div {
+    font-size: 16px;
+    color: @link-blue;
+    width: 33%;
+    text-align: center;
+    span {
+      font-size: 0.8em;
+      color: darken(@hd-bg-color, 40%);
+    }
+  }
+  .flx-widgetMessage { padding: 10px 10px 0; border-style: solid; border-width: 1px; margin: 0 0 5px; .border-radius; }
+  .flx-widgetError { border-color: @errorText; color: @errorText; background-color: @errorBackground; }
+  .flx-widgetWarning { border-color: @warningText; color: @warningText; background-color: @warningBackground; }
+  .flx-widgetSuccess { border-color: @successText; color: @successText; background-color: @successBackground; }
+}
+
