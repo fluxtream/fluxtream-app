@@ -18,7 +18,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Entity(name="Facet_BedditSleep")
-@ObjectTypeSpec(name = "sleep", value = 1, prettyname = "Sleep Logs")
+@ObjectTypeSpec(name = "sleep", value = 1, prettyname = "Sleep Logs", isDateBased = true)
 public class SleepFacet extends AbstractFacet {
 
     static final int STATE_AWAY_FROM_BED = 65;

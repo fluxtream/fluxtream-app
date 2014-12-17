@@ -4,6 +4,7 @@ import org.fluxtream.core.OutsideTimeBoundariesException;
 import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.connectors.vos.AbstractTimedFacetVO;
 import org.fluxtream.core.domain.GuestSettings;
+import org.fluxtream.core.mvc.models.DurationModel;
 
 import java.util.List;
 
@@ -12,25 +13,27 @@ import java.util.List;
  */
 public class SleepFacetVO extends AbstractTimedFacetVO<SleepFacet> {
 
-    public double sleepTimeTarget;
-    public double snoringAmount;
-    public double restingHeartRate;
+    public DurationModel sleepTimeTarget;
+    public DurationModel snoringDuration;
+    public Double restingHeartRate;
     public Double respirationRate;
-    public Double timeToFallAsleep;
-    public double totalSleepTime;
+    public DurationModel timeToFallAsleep;
+    public DurationModel totalSleepTime;
     public List<String> sleepTags;
 
     @Override
     protected void fromFacet(SleepFacet facet, TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
-        sleepTimeTarget = facet.sleepTimeTarget;
-        snoringAmount = facet.snoringAmount;
-        restingHeartRate = facet.restingHeartRate;
-        if (facet.respirationRate != null)
-            respirationRate = facet.respirationRate;
+        if (facet.sleepTimeTarget!=0)
+            sleepTimeTarget = new DurationModel((int)facet.sleepTimeTarget);
+        if (facet.snoringAmount>0)
+           snoringDuration = new DurationModel((int)facet.snoringAmount);
+        if (facet.restingHeartRate>0 && facet.restingHeartRate>0)
+            restingHeartRate = round(facet.restingHeartRate, 2);
+        if (facet.respirationRate != null && facet.respirationRate>0)
+            respirationRate = round(facet.respirationRate, 2);
         if (facet.timeToFallAsleep != null)
-            timeToFallAsleep = facet.timeToFallAsleep;
-        totalSleepTime = facet.totalSleepTime;
+            timeToFallAsleep = new DurationModel(facet.timeToFallAsleep.intValue());
+        totalSleepTime = new DurationModel((int)facet.totalSleepTime);
         sleepTags = facet.getSleepTags();
-
     }
 }

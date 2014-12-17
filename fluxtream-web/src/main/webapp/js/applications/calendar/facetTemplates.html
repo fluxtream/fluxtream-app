@@ -1139,12 +1139,12 @@
         {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
         <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
         <div class="flx-data">
-          <div>Target Amount of Sleep: {{sleepTimeTarget}} seconds</div>
-          <div>Time Asleep: {{totalSleepTime}} seconds</div>
-          {{#timeToFallAsleep}}<div>Time to Fall Asleep: {{.}} seconds</div>{{/timeToFallAsleep}}
-          <div>Total Time Snoring: {{snoringAmount}} seconds</div>
-          <div>Resting Heart Rate: {{restingHeartRate}} bpm</div>
-          {{#respirationRate}}<div>Average Respiration Rate: {{.}}</div>{{/respirationRate}}
+          {{#sleepTimeTarget}}<div>Target Amount of Sleep: {{#sleepTimeTarget.hours}}{{sleepTimeTarget.hours}} h{{/sleepTimeTarget.hours}} {{#sleepTimeTarget.minutes}}{{sleepTimeTarget.minutes}} min{{/sleepTimeTarget.minutes}}</div>{{/sleepTimeTarget}}
+          <div>Time Asleep: {{#totalSleepTime.hours}}{{totalSleepTime.hours}} h {{/totalSleepTime.hours}}{{#totalSleepTime.minutes}}{{totalSleepTime.minutes}} min{{/totalSleepTime.minutes}}</div>
+          {{#timeToFallAsleep}}<div>Time to Fall Asleep: {{#timeToFallAsleep.hours}}{{timeToFallAsleep.hours}} h{{/timeToFallAsleep.hours}} {{#timeToFallAsleep.minutes}}{{timeToFallAsleep.minutes}} min{{/timeToFallAsleep.minutes}} </div>{{/timeToFallAsleep}}
+          {{#snoringDuration}}<div>Total Time Snoring: {{#snoringDuration.hours}}{{snoringDuration.hours}} h{{/snoringDuration.hours}}{{#snoringDuration.minutes}}{{snoringDuration.minutes}} min{{/snoringDuration.minutes}}</div>{{/snoringDuration}}
+          {{#restingHeartRate}}<div>Resting Heart Rate: {{restingHeartRate}} bpm</div>{{/restingHeartRate}}
+          {{#respirationRate}}<div>Average Respiration Rate: {{respirationRate}}/minute</div>{{/respirationRate}}
           <div>Sleep Tags: {{#sleepTags}}#{{.}} {{/sleepTags}}</div>
         </div>
         {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
@@ -1164,12 +1164,12 @@
        <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
        <div class="flx-data">
          <div>Sleep Cycles: {{cycles}}</div>
-         <div>Deep Sleep Ratio: {{ratioDeepSleep}}</div>
-         <div>Rating: {{rating}}/5</div>
-         <div>Snoring: {{snoringSeconds}} seconds</div>
+         <div>Deep Sleep Ratio: {{ratioDeepSleep}}%</div>
+         {{#rating}}<div>Rating: {{rating}}/5</div>{{/rating}}
+         {{#snoringDuration}}<div>Total Time Snoring: {{#snoringDuration.hours}}{{snoringDuration.hours}} h{{/snoringDuration.hours}}{{#snoringDuration.minutes}}{{snoringDuration.minutes}} min{{/snoringDuration.minutes}}</div>{{/snoringDuration}}
          <div>Noise Level: {{noiseLevel}}</div>
          <div>Sleep Tags: {{#sleepTags}}#{{.}} {{/sleepTags}}</div>
-         <div>Sleep Comment: {{sleepComment}}</div>
+         {{#sleepComment}}<div>Sleep Comment: {{sleepComment}}</div>{{/sleepComment}}
        </div>
        {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
      </div>
