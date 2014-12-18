@@ -64,7 +64,7 @@ public class FitbitBodytrackResponder extends AbstractBodytrackResponder {
         ChannelMapping sleepChannelMapping = new ChannelMapping(
                 apiKey.getId(), apiKey.getGuestId(),
                 ChannelMapping.ChannelType.timespan,
-                ChannelMapping.TimeType.local,
+                ChannelMapping.TimeType.gmt,
                 ObjectType.getObjectType(apiKey.getConnector(), "sleep").value(),
                 apiKey.getConnector().getDeviceNickname(), "sleep",
                 apiKey.getConnector().getDeviceNickname(), "sleep");
