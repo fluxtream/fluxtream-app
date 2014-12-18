@@ -15,6 +15,10 @@ import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.domain.GuestSettings;
 import org.fluxtream.core.mvc.models.TimespanModel;
+import org.fluxtream.core.services.ApiDataService;
+import org.fluxtream.core.services.GuestService;
+import org.fluxtream.core.services.MetadataService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -24,6 +28,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class FitbitBodytrackResponder extends AbstractBodytrackResponder {
+
+    @Autowired
+    MetadataService metadataService;
 
     @Override
     public List<TimespanModel> getTimespans(final long startMillis, final long endMillis, final ApiKey apiKey, final String channelName) {
@@ -37,7 +44,10 @@ public class FitbitBodytrackResponder extends AbstractBodytrackResponder {
 
         for (AbstractFacet facet : facets){
             FitbitSleepFacet sleepFacet = (FitbitSleepFacet)facet;
-            simpleMergeAddTimespan(items,new TimespanModel(sleepFacet.start,sleepFacet.end, "on",objectTypeName),startMillis,endMillis);
+            TimeZone timeZone = metadataService.getTimeZone(apiKey.getGuestId(), sleepFacet.start);
+            long userStart = sleepFacet.start - timeZone.getOffset(sleepFacet.start);
+            long userEnd = sleepFacet.end - timeZone.getRawOffset();
+            simpleMergeAddTimespan(items, new TimespanModel(userStart, userEnd, "on",objectTypeName),startMillis,endMillis);
         }
 
         return items;
