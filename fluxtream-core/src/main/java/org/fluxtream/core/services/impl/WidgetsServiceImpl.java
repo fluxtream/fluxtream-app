@@ -3,6 +3,13 @@ package org.fluxtream.core.services.impl;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.DashboardWidget;
@@ -47,13 +54,7 @@ public class WidgetsServiceImpl implements WidgetsService {
     Configuration env;
 
     @Override
-    @CacheEvict(value = "officialWidgets")
-    public void refreshWidgets() {
-        // empty method: just let spring evict the "officialWidgets" cache
-    }
-
-    @Override
-    @CacheEvict(value = "userWidgets")
+    @CacheEvict(value = "userWidgets", key="#guestId")
     public void refreshWidgets(final long guestId) {
         // empty method: just let spring evict the "userWidgets" cache for the guestId key
     }
@@ -152,6 +153,7 @@ public class WidgetsServiceImpl implements WidgetsService {
     }
 
     @Override
+    @Cacheable(value = "userWidgets", key="#guestId")
     public List<DashboardWidget> getAvailableWidgetsList(final long guestId) {
         List<DashboardWidget> allWidgets = new ArrayList<DashboardWidget>();
         final List<DashboardWidget> userWidgets = getUserWidgets(guestId);
@@ -175,13 +177,14 @@ public class WidgetsServiceImpl implements WidgetsService {
         return availableWidgetsList;
     }
 
-    @Cacheable(value = "userWidgets")
     private List<DashboardWidget> getUserWidgets(final long guestId) {
         final List<DashboardWidgetsRepository> repositoryURLs = getWidgetRepositories(guestId);
         List<DashboardWidget> userWidgets = new ArrayList<DashboardWidget>();
         for (DashboardWidgetsRepository repositoryURL : repositoryURLs) {
             try{
+                long then = System.currentTimeMillis();
                 List<DashboardWidget> widgetsList = getWidgetsList(repositoryURL.url,false);
+                System.out.println((System.currentTimeMillis()-then) + " ms taken (" + repositoryURL.url + ")");
                 userWidgets.addAll(widgetsList);
             }
             catch (Exception e){
@@ -191,45 +194,43 @@ public class WidgetsServiceImpl implements WidgetsService {
         return userWidgets;
     }
 
-    @Cacheable(value = "officialWidgets")
     private List<DashboardWidget> getOfficialWidgets() {
         String mainWidgetsUrl = env.get("homeBaseUrl");
         return getWidgetsList(mainWidgetsUrl,true);
     }
 
     private List<DashboardWidget> getWidgetsList(String baseURL, boolean local) {
-        JSONArray widgetsList = null;
-        String widgetListString = null;
+        JSONArray widgetsList;
+        String widgetListString;
+        HttpClient client = new DefaultHttpClient();
         try {
             // be robust about missing trailing /
             if (!baseURL.endsWith("/"))
                 baseURL += "/";
-            widgetListString = HttpUtils.fetch(baseURL + "widgets/widgets.json");
-        }
-        catch (IOException e) {
-            throw new RuntimeException("Could not access widgets JSON URL: " + baseURL + "widgets.json");
-        }
-        catch (UnexpectedHttpResponseCodeException e) {
-            throw new RuntimeException("Could not access widgets JSON URL: " + baseURL + "widgets.json");
-        }
-        try {
-            widgetsList = JSONArray.fromObject(widgetListString);
-        } catch (Throwable t) {
-            throw new RuntimeException("Could not parse widgets JSON (" + t.getMessage() + ")");
-        }
-        String widgetUrl = null;
-        List<DashboardWidget> widgets = new ArrayList<DashboardWidget>();
-        String manifestJSONString = null;
-        try {
+            String url = baseURL + "widgets/widgets.json";
+            HttpGet get = new HttpGet(url);
+            HttpResponse response = client.execute(get);
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                ResponseHandler<String> responseHandler = new BasicResponseHandler();
+                widgetListString = responseHandler.handleResponse(response);
+            } else throw new UnexpectedHttpResponseCodeException(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
+            try {
+                widgetsList = JSONArray.fromObject(widgetListString);
+            } catch (Throwable t) {
+                throw new RuntimeException("Could not parse widgets JSON (" + t.getMessage() + ")");
+            }
+            String widgetUrl;
+            List<DashboardWidget> widgets = new ArrayList<DashboardWidget>();
+            String manifestJSONString = null;
             for (int i=0; i<widgetsList.size(); i++) {
                 String widgetName = widgetsList.getString(i);
                 widgetUrl = baseURL + "widgets/" + widgetName + "/manifest.json";
-                try {
-                    manifestJSONString = HttpUtils.fetch(widgetUrl);
-                }
-                catch (UnexpectedHttpResponseCodeException e) {
-                    e.printStackTrace();
-                }
+                get = new HttpGet(widgetUrl);
+                response = client.execute(get);
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                    ResponseHandler<String> responseHandler = new BasicResponseHandler();
+                    manifestJSONString = responseHandler.handleResponse(response);
+                } else throw new UnexpectedHttpResponseCodeException(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
                 JSONObject manifestJSON = null;
                 try {
                     manifestJSON = JSONObject.fromObject(manifestJSONString);
@@ -238,10 +239,13 @@ public class WidgetsServiceImpl implements WidgetsService {
                 }
                 widgets.add(new DashboardWidget(manifestJSON, (local ? "/" : baseURL) + "widgets"));
             }
-        } catch (IOException e) {
-            throw new RuntimeException("Could not access widget manifest JSON URL: " + widgetUrl);
+            return widgets;
+        } catch (Exception e) {
+            throw new RuntimeException("Could not access retrieve widgets list: " + baseURL);
         }
-        return widgets;
+        finally {
+            client.getConnectionManager().shutdown();
+        }
     }
 
 }
