@@ -160,7 +160,6 @@ define(["core/DashboardWidget"],function(DashboardWidget){
             processQueue.push(container[0].children[i]);
         }
         processQueue = processQueue.concat();
-        console.log(processQueue);
         while (processQueue.length > 0) {
             var curEle = processQueue.pop();
             //add all children to be looked at
@@ -212,7 +211,8 @@ define(["core/DashboardWidget"],function(DashboardWidget){
                 var digestStrippedDown = {
                     facets: {},
                     settings: this.digest.settings,
-                    metadata: this.digest.metadata
+                    metadata: this.digest.metadata,
+                    calendar: this.digest.calendar
                 };
                 for (var i = 0, li = this.settings.allowedConnectors.length; i < li; i++){
                     var connectorName = this.settings.allowedConnectors[i];
@@ -363,6 +363,12 @@ define(["core/DashboardWidget"],function(DashboardWidget){
         var widgetSettings = $("#widgetSettings");
         widgetSettings.find("input").each(function(){
             this.setAttribute("value",this.value);
+            if (this.checked){
+                this.setAttribute("checked","checked");
+            }
+            else{
+                this.removeAttribute("checked");
+            }
         });
         var inputHtml = widgetSettings.html();
         this.callbacks["validateSettings" + this.validateSettingsCalls] = onDone;

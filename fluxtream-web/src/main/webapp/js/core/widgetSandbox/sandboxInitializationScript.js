@@ -173,6 +173,12 @@
                             input.remove();
                             input.find("input").each(function(){
                                 this.setAttribute("value",this.value);
+                                if (this.checked){
+                                    this.setAttribute("checked","checked");
+                                }
+                                else{
+                                    this.removeAttribute("checked");
+                                }
                             });
                             sendMessage("bindWidgetSettings",{
                                 callId: message.data.callId,
