@@ -212,6 +212,7 @@ define(["core/DashboardWidget"],function(DashboardWidget){
                 var digestStrippedDown = {
                     facets: {},
                     settings: this.digest.settings,
+                    calendar: this.digest.calendar,
                     metadata: this.digest.metadata
                 };
                 for (var i = 0, li = this.settings.allowedConnectors.length; i < li; i++){
