@@ -55,10 +55,11 @@ public class WidgetCollection {
         try{
             long guestId = AuthHelper.getGuestId();
             widgetsService.refreshWidgets(guestId);
-            return Response.ok("widgets refreshed").build();
+            List<DashboardWidget> availableWidgetsList = widgetsService.getAvailableWidgetsList(guestId);
+            return Response.ok().entity(availableWidgetsList).build();
         }
         catch (Exception e){
-            return Response.serverError().entity("Failed to regresh widgets: " + e.getMessage()).build();
+            return Response.serverError().entity("Failed to refresh widgets: " + e.getMessage()).build();
         }
     }
 

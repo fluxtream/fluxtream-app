@@ -97,6 +97,9 @@
                 </div>
             </div>
         </form>
+        <div id="settings-alert">
+
+        </div>
         <div class="modal-footer">
             <input type="submit" value="Save Settings" class="btn btn-primary" id="saveSettingsBtn">
             <button class="btn" onclick="App.closeModal()">Close</button>
@@ -121,8 +124,8 @@
         <tbody>
             {{#urls}}
             <tr>
-                <td>{{.}}</td>
-                <td><a href="javascript:void(0)" class="removeWidgetRepositoryURL" data-url="{{.}}">Remove URL</a></td>
+                <td>{{.}}&nbsp;&nbsp;&nbsp;<a href="javascript:void(0);" class="refreshWidgetRepositoryWidgets">Refresh</a></td>
+                <td><a href="javascript:void(0);" class="removeWidgetRepositoryURL" data-url="{{.}}">Remove URL</a></td>
             </tr>
             {{/urls}}
             <tr>
