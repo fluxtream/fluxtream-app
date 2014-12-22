@@ -77,6 +77,15 @@ public class AuthorizationToken extends AbstractEntity {
                 this.creationTime + DEFAULT_TOKEN_LIFETIME_MILLIS;
     }
 
+    public AuthorizationToken(final long guestId, final String deviceId, final long expirationTime) {
+        this.authorizationCodeId = -1;
+        this.guestId = guestId;
+        this.accessToken = UUID.randomUUID().toString();
+        this.refreshToken = deviceId;
+        this.creationTime = DateTime.now().getMillis();
+        this.expirationTime = expirationTime;
+    }
+
     /**
      * Returns the number of milliseconds before the access token expires.
      *

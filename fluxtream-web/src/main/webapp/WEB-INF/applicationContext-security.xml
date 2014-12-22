@@ -68,6 +68,8 @@
     <http pattern="/mobile/signIn" security="none" />
     <http pattern="/mobile/authenticate" security="none" />
     <http pattern="/mobile/register" security="none" />
+    <http pattern="/api/v1/mobile/signin" security="none" />
+    <http pattern="/api/v1/mobile/signup" security="none" />
 
     <!-- partner app user registration -->
     <http pattern="/api/v1/partners/apps/*/guest*" security="none" />

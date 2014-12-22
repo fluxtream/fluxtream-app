@@ -175,6 +175,32 @@ public class OAuth2MgmtServiceImpl implements OAuth2MgmtService {
         query.executeUpdate();
     }
 
+    public AuthorizationToken getExistingDeviceToken(final String refreshToken, final long guestId) {
+        final TypedQuery<AuthorizationToken> query = em.createQuery(
+                "SELECT authorizationToken FROM AuthorizationToken authorizationToken " +
+                        "WHERE authorizationToken.refreshToken=? AND authorizationToken.guestId=?", AuthorizationToken.class);
+        query.setParameter(1, refreshToken);
+        query.setParameter(2, guestId);
+        final List<AuthorizationToken> resultList = query.getResultList();
+        if (resultList.size()>0)
+            return resultList.get(0);
+        return null;
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public AuthorizationToken getAuthorizationToken(final long guestId, final String deviceId, final long expirationTime) {
+        if (deviceId==null)
+            throw new RuntimeException("null deviceId when getting an authorizationToken");
+        final AuthorizationToken existing = getExistingDeviceToken(deviceId, guestId);
+        if (existing!=null && existing.guestId==guestId) {
+            existing.expirationTime = expirationTime;
+            return existing;
+        }
+        AuthorizationToken authorizationToken = new AuthorizationToken(guestId, deviceId, expirationTime);
+        return authorizationToken;
+    }
+
     @Override
     public Application getApplicationForToken(final AuthorizationToken token) {
         final AuthorizationCode authorizationCode = em.find(AuthorizationCode.class, token.authorizationCodeId);
