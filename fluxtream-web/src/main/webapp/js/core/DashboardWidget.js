@@ -10,13 +10,17 @@ define(function() {
         this.settings = widgetInfo.settings;
         if (this.manifest.HasSettings) {
             var that = this;
-            this.defaultSettings(this.settings);
-            $("#" + widgetInfo.manifest.WidgetName + "-widget-settings").unbind().click(function () {
-                that.showSettingsDialog(that.settings);
+            this.defaultSettings(this.settings,function(){
+                $("#" + widgetInfo.manifest.WidgetName + "-widget-settings").unbind().click(function () {
+                    that.showSettingsDialog(that.settings,function(){
+                    });
+                });
             });
+
         }
         this.init();
-    };
+    }
+
 
     DashboardWidget.prototype.init = function() {
         var that = this;
@@ -29,30 +33,34 @@ define(function() {
 
     DashboardWidget.prototype.postLoad = function() {
         alert("WARNING: '" + this.manifest.WidgetName + "' widget's postLoad()  method is not yet implemented!");
-    };
+    }
 
-    DashboardWidget.prototype.showSettingsDialog = function(settings) {
+    DashboardWidget.prototype.showSettingsDialog = function(settings,onDone) {
         var that = this;
         App.loadMustacheTemplate("applications/calendar/tabs/dashboards/dashboardsTabTemplates.html","widgetSettings",function(template) {
             var html = template.render({"manifest" : that.manifest});
             App.makeModal(html);
             that.loadWidgetSettingsForm(function(){
                 $("#save-settings-" + that.manifest.WidgetName).click(function() {
-                    that.validateSettings();
+                    that.validateSettings(function(){
+
+                    });
                 });
             });
+            onDone();
         });
-    };
+    }
 
-    DashboardWidget.prototype.validateSettings = function() {
+    DashboardWidget.prototype.validateSettings = function(onDone) {
         alert("WARNING: '" + this.manifest.WidgetName + "' widget's validateSettings()  method is not yet implemented!");
-    };
+        onDone();
+    }
 
     DashboardWidget.prototype.getSaveSettingsUrl = function(){
         return "/api/v1/dashboards/" + this.dashboardId + "/widgets/" + this.manifest.WidgetName + "/settings";
-    };
+    }
 
-    DashboardWidget.prototype.saveSettings = function(settings) {
+    DashboardWidget.prototype.saveSettings = function(settings,onDone) {
         this.settings = settings;
         var that = this;
         $.ajax({
@@ -62,53 +70,57 @@ define(function() {
             success: function() {
                 App.closeModal();
                 that.postLoad();
-                $("#widgetSettings-modal").remove();
+                onDone();
             },
             error: function() {
                 alert("Oops. We couldn't save your settings. Sorry about that.");
+                onDone();
             }
         });
-    };
+    }
 
-    DashboardWidget.prototype.loadWidgetSettingsForm = function(bindSaveButton) {
+    DashboardWidget.prototype.loadWidgetSettingsForm = function(onDone) {
         var that = this;
         $.ajax({url:this.manifest.WidgetRepositoryURL + "/" + this.manifest.WidgetName + "/settings.mustache",
             success: function(html) {
                 var selector = "#" + that.manifest.WidgetName + "-widgetSettings";
                 $(selector).replaceWith(html);
-                that.loadWidgetSettingsData();
-                bindSaveButton();
+                that.loadWidgetSettingsData(onDone);
             }
         });
-    };
+    }
 
-    DashboardWidget.prototype.loadWidgetSettingsData = function() {
+    DashboardWidget.prototype.loadWidgetSettingsData = function(onDone) {
         var that = this;
         $.ajax({
             url: "/api/v1/dashboards/" + that.dashboardId + "/widgets/" + that.manifest.WidgetName + "/settings",
             type: "GET",
             success: function(widgetSettings) {
-                that.defaultSettings(widgetSettings);
-                $("#widgetSettings form").submit(function(evt) {
-                    that.validateSettings();
-                    evt.preventDefault();
+                that.defaultSettings(widgetSettings,function(){
+                    $("#widgetSettings form").submit(function(evt) {
+                        that.validateSettings(function(){
+
+                        });
+                        evt.preventDefault();
+                    });
+                    that.bindWidgetSettings(widgetSettings,onDone);
                 });
-                console.log("binding widget settings");
-                that.bindWidgetSettings(widgetSettings);
             },
             error: function() {
                 alert("Oops. We couldn't get your settings. Sorry about that.")
             }
         })
-    };
+    }
 
-    DashboardWidget.prototype.bindWidgetSettings = function(widgetSettings) {
+    DashboardWidget.prototype.bindWidgetSettings = function(widgetSettings,onDone) {
         alert("WARNING: '" + this.manifest.WidgetName + "' widget's bindWidgetSettings()  method is not yet implemented!");
-    };
+        onDone();
+    }
 
-    DashboardWidget.prototype.defaultSettings = function(widgetSettings) {
+    DashboardWidget.prototype.defaultSettings = function(widgetSettings,onDone) {
         alert("WARNING: '" + this.manifest.WidgetName + "' widget's defaultSettings()  method is not yet implemented!");
-    };
+        onDone();
+    }
 
     DashboardWidget.prototype.addCommas = function(nStr) {
         nStr += '';
@@ -135,15 +147,15 @@ define(function() {
                 return "This Year";
         }
         return null;
-    };
+    }
 
     DashboardWidget.prototype.getTimeUnit=function() {
         return this.digest.metadata.timeUnit;
-    };
+    }
 
     DashboardWidget.prototype.setTitle=function(title){
         $("#" + this.manifest.WidgetName + "-widget-title").text(title);
-    };
+    }
 
     return DashboardWidget;
 
