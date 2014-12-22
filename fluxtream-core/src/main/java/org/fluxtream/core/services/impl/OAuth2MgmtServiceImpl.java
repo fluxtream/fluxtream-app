@@ -198,6 +198,7 @@ public class OAuth2MgmtServiceImpl implements OAuth2MgmtService {
             return existing;
         }
         AuthorizationToken authorizationToken = new AuthorizationToken(guestId, deviceId, expirationTime);
+        em.persist(authorizationToken);
         return authorizationToken;
     }
 
