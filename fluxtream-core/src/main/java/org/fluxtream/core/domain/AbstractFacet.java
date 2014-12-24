@@ -37,6 +37,8 @@ public abstract class AbstractFacet extends AbstractEntity {
         figureOutObjectType();
 	}
 
+    public transient List<FacetComment> comments;
+
     @Index(name = "apiKey")
     public Long apiKeyId;
 

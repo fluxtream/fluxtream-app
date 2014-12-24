@@ -105,9 +105,14 @@ public interface ApiDataService {
     void deleteStaleData() throws ClassNotFoundException;
 
     @Transactional(readOnly=false)
-    void setComment(String connectorName, String objectTypeName, long guestId, long facetId, String comment);
+    void addComment(String connectorName, String objectTypeName, long guestId, long facetId, String comment);
+
+    @Transactional(readOnly=false)
+    void addBuddyComment(String connectorName, String objectTypeName, long buddyId, long facetId, String comment);
 
     public List<AbstractRepeatableFacet> getApiDataFacets(ApiKey apiKey, ObjectType objectType, String startDate, String endDate, Long updatedSince);
+
+    void attachComments(ApiKey apiKey, List<? extends AbstractFacet> facets);
 
     // Pass this to createOrReadModifyWrite
     public interface FacetModifier<T extends AbstractFacet> {

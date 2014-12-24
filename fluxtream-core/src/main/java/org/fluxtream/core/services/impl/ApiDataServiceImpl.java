@@ -36,10 +36,7 @@ import javax.persistence.*;
 import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -302,6 +299,30 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
     @Override
     public List<AbstractRepeatableFacet> getApiDataFacets(final ApiKey apiKey, final ObjectType objectType, final String startDate, final String endDate, Long updatedSince) {
         return jpaDao.getFacetsBetweenDates(apiKey, objectType, startDate, endDate, updatedSince);
+    }
+
+    @Override
+    public void attachComments(ApiKey apiKey, List<? extends AbstractFacet> facets) {
+        if (facets.size()==0)
+            return;
+        // don't process location facets
+        if (facets.size()>0&&facets.get(0) instanceof LocationFacet)
+            return;
+        Map<Long, AbstractFacet> facetMap = new HashMap<Long, AbstractFacet>();
+        for (AbstractFacet facet : facets) {
+            facetMap.put(facet.getId(), facet);
+        }
+        TypedQuery query = em.createQuery("SELECT comment FROM FacetComments comment WHERE comment.apiKeyId=:apiKeyId AND comment.facetId IN :facetIds", FacetComment.class);
+        query.setParameter("apiKeyId", apiKey.getId());
+        query.setParameter("facetIds", facetMap.keySet());
+        List<FacetComment> comments = query.getResultList();
+        for (FacetComment comment : comments) {
+            AbstractFacet facet = facetMap.get(comment.facetId);
+            if (facet!=null) {
+                if (facet.comments==null) facet.comments = new ArrayList<FacetComment>();
+                facet.comments.add(comment);
+            }
+        }
     }
 
     @Override
@@ -683,15 +704,34 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 
     @Override
     @Transactional(readOnly=false)
-    public void setComment(final String connectorName, final String objectTypeName, final long guestId, final long facetId,
-                           final String comment) {
+    public void addComment(String connectorName, String objectTypeName, long guestId, long facetId, String comment) {
         final AbstractFacet facet = getFacet(connectorName, objectTypeName, facetId);
         if (facet==null)
             throw new RuntimeException("No such facet (connectorName: " + connectorName + ", objectTypeName: " + objectTypeName + ", guestId: " + guestId + ", facetId: " + facetId);
         if (facet.guestId!=guestId)
             throw new RuntimeException("Facet doesn't have the expected guestId (expected: " + guestId + ", actual: " + facet.guestId + ")");
-        facet.comment = comment;
-        em.persist(facet);
+        if (facet.comment!=null) {
+            // delete old-style comments
+            createComment(facet.apiKeyId, facet.getId(), guestId, facet.comment);
+            facet.comment = null;
+        }
+        createComment(facet.apiKeyId, facet.getId(), guestId, comment);
+    }
+
+    private FacetComment createComment(final long apiKeyId, final long facetId, final long guestId, final String body) {
+        Guest guest = guestService.getGuestById(guestId);
+        FacetComment comment = new FacetComment(apiKeyId, facetId, guest, body);
+        em.persist(comment);
+        return comment;
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void addBuddyComment(String connectorName, String objectTypeName, long buddyId, long facetId, String comment) {
+        final AbstractFacet facet = getFacet(connectorName, objectTypeName, facetId);
+        if (facet==null)
+            throw new RuntimeException("No such facet (connectorName: " + connectorName + ", objectTypeName: " + objectTypeName + ", facetId: " + facetId);
+        createComment(facet.apiKeyId, facet.getId(), buddyId, comment);
     }
 
     private AbstractFacet getFacet(final String connectorName, final String objectTypeName, final long facetId) {

@@ -61,6 +61,7 @@ public class CalendarDataHelper {
             if (AuthHelper.isViewingGranted(connector.getName(), buddiesService)) {
                 final ApiKey apiKey = guestService.getApiKey(AuthHelper.getVieweeId(), connector);
                 facets = apiDataService.getApiDataFacets(apiKey, objectType, timespanMetadata.getTimeInterval(), updatedSince);
+                apiDataService.attachComments(apiKey, facets);
                 facets = buddiesService.filterFacets(AuthHelper.getGuestId(), apiKey.getId(), facets);
             }
 		} catch (Throwable t) {
@@ -76,6 +77,7 @@ public class CalendarDataHelper {
                 final ApiKey apiKey = guestService.getApiKey(AuthHelper.getVieweeId(), connector);
                 facets = apiDataService.getApiDataFacets(apiKey, objectType,
                         startDate, endDate, updatedSince);
+                apiDataService.attachComments(apiKey, facets);
                 facets = buddiesService.filterFacets(AuthHelper.getGuestId(), apiKey.getId(), facets);
             }
         } catch (Throwable t) {

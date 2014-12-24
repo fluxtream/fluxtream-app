@@ -23,6 +23,7 @@ import org.fluxtream.core.connectors.fluxtream_capture.FluxtreamCapturePhoto;
 import org.fluxtream.core.connectors.fluxtream_capture.FluxtreamCapturePhotoFacet;
 import org.fluxtream.core.connectors.fluxtream_capture.FluxtreamCapturePhotoStore;
 import org.fluxtream.core.connectors.vos.AbstractPhotoFacetVO;
+import org.fluxtream.core.connectors.vos.FacetCommentVO;
 import org.fluxtream.core.domain.*;
 import org.fluxtream.core.images.ImageOrientation;
 import org.fluxtream.core.mvc.models.DimensionModel;
@@ -1259,7 +1260,9 @@ public class BodyTrackController {
 
             this.id = photo.getConnector().prettyName() + "." + photo.getObjectType().getName() + "." + photoFacetVO.id;
             this.description = photoFacetVO.description == null ? "" : photoFacetVO.description;
-            this.comment = photoFacetVO.comment == null ? "" : photoFacetVO.comment;
+            // TODO: we should include the whole list of comments here
+            List<FacetCommentVO> comments = photoFacetVO.comments;
+            this.comment = comments !=null && comments.size()>0? comments.get(0).body:null;
             this.begin_d = photoFacetVO.start / 1000.0; // convert millis to seconds
             this.begin = DATE_TIME_FORMATTER.print(photoFacetVO.start);
             this.end_d = this.begin_d;

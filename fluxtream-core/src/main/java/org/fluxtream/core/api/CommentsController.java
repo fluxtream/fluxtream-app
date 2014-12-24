@@ -36,11 +36,11 @@ public class CommentsController {
     @POST
     @Path("/{facetType}/{facetId}")
     @Produces({MediaType.TEXT_PLAIN})
-    @ApiOperation(value = "Set a facet's user comment")
+    @ApiOperation(value = "Set/Add a facet's user comment")
     @ApiResponses({
             @ApiResponse(code=200, message = "Comment was set")
     })
-    public Response setComment(@ApiParam(value="The type (<connectorName>-<objectTypeName>) of the facet", required=true) @PathParam("facetType") String facetType,
+    public Response addComment(@ApiParam(value="The type (<connectorName>-<objectTypeName>) of the facet", required=true) @PathParam("facetType") String facetType,
                                   @ApiParam(value="Facet ID", required=true) @PathParam("facetId") long facetId,
                                   @ApiParam(value="Comment", required=true) @FormParam("comment") String comment) {
         final long guestId = AuthHelper.getGuestId();
@@ -53,7 +53,7 @@ public class CommentsController {
             objectTypeName = splits[1];
         }
         try {
-            apiDataService.setComment(connectorName, objectTypeName, guestId, facetId, comment);
+            apiDataService.addComment(connectorName, objectTypeName, guestId, facetId, comment);
         } catch (RuntimeException e) {
             return Response.serverError().entity(e.getMessage()).build();
         }

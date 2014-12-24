@@ -6,6 +6,7 @@ import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.FacetComment;
 import org.fluxtream.core.domain.GuestSettings;
 import org.fluxtream.core.utils.SecurityUtils;
 import org.fluxtream.core.utils.TimeUtils;
@@ -21,7 +22,6 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 	public String description;
 	public long id;
     public Boolean isEmpty = false;
-	public String comment;
     public final SortedSet<String> tags = new TreeSet<String>();
 	public String subType;
     public String ogLink;
@@ -30,6 +30,8 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
     public transient int objectType;
 
     public String date;
+
+	public List<FacetCommentVO> comments;
 
 	/**
 	 * Thread-safe cache for vo classes
@@ -47,14 +49,21 @@ public abstract class AbstractFacetVO<T extends AbstractFacet> {
 		this.id = facet.getId();
         this.api = facet.api;
         this.objectType = facet.objectType;
-		if (facet.comment!=null&&!facet.comment.equals("")) {
-			if (SecurityUtils.isDemoUser())
-				this.comment = "***demo - comment hidden***";
-			else {
-				try {
-					this.comment = new String(facet.comment.getBytes(), "utf-8");
-				} catch (UnsupportedEncodingException e) {}
+		if (facet.comments!=null&&facet.comments.size()>0) {
+			this.comments = new ArrayList<FacetCommentVO>();
+			if (!SecurityUtils.isDemoUser()) {
+				for (FacetComment comment : facet.comments) {
+					this.comments.add(new FacetCommentVO(comment, facet, timeInterval));
+				}
 			}
+		} else if (facet.comment!=null) {
+			// be backward-compatible with old style comments
+			FacetComment oldComment = new FacetComment();
+			oldComment.body = facet.comment;
+			oldComment.created = facet.start;
+			oldComment.updated = facet.timeUpdated;
+			oldComment.guest = null;
+			this.comments.add(new FacetCommentVO(oldComment, facet, timeInterval));
 		}
         if (facet.hasTags()) {
             if (!SecurityUtils.isDemoUser()) {
