@@ -172,6 +172,7 @@ public class SleepAsAndroidUpdater extends AbstractUpdater {
                     public SleepFacet createOrModify(SleepFacet facet, Long apiKeyId) {
                         if (facet == null){
                             facet = new SleepFacet(updateInfo.apiKey.getId());
+                            facet.guestId = updateInfo.getGuestId();
                             facet.api = updateInfo.apiKey.getConnector().value();
                             facet.start = sleepObject.getLong("fromTime");
                             facet.end = sleepObject.getLong("toTime");
