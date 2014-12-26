@@ -1549,7 +1549,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         }
         facet = facet;
 
-        var hasComment = facet.comment != null;
+        var hasComment = facet.comments != null;
         if (hasComment) {
             facetDetails.find(".facet-comment-text").remove();
         }
@@ -1570,7 +1570,7 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
         facetDetails.trigger("contentchange");
         var textarea = facetDetails.find("textarea");
         if (hasComment) {
-            textarea.val(facet.comment);
+            textarea.val(facet.comments[0].body);
         }
         var cancelButton = facetDetails.find(".cancel");
         var saveButton = facetDetails.find(".save");

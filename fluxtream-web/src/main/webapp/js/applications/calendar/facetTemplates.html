@@ -11,7 +11,7 @@
                    <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
                    <span class="flx-description"><span><a href="https://twitter.com/{{userName}}">@{{userName}}</a></span> {{{description}}}</span>
                </div>
-               {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+               {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
            </div>
            {{/facets}}
        </div>
@@ -30,7 +30,7 @@
                     <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
                     <span class="flx-description"><span><a href="https://twitter.com/{{userName}}">@{{userName}}</a></span> {{{description}}}</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -49,7 +49,7 @@
                     <span style="background:url('{{profileImageUrl}}'); background-size:100% 100%; display:block; width:42px; height: 42px; float:left; margin:0 10px 0 0"></span>
                     <span class="flx-description"><span><a href="https://twitter.com/{{userName}}">@{{userName}}</a></span> {{{description}}}</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -81,7 +81,7 @@
                         {{#recurringEvent}}<span class="flx-description" style="margin-left:30px"><i>this is a recurring event</i>{{/recurringEvent}}</span>
                     </div>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -102,7 +102,7 @@
                     </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -123,7 +123,7 @@
                     </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -148,7 +148,7 @@
                     <span class="flx-dataLabel">ml</span>
                 </div>
                 {{/water}}
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -169,7 +169,7 @@
                     <span class="flx-text">{{_calories}}</span>
                     <span class="flx-dataLabel">Calories</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             <div style="margin-bottom:1em"></div>
             {{/facets}}
@@ -198,7 +198,7 @@
                         <span class="flx-dataLabel">kcal</span>
                     </span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -237,7 +237,7 @@
                         <span class="flx-text">{{totalCalories}} <span class="flx-dataLabel">kcal</span></span>
                     </div>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -285,7 +285,7 @@
                 <div class="flx-data">
                     <img src="{{snapshot_image}}" style="height:75px; width:300px">
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -314,7 +314,7 @@
                     <span class="flx-dataLabel">Awake</span>
                     <span class="flx-text">{{minutesAwake.hours}} hours {{minutesAwake.minutes}} minutes</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -332,7 +332,7 @@
                 <div class="flx-data">
                     <span class="flx-description">{{name}}</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -361,7 +361,7 @@
                     <span class="flx-dataLabel">Fat %</span>
                     <span class="flx-text">{{fat}}</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -381,7 +381,7 @@
                          data-id="{{UID}}" data-timestamp="{{start}}" class="flx-photo" photoId="{{id}}" src="{{photo42}}" style="max-height:42px">
                     <span class="flx-description">{{description}}</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -403,7 +403,7 @@
                     </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -425,7 +425,7 @@
                     </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -450,7 +450,7 @@
                         {{^talkingTime.seconds}}<span class="flx-text bold">(no response)</span>{{/talkingTime.seconds}}
                     {{/MISSED}}
             </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -483,7 +483,7 @@
                 </div>
                 <br/>
                 <!--<img src="https://mysleep.myzeo.com/graphservlet/Hypnogram?t=n&s={{s}}&e={{e}}&d={{sleepGraph}}"/>-->
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -502,7 +502,7 @@
                     <span class="flx-text">{{_totalCalories}}</span>
                     <span class="flx-dataLabel">kcal</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -530,7 +530,7 @@
                     <span class="flx-text">{{totalSleeping.minutes}}</span>
                     <span class="flx-dataLabel">minutes</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -550,7 +550,7 @@
                         <span class="flx-text">{{_totalSteps}}</span>
                     </span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -571,7 +571,7 @@
                     {{#photoUrl}}<img data-deviceName="{{deviceName}}" data-channelName="{{channelName}}"
                                       data-id="{{UID}}" data-timestamp="{{start}}" photoId="{{id}}" class="flx-photo" src="{{photo42}}" style="max-height:42px; float:left;  margin:0 10px 0 0; cursor:pointer">{{/photoUrl}}
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -595,7 +595,7 @@
                     <a href="javascript:void(0);" onclick="$.ajax({url: '/evernote/popup/{{apiKeyId}}/{{guid}}',success: function(html) {App.makeModal(html);},async:false});" class="expandcollapse">Show Note&nbsp;<i class="icon-eye-open"></i></a></span>
                     <br>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -620,7 +620,7 @@
                     <span class="flx-dataLabel">Pulse:</span>
                     <span class="flx-text">{{pulse}} bpm</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -639,7 +639,7 @@
                     <span class="flx-dataLabel">Pulse:</span>
                     <span class="flx-text">{{pulse}} bpm</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -674,7 +674,7 @@
                         <span class="flx-dataLabel">m</span>
                     </span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -694,7 +694,7 @@
                     <span class="flx-text">{{description}}</span>
                     <span class="flx-miniGraph"></span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -712,7 +712,7 @@
                 <div class="flx-data">
                     <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -730,7 +730,7 @@
                 <div class="flx-data">
                     <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -759,7 +759,7 @@
                     <span class="flx-dataLabel">Score</span>
                     <span class="flx-text">{{result_value}}</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -777,7 +777,7 @@
                 <div class="flx-data">
                     <span class="flx-description">{{description}}</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -798,7 +798,7 @@
                     <span class="flx-description">{{name}} {{amount}}</span>
                     <span class="flx-description">{{note}}</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -818,7 +818,7 @@
                     {{activity}}
                 </div>
                 {{/activities}}
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -854,7 +854,7 @@
                     {{/manual}}
                     {{/activities}}
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
         </div>
         {{/facets}}
@@ -870,7 +870,7 @@
             <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
             {{#steps}}{{steps}} steps{{/steps}}{{^steps}}<br>{{/steps}}
             <div class="commentWarning hidden"><strong>Heads Up!</strong> This facet's comment is for moves data spanning {{#parentStartTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/parentStartTime}} - {{#parentEndTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/parentEndTime}}</div>
-            {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
         </div>
         {{/facets}}
     </div>
@@ -891,7 +891,7 @@
                     </span>
                     <span class="flx-description">{{description}}</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -915,7 +915,7 @@
                                  data-id="{{UID}}" data-timestamp="{{start}}" class="flx-photo" src="{{image}}">
                     </div>
                 {{/servings}}
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -929,7 +929,7 @@
             <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
                 <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -960,7 +960,7 @@
                 <div class="flx-data">
                     <img src="{{snapshot_image}}" style="height:75px; width:300px">
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -978,7 +978,7 @@
                 <div class="flx-data">
                     <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -996,7 +996,7 @@
                 <div class="flx-data">
                     <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -1014,7 +1014,7 @@
                 <div class="flx-data">
                     <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -1032,7 +1032,7 @@
                 <div class="flx-data">
                     <span class="flx-description">Source: {{source}}<br>Accuracy: {{accuracy}}m</span>
                 </div>
-                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+                {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
             </div>
             {{/facets}}
         </div>
@@ -1147,7 +1147,7 @@
           {{#respirationRate}}<div>Average Respiration Rate: {{respirationRate}}/minute</div>{{/respirationRate}}
           <div>Sleep Tags: {{#sleepTags}}#{{.}} {{/sleepTags}}</div>
         </div>
-        {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+        {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
       </div>
       {{/facets}}
     </div>
@@ -1171,7 +1171,7 @@
          <div>Sleep Tags: {{#sleepTags}}#{{.}} {{/sleepTags}}</div>
          {{#sleepComment}}<div>Sleep Comment: {{sleepComment}}</div>{{/sleepComment}}
        </div>
-       {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+       {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
      </div>
      {{/facets}}
    </div>

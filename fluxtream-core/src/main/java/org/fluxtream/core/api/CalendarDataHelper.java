@@ -47,6 +47,7 @@ public class CalendarDataHelper {
                 facets = apiDataService.getApiDataFacets(apiKey, objectType,
                         dates, updatedSince);
                 facets = buddiesService.filterFacets(AuthHelper.getGuestId(), apiKey.getId(), facets);
+                apiDataService.attachComments(apiKey, facets);
             }
         } catch (Throwable t) {
             t.printStackTrace();

@@ -720,7 +720,7 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 
     private FacetComment createComment(final long apiKeyId, final long facetId, final long guestId, final String body) {
         Guest guest = guestService.getGuestById(guestId);
-        FacetComment comment = new FacetComment(apiKeyId, facetId, guest, body);
+        FacetComment comment = new FacetComment(apiKeyId, facetId, guest, body, false);
         em.persist(comment);
         return comment;
     }
