@@ -227,15 +227,17 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
     }
 
     @Override
+    @Transactional(readOnly=false)
     public void ensureDataChannelMappingsExist(ApiKey apiKey, List<String> datastoreChannelNames,
                                            final String internalDeviceName) {
         ensureChannelMappingsExist(apiKey, datastoreChannelNames, internalDeviceName, ChannelMapping.ChannelType.data, null);
     }
 
     @Override
+    @Transactional(readOnly=false)
     public void ensurePhotoChannelMappingsExist(ApiKey apiKey, List<String> datastoreChannelNames,
                                                final String internalDeviceName, Integer objectTypeId) {
-        ensureChannelMappingsExist(apiKey, datastoreChannelNames, internalDeviceName, ChannelMapping.ChannelType.data, objectTypeId);
+        ensureChannelMappingsExist(apiKey, datastoreChannelNames, internalDeviceName, ChannelMapping.ChannelType.photo, objectTypeId);
     }
 
     private void ensureChannelMappingsExist(ApiKey apiKey, List<String> datastoreChannelNames, final String internalDeviceName,
@@ -250,8 +252,8 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
                 ChannelMapping.TimeType timeType = getTimeType(apiKey.getConnector());
                 ChannelMapping mapping = new ChannelMapping(apiKey.getId(), apiKey.getGuestId(),
                         channelType, timeType, objectTypeId,
-                        apiKey.getConnector().getDeviceNickname(), "photo",
-                        internalDeviceName!=null ? internalDeviceName : apiKey.getConnector().getDeviceNickname(), "photo");
+                        apiKey.getConnector().getDeviceNickname(), channelName,
+                        internalDeviceName!=null ? internalDeviceName : apiKey.getConnector().getDeviceNickname(), channelName);
                 mapping.setCreationType(ChannelMapping.CreationType.dynamic);
                 em.persist(mapping);
             }
