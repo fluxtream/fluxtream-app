@@ -243,9 +243,9 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
     private void ensureChannelMappingsExist(ApiKey apiKey, List<String> datastoreChannelNames, final String internalDeviceName,
                                             final ChannelMapping.ChannelType channelType, Integer objectTypeId) {
         for (String channelName : datastoreChannelNames) {
-            final TypedQuery<ChannelMapping> query = em.createQuery("SELECT mapping FROM ChannelMapping mapping WHERE mapping.apiKeyId=? AND mapping.deviceName=? AND mapping.channelName=?", ChannelMapping.class);
+            final TypedQuery<ChannelMapping> query = em.createQuery("SELECT mapping FROM ChannelMapping mapping WHERE mapping.apiKeyId=? AND mapping.internalDeviceName=? AND mapping.channelName=?", ChannelMapping.class);
             query.setParameter(1, apiKey.getId());
-            query.setParameter(2, apiKey.getConnector().getDeviceNickname());
+            query.setParameter(2, internalDeviceName);
             query.setParameter(3, channelName);
             final List<ChannelMapping> mappings = query.getResultList();
             if (mappings==null||mappings.size()==0) {
