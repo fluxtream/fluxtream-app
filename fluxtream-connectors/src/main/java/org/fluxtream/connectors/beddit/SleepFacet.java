@@ -1,7 +1,6 @@
 package org.fluxtream.connectors.beddit;
 
 
-import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
 import com.google.gdata.util.common.base.Pair;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -211,10 +210,5 @@ public class SleepFacet extends AbstractFacet {
     }
 
 
-
-    @Override
-    protected void makeFullTextIndexable() {
-
-    }
 }
 

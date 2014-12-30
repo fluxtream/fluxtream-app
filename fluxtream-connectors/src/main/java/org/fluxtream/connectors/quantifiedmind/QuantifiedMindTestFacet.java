@@ -25,8 +25,4 @@ public class QuantifiedMindTestFacet extends AbstractFacet {
         super(apiKeyId);
     }
 
-    @Override
-    protected void makeFullTextIndexable() {
-        this.fullTextDescription = (new StringBuilder(test_name).append(" ").append(result_name)).toString();
-    }
 }

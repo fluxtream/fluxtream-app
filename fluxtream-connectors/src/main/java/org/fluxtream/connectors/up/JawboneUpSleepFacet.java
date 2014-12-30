@@ -38,8 +38,4 @@ public class JawboneUpSleepFacet extends JawboneUpGeoFacet {
     public JawboneUpSleepFacet(){}
     public JawboneUpSleepFacet(long apiKeyId){super(apiKeyId);}
 
-    @Override
-    protected void makeFullTextIndexable() {
-    }
-
 }

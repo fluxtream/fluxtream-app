@@ -55,6 +55,4 @@ public abstract class BodymediaAbstractFacet extends AbstractFacet
         this.json = json;
     }
 
-    @Override
-    protected void makeFullTextIndexable() {}
 }

@@ -30,7 +30,4 @@ public class BodymediaSleepFacet extends BodymediaAbstractFacet {
         super(apiKeyId);
     }
 
-    @Override
-	protected void makeFullTextIndexable() {}
-
 }

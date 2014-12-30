@@ -120,8 +120,4 @@ public class SleepFacet extends AbstractFacet {
     }
 
 
-    @Override
-    protected void makeFullTextIndexable() {
-
-    }
 }

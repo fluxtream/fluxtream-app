@@ -36,7 +36,4 @@ public class FitbitSleepFacet extends AbstractLocalTimeFacet {
         super(apiKeyId);
     }
 
-    @Override
-	protected void makeFullTextIndexable() {}
-
 }

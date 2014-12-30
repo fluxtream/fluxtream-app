@@ -28,6 +28,4 @@ public class WithingsActivityFacet extends AbstractLocalTimeFacet {
         super(apiKeyId);
     }
 
-    @Override
-    protected void makeFullTextIndexable() {}
 }

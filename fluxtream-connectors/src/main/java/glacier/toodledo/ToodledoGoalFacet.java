@@ -33,11 +33,4 @@ public class ToodledoGoalFacet extends AbstractFacet {
         super(apiKeyId);
     }
 
-    @Override
-	protected void makeFullTextIndexable() {
-		StringBuilder sb = new StringBuilder(name);
-		if (note!=null) sb.append(" ").append(note);
-		this.fullTextDescription = sb.toString();
-	}
-	
 }

@@ -46,9 +46,4 @@ import org.fluxtream.core.domain.AbstractFacet;
         super(apiKeyId);
     }
 
-    @Override
-    protected void makeFullTextIndexable() {
-
-    }
-
 }

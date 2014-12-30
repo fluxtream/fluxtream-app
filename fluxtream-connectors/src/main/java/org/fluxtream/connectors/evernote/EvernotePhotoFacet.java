@@ -16,9 +16,6 @@ import org.fluxtream.core.connectors.location.LocationFacet;
 @ObjectTypeSpec(name = "photo", value = 32, isImageType=true, prettyname = "Photos", locationFacetSource = LocationFacet.Source.EVERNOTE)
 public class EvernotePhotoFacet extends EvernoteFacet {
 
-    @Override
-    protected void makeFullTextIndexable() {}
-
     public EvernotePhotoFacet() {super();}
 
     public EvernotePhotoFacet(final long apiKeyId) {super(apiKeyId);}

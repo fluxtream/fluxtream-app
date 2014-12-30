@@ -32,8 +32,4 @@ public class InstagramPhotoFacet extends AbstractFacet {
 	
 	public InstagramPhotoFacet(long apiKeyId) { super(apiKeyId); }
 
-	@Override
-	protected void makeFullTextIndexable() {
-		this.fullTextDescription = caption;
-	}
 }

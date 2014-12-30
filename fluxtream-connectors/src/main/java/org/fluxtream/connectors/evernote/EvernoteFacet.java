@@ -26,8 +26,4 @@ public abstract class EvernoteFacet extends AbstractFacet {
         this.api = Connector.getConnector("evernote").value();
     }
 
-    @Override
-    protected void makeFullTextIndexable() {
-    }
-
 }

@@ -131,15 +131,6 @@ public abstract class AbstractFacet extends AbstractEntity {
     @PrePersist
     @PreUpdate
     protected void setFullTextDescription() {
-        this.fullTextDescription = null;
-        makeFullTextIndexable();
-        if (this.comment != null) {
-            if (this.fullTextDescription == null) {
-                this.fullTextDescription = "";
-            }
-            this.fullTextDescription += " " + this.comment;
-            this.fullTextDescription = this.fullTextDescription.trim();
-        }
         this.timeUpdated = DateTimeUtils.currentTimeMillis();
         persistTags();
     }
@@ -292,5 +283,4 @@ public abstract class AbstractFacet extends AbstractEntity {
         return facetClass;
     }
 
-    protected abstract void makeFullTextIndexable();
 }

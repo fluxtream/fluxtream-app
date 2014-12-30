@@ -21,8 +21,4 @@ public class GoogleSpreadsheetRowFacet extends AbstractFacet {
     @OneToMany(mappedBy = "row", orphanRemoval = true, fetch= FetchType.EAGER, cascade= CascadeType.ALL)
     public List<GoogleSpreadsheetCellFacet> cells;
 
-    @Override
-    protected void makeFullTextIndexable() {
-
-    }
 }

@@ -36,10 +36,4 @@ public class EvernoteNotebookFacet extends EvernoteFacet {
 
     public EvernoteNotebookFacet(long apiKeyId) {super(apiKeyId);}
 
-    @Override
-    protected void makeFullTextIndexable() {
-        if (name!=null)
-            fullTextDescription = name;
-    }
-
 }

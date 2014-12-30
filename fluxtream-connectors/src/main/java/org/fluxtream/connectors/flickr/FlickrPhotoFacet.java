@@ -30,8 +30,4 @@ public class FlickrPhotoFacet extends AbstractLocalTimeFacet {
 
 	public FlickrPhotoFacet(long apiKeyId) {super(apiKeyId);}
 
-	@Override
-	protected void makeFullTextIndexable() {
-		this.fullTextDescription = title;
-	}
 }

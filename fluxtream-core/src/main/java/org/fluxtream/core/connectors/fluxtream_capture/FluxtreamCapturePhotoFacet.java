@@ -123,11 +123,6 @@ public class FluxtreamCapturePhotoFacet extends AbstractFacet implements Seriali
         }
     }
 
-    @Override
-    protected void makeFullTextIndexable() {
-        this.fullTextDescription = title;
-    }
-
     public long getGuestId() {
         return guestId;
     }

@@ -55,12 +55,4 @@ public class ToodledoTaskFacet extends AbstractFacet {
         super(apiKeyId);
     }
 
-    @Override
-	protected void makeFullTextIndexable() {
-		StringBuilder sb = new StringBuilder(title);
-		if (note!=null) sb.append(" ").append(note);
-		if (tag!=null) sb.append(" ").append(tag);
-		this.fullTextDescription = sb.toString();
-	}
-	
 }

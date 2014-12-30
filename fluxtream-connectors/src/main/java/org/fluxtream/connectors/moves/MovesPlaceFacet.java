@@ -45,10 +45,6 @@ public class MovesPlaceFacet extends MovesFacet  {
     }
 
     @Override
-    protected void makeFullTextIndexable() {
-    }
-
-    @Override
     void addActivity(final MovesActivity activity) {
         if (activities==null)
             activities = new ArrayList<MovesActivity>();

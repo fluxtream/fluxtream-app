@@ -30,7 +30,4 @@ public class FitbitLoggedActivityFacet extends AbstractLocalTimeFacet {
         super(apiKeyId);
     }
 
-    @Override
-	protected void makeFullTextIndexable() {}
-
 }

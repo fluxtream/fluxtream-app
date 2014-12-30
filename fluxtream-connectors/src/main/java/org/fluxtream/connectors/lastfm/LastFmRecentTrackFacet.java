@@ -34,9 +34,4 @@ public class LastFmRecentTrackFacet extends AbstractFacet {
         super(apiKeyId);
     }
 
-    @Override
-	protected void makeFullTextIndexable() {
-		this.fullTextDescription = artist + " " + name;
-	}
-
 }

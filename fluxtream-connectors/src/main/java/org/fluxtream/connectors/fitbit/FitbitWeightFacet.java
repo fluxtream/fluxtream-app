@@ -37,7 +37,4 @@ public class FitbitWeightFacet extends AbstractLocalTimeFacet {
         super(apiKeyId);
     }
 
-    @Override
-    protected void makeFullTextIndexable() {}
-
 }

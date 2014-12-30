@@ -56,9 +56,4 @@ public class CallLogEntryFacet extends AbstractFacet implements Serializable {
 		return s;
 	}
 
-	@Override
-	protected void makeFullTextIndexable() {
-		this.fullTextDescription = toString();
-	}
-	
 }

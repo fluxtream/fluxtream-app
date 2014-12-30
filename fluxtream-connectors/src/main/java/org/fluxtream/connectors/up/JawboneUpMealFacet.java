@@ -23,9 +23,6 @@ public class JawboneUpMealFacet extends JawboneUpGeoFacet {
     @Lob
     public String mealDetails;
 
-    @Override
-    protected void makeFullTextIndexable() {}
-
     public JawboneUpMealFacet(){super();}
     public JawboneUpMealFacet(long apiKeyId){super(apiKeyId);}
 

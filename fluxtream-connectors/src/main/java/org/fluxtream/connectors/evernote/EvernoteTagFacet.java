@@ -23,8 +23,4 @@ public class EvernoteTagFacet extends EvernoteFacet {
 
     public EvernoteTagFacet(long apiKeyId) {super(apiKeyId);}
 
-    @Override
-    protected void makeFullTextIndexable() {
-        fullTextDescription = name;
-    }
 }

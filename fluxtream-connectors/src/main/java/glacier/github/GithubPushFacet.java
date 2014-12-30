@@ -27,7 +27,4 @@ public class GithubPushFacet extends AbstractFacet {
         super(apiKeyId);
     }
 
-    @Override
-    protected void makeFullTextIndexable() {
-    }
 }

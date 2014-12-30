@@ -50,8 +50,4 @@ public class FitbitFoodLogEntryFacet extends AbstractLocalTimeFacet {
 
     public FitbitFoodLogEntryFacet(final long apiKeyId) {super(apiKeyId);}
 
-    @Override
-    protected void makeFullTextIndexable() {
-
-    }
 }

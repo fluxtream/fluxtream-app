@@ -17,11 +17,6 @@ public class GoogleSpreadsheetCellFacet extends AbstractFacet {
 
     public GoogleSpreadsheetCellFacet() {}
 
-    @Override
-    protected void makeFullTextIndexable() {
-
-    }
-
     @ManyToOne(fetch= FetchType.EAGER, cascade= CascadeType.ALL)
     public GoogleSpreadsheetRowFacet row;
 

@@ -29,7 +29,4 @@ public class WithingsBodyScaleMeasureFacet extends AbstractFacet {
         super(apiKeyId);
     }
 
-    @Override
-	protected void makeFullTextIndexable() {}
-	
 }

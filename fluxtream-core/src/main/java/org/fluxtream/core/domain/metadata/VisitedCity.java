@@ -87,12 +87,6 @@ public class VisitedCity extends AbstractLocalTimeFacet implements Comparable<Vi
     }
 
     @Override
-    protected void makeFullTextIndexable() {
-        if (this.city!=null)
-            this.fullTextDescription = city.geo_name;
-    }
-
-    @Override
     public int compareTo(final VisitedCity o) {
         int dateComparison = this.date.compareTo(o.date);
         if (dateComparison==0) {

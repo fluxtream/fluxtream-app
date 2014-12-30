@@ -59,8 +59,4 @@ public class SmsEntryFacet extends AbstractFacet implements Serializable {
 		return s;
 	}
 
-	@Override
-	protected void makeFullTextIndexable() {
-		this.fullTextDescription = personName + " " + personNumber + " " + message;
-	}
 }

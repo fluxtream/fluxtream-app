@@ -34,13 +34,4 @@ public class PicasaPhotoFacet extends AbstractFacet implements Serializable {
 	
 	public PicasaPhotoFacet(long apiKeyId) { super(apiKeyId); }
 
-	@Override
-	protected void makeFullTextIndexable() {
-		this.fullTextDescription = "";
-		if (title!=null)
-			fullTextDescription += title;
-		if (description!=null)
-			fullTextDescription += " " + description;
-	}
-	
 }

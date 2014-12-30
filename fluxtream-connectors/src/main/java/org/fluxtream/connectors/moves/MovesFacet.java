@@ -32,7 +32,4 @@ public abstract class MovesFacet extends AbstractFacet {
 
     abstract List<MovesActivity> getActivities();
 
-    @Override
-    protected void makeFullTextIndexable() {
-    }
 }

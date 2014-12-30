@@ -45,9 +45,4 @@ public class TwitterDirectMessageFacet extends AbstractFacet {
         super(apiKeyId);
     }
 
-    @Override
-	protected void makeFullTextIndexable() {
-		this.fullTextDescription = senderName + " " + senderScreenName + " " + text;
-	}
-	
 }

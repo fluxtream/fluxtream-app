@@ -39,7 +39,4 @@ public class ZeoSleepStatsFacet extends AbstractLocalTimeFacet {
         super(apiKeyId);
     }
 
-    @Override
-    protected void makeFullTextIndexable() {}
-
 }

@@ -22,8 +22,4 @@ public class WithingsHeartPulseMeasureFacet extends AbstractFacet {
         super(apiKeyId);
     }
 
-    @Override
-    protected void makeFullTextIndexable() {
-
-    }
 }

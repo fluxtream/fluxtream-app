@@ -80,11 +80,6 @@ public class GoogleCalendarEventFacet extends AbstractRepeatableFacet {
 
     public String recurringEventId;
 
-    @Override
-    protected void makeFullTextIndexable() {
-        fullTextDescription = summary;
-    }
-
     public void setStart(final EventDateTime start) {
         if (start!=null) {
             if (start.getDateTime()!=null) {

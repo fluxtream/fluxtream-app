@@ -51,10 +51,6 @@ public class MymeeObservationFacet extends AbstractFacet {
         super(apiKeyId);
     }
 
-    @Override
-    protected void makeFullTextIndexable() {
-    }
-
     // Returns the channel name used by datastore and in datastore-related URLs
     public String getChannelName() {
         // Datastore channel names have all characters that aren't alphanumeric or underscores replaced with underscores

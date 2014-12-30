@@ -46,11 +46,6 @@ public class MovesMoveFacet extends MovesFacet {
     }
 
     @Override
-    protected void makeFullTextIndexable() {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
     List<MovesActivity> getActivities() {
         return activities;
     }

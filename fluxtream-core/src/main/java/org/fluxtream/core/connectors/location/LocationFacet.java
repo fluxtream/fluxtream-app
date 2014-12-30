@@ -104,6 +104,4 @@ public class LocationFacet extends AbstractFacet implements Comparable<LocationF
 		return (o1.timestampMs > timestampMs)?-1:1;
 	}
 
-    @Override
-	protected void makeFullTextIndexable() { }
 }

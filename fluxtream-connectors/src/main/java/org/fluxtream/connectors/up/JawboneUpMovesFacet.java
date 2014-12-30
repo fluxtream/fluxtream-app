@@ -58,10 +58,6 @@ public class JawboneUpMovesFacet extends JawboneUpFacet {
     public JawboneUpMovesFacet(){super();}
     public JawboneUpMovesFacet(long apiKeyId){super(apiKeyId);}
 
-    @Override
-    protected void makeFullTextIndexable() {
-    }
-
     public void addHourlyTotals(JawboneUpMovesHourlyTotals totals) {
         if (hourlyTotals==null)
             hourlyTotals = new ArrayList<JawboneUpMovesHourlyTotals>();

@@ -23,7 +23,4 @@ public class WithingsBPMMeasureFacet extends AbstractFacet {
         super(apiKeyId);
     }
 
-    @Override
-	protected void makeFullTextIndexable() {}
-	
 }

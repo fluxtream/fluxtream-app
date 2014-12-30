@@ -23,9 +23,6 @@ public class JawboneUpServingFacet extends JawboneUpFacet {
     @Lob
     public String servingDetails;
 
-    @Override
-    protected void makeFullTextIndexable() {}
-
 
     @ManyToOne(fetch= FetchType.EAGER, cascade= CascadeType.ALL)
     public JawboneUpMealFacet meal;

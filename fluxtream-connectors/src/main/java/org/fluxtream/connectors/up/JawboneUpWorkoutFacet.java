@@ -33,9 +33,6 @@ public class JawboneUpWorkoutFacet extends JawboneUpGeoFacet {
     public String snapshot_image;
     public String route;
 
-    @Override
-    protected void makeFullTextIndexable() {}
-
     public JawboneUpWorkoutFacet(){super();}
     public JawboneUpWorkoutFacet(long apiKeyId){super(apiKeyId);}
 
