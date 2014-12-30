@@ -72,6 +72,9 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         if (Connector.getConnector("sleep_as_android")!=null)
             scopedApis.put("https://www.googleapis.com/auth/userinfo.email",
                     Connector.getConnector("sleep_as_android"));
+        if (Connector.getConnector("google_spreadsheets")!=null)
+            scopedApis.put("https://spreadsheets.google.com/feeds",
+                    Connector.getConnector("google_spreadsheets"));
     }
 
     @Override
@@ -293,6 +296,19 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         SleepAsAndroidConnectorInfo.supportsRenewTokens = true;
         SleepAsAndroidConnectorInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://www.googleapis.com/auth/userinfo.email";
         em.persist(SleepAsAndroidConnectorInfo);
+
+        final String spreadsheets = "Google Spreadsheets";
+        String[] spreadsheetsKeys = checkKeysExist(spreadsheets, Arrays.asList("google.client.id", "google.client.secret"));
+        final ConnectorInfo spreadsheetsConnectorInfo = new ConnectorInfo(spreadsheets,
+                "/" + release + "/images/connectors/connector-google_spreadsheets.jpg",
+                res.getString("google_spreadsheets"),
+                "upload:google_spreadsheets",
+                Connector.getConnector("google_spreadsheets"), order++, spreadsheetsKeys!=null,
+                true, false, spreadsheetsKeys);
+        spreadsheetsConnectorInfo.supportsRenewTokens = false;
+        spreadsheetsConnectorInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://spreadsheets.google.com/feeds";
+        em.persist(spreadsheets);
+
 	}
 
     @Transactional(readOnly = false)
