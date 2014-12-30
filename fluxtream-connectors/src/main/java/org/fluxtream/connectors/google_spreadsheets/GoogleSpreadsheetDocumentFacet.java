@@ -16,7 +16,7 @@ import java.util.List;
 @ObjectTypeSpec(name = "document", value = 1, prettyname = "Document", clientFacet = false)
 public class GoogleSpreadsheetDocumentFacet extends AbstractFacet {
 
-    @OneToMany(mappedBy = "rows", orphanRemoval = true, fetch=FetchType.LAZY, cascade=CascadeType.ALL)
+    @OneToMany(mappedBy = "document", orphanRemoval = true, fetch=FetchType.LAZY, cascade=CascadeType.ALL)
     public List<GoogleSpreadsheetRowFacet> rows;
 
     public GoogleSpreadsheetDocumentFacet() {}

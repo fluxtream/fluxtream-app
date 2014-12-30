@@ -296,9 +296,9 @@
 			<version>4.8</version>
 		</dependency>
 		<dependency>
-			<groupId>google</groupId>
-			<artifactId>collect</artifactId>
-			<version>1.0</version>
+			<groupId>com.google.gdata</groupId>
+			<artifactId>core</artifactId>
+			<version>1.47.1</version>
 		</dependency>
 		<dependency>
             <groupId>com.google.apis</groupId>
@@ -320,21 +320,21 @@
             <artifactId>google-api-services-gmail</artifactId>
             <version>v1-rev10-1.19.0</version>
         </dependency>
-        <dependency>
+		<dependency>
             <groupId>com.google.http-client</groupId>
             <artifactId>google-http-client-jackson</artifactId>
             <version>1.15.0-rc</version>
 		</dependency>
-		<dependency>
-			<groupId>gdata</groupId>
-            <artifactId>client</artifactId>
-            <version>1.0</version>
-		</dependency>
-		<dependency>
-			<groupId>gdata</groupId>
-            <artifactId>core</artifactId>
-			<version>1.0</version>
-		</dependency>
+		<!--<dependency>-->
+			<!--<groupId>gdata</groupId>-->
+            <!--<artifactId>client</artifactId>-->
+            <!--<version>1.0</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>gdata</groupId>-->
+            <!--<artifactId>core</artifactId>-->
+			<!--<version>1.0</version>-->
+		<!--</dependency>-->
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>

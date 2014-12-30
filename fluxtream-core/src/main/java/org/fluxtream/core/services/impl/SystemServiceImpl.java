@@ -302,12 +302,12 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         final ConnectorInfo spreadsheetsConnectorInfo = new ConnectorInfo(spreadsheets,
                 "/" + release + "/images/connectors/connector-google_spreadsheets.jpg",
                 res.getString("google_spreadsheets"),
-                "upload:google_spreadsheets",
+                "/google/oauth2/token?scope=https://spreadsheets.google.com/feeds",
                 Connector.getConnector("google_spreadsheets"), order++, spreadsheetsKeys!=null,
                 true, false, spreadsheetsKeys);
         spreadsheetsConnectorInfo.supportsRenewTokens = false;
         spreadsheetsConnectorInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://spreadsheets.google.com/feeds";
-        em.persist(spreadsheets);
+        em.persist(spreadsheetsConnectorInfo);
 
 	}
 

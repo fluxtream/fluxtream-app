@@ -12,7 +12,7 @@ import javax.persistence.ManyToOne;
  * Created by candide on 30/12/14.
  */
 @Entity(name="Facet_GoogleSpreadsheetCell")
-@ObjectTypeSpec(name = "row", value = 4, prettyname = "Row", isMixedType = true)
+@ObjectTypeSpec(name = "row", value = 4, prettyname = "Row", clientFacet = false)
 public class GoogleSpreadsheetCellFacet extends AbstractFacet {
 
     public GoogleSpreadsheetCellFacet() {}

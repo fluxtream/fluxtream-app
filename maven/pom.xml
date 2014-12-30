@@ -157,20 +157,20 @@
 							<file>photos-meta-2.0.jar</file>
 						</configuration>
 					</execution>
-					<execution>
-						<id>install-google-collect</id>
-						<phase>initialize</phase>
-						<goals>
-							<goal>install-file</goal>
-						</goals>
-						<configuration>
-							<groupId>google</groupId>
-							<artifactId>collect</artifactId>
-							<version>1.0</version>
-							<packaging>jar</packaging>
-							<file>collect-1.0.jar</file>
-						</configuration>
-					</execution>
+					<!--<execution>-->
+						<!--<id>install-google-collect</id>-->
+						<!--<phase>initialize</phase>-->
+						<!--<goals>-->
+							<!--<goal>install-file</goal>-->
+						<!--</goals>-->
+						<!--<configuration>-->
+							<!--<groupId>google</groupId>-->
+							<!--<artifactId>collect</artifactId>-->
+							<!--<version>1.0</version>-->
+							<!--<packaging>jar</packaging>-->
+							<!--<file>collect-1.0.jar</file>-->
+						<!--</configuration>-->
+					<!--</execution>-->
 					<execution>
 						<id>install-gdata-calendar</id>
 						<phase>initialize</phase>
