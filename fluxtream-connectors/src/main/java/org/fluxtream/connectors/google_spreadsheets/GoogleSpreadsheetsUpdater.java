@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Updater(prettyName = "Google Spreadsheets", value = 1, objectTypes = { GoogleSpreadsheetRowFacet.class }, updateStrategyType = Connector.UpdateStrategyType.INCREMENTAL)
 public class GoogleSpreadsheetsUpdater extends AbstractUpdater {
+
     @Override
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
 

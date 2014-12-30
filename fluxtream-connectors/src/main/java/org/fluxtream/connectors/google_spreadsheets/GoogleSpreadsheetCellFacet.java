@@ -12,12 +12,12 @@ import javax.persistence.ManyToOne;
  * Created by candide on 30/12/14.
  */
 @Entity(name="Facet_GoogleSpreadsheetCell")
-@ObjectTypeSpec(name = "row", value = 1, prettyname = "Row", isMixedType = true)
+@ObjectTypeSpec(name = "row", value = 4, prettyname = "Row", isMixedType = true)
 public class GoogleSpreadsheetCellFacet extends AbstractFacet {
 
     public GoogleSpreadsheetCellFacet() {}
 
-    @ManyToOne(fetch= FetchType.EAGER, cascade= CascadeType.ALL)
+    @ManyToOne(fetch= FetchType.LAZY, cascade= CascadeType.ALL)
     public GoogleSpreadsheetRowFacet row;
 
 }
