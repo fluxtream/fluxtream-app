@@ -201,9 +201,16 @@ define(["core/grapher/BTCore",
         uploadBtn.off("click");
         uploadBtn.click(function(event){
             event.preventDefault();
-            App.loadMustacheTemplate("connectorMgmtTemplates.html","uploadDialog",function(template){
-                handleSubmitForm(template, connector);
-            });
+            if (connector.connectorName==="google_spreadsheets") {
+                App.loadMustacheTemplate("connectorMgmtTemplates.html","spreadsheetBrowser",function(template){
+                    handleSpreadsheetBrowser(template, connector);
+                });
+            }
+            else {
+                App.loadMustacheTemplate("connectorMgmtTemplates.html","uploadDialog",function(template){
+                    handleSubmitForm(template, connector);
+                });
+            }
         });
         var viewDataBtn = $("#viewUpdates-" + connector.connectorName);
         // remove previously bound handler
@@ -393,6 +400,81 @@ define(["core/grapher/BTCore",
         });
     }
 
+    function handleSpreadsheetBrowser(template, connector) {
+        $.ajax({
+            url: "/api/v1/spreadsheets/",
+            success: function(spreadsheets) {
+                var html = template.render({connector:connector});
+                App.makeModal(html);
+                for (var i=0; i<spreadsheets.length; i++) {
+                    $("#spreadsheetSelect").append('<option value="' + spreadsheets[i]["id"] + '">' + spreadsheets[i]["title"] + '</option>');
+                }
+                $("#worksheetSelect").empty().prop("disabled", true);
+                $("#worksheetSection").hide();
+                $("#dateTimeFieldSelect").empty().prop("disabled", true);
+                $("#spreadsheetSelect").change(function(){
+                    var spreadsheetId = $("#spreadsheetSelect").val();
+                    loadSpreadsheetInfo(spreadsheetId);
+                });
+            }
+        });
+    }
+
+    function loadSpreadsheetInfo(spreadsheetId) {
+        $.ajax({
+            url: "/api/v1/spreadsheets/worksheets",
+            data: {spreadsheetId : spreadsheetId},
+            success: function(worksheets) {
+                $("#worksheetSelect").empty().prop("disabled", false);
+                if (worksheets.length>1) {
+                    $("#dateTimeFieldSelect").empty().prop("disabled", true);
+                    $("#worksheetSection").show();
+                    $("#worksheetSelect").append('<option>Please choose one</option>');
+                    for (var i = 0; i < worksheets.length; i++) {
+                        $("#worksheetSelect").append('<option value="' + worksheets[i]["id"] + '">' + worksheets[i]["title"] + '</option>');
+                    }
+                    $("#worksheetSelect").change(function(){
+                        var worksheetId = $("#worksheetSelect").val();
+                        if (!_.isUndefined(worksheetId)&&worksheetId!=null) {
+                            loadWorksheetInfo(spreadsheetId, worksheetId);
+                        }
+                    });
+                } else {
+                    $("#worksheetSection").hide();
+                    loadWorksheetInfo(spreadsheetId, worksheets[0]["id"]);
+                }
+            }
+        });
+    }
+
+    function loadWorksheetInfo(spreadsheetId, worksheetId) {
+        $("#dateTimeFormatSelect").prop("disabled", true);
+        $("#dateTimeFieldSelect").empty().prop("disabled", true);
+        $.ajax({
+            url: "/api/v1/spreadsheets/worksheet",
+            data: {spreadsheetId : spreadsheetId, worksheetId : worksheetId},
+            success: function(worksheet) {
+                console.log(worksheet);
+                $("#dateTimeFieldSelect").empty().prop("disabled", false);
+                var alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                for (var i=0; i<worksheet["colCount"]; i++) {
+                    var letterIndex = i%alphabet.length;
+                    var prependIndex = Math.floor(i/alphabet.length);
+                    console.log(prependIndex + "/" + letterIndex);
+                    var letter = alphabet.charAt(letterIndex);
+                    var columnLetter = (prependIndex>0)
+                        ? alphabet.charAt(prependIndex-1) + letter
+                        : letter;
+                    $("#dateTimeFieldSelect").append('<option value="' + columnLetter + '">' + columnLetter + '</option>');
+                }
+                $("#dateTimeFieldSelect").change(function(){
+                    $("#dateTimeFormatSelect").prop("disabled", false);
+                    console.log("date field column: " + $("#dateTimeFieldSelect"));
+                });
+            }
+        });
+    }
+
     function handleSubmitForm(template, connector) {
         connector.uploadMessage= "We support upload of zip encoded json-formatted location history files as generated from " +
                                  "<a target=\"_blank\" href=\"https://www.google.com/takeout/#custom:latitude\"> Google Takeout </a><br>" +
@@ -423,7 +505,6 @@ define(["core/grapher/BTCore",
             console.log("we should send this file now...");
         });
     }
-
 
     function setToSyncing(connectorName){
         var row = $("#connector-" + connectorName);
