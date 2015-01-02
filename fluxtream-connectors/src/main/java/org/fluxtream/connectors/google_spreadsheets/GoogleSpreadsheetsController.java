@@ -6,11 +6,10 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.gdata.client.spreadsheet.SpreadsheetService;
-import com.google.gdata.data.spreadsheet.ListFeed;
 import com.google.gdata.data.spreadsheet.SpreadsheetEntry;
 import com.google.gdata.data.spreadsheet.SpreadsheetFeed;
 import com.google.gdata.data.spreadsheet.WorksheetEntry;
-import com.google.gdata.util.ServiceException;
+import org.apache.commons.lang.StringUtils;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.updaters.UpdateFailedException;
@@ -70,6 +69,20 @@ public class GoogleSpreadsheetsController {
 
     class WorksheetMetadata {
         public int rowCount, colCount;
+    }
+
+    @POST
+    @Path("/")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response addSpreadsheet(@FormParam("spreadsheetId") String spreadsheetId,
+                                   @FormParam("worksheetId") String worksheetId,
+                                   @FormParam("dateTimeField") String dateTimeField,
+                                   @FormParam("dateTimeFormat") String dateTimeFormat,
+                                   @FormParam(value="timeZone") String timeZone) throws UpdateFailedException {
+        TimeZone tz = null;
+        if (StringUtils.isNotEmpty(timeZone))
+            tz = TimeZone.getTimeZone(timeZone);
+        return Response.ok().build();
     }
 
     @GET

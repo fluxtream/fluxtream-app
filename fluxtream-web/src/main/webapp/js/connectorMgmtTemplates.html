@@ -464,7 +464,7 @@
             <h3>Spreadsheet import options</h3>
         </div>
         <div class="modal-body">
-            <form class="form-horizontal">
+            <form class="form-horizontal" action="javascript:void(0);">
             <fieldset>
 
             <!-- Select Basic -->
@@ -491,7 +491,7 @@
               <div class="controls">
                 <select disabled id="dateTimeFieldSelect" name="dateTimeFieldSelect">
                 </select>
-                <p class="help-block">Please select the column letter that contains date/time information for each row</p>
+                <p class="help-block">Please select the column letter that contains event date/time information for each row</p>
               </div>
             </div>
 
@@ -499,33 +499,132 @@
               <label class="control-label" for="dateTimeTypeSelect">Date/Time Type</label>
               <div class="controls">
                 <select disabled id="dateTimeTypeSelect" name="dateTimeTypeSelect">
-                  <option>ISO 8601</option>
-                  <option>Epoch seconds</option>
-                  <option>Epoch millis</option>
-                  <option>Other</option>
+                  <option value="none">Please choose one</option>
+                  <option data-momentjs-format="YYYY-MM-DD'T'HH:mm:ss.SSSZ" value="yyyy-MM-dd'T'HH:mm:ss.SSSZ"></option>
+                  <option data-momentjs-format="YYYY-MM-DD'T'HH:mm:ss.SSSZZ" value="yyyy-MM-dd'T'HH:mm:ss.SSSZZ"></option>
+                  <option data-momentjs-format="YYYY-MM-DD'T'HH:mm:ss.SSS" value="yyyy-MM-dd'T'HH:mm:ss.SSS"></option>
+                  <option data-momentjs-format="YYYY-MM-DDZ" value="yyyy-MM-ddZ"></option>
+                  <option data-momentjs-format="YYYY-MM-DDZZ" value="yyyy-MM-ddZZ"></option>
+                  <option data-momentjs-format="YYYY-MM-DD" value="yyyy-MM-dd"></option>
+                  <option data-momentjs-format="YYYYMMDD'T'HHmmssZ" value="yyyyMMdd'T'HHmmssZ"></option>
+                  <option data-momentjs-format="YYYYMMDD'T'HHmmssZZ" value="yyyyMMdd'T'HHmmssZZ"></option>
+                  <option data-momentjs-format="YYYYMMDD'T'HHmmss" value="yyyyMMdd'T'HHmmss"></option>
+                  <option data-momentjs-format="YYYYMMDDZ" value="yyyyMMddZ"></option>
+                  <option data-momentjs-format="YYYYMMDDZZ" value="yyyyMMddZZ"></option>
+                  <option data-momentjs-format="YYYYMMDD" value="yyyyMMdd"></option>
+                  <option data-momentjs-format="YYYY/MM/DDZ" value="yyyy/MM/ddZ"></option>
+                  <option data-momentjs-format="YYYY/MM/DDZZ" value="yyyy/MM/ddZZ"></option>
+                  <option data-momentjs-format="YYYY/MM/DD" value="yyyy/MM/dd"></option>
+                  <option value="epochSeconds">Epoch seconds</option>
+                  <option value="epochMillis">Epoch millis</option>
+                  <!--<option value="format">Other</option>-->
                 </select>
               </div>
             </div>
 
-            <div class="control-group" id="dateTimeFormatSection" style="display:block">
-              <label class="control-label" for="dateTimeFormatField">Date/Time Format</label>
-              <div class="controls">
-                <input id="dateTimeFormatField" name="dateTimeFormatField" type="text" placeholder="DD/MM/YYYY">
-                <p class="help-block">D: day, Y: Year, M: Month...</p>
-              </div>
-            </div>
+            <!--<div class="control-group" id="dateTimeFormatSection" style="display:none">-->
+              <!--<label class="control-label" for="dateTimeFormatField">Date/Time Format</label>-->
+              <!--<div class="controls">-->
+                <!--<input id="dateTimeFormatField" name="dateTimeFormatField" type="text" placeholder="DD/MM/YYYY">-->
+                <!--<p class="help-block">D: day, Y: Year, M: Month...</p>-->
+              <!--</div>-->
+            <!--</div>-->
 
-            <div class="control-group" id="timeZoneSection" style="display:block">
-              <label class="control-label" for="timezoneField">Time zone</label>
+            <div class="control-group" id="timeZoneSection" style="display:none">
+              <label class="control-label" for="timeZoneSelect">Time zone</label>
               <div class="controls">
-                  <select id="timezoneField"><option value=""></option><option value="AF">Afghanistan</option><option value="AL">Albania</option><option value="DZ">Algeria</option><option value="AS">American Samoa</option><option value="AD">Andorra</option><option value="AO">Angola</option><option value="AI">Anguilla</option><option value="AQ">Antarctica</option><option value="AG">Antigua and Barbuda</option><option value="AR">Argentina</option><option value="AM">Armenia</option><option value="AW">Aruba</option><option value="AU">Australia</option><option value="AT">Austria</option><option value="AZ">Azerbaijan</option><option value="BH">Bahrain</option><option value="BD">Bangladesh</option><option value="BB">Barbados</option><option value="BY">Belarus</option><option value="BE">Belgium</option><option value="BZ">Belize</option><option value="BJ">Benin</option><option value="BM">Bermuda</option><option value="BT">Bhutan</option><option value="BO">Bolivia</option><option value="BA">Bosnia and Herzegovina</option><option value="BW">Botswana</option><option value="BV">Bouvet Island</option><option value="BR">Brazil</option><option value="IO">British Indian Ocean Territory</option><option value="VG">British Virgin Islands</option><option value="BN">Brunei</option><option value="BG">Bulgaria</option><option value="BF">Burkina Faso</option><option value="BI">Burundi</option><option value="CI">Côte d'Ivoire</option><option value="KH">Cambodia</option><option value="CM">Cameroon</option><option value="CA">Canada</option><option value="CV">Cape Verde</option><option value="KY">Cayman Islands</option><option value="CF">Central African Republic</option><option value="TD">Chad</option><option value="CL">Chile</option><option value="CN">China</option><option value="CX">Christmas Island</option><option value="CC">Cocos (Keeling) Islands</option><option value="CO">Colombia</option><option value="KM">Comoros</option><option value="CG">Congo</option><option value="CK">Cook Islands</option><option value="CR">Costa Rica</option><option value="HR">Croatia</option><option value="CU">Cuba</option><option value="CY">Cyprus</option><option value="CZ">Czech Republic</option><option value="CD">Democratic Republic of the Congo</option><option value="DK">Denmark</option><option value="DJ">Djibouti</option><option value="DM">Dominica</option><option value="DO">Dominican Republic</option><option value="TP">East Timor</option><option value="EC">Ecuador</option><option value="EG">Egypt</option><option value="SV">El Salvador</option><option value="GQ">Equatorial Guinea</option><option value="ER">Eritrea</option><option value="EE">Estonia</option><option value="ET">Ethiopia</option><option value="FO">Faeroe Islands</option><option value="FK">Falkland Islands</option><option value="FJ">Fiji</option><option value="FI">Finland</option><option value="MK">Former Yugoslav Republic of Macedonia</option><option value="FR">France</option><option value="FX">France, Metropolitan</option><option value="GF">French Guiana</option><option value="PF">French Polynesia</option><option value="TF">French Southern Territories</option><option value="GA">Gabon</option><option value="GE">Georgia</option><option value="DE">Germany</option><option value="GH">Ghana</option><option value="GI">Gibraltar</option><option value="GR">Greece</option><option value="GL">Greenland</option><option value="GD">Grenada</option><option value="GP">Guadeloupe</option><option value="GU">Guam</option><option value="GT">Guatemala</option><option value="GN">Guinea</option><option value="GW">Guinea-Bissau</option><option value="GY">Guyana</option><option value="HT">Haiti</option><option value="HM">Heard and Mc Donald Islands</option><option value="HN">Honduras</option><option value="HK">Hong Kong</option><option value="HU">Hungary</option><option value="IS">Iceland</option><option value="IN">India</option><option value="ID">Indonesia</option><option value="IR">Iran</option><option value="IQ">Iraq</option><option value="IE">Ireland</option><option value="IL">Israel</option><option value="IT">Italy</option><option value="JM">Jamaica</option><option value="JP">Japan</option><option value="JO">Jordan</option><option value="KZ">Kazakhstan</option><option value="KE">Kenya</option><option value="KI">Kiribati</option><option value="KW">Kuwait</option><option value="KG">Kyrgyzstan</option><option value="LA">Laos</option><option value="LV">Latvia</option><option value="LB">Lebanon</option><option value="LS">Lesotho</option><option value="LR">Liberia</option><option value="LY">Libya</option><option value="LI">Liechtenstein</option><option value="LT">Lithuania</option><option value="LU">Luxembourg</option><option value="MO">Macau</option><option value="MG">Madagascar</option><option value="MW">Malawi</option><option value="MY">Malaysia</option><option value="MV">Maldives</option><option value="ML">Mali</option><option value="MT">Malta</option><option value="MH">Marshall Islands</option><option value="MQ">Martinique</option><option value="MR">Mauritania</option><option value="MU">Mauritius</option><option value="YT">Mayotte</option><option value="MX">Mexico</option><option value="FM">Micronesia</option><option value="MD">Moldova</option><option value="MC">Monaco</option><option value="MN">Mongolia</option><option value="ME">Montenegro</option><option value="MS">Montserrat</option><option value="MA">Morocco</option><option value="MZ">Mozambique</option><option value="MM">Myanmar</option><option value="NA">Namibia</option><option value="NR">Nauru</option><option value="NP">Nepal</option><option value="NL">Netherlands</option><option value="AN">Netherlands Antilles</option><option value="NC">New Caledonia</option><option value="NZ">New Zealand</option><option value="NI">Nicaragua</option><option value="NE">Niger</option><option value="NG">Nigeria</option><option value="NU">Niue</option><option value="NF">Norfolk Island</option><option value="KP">North Korea</option><option value="MP">Northern Marianas</option><option value="NO">Norway</option><option value="OM">Oman</option><option value="PK">Pakistan</option><option value="PW">Palau</option><option value="PS">Palestine</option><option value="PA">Panama</option><option value="PG">Papua New Guinea</option><option value="PY">Paraguay</option><option value="PE">Peru</option><option value="PH">Philippines</option><option value="PN">Pitcairn Islands</option><option value="PL">Poland</option><option value="PT">Portugal</option><option value="PR">Puerto Rico</option><option value="QA">Qatar</option><option value="RE">Reunion</option><option value="RO">Romania</option><option value="RU">Russia</option><option value="RW">Rwanda</option><option value="ST">São Tomé and Príncipe</option><option value="SH">Saint Helena</option><option value="PM">St. Pierre and Miquelon</option><option value="KN">Saint Kitts and Nevis</option><option value="LC">Saint Lucia</option><option value="VC">Saint Vincent and the Grenadines</option><option value="WS">Samoa</option><option value="SM">San Marino</option><option value="SA">Saudi Arabia</option><option value="SN">Senegal</option><option value="RS">Serbia</option><option value="SC">Seychelles</option><option value="SL">Sierra Leone</option><option value="SG">Singapore</option><option value="SK">Slovakia</option><option value="SI">Slovenia</option><option value="SB">Solomon Islands</option><option value="SO">Somalia</option><option value="ZA">South Africa</option><option value="GS">South Georgia and the South Sandwich Islands</option><option value="KR">South Korea</option><option value="ES">Spain</option><option value="LK">Sri Lanka</option><option value="SD">Sudan</option><option value="SR">Suriname</option><option value="SJ">Svalbard and Jan Mayen Islands</option><option value="SZ">Swaziland</option><option value="SE">Sweden</option><option value="CH">Switzerland</option><option value="SY">Syria</option><option value="TW">Taiwan</option><option value="TJ">Tajikistan</option><option value="TZ">Tanzania</option><option value="TH">Thailand</option><option value="BS">The Bahamas</option><option value="GM">The Gambia</option><option value="TG">Togo</option><option value="TK">Tokelau</option><option value="TO">Tonga</option><option value="TT">Trinidad and Tobago</option><option value="TN">Tunisia</option><option value="TR">Turkey</option><option value="TM">Turkmenistan</option><option value="TC">Turks and Caicos Islands</option><option value="TV">Tuvalu</option><option value="VI">US Virgin Islands</option><option value="UG">Uganda</option><option value="UA">Ukraine</option><option value="AE">United Arab Emirates</option><option value="GB">United Kingdom</option><option value="US">United States</option><option value="UM">United States Minor Outlying Islands</option><option value="UY">Uruguay</option><option value="UZ">Uzbekistan</option><option value="VU">Vanuatu</option><option value="VA">Vatican City</option><option value="VE">Venezuela</option><option value="VN">Vietnam</option><option value="WF">Wallis and Futuna Islands</option><option value="EH">Western Sahara</option><option value="YE">Yemen</option><option value="ZM">Zambia</option><option value="ZW">Zimbabwe</option></select>
+                  <select id="timeZoneSelect">
+                      <option value="none">Please choose one</option>
+	<option value="GMT-12:00" data-useDaylightTime="0">(GMT-12:00) International Date Line West</option>
+	<option value="GMT-11:00" data-useDaylightTime="0">(GMT-11:00) Midway Island, Samoa</option>
+	<option value="GMT-10:00" data-useDaylightTime="0">(GMT-10:00) Hawaii</option>
+	<option value="GMT-09:00" data-useDaylightTime="1">(GMT-09:00) Alaska</option>
+	<option value="GMT-08:00" data-useDaylightTime="1">(GMT-08:00) Pacific Time (US & Canada)</option>
+	<option value="GMT-08:00" data-useDaylightTime="1">(GMT-08:00) Tijuana, Baja California</option>
+	<option value="GMT-07:00" data-useDaylightTime="0">(GMT-07:00) Arizona</option>
+	<option value="GMT-07:00" data-useDaylightTime="1">(GMT-07:00) Chihuahua, La Paz, Mazatlan</option>
+	<option value="GMT-07:00" data-useDaylightTime="1">(GMT-07:00) Mountain Time (US & Canada)</option>
+	<option value="GMT-06:00" data-useDaylightTime="0">(GMT-06:00) Central America</option>
+	<option value="GMT-06:00" data-useDaylightTime="1">(GMT-06:00) Central Time (US & Canada)</option>
+	<option value="GMT-06:00" data-useDaylightTime="1">(GMT-06:00) Guadalajara, Mexico City, Monterrey</option>
+	<option value="GMT-06:00" data-useDaylightTime="0">(GMT-06:00) Saskatchewan</option>
+	<option value="GMT-05:00" data-useDaylightTime="0">(GMT-05:00) Bogota, Lima, Quito, Rio Branco</option>
+	<option value="GMT-05:00" data-useDaylightTime="1">(GMT-05:00) Eastern Time (US & Canada)</option>
+	<option value="GMT-05:00" data-useDaylightTime="1">(GMT-05:00) Indiana (East)</option>
+	<option value="GMT-04:00" data-useDaylightTime="1">(GMT-04:00) Atlantic Time (Canada)</option>
+	<option value="GMT-04:00" data-useDaylightTime="0">(GMT-04:00) Caracas, La Paz</option>
+	<option value="GMT-04:00" data-useDaylightTime="0">(GMT-04:00) Manaus</option>
+	<option value="GMT-04:00" data-useDaylightTime="1">(GMT-04:00) Santiago</option>
+	<option value="GMT-03:30" data-useDaylightTime="1" value="-3.5">(GMT-03:30) Newfoundland</option>
+	<option value="GMT-03:00" data-useDaylightTime="1">(GMT-03:00) Brasilia</option>
+	<option value="GMT-03:00" data-useDaylightTime="0">(GMT-03:00) Buenos Aires, Georgetown</option>
+	<option value="GMT-03:00" data-useDaylightTime="1">(GMT-03:00) Greenland</option>
+	<option value="GMT-03:00" data-useDaylightTime="1">(GMT-03:00) Montevideo</option>
+	<option value="GMT-02:00" data-useDaylightTime="1">(GMT-02:00) Mid-Atlantic</option>
+	<option value="GMT-01:00" data-useDaylightTime="0">(GMT-01:00) Cape Verde Is.</option>
+	<option value="GMT-01:00" data-useDaylightTime="1">(GMT-01:00) Azores</option>
+	<option value="GMT+00:00" data-useDaylightTime="0">(GMT+00:00) Casablanca, Monrovia, Reykjavik</option>
+	<option value="GMT+00:00" data-useDaylightTime="1">(GMT+00:00) Greenwich Mean Time : Dublin, Edinburgh, Lisbon, London</option>
+	<option value="GMT+01:00" data-useDaylightTime="1">(GMT+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna</option>
+	<option value="GMT+01:00" data-useDaylightTime="1">(GMT+01:00) Belgrade, Bratislava, Budapest, Ljubljana, Prague</option>
+	<option value="GMT+01:00" data-useDaylightTime="1">(GMT+01:00) Brussels, Copenhagen, Madrid, Paris</option>
+	<option value="GMT+01:00" data-useDaylightTime="1">(GMT+01:00) Sarajevo, Skopje, Warsaw, Zagreb</option>
+	<option value="GMT+01:00" data-useDaylightTime="1">(GMT+01:00) West Central Africa</option>
+	<option value="GMT+02:00" data-useDaylightTime="1">(GMT+02:00) Amman</option>
+	<option value="GMT+02:00" data-useDaylightTime="1">(GMT+02:00) Athens, Bucharest, Istanbul</option>
+	<option value="GMT+02:00" data-useDaylightTime="1">(GMT+02:00) Beirut</option>
+	<option value="GMT+02:00" data-useDaylightTime="1">(GMT+02:00) Cairo</option>
+	<option value="GMT+02:00" data-useDaylightTime="0">(GMT+02:00) Harare, Pretoria</option>
+	<option value="GMT+02:00" data-useDaylightTime="1">(GMT+02:00) Helsinki, Kyiv, Riga, Sofia, Tallinn, Vilnius</option>
+	<option value="GMT+02:00" data-useDaylightTime="1">(GMT+02:00) Jerusalem</option>
+	<option value="GMT+02:00" data-useDaylightTime="1">(GMT+02:00) Minsk</option>
+	<option value="GMT+02:00" data-useDaylightTime="1">(GMT+02:00) Windhoek</option>
+	<option value="GMT+03:00" data-useDaylightTime="0">(GMT+03:00) Kuwait, Riyadh, Baghdad</option>
+	<option value="GMT+03:00" data-useDaylightTime="1">(GMT+03:00) Moscow, St. Petersburg, Volgograd</option>
+	<option value="GMT+03:00" data-useDaylightTime="0">(GMT+03:00) Nairobi</option>
+	<option value="GMT+03:00" data-useDaylightTime="0">(GMT+03:00) Tbilisi</option>
+	<option value="GMT+03:30" data-useDaylightTime="1" value="3.5">(GMT+03:30) Tehran</option>
+	<option value="GMT+04:00" data-useDaylightTime="0">(GMT+04:00) Abu Dhabi, Muscat</option>
+	<option value="GMT+04:00" data-useDaylightTime="1">(GMT+04:00) Baku</option>
+	<option value="GMT+04:00" data-useDaylightTime="1">(GMT+04:00) Yerevan</option>
+	<option value="GMT+04:30" data-useDaylightTime="0" value="4.5">(GMT+04:30) Kabul</option>
+	<option value="GMT+05:00" data-useDaylightTime="1">(GMT+05:00) Yekaterinburg</option>
+	<option value="GMT+05:00" data-useDaylightTime="0">(GMT+05:00) Islamabad, Karachi, Tashkent</option>
+	<option value="GMT+05:30" data-useDaylightTime="0" value="5.5">(GMT+05:30) Sri Jayawardenapura</option>
+	<option value="GMT+05:30" data-useDaylightTime="0" value="5.5">(GMT+05:30) Chennai, Kolkata, Mumbai, New Delhi</option>
+	<option value="GMT+05:45" data-useDaylightTime="0" value="5.75">(GMT+05:45) Kathmandu</option>
+	<option value="GMT+06:00" data-useDaylightTime="1">(GMT+06:00) Almaty, Novosibirsk</option>
+	<option value="GMT+06:00" data-useDaylightTime="0">(GMT+06:00) Astana, Dhaka</option>
+	<option value="GMT+06:30" data-useDaylightTime="0" value="6.5">(GMT+06:30) Yangon (Rangoon)</option>
+	<option value="GMT+07:00" data-useDaylightTime="0">(GMT+07:00) Bangkok, Hanoi, Jakarta</option>
+	<option value="GMT+07:00" data-useDaylightTime="1">(GMT+07:00) Krasnoyarsk</option>
+	<option value="GMT+08:00" data-useDaylightTime="0">(GMT+08:00) Beijing, Chongqing, Hong Kong, Urumqi</option>
+	<option value="GMT+08:00" data-useDaylightTime="0">(GMT+08:00) Kuala Lumpur, Singapore</option>
+	<option value="GMT+08:00" data-useDaylightTime="0">(GMT+08:00) Irkutsk, Ulaan Bataar</option>
+	<option value="GMT+08:00" data-useDaylightTime="0">(GMT+08:00) Perth</option>
+	<option value="GMT+08:00" data-useDaylightTime="0">(GMT+08:00) Taipei</option>
+	<option value="GMT+09:00" data-useDaylightTime="0">(GMT+09:00) Osaka, Sapporo, Tokyo</option>
+	<option value="GMT+09:00" data-useDaylightTime="0">(GMT+09:00) Seoul</option>
+	<option value="GMT+09:00" data-useDaylightTime="1">(GMT+09:00) Yakutsk</option>
+	<option value="GMT+09:30" data-useDaylightTime="0" value="9.5">(GMT+09:30) Adelaide</option>
+	<option value="GMT+09:30" data-useDaylightTime="0" value="9.5">(GMT+09:30) Darwin</option>
+	<option value="GMT+10:00" data-useDaylightTime="0">(GMT+10:00) Brisbane</option>
+	<option value="GMT+10:00" data-useDaylightTime="1">(GMT+10:00) Canberra, Melbourne, Sydney</option>
+	<option value="GMT+10:00" data-useDaylightTime="1">(GMT+10:00) Hobart</option>
+	<option value="GMT+10:00" data-useDaylightTime="0">(GMT+10:00) Guam, Port Moresby</option>
+	<option value="GMT+10:00" data-useDaylightTime="1">(GMT+10:00) Vladivostok</option>
+	<option value="GMT+11:00" data-useDaylightTime="1">(GMT+11:00) Magadan, Solomon Is., New Caledonia</option>
+	<option value="GMT+12:00" data-useDaylightTime="1">(GMT+12:00) Auckland, Wellington</option>
+	<option value="GMT+12:00" data-useDaylightTime="0">(GMT+12:00) Fiji, Kamchatka, Marshall Is.</option>
+	<option value="GMT+13:00" data-useDaylightTime="0">(GMT+13:00) Nuku'alofa</option>
+</select>
               </div>
             </div>
 
             <div class="control-group">
               <label class="control-label" for="importSpreadsheetButton"></label>
               <div class="controls">
-                <button id="importSpreadsheetButton" name="importSpreadsheetButton" class="btn btn-primary">Import</button>
+                <button id="importSpreadsheetButton" disabled name="importSpreadsheetButton" class="btn btn-primary">Import</button>
                 <button id="importSpreadsheetCancelButton" name="importSpreadsheetCancelButton" class="btn btn-default">Cancel</button>
               </div>
             </div>
