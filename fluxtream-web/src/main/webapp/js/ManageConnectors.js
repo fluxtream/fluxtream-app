@@ -438,7 +438,7 @@ define(["core/grapher/BTCore",
                         url: "/api/v1/spreadsheets/",
                         type: "POST",
                         data: {
-                            spreasheetId : spreadsheetId,
+                            spreadsheetId : spreadsheetId,
                             worksheetId : worksheetId,
                             dateTimeField : dateTimeField,
                             dateTimeFormat : dateTimeFormat,

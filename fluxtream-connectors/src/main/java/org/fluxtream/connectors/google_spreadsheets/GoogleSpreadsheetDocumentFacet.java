@@ -20,6 +20,10 @@ public class GoogleSpreadsheetDocumentFacet extends AbstractFacet {
     public String spreadsheetId;
     public String worksheetId;
 
+    public String dateTimeColumnName;
+    public String dateTimeFormat;
+    public String timeZone;
+
     @Type(type="yes_no")
     public boolean incremental;
 
@@ -27,9 +31,12 @@ public class GoogleSpreadsheetDocumentFacet extends AbstractFacet {
     public List<GoogleSpreadsheetRowFacet> rows;
 
     public GoogleSpreadsheetDocumentFacet(){}
-    public GoogleSpreadsheetDocumentFacet(String spreadsheetId, String worksheetId) {
-        this.spreadsheetId = spreadsheetId;
-        this.worksheetId = worksheetId;
+    public GoogleSpreadsheetDocumentFacet(GoogleSpreadsheetsUpdater.ImportSpecs importSpecs){
+        this.spreadsheetId = importSpecs.spreadsheetId;
+        this.worksheetId = importSpecs.worksheetId;
+        this.dateTimeColumnName = importSpecs.dateTimeField;
+        this.dateTimeFormat = importSpecs.dateTimeFormat;
+        this.timeZone = importSpecs.timeZone;
     }
 
 }
