@@ -8,19 +8,23 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.annotations.Updater;
+import org.fluxtream.core.connectors.dao.JPAFacetDao;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
 import org.fluxtream.core.connectors.updaters.UpdateFailedException;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.ApiKey;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Created by candide on 29/12/14.
@@ -32,22 +36,21 @@ public class GoogleSpreadsheetsUpdater extends AbstractUpdater {
     @Autowired
     GoogleSpreadsheetsHelper helper;
 
-    @PersistenceContext
-    EntityManager em;
+    @Autowired
+    JPAFacetDao jpaFacetDao;
 
     public static class ImportSpecs {
         public String spreadsheetId, worksheetId, dateTimeField, dateTimeFormat, timeZone;
     }
 
     @Override
-    @Transactional(readOnly=false)
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
         ImportSpecs importSpecs = objectMapper.readValue(updateInfo.jsonParams, ImportSpecs.class);
         //TODO: check document doesn't already exist
         GoogleSpreadsheetDocumentFacet documentFacet = new GoogleSpreadsheetDocumentFacet(importSpecs);
         importSpreadsheet(documentFacet);
-        em.persist(documentFacet);
+        jpaFacetDao.persist(documentFacet);
     }
 
     private void importSpreadsheet(GoogleSpreadsheetDocumentFacet documentFacet) throws UpdateFailedException, IOException, ServiceException {
@@ -77,16 +80,43 @@ public class GoogleSpreadsheetsUpdater extends AbstractUpdater {
         URL cellFeedUrl = worksheet.getCellFeedUrl();
         CellFeed cellFeed = service.getFeed(cellFeedUrl, CellFeed.class);
 
-        // Iterate through each cell, printing its value.
         GoogleSpreadsheetRowFacet currentRow = null;
         int currentRowIndex = -1;
         int dateTimeColIndex = getExcelColumnNumber(documentFacet.dateTimeColumnName);
+        DateTimeFormatter formatter = null;
+        boolean isEpochTime = Arrays.asList("epochMillis", "epochSeconds").contains(documentFacet.dateTimeFormat);
+        if (!isEpochTime)
+            formatter = DateTimeFormat.forPattern(documentFacet.dateTimeFormat);
+        DateTimeZone dateTimeZone = documentFacet.timeZone!=null?DateTimeZone.forTimeZone(TimeZone.getTimeZone(documentFacet.timeZone)):null;
         for (CellEntry cell : cellFeed.getEntries()) {
             if (currentRowIndex!=cell.getCell().getRow()) {
+                currentRowIndex = cell.getCell().getRow();
                 currentRow = new GoogleSpreadsheetRowFacet();
-                em.persist(currentRow);
+                currentRow.document = documentFacet;
+                jpaFacetDao.persist(currentRow);
             }
-            System.out.println(cell.getCell().getRow() + "/" + cell.getCell().getCol() + ": " + cell.getCell().getValue());
+            GoogleSpreadsheetCellFacet cellFacet = new GoogleSpreadsheetCellFacet();
+            cellFacet.row = currentRow;
+            cellFacet.isNumeric = cell.getCell().getNumericValue()!=null;
+            cellFacet.value = cell.getCell().getValue();
+            if (cell.getCell().getCol()==dateTimeColIndex) {
+                DateTime dateTime;
+                if (isEpochTime) {
+                    if (documentFacet.dateTimeFormat.equals("epochMillis"))
+                        currentRow.start = currentRow.end = Long.valueOf(cell.getCell().getValue());
+                    else
+                        currentRow.start = currentRow.end = Long.valueOf(cell.getCell().getValue())*1000;
+                } else {
+                    if (dateTimeZone != null)
+                        dateTime = formatter.withZone(dateTimeZone).parseDateTime(cell.getCell().getValue());
+                    else
+                        dateTime = formatter.parseDateTime(cell.getCell().getValue());
+                    currentRow.start = currentRow.end = dateTime.getMillis();
+                }
+                System.out.println(currentRow.start);
+            }
+            jpaFacetDao.persist(cellFacet);
+            currentRow.cells.add(cellFacet);
         }
     }
 

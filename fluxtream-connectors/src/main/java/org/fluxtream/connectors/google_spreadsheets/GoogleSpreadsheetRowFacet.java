@@ -4,6 +4,7 @@ import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 import org.fluxtream.core.domain.AbstractRepeatableFacet;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,7 +20,7 @@ public class GoogleSpreadsheetRowFacet extends AbstractRepeatableFacet {
     GoogleSpreadsheetDocumentFacet document;
 
     @OneToMany(mappedBy = "row", orphanRemoval = true, fetch=FetchType.EAGER, cascade= CascadeType.ALL)
-    public List<GoogleSpreadsheetCellFacet> cells;
+    public List<GoogleSpreadsheetCellFacet> cells = new ArrayList<GoogleSpreadsheetCellFacet>();
 
     @Override
     public boolean allDay() {
