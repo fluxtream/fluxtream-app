@@ -1328,7 +1328,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function selectVisitedCity(evt) {
-        console.log("select visited city");
         var state = App.state.getState("calendar");
         state = state.substring(state.indexOf("/"));
         if ($(evt.target).hasClass("undo")) {
@@ -1340,7 +1339,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function selectMainCity(timeUnit) {
-        console.log("select main city");
         var selectedIndex = $("#mainCitySelect")[0].selectedIndex-1;
         var selectedCity = currentCityPool[selectedIndex];
         if(typeof(selectedCity.geometry)!="undefined"&&
