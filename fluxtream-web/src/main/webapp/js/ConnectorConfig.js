@@ -495,6 +495,7 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
         },
         beddit: {
             color: "rgb(255,100,0)",
+            hasTimelineSettings: true,
             facets: {
                 sleep: {
                     list: true,
@@ -507,6 +508,7 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
         },
         sleep_as_android: {
             color: "rgb(0,128,0)",
+            hasTimelineSettings: true,
             filterLabel: "S. as Android",
             facets: {
                 sleep: {
@@ -534,42 +536,6 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
                     map: true,
                     gps: false,
                     clock: ClockConfig.BODY_CATEGORY
-                }
-            }
-        },
-        toodledo:{//TODO: define mapicons
-            color: "",
-            facets: {
-                task:{
-                    list: true,
-                    photos: false,
-                    map: true,
-                    gps: false,
-                    clock: ClockConfig.MIND_CATEGORY
-                },
-                goal:{
-                    list: true,
-                    photos: false,
-                    map: true,
-                    gps: false,
-                    clock: null
-                }
-            }
-        },
-        openpath:{
-            color: "",
-            mapicon : {
-                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",
-                anchor: new google.maps.Point(5,5)
-            },
-            mapshadow: null,
-            facets: {
-                location:{
-                    list: false,
-                    photos: false,
-                    map: true,
-                    gps: true,
-                    clock: true //just has to be nonnull, gps data has special treatment
                 }
             }
         },
@@ -657,6 +623,7 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
         },
         moves:{
             filterLabel: "Moves",
+            hasTimelineSettings: true,
             color: "rgb(36, 77, 187)",
             mapicon : {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/glasses.png",
