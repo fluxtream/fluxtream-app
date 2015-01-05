@@ -34,7 +34,7 @@ public class SleepAsAndroidActiGraphFieldHandler implements FieldHandler {
         }
         final List<String> channelNames = Arrays.asList("actiGraph");
 
-        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(apiKey, "sleep_as_android", channelNames, data));
+        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(apiKey, "Sleep_As_Android", channelNames, data));
     }
 
     @Override
