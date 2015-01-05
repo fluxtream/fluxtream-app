@@ -18,6 +18,7 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -39,6 +40,9 @@ public class GoogleSpreadsheetsUpdater extends AbstractUpdater {
     @Autowired
     JPAFacetDao jpaFacetDao;
 
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+
     public static class ImportSpecs {
         public String spreadsheetId, worksheetId, dateTimeField, dateTimeFormat, timeZone;
     }
@@ -49,8 +53,8 @@ public class GoogleSpreadsheetsUpdater extends AbstractUpdater {
         ImportSpecs importSpecs = objectMapper.readValue(updateInfo.jsonParams, ImportSpecs.class);
         //TODO: check document doesn't already exist
         GoogleSpreadsheetDocumentFacet documentFacet = new GoogleSpreadsheetDocumentFacet(importSpecs);
-        importSpreadsheet(documentFacet);
         jpaFacetDao.persist(documentFacet);
+        importSpreadsheet(documentFacet);
     }
 
     private void importSpreadsheet(GoogleSpreadsheetDocumentFacet documentFacet) throws UpdateFailedException, IOException, ServiceException {
@@ -92,32 +96,36 @@ public class GoogleSpreadsheetsUpdater extends AbstractUpdater {
             if (currentRowIndex!=cell.getCell().getRow()) {
                 currentRowIndex = cell.getCell().getRow();
                 currentRow = new GoogleSpreadsheetRowFacet();
-                currentRow.document = documentFacet;
                 jpaFacetDao.persist(currentRow);
+                jdbcTemplate.execute("UPDATE Facet_GoogleSpreadsheetRow SET document_id=" + documentFacet.getId() + " WHERE id=" + currentRow.getId());
             }
             GoogleSpreadsheetCellFacet cellFacet = new GoogleSpreadsheetCellFacet();
-            cellFacet.row = currentRow;
+            //TODO: use jdbcTemplate to set the cell's row_id to the current row's id
             cellFacet.isNumeric = cell.getCell().getNumericValue()!=null;
-            cellFacet.value = cell.getCell().getValue();
+            String value = cell.getCell().getValue();
+            cellFacet.value = value;
             if (cell.getCell().getCol()==dateTimeColIndex) {
                 DateTime dateTime;
                 if (isEpochTime) {
-                    if (documentFacet.dateTimeFormat.equals("epochMillis"))
-                        currentRow.start = currentRow.end = Long.valueOf(cell.getCell().getValue());
-                    else
-                        currentRow.start = currentRow.end = Long.valueOf(cell.getCell().getValue())*1000;
+                    System.out.println("date value: " + value);
+                    if (documentFacet.dateTimeFormat.equals("epochMillis")) {
+                        currentRow.start = currentRow.end = Long.valueOf(value);
+                    } else {
+                        currentRow.start = currentRow.end = Long.valueOf(value) * 1000;
+                    }
                 } else {
                     if (dateTimeZone != null)
-                        dateTime = formatter.withZone(dateTimeZone).parseDateTime(cell.getCell().getValue());
+                        dateTime = formatter.withZone(dateTimeZone).parseDateTime(value);
                     else
-                        dateTime = formatter.parseDateTime(cell.getCell().getValue());
+                        dateTime = formatter.parseDateTime(value);
                     currentRow.start = currentRow.end = dateTime.getMillis();
                 }
                 System.out.println(currentRow.start);
             }
             jpaFacetDao.persist(cellFacet);
-            currentRow.cells.add(cellFacet);
+            jdbcTemplate.execute("UPDATE Facet_GoogleSpreadsheetCell SET row_id=" + currentRow.getId() + " WHERE id=" + cellFacet.getId());
         }
+
     }
 
     public static int getExcelColumnNumber(String column) {
