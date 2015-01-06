@@ -15,7 +15,6 @@ public class FlxUserDetails implements UserDetails, Serializable {
 
 	private Guest guest;
     public long guestId;
-    public TrustedBuddy trustedBuddy;
 
 	public FlxUserDetails(Guest guest) {
 		this.guest = guest;

@@ -61,7 +61,6 @@ public class BuddiesServiceImpl implements BuddiesService {
                                                               "trustedBuddies.byGuestAndBuddyId",
                                                               guestId, buddyGuest.getId());
         if (trustedBuddy ==null) return;
-        AuthHelper.revokeCoach(trustedBuddy.buddyId, trustedBuddy);
         em.remove(trustedBuddy);
     }
 
