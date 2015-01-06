@@ -76,8 +76,11 @@ define(["core/Tab",
         }
         if (typeof(digest.locationFetched)=="undefined"){
             Calendar.startLoading();
+            var url = "/api/v1/calendar/location/" + Calendar.tabState;
+            if (App.buddyToAccess["isBuddy"])
+                url+="?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.buddyToAccess["id"];
             $.ajax({
-                url: "/api/v1/calendar/location/" + Calendar.tabState,
+                url: url,
                 success: function(locationDigest) {
                     for (name in locationDigest.facets) {
                         Calendar.processFacets(locationDigest.facets[name]);
