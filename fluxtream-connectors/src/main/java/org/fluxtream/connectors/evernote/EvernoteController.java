@@ -165,7 +165,8 @@ public class EvernoteController {
         final String devKvsLocation = env.get("btdatastore.db.location");
         if (devKvsLocation==null)
             throw new RuntimeException("No btdatastore.db.location property was specified (local.properties)");
-        File resourceFile = EvernoteUpdater.getResourceFile(AuthHelper.getVieweeId(), apiKeyId,
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        File resourceFile = EvernoteUpdater.getResourceFile(apiKey.getGuestId(), apiKeyId,
                                                             guid, EvernoteUpdater.MAIN_APPENDIX, mimeType, devKvsLocation);
         if (!resourceFile.exists()) {
             logger.warn("resource file was not found for guid=" + guid);

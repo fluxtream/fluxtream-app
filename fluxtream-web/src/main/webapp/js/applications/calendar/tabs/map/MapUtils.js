@@ -937,8 +937,10 @@ define(["applications/calendar/tabs/map/MapConfig",
     function showPaths(map,connectorEnabled){
         for (var connectorId in map.markers){
             if (!connectorEnabled[connectorId.split("-")[0]]) continue;
-            for (var i = 0; i < map.markers[connectorId].length; i++){
-                map.markers[connectorId][i].setMap(map);
+            if (!_.isUndefined(map.markers[connectorId])&&map.markers[connectorId]!=null) {
+                for (var i = 0; i < map.markers[connectorId].length; i++){
+                    map.markers[connectorId][i].setMap(map);
+                }
             }
             if (map.gpsData[connectorId] != null){
                 for (var i = 0, li = map.gpsData[connectorId].gpsLines.length; i < li; i++){

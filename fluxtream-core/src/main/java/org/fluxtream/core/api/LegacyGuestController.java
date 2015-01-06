@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
@@ -71,17 +72,17 @@ public class LegacyGuestController {
 	}
 
     @GET
-    @Path("/avatarImage")
+    @Path("/avatarImage/{buddyToAccess}")
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Retrieve the avatar (gravatar) of the currently logged in's guest", response = String.class)
     @Deprecated
-    public String getAvatarImage() {
+    public String getAvatarImage(@PathParam("buddyToAccess") String buddyToAccess) {
         Guest guest = AuthHelper.getGuest();
         JSONObject json = new JSONObject();
         String type = "none";
         String url;
         try {
-            final TrustedBuddy trustedBuddy = AuthHelper.getTrustedBuddy();
+            final TrustedBuddy trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccess, buddiesService);
             if (trustedBuddy !=null)
                 guest = guestService.getGuestById(trustedBuddy.guestId);
         }

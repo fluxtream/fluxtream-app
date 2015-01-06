@@ -21,7 +21,6 @@ import org.fluxtream.core.connectors.updaters.UpdateFailedException;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.domain.Notification;
 import org.fluxtream.core.services.ApiDataService;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
@@ -30,14 +29,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
 @Component
 @Updater(prettyName = "Sleep_As_Android", value = 351, objectTypes={SleepFacet.class}, bodytrackResponder=SleepAsAndroidBodytrackResponder.class,
-         defaultChannels = {"sleep_as_android.sleep","sleep_as_android.actiGraph","sleep_as_android.cycles"})
+         defaultChannels = {"Sleep_As_Android.sleep","Sleep_As_Android.actiGraph","Sleep_As_Android.cycles"})
 public class SleepAsAndroidUpdater extends AbstractUpdater {
 
     @Autowired

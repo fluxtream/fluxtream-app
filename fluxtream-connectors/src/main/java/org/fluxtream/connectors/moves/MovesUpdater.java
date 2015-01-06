@@ -58,7 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @Updater(prettyName = "Moves", value = 144, objectTypes = {LocationFacet.class, MovesMoveFacet.class, MovesPlaceFacet.class}, bodytrackResponder = MovesBodytrackResponder.class,
-         defaultChannels = {"moves.data"})
+         defaultChannels = {"Moves.data"})
 public class MovesUpdater extends AbstractUpdater {
     static FlxLogger logger = FlxLogger.getLogger(AbstractUpdater.class);
 

@@ -32,7 +32,7 @@ public class BedditHeartRateFieldHandler implements FieldHandler {
                 data.add(sample);
             }
         }
-        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(apiKey, "beddit", Arrays.asList("heartRate"), data));
+        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(apiKey, "Beddit", Arrays.asList("heartRate"), data));
     }
 
     @Override

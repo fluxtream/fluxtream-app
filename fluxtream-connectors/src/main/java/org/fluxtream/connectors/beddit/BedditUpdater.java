@@ -40,7 +40,7 @@ import java.util.List;
 
 @Component
 @Updater(prettyName = "Beddit", value = 352, objectTypes={SleepFacet.class}, bodytrackResponder=BedditBodytrackResponder.class,
-        defaultChannels = {"beddit.sleepStages", "beddit.snoringEpisodes","beddit.sleepCycles","sleep_as_android.heartRate"})
+        defaultChannels = {"Beddit.sleepStages", "Beddit.snoringEpisodes","Beddit.sleepCycles", "Beddit.heartRate"})
 public class BedditUpdater extends AbstractUpdater {
 
     @Autowired

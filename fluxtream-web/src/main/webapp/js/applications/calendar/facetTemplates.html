@@ -813,9 +813,20 @@
                 <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
-                {{#activities}}
-                <div class="flx-data">
-                    {{activity}}
+                {{#hasActivities}}
+                <span class="flx-description"><a href="javascript:void(0);" onclick="App.expandCollapse(this);" class="expandcollapse">activities&nbsp;<i class="icon-expand-alt"></i></a></span>
+                {{/hasActivities}}
+                <div class="flx-finedetails flx-collapsed">
+                    {{#activities}}
+                    {{^manual}}
+                        <div class="flx-data">{{activity}}{{#distance}} ({{distance}}){{/distance}}</div>
+                        <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
+                        {{#steps}}{{steps}} steps{{/steps}}
+                    {{/manual}}
+                    {{#manual}}
+                        <div class="flx-data">{{activity}} {{#duration}}{{#hours}}{{hours}} hrs {{/hours}}{{#minutes}}{{minutes}} minutes{{/minutes}}{{/duration}}</div>
+                    {{/manual}}
+                    {{/activities}}
                 </div>
                 {{/activities}}
                 {{#comments}}<div class="facet-comment-text">{{body}}</div>{{/comments}}
@@ -838,7 +849,7 @@
                     {{name}}
                 </div>
                 {{/foursquareId}}
-                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} <span class="flx-dataLabel">-</span> {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{#daysBefore}} {{daysBefore}}{{/daysBefore}}{{/startTime}} <span class="flx-dataLabel">-</span> {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{#daysAfter}} {{daysAfter}}{{/daysAfter}}{{/endTime}}</a></div>
                 {{#hasActivities}}
                 <span class="flx-description"><a href="javascript:void(0);" onclick="App.expandCollapse(this);" class="expandcollapse">activities&nbsp;<i class="icon-expand-alt"></i></a></span>
                 {{/hasActivities}}

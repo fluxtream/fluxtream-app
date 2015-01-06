@@ -32,7 +32,7 @@ public class BedditSleepCycleFieldHandler implements FieldHandler {
                 data.add(sample);
             }
         }
-        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(apiKey, "beddit", Arrays.asList("sleepCycles"), data));
+        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(apiKey, "Beddit", Arrays.asList("sleepCycles"), data));
     }
 
     @Override

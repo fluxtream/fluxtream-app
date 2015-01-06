@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Updater(prettyName = "RunKeeper", value = 35, updateStrategyType = Connector.UpdateStrategyType.INCREMENTAL,
-         objectTypes = {LocationFacet.class, RunKeeperFitnessActivityFacet.class}, defaultChannels = {"runkeeper.totalCalories"})
+         objectTypes = {LocationFacet.class, RunKeeperFitnessActivityFacet.class}, defaultChannels = {"RunKeeper.totalCalories"})
 public class RunKeeperUpdater  extends AbstractUpdater {
 
     Logger logger = Logger.getLogger(RunKeeperUpdater.class);
