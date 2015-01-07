@@ -74,9 +74,8 @@ public class CouchDBController {
             couchDBCredentials.user_token = userTokenBuffer.toString();
             couchDBCredentials.status = status;
             couchDBCredentials.statusMessage = "OK";
-            if (createCouchUser(getBase64URLSafeUsername(), couchDBCredentials.user_token) != HttpStatus.SC_CONFLICT) {
-              createUserDatabases(getBase64URLSafeUsername());
-            }
+            createCouchUser(getBase64URLSafeUsername(), couchDBCredentials.user_token);
+            createUserDatabases(getBase64URLSafeUsername());
             // If user already created need different strategy
             return Response.ok().entity(couchDBCredentials).build();
         } catch (UnexpectedHttpResponseCodeException e) {
