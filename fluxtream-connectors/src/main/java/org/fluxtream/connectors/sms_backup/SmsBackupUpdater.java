@@ -57,7 +57,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Updater(prettyName = "SMS_Backup", value = 6, objectTypes = {
 		CallLogEntryFacet.class, SmsEntryFacet.class }, settings=SmsBackupSettings.class,
-         defaultChannels = {"sms_backup.call_log"})
+         defaultChannels = {"SMS_Backup.call_log"})
 public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUpdater {
 
     static final int baseSleepAmount = 500; //half a second

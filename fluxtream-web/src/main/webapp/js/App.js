@@ -265,17 +265,7 @@ define(
             }
         }
 
-        function defaultAppRoute(appName, uid) {
-            console.log("app-default route: name=" + appName + ", uid=" + uid);
-            var app = App.apps[appName];
-            renderDefault(app);
-            if (hasBuddyToAccessChanged(uid)) {
-                App.as(uid);
-            }
-        }
-
         function appStateRoute (appName, state) {
-            console.log(state);
             var urlSplits = state.split("/");
             var btaPathParam = urlSplits[0];
             if (isNaN(btaPathParam)) {
@@ -284,7 +274,6 @@ define(
             }
             state = state.substring(btaPathParam.length+1);
 
-            console.log("app route: name=" + appName + ", state=" + state);
             var app = App.apps[appName];
             if (_.isUndefined(app)) {
                 console.log("invalid app: " + appName);
@@ -299,7 +288,6 @@ define(
             if (state === null) {
                 renderDefault(app);
             } else {
-                console.log(state);
                 render(app, state);
             }
             if (hasBuddyToAccessChanged(btaPathParam)) {
