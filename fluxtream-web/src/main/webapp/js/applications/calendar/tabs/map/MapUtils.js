@@ -347,12 +347,9 @@ define(["applications/calendar/tabs/map/MapConfig",
     //creates a marker with extended functionality
     function addItemToMap(map,item,clickable){
         if (item == null){
-            console.log("ignoring null item in addItemToMap");
             return null;
         }
         var itemConfig = App.getFacetConfig(item.type);
-        var start = item.start;
-        var end = item.end;
 
         if (item.position == null){
             var gpsDataToUse = null;
