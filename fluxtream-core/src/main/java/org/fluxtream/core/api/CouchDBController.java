@@ -204,13 +204,19 @@ public class CouchDBController {
     }
 
     private void createUserDatabases(final String dbUsername) throws UnexpectedHttpResponseCodeException {
-      int statusObservations, statusTopics, someValue;
+      int statusObservations, statusTopics, statusDeleteObservations, statusDeleteTopics;
 
       // Create Observations database and add rights for the user
       statusObservations = createCouchDB(dbUsername, "self_report_db_observations_");
 
       // Create Topics database and add rights for the user
       statusTopics = createCouchDB(dbUsername, "self_report_db_topics_");
+
+      // Create database of deleted Observations and add rights for the user
+      statusDeleteObservations = createCouchDB(dbUsername, "self_report_db_deleted_observations_");
+
+      // Create database of deleted Topics and add rights for the user
+      statusDeleteTopics = createCouchDB(dbUsername, "self_report_db_deleted_topics_");
     }
 
     private int createCouchUser(final String username, final String password) throws UnexpectedHttpResponseCodeException {
