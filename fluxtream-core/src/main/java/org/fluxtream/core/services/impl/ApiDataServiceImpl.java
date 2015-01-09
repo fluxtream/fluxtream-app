@@ -106,20 +106,6 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
         }
     }
 
-    @Override
-	@Transactional(readOnly = false)
-	public void cacheApiDataObject(UpdateInfo updateInfo, long start, long end,
-			AbstractFacet payload) {
-		payload.api = updateInfo.apiKey.getConnector().value();
-		payload.guestId = updateInfo.apiKey.getGuestId();
-		payload.timeUpdated = System.currentTimeMillis();
-
-        final AbstractFacet facet = persistFacet(payload);
-        List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
-        facets.add(facet);
-        fireDataReceivedEvent(updateInfo, updateInfo.objectTypes(), start, end, facets);
-	}
-
 	/**
 	 * start and end parameters allow to specify time boundaries that are not
 	 * contained in the connector data itself
@@ -133,21 +119,6 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
         final List<AbstractFacet> facets = extractFacets(apiData, updateInfo.objectTypes, updateInfo);
         fireDataReceivedEvent(updateInfo, updateInfo.objectTypes(), start, end, facets);
 	}
-
-    /**
-     * start and end parameters allow to specify time boundaries that are not
-     * contained in the connector data itself
-     */
-    @Override
-    @Transactional(readOnly = false)
-    public void cacheApiDataJSON(UpdateInfo updateInfo, String json,
-                                 long start, long end, int objectTypes) throws Exception {
-        ApiData apiData = new ApiData(updateInfo, start, end);
-        apiData.json = json;
-        final List<AbstractFacet> facets = extractFacets(apiData, objectTypes, updateInfo);
-        final List<ObjectType> types = ObjectType.getObjectTypes(updateInfo.apiKey.getConnector(), objectTypes);
-        fireDataReceivedEvent(updateInfo, types, start, end, facets);
-    }
 
 	/**
 	 * start and end parameters allow to specify time boundaries that are not
@@ -206,30 +177,6 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 			}
 		}
 	}
-
-	@Override
-	@Transactional(readOnly = false)
-	public void eraseApiData(ApiKey apiKey,
-			ObjectType objectType) {
-		if (objectType == null)
-			eraseApiData(apiKey);
-		else
-			jpaDao.deleteAllFacets(apiKey, objectType);
-	}
-
-    @Override
-    @Transactional(readOnly = false)
-    public void eraseApiData(ApiKey apiKey,
-                             final int objectTypes, final TimeInterval timeInterval) {
-        List<ObjectType> connectorTypes = ObjectType.getObjectTypes(apiKey.getConnector(),
-                                                                    objectTypes);
-        if (connectorTypes!=null) {
-            for (ObjectType objectType : connectorTypes) {
-                eraseApiData(apiKey, objectType, timeInterval);
-            }
-        } else
-            eraseApiData(apiKey, null, timeInterval);
-    }
 
     @Override
 	@Transactional(readOnly = false)
@@ -588,28 +535,6 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 			logger.info(sb.toString());
 		} catch (Throwable t) {
 			t.printStackTrace();
-		}
-	}
-
-	@Override
-    @Transactional(readOnly = false)
-	public void cacheEmptyData(UpdateInfo updateInfo, long fromMidnight,
-			long toMidnight) {
-		Connector connector = updateInfo.apiKey.getConnector();
-		List<ObjectType> objectTypes = ObjectType.getObjectTypes(connector,
-				updateInfo.objectTypes);
-		for (ObjectType objectType : objectTypes) {
-			try {
-				AbstractFacet facet = objectType.facetClass().newInstance();
-				facet.isEmpty = true;
-				facet.start = fromMidnight;
-				facet.end = toMidnight;
-				em.persist(facet);
-			} catch (Exception e) {
-				// this should really never happen
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
 		}
 	}
 
