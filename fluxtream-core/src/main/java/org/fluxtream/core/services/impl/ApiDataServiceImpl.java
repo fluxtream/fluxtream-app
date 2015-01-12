@@ -86,6 +86,9 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
     @Autowired
     BodyTrackHelper bodyTrackHelper;
 
+    @Autowired
+    BuddiesService buddiesService;
+
     @Override
     public AbstractFacetVO<AbstractFacet> getFacet(final int api, final int objectType, final long facetId) {
         Connector connector = Connector.fromValue(api);
@@ -205,27 +208,44 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 	@Transactional(readOnly = false)
 	public void eraseApiData(ApiKey apiKey) {
         JPAUtils.execute(em, "apiUpdates.delete.byApiKey", apiKey.getId());
+        buddiesService.removeSharedChannels(apiKey.getId());
 		if (!apiKey.getConnector().hasFacets())
 			return;
 		jpaDao.deleteAllFacets(apiKey);
+        bodyTrackHelper.deleteChannelMappings(apiKey);
         guestService.deleteConnectorProfile(apiKey);
         // remove directory <connectorData.location>/<connectorName>/<apiKeyId>
         final String devKvsLocation = env.get("btdatastore.db.location");
         // let's not assume that everyone has set this value
         if (devKvsLocation!=null) {
             if (apiKey.getConnector()!=null&&apiKey.getConnector().getName()!=null) {
-                final String connectorName = apiKey.getConnector().getPrettyName();
+                final String connectorDeviceNickname = apiKey.getConnector().getDeviceNickname();
                 StringBuilder path = new StringBuilder(devKvsLocation)
                         .append(File.separator).append(apiKey.getGuestId())
-                        .append(File.separator).append(connectorName)
-                        .append(File.separator).append(apiKey.getId());
+                        .append(File.separator).append(connectorDeviceNickname);
                 File dataDir = new File(path.toString());
+                boolean success = false;
                 if (dataDir.exists()) {
                     try {
                         FileUtils.deleteDirectory(dataDir);
+                        success = true;
                     }
                     catch (IOException e) {
                         logger.warn("Couldn't delete connector data directory at [" + dataDir.getAbsolutePath() + "]");
+                    }
+                }
+                if (!success) {
+                    final String connectorName = apiKey.getConnector().getName();
+                    path = new StringBuilder(devKvsLocation)
+                            .append(File.separator).append(apiKey.getGuestId())
+                            .append(File.separator).append(connectorName);
+                    dataDir = new File(path.toString());
+                    if (dataDir.exists()) {
+                        try {
+                            FileUtils.deleteDirectory(dataDir);
+                        } catch (IOException e) {
+                            logger.warn("Couldn't delete connector data directory at [" + dataDir.getAbsolutePath() + "]");
+                        }
                     }
                 }
             }

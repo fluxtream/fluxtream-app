@@ -1,6 +1,7 @@
 package org.fluxtream.core.services;
 
 import org.fluxtream.core.domain.*;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -46,8 +47,7 @@ public interface BuddiesService {
 
     public SharedChannel addSharedChannel(long trustedBuddyId, long trustingBuddyId, long channelMappingId);
 
-    public void removeSharedChannel(long trustedBuddyId, long trustingBuddyId, long channelMappingId);
+    void removeSharedChannel(long trustedBuddyId, long trustingBuddyId, long channelMappingId);
 
-    public void removeAllSharedChannels(long trustingBuddyId);
-
+    public void removeSharedChannels(long apiKeyId);
 }
