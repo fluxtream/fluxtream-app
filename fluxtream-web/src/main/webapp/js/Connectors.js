@@ -18,16 +18,23 @@ define(function() {
     }
 
 	function submitMymeeFetchURL() {
-		var fetchURL = $("input#mymee-fetchURL").val();
+		var input = $("input#mymee-fetchURL");
+        var fetchURL = input.val();
 		$.ajax({
 			url:"/mymee/setFetchURL",
 			type: "POST",
 			data: {url: fetchURL},
 			success: function(html) {
+				$(".mymee-loading").hide();
 				$(".addConnectorsMain").html(html);
 				$("#mymee-fetchURL").focus();
+				$(".mymee-send").prop("disabled", false);
+				input.prop("disabled", false);
 			}
 		});
+		$(".mymee-loading").show();
+		$(".mymee-send").prop("disabled", true);
+		input.prop("disabled", true);
 	}
 
     function submitBedditAuthInfo(form) {
