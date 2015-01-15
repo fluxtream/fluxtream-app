@@ -395,6 +395,7 @@ define(["applications/calendar/tabs/map/MapConfig",
                     position:point,
                     icon:itemConfig.mapicon,
                     shadow:itemConfig.mapshadow,
+                    animation: google.maps.Animation.DROP,
                     clickable:clickable
                 });
                 marker.gpsData = gpsDataToUse;
@@ -415,6 +416,7 @@ define(["applications/calendar/tabs/map/MapConfig",
                 position:point,
                 icon:itemConfig.mapicon,
                 shadow:itemConfig.mapshadow,
+                animation: google.maps.Animation.DROP,
                 clickable:clickable
             });
             map.enhanceMarkerWithItem(marker,item);
@@ -469,8 +471,8 @@ define(["applications/calendar/tabs/map/MapConfig",
             details.trigger("contentchange",details[0]);
             map.infoWindow.open(map,marker);
             marker.doHighlighting();
-            marker.showCircle();
             if (map.infoWindowShown != null){
+                marker.showCircle();
                 map.infoWindowShown();
             }
             moveDateAxisCursor(map,marker.time);
