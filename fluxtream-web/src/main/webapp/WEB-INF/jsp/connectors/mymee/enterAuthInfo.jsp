@@ -74,9 +74,9 @@
             <label>Fetch URL</label>
             <input autocorrect="off" autocapitalize="off" type="text"
                    onkeypress="if(event.which==13) Connectors.submitMymeeFetchURL()"
-                   name="mymee-fetchURL" id="mymee-fetchURL" style="width:450px">
+                   name="mymee-fetchURL" id="mymee-fetchURL" style="width:450px"> <img style="display:none" class="mymee-loading loading-animation" src="/static/img/loading.gif"/>
             <span class="help-block"><% if (required.contains("fetchURL")) { %>Fetch URL is required<% } else if (errorMessage!=null) {%><%=errorMessage%><%}%></span>
-            <button onclick="Connectors.submitMymeeFetchURL()" type="submit" class="btn">Send</button>
+            <button onclick="Connectors.submitMymeeFetchURL()" type="submit" class="mymee-send btn">Send</button>
         </fieldset>
     </form>
 <%--</div>--%>
