@@ -3,13 +3,16 @@ package org.fluxtream.core.services;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.Guest;
+import org.fluxtream.core.domain.GuestDetails;
 import org.fluxtream.core.domain.ResetPasswordToken;
 import org.fluxtream.core.services.impl.ExistingEmailException;
 import org.fluxtream.core.services.impl.UsernameAlreadyTakenException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface GuestService {
 	public void addRole(long guestId, String role);
@@ -87,7 +90,15 @@ public interface GuestService {
 
     void populateApiKey(long apiKeyId);
 
-    void addDeveloperRole(Long guestId);
+	Set<String> getParseInstallations(long guestId);
 
-    void deleteConnectorProfile(ApiKey apiKey);
+	@Transactional(readOnly=false)
+	void addParseInstallation(long guestId, String parseInstallationId);
+
+	@Transactional(readOnly=false)
+	GuestDetails getGuestDetails(long guestId);
+
+	List<String> getDeviceIds(long guestId);
+
+	void deleteConnectorProfile(ApiKey apiKey);
 }

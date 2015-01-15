@@ -3,6 +3,7 @@ package org.fluxtream.core.api.models;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 import org.fluxtream.core.domain.Guest;
+import org.fluxtream.core.domain.GuestDetails;
 
 /**
  *
@@ -21,8 +22,10 @@ public class BasicGuestModel {
     public String lastname = "?";
     @ApiModelProperty(value = "The guest's unique ID", required = true)
     public long id;
+    @ApiModelProperty(value = "URL of the user's profile image", required = false)
+    public String photoURL;
 
-    public BasicGuestModel(Guest guest) {
+    public BasicGuestModel(Guest guest, GuestDetails details) {
         // indeed, Guest can be null
         if (guest!= null) {
             this.fullname = guest.getGuestName();
@@ -31,6 +34,8 @@ public class BasicGuestModel {
             this.lastname = guest.lastname;
             this.id = guest.getId();
         }
+        if (details!=null)
+            photoURL = details.avatarImageURL;
     }
 
 }
