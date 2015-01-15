@@ -313,6 +313,10 @@ public class MymeeUpdater extends AbstractUpdater {
                     return true;
                 }
 
+                if (exception instanceof org.apache.http.client.ClientProtocolException) {
+                    return true;
+                }
+
                 Boolean b = (Boolean)
                         context.getAttribute(ExecutionContext.HTTP_REQ_SENT);
                 boolean sent = (b != null && b.booleanValue());
