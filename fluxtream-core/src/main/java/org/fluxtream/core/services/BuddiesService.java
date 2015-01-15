@@ -21,6 +21,8 @@ public interface BuddiesService {
 
     public void removeSharedConnector(long guestId, String username, String connectorName);
 
+    public void removeSharedConnectors(long apiKeyId);
+
     public boolean isViewingGranted(long guestId, long trustingBuddyId, String connectorName);
 
     public List<Guest> getTrustingBuddies(long guestId);
@@ -50,4 +52,10 @@ public interface BuddiesService {
     void removeSharedChannel(long trustedBuddyId, long trustingBuddyId, long channelMappingId);
 
     public void removeSharedChannels(long apiKeyId);
+
+    @Transactional(readOnly=false)
+    void removeAllSharedChannels(long guestId);
+
+    @Transactional(readOnly=false)
+    void removeAllSharedConnectors(long guestId);
 }

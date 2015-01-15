@@ -202,6 +202,8 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
             for (AbstractFacet facet : facets)
                 em.remove(facet);
         }
+        apiKey = guestService.getApiKey(apiKey.getId());
+        em.remove(apiKey);
     }
 
 	@Override
@@ -209,6 +211,7 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 	public void eraseApiData(ApiKey apiKey) {
         JPAUtils.execute(em, "apiUpdates.delete.byApiKey", apiKey.getId());
         buddiesService.removeSharedChannels(apiKey.getId());
+        buddiesService.removeSharedConnectors(apiKey.getId());
 		if (!apiKey.getConnector().hasFacets())
 			return;
 		jpaDao.deleteAllFacets(apiKey);
@@ -258,6 +261,9 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
         if (apiKey.getConnector()!=null) {
             bodyTrackHelper.deleteStyle(apiKey.getGuestId(), apiKey.getConnector().prettyName());
         }
+        // rehydrate the apiKey and finally remove it
+        apiKey = guestService.getApiKey(apiKey.getId());
+        em.remove(apiKey);
     }
 
     @Override

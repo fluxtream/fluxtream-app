@@ -112,6 +112,18 @@ public class BuddiesServiceImpl implements BuddiesService {
     }
 
     @Override
+    @Transactional(readOnly=false)
+    public void removeSharedConnectors(long apiKeyId) {
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        String connectorName = apiKey.getConnector().getName();
+        String queryString = String.format("DELETE sc from SharedConnectors sc JOIN TrustedBuddies tb " +
+                "ON sc.buddy_id=tb.id WHERE sc.connectorName=\"%s\" AND tb.guestId=%s",
+                connectorName, apiKey.getGuestId());
+        Query nativeQuery = em.createNativeQuery(queryString);
+        nativeQuery.executeUpdate();
+    }
+
+    @Override
     public boolean isViewingGranted(final long guestId, final long trustingBuddyId, final String connectorName) {
         final TrustedBuddy trustedBuddy = JPAUtils.findUnique(em, TrustedBuddy.class, "trustedBuddies.byGuestAndBuddyId", trustingBuddyId, guestId);
         boolean granted = trustedBuddy.hasAccessToConnector(connectorName);
@@ -250,4 +262,17 @@ public class BuddiesServiceImpl implements BuddiesService {
         nativeQuery.executeUpdate();
     }
 
+    @Override
+    @Transactional(readOnly=false)
+    public void removeAllSharedChannels(long guestId) {
+        Query nativeQuery = em.createNativeQuery(String.format("DELETE sc from SharedChannels sc JOIN TrustedBuddies tb on sc.buddy_id=tb.id WHERE tb.buddyId=%s OR tb.guestId=%s", guestId, guestId));
+        nativeQuery.executeUpdate();
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void removeAllSharedConnectors(long guestId) {
+        Query nativeQuery = em.createNativeQuery(String.format("DELETE sc from SharedConnectors sc JOIN TrustedBuddies tb on sc.buddy_id=tb.id WHERE tb.buddyId=%s OR tb.guestId=%s", guestId, guestId));
+        nativeQuery.executeUpdate();
+    }
 }
