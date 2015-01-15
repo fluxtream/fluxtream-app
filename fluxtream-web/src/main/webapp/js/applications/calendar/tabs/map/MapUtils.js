@@ -347,12 +347,9 @@ define(["applications/calendar/tabs/map/MapConfig",
     //creates a marker with extended functionality
     function addItemToMap(map,item,clickable){
         if (item == null){
-            console.log("ignoring null item in addItemToMap");
             return null;
         }
         var itemConfig = App.getFacetConfig(item.type);
-        var start = item.start;
-        var end = item.end;
 
         if (item.position == null){
             var gpsDataToUse = null;
@@ -398,6 +395,7 @@ define(["applications/calendar/tabs/map/MapConfig",
                     position:point,
                     icon:itemConfig.mapicon,
                     shadow:itemConfig.mapshadow,
+                    animation: google.maps.Animation.DROP,
                     clickable:clickable
                 });
                 marker.gpsData = gpsDataToUse;
@@ -418,6 +416,7 @@ define(["applications/calendar/tabs/map/MapConfig",
                 position:point,
                 icon:itemConfig.mapicon,
                 shadow:itemConfig.mapshadow,
+                animation: google.maps.Animation.DROP,
                 clickable:clickable
             });
             map.enhanceMarkerWithItem(marker,item);
@@ -472,8 +471,8 @@ define(["applications/calendar/tabs/map/MapConfig",
             details.trigger("contentchange",details[0]);
             map.infoWindow.open(map,marker);
             marker.doHighlighting();
-            marker.showCircle();
             if (map.infoWindowShown != null){
+                marker.showCircle();
                 map.infoWindowShown();
             }
             moveDateAxisCursor(map,marker.time);

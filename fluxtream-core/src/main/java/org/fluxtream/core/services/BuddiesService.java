@@ -1,6 +1,7 @@
 package org.fluxtream.core.services;
 
 import org.fluxtream.core.domain.*;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,6 +20,8 @@ public interface BuddiesService {
     public SharedConnector addSharedConnector(long guestId, String username, String connectorName, String filterJson);
 
     public void removeSharedConnector(long guestId, String username, String connectorName);
+
+    public void removeSharedConnectors(long apiKeyId);
 
     public boolean isViewingGranted(long guestId, long trustingBuddyId, String connectorName);
 
@@ -46,8 +49,13 @@ public interface BuddiesService {
 
     public SharedChannel addSharedChannel(long trustedBuddyId, long trustingBuddyId, long channelMappingId);
 
-    public void removeSharedChannel(long trustedBuddyId, long trustingBuddyId, long channelMappingId);
+    void removeSharedChannel(long trustedBuddyId, long trustingBuddyId, long channelMappingId);
 
-    public void removeAllSharedChannels(long trustingBuddyId);
+    public void removeSharedChannels(long apiKeyId);
 
+    @Transactional(readOnly=false)
+    void removeAllSharedChannels(long guestId);
+
+    @Transactional(readOnly=false)
+    void removeAllSharedConnectors(long guestId);
 }
