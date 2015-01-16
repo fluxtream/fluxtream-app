@@ -2,8 +2,14 @@ package org.fluxtream.core.api.models;
 
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.domain.GuestDetails;
+
+import java.io.IOException;
+
+import static org.fluxtream.core.utils.Utils.hash;
 
 /**
  *
@@ -36,6 +42,17 @@ public class BasicGuestModel {
         }
         if (details!=null)
             photoURL = details.avatarImageURL;
+        photoURL = getGravatarImageURL(guest);
+    }
+
+    private String getGravatarImageURL(Guest guest) {
+        String emailHash = hash(guest.email.toLowerCase().trim()); //gravatar specifies the email should be trimmed, taken to lowercase, and then MD5 hashed
+        String gravatarURL = String.format("http://www.gravatar.com/avatar/%s?s=27&d=404&d=identicon", emailHash);
+        HttpGet get = new HttpGet(gravatarURL);
+        int res = 0;
+        try { res = ((new DefaultHttpClient()).execute(get)).getStatusLine().getStatusCode(); }
+        catch (IOException e) {e.printStackTrace();}
+        return res==200 ? gravatarURL : null;
     }
 
 }
