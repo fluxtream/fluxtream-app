@@ -1,5 +1,6 @@
 package org.fluxtream.connectors.lastfm;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -7,6 +8,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -52,6 +54,9 @@ public class LastFmController {
 
     @Autowired
     NotificationsService notificationsService;
+
+    @Autowired
+    ServletContext context;
 
 	@RequestMapping(value = "/token")
 	public String getToken(HttpServletRequest request) throws IOException, ServletException {
@@ -147,7 +152,9 @@ public class LastFmController {
         response.setDateHeader("Expires", System.currentTimeMillis() + DateTimeConstants.MILLIS_PER_WEEK*30);
         try {
             if (StringUtils.isEmpty(url)) {
-                response.setStatus(404);
+                String realPath = context.getRealPath("images/lastfm-404.png");
+                FileInputStream fis = new FileInputStream(realPath);
+                IOUtils.copy(fis, response.getOutputStream());
                 return;
             }
             HttpGet get = new HttpGet(url);
