@@ -28,7 +28,9 @@
 	<link rel="stylesheet" href="/css/flx.css">
 	<link rel="stylesheet" href="/css/bodytrack.css">
 	<link rel="stylesheet" href="/css/datepicker.css">
-	<link rel="stylesheet" href="/static/css/jquery-ui/jquery-ui-1.10.3.custom.css">
+    <link rel="stylesheet" href="/static/css/jquery-ui/jquery-ui-1.11.0.min.css">
+    <link rel="stylesheet" href="/static/css/jquery-ui/jquery-ui-1.11.0.structure.min.css">
+    <link rel="stylesheet" href="/static/css/jquery-ui-bootstrap/jquery.ui.theme.css">
 	<link rel="stylesheet"
 		href="/static/css/jquery-colorPicker/jquery.colorPicker.css">
 	<link rel="stylesheet" href="/static/css/msdropdown/dd.css">
