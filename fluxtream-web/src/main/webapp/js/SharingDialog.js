@@ -162,6 +162,7 @@ define(["sharedConnectorSettings/evernote", "sharedConnectorSettings/google_cale
             success: function(status) {
                 $("#removeCoachButton").remove();
                 $("#sharedConnectors").empty();
+                $("#sharedChannels").empty();
                 updateCoachesDropdown(null);
             }
         });
