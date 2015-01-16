@@ -61,7 +61,13 @@ public class BuddiesServiceImpl implements BuddiesService {
                                                               "trustedBuddies.byGuestAndBuddyId",
                                                               guestId, buddyGuest.getId());
         if (trustedBuddy ==null) return;
-        em.remove(trustedBuddy);
+        Query nativeQuery = em.createNativeQuery(String.format("DELETE sc from SharedChannels sc JOIN TrustedBuddies tb on sc.buddy_id=tb.id WHERE tb.guestId=%s", guestId));
+        nativeQuery.executeUpdate();
+        nativeQuery = em.createNativeQuery(String.format("DELETE sc from SharedConnectors sc JOIN TrustedBuddies tb on sc.buddy_id=tb.id WHERE tb.guestId=%s", guestId));
+        nativeQuery.executeUpdate();
+        Guest buddy = guestService.getGuest(username);
+        nativeQuery = em.createNativeQuery(String.format("DELETE tb FROM TrustedBuddies tb WHERE tb.guestId=%s AND tb.buddyId=%s", guestId, buddy.getId()));
+        nativeQuery.executeUpdate();
     }
 
     @Override
