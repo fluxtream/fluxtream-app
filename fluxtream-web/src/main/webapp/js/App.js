@@ -548,7 +548,7 @@ define(
                         post.when = moment(post.creationTime).fromNow();
                     }
                     console.log(posts);
-                    App.loadMustacheTemplate("theUpgradeTemplates.html","wallDialogContentsTemplate",
+                    App.loadMustacheTemplate("messagingTemplates.html","wallDialogContentsTemplate",
                         function(template) {
                             var html = template.render({posts: posts});
                             $("#wallDialogContents").empty().append(html);
@@ -581,7 +581,7 @@ define(
             $(".addWallCommentButton").unbind().click(function(evt){
                 var targetAddCommentButton = $(evt.target);
                 var postId = targetAddCommentButton.attr("data-postid");
-                App.loadMustacheTemplate("theUpgradeTemplates.html","wallCommentFormTemplate",
+                App.loadMustacheTemplate("messagingTemplates.html","wallCommentFormTemplate",
                     function(template) {
                         var html = template.render({postId:postId});
                         targetAddCommentButton.replaceWith(html);
@@ -615,7 +615,7 @@ define(
             });
             $(formId + " > .cancelAddComment").click(function(evt) {
                 console.log("cancel add comment " + postId);
-                App.loadMustacheTemplate("theUpgradeTemplates.html","addWallCommentButtonTemplate",
+                App.loadMustacheTemplate("messagingTemplates.html","addWallCommentButtonTemplate",
                     function(template) {
                         busyEditing = false;
                         var html = template.render({postId: postId});
