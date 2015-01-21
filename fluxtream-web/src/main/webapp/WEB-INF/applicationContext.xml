@@ -128,7 +128,7 @@
         <property name="password" value="${db.password}" />
 		<property name="acquireIncrement" value="10"/>
 		<property name="idleConnectionTestPeriod" value="3000"/>
-		<property name="initialPoolSize" value="50"/>
+		<property name="initialPoolSize" value="100"/>
 		<property name="maxPoolSize" value="300"/>
 		<property name="minPoolSize" value="5"/>
 	</bean>
