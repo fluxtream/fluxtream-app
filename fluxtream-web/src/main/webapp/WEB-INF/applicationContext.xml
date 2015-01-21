@@ -126,6 +126,11 @@
         <property name="jdbcUrl" value="${db.url}" />
         <property name="user" value="${db.username}" />
         <property name="password" value="${db.password}" />
+		<property name="acquireIncrement" value="10"/>
+		<property name="idleConnectionTestPeriod" value="3000"/>
+		<property name="initialPoolSize" value="50"/>
+		<property name="maxPoolSize" value="300"/>
+		<property name="minPoolSize" value="5"/>
 	</bean>
 
     <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
@@ -163,14 +168,6 @@
 			value="net.sf.ehcache.hibernate.SingletonEhCacheRegionFactory"/>
 		<entry key="hibernate.cache.use_second_level_cache"
 			value="true"/>
-		<entry key="hibernate.c3p0.acquire_increment" value="4" />
-		<entry key="hibernate.c3p0.idle_test_period" value="3000" />
-		<entry key="hibernate.c3p0.max_size" value="300" />
-		<entry key="hibernate.c3p0.max_statements" value="50" />
-		<entry key="hibernate.c3p0.min_size" value="5" />
-        <entry key="hibernate.c3p0.initial_pool_size" value="50" />
-        <entry key="hibernate.c3p0.acquire_increment" value="10" />
-        <entry key="hibernate.c3p0.timeout" value="100" />
 		<entry key="hibernate.archive.autodetection" value="class, hbm" />
 		<entry key="hibernate.default_schema " value="flx" />
 		<entry key="hibernate.hbm2ddl.auto" value="none" />
