@@ -8,6 +8,13 @@
 	</parent>
 	<artifactId>fluxtream-web</artifactId>
 	<packaging>war</packaging>
+    <repositories>
+        <repository>
+            <id>maven-restlet</id>
+            <name>Public online Restlet repository</name>
+            <url>http://maven.restlet.com</url>
+        </repository>
+    </repositories>
 	<build>
 		<resources>
 			<resource>
