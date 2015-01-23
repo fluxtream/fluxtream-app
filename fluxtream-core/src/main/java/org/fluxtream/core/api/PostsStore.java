@@ -66,7 +66,7 @@ public class PostsStore {
             if (targetGuest==null)
                 return Responses.notFound().entity("No such guest: " + targetGuestUsername).build();
             Post post = postsService.createPost(message, targetGuest.getId());
-            URI createdURI = new URI(String.format("%srest/v1/posts/%s", env.get("homeBaseUrl"), post.getId()));
+            URI createdURI = new URI(String.format("%sapi/v1/posts/%s", env.get("homeBaseUrl"), post.getId()));
             GuestDetails guestDetails = guestService.getGuestDetails(targetGuest.getId());
             notifyUser(post, guestDetails, "New Post", AuthHelper.getGuest().getGuestName() + " just sent you a message");
             return Response.created(createdURI).build();
