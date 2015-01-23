@@ -1,6 +1,8 @@
 Read me First
 -------------
 
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/fluxtream/fluxtream-app?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Fluxtream is based on Spring(-MVC) 3.1, Spring Security 3.1 and JPA for the persistence. We use [Jersey (JAX-WS)](https://jersey.java.net/) for exposing our [REST API](https://fluxtream.org/dev/#/api-docs)
 
 This is a maven project with 3 sub-modules.

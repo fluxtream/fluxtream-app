@@ -68,7 +68,7 @@ public class FlickrController {
         if (request.getParameter("apiKeyId") != null)
             request.getSession().setAttribute(FLICKR_RENEWTOKEN_APIKEYID,
                                               request.getParameter("apiKeyId"));
-        String loginUrl = "http://flickr.com/services/auth/" +
+        String loginUrl = "https://flickr.com/services/auth/" +
 			"?api_key=" + api_key + "&perms=read&api_sig=" + api_sig;
 		return "redirect:" + loginUrl;
 	}
@@ -99,7 +99,7 @@ public class FlickrController {
 
         String api_sig = sign(params);
 		
-		String getTokenUrl = "http://api.flickr.com/services/rest/" +
+		String getTokenUrl = "https://api.flickr.com/services/rest/" +
 			"?method=flickr.auth.getToken&api_key=" + api_key + "&frob=" + frob + "&api_sig=" + api_sig;
 
 		Guest guest = AuthHelper.getGuest();
