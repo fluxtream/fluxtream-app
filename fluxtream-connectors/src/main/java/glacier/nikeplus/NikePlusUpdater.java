@@ -1,5 +1,6 @@
 package glacier.nikeplus;
 
+import org.fluxtream.core.domain.ApiKey;
 import org.springframework.stereotype.Component;
 
 import org.fluxtream.core.connectors.annotations.Updater;
@@ -26,5 +27,8 @@ public class NikePlusUpdater extends AbstractUpdater {
 	@Override
 	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
 	}
+
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {}
 
 }

@@ -8,7 +8,7 @@
     Boolean tracker = (Boolean)request.getAttribute("tracker");
     Boolean intercom = (Boolean)request.getAttribute("intercom");
     Boolean useMinifiedJs = (Boolean)request.getAttribute("useMinifiedJs");
-    List<Guest> coachees = (List<Guest>)request.getAttribute("coachees");%><!DOCTYPE html>
+    List<Guest> trustingBuddies = (List<Guest>)request.getAttribute("trustingBuddies");%><!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -38,7 +38,7 @@
 <link rel="stylesheet" href="/static/css/font-awesome-3.2.1.css">
 
 <script
-	src="https://maps-api-ssl.google.com/maps/api/js?libraries=geometry&v=3&sensor=false"
+	src="https://maps-api-ssl.google.com/maps/api/js?libraries=geometry,visualization&v=3&sensor=false"
 	type="text/javascript"></script>
     <script src="/static/js/hogan-2.0.0.js"></script>
 
@@ -92,8 +92,8 @@
 									<li><a href="javascript:App.settings()"><i class="mainmenu-icon icon-cog icon-large pull-right"></i>Settings</a></li>
                                     <%--<li><a href="javascript:App.addresses()"><i class="mainmenu-icon icon-home icon-large pull-right"></i>Addresses</a></li>--%>
 									<li id="coachingDivider" class="divider"></li><%
-                                    if (coachees.size()>0) {
-                                        for (Guest guest : coachees) {%>
+                                    if (trustingBuddies.size()>0) {
+                                        for (Guest guest : trustingBuddies) {%>
                                     <li><a onclick="if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'viewBuddyData', 1);}" href="javascript:App.as('<%=guest.getId()%>')">View <%=guest.getGuestName()%>'s data</a></li>
                                         <%  } %>
                                     <li><a onclick="if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'viewMyData', 1);}" href="javascript:App.as(<%=AuthHelper.getGuestId()%>)">View My data</a></li>
@@ -121,8 +121,8 @@
 
     <jsp:include page="footer.jsp" />
 
-	<script
-		src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<%--<script--%>
+		<%--src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>--%>
 	<script>
 		window.jQuery
 				|| document

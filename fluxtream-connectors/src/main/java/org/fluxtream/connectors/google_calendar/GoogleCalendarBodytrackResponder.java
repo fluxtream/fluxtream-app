@@ -13,6 +13,7 @@ import org.fluxtream.core.connectors.bodytrackResponders.AbstractBodytrackRespon
 import org.fluxtream.core.connectors.vos.AbstractFacetVO;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.domain.GuestSettings;
 import org.fluxtream.core.mvc.models.TimespanModel;
 import org.fluxtream.core.services.BuddiesService;
@@ -84,4 +85,17 @@ public class GoogleCalendarBodytrackResponder extends AbstractBodytrackResponder
         List<AbstractFacetVO<AbstractFacet>> facetVOsForFacets = getFacetVOsForFacets(filteredFacets, timeInterval, guestSettings);
         return facetVOsForFacets;
     }
+
+    @Override
+    public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
+        ChannelMapping sleepChannelMapping = new ChannelMapping(
+                apiKey.getId(), apiKey.getGuestId(),
+                ChannelMapping.ChannelType.timespan,
+                ChannelMapping.TimeType.local,
+                ObjectType.getObjectType(apiKey.getConnector(), "entry").value(),
+                apiKey.getConnector().getDeviceNickname(), "entries",
+                apiKey.getConnector().getDeviceNickname(), "entries");
+        channelMappings.add(sleepChannelMapping);
+    }
+
 }

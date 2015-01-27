@@ -28,8 +28,8 @@ public abstract class AbstractLocalTimeTimedFacetVO<T extends AbstractLocalTimeF
             final DateTime endDateTime = ISODateTimeFormat.localDateOptionalTimeParser().parseLocalDateTime(facet.endTimeStorage).toDateTime(zone);
             this.eventEnd = ISODateTimeFormat.dateTime().withZone(zone).print(endDateTime);
         } else {
-            this.eventStart = ISODateTimeFormat.dateTime().withZone(zone).print(facet.start);
-            this.eventEnd = ISODateTimeFormat.dateTime().withZone(zone).print(facet.end);
+            this.eventStart = ISODateTimeFormat.dateTime().withZoneUTC().print(facet.start);
+            this.eventEnd = ISODateTimeFormat.dateTime().withZoneUTC().print(facet.end);
         }
     }
 }

@@ -355,7 +355,7 @@ public class WithingsUpdater extends AbstractUpdater {
                 }
             };
             final AbstractFacet createdOrModifiedFacet = apiDataService.createOrReadModifyWrite(WithingsBodyScaleMeasureFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
-            bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), Arrays.asList(createdOrModifiedFacet));
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey, Arrays.asList(createdOrModifiedFacet));
         }
         if (measuresMap.containsKey(DIASTOLIC_BLOOD_PRESSURE) &&
             measuresMap.containsKey(SYSTOLIC_BLOOD_PRESSURE) &&
@@ -379,7 +379,7 @@ public class WithingsUpdater extends AbstractUpdater {
                 }
             };
             final AbstractFacet createdOrModifiedFacet = apiDataService.createOrReadModifyWrite(WithingsBPMMeasureFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
-            bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), Arrays.asList(createdOrModifiedFacet));
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey, Arrays.asList(createdOrModifiedFacet));
         }
         if (measuresMap.containsKey(HEART_PULSE)) {
             final ApiDataService.FacetModifier<WithingsHeartPulseMeasureFacet> facetModifier = new ApiDataService.FacetModifier<WithingsHeartPulseMeasureFacet>() {
@@ -396,7 +396,7 @@ public class WithingsUpdater extends AbstractUpdater {
                 }
             };
             final AbstractFacet createdOrModifiedFacet = apiDataService.createOrReadModifyWrite(WithingsHeartPulseMeasureFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
-            bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), Arrays.asList(createdOrModifiedFacet));
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey, Arrays.asList(createdOrModifiedFacet));
         }
     }
 
@@ -436,6 +436,10 @@ public class WithingsUpdater extends AbstractUpdater {
             };
         };
         final AbstractFacet createdOrModifiedFacet = apiDataService.createOrReadModifyWrite(WithingsActivityFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
-        bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), Arrays.asList(createdOrModifiedFacet));
+        bodyTrackStorageService.storeApiData(updateInfo.apiKey, Arrays.asList(createdOrModifiedFacet));
     }
+
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {}
+
 }

@@ -72,7 +72,7 @@
 
 <body>
 <div id="flxUsername" style="display:none;"><%=AuthHelper.getGuest().username%></div>
-<div id="flxUID" style="display:none;"><%=AuthHelper.getVieweeId()%></div>
+<div id="flxUID" style="display:none;"><%=AuthHelper.getGuest().getId()%></div>
 
 <div id="content">
 

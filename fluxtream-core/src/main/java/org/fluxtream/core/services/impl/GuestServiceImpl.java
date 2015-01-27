@@ -77,6 +77,9 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
     @Autowired
     SettingsService settingsService;
 
+    @Autowired
+    BuddiesService buddiesService;
+
 	LookupService geoIpLookupService;
 
 	private final RandomString randomString = new RandomString(64);
@@ -267,9 +270,7 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
                 oAuth2Helper.revokeRefreshToken(apiKey.getGuestId(), apiKey.getConnector(), refreshTokenRemoveURL);
         }
         finally {
-            em.remove(apiKey);
             // cleanup the data asynchrously in order not to block the user's flow
-            bodyTrackHelper.deleteChannelMappings(apiKey);
             ApiDataCleanupWorker worker = beanFactory.getBean(ApiDataCleanupWorker.class);
             worker.setApiKey(apiKey);
             executor.execute(worker);
@@ -411,9 +412,11 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
         JPAUtils.execute(em, "updateWorkerTasks.delete.all", guest.getId());
         JPAUtils.execute(em, "tags.delete.all", guest.getId());
         JPAUtils.execute(em, "notifications.delete.all", guest.getId());
-        final List<CoachingBuddy> coachingBuddies = JPAUtils.find(em, CoachingBuddy.class, "coachingBuddies.byGuestId", guest.getId());
-        for (CoachingBuddy coachingBuddy : coachingBuddies)
-            em.remove(coachingBuddy);
+        buddiesService.removeAllSharedChannels(guest.getId());
+        buddiesService.removeAllSharedConnectors(guest.getId());
+        final List<TrustedBuddy> coachingBuddies = JPAUtils.find(em, TrustedBuddy.class, "trustedBuddies.byGuestId", guest.getId());
+        for (TrustedBuddy trustedBuddy : coachingBuddies)
+            em.remove(trustedBuddy);
         JPAUtils.execute(em, "channelMapping.delete.all", guest.getId());
         JPAUtils.execute(em, "connectorFilterState.delete.all", guest.getId());
         JPAUtils.execute(em, "channelStyle.delete.all", guest.getId());

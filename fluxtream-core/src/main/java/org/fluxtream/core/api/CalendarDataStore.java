@@ -14,7 +14,7 @@ import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.TimeUnit;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.auth.AuthHelper;
-import org.fluxtream.core.auth.CoachRevokedException;
+import org.fluxtream.core.auth.TrustRelationshipRevokedException;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.connectors.updaters.UpdateFailedException;
@@ -24,10 +24,7 @@ import org.fluxtream.core.domain.*;
 import org.fluxtream.core.domain.metadata.City;
 import org.fluxtream.core.domain.metadata.VisitedCity;
 import org.fluxtream.core.domain.metadata.WeatherInfo;
-import org.fluxtream.core.metadata.AbstractTimespanMetadata;
-import org.fluxtream.core.metadata.DayMetadata;
-import org.fluxtream.core.metadata.MonthMetadata;
-import org.fluxtream.core.metadata.WeekMetadata;
+import org.fluxtream.core.metadata.*;
 import org.fluxtream.core.mvc.models.*;
 import org.fluxtream.core.services.*;
 import org.fluxtream.core.utils.TimeUtils;
@@ -79,6 +76,165 @@ public class CalendarDataStore {
 	Gson gson = new Gson();
 
     @GET
+    @Path("/{connectorObjectsEncoded}/all")
+    @ApiOperation(value = "Get all the user's connectors' data", response = ConnectorResponseModel.class)
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response getSpecificConnectorData(@ApiParam(value="an encoded list of the facet types to be returned. " +
+            "The encoding is <facetType>,<facetType>,... where <facetType> is " +
+            "<connectorIdentifier>(optionally attached: -<objectTypeName> " +
+            "where <connectorIdentifier> is either the connector name or the apiKey id " +
+            "and objectTypeName is the name of the facet Type - example: 64-weight,fitbit,withings-heart_pulse",
+            required=true) @PathParam("connectorObjectsEncoded") String connectorObjectsEncoded,
+                                             @ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter,
+                                             @ApiParam(value="Updated Since Date", required = false) @QueryParam("updatedSince") String updatedSince) {
+
+        TrustedBuddy trustedBuddy;
+        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+        } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
+        if (guest==null)
+            return Response.status(401).entity("You are no longer logged in").build();
+        long guestId = guest.getId();
+
+
+
+        try {
+            List<ApiKey> apiKeyList = getApiKeyListFromConnectorObjectsEncoding(guest,connectorObjectsEncoded);
+            Map<ApiKey,List<ObjectType>> objectTypesMap = getObjectTypesFromConnectorObjectsEncoding(apiKeyList, connectorObjectsEncoded);
+            GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
+            ArbitraryTimespanMetadata timespanMetdata = new ArbitraryTimespanMetadata(Long.MIN_VALUE,Long.MAX_VALUE);
+            timespanMetdata.timeInterval = new TimeInterval(){
+                public long getStart() {
+                    return Long.MIN_VALUE;
+                }
+                public long getEnd() {
+                    return Long.MAX_VALUE;
+                }
+                public TimeUnit getTimeUnit() {
+                    return TimeUnit.ARBITRARY;
+                }
+                public TimeZone getMainTimeZone() {
+                    return TimeZone.getTimeZone("utc");
+                }
+                public TimeZone getTimeZone(long time) throws OutsideTimeBoundariesException {
+                    return TimeZone.getTimeZone("utc");
+                }
+                public TimeZone getTimeZone(String date) throws OutsideTimeBoundariesException {
+                    return TimeZone.getTimeZone("utc");
+                }
+            };
+
+            ConnectorResponseModel responseModel = prepareConnectorResponseModel(timespanMetdata);
+
+            Long updatedSinceMillis = updatedSince == null ? null : ISODateTimeFormat.dateTime().parseMillis(updatedSince);
+
+            for (ApiKey apiKey : apiKeyList){
+                List<ObjectType> objectTypes = objectTypesMap.get(apiKey);
+                if (objectTypes.size() > 0) {
+                    for (ObjectType objectType : objectTypes) {
+                        appendFacetsToConnectorResponseModel(responseModel,getFacetCollection(timespanMetdata,
+                                settings,
+                                apiKey.getConnector(),
+                                objectType, guestId,
+                                updatedSinceMillis),apiKey.getConnector(),objectType);
+                    }
+                }
+                else {
+                    appendFacetsToConnectorResponseModel(responseModel,getFacetCollection(timespanMetdata,
+                            settings, apiKey.getConnector(), null, guestId, updatedSinceMillis),apiKey.getConnector(),null);
+                }
+            }
+
+            StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsDayData")
+                    .append(" guestId=").append(guestId);
+            logger.info(sb.toString());
+
+            responseModel.generationTimestamp = new java.util.Date().getTime();
+
+            return Response.ok(toJacksonJson(responseModel)).build();
+        } catch (Exception e) {
+            StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsWeekData")
+                    .append(" guestId=").append(guestId)
+                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
+            logger.warn(sb.toString());
+            return Response.serverError().entity(sb.toString()).build();
+        }
+    }
+
+    @GET
+    @Path("/all/all")
+    @ApiOperation(value = "Get all the user's connectors' data", response = ConnectorResponseModel.class)
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response getAllConnectorsData(@ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter,
+                                         @ApiParam(value="Updated Since Date", required = false) @QueryParam("updatedSince") String updatedSince) {
+
+        TrustedBuddy trustedBuddy;
+        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+        } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
+        if (guest==null)
+            return Response.status(401).entity("You are no longer logged in").build();
+        long guestId = guest.getId();
+
+        try {
+            List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
+            GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
+
+            ArbitraryTimespanMetadata timespanMetdata = new ArbitraryTimespanMetadata(Long.MIN_VALUE,Long.MAX_VALUE);
+            timespanMetdata.timeInterval = new TimeInterval(){
+                public long getStart() {
+                    return Long.MIN_VALUE;
+                }
+                public long getEnd() {
+                    return Long.MAX_VALUE;
+                }
+                public TimeUnit getTimeUnit() {
+                    return TimeUnit.ARBITRARY;
+                }
+                public TimeZone getMainTimeZone() {
+                    return TimeZone.getTimeZone("utc");
+                }
+                public TimeZone getTimeZone(long time) throws OutsideTimeBoundariesException {
+                    return TimeZone.getTimeZone("utc");
+                }
+                public TimeZone getTimeZone(String date) throws OutsideTimeBoundariesException {
+                    return TimeZone.getTimeZone("utc");
+                }
+            };
+
+            ConnectorResponseModel responseModel = prepareConnectorResponseModel(timespanMetdata);
+
+            Long updatedSinceMillis = updatedSince == null ? null : ISODateTimeFormat.dateTime().parseMillis(updatedSince);
+
+            for (ApiKey apiKey : allApiKeys){
+                ObjectType[] objectTypes = apiKey.getConnector().objectTypes();
+                if (objectTypes.length > 0) {
+                    for (ObjectType objectType : objectTypes) {
+                        appendFacetsToConnectorResponseModel(responseModel,getFacetCollection(timespanMetdata, settings, apiKey.getConnector(), objectType, guestId, updatedSinceMillis),apiKey.getConnector(),objectType);
+                    }
+                }
+                else {
+                    appendFacetsToConnectorResponseModel(responseModel,getFacetCollection(timespanMetdata,settings,apiKey.getConnector(),null, guestId, updatedSinceMillis),apiKey.getConnector(),null);
+                }
+            }
+
+            StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsAllData")
+                    .append(" guestId=").append(guestId);
+            logger.info(sb.toString());
+
+            responseModel.generationTimestamp = new java.util.Date().getTime();
+
+            return Response.ok(toJacksonJson(responseModel)).build();
+        } catch (Exception e) {
+            StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getAllConnectorsAllData")
+                    .append(" guestId=").append(guestId)
+                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
+            logger.warn(sb.toString());
+            return Response.serverError().entity(sb.toString()).build();
+        }
+    }
+
+    @GET
     @Path("/location/week/{year}/{week}")
     @ApiOperation(value = "Get the user's location data for a specific week", response = DigestModel.class,
                   notes="Locations can get quite heavy and take a while to parse, so we provide them in a separate call.")
@@ -114,13 +270,16 @@ public class CalendarDataStore {
                               boolean locationDataOnly,
                               final String buddyToAccessParameter,
                               final String updatedSince) {
-        CoachingBuddy coachee;
-        try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, buddiesService);
-        } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-        Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
+        TrustedBuddy trustedBuddy;
+        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+        } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
         if (guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
         long guestId = guest.getId();
+
+        if (locationDataOnly)
+            System.out.println("location only, guestId is " + guestId);
 
         try{
             long then = System.currentTimeMillis();
@@ -140,16 +299,16 @@ public class CalendarDataStore {
             digest.tbounds = getStartEndResponseBoundaries(weekMetadata.start,
                                                            weekMetadata.end);
 
-            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, coachee);
+            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, trustedBuddy);
             digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
             List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
-            allApiKeys = removeConnectorsWithoutFacets(allApiKeys, coachee);
+            allApiKeys = removeConnectorsWithoutFacets(allApiKeys, trustedBuddy);
             digest.nApis = allApiKeys.size();
             GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
 
             Map<Long,Object> connectorSettings = new HashMap<Long,Object>();
 
-            setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection, weekMetadata, locationDataOnly, updatedSince);
+            setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection, weekMetadata, locationDataOnly, guestId, updatedSince);
 
             setNotifications(digest, AuthHelper.getGuestId());
             setCurrentAddress(digest, guestId, weekMetadata.start);
@@ -208,10 +367,10 @@ public class CalendarDataStore {
     }
 
     private Response getMonthData(final int year, final int month, String filter, boolean locationDataOnly, String buddyToAccessParameter, String updatedSince) {
-        CoachingBuddy coachee;
-        try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, buddiesService);
-        } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-        Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
+        TrustedBuddy trustedBuddy;
+        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+        } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
         if (guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
         long guestId = guest.getId();
@@ -232,15 +391,15 @@ public class CalendarDataStore {
             digest.tbounds = getStartEndResponseBoundaries(monthMetadata.start,
                                                            monthMetadata.end);
 
-            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, coachee);
+            List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, trustedBuddy);
             digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
             List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
-            allApiKeys = removeConnectorsWithoutFacets(allApiKeys, coachee);
+            allApiKeys = removeConnectorsWithoutFacets(allApiKeys, trustedBuddy);
             digest.nApis = allApiKeys.size();
             GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
 
             Map<Long,Object> connectorSettings = new HashMap<Long,Object>();
-            setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection, monthMetadata, locationDataOnly, updatedSince);
+            setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection, monthMetadata, locationDataOnly, guestId, updatedSince);
 
             setNotifications(digest, AuthHelper.getGuestId());
             setCurrentAddress(digest, guestId, monthMetadata.start);
@@ -280,10 +439,10 @@ public class CalendarDataStore {
     public Response getWeatherDataForADay(@ApiParam(value="Date", required=true) @PathParam("date") String date,
                                               @ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter) {
 
-        CoachingBuddy coachee;
-        try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, buddiesService);
-        } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-        Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
+        TrustedBuddy trustedBuddy;
+        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+        } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
         if (guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
         long guestId = guest.getId();
@@ -340,12 +499,32 @@ public class CalendarDataStore {
                                             @ApiParam(value="Filter JSON", required=false) @QueryParam(value="filter") String filter,
                                             @ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter,
                                             @ApiParam(value="Updated Since Date", required = false) @QueryParam("updatedSince") String updatedSince) throws InstantiationException,
-            IllegalAccessException, ClassNotFoundException, UpdateFailedException, OutsideTimeBoundariesException, IOException {
+            IllegalAccessException, ClassNotFoundException, UpdateFailedException, OutsideTimeBoundariesException, IOException, TrustRelationshipRevokedException {
+        return getDayData(date, filter, buddyToAccessParameter, false, updatedSince);
+	}
+
+    @GET
+    @Path("/location/date/{date}")
+    @ApiOperation(value = "Get the user's connectors' data for a specific date", response = DigestModel.class)
+    @Produces({ MediaType.APPLICATION_JSON })
+    @ApiResponses({
+            @ApiResponse(code=401, message="The user is no longer logged in"),
+            @ApiResponse(code=403, message="Buddy-to-access authorization has been revoked")
+    })
+    public Response getLocationDayData(@ApiParam(value="Date (YYYY-MM-DD)", required=true) @PathParam("date") String date,
+                                            @ApiParam(value="Filter JSON", required=false) @QueryParam(value="filter") String filter,
+                                            @ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter,
+                                            @ApiParam(value="Updated Since Date", required = false) @QueryParam("updatedSince") String updatedSince) throws InstantiationException,
+            IllegalAccessException, ClassNotFoundException, UpdateFailedException, OutsideTimeBoundariesException, IOException, TrustRelationshipRevokedException {
+        return getDayData(date, filter, buddyToAccessParameter, true, updatedSince);
+    }
+
+    private Response getDayData(String date, String filter, String buddyToAccessParameter, boolean locationDataOnly, String updatedSince) throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException, UpdateFailedException, IOException, TrustRelationshipRevokedException {
         if (StringUtils.isEmpty(filter)) filter = "{}";
-        CoachingBuddy coachee;
-        try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, buddiesService);
-        } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-        Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
+        TrustedBuddy trustedBuddy;
+        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+        } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+        Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
         if (guest==null)
             return Response.status(401).entity("You are no longer logged in").build();
         long guestId = guest.getId();
@@ -368,15 +547,15 @@ public class CalendarDataStore {
         if (digest.metadata.mainCity!=null)
             setSolarInfo(digest, dayMetadata.consensusVisitedCity.city, guestId, dayMetadata);
 
-        List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, coachee);
+        List<ApiKey> apiKeySelection = getApiKeySelection(guestId, filter, trustedBuddy);
         digest.selectedConnectors = connectorInfos(guestId,apiKeySelection);
         List<ApiKey> allApiKeys = guestService.getApiKeys(guestId);
-        allApiKeys = removeConnectorsWithoutFacets(allApiKeys, coachee);
+        allApiKeys = removeConnectorsWithoutFacets(allApiKeys, trustedBuddy);
         digest.nApis = allApiKeys.size();
         GuestSettings settings = settingsService.getSettings(AuthHelper.getGuestId());
 
         Map<Long,Object> connectorSettings = new HashMap<Long,Object>();
-        setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection, dayMetadata, false, updatedSince);
+        setCachedData(digest, allApiKeys, settings, connectorSettings, apiKeySelection, dayMetadata, locationDataOnly, guestId, updatedSince);
 
         setNotifications(digest, AuthHelper.getGuestId());
         setCurrentAddress(digest, guestId, dayMetadata.start);
@@ -388,10 +567,10 @@ public class CalendarDataStore {
                 .append(" guestId=").append(guestId);
         logger.info(sb.toString());
 
-        digest.generationTimestamp = new java.util.Date().getTime();
+        digest.generationTimestamp = new Date().getTime();
 
         return Response.ok(toJacksonJson(digest)).build();
-	}
+    }
 
     private String toJacksonJson(final DigestModel digest) throws IOException {
         final ObjectMapper objectMapper = new ObjectMapper();
@@ -429,33 +608,38 @@ public class CalendarDataStore {
         digest.metadata.consensusCities = consensusCityModels;
     }
 
-	private List<ApiKey> removeConnectorsWithoutFacets(List<ApiKey> allApiKeys, CoachingBuddy coachee) {
+	private List<ApiKey> removeConnectorsWithoutFacets(List<ApiKey> allApiKeys, TrustedBuddy trustedBuddy) {
 		List<ApiKey> apiKeys = new ArrayList<ApiKey>();
 		for (ApiKey apiKey : allApiKeys) {
             if (apiKey!=null && apiKey.getConnector()!=null && apiKey.getConnector().hasFacets()
-                && (coachee==null||coachee.hasAccessToConnector(apiKey.getConnector().getName()))) {
+                && (trustedBuddy ==null|| trustedBuddy.hasAccessToConnector(apiKey.getConnector().getName()))) {
                 apiKeys.add(apiKey);
             }
 		}
 		return apiKeys;
 	}
 
-    private Collection<AbstractFacetVO<AbstractFacet>> getFacetCollection(AbstractTimespanMetadata timespanMetadata, GuestSettings settings, Connector connector, ObjectType objectType, Long updatedSince){
+    private Collection<AbstractFacetVO<AbstractFacet>> getFacetCollection(AbstractTimespanMetadata timespanMetadata,
+                                                                          GuestSettings settings,
+                                                                          Connector connector,
+                                                                          ObjectType objectType,
+                                                                          long guestId,
+                                                                          Long updatedSince){
         try{
             Collection<AbstractFacetVO<AbstractFacet>> facetCollection;
             if (objectType != null) {
                 if (objectType.isMixedType()){
-                    facetCollection = getFacetVos(timespanMetadata, settings, connector, objectType, updatedSince);
-                    facetCollection.addAll(getFacetVOs(timespanMetadata, settings, connector, objectType, timespanMetadata.getTimeInterval(), updatedSince));
+                    facetCollection = getFacetVos(timespanMetadata, settings, connector, objectType, guestId, updatedSince);
+                    facetCollection.addAll(getFacetVOs(timespanMetadata, settings, connector, objectType, timespanMetadata.getTimeInterval(), guestId, updatedSince));
                 }
                 else if (objectType.isDateBased())
-                    facetCollection = getFacetVos(timespanMetadata, toDates(timespanMetadata), settings, connector, objectType, timespanMetadata.getTimeInterval(), updatedSince);
+                    facetCollection = getFacetVos(timespanMetadata, toDates(timespanMetadata), settings, connector, objectType, guestId, timespanMetadata.getTimeInterval(), updatedSince);
                 else
-                    facetCollection = getFacetVos(timespanMetadata, settings, connector, objectType, updatedSince);
+                    facetCollection = getFacetVos(timespanMetadata, settings, connector, objectType, guestId, updatedSince);
 
             }
             else {
-                facetCollection = getFacetVos(timespanMetadata, settings, connector, null, updatedSince);
+                facetCollection = getFacetVos(timespanMetadata, settings, connector, null, guestId, updatedSince);
             }
             return facetCollection;
         }
@@ -597,10 +781,10 @@ public class CalendarDataStore {
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException {
         try{
-            CoachingBuddy coachee;
-            try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, buddiesService);
-            } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-            Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
+            TrustedBuddy trustedBuddy;
+            try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+            } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+            Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
             if (guest==null)
                 return Response.status(401).entity("You are no longer logged in").build();
             long guestId = guest.getId();
@@ -621,11 +805,11 @@ public class CalendarDataStore {
                 List<ObjectType> objectTypes = objectTypesMap.get(apiKey);
                 if (objectTypes.size() > 0) {
                     for (ObjectType objectType : objectTypes) {
-                        appendFacetsToConnectorResponseModel(day,getFacetCollection(dayMetadata, settings, apiKey.getConnector(), objectType, updatedSinceMillis),apiKey.getConnector(),objectType);
+                        appendFacetsToConnectorResponseModel(day,getFacetCollection(dayMetadata, settings, apiKey.getConnector(), objectType, guestId, updatedSinceMillis),apiKey.getConnector(),objectType);
                     }
                 }
                 else {
-                    appendFacetsToConnectorResponseModel(day,getFacetCollection(dayMetadata,settings,apiKey.getConnector(),null, updatedSinceMillis),apiKey.getConnector(),null);
+                    appendFacetsToConnectorResponseModel(day,getFacetCollection(dayMetadata,settings,apiKey.getConnector(),null, guestId, updatedSinceMillis),apiKey.getConnector(),null);
                 }
             }
 
@@ -637,6 +821,8 @@ public class CalendarDataStore {
                     .append(" timeTaken=").append(System.currentTimeMillis()-then)
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
+
+            day.generationTimestamp = new java.util.Date().getTime();
 
             return Response.ok(toJacksonJson(day)).build();
         }
@@ -676,14 +862,14 @@ public class CalendarDataStore {
             } catch (Throwable e) {
                 return Response.status(401).entity("You are no longer logged in. Please reload your browser window").build();
             }
-            CoachingBuddy coachee = null;
+            TrustedBuddy trustedBuddy = null;
             try {
-                coachee = AuthHelper.getCoachee(buddyToAccessParameter, buddiesService);
-            } catch (CoachRevokedException e) {
+                trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+            } catch (TrustRelationshipRevokedException e) {
                 return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();
             }
-            if (coachee!=null) {
-                guestId = coachee.guestId;
+            if (trustedBuddy !=null) {
+                guestId = trustedBuddy.guestId;
                 guest = guestService.getGuestById(guestId);
             }
 
@@ -702,11 +888,11 @@ public class CalendarDataStore {
                 List<ObjectType> objectTypes = objectTypesMap.get(apiKey);
                 if (objectTypes.size() > 0) {
                     for (ObjectType objectType : objectTypes) {
-                        appendFacetsToConnectorResponseModel(day,getFacetCollection(weekMetadata, settings, apiKey.getConnector(), objectType, updatedSinceMillis),apiKey.getConnector(),objectType);
+                        appendFacetsToConnectorResponseModel(day,getFacetCollection(weekMetadata, settings, apiKey.getConnector(), objectType, guestId, updatedSinceMillis),apiKey.getConnector(),objectType);
                     }
                 }
                 else {
-                    appendFacetsToConnectorResponseModel(day,getFacetCollection(weekMetadata,settings,apiKey.getConnector(),null, updatedSinceMillis),apiKey.getConnector(),null);
+                    appendFacetsToConnectorResponseModel(day,getFacetCollection(weekMetadata,settings,apiKey.getConnector(),null, guestId, updatedSinceMillis),apiKey.getConnector(),null);
                 }
             }
             StringBuilder sb = new StringBuilder("module=API component=calendarDataStore action=getConnectorData")
@@ -716,6 +902,8 @@ public class CalendarDataStore {
                     .append(" timeTaken=").append(System.currentTimeMillis()-then)
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
+
+            day.generationTimestamp = new java.util.Date().getTime();
 
             return Response.ok(toJacksonJson(day)).build();
         }
@@ -746,10 +934,10 @@ public class CalendarDataStore {
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
         try{
-            CoachingBuddy coachee;
-            try { coachee = AuthHelper.getCoachee(buddyToAccessParameter, buddiesService);
-            } catch (CoachRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
-            Guest guest = ApiHelper.getBuddyToAccess(guestService, coachee);
+            TrustedBuddy trustedBuddy;
+            try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+            } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
+            Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
             if (guest==null)
                 return Response.status(401).entity("You are no longer logged in").build();
             long guestId = guest.getId();
@@ -769,11 +957,11 @@ public class CalendarDataStore {
                 List<ObjectType> objectTypes = objectTypesMap.get(apiKey);
                 if (objectTypes.size() > 0) {
                     for (ObjectType objectType : objectTypes) {
-                        appendFacetsToConnectorResponseModel(day,getFacetCollection(monthMetadata, settings, apiKey.getConnector(), objectType, updatedSinceMillis),apiKey.getConnector(),objectType);
+                        appendFacetsToConnectorResponseModel(day,getFacetCollection(monthMetadata, settings, apiKey.getConnector(), objectType, guestId, updatedSinceMillis),apiKey.getConnector(),objectType);
                     }
                 }
                 else {
-                    appendFacetsToConnectorResponseModel(day,getFacetCollection(monthMetadata,settings,apiKey.getConnector(),null, updatedSinceMillis),apiKey.getConnector(),null);
+                    appendFacetsToConnectorResponseModel(day,getFacetCollection(monthMetadata,settings,apiKey.getConnector(),null, guestId, updatedSinceMillis),apiKey.getConnector(),null);
                 }
             }
 
@@ -784,6 +972,8 @@ public class CalendarDataStore {
                     .append(" timeTaken=").append(System.currentTimeMillis()-then)
                     .append(" guestId=").append(guestId);
             logger.info(sb.toString());
+
+            day.generationTimestamp = new java.util.Date().getTime();
 
             return Response.ok(toJacksonJson(day)).build();
         }
@@ -809,6 +999,7 @@ public class CalendarDataStore {
                                List<ApiKey> apiKeySelection,
                                AbstractTimespanMetadata timespanMetadata,
                                boolean locationDataOnly,
+                               long guestId,
                                @Nullable String updatedSince)
             throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException, UpdateFailedException
     {
@@ -824,7 +1015,7 @@ public class CalendarDataStore {
                     if (!objectType.isClientFacet())
                         continue;
                     final TimeUnit timeUnit = timespanMetadata.getTimeInterval().getTimeUnit();
-                    if (timeUnit !=TimeUnit.DAY) {
+                    if (timeUnit != TimeUnit.ARBITRARY) {
                         if (!locationDataOnly&&objectType!=null&&objectType.getName().equals("location"))
                             continue;
                         else if (locationDataOnly &&
@@ -832,14 +1023,14 @@ public class CalendarDataStore {
                             continue;
                         }
                     }
-                    Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetCollection(timespanMetadata, settings, connector, objectType, updatedSinceMillis);
+                    Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetCollection(timespanMetadata, settings, connector, objectType, guestId, updatedSinceMillis);
                     setFilterInfo(digest, apiKeySelection, apiKey,
                                   connector, objectType, facetCollection);
                 }
             }
             else {
                 Collection<AbstractFacetVO<AbstractFacet>> facetCollection = getFacetCollection(timespanMetadata, settings,
-                                                                                         connector, null, updatedSinceMillis);
+                                                                                         connector, null, guestId, updatedSinceMillis);
                 setFilterInfo(digest, apiKeySelection, apiKey,
                               connector, null, facetCollection);
             }
@@ -893,9 +1084,10 @@ public class CalendarDataStore {
     private Collection<AbstractFacetVO<AbstractFacet>> getFacetVOs(AbstractTimespanMetadata timespanMetadata,
                                                                    final GuestSettings settings, final Connector connector,
                                                                    final ObjectType objectType, final TimeInterval timeInterval,
+                                                                   final long guestId,
                                                                    final Long updatedSince)
             throws ClassNotFoundException, OutsideTimeBoundariesException, InstantiationException, IllegalAccessException {
-        List<AbstractRepeatableFacet> objectTypeFacets = calendarDataHelper.getFacets(connector, objectType, firstDate(timespanMetadata), lastDate(timespanMetadata), updatedSince);
+        List<AbstractRepeatableFacet> objectTypeFacets = calendarDataHelper.getFacets(connector, objectType, guestId, firstDate(timespanMetadata), lastDate(timespanMetadata), updatedSince);
         final Collection<AbstractFacetVO<AbstractFacet>> vos = expandToFacetVOs(settings, timespanMetadata, objectTypeFacets, timeInterval);
         return filterByDate(connector, timespanMetadata, vos);
     }
@@ -917,6 +1109,7 @@ public class CalendarDataStore {
                                                                    GuestSettings settings,
                                                                    Connector connector,
                                                                    ObjectType objectType,
+                                                                   long guestId,
                                                                    TimeInterval timeInterval,
                                                                    Long updatedSince)
             throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException
@@ -924,6 +1117,7 @@ public class CalendarDataStore {
         List<AbstractFacet> objectTypeFacets = calendarDataHelper.getFacets(
                 connector,
                 objectType,
+                guestId,
                 dates,
                 updatedSince);
         final Collection<AbstractFacetVO<AbstractFacet>> vos = getAbstractFacetVOs(settings, objectTypeFacets, timeInterval);
@@ -999,10 +1193,11 @@ public class CalendarDataStore {
 	private Collection<AbstractFacetVO<AbstractFacet>> getFacetVos(AbstractTimespanMetadata timespanMetadata,
                                                                    GuestSettings settings, Connector connector,
                                                                    ObjectType objectType,
+                                                                   long guestId,
                                                                    Long updatedSince)
             throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException
     {
-        List<AbstractFacet> objectTypeFacets = calendarDataHelper.getFacets(connector, objectType, timespanMetadata, updatedSince);
+        List<AbstractFacet> objectTypeFacets = calendarDataHelper.getFacets(connector, objectType, guestId, timespanMetadata, updatedSince);
         return getAbstractFacetVOs(settings, objectTypeFacets, timespanMetadata.getTimeInterval());
 	}
 
@@ -1049,7 +1244,7 @@ public class CalendarDataStore {
         return  connectors;
     }
 
-	private List<ApiKey> getApiKeySelection(long guestId, String filter, CoachingBuddy coachee) {
+	private List<ApiKey> getApiKeySelection(long guestId, String filter, TrustedBuddy trustedBuddy) {
 		List<ApiKey> userKeys = guestService.getApiKeys(guestId);
 		String[] uncheckedConnectors = filter.split(",");
 		List<String> filteredOutConnectors = new ArrayList<String>();
@@ -1058,12 +1253,12 @@ public class CalendarDataStore {
                     Arrays.asList(uncheckedConnectors));
         }
 		List<ApiKey> apiKeySelection = getCheckedApiKeys(userKeys,
-				filteredOutConnectors, coachee);
+				filteredOutConnectors, trustedBuddy);
 		return apiKeySelection;
 	}
 
 	private List<ApiKey> getCheckedApiKeys(List<ApiKey> apiKeys,
-			List<String> uncheckedConnectors, CoachingBuddy coachee) {
+			List<String> uncheckedConnectors, TrustedBuddy trustedBuddy) {
 		List<ApiKey> result = new ArrayList<ApiKey>();
 		there: for (ApiKey apiKey : apiKeys) {
 
@@ -1072,7 +1267,7 @@ public class CalendarDataStore {
                 continue;
             }
 
-            if (coachee!=null && !coachee.hasAccessToConnector((apiKey.getConnector().getName())))
+            if (trustedBuddy !=null && !trustedBuddy.hasAccessToConnector((apiKey.getConnector().getName())))
                 continue;
 
             // Check if apiKey should be skipped due to being in uncheckedConnectors list.
@@ -1128,9 +1323,7 @@ public class CalendarDataStore {
 	}
 
 	TimeBoundariesModel getStartEndResponseBoundaries(long start, long end) {
-		TimeBoundariesModel tb = new TimeBoundariesModel();
-		tb.start = start;
-		tb.end = end;
+		TimeBoundariesModel tb = new TimeBoundariesModel(start, end);
 		return tb;
 	}
 }

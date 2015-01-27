@@ -13,12 +13,13 @@ import java.io.Serializable;
 @NamedQueries({
     @NamedQuery (name="sharedConnector.byTrustedBuddyId", query="SELECT sconn FROM SharedConnectors sconn WHERE sconn.buddy.guestId=? AND sconn.buddy.buddyId=?"),
     @NamedQuery (name="sharedConnector.byConnectorNameAndViewerId", query="SELECT sconn FROM SharedConnectors sconn WHERE sconn.connectorName=? AND sconn.buddy.buddyId=?"),
-    @NamedQuery (name="sharedConnector.byConnectorNameAndVieweeId", query="SELECT sconn FROM SharedConnectors sconn WHERE sconn.connectorName=? AND sconn.buddy.guestId=?")
+    @NamedQuery (name="sharedConnector.byConnectorNameAndVieweeId", query="SELECT sconn FROM SharedConnectors sconn WHERE sconn.connectorName=? AND sconn.buddy.guestId=?"),
+    @NamedQuery (name="sharedConnectors.delete.all", query="DELETE FROM SharedConnectors sharedConnector WHERE sharedConnector.buddy.guestId=? OR sharedConnector.buddy.buddyId=?")
 })
 public class SharedConnector extends AbstractEntity implements Serializable {
 
     @ManyToOne
-    public CoachingBuddy buddy;
+    public TrustedBuddy buddy;
 
     @Index(name = "connectorName")
     public String connectorName;

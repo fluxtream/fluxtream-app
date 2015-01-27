@@ -1,5 +1,6 @@
 package org.fluxtream.connectors.facebook;
 
+import org.fluxtream.core.domain.ApiKey;
 import org.springframework.stereotype.Component;
 
 import org.fluxtream.core.connectors.annotations.Updater;
@@ -25,5 +26,8 @@ public class FacebookUpdater extends AbstractUpdater {
 	@Override
 	public void updateConnectorData(UpdateInfo updateInfo) {
 	}
+
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {}
 
 }

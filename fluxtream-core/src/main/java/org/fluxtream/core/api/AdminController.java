@@ -225,15 +225,6 @@ public class AdminController {
 
     }
 
-    @POST
-    @Secured({ "ROLE_ADMIN" })
-    @Path("/widgets/refresh")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public String refreshWidgets() {
-        widgetsService.refreshWidgets();
-        return gson.toJson(new StatusModel(true, "widgets refreshed"));
-    }
-
     @GET
     @Secured({ "ROLE_ADMIN" })
     @Path("/privileges")

@@ -1,12 +1,20 @@
 package org.fluxtream.connectors.mymee;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.http.*;
+import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ConnectionKeepAliveStrategy;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicHeaderElementIterator;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.ExecutionContext;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.protocol.HttpContext;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.annotations.Updater;
@@ -14,23 +22,30 @@ import org.fluxtream.core.connectors.location.LocationFacet;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.Tag;
 import org.fluxtream.core.services.ApiDataService.FacetModifier;
 import org.fluxtream.core.services.ApiDataService.FacetQuery;
+import org.fluxtream.core.services.BodyTrackStorageService;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.services.MetadataService;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
-import org.fluxtream.core.utils.HttpUtils;
 import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
 import org.fluxtream.core.utils.Utils;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author candide
@@ -56,6 +71,8 @@ public class MymeeUpdater extends AbstractUpdater {
     @Autowired
     MetadataService metadataService;
 
+    @Autowired
+    BodyTrackStorageService bodyTrackStorageService;
 
     final String lollipopStyle = "{\"styles\":[{\"type\":\"line\",\"show\":false,\"lineWidth\":1}," +
                                  "{\"radius\":0,\"fill\":false,\"type\":\"lollipop\",\"show\":true,\"lineWidth\":1}," +
@@ -97,7 +114,7 @@ public class MymeeUpdater extends AbstractUpdater {
             JSONArray changes;
 
             try {
-                JSONObject json = JSONObject.fromObject(HttpUtils.fetch(URL));
+                JSONObject json = JSONObject.fromObject(fetchRetrying(URL, 20));
                 newLastSeq = json.getLong("last_seq");
                 changes = json.getJSONArray("results");
             }
@@ -145,7 +162,7 @@ public class MymeeUpdater extends AbstractUpdater {
 
 
             // Write the new set of observations into the datastore
-            bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey, newFacets);
 
             lastSeq = newLastSeq;
 
@@ -171,7 +188,7 @@ public class MymeeUpdater extends AbstractUpdater {
             // mymeeId is unique for each observation
             final String mymeeId = observation.getString("_id");
 
-            MymeeObservationFacet ret = (MymeeObservationFacet)
+            MymeeObservationFacet ret =
                     apiDataService.createOrReadModifyWrite(MymeeObservationFacet.class,
                                                            new FacetQuery(
                                                                    "e.apiKeyId = ? AND e.mymeeId = ?",
@@ -214,7 +231,6 @@ public class MymeeUpdater extends AbstractUpdater {
                             facet.user = observation.optString("user", null);
                             facet.unit = observation.optString("unit", null);
                             facet.baseUnit = observation.optString("baseunit", null);
-
 
                             try {
                                 facet.amount = observation.getDouble("amount");
@@ -279,38 +295,87 @@ public class MymeeUpdater extends AbstractUpdater {
         return getBaseURL(fetchURL) +  "/" + getMainDir(fetchURL);
     }
 
+    String fetchRetrying(final String url, final int retries) throws IOException, UnexpectedHttpResponseCodeException {
+        HttpRequestRetryHandler myRetryHandler = new HttpRequestRetryHandler() {
+            @Override
+            public boolean retryRequest(IOException exception, int executionCount, HttpContext context) {
+                System.out.println(url + ": " + exception);
+                System.out.println(executionCount);
+                if (executionCount >= retries) return false;
 
-    private void loadEverything(final UpdateInfo updateInfo, boolean incremental) throws Exception {
-        StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=loadEverythingFacet")
-                .append(" connector=")
-                .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
-                .append(updateInfo.apiKey.getGuestId());
-        logger.info(sb.toString());
-        long then = System.currentTimeMillis();
-        String queryUrl = guestService.getApiKeyAttribute(updateInfo.apiKey, "fetchURL");
-        String json = null;
+                if (exception instanceof NoHttpResponseException) {
+                    // Retry if the server dropped connection on us
+                    return true;
+                }
+
+                if (exception instanceof java.net.SocketException) {
+                    // Retry if the server dropped connection on us
+                    return true;
+                }
+
+                if (exception instanceof org.apache.http.client.ClientProtocolException) {
+                    return true;
+                }
+
+                Boolean b = (Boolean)
+                        context.getAttribute(ExecutionContext.HTTP_REQ_SENT);
+                boolean sent = (b != null && b.booleanValue());
+                if (!sent) {
+                    // Retry if the request has not been sent fully or
+                    // if it's OK to retry methods that have been sent
+                    return true;
+                }
+
+                // otherwise do not retry
+                return false;
+            }
+        };
+
+        final HttpParams httpParams = new BasicHttpParams();
+        HttpConnectionParams.setConnectionTimeout(httpParams, 0);
+        HttpConnectionParams.setSoTimeout(httpParams, 0);
+        DefaultHttpClient client = new DefaultHttpClient(httpParams);
+        client.setHttpRequestRetryHandler(myRetryHandler);
+        client.setKeepAliveStrategy(new ConnectionKeepAliveStrategy() {
+            @Override
+            public long getKeepAliveDuration(HttpResponse response, HttpContext context) {
+                HeaderElementIterator it = new BasicHeaderElementIterator(
+                        response.headerIterator(HTTP.CONN_KEEP_ALIVE));
+                while(it.hasNext())
+
+                {
+                    HeaderElement he = it.nextElement();
+                    String param = he.getName();
+                    String value = he.getValue();
+                    if (value != null && param.equalsIgnoreCase("timeout")) {
+                        try {
+                            return Long.parseLong(value) * 1000;
+                        } catch (NumberFormatException ignore) {
+                        }
+                    }
+                }
+                return 30 * 1000;
+            }
+        });
+
+        String content = null;
         try {
-            json = HttpUtils.fetch(queryUrl);
-        }
-        catch (UnexpectedHttpResponseCodeException e) {
-            countFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then,
-                               queryUrl, Utils.stackTrace(e),
-                               e.getHttpResponseCode(), e.getHttpResponseMessage());
-        } catch (IOException e) {
-            reportFailedApiCall(updateInfo.apiKey, updateInfo.objectTypes, then,
-                               queryUrl, Utils.stackTrace(e), "I/O");
-            throw new Exception("Could not get Mymee observations: "
-                                + e.getMessage() + "\n" + Utils.stackTrace(e));
-        }
+            HttpGet get = new HttpGet(url);
+            HttpResponse response = client.execute(get);
 
-        countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, queryUrl);
-
-        if (json!=null) {
-            Set<String> channelNames = extractFacets(json, updateInfo, incremental);
-            for (String channelName : channelNames) {
-                bodytrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(), "Mymee", channelName, lollipopStyle);
+            BasicResponseHandler responseHandler = new BasicResponseHandler();
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                content = responseHandler.handleResponse(response);
+            }
+            else {
+                throw new UnexpectedHttpResponseCodeException(response.getStatusLine().getStatusCode(),
+                        response.getStatusLine().getReasonPhrase());
             }
         }
+        finally {
+            client.getConnectionManager().shutdown();
+        }
+        return content;
     }
 
     public Set<String> extractFacets(final String json, final UpdateInfo updateInfo, boolean incremental) throws Exception {
@@ -422,7 +487,7 @@ public class MymeeUpdater extends AbstractUpdater {
             newFacets.add(facet);
         }
         if(incremental) {
-            bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey, newFacets);
         }
         return channelNames;
     }
@@ -436,6 +501,20 @@ public class MymeeUpdater extends AbstractUpdater {
             return null;
         }
     }
+
+    @Override
+    public void afterConnectorUpdate(UpdateInfo updateInfo) throws Exception {
+        List<String> channelNames = jpaDaoService.executeNativeQuery("SELECT DISTINCT name FROM Facet_MymeeObservation WHERE apiKeyId=?", updateInfo.apiKey.getId());
+        bodyTrackStorageService.ensureDataChannelMappingsExist(updateInfo.apiKey, channelNames, connector().getDeviceNickname());
+    }
+
+    @Override
+    public void afterHistoryUpdate(UpdateInfo updateInfo) throws Exception {
+        afterConnectorUpdate(updateInfo);
+    }
+
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {}
 
     public static String getMainDir(String url) {
         try {

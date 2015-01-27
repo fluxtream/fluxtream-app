@@ -1,4 +1,4 @@
-<template id="twitter-tweet">
+ <template id="twitter-tweet">
    <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon twitter-tweet"></span>
        <div class="facetDetails">
@@ -256,29 +256,29 @@
                     <div>
                         <div>
                             <span class="flx-dataLabel">Bed Time</span>
-                            <span class="flx-text">{{#startTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{/startTime}}</span>
+                            <span class="flx-text">{{#startTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel"> {{ampm}}</span>{{/startTime}}</span>
                         </div>
                         <div>
                             <span class="flx-dataLabel">Time Asleep</span>
-                            <span class="flx-text">{{#timeAsleep}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{/timeAsleep}} </span>
+                            <span class="flx-text">{{#timeAsleep}}{{hours}}:{{minutes}}<span class="flx-dataLabel"> {{ampm}}</span>{{/timeAsleep}} </span>
                         </div>
                         <div>
                             <span class="flx-dataLabel">Sleeping </span>
-                            <span class="flx-text bold">{{timeSleeping.hours}}</span><span class="flx-text"> hours</span>
-                            <span class="flx-text bold">{{timeSleeping.minutes}}</span><span class="flx-text"> min</span>
+                            {{#timeSleeping.hours}}<span class="flx-text bold">{{timeSleeping.hours}}</span><span class="flx-text"> hours</span>{{/timeSleeping.hours}}
+                            {{#timeSleeping.minutes}}<span class="flx-text bold">{{timeSleeping.minutes}}</span><span class="flx-text"> min</span>{{/timeSleeping.minutes}}
                         </div>
                         <div>
                             <span class="flx-dataLabel">Awake during </span>
-                            <span class="flx-text bold">{{timeAwake.hours}}</span><span class="flx-text"> hours</span>
-                            <span class="flx-text bold">{{timeAwake.minutes}}</span><span class="flx-text"> min</span>
+                            {{#timeAwake.hours}}<span class="flx-text bold">{{timeAwake.hours}}</span><span class="flx-text"> hours</span>{{/timeAwake.hours}}
+                            {{#timeAwake.minutes}}<span class="flx-text bold">{{timeAwake.minutes}}</span><span class="flx-text"> min</span>{{/timeAwake.minutes}}
                         </div>
                         <div>
                             <span class="flx-dataLabel">Woke Up </span>
-                            <span class="flx-text">{{#wakeUpTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{/wakeUpTime}} </span>
+                            <span class="flx-text">{{#wakeUpTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel"> {{ampm}}</span>{{/wakeUpTime}} </span>
                         </div>
                         <div>
                             <span class="flx-dataLabel">Out of bed </span>
-                            <span class="flx-text">{{#endTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</span>
+                            <span class="flx-text">{{#endTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel"> {{ampm}}</span>{{/endTime}}</span>
                         </div>
                     </div>
                 </div>
@@ -813,11 +813,21 @@
                 <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
-                {{#activities}}
-                <div class="flx-data">
-                    {{activity}}
+                {{#hasActivities}}
+                <span class="flx-description"><a href="javascript:void(0);" onclick="App.expandCollapse(this);" class="expandcollapse">activities&nbsp;<i class="icon-expand-alt"></i></a></span>
+                {{/hasActivities}}
+                <div class="flx-finedetails flx-collapsed">
+                    {{#activities}}
+                    {{^manual}}
+                        <div class="flx-data">{{activity}}{{#distance}} ({{distance}}){{/distance}}</div>
+                        <div class="flx-tTime">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</div>
+                        {{#steps}}{{steps}} steps{{/steps}}
+                    {{/manual}}
+                    {{#manual}}
+                        <div class="flx-data">{{activity}} {{#duration}}{{#hours}}{{hours}} hrs {{/hours}}{{#minutes}}{{minutes}} minutes{{/minutes}}{{/duration}}</div>
+                    {{/manual}}
+                    {{/activities}}
                 </div>
-                {{/activities}}
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
             </div>
             {{/facets}}
@@ -838,7 +848,7 @@
                     {{name}}
                 </div>
                 {{/foursquareId}}
-                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} <span class="flx-dataLabel">-</span> {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}}<span class="flx-dataLabel">{{ampm}}</span>{{#daysBefore}} {{daysBefore}}{{/daysBefore}}{{/startTime}} <span class="flx-dataLabel">-</span> {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{#daysAfter}} {{daysAfter}}{{/daysAfter}}{{/endTime}}</a></div>
                 {{#hasActivities}}
                 <span class="flx-description"><a href="javascript:void(0);" onclick="App.expandCollapse(this);" class="expandcollapse">activities&nbsp;<i class="icon-expand-alt"></i></a></span>
                 {{/hasActivities}}
@@ -1128,5 +1138,52 @@
             <a class="btn" data-dismiss="modal">Close</a>
         </div>
     </div>
-
+</template>
+<template id="beddit-sleep">
+  <div class="flx-box" style="border-left-color:{{color}}">
+    <span class="flx-deviceIcon beddit"></span>
+    <div class="facetDetails">
+      {{#facets}}
+      <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+        <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+        {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+        <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
+        <div class="flx-data">
+          {{#sleepTimeTarget}}<div>Target Amount of Sleep: {{#sleepTimeTarget.hours}}{{sleepTimeTarget.hours}} h{{/sleepTimeTarget.hours}} {{#sleepTimeTarget.minutes}}{{sleepTimeTarget.minutes}} min{{/sleepTimeTarget.minutes}}</div>{{/sleepTimeTarget}}
+          <div>Time Asleep: {{#totalSleepTime.hours}}{{totalSleepTime.hours}} h {{/totalSleepTime.hours}}{{#totalSleepTime.minutes}}{{totalSleepTime.minutes}} min{{/totalSleepTime.minutes}}</div>
+          {{#timeToFallAsleep}}<div>Time to Fall Asleep: {{#timeToFallAsleep.hours}}{{timeToFallAsleep.hours}} h{{/timeToFallAsleep.hours}} {{#timeToFallAsleep.minutes}}{{timeToFallAsleep.minutes}} min{{/timeToFallAsleep.minutes}} </div>{{/timeToFallAsleep}}
+          {{#snoringDuration}}<div>Total Time Snoring: {{#snoringDuration.hours}}{{snoringDuration.hours}} h{{/snoringDuration.hours}}{{#snoringDuration.minutes}}{{snoringDuration.minutes}} min{{/snoringDuration.minutes}}</div>{{/snoringDuration}}
+          {{#restingHeartRate}}<div>Resting Heart Rate: {{restingHeartRate}} bpm</div>{{/restingHeartRate}}
+          {{#respirationRate}}<div>Average Respiration Rate: {{respirationRate}}/minute</div>{{/respirationRate}}
+          <div>Sleep Tags: {{#sleepTags}}#{{.}} {{/sleepTags}}</div>
+        </div>
+        {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+      </div>
+      {{/facets}}
+    </div>
+  </div>
+</template>
+<template id="sleep_as_android-sleep">
+ <div class="flx-box" style="border-left-color:{{color}}">
+   <span class="flx-deviceIcon sleep_as_android"></span>
+   <div class="facetDetails">
+     {{#facets}}
+     <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+       <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+       {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+       <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
+       <div class="flx-data">
+         <div>Sleep Cycles: {{cycles}}</div>
+         <div>Deep Sleep Ratio: {{ratioDeepSleep}}%</div>
+         {{#rating}}<div>Rating: {{rating}}/5</div>{{/rating}}
+         {{#snoringDuration}}<div>Total Time Snoring: {{#snoringDuration.hours}}{{snoringDuration.hours}} h{{/snoringDuration.hours}}{{#snoringDuration.minutes}}{{snoringDuration.minutes}} min{{/snoringDuration.minutes}}</div>{{/snoringDuration}}
+         <div>Noise Level: {{noiseLevel}}</div>
+         <div>Sleep Tags: {{#sleepTags}}#{{.}} {{/sleepTags}}</div>
+         {{#sleepComment}}<div>Sleep Comment: {{sleepComment}}</div>{{/sleepComment}}
+       </div>
+       {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+     </div>
+     {{/facets}}
+   </div>
+ </div>
 </template>

@@ -86,6 +86,9 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
     @Autowired
     BodyTrackHelper bodyTrackHelper;
 
+    @Autowired
+    BuddiesService buddiesService;
+
     @Override
     public AbstractFacetVO<AbstractFacet> getFacet(final int api, final int objectType, final long facetId) {
         Connector connector = Connector.fromValue(api);
@@ -106,20 +109,6 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
         }
     }
 
-    @Override
-	@Transactional(readOnly = false)
-	public void cacheApiDataObject(UpdateInfo updateInfo, long start, long end,
-			AbstractFacet payload) {
-		payload.api = updateInfo.apiKey.getConnector().value();
-		payload.guestId = updateInfo.apiKey.getGuestId();
-		payload.timeUpdated = System.currentTimeMillis();
-
-        final AbstractFacet facet = persistFacet(payload);
-        List<AbstractFacet> facets = new ArrayList<AbstractFacet>();
-        facets.add(facet);
-        fireDataReceivedEvent(updateInfo, updateInfo.objectTypes(), start, end, facets);
-	}
-
 	/**
 	 * start and end parameters allow to specify time boundaries that are not
 	 * contained in the connector data itself
@@ -133,21 +122,6 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
         final List<AbstractFacet> facets = extractFacets(apiData, updateInfo.objectTypes, updateInfo);
         fireDataReceivedEvent(updateInfo, updateInfo.objectTypes(), start, end, facets);
 	}
-
-    /**
-     * start and end parameters allow to specify time boundaries that are not
-     * contained in the connector data itself
-     */
-    @Override
-    @Transactional(readOnly = false)
-    public void cacheApiDataJSON(UpdateInfo updateInfo, String json,
-                                 long start, long end, int objectTypes) throws Exception {
-        ApiData apiData = new ApiData(updateInfo, start, end);
-        apiData.json = json;
-        final List<AbstractFacet> facets = extractFacets(apiData, objectTypes, updateInfo);
-        final List<ObjectType> types = ObjectType.getObjectTypes(updateInfo.apiKey.getConnector(), objectTypes);
-        fireDataReceivedEvent(updateInfo, types, start, end, facets);
-    }
 
 	/**
 	 * start and end parameters allow to specify time boundaries that are not
@@ -207,30 +181,6 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 		}
 	}
 
-	@Override
-	@Transactional(readOnly = false)
-	public void eraseApiData(ApiKey apiKey,
-			ObjectType objectType) {
-		if (objectType == null)
-			eraseApiData(apiKey);
-		else
-			jpaDao.deleteAllFacets(apiKey, objectType);
-	}
-
-    @Override
-    @Transactional(readOnly = false)
-    public void eraseApiData(ApiKey apiKey,
-                             final int objectTypes, final TimeInterval timeInterval) {
-        List<ObjectType> connectorTypes = ObjectType.getObjectTypes(apiKey.getConnector(),
-                                                                    objectTypes);
-        if (connectorTypes!=null) {
-            for (ObjectType objectType : connectorTypes) {
-                eraseApiData(apiKey, objectType, timeInterval);
-            }
-        } else
-            eraseApiData(apiKey, null, timeInterval);
-    }
-
     @Override
 	@Transactional(readOnly = false)
 	public void eraseApiData(ApiKey apiKey,
@@ -252,33 +202,53 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
             for (AbstractFacet facet : facets)
                 em.remove(facet);
         }
+        apiKey = guestService.getApiKey(apiKey.getId());
+        em.remove(apiKey);
     }
 
 	@Override
 	@Transactional(readOnly = false)
 	public void eraseApiData(ApiKey apiKey) {
         JPAUtils.execute(em, "apiUpdates.delete.byApiKey", apiKey.getId());
+        buddiesService.removeSharedChannels(apiKey.getId());
+        buddiesService.removeSharedConnectors(apiKey.getId());
 		if (!apiKey.getConnector().hasFacets())
 			return;
 		jpaDao.deleteAllFacets(apiKey);
+        bodyTrackHelper.deleteChannelMappings(apiKey);
         guestService.deleteConnectorProfile(apiKey);
         // remove directory <connectorData.location>/<connectorName>/<apiKeyId>
         final String devKvsLocation = env.get("btdatastore.db.location");
         // let's not assume that everyone has set this value
         if (devKvsLocation!=null) {
             if (apiKey.getConnector()!=null&&apiKey.getConnector().getName()!=null) {
-                final String connectorName = apiKey.getConnector().getPrettyName();
+                final String connectorDeviceNickname = apiKey.getConnector().getDeviceNickname();
                 StringBuilder path = new StringBuilder(devKvsLocation)
                         .append(File.separator).append(apiKey.getGuestId())
-                        .append(File.separator).append(connectorName)
-                        .append(File.separator).append(apiKey.getId());
+                        .append(File.separator).append(connectorDeviceNickname);
                 File dataDir = new File(path.toString());
+                boolean success = false;
                 if (dataDir.exists()) {
                     try {
                         FileUtils.deleteDirectory(dataDir);
+                        success = true;
                     }
                     catch (IOException e) {
                         logger.warn("Couldn't delete connector data directory at [" + dataDir.getAbsolutePath() + "]");
+                    }
+                }
+                if (!success) {
+                    final String connectorName = apiKey.getConnector().getName();
+                    path = new StringBuilder(devKvsLocation)
+                            .append(File.separator).append(apiKey.getGuestId())
+                            .append(File.separator).append(connectorName);
+                    dataDir = new File(path.toString());
+                    if (dataDir.exists()) {
+                        try {
+                            FileUtils.deleteDirectory(dataDir);
+                        } catch (IOException e) {
+                            logger.warn("Couldn't delete connector data directory at [" + dataDir.getAbsolutePath() + "]");
+                        }
                     }
                 }
             }
@@ -291,6 +261,9 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
         if (apiKey.getConnector()!=null) {
             bodyTrackHelper.deleteStyle(apiKey.getGuestId(), apiKey.getConnector().prettyName());
         }
+        // rehydrate the apiKey and finally remove it
+        apiKey = guestService.getApiKey(apiKey.getId());
+        em.remove(apiKey);
     }
 
     @Override
@@ -399,7 +372,7 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 					newFacets.add(newFacet);
 			}
 		}
-		bodyTrackStorageService.storeApiData(updateInfo.getGuestId(), newFacets);
+		bodyTrackStorageService.storeApiData(updateInfo.apiKey, newFacets);
         return newFacets;
 	}
 
@@ -588,28 +561,6 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 			logger.info(sb.toString());
 		} catch (Throwable t) {
 			t.printStackTrace();
-		}
-	}
-
-	@Override
-    @Transactional(readOnly = false)
-	public void cacheEmptyData(UpdateInfo updateInfo, long fromMidnight,
-			long toMidnight) {
-		Connector connector = updateInfo.apiKey.getConnector();
-		List<ObjectType> objectTypes = ObjectType.getObjectTypes(connector,
-				updateInfo.objectTypes);
-		for (ObjectType objectType : objectTypes) {
-			try {
-				AbstractFacet facet = objectType.facetClass().newInstance();
-				facet.isEmpty = true;
-				facet.start = fromMidnight;
-				facet.end = toMidnight;
-				em.persist(facet);
-			} catch (Exception e) {
-				// this should really never happen
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
 		}
 	}
 

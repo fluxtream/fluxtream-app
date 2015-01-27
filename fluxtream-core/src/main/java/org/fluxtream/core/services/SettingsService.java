@@ -77,4 +77,8 @@ public interface SettingsService {
 
     public void resetConnectorSettings(long apiKeyId);
 
+    void setPreferences(long guestId, String preferences);
+
+    String getPreferences(long guestId);
+
 }

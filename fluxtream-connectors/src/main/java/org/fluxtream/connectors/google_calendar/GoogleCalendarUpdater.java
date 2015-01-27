@@ -44,7 +44,7 @@ import static org.fluxtream.core.utils.Utils.hash;
 @Component
 @Updater(prettyName = "Calendar", value = 0, objectTypes={GoogleCalendarEventFacet.class},
          settings=GoogleCalendarConnectorSettings.class, bodytrackResponder = GoogleCalendarBodytrackResponder.class,
-         defaultChannels = {"google_calendar.events"},
+         defaultChannels = {"Calendar.events"},
          sharedConnectorFilter = GoogleCalendarSharedConnectorFilter.class)
 public class GoogleCalendarUpdater extends AbstractUpdater implements SettingsAwareUpdater, SharedConnectorSettingsAwareUpdater {
 
@@ -108,17 +108,13 @@ public class GoogleCalendarUpdater extends AbstractUpdater implements SettingsAw
         initChannelMapping(apiKey, connectorSettings.calendars);
     }
 
-    private void initChannelMapping(ApiKey apiKey, final List<CalendarConfig> calendarConfigs) {
-        bodyTrackHelper.deleteChannelMappings(apiKey);
-        ChannelMapping mapping = new ChannelMapping();
-        mapping.deviceName = "google_calendar";
-        mapping.channelName = "events";
-        mapping.timeType = ChannelMapping.TimeType.gmt;
-        mapping.channelType = ChannelMapping.ChannelType.timespan;
-        mapping.guestId = apiKey.getGuestId();
-        mapping.apiKeyId = apiKey.getId();
-        bodyTrackHelper.persistChannelMapping(mapping);
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {
+        // this connector will need to update its styles wrt the number of available calendars
+        // so this method remains empty
+    }
 
+    private void initChannelMapping(ApiKey apiKey, final List<CalendarConfig> calendarConfigs) {
         BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
         channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
         channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();

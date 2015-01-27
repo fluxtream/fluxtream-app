@@ -80,6 +80,7 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
         else
             map.reset();
 
+        map.heatMapData = [];
         if (digest.facets != null && digest.facets["google_latitude-location"] != null)
             map.addGPSData(digest.facets["google_latitude-location"],App.getFacetConfig("google_latitude-location"),false);
         for (var objectType in digest.facets){
@@ -88,19 +89,6 @@ define(["applications/calendar/tabs/clock/ClockDrawingUtils",
             map.addGPSData(digest.facets[objectType],App.getFacetConfig(objectType),false)
         }
         map.fitBounds(map.gpsBounds);
-        /*if (digest.facets != null && digest.facets["google_latitude-location"] != null){
-            map.addGPSData(digest.facets["google_latitude-location"],false);
-
-            map.fitBounds(map.gpsBounds);
-        }
-        else{
-            var addressToUse = {latitude:0,longitude:0};
-            if (digest.addresses.ADDRESS_HOME != null && digest.addresses.ADDRESS_HOME.length != 0)
-                addressToUse = digest.addresses.ADDRESS_HOME[0];
-            map.setCenter(new google.maps.LatLng(addressToUse.latitude,addressToUse.longitude));
-            hideQTipMap();
-        }      */
-        map.addAddresses(digest.addresses, false);
 
 		var availableWidth = $("#clockTab").width();
 		var edgeWidth =  Math.min(availableWidth, 600);

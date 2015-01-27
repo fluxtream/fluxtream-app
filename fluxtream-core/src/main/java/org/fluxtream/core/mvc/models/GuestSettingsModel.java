@@ -20,6 +20,9 @@ public class GuestSettingsModel {
     @JsonRawValue
     public String messageDisplayCountersStorage;
 
+    @JsonRawValue
+    public String preferences;
+
     public GuestSettings.TemperatureUnit temperatureUnit = GuestSettings.TemperatureUnit.FAHRENHEIT;
 
     public GuestSettings.WeightMeasureUnit weightMeasureUnit = GuestSettings.WeightMeasureUnit.POUNDS;
@@ -39,6 +42,7 @@ public class GuestSettingsModel {
         this.lengthMeasureUnit = settings.lengthMeasureUnit;
         this.distanceMeasureUnit = settings.distanceMeasureUnit;
         this.messageDisplayCountersStorage = settings.messageDisplayCountersStorage;
+        this.preferences = settings.preferences;
 
         this.username = username;
         this.firstName = firstName;

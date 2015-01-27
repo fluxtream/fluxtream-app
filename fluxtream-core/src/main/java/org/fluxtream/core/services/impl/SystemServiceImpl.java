@@ -12,6 +12,7 @@ import org.fluxtream.core.Configuration;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.ConnectorInfo;
+import org.fluxtream.core.domain.Gestalt;
 import org.fluxtream.core.services.ConnectorUpdateService;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.services.JPADaoService;
@@ -68,6 +69,9 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         if (Connector.getConnector("sms_backup")!=null)
             scopedApis.put("https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/gmail.readonly",
                            Connector.getConnector("sms_backup"));
+        if (Connector.getConnector("sleep_as_android")!=null)
+            scopedApis.put("https://www.googleapis.com/auth/userinfo.email",
+                    Connector.getConnector("sleep_as_android"));
     }
 
     @Override
@@ -272,6 +276,23 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         SMSBackupInfo.supportsRenewTokens = true;
         SMSBackupInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://www.googleapis.com/auth/userinfo.email%%20https://www.googleapis.com/auth/gmail.readonly";
         em.persist(SMSBackupInfo);
+        final String beddit = "Beddit";
+        em.persist(new ConnectorInfo(beddit,
+                "/" + release + "/images/connectors/connector-beddit.jpg",
+                res.getString("beddit"),
+                "ajax:/beddit/enterAuthInfo",
+                Connector.getConnector("beddit"), order++, true,
+                false, true, null));
+        String[] sleepAsAndroidKeys = checkKeysExist("Sleep_As_Android", Arrays.asList("google.client.id", "google.client.secret"));
+        ConnectorInfo SleepAsAndroidConnectorInfo = new ConnectorInfo("Sleep_As_Android",
+                "/" + release + "/images/connectors/connector-sleep_as_android.jpg",
+                res.getString("sleep_as_android"),
+                "/google/oauth2/token?scope=https://www.googleapis.com/auth/userinfo.email",
+                Connector.getConnector("sleep_as_android"), order++, true,
+                false,true,sleepAsAndroidKeys);
+        SleepAsAndroidConnectorInfo.supportsRenewTokens = true;
+        SleepAsAndroidConnectorInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://www.googleapis.com/auth/userinfo.email";
+        em.persist(SleepAsAndroidConnectorInfo);
 	}
 
     @Transactional(readOnly = false)
@@ -327,6 +348,17 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
 	public Connector getApiFromGoogleScope(String scope) {
 		return scopedApis.get(scope);
 	}
+
+    boolean channelMappingsFixupWasExecuted() {
+        final List<Gestalt> gestalts = jpaDaoService.findWithQuery("SELECT gestalt FROM Gestalt gestalt", Gestalt.class);
+        if (gestalts.size()>1)
+            throw new RuntimeException("Illegal State: multiple Gestalts have been found");
+        if (gestalts.size()==1) {
+            Gestalt gestalt = gestalts.get(0);
+            return gestalt.channelMappingsFixupWasExecuted;
+        } else
+            return false;
+    }
 
     @Transactional(readOnly = false)
     public void resetConnectorList() throws Exception {
@@ -416,6 +448,12 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
                 resetConnectorList();
                 resetSynchingApiKeys();
                 List<ConnectorInfo> connectors = getConnectors();
+                if (!channelMappingsFixupWasExecuted()) {
+                    String msg = "***** Exiting execution because the channel mappings fixup has not been executed yet.\n  Check out fluxtream-admin-tools project, build, and execute 'java -jar target/flx-admin-tools.jar 8'";
+                    logger.info(msg);
+                    System.out.println(msg);
+                    System.exit(-1);
+                }
                 boolean missingKeys=checkConnectorInstanceKeys(connectors);
 
                 if(missingKeys) {

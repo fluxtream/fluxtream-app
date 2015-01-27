@@ -6,7 +6,9 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.auth.AuthHelper;
-import org.fluxtream.core.auth.CoachRevokedException;
+import org.fluxtream.core.auth.TrustRelationshipRevokedException;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.utils.ImageUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,13 +24,17 @@ public class SmsBackupConnectorController {
     @Autowired
     Configuration env;
 
+    @Autowired
+    GuestService guestService;
+
     @RequestMapping(value="/attachment/{apiKeyId}/{fileName}")
     public void getAttachment(@PathVariable("apiKeyId") long apiKeyId,
                             @PathVariable("fileName") String fileName,
                             @RequestParam(value="s", required=false) Integer maxSideLength,
-                            HttpServletResponse response) throws IOException, CoachRevokedException {
+                            HttpServletResponse response) throws IOException, TrustRelationshipRevokedException {
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
         File file = SmsBackupUpdater.getAttachmentFile(env.targetEnvironmentProps.getString("btdatastore.db.location"),
-                                            AuthHelper.getVieweeId(), apiKeyId,fileName);
+                                            apiKey.getGuestId(), apiKeyId,fileName);
         if (!file.exists()){
             response.sendError(404);
         }

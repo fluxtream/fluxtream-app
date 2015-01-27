@@ -55,6 +55,9 @@ public class GoogleLatitudeUpdater extends AbstractUpdater implements FileUpload
         }
 	}
 
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {}
+
     private void sendServiceDiscontinuedWarning(final UpdateInfo updateInfo) {
         notificationsService.addNamedNotification(updateInfo.getGuestId(), Notification.Type.WARNING, connector().statusNotificationName(),
                                                   "Heads Up. Google recently discontinued support for their Latitude service.<br>" +

@@ -109,7 +109,14 @@
         <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
-
+    <servlet>
+        <servlet-name>JmxMiniConsoleServlet</servlet-name>
+        <servlet-class>org.jminix.console.servlet.MiniConsoleServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>JmxMiniConsoleServlet</servlet-name>
+        <url-pattern>/jmx/*</url-pattern>
+    </servlet-mapping>
     <servlet-mapping>
         <servlet-name>Bootstrap</servlet-name>
         <url-pattern>/bootstrap/*</url-pattern>

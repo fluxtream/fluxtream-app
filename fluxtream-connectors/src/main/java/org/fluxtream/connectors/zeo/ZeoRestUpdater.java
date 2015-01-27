@@ -5,6 +5,7 @@ import org.fluxtream.core.connectors.Connector.UpdateStrategyType;
 import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
+import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.services.JPADaoService;
 import org.fluxtream.core.services.MetadataService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +57,9 @@ public class ZeoRestUpdater extends AbstractUpdater {
         //
         //getBulkSleepRecordsSinceDate(updateInfo, date);
 	}
+
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {}
 
     //private void getBulkSleepRecordsSinceDate(UpdateInfo updateInfo, DateTime d) throws Exception {
 		//String zeoApiKey = guestService.getApiKeyAttribute(updateInfo.apiKey, "zeoApiKey");

@@ -6,13 +6,12 @@ import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
 import org.fluxtream.core.connectors.updaters.SharedConnectorSettingsAwareUpdater;
-import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.CoachingBuddy;
-import org.fluxtream.core.domain.Guest;
-import org.fluxtream.core.domain.SharedConnector;
+import org.fluxtream.core.domain.*;
 import org.fluxtream.core.mvc.models.CoachModel;
 import org.fluxtream.core.mvc.models.GuestModel;
+import org.fluxtream.core.mvc.models.SharedChannelModel;
 import org.fluxtream.core.mvc.models.SharedConnectorModel;
+import org.fluxtream.core.services.BodyTrackStorageService;
 import org.fluxtream.core.services.BuddiesService;
 import org.fluxtream.core.services.GuestService;
 import org.springframework.beans.factory.BeanFactory;
@@ -42,6 +41,9 @@ public class BuddiesController {
 
     @Autowired
     BuddiesService buddiesService;
+
+    @Autowired
+    BodyTrackStorageService bodyTrackStorageService;
 
     @Autowired
     BeanFactory beanFactory;
@@ -99,17 +101,94 @@ public class BuddiesController {
         return models;
     }
 
+    @PUT
+    @Path("/trusted/{username}/channels/{channelId}/shared")
+    @ApiOperation(value = "Retrieve information about data shared with a given buddy")
+    public Response setChannelSharingStatus(@ApiParam(value="The buddy's username", required=true) @PathParam("username") String username,
+                                            @ApiParam(value="The channel ID", required=true) @PathParam("channelId") long channelId,
+                                            @ApiParam(value="Share the channel?", required=true) @FormParam("value") boolean shared) {
+        final long trustingBuddyId = AuthHelper.getGuestId();
+        final TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(trustingBuddyId, username);
+        if (trustedBuddy ==null)
+            return Response.status(Response.Status.NOT_FOUND).entity("Could not buddy with username '" + username + "'").build();
+        if (!shared) {
+            List<SharedChannel> sharedChannels = buddiesService.getSharedChannels(trustedBuddy.buddyId, trustingBuddyId);
+            boolean foundChannel = false;
+            for (SharedChannel sharedChannel : sharedChannels) {
+                if (sharedChannel.channelMapping.getId() == channelId) {
+                    foundChannel = true;
+                    break;
+                }
+            }
+            if (!foundChannel)
+                return Response.status(Response.Status.NOT_FOUND).entity("Could not find channel [" + channelId + "]").build();
+            buddiesService.removeSharedChannel(trustedBuddy.buddyId, trustingBuddyId, channelId);
+        } else
+            buddiesService.addSharedChannel(trustedBuddy.buddyId, trustingBuddyId, channelId);
+        return Response.ok().build();
+    }
+
+
     @GET
     @Path("/trusted/{username}/connectors")
     @ApiOperation(value = "Retrieve information about data shared with a given buddy",
-            response = CoachModel.class, responseContainer = "Array")
+            response = CoachModel.class)
     @Produces({MediaType.APPLICATION_JSON})
     public CoachModel getConnectorSharingInfo(@ApiParam(value="The buddy's username", required=true) @PathParam("username") String username) {
-        final long guestId = AuthHelper.getGuestId();
-        final CoachingBuddy coachingBuddy = buddiesService.getTrustedBuddy(guestId, username);
-        final Set<SharedConnector> sharedConnectors = coachingBuddy.sharedConnectors;
-        final List<ApiKey> apiKeys = guestService.getApiKeys(guestId);
+        final long trustingBuddyId = AuthHelper.getGuestId();
+        final TrustedBuddy trustedBuddy = buddiesService.getTrustedBuddy(trustingBuddyId, username);
+        final Set<SharedConnector> sharedConnectors = trustedBuddy.sharedConnectors;
+        final List<ApiKey> apiKeys = guestService.getApiKeys(trustingBuddyId);
         CoachModel coach = new CoachModel();
+        Guest trustedBuddyGuest = guestService.getGuest(username);
+        coach.username = trustedBuddyGuest.username;
+        coach.fullname = trustedBuddyGuest.getGuestName();
+        addSharedConnectors(sharedConnectors, apiKeys, coach);
+        addSharedChannels(apiKeys, coach, trustingBuddyId, trustedBuddyGuest.getId());
+        return coach;
+    }
+
+    private void addSharedChannels(List<ApiKey> apiKeys, CoachModel coach, long trustingBuddyId, long trustedBuddyId) {
+        for (ApiKey apiKey : apiKeys) {
+            // get all availabale channel mappings
+            List<ChannelMapping> channelMappings = bodyTrackStorageService.getChannelMappings(apiKey.getId());
+            // now those that are shared
+            List<SharedChannel> sharedChannels = buddiesService.getSharedChannels(trustedBuddyId, trustingBuddyId, apiKey.getId());
+            // create the list of models that we're going to add items to
+            List<SharedChannelModel> sharedChannelModels = new ArrayList<SharedChannelModel>();
+            for (ChannelMapping channelMapping : channelMappings) {
+                // create a SharedChannelModel for each Channel Mapping – shared is false by default
+                SharedChannelModel sharedChannelModel = new SharedChannelModel();
+                sharedChannelModel.channelId = channelMapping.getId();
+                sharedChannelModel.deviceName = channelMapping.getDeviceName().trim();
+                sharedChannelModel.channelName = channelMapping.getChannelName().trim();
+                if (channelMapping.getInternalDeviceName()!=null&&!channelMapping.getInternalDeviceName().equals(channelMapping.getDeviceName())) {
+                    sharedChannelModel.userData = true;
+                    sharedChannelModel.deviceName = channelMapping.getInternalDeviceName().trim();
+                }
+                // iterate through sharedChannels to check if it is shared
+                for (SharedChannel sharedChannel : sharedChannels) {
+                    if (sharedChannel.channelMapping.getId().equals(channelMapping.getId())) {
+                        sharedChannelModel.shared = true;
+                        break;
+                    }
+                }
+                if (sharedChannelModel.userData) {
+                    List<SharedChannelModel> userDataChannels = coach.sharedChannels.get(sharedChannelModel.deviceName);
+                    if (userDataChannels == null) {
+                        userDataChannels = new ArrayList<SharedChannelModel>();
+                        coach.sharedChannels.put(sharedChannelModel.deviceName, userDataChannels);
+                    }
+                    userDataChannels.add(sharedChannelModel);
+                } else
+                    sharedChannelModels.add(sharedChannelModel);
+            }
+            // finally add an entry to our coach model's sharedChannels map
+            coach.sharedChannels.put(apiKey.getConnector().getDeviceNickname(), sharedChannelModels);
+        }
+    }
+
+    private void addSharedConnectors(Set<SharedConnector> sharedConnectors, List<ApiKey> apiKeys, CoachModel coach) {
         List<SharedConnectorModel> connectors = new ArrayList<SharedConnectorModel>();
         for (ApiKey apiKey : apiKeys) {
             boolean isShared = false;
@@ -134,10 +213,6 @@ public class BuddiesController {
             connectors.add(connector);
         }
         coach.sharedConnectors  = connectors;
-        Guest buddyGuest = guestService.getGuest(username);
-        coach.username = buddyGuest.username;
-        coach.fullname = buddyGuest.getGuestName();
-        return coach;
     }
 
     @GET
@@ -145,10 +220,10 @@ public class BuddiesController {
     @ApiOperation(value = "Retrieve the list of buddies whose data we may have access to",
             response = GuestModel.class, responseContainer = "Array")
     @Produces({MediaType.APPLICATION_JSON})
-    public List<GuestModel> getCoachees(){
+    public List<GuestModel> getTrustedBuddies(){
         Guest guest = AuthHelper.getGuest();
-        final List<Guest> coachees = buddiesService.getTrustedBuddies(guest.getId());
-        final List<GuestModel> guestModels = toGuestModels(coachees);
+        final List<Guest> trustedBuddies = buddiesService.getTrustedBuddies(guest.getId());
+        final List<GuestModel> guestModels = toGuestModels(trustedBuddies);
         return guestModels;
     }
 
@@ -157,10 +232,10 @@ public class BuddiesController {
     @ApiOperation(value = "Retrieve the list of buddies with whom the calling guest may have shared data",
             response = GuestModel.class, responseContainer = "Array")
     @Produces({MediaType.APPLICATION_JSON})
-    public List<GuestModel> getCoaches(){
+    public List<GuestModel> getTrustingBuddies(){
         final long guestId = AuthHelper.getGuestId();
-        final List<Guest> coaches = buddiesService.getTrustingBuddies(guestId);
-        final List<GuestModel> guestModels = toGuestModels(coaches);
+        final List<Guest> trustingBuddies = buddiesService.getTrustingBuddies(guestId);
+        final List<GuestModel> guestModels = toGuestModels(trustingBuddies);
         return guestModels;
     }
 

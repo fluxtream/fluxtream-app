@@ -120,6 +120,20 @@ define(function() {
                 }
             });
         });
+        $(".refreshWidgetRepositoryWidgets").unbind().click(function(event){
+            var refreshButton = $(event.target);
+            refreshButton.empty().html("<img class=\"loading-animation refresh\" src=\"/static/images/loading.gif\"/>");
+            $.ajax({
+                url: "/api/v1/widgets/refresh",
+                type: "POST",
+                success: function() {
+                    refreshButton.empty().html("Refresh");
+                },
+                error: function() {
+                    $("#settings-alert").html("<div class=\"alert alert-error\" data-dismiss=\"alert\">There was an error. Please check your widgets' manifests.</div>");
+                }
+            });
+        });
         var addWidgetRepository = function (){
             var url = $("#widgetRepositoryURL").val();
             $.ajax({

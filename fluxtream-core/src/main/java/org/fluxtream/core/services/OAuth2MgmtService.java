@@ -39,4 +39,6 @@ public interface OAuth2MgmtService {
     List<AuthorizationTokenModel> getTokens(final long guestId);
 
     void revokeAccessToken(final long guestId, final String accessToken);
+
+    AuthorizationToken getAuthorizationToken(long guestId, String deviceId, long millis);
 }

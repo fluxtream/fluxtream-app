@@ -125,7 +125,7 @@ public class DashboardsServiceImpl implements DashboardsService {
 
     @Override
     @Transactional(readOnly=false)
-    public void addWidget(final long guestId, final long dashboardId, final String widgetName) {
+    public void addWidget(final long guestId, final long dashboardId, final String widgetName, List<String> allowedConnectors, boolean fullAccess) {
         Dashboard dashboard = getDashboardById(guestId, dashboardId);
         final String[] namesArray = StringUtils.split(dashboard.widgetNames, ",");
         List<String> widgetNames = new ArrayList<String>();
@@ -139,6 +139,16 @@ public class DashboardsServiceImpl implements DashboardsService {
         }
         dashboard.widgetNames = StringUtils.join(widgetNames, ",");
         em.persist(dashboard);
+        String defaultSettings = "{";
+        defaultSettings += "\"allowedConnectors\":[";
+        for (int i = 0; i < allowedConnectors.size(); i++){
+            if (i > 0)
+                defaultSettings += ",";
+            defaultSettings += "\"" + allowedConnectors.get(i) + "\"";
+        }
+        defaultSettings += "],\"fullAccess\":" + fullAccess;
+        defaultSettings += "}";
+        widgetsService.saveWidgetSettings(guestId,dashboardId,widgetName,defaultSettings);
     }
 
     @Override

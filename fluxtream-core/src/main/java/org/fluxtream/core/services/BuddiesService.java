@@ -1,6 +1,7 @@
 package org.fluxtream.core.services;
 
 import org.fluxtream.core.domain.*;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -20,17 +21,17 @@ public interface BuddiesService {
 
     public void removeSharedConnector(long guestId, String username, String connectorName);
 
-    public boolean isViewingGranted(long guestId, long coacheeId, String connectorName);
+    public void removeSharedConnectors(long apiKeyId);
+
+    public boolean isViewingGranted(long guestId, long trustingBuddyId, String connectorName);
 
     public List<Guest> getTrustingBuddies(long guestId);
 
     public List<Guest> getTrustedBuddies(long guestId);
 
-    public CoachingBuddy getTrustedBuddy(long guestId, String username);
+    public TrustedBuddy getTrustedBuddy(long guestId, String username);
 
-    public CoachingBuddy getTrustingBuddy(long guestId, String username);
-
-    public CoachingBuddy getTrustingBuddy(long guestId, long coacheeId);
+    public TrustedBuddy getTrustedBuddy(long guestId, long trustingBuddyId);
 
     public <T extends AbstractFacet> List<T> filterFacets(long viewerId, long apiKeyId, List<T> facets);
 
@@ -41,4 +42,20 @@ public interface BuddiesService {
     List<SharedConnector> getSharedConnectors(ApiKey apiKey);
 
     void setSharedConnectorFilter(long sharedConnectorId, String filterJson);
+
+    List<SharedChannel> getSharedChannels(long trustedBuddyId, long trustingBuddyId);
+
+    List<SharedChannel> getSharedChannels(long trustedBuddyId, long trustingBuddyId, long apiKeyId);
+
+    public SharedChannel addSharedChannel(long trustedBuddyId, long trustingBuddyId, long channelMappingId);
+
+    void removeSharedChannel(long trustedBuddyId, long trustingBuddyId, long channelMappingId);
+
+    public void removeSharedChannels(long apiKeyId);
+
+    @Transactional(readOnly=false)
+    void removeAllSharedChannels(long guestId);
+
+    @Transactional(readOnly=false)
+    void removeAllSharedConnectors(long guestId);
 }

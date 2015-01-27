@@ -154,7 +154,7 @@ public class AppController {
 
         String release = env.get("release");
 		request.setAttribute("guestName", guest.getGuestName());
-        request.setAttribute("coachees", buddiesService.getTrustingBuddies(guestId));
+        request.setAttribute("trustingBuddies", buddiesService.getTrustingBuddies(guestId));
         request.setAttribute("useMinifiedJs", Boolean.valueOf(env.get("useMinifiedJs")));
 
 		if (SecurityUtils.isDemoUser())
@@ -203,8 +203,6 @@ public class AppController {
 	@RequestMapping(value = { "/app*", "/app/**" })
 	public ModelAndView welcomeHome(HttpServletRequest request, HttpServletResponse response)
 			throws IOException, NoSuchAlgorithmException {
-        // always reset the target user to the logged in user when the app starts (or a browser reload happens)
-        AuthHelper.as(null);
 		if (!hasTimezoneCookie(request)|| AuthHelper.getGuest()==null)
 			return new ModelAndView("redirect:/welcome?signIn");
         SavedRequest savedRequest =

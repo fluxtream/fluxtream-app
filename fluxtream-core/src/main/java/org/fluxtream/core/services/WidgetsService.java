@@ -5,6 +5,7 @@ import java.util.List;
 import org.fluxtream.core.domain.DashboardWidget;
 import org.fluxtream.core.domain.DashboardWidgetsRepository;
 import org.fluxtream.core.domain.WidgetSettings;
+import org.springframework.cache.annotation.Cacheable;
 
 /**
  *
@@ -12,9 +13,8 @@ import org.fluxtream.core.domain.WidgetSettings;
  */
 public interface WidgetsService {
 
+    @Cacheable(value = "userWidgets")
     public List<DashboardWidget> getAvailableWidgetsList(long guestId);
-
-    public void refreshWidgets();
 
     public void refreshWidgets(long guestId);
 

@@ -3,7 +3,12 @@ package org.fluxtream.connectors.runkeeper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.services.impl.FieldHandler;
 import net.sf.json.JSONArray;
@@ -22,7 +27,7 @@ public class RunkeeperHeartRateFieldHandler implements FieldHandler {
     BodyTrackHelper bodyTrackHelper;
 
     @Override
-    public List<BodyTrackHelper.BodyTrackUploadResult> handleField(final long guestId, final AbstractFacet facet) {
+    public List<BodyTrackHelper.BodyTrackUploadResult> handleField(final ApiKey apiKey, final AbstractFacet facet) {
         RunKeeperFitnessActivityFacet activityFacet = (RunKeeperFitnessActivityFacet) facet;
         if (activityFacet.distanceStorage == null) {
             return Arrays.asList();
@@ -42,7 +47,19 @@ public class RunkeeperHeartRateFieldHandler implements FieldHandler {
         final List<String> channelNames = Arrays.asList("heartRate");
 
         // TODO: check the status code in the BodyTrackUploadResult
-        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(guestId, "runkeeper", channelNames, data));
+        return Arrays.asList(bodyTrackHelper.uploadToBodyTrack(apiKey, "runkeeper", channelNames, data));
+    }
+
+    @Override
+    public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
+        ChannelMapping channelMapping = new ChannelMapping(
+                apiKey.getId(), apiKey.getGuestId(),
+                ChannelMapping.ChannelType.timespan,
+                ChannelMapping.TimeType.local,
+                ObjectType.getObjectType(apiKey.getConnector(), "fitnessActivity").value(),
+                apiKey.getConnector().getDeviceNickname(), "heartRate",
+                apiKey.getConnector().getDeviceNickname(), "heartRate");
+        channelMappings.add(channelMapping);
     }
 
 }

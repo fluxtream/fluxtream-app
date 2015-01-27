@@ -6,7 +6,6 @@ define(["core/Tab",
 	var map = null;
     var digestData = null;
     var preserveView = false;
-
     var lastTimestamp = null;
 
     var itemToShow = null;
@@ -77,8 +76,11 @@ define(["core/Tab",
         }
         if (typeof(digest.locationFetched)=="undefined"){
             Calendar.startLoading();
+            var url = "/api/v1/calendar/location/" + Calendar.tabState;
+            if (App.buddyToAccess["isBuddy"])
+                url+="?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.buddyToAccess["id"];
             $.ajax({
-                url: "/api/v1/calendar/location/" + Calendar.tabState,
+                url: url,
                 success: function(locationDigest) {
                     for (name in locationDigest.facets) {
                         Calendar.processFacets(locationDigest.facets[name]);
@@ -103,7 +105,7 @@ define(["core/Tab",
             });
 
             map.executeAfterReady(function(){
-                showData(connectorEnabled,bounds,function(bounds){
+                var afterShowingData = function(bounds){
                     if (bounds != null){
                         map.fitBounds(bounds,map.isPreserveViewChecked() || digestData.delta);
                     }
@@ -113,7 +115,14 @@ define(["core/Tab",
                     }
                     map.preserveViewCheckboxChanged = function(){
                         preserveView = map.isPreserveViewChecked();
-                    }
+                    };
+
+                    map.heatMapCheckboxChanged = function(){
+                        if (map.isHeatMapChecked())
+                            showDataAsHeatMap(connectorEnabled, bounds, afterShowingData);
+                        else
+                            showDataAsPaths(connectorEnabled, bounds, afterShowingData);
+                    };
                     if (itemToShow != null){
                         if (!digestData.delta)
                             map.zoomOnItemAndClick(itemToShow);
@@ -126,14 +135,51 @@ define(["core/Tab",
 
                     $("#mapwrapper .noDataOverlay").css("display", map.hasAnyData() ? "none" : "block");
                     doneLoading();
+                }
+                var prefs = Calendar.digest.settings["preferences"];
+                var timeUnit = Calendar.digest.calendar.timeUnit;
+                var checkHeatMap = prefs["heatMap"][timeUnit];
+                if (checkHeatMap)
+                    $("#heatMapCheckbox").prop("checked", true);
+                else
+                    $("#heatMapCheckbox").prop("checked", false);
 
-                });
+                if (map.isHeatMapChecked()) {
+                    showDataAsHeatMap(connectorEnabled, bounds, afterShowingData);
+                } else {
+                    showDataAsPaths(connectorEnabled, bounds, afterShowingData);
+                }
             });
         }
 	}
 
-    function showData(connectorEnabled,bounds,doneLoading){
+    function showDataAsHeatMap(connectorEnabled,bounds,doneLoading){
+        $(".timeControlContainer").hide();
         var digest = digestData;
+        if (map.heatMapLayer!=null)
+            map.heatMapLayer.setData([]);
+        map.heatMapData = {};
+        if (digest!=null && digest.facets!=null &&
+            typeof(digest.facets["google_latitude-location"])!="undefined"
+            && digest.facets["google_latitude-location"] !=null &&
+            digest.facets["google_latitude-location"].length>0) { //make sure gps data is available before trying to display it
+            map.addHeatMapData(digest.facets["google_latitude-location"],App.getFacetConfig("google_latitude-location"));
+        }
+        for (var objectType in digest.facets){
+            if (objectType == "google_latitude-location")
+                continue;//we already showed google latitude data if it existed
+            map.addHeatMapData(digest.facets[objectType],App.getFacetConfig(objectType))
+        }
+        map.heatMapLayer = new google.maps.visualization.HeatmapLayer();
+        map.hidePaths();
+        map.showHeatMap(connectorEnabled);
+        doneLoading((map.isPreserveViewChecked() || digest.delta) ? bounds : map.gpsBounds);
+    }
+
+    function showDataAsPaths(connectorEnabled,bounds,doneLoading){
+        $(".timeControlContainer").show();
+        var digest = digestData;
+
         if (digest!=null && digest.facets!=null &&
             typeof(digest.facets["google_latitude-location"])!="undefined"
                 && digest.facets["google_latitude-location"] !=null &&
@@ -147,7 +193,6 @@ define(["core/Tab",
             map.addGPSData(digest.facets[objectType],App.getFacetConfig(objectType),true)
         }
 
-        map.addAddresses(digest.addresses,true);
         for(var objectTypeName in digest.facets) {
             if (digest.facets[objectTypeName]==null||typeof(digest.facets[objectTypeName])=="undefined")
                 continue;
@@ -159,9 +204,9 @@ define(["core/Tab",
                     map.hideData(digest.selectedConnectors[i].facetTypes[j]);
                 }
         }
-
+        map.hideHeatMap();
+        map.showPaths(connectorEnabled);
         doneLoading((map.isPreserveViewChecked() || digest.delta) ? bounds : map.gpsBounds);
-
     }
 
     function connectorToggled(connectorName,objectTypeNames,enabled){

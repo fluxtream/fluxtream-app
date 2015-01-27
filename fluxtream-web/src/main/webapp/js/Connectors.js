@@ -18,17 +18,49 @@ define(function() {
     }
 
 	function submitMymeeFetchURL() {
-		var fetchURL = $("input#mymee-fetchURL").val();
+		var input = $("input#mymee-fetchURL");
+        var fetchURL = input.val();
 		$.ajax({
 			url:"/mymee/setFetchURL",
 			type: "POST",
 			data: {url: fetchURL},
 			success: function(html) {
+				$(".mymee-loading").hide();
 				$(".addConnectorsMain").html(html);
 				$("#mymee-fetchURL").focus();
+				$(".mymee-send").prop("disabled", false);
+				input.prop("disabled", false);
 			}
 		});
+		$(".mymee-loading").show();
+		$(".mymee-send").prop("disabled", true);
+		input.prop("disabled", true);
 	}
+
+    function submitBedditAuthInfo(form) {
+        var emailField = form.find(".email");
+        var passwordField = form.find(".password");
+        var submitButton = form.find(".btn");
+        var email = emailField.val();
+        var password = passwordField.val();
+        emailField.attr("disabled", true);
+        passwordField.attr("disabled", true);
+        submitButton.attr("disabled", true);
+        $.ajax({
+            url: "/beddit/setAuthInfo",
+            type: "POST",
+            data: {email: email, password: password},
+            success: function() {
+                $(form.closest(".modal")).modal("hide");
+            },
+            error: function() {
+                emailField.attr("disabled", false);
+                passwordField.attr("disabled", false);
+                submitButton.attr("disabled", false);
+                // we should let the user that there was an error and that they can try again
+            }
+        })
+    }
 
     function submitNikePlusCredentials() {
         var username = $("input#nikeplus-username").val();
@@ -160,6 +192,7 @@ define(function() {
     Connectors.submitMymeeAuthInfo = submitMymeeAuthInfo;
 	Connectors.submitOpenPathKeypair = submitOpenPathKeypair;
     Connectors.getQuantifiedMindToken = getQuantifiedMindToken;
+    Connectors.submitBedditAuthInfo = submitBedditAuthInfo;
 
 	Connectors.submitBodytrackCredentials = function() {
 		var username = $("input#bodytrack-username").val(),

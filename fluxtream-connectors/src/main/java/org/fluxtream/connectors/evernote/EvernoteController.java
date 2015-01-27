@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.auth.AuthHelper;
-import org.fluxtream.core.auth.CoachRevokedException;
+import org.fluxtream.core.auth.TrustRelationshipRevokedException;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.Guest;
@@ -134,7 +134,7 @@ public class EvernoteController {
     @RequestMapping(value="/res/{apiKeyId}/{guid}")
     public void getResource(@PathVariable("apiKeyId") long apiKeyId,
                             @PathVariable("guid") String rawGuid,
-                            HttpServletResponse response) throws IOException, CoachRevokedException {
+                            HttpServletResponse response) throws IOException, TrustRelationshipRevokedException {
         String guid = rawGuid;
         Integer maxWidth = null;
         if (rawGuid.indexOf("@")!=-1) {
@@ -165,7 +165,8 @@ public class EvernoteController {
         final String devKvsLocation = env.get("btdatastore.db.location");
         if (devKvsLocation==null)
             throw new RuntimeException("No btdatastore.db.location property was specified (local.properties)");
-        File resourceFile = EvernoteUpdater.getResourceFile(AuthHelper.getVieweeId(), apiKeyId,
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        File resourceFile = EvernoteUpdater.getResourceFile(apiKey.getGuestId(), apiKeyId,
                                                             guid, EvernoteUpdater.MAIN_APPENDIX, mimeType, devKvsLocation);
         if (!resourceFile.exists()) {
             logger.warn("resource file was not found for guid=" + guid);

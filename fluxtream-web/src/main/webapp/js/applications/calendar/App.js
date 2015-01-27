@@ -332,6 +332,30 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
                 case "eventStart":
                     var eventStart = moment(facet[member], "YYYYMMDD'T'HHmmss.SSSZ");
                     facet.startMinute = eventStart.hour()*60+eventStart.minute();
+                    if (!_.isUndefined(facet.date)) {
+                        if (!_.isUndefined(facet.eventStart)) {
+                            var eventStartDate = facet.eventStart.substring(0, 10);
+                            if (facet.date!= eventStartDate) {
+                                var duration = moment.duration(moment(facet.date).diff(moment(eventStartDate) ));
+                                var days = duration.asDays();
+                                if (days!=0) {
+                                    if (days==1) facet.daysBefore = "the day before";
+                                    else facet.daysBefore = days + " days before";
+                                }
+                            }
+                        }
+                        if (!_.isUndefined(facet.eventEnd)) {
+                            var eventEndDate = facet.eventEnd.substring(0, 10);
+                            if (facet.date!= eventEndDate) {
+                                var duration = moment.duration(moment(eventEndDate).diff(moment(facet.date)));
+                                var days = duration.asDays();
+                                if (days!=0) {
+                                    if (days==1) facet.daysAfter = "the day after";
+                                    else facet.daysAfter = days + " days later";
+                                }
+                            }
+                        }
+                    }
                     facet.startTime = {"hours" : eventStart.hour()==0 ? 12:eventStart.hour()>12?eventStart.hour()-12:eventStart.hour(), "minutes" : pad(eventStart.minute()), "ampm" : eventStart.hour()>=12?"pm":"am"};
                     facet.time = App.formatMinuteOfDay(facet.startMinute)[0];
                     facet.ampm = App.formatMinuteOfDay(facet.startMinute)[1];
@@ -1304,7 +1328,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function selectVisitedCity(evt) {
-        console.log("select visited city");
         var state = App.state.getState("calendar");
         state = state.substring(state.indexOf("/"));
         if ($(evt.target).hasClass("undo")) {
@@ -1316,7 +1339,6 @@ define(["core/Application", "core/FlxState", "applications/calendar/Builder", "l
     }
 
     function selectMainCity(timeUnit) {
-        console.log("select main city");
         var selectedIndex = $("#mainCitySelect")[0].selectedIndex-1;
         var selectedCity = currentCityPool[selectedIndex];
         if(typeof(selectedCity.geometry)!="undefined"&&

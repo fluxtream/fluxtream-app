@@ -22,7 +22,7 @@ public abstract class AbstractTimespanMetadata {
 
     private TimezoneMap timezoneMap;
     private Map<String, TimeZone> consensusTimezones;
-    private TimeInterval timeInterval;
+    public TimeInterval timeInterval;
     public long start, end;
 
     // startDate and endDate are in the date storage format: yyyy-MM-dd

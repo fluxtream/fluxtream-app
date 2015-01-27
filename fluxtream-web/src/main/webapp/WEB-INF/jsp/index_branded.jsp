@@ -23,7 +23,8 @@
     <a href="javascript:void(0)">
         <h1 class="logo text-hide">Fluxtream</h1>
     </a>
-    <div class="xs-login visible-xs">
+    <a class="blog_link" href="http://blog.fluxtream.org/"><span>Blog</span></a>
+    <div class="xs-login visible-xs visible-sm">
         <button class="login_btn btn btn-primary form-control" onclick="enterCredentials()">Login</button>
     </div>
     <div class="login_container">
@@ -256,6 +257,7 @@
     </div>
 </footer>
 
+
 </div>
 
 <div class="modal fade" id="accessDeniedModal">
@@ -362,6 +364,7 @@
         </div>
     </div>
 </div>
+
 
 <div id="registerModalWrapper">
 </div>

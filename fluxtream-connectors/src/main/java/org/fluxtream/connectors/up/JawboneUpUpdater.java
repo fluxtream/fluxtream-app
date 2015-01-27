@@ -97,23 +97,10 @@ public class JawboneUpUpdater extends AbstractUpdater {
         guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), MEALS_LAST_SYNC_TIME);
         guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), WORKOUTS_LAST_SYNC_TIME);
         updateConnectorData(updateInfo);
-        setChannelMapping(updateInfo);
     }
 
-    private void setChannelMapping(final UpdateInfo updateInfo) {
-        List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey);
-        if (mappings.size() != 0)
-            return;
-        System.out.println("reconfiguring channel mapping");
-        ChannelMapping mapping = new ChannelMapping();
-        mapping.deviceName = "Jawbone_UP";
-        mapping.channelName = "sleep";
-        mapping.timeType = ChannelMapping.TimeType.gmt;
-        mapping.channelType = ChannelMapping.ChannelType.timespan;
-        mapping.guestId = updateInfo.apiKey.getGuestId();
-        mapping.apiKeyId = updateInfo.apiKey.getId();
-        bodyTrackHelper.persistChannelMapping(mapping);
-
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {
         BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
         channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
         channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
@@ -145,12 +132,11 @@ public class JawboneUpUpdater extends AbstractUpdater {
         stylePart.borderColor = "#f87d04";
         channelStyle.timespanStyles.values.put("wake",stylePart);
 
-        bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.apiKey.getGuestId(), "Jawbone_UP", "sleep", channelStyle);
+        bodyTrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), apiKey.getConnector().getName(), "sleep", channelStyle);
     }
 
     @Override
     protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
-        setChannelMapping(updateInfo);
         updateInfo.setContext("accessToken", guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken"));
 
         updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, MOVES_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpMovesFacet.class));
@@ -314,7 +300,7 @@ public class JawboneUpUpdater extends AbstractUpdater {
         if (newFacet!=null) {
             List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
             newFacets.add(newFacet);
-            bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey, newFacets);
         }
     }
 
@@ -501,7 +487,7 @@ public class JawboneUpUpdater extends AbstractUpdater {
         if (newFacet!=null) {
             List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
             newFacets.add(newFacet);
-            bodyTrackStorageService.storeApiData(updateInfo.apiKey.getGuestId(), newFacets);
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey, newFacets);
         }
     }
 

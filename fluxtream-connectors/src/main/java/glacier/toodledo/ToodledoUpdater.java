@@ -253,4 +253,7 @@ public class ToodledoUpdater extends AbstractUpdater {
         return null;
 	}
 
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {}
+
 }

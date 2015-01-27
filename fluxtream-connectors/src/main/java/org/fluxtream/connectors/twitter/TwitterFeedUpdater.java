@@ -32,7 +32,7 @@ updateStrategyType= org.fluxtream.core.connectors.Connector.UpdateStrategyType.I
 bodytrackResponder = TwitterBodytrackResponder.class,
 objectTypes={TweetFacet.class,
 	TwitterDirectMessageFacet.class, TwitterMentionFacet.class},
-    defaultChannels = {"twitter.activity"})
+    defaultChannels = {"Twitter.activity"})
 public class TwitterFeedUpdater extends AbstractUpdater {
 
     private static final String STATUSES_USER_TIMELINE = "statuses/user_timeline";
@@ -66,61 +66,8 @@ public class TwitterFeedUpdater extends AbstractUpdater {
         return consumer;
 	}
 
-    private void initChannelMapping(UpdateInfo updateInfo) {
-        // since this updater runs in parallel,
-        // this is for making sure that we initiate default styles only once,
-        // namely when the updater is updating tweets for the first time.
-        if (updateInfo.objectTypes().get(0)!=ObjectType.getObjectType(updateInfo.apiKey.getConnector(), "tweet"))
-            return;
-        List<ChannelMapping> mappings = bodyTrackHelper.getChannelMappings(updateInfo.apiKey);
-        if (mappings==null||mappings.size() == 0){
-            ChannelMapping mapping = new ChannelMapping();
-            mapping.deviceName = "twitter";
-            mapping.channelName = "activity";
-            mapping.timeType = ChannelMapping.TimeType.gmt;
-            mapping.channelType = ChannelMapping.ChannelType.timespan;
-            mapping.guestId = updateInfo.getGuestId();
-            mapping.apiKeyId = updateInfo.apiKey.getId();
-            bodyTrackHelper.persistChannelMapping(mapping);
-
-            BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
-            channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
-            channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
-            channelStyle.timespanStyles.defaultStyle.fillColor = "#92EF75";
-            channelStyle.timespanStyles.defaultStyle.borderColor = "#92EF75";
-            channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
-            channelStyle.timespanStyles.defaultStyle.top = 0.25;
-            channelStyle.timespanStyles.defaultStyle.bottom = 0.75;
-            channelStyle.timespanStyles.values = new HashMap();
-
-            BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
-            stylePart.top = 0.25;
-            stylePart.bottom = 0.75;
-            stylePart.fillColor = "#92EF75";
-            stylePart.borderColor = "#92EF75";
-            channelStyle.timespanStyles.values.put("tweet",stylePart);
-
-            stylePart = new BodyTrackHelper.TimespanStyle();
-            stylePart.top = 0.25;
-            stylePart.bottom = 0.75;
-            stylePart.fillColor = "#92EF75";
-            stylePart.borderColor = "#92EF75";
-            channelStyle.timespanStyles.values.put("dm",stylePart);
-
-            stylePart = new BodyTrackHelper.TimespanStyle();
-            stylePart.top = 0.25;
-            stylePart.bottom = 0.75;
-            stylePart.fillColor = "#92EF75";
-            stylePart.borderColor = "#92EF75";
-            channelStyle.timespanStyles.values.put("mention",stylePart);
-
-            bodyTrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(), "twitter", "activity", channelStyle);
-        }
-    }
-
     @Override
 	public void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
-        initChannelMapping(updateInfo);
         final OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
 
 		List<ObjectType> objectTypes = updateInfo.objectTypes();
@@ -136,7 +83,6 @@ public class TwitterFeedUpdater extends AbstractUpdater {
 
 	@Override
 	public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-        initChannelMapping(updateInfo);
         final OAuthConsumer consumer = setupConsumer(updateInfo.apiKey);
 		List<ObjectType> objectTypes = updateInfo.objectTypes();
 		if (objectTypes.contains(ObjectType.getObjectType(connector(), "tweet"))) {
@@ -540,4 +486,41 @@ public class TwitterFeedUpdater extends AbstractUpdater {
             throw new UpdateFailedException(new Exception());
 		}
 	}
+
+    @Override
+    public void setDefaultChannelStyles(ApiKey apiKey) {
+        BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
+        channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
+        channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
+        channelStyle.timespanStyles.defaultStyle.fillColor = "#92EF75";
+        channelStyle.timespanStyles.defaultStyle.borderColor = "#92EF75";
+        channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
+        channelStyle.timespanStyles.defaultStyle.top = 0.25;
+        channelStyle.timespanStyles.defaultStyle.bottom = 0.75;
+        channelStyle.timespanStyles.values = new HashMap();
+
+        BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
+        stylePart.top = 0.25;
+        stylePart.bottom = 0.75;
+        stylePart.fillColor = "#92EF75";
+        stylePart.borderColor = "#92EF75";
+        channelStyle.timespanStyles.values.put("tweet",stylePart);
+
+        stylePart = new BodyTrackHelper.TimespanStyle();
+        stylePart.top = 0.25;
+        stylePart.bottom = 0.75;
+        stylePart.fillColor = "#92EF75";
+        stylePart.borderColor = "#92EF75";
+        channelStyle.timespanStyles.values.put("dm",stylePart);
+
+        stylePart = new BodyTrackHelper.TimespanStyle();
+        stylePart.top = 0.25;
+        stylePart.bottom = 0.75;
+        stylePart.fillColor = "#92EF75";
+        stylePart.borderColor = "#92EF75";
+        channelStyle.timespanStyles.values.put("mention",stylePart);
+
+        bodyTrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), apiKey.getConnector().getName(), "activity", channelStyle);
+    }
+
 }

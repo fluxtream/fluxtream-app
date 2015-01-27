@@ -232,6 +232,21 @@ public class SettingsServiceImpl implements SettingsService {
     }
 
     @Override
+    @Transactional(readOnly=false)
+    public void setPreferences(long guestId, String preferences) {
+        GuestSettings settings = JPAUtils.findUnique(em, GuestSettings.class,
+                "settings.byGuestId", guestId);
+        settings.preferences = preferences;
+    }
+
+    @Override
+    public String getPreferences(long guestId) {
+        GuestSettings settings = JPAUtils.findUnique(em, GuestSettings.class,
+                "settings.byGuestId", guestId);
+        return settings.preferences;
+    }
+
+    @Override
 	@Transactional(readOnly = false)
 	public void setLengthMeasureUnit(long guestId, LengthMeasureUnit unit) {
 		GuestSettings settings = JPAUtils.findUnique(em, GuestSettings.class,
