@@ -629,7 +629,9 @@ public class BodyTrackController {
     }
 
     private ApiKey getApiKeyFromDeviceNickname(String deviceNickname, long guestId) {
-        final List<ApiKey> apiKeys = guestService.getApiKeys(guestId, Connector.fromDeviceNickname(deviceNickname));
+        Connector connector = Connector.fromDeviceNickname(deviceNickname);
+        if (connector==null) connector = Connector.getConnector("fluxtream_capture");
+        final List<ApiKey> apiKeys = guestService.getApiKeys(guestId, connector);
         // bodytrack doesn't have the ability to handle multiple instances of the same connector yet, so returning
         // the first matching ApiKey
         if (apiKeys.size()>0)
