@@ -9,6 +9,7 @@ import com.sun.jersey.multipart.BodyPartEntity;
 import com.sun.jersey.multipart.MultiPart;
 import com.wordnik.swagger.annotations.*;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.SimpleTimeInterval;
 import org.fluxtream.core.TimeInterval;
@@ -623,12 +624,14 @@ public class BodyTrackController {
             }
             return Response.ok(bodyTrackHelper.fetchTile(uid, deviceNickname, channelName, level, offset)).build();
         } catch (Exception e) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ExceptionUtils.getStackTrace(e)).build();
         }
     }
 
     private ApiKey getApiKeyFromDeviceNickname(String deviceNickname, long guestId) {
-        final List<ApiKey> apiKeys = guestService.getApiKeys(guestId, Connector.fromDeviceNickname(deviceNickname));
+        Connector connector = Connector.fromDeviceNickname(deviceNickname);
+        if (connector==null) connector = Connector.getConnector("fluxtream_capture");
+        final List<ApiKey> apiKeys = guestService.getApiKeys(guestId, connector);
         // bodytrack doesn't have the ability to handle multiple instances of the same connector yet, so returning
         // the first matching ApiKey
         if (apiKeys.size()>0)
@@ -654,7 +657,7 @@ public class BodyTrackController {
             return Response.ok(bodyTrackHelper.listViews(uid)).build();
         }
         catch (Exception e){
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ExceptionUtils.getStackTrace(e)).build();
         }
     }
 
@@ -682,7 +685,7 @@ public class BodyTrackController {
                 return Response.serverError().entity("Failed to get view").build();
         }
         catch (Exception e){
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ExceptionUtils.getStackTrace(e)).build();
         }
     }
 
@@ -707,7 +710,7 @@ public class BodyTrackController {
             return Response.ok(bodyTrackHelper.saveView(uid, name, data)).build();
         }
         catch (Exception e){
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ExceptionUtils.getStackTrace(e)).build();
         }
     }
 
@@ -733,7 +736,7 @@ public class BodyTrackController {
             return Response.ok(bodyTrackHelper.getSourcesResponse(uid, trustedBuddy)).build();
         }
         catch (Exception e){
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ExceptionUtils.getStackTrace(e)).build();
         }
     }
 
@@ -757,7 +760,7 @@ public class BodyTrackController {
             return Response.ok(bodyTrackHelper.getSourceInfo(uid, name)).build();
         }
         catch (Exception e){
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ExceptionUtils.getStackTrace(e)).build();
         }
     }
 
@@ -779,7 +782,7 @@ public class BodyTrackController {
             return Response.ok(bodyTrackHelper.getAllTagsForUser(uid)).build();
         }
         catch (Exception e) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ExceptionUtils.getStackTrace(e)).build();
         }
     }
 
@@ -802,7 +805,7 @@ public class BodyTrackController {
             return Response.ok("Channel style set").build();
         }
         catch (Exception e){
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ExceptionUtils.getStackTrace(e)).build();
         }
     }
 
@@ -852,7 +855,7 @@ public class BodyTrackController {
         }
         catch (Exception e) {
             LOG.error("BodyTrackController.fetchTimespanTile(): Exception while trying to fetch timespans: ", e);
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ExceptionUtils.getStackTrace(e)).build();
         }
 
     }
