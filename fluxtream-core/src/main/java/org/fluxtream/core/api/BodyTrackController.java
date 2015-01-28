@@ -622,8 +622,6 @@ public class BodyTrackController {
                 else if (!hasSharedChannel(apiKey, trustedBuddy, channelName))
                     return Response.status(Response.Status.UNAUTHORIZED).entity("Access denied to device " + deviceNickname).build();
             }
-            else
-                return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
             return Response.ok(bodyTrackHelper.fetchTile(uid, deviceNickname, channelName, level, offset)).build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ExceptionUtils.getStackTrace(e)).build();
@@ -654,8 +652,6 @@ public class BodyTrackController {
             if (!accessAllowed&& trustedBuddy ==null){
                 uid = null;
             }
-            else
-                return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
             return Response.ok(bodyTrackHelper.listViews(uid)).build();
         }
         catch (Exception e){
