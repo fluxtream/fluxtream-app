@@ -461,8 +461,21 @@ define(
         App.as = function(usernameOrUID) {
             if (!_.isUndefined(usernameOrUID)) {
                 fetchGuestInfo(function() {
+                    if (App.buddyToAccess.isBuddy) {
+                        $(".backtomydata").show();
+                        $(".trustedbuddies").hide();
+                    } else {
+                        $(".backtomydata").hide();
+                        $(".trustedbuddies").show();
+                    }
                     App.activeApp.navigateState(App.state.getState(App.activeApp.name), {"as" : usernameOrUID});//force refresh of the current app state
                 }, usernameOrUID);
+            }
+        };
+
+        App.reachOutTo = function(usernameOrUID) {
+            if (!_.isUndefined(usernameOrUID)) {
+                loadWallDialog();
             }
         };
 
@@ -674,6 +687,7 @@ define(
                             $("#profileIcon").replaceWith("<img src=\"" + guestInfo.avatar.url + "\" style=\"display:inline;width:27px;margin: 0 1px 0 4px;\" width=27 height=27>");
                             $("#profileIconCaret").css("margin-top", "10px");
                             $("#helpDropdownToggle").css("margin-top", "3px");
+                            $("#buddiesDropdownToggle").css("margin-top", "3px");
                             $("#connectorsDropdownToggle").css("margin-top", "3px");
                             $("#appsMenuWrapper").css("margin-top", "4px");
                             $(".brand").css("margin-top", "3px");
