@@ -150,6 +150,7 @@ public class BodyTrackHelper {
 
     public void setChannelBounds(final ChannelMapping mapping, final Channel channel, ChannelInfoResponse infoResponse) {
         Set<String> channelNames = infoResponse.channel_specs.keySet();
+        boolean datastoreChannelBoundsSet = false;
         switch (mapping.getChannelType()){
             case photo:
                 channel.min = 0.6;
@@ -168,6 +169,9 @@ public class BodyTrackHelper {
                             ChannelSpecs channelSpecs = infoResponse.channel_specs.get(channelName);
                             channel.min = channelSpecs.channel_bounds.min_value;
                             channel.max = channelSpecs.channel_bounds.max_value;
+                            channel.min_time = channelSpecs.channel_bounds.min_time;
+                            channel.max_time = channelSpecs.channel_bounds.max_time;
+                            datastoreChannelBoundsSet = true;
                             break;
                         }
                     }
@@ -181,15 +185,16 @@ public class BodyTrackHelper {
                 channel.max = 1;
                 break;
         }
-        long maxTime = getMaxTimeForApiKey(mapping.getApiKeyId(), mapping.getObjectTypes());
-        long minTime = getMinTimeForApiKey(mapping.getApiKeyId(), mapping.getObjectTypes());
-        if (maxTime < minTime){
-            channel.max_time = 0d;
-            channel.min_time = 0d;
-        }
-        else{
-            channel.max_time = maxTime / 1000.0;
-            channel.min_time = minTime / 1000.0;
+        if (!datastoreChannelBoundsSet) {
+            long maxTime = getMaxTimeForApiKey(mapping.getApiKeyId(), mapping.getObjectTypes());
+            long minTime = getMinTimeForApiKey(mapping.getApiKeyId(), mapping.getObjectTypes());
+            if (maxTime < minTime) {
+                channel.max_time = 0d;
+                channel.min_time = 0d;
+            } else {
+                channel.max_time = maxTime / 1000.0;
+                channel.min_time = minTime / 1000.0;
+            }
         }
     }
 
