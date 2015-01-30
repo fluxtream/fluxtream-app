@@ -887,9 +887,13 @@ public class MovesUpdater extends AbstractUpdater {
             return false;
 
         for (int j=0; j<segments.size(); j++) {
-            JSONObject segment = segments.getJSONObject(j);
-            if (segment==null)
+            JSONObject segment;
+            try {
+                segment = segments.getJSONObject(j);
+            } catch (Throwable t) {
+                logger.warn("null segment, apiKeyId: " + updateInfo.apiKey.getId() + ", date: " + date);
                 continue;
+            }
             if (segment.getString("type").equals("move")) {
                 if(createOrUpdateMovesMoveFacet(date, segment, updateInfo)!=null)
                     dateHasData=true;
