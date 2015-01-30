@@ -161,8 +161,10 @@ public class BodyTrackHelper {
                     // historically, some channels have used a device nickname, others a connector name
                     String deviceChannelName = new StringBuilder(connector.getName()).append(".").append(mapping.getChannelName()).toString();
                     String deviceNicknameChannelName = new StringBuilder(mapping.getDeviceName()).append(".").append(mapping.getChannelName()).toString();
+                    String internalDeviceNicknameChannelName = new StringBuilder(mapping.getInternalDeviceName()).append(".").append(mapping.getChannelName()).toString();
                     for (String channelName : channelNames) {
-                        if (channelName.toLowerCase().equals(deviceChannelName.toLowerCase()) || channelName.toLowerCase().equals(deviceNicknameChannelName.toLowerCase())) {
+                        if (channelName.toLowerCase().equals(deviceChannelName.toLowerCase()) || channelName.toLowerCase().equals(deviceNicknameChannelName.toLowerCase())||
+                                channelName.toLowerCase().equals(internalDeviceNicknameChannelName.toLowerCase())) {
                             ChannelSpecs channelSpecs = infoResponse.channel_specs.get(channelName);
                             channel.min = channelSpecs.channel_bounds.min_value;
                             channel.max = channelSpecs.channel_bounds.max_value;
