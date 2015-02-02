@@ -1,13 +1,5 @@
 package org.fluxtream.connectors.moves;
 
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
-import java.util.TreeMap;
-import java.util.UUID;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
@@ -28,7 +20,6 @@ import org.fluxtream.core.connectors.updaters.UpdateFailedException;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.AbstractLocalTimeFacet;
 import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.domain.Notification;
 import org.fluxtream.core.domain.UpdateWorkerTask;
 import org.fluxtream.core.services.ApiDataService;
@@ -50,6 +41,10 @@ import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.*;
 
 /**
  * User: candide
@@ -357,10 +352,17 @@ public class MovesUpdater extends AbstractUpdater {
                         final Object segmentsObject = dayStoryline.get("segments");
                         if (segmentsObject!=null) {
                             JSONArray segments = new JSONArray();
-                            if (segmentsObject instanceof JSONObject)
+                            if (segmentsObject instanceof JSONObject) {
+                                if (((JSONObject) segmentsObject).isNullObject()) continue;
                                 segments.add(segmentsObject);
-                            if (segmentsObject instanceof JSONArray)
-                                segments = (JSONArray) segmentsObject;
+                            } if (segmentsObject instanceof JSONArray) {
+                                JSONArray tempSegments = (JSONArray) segmentsObject;
+                                for (int i=0; i<tempSegments.size(); i++) {
+                                    JSONObject nextSegment = tempSegments.getJSONObject(i);
+                                    if (nextSegment.isNullObject()) continue;
+                                    segments.add(nextSegment);
+                                }
+                            }
                             date = toStorageFormat(date);
 
                             boolean dateHasData=createOrUpdateDataForDate(updateInfo, segments, date);
@@ -393,7 +395,7 @@ public class MovesUpdater extends AbstractUpdater {
                     .append(" message=\"exception while in createOrUpdateData\" connector=")
                     .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
                     .append(updateInfo.apiKey.getGuestId())
-                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
+                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.info(sb.toString());
 
             System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED (don't know why)");
@@ -484,10 +486,17 @@ public class MovesUpdater extends AbstractUpdater {
                     final Object segmentsObject = dayStoryline.get("segments");
                     if (segmentsObject!=null) {
                         JSONArray segments = new JSONArray();
-                        if (segmentsObject instanceof JSONObject)
+                        if (segmentsObject instanceof JSONObject) {
+                            if (((JSONObject)segmentsObject).isNullObject()) continue;
                             segments.add(segmentsObject);
-                        if (segmentsObject instanceof JSONArray)
-                            segments = (JSONArray) segmentsObject;
+                        } if (segmentsObject instanceof JSONArray) {
+                            JSONArray tempSegments = (JSONArray) segmentsObject;
+                            for (int i=0; i<tempSegments.size(); i++) {
+                                JSONObject nextSegment = tempSegments.getJSONObject(i);
+                                if (nextSegment.isNullObject()) continue;
+                                segments.add(nextSegment);
+                            }
+                        }
                         createOrUpdateDataForDate(updateInfo, segments, date);
                     }
                 }
