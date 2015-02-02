@@ -208,7 +208,7 @@ public class AdminController {
     private ValueHolder getDueUpdateWorkerWorkerTasks(final List<UpdateWorkerTask> tasks, long consumerTriggerRepeatInterval) {
         ValueHolder due = new ValueHolder();
         for (UpdateWorkerTask task : tasks) {
-            if (task.timeScheduled<=System.currentTimeMillis()-consumerTriggerRepeatInterval) {
+            if (task.timeScheduled>System.currentTimeMillis()-consumerTriggerRepeatInterval) {
                 if (due.get(task.apiKeyId)!=null)
                     due.put(task.apiKeyId, due.get(task.apiKeyId)+1);
                 else
@@ -221,7 +221,7 @@ public class AdminController {
     private ValueHolder getOverdueUpdateWorkerWorkerTasks(final List<UpdateWorkerTask> tasks, long consumerTriggerRepeatInterval) {
         ValueHolder overdue = new ValueHolder();
         for (UpdateWorkerTask task : tasks) {
-            if (task.timeScheduled>System.currentTimeMillis()-consumerTriggerRepeatInterval) {
+            if (task.timeScheduled<=System.currentTimeMillis()-consumerTriggerRepeatInterval) {
                 if (overdue.get(task.apiKeyId)!=null)
                     overdue.put(task.apiKeyId, overdue.get(task.apiKeyId)+1);
                 else
