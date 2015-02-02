@@ -1284,6 +1284,8 @@ define(["applications/calendar/tabs/map/MapConfig",
 
             }
             else{
+                if (dataSource.dateMarker.getMap()==null)
+                    dataSource.dateMarker.setMap(map);
                 dataSource.dateMarker.setPosition(newPosition);
                 dataSource.dateMarker.circle.setCenter(newPosition);
                 dataSource.dateMarker.circle.setRadius(newAccuracy);
