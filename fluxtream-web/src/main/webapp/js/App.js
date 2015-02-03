@@ -459,6 +459,7 @@ define(
         };
 
         App.as = function(usernameOrUID) {
+            $("#wallDialog").dialog("destroy");
             if (!_.isUndefined(usernameOrUID)) {
                 fetchGuestInfo(function() {
                     if (App.buddyToAccess.isBuddy) {
@@ -474,15 +475,28 @@ define(
         };
 
         App.reachOutTo = function(usernameOrUID) {
+            $("#wallDialog").dialog("destroy");
             if (!_.isUndefined(usernameOrUID)) {
-                loadWallDialog();
+                var url = "/api/v1/guest/trusted?includeAvatar=true";
+                url+="&"+App.BUDDY_TO_ACCESS_PARAM+"="+usernameOrUID;
+                $.ajax({
+                    url: url,
+                    success: function(guestInfo) {
+                        App.chatBuddy = guestInfo;
+                        var loggedInUser = $("#loggedInUser");
+                        loadWallDialog();
+                    },
+                    error: function(jqXHR, statusText, errorThrown) {
+                        App.logError(jqXHR, statusText, errorThrown);
+                    }
+                });
             }
         };
 
         function loadWallDialog() {
             App.loadMustacheTemplate("messagingTemplates.html","wallDialogTemplate",
                 function(template) {
-                    var html = template.render({buddy: App.buddyToAccess});
+                    var html = template.render({buddy: App.chatBuddy});
                     $(html).dialog({
                         autoOpen: true,
                         modal: false,
@@ -495,18 +509,18 @@ define(
                         },
                         buttons : {
                             Close : function() {
-                                $("#dialog").dialog("close");
+                                $("#wallDialog").dialog("close");
                             }
                         }
                     });
                     loadWallDialogContents();
-                    $("#sendWallPostBody").click(function(evt) {
+                    $("#sendWallPostBody").click(function() {
                         $.ajax({
                             url: "/api/v1/posts",
                             type: "POST",
                             data: {
                                 message : $("#wallPostBody").val(),
-                                to: App.buddyToAccess["username"]
+                                to: App.chatBuddy["username"]
                             },
                             success: function() {
                                 $("#wallPostBody").val("");
@@ -530,9 +544,8 @@ define(
         function loadWallDialogContents() {
             if (busyEditing) return;
             $.ajax({
-                url: "/api/v1/posts/all/" + App.buddyToAccess["username"] + "?includeComments=true",
+                url: "/api/v1/posts/all/" + App.chatBuddy["username"] + "?includeComments=true",
                 success: function(posts) {
-                    console.log(posts.length);
                     for (var i=0; i<posts.length; i++) {
                         var post = posts[i];
                         if (post.from!=null) {
@@ -545,7 +558,6 @@ define(
                         }
                         if (!_.isNull(post.comments)&&!_.isUndefined(post.comments)){
                             for (var j=0; j<post.comments.length; j++) {
-                                console.log("setting comment's postId to " + post.id);
                                 var comment = post.comments[j];
                                 comment.postId = post.id;
                                 if (comment.from!=null) {
@@ -1124,14 +1136,16 @@ define(
             App.messageDisplayCounters = messageDisplayCounters;
             if (nApis==0) {
                 $("#manageConnectorsMenuItem").addClass("disabled");
-                $("#connectorsDropdownToggle").popover({
-                    container: "body",
-                    placement: "bottom",
-                    title: "Click menu above to add your first Connector!",
-                    content: "Connectors let Fluxtream link up your data",
-                    animation: true
-                });
-                $("#connectorsDropdownToggle").popover("show");
+                if (!App.buddyToAccess.isBuddy) {
+                    $("#connectorsDropdownToggle").popover({
+                        container: "body",
+                        placement: "bottom",
+                        title: "Click menu above to add your first Connector!",
+                        content: "Connectors let Fluxtream link up your data",
+                        animation: true
+                    });
+                    $("#connectorsDropdownToggle").popover("show");
+                }
             } else {
                 $("#manageConnectorsMenuItem").removeClass("disabled");
             }
@@ -1164,14 +1178,16 @@ define(
         function bindPopover(element, title, content, placement){
             if (typeof(App.messageDisplayCounters[element])=="undefined"||
                 App.messageDisplayCounters[element]<3) {
-                var popover = $("#"+element).popover({
-                    container: "body",
-                    placement: placement,
-                    trigger: "hover",
-                    title: title,
-                    content: content,
-                    animation: true
-                });
+                if (!App.buddyToAccess.isBuddy) {
+                    var popover = $("#" + element).popover({
+                        container: "body",
+                        placement: placement,
+                        trigger: "hover",
+                        title: title,
+                        content: content,
+                        animation: true
+                    });
+                }
                 popover.on("hidden", function(e){
                     var element = e.target.id;
                     incrementMessageDisplay(element);
