@@ -171,7 +171,7 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 		if (!apiKey.getConnector().hasFacets())
 			return;
 		if (objectTypes == -1)
-			eraseApiData(apiKey);
+			eraseApiData(apiKey, false);
 		else {
 			List<ObjectType> connectorTypes = ObjectType.getObjectTypes(
 					apiKey.getConnector(), objectTypes);
@@ -202,13 +202,11 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
             for (AbstractFacet facet : facets)
                 em.remove(facet);
         }
-        apiKey = guestService.getApiKey(apiKey.getId());
-        em.remove(apiKey);
     }
 
 	@Override
 	@Transactional(readOnly = false)
-	public void eraseApiData(ApiKey apiKey) {
+	public void eraseApiData(ApiKey apiKey, boolean removeApiKey) {
         JPAUtils.execute(em, "apiUpdates.delete.byApiKey", apiKey.getId());
         buddiesService.removeSharedChannels(apiKey.getId());
         buddiesService.removeSharedConnectors(apiKey.getId());
@@ -261,9 +259,10 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
         if (apiKey.getConnector()!=null) {
             bodyTrackHelper.deleteStyle(apiKey.getGuestId(), apiKey.getConnector().prettyName());
         }
-        // rehydrate the apiKey and finally remove it
-        apiKey = guestService.getApiKey(apiKey.getId());
-        em.remove(apiKey);
+
+        if (removeApiKey) {
+            em.remove(apiKey);
+        }
     }
 
     @Override

@@ -396,12 +396,7 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
         List<ApiKey> apiKeys = getApiKeys(guest.getId());
         for (ApiKey key : apiKeys) {
             if(key!=null && key.getConnector()!=null) {
-                apiDataService.eraseApiData(key);
-            }
-        }
-        for (ApiKey apiKey : apiKeys) {
-            if(apiKey!=null){
-                em.remove(apiKey);
+                apiDataService.eraseApiData(key, true);
             }
         }
         JPAUtils.execute(em, "addresses.delete.all", guest.getId());
