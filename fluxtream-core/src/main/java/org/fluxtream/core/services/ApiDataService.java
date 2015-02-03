@@ -125,7 +125,7 @@ public interface ApiDataService {
 
     public <T extends AbstractFacet> T createOrReadModifyWrite(Class<? extends AbstractFacet> facetClass, FacetQuery query, FacetModifier<T> modifier, Long apiKeyId) throws Exception;
 
-	public void eraseApiData(ApiKey apiKey);
+    public void eraseApiData(ApiKey apiKey, boolean removeApiKey);
 
 	public void eraseApiData(ApiKey apiKey, int objectTypes);
 

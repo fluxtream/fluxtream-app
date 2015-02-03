@@ -31,7 +31,7 @@ public class ApiDataCleanupWorker implements Runnable {
 
     public void run() {
         connectorUpdateService.flushUpdateWorkerTasks(apiKey, true);
-        apiDataService.eraseApiData(apiKey);
+        apiDataService.eraseApiData(apiKey, true);
     }
 
     public void setApiKey(final ApiKey apiKey) {
