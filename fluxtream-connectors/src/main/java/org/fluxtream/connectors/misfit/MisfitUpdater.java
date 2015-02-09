@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Updater(prettyName = "Misfit", value = 8, objectTypes = {MisfitActivitySummaryFacet.class, MisfitActivitySessionFacet.class, MisfitSleepFacet.class},
         userProfile = MisfitUserProfile.class
-//        bodytrackResponder = FitbitBodytrackResponder.class,
+//        bodytrackResponder = MisfitBodytrackResponder.class,
 //        defaultChannels = {"Misfit.steps"}
 )
 public class MisfitUpdater extends AbstractUpdater implements Autonomous {

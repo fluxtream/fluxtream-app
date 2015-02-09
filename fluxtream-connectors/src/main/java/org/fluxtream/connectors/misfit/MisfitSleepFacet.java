@@ -12,6 +12,11 @@ import javax.persistence.Entity;
 @ObjectTypeSpec(name = "sleep", value = 4, prettyname = "Sleep", isDateBased = true)
 public class MisfitSleepFacet extends AbstractFacet {
 
+    public String misfitId;
+    public boolean autodetected;
+
+    public String sleepDetails;
+
     public MisfitSleepFacet() {}
 
     @Override
