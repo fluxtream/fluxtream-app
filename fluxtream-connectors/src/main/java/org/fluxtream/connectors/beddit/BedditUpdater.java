@@ -45,11 +45,9 @@ public class BedditUpdater extends AbstractUpdater {
 
     //note: all timestamps but the updated timestamp are in local time, use the provided timezone ID to deal with this
 
-
     @Override
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
         updateConnectorData(updateInfo);
-
     }
 
     @Override

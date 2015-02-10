@@ -12,18 +12,18 @@ import org.scribe.utils.OAuthEncoder;
  */
 public class BedditApi extends DefaultApi20 {
 
-    OAuthConfig config;
+    public BedditApi() {}
 
-    public BedditApi(OAuthConfig config) {
-        this.config = config;
+    public String getAuthorizationUrl(OAuthConfig config) {
+        return String.format("https://cloudapi.beddit.com/api/v1/auth/authorize_web?client_id=%s&response_type=code&redirect_uri=%s",
+            new Object[]{config.getApiKey(),
+                    OAuthEncoder.encode(config.getCallback())
+            }
+        );
     }
 
     public String getAccessTokenEndpoint() {
-        return String.format("https://cloudapi.beddit.com/api/v1/auth/authorize_web?client_id=%s&response_type=code&redirect_uri=%s", new Object[]{config.getApiKey(), OAuthEncoder.encode(config.getCallback())});
-    }
-
-    public String getAuthorizationUrl(OAuthConfig config) {
-        return String.format("https://cloudapi.beddit.com/api/v1/auth/authorize?client_id=%s&response_type=code&redirect_uri=%s", new Object[]{config.getApiKey(), OAuthEncoder.encode(config.getCallback())});
+        return "https://cloudapi.beddit.com/api/v1/auth/authorize?grant_type=authorization_code";
     }
 
     public Verb getAccessTokenVerb() {

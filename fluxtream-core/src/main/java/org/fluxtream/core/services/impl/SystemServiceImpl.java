@@ -280,7 +280,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         em.persist(new ConnectorInfo(beddit,
                 "/" + release + "/images/connectors/connector-beddit.jpg",
                 res.getString("beddit"),
-                "ajax:/beddit/enterAuthInfo",
+                "/beddit/token",
                 Connector.getConnector("beddit"), order++, true,
                 false, true, null));
         String[] sleepAsAndroidKeys = checkKeysExist("Sleep_As_Android", Arrays.asList("google.client.id", "google.client.secret"));
