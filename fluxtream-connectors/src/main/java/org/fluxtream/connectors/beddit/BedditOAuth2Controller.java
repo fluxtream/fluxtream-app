@@ -130,12 +130,11 @@ public class BedditOAuth2Controller {
         Map<String,String> parameters = new HashMap<String,String>();
         parameters.put("grant_type", "authorization_code");
         parameters.put("code", code);
+        parameters.put("redirect_uri", env.get("homeBaseUrl") + "beddit/upgradeToken");
         parameters.put("client_id", env.get("bedditConsumerKey"));
         parameters.put("client_secret", env.get("bedditConsumerSecret"));
         final String json = fetch("https://cloudapi.beddit.com/api/v1/auth/authorize", parameters);
         JSONObject token = JSONObject.fromObject(json);
-
-        final String refresh_token = token.getString("refresh_token");
 
         // Create the entry for this new apiKey in the apiKey table and populate
         // ApiKeyAttributes with all of the keys fro oauth.properties needed for
@@ -157,7 +156,7 @@ public class BedditOAuth2Controller {
         guestService.setApiKeyAttribute(apiKey,
                 "accessToken", token.getString("access_token"));
         guestService.setApiKeyAttribute(apiKey,
-                "refreshToken", refresh_token);
+                "userid", token.getString("user"));
 
         request.getSession().removeAttribute(BEDDIT_REQUEST_TOKEN);
         request.getSession().removeAttribute(BEDDIT_SERVICE);
@@ -171,9 +170,9 @@ public class BedditOAuth2Controller {
     public String fetch(String url, Map<String, String> params) throws UnexpectedHttpResponseCodeException, IOException, KeyManagementException, NoSuchAlgorithmException {
         HttpClient client = env.getHttpClient();
         if (env.get("development") != null && env.get("development").equals("true")) {
-            HttpHost proxy = new HttpHost("127.0.0.1", 8888, "http");
+//            HttpHost proxy = new HttpHost("127.0.0.1", 8888, "http");
+//            client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY,proxy);
             client = HttpUtils.httpClientTrustingAllSSLCerts();
-            client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY,proxy);
         }
         String content = "";
         try {

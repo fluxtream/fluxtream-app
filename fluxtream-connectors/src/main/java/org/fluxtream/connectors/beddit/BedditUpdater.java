@@ -5,11 +5,13 @@ import com.google.gdata.util.common.base.Pair;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
@@ -20,6 +22,7 @@ import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.services.ApiDataService;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.utils.HttpUtils;
+import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
 import org.joda.time.DateTimeZone;
 import org.scribe.builder.ServiceBuilder;
 import org.scribe.model.OAuthRequest;
@@ -65,22 +68,17 @@ public class BedditUpdater extends AbstractUpdater {
         }
 
         int statusCode;
-        String content;
+        String content = null;
         // support both oauth2- and token -based authorization
         if (guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken")!=null) {
             final String oauthAccessToken = guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken");
-            final Token token = new Token(oauthAccessToken, guestService.getApiKeyAttribute(updateInfo.apiKey, "bedditConsumerSecret"));
-            OAuthRequest request = new OAuthRequest(Verb.GET, url);
-            OAuthService service = new ServiceBuilder()
-                    .provider(BedditApi.class)
-                    .apiKey(env.get("bedditConsumerKey"))
-                    .apiSecret(env.get("bedditConsumerSecret"))
-                    .callback(env.get("homeBaseUrl") + "beddit/upgradeToken")
-                    .build();
-            service.signRequest(token, request);
-            Response response = request.send();
-            statusCode = response.getCode();
-            content = response.getBody();
+            updateInfo.setContext("accessToken", oauthAccessToken);
+            try {
+                content = callBedditAPI(updateInfo, url);
+                statusCode = HttpStatus.SC_OK;
+            } catch (UnexpectedHttpResponseCodeException exc) {
+                statusCode = exc.getHttpResponseCode();
+            }
         } else {
             HttpGet get = new HttpGet(url);
             get.setHeader("Authorization", "UserToken " + accessToken);
@@ -109,6 +107,33 @@ public class BedditUpdater extends AbstractUpdater {
         }
 
 
+    }
+
+    private String callBedditAPI(final UpdateInfo updateInfo, final String url) throws Exception {
+        HttpClient client = env.getHttpClient();
+        if (env.get("development") != null && env.get("development").equals("true")) {
+//            HttpHost proxy = new HttpHost("127.0.0.1", 8888, "http");
+//            client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY,proxy);
+            client = HttpUtils.httpClientTrustingAllSSLCerts();
+        }
+        final long then = System.currentTimeMillis();
+        try {
+            HttpGet get = new HttpGet(url);
+            get.setHeader("Authorization", "UserToken " + updateInfo.getContext("accessToken"));
+            HttpResponse response = client.execute(get);
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == HttpStatus.SC_OK) {
+                ResponseHandler<String> responseHandler = new BasicResponseHandler();
+                String content = responseHandler.handleResponse(response);
+                countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url);
+                return content;
+            } else {
+                throw new UnexpectedHttpResponseCodeException(statusCode, response.getStatusLine().getReasonPhrase());
+            }
+        }
+        finally {
+            client.getConnectionManager().shutdown();
+        }
     }
 
     @Override
