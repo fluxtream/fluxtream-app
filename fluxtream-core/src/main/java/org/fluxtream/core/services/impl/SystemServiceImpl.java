@@ -276,13 +276,14 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         SMSBackupInfo.supportsRenewTokens = true;
         SMSBackupInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://www.googleapis.com/auth/userinfo.email%%20https://www.googleapis.com/auth/gmail.readonly";
         em.persist(SMSBackupInfo);
+        String[] bedditKeys = checkKeysExist(flickr, Arrays.asList("bedditConsumerKey", "bedditConsumerSecret"));
         final String beddit = "Beddit";
         em.persist(new ConnectorInfo(beddit,
                 "/" + release + "/images/connectors/connector-beddit.jpg",
                 res.getString("beddit"),
-                "ajax:/beddit/enterAuthInfo",
+                "/beddit/token",
                 Connector.getConnector("beddit"), order++, true,
-                false, true, null));
+                false, true, bedditKeys));
         String[] sleepAsAndroidKeys = checkKeysExist("Sleep_As_Android", Arrays.asList("google.client.id", "google.client.secret"));
         ConnectorInfo SleepAsAndroidConnectorInfo = new ConnectorInfo("Sleep_As_Android",
                 "/" + release + "/images/connectors/connector-sleep_as_android.jpg",

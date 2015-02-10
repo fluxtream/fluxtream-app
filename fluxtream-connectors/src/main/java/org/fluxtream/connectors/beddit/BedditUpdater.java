@@ -1,20 +1,17 @@
 package org.fluxtream.connectors.beddit;
 
 
-import com.google.api.client.auth.oauth2.TokenResponseException;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.gdata.util.common.base.Pair;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
@@ -22,17 +19,20 @@ import org.fluxtream.core.connectors.updaters.UpdateFailedException;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.ChannelMapping;
-import org.fluxtream.core.domain.Notification;
 import org.fluxtream.core.services.ApiDataService;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.utils.HttpUtils;
-import org.fluxtream.core.utils.Utils;
+import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
 import org.joda.time.DateTimeZone;
+import org.scribe.builder.ServiceBuilder;
+import org.scribe.model.OAuthRequest;
+import org.scribe.model.Response;
+import org.scribe.model.Token;
+import org.scribe.model.Verb;
+import org.scribe.oauth.OAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -48,11 +48,9 @@ public class BedditUpdater extends AbstractUpdater {
 
     //note: all timestamps but the updated timestamp are in local time, use the provided timezone ID to deal with this
 
-
     @Override
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
         updateConnectorData(updateInfo);
-
     }
 
     @Override
@@ -69,19 +67,32 @@ public class BedditUpdater extends AbstractUpdater {
             url +=  "?updated_after=" + latestData;
         }
 
-        HttpGet get = new HttpGet(url);
-        get.setHeader("Authorization","UserToken " + accessToken);
-        HttpClient httpClient = env.getHttpClient();
-        if (env.get("development")!=null&&env.get("development").equals("true"))
-            httpClient = HttpUtils.httpClientTrustingAllSSLCerts();
-        HttpResponse response = httpClient.execute(get);
-        int statusCode = response.getStatusLine().getStatusCode();
-        String statusMessage = response.getStatusLine().getReasonPhrase();
-        if (statusCode != HttpStatus.SC_OK) {
-            throw new UpdateFailedException("Got status code " + statusCode + " - " + statusMessage);
+        int statusCode;
+        String content = null;
+        // support both oauth2- and token -based authorization
+        if (guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken")!=null) {
+            final String oauthAccessToken = guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken");
+            updateInfo.setContext("accessToken", oauthAccessToken);
+            try {
+                content = callBedditAPI(updateInfo, url);
+                statusCode = HttpStatus.SC_OK;
+            } catch (UnexpectedHttpResponseCodeException exc) {
+                statusCode = exc.getHttpResponseCode();
+            }
+        } else {
+            HttpGet get = new HttpGet(url);
+            get.setHeader("Authorization", "UserToken " + accessToken);
+            HttpClient httpClient = env.getHttpClient();
+            if (env.get("development") != null && env.get("development").equals("true"))
+                httpClient = HttpUtils.httpClientTrustingAllSSLCerts();
+            HttpResponse response = httpClient.execute(get);
+            statusCode = response.getStatusLine().getStatusCode();
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+            content = responseHandler.handleResponse(response);
         }
-        ResponseHandler<String> responseHandler = new BasicResponseHandler();
-        String content = responseHandler.handleResponse(response);
+        if (statusCode != HttpStatus.SC_OK) {
+            throw new UpdateFailedException("Got status code " + statusCode);
+        }
         try{
             Double newLatestTime = createOrUpdateFacets(updateInfo,content);
             if (newLatestTime != null && (latestData == null || newLatestTime > latestData)){
@@ -90,12 +101,39 @@ public class BedditUpdater extends AbstractUpdater {
             countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url);
         }
         catch (Exception e){
-            countFailedApiCall(updateInfo.apiKey,updateInfo.objectTypes,then,url, ExceptionUtils.getStackTrace(e),statusCode,statusMessage);
+            countFailedApiCall(updateInfo.apiKey,updateInfo.objectTypes,then,url, ExceptionUtils.getStackTrace(e), statusCode, null);
             e.printStackTrace();
             throw new UpdateFailedException(e.getMessage());
         }
 
 
+    }
+
+    private String callBedditAPI(final UpdateInfo updateInfo, final String url) throws Exception {
+        HttpClient client = env.getHttpClient();
+        if (env.get("development") != null && env.get("development").equals("true")) {
+//            HttpHost proxy = new HttpHost("127.0.0.1", 8888, "http");
+//            client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY,proxy);
+            client = HttpUtils.httpClientTrustingAllSSLCerts();
+        }
+        final long then = System.currentTimeMillis();
+        try {
+            HttpGet get = new HttpGet(url);
+            get.setHeader("Authorization", "UserToken " + updateInfo.getContext("accessToken"));
+            HttpResponse response = client.execute(get);
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == HttpStatus.SC_OK) {
+                ResponseHandler<String> responseHandler = new BasicResponseHandler();
+                String content = responseHandler.handleResponse(response);
+                countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url);
+                return content;
+            } else {
+                throw new UnexpectedHttpResponseCodeException(statusCode, response.getStatusLine().getReasonPhrase());
+            }
+        }
+        finally {
+            client.getConnectionManager().shutdown();
+        }
     }
 
     @Override
