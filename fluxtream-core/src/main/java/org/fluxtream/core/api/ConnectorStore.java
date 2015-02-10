@@ -303,7 +303,9 @@ public class ConnectorStore {
 
     private boolean checkIfSyncInProgress(long guestId, Connector connector){
         final ApiKey apiKey = guestService.getApiKey(guestId, connector);
-        return (apiKey.synching);
+        if (apiKey!=null)
+            return (apiKey.synching);
+        return false;
     }
 
 

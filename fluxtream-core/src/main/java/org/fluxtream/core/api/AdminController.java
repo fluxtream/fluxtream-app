@@ -369,18 +369,18 @@ public class AdminController {
     @Secured({ "ROLE_ADMIN" })
     @Path("/sync/{username}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String sync(@PathParam("username") String username)
+    public Response sync(@PathParam("username") String username)
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
-        final long guestId = guestService.getGuest(username).getId();
+        Guest guest = guestService.getGuest(username);
+        if (guest==null)
+            return Response.status(Response.Status.NOT_FOUND).build();
+        final long guestId = guest.getId();
         try {
             final List<ScheduleResult> scheduleResults = connectorUpdateService.updateAllConnectors(guestId, false);
-            StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
-            statusModel.payload = scheduleResults;
-            return gson.toJson(scheduleResults);
+            return Response.ok().entity(scheduleResults).build();
         } catch (Throwable t) {
-            StatusModel failure = new StatusModel(false, ExceptionUtils.getStackTrace(t));
-            return gson.toJson(failure);
+            return Response.serverError().build();
         }
     }
 
@@ -690,6 +690,7 @@ public class AdminController {
 
     @GET
     @Path("/fitbit/apiSubscriptions/list")
+    @Secured({ "ROLE_ADMIN" })
     @Produces({MediaType.APPLICATION_JSON})
     public Response listFitbitApiSubscriptions() throws UpdateFailedException, UnexpectedResponseCodeException, RateLimitReachedException, AuthExpiredException {
         final Guest guest = AuthHelper.getGuest();
@@ -701,6 +702,7 @@ public class AdminController {
 
     @GET
     @Path("/fitbit/apiSubscriptions/delete")
+    @Secured({ "ROLE_ADMIN" })
     @Produces("text/plain")
     public Response deleteFitbitApiSubscription() throws UpdateFailedException, UnexpectedResponseCodeException, RateLimitReachedException, AuthExpiredException {
         String fitbitSubscriberId = env.get("fitbitSubscriberId");
@@ -713,6 +715,7 @@ public class AdminController {
 
     @GET
     @Path("/fitbit/apiSubscriptions/add")
+    @Secured({ "ROLE_ADMIN" })
     @Produces({MediaType.APPLICATION_JSON})
     public Response addFitbitSubscription(@Context HttpServletRequest request,
                                           @Context HttpServletResponse response) throws IOException, UpdateFailedException, UnexpectedResponseCodeException, RateLimitReachedException, AuthExpiredException {
