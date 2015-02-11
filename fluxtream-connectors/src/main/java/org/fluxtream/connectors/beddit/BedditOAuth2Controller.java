@@ -96,11 +96,6 @@ public class BedditOAuth2Controller {
             HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
         } catch (GeneralSecurityException e) {
         }
-// Now you can access an https URL without having the certificate in the truststore
-        try {
-            URL url = new URL("https://hostname/index.html");
-        } catch (MalformedURLException e) {
-        }
     }
 
     @RequestMapping(value = "/token")
