@@ -597,7 +597,7 @@ define(["core/grapher/BTCore","applications/calendar/tabs/list/ListUtils", "core
         var exportChannelMap = {};
         for (var element in this.channelsMap){
             var channel = this.channelsMap[element];
-            if (channel.type == null){//this signifies a data channel (aka we can export it!)
+            if (channel.type == "data"){//this signifies a data channel (aka we can export it!)
                 exportChannelMap[channel.device_name + "." + channel.channel_name] = element;
             }
         }
