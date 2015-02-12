@@ -13,8 +13,8 @@ import javax.persistence.NamedQuery;
 @Entity(name="Facet_FluxtreamObservation")
 @ObjectTypeSpec(name = "observation", value = 1, isImageType=true, parallel=false, prettyname = "Observation")
 @NamedQueries({
-        @NamedQuery(name = "mymee.observation.byMymeeId", query = "SELECT facet FROM Facet_FluxtreamObservation facet WHERE facet.guestId=? AND facet.mymeeId=?"),
-        @NamedQuery(name = "mymee.photo.between", query = "SELECT facet FROM Facet_FluxtreamObservation facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=? AND facet.imageURL IS NOT NULL")
+        @NamedQuery(name = "flx.observation.byMymeeId", query = "SELECT facet FROM Facet_FluxtreamObservation facet WHERE facet.guestId=? AND facet.fluxtreamId=?"),
+        @NamedQuery(name = "flx.photo.between", query = "SELECT facet FROM Facet_FluxtreamObservation facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=? AND facet.imageURL IS NOT NULL")
 })
 public class FluxtreamObservationFacet extends AbstractFacet {
 

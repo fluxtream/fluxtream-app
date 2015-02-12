@@ -2,6 +2,7 @@ package org.fluxtream.connectors.fluxtream_capture;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.http.*;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpGet;
@@ -15,9 +16,12 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
+import org.fluxtream.core.Configuration;
+import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.location.LocationFacet;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.domain.Tag;
 import org.fluxtream.core.services.ApiDataService;
 import org.fluxtream.core.services.BodyTrackStorageService;
@@ -34,8 +38,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -61,6 +67,9 @@ public class CouchUpdater {
 
     @Autowired
     ApiDataService apiDataService;
+
+    @Autowired
+    Configuration env;
 
     final String lollipopStyle = "{\"styles\":[{\"type\":\"line\",\"show\":false,\"lineWidth\":1}," +
             "{\"radius\":0,\"fill\":false,\"type\":\"lollipop\",\"show\":true,\"lineWidth\":1}," +
@@ -92,6 +101,14 @@ public class CouchUpdater {
             JSONArray changes;
 
             try {
+                String base64URLSafeUsername = null;
+                try {
+                    Guest guest = guestService.getGuestById(updateInfo.getGuestId());
+                    base64URLSafeUsername = URLEncoder.encode(guest.username, "UTF-8"); }
+                catch (UnsupportedEncodingException e) {}
+                String couchdbPassword = guestService.getApiKeyAttribute(updateInfo.apiKey, "couchDB.userToken");
+                String userPassword = base64URLSafeUsername + ":" + couchdbPassword;
+                byte[] encodedCredentials = Base64.encodeBase64(userPassword.getBytes());
                 JSONObject json = JSONObject.fromObject(fetchRetrying(URL, 20));
                 newLastSeq = json.getLong("last_seq");
                 changes = json.getJSONArray("results");
@@ -135,7 +152,6 @@ public class CouchUpdater {
                     }
                 }
             }
-
 
             // Write the new set of observations into the datastore
             bodyTrackStorageService.storeApiData(updateInfo.apiKey, newFacets);
@@ -212,29 +228,29 @@ public class CouchUpdater {
                                         facet.baseAmount = null;
                                     }
 
-                                    try {
-                                        JSONArray locArray = observation.getJSONArray("loc");
-                                        facet.longitude = locArray.getDouble(0);
-                                        facet.latitude = locArray.getDouble(1);
-
-                                        if(facet.longitude!=null && facet.latitude!=null) {
-                                            // Create a location for updating visited cities list
-                                            LocationFacet locationFacet = new LocationFacet(updateInfo.apiKey.getId());
-                                            locationFacet.guestId = updateInfo.getGuestId();
-                                            locationFacet.source = LocationFacet.Source.MYMEE;
-                                            locationFacet.api = updateInfo.apiKey.getConnector().value();
-                                            locationFacet.start = locationFacet.end = locationFacet.timestampMs = facet.start;
-                                            locationFacet.latitude = facet.latitude.floatValue();
-                                            locationFacet.longitude = facet.longitude.floatValue();
-
-                                            // Process the location facet into visited cities
-                                            List<LocationFacet> locationFacets = new ArrayList<LocationFacet>();
-                                            locationFacets.add(locationFacet);
-                                            metadataService.updateLocationMetadata(updateInfo.getGuestId(), locationFacets);
-                                        }
-                                    } catch (Throwable ignored) {
-                                        facet.longitude = facet.latitude = null;
-                                    }
+//                                    try {
+//                                        JSONArray locArray = observation.getJSONArray("loc");
+//                                        facet.longitude = locArray.getDouble(0);
+//                                        facet.latitude = locArray.getDouble(1);
+//
+//                                        if(facet.longitude!=null && facet.latitude!=null) {
+//                                            // Create a location for updating visited cities list
+//                                            LocationFacet locationFacet = new LocationFacet(updateInfo.apiKey.getId());
+//                                            locationFacet.guestId = updateInfo.getGuestId();
+//                                            locationFacet.source = LocationFacet.Source.MYMEE;
+//                                            locationFacet.api = updateInfo.apiKey.getConnector().value();
+//                                            locationFacet.start = locationFacet.end = locationFacet.timestampMs = facet.start;
+//                                            locationFacet.latitude = facet.latitude.floatValue();
+//                                            locationFacet.longitude = facet.longitude.floatValue();
+//
+//                                            // Process the location facet into visited cities
+//                                            List<LocationFacet> locationFacets = new ArrayList<LocationFacet>();
+//                                            locationFacets.add(locationFacet);
+//                                            metadataService.updateLocationMetadata(updateInfo.getGuestId(), locationFacets);
+//                                        }
+//                                    } catch (Throwable ignored) {
+//                                        facet.longitude = facet.latitude = null;
+//                                    }
 
                                     try {
                                         // If there's an attachment, we assume there's only one and that it's an image
@@ -258,18 +274,19 @@ public class CouchUpdater {
     }
     // Returns root URL for fluxtream capture database, without trailing / (e.g. http://hostname/databasename)
     private String getRootURL(final UpdateInfo updateInfo) {
-        final String fetchURL = guestService.getApiKeyAttribute(updateInfo.apiKey,"fetchURL");
-        return getBaseURL(fetchURL) +  "/" + getMainDir(fetchURL);
-    }
-
-    public static String getBaseURL(String url) {
+        final String couchdbHost = env.get("couchdb.host");
+        final String couchdbPort = env.get("couchdb.port");
+        String base64URLSafeUsername = null;
         try {
-            URI uri = new URI(url);
-            return (new StringBuilder(uri.getScheme()).append("://").append(uri.getHost()).toString());
-        }
-        catch (URISyntaxException e) {
-            return null;
-        }
+            Guest guest = guestService.getGuestById(updateInfo.getGuestId());
+            base64URLSafeUsername = URLEncoder.encode(guest.username, "UTF-8"); }
+        catch (UnsupportedEncodingException e) {}
+        long lastSeq = 0;
+        try {
+            lastSeq = Long.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, "last_seq"));
+        } catch (Exception e) {}
+        final String rootURL = String.format("http://%s:%s/self_report_db_observations_%s/?since=%s", couchdbHost, couchdbPort, base64URLSafeUsername, lastSeq);
+        return rootURL;
     }
 
     public static String getMainDir(String url) {
