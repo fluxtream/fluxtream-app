@@ -85,14 +85,22 @@ public class RunkeeperPaceFieldHandler implements FieldHandler {
 
     @Override
     public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
-        ChannelMapping channelMapping = new ChannelMapping(
+        ChannelMapping minutesPerKilometerMapping = new ChannelMapping(
                 apiKey.getId(), apiKey.getGuestId(),
                 ChannelMapping.ChannelType.data,
-                ChannelMapping.TimeType.local,
+                ChannelMapping.TimeType.gmt,
                 ObjectType.getObjectType(apiKey.getConnector(), "fitnessActivity").value(),
-                apiKey.getConnector().getDeviceNickname(), "pace",
-                apiKey.getConnector().getDeviceNickname(), "pace");
-        channelMappings.add(channelMapping);
+                apiKey.getConnector().getDeviceNickname(), "minutesPerKilometer",
+                apiKey.getConnector().getDeviceNickname(), "minutesPerKilometer");
+        ChannelMapping minutesPerMileMapping = new ChannelMapping(
+                apiKey.getId(), apiKey.getGuestId(),
+                ChannelMapping.ChannelType.data,
+                ChannelMapping.TimeType.gmt,
+                ObjectType.getObjectType(apiKey.getConnector(), "fitnessActivity").value(),
+                apiKey.getConnector().getDeviceNickname(), "minutesPerMile",
+                apiKey.getConnector().getDeviceNickname(), "minutesPerMile");
+        channelMappings.add(minutesPerKilometerMapping);
+        channelMappings.add(minutesPerMileMapping);
     }
 
 }
