@@ -54,7 +54,7 @@ public class RunkeeperHeartRateFieldHandler implements FieldHandler {
     public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
         ChannelMapping channelMapping = new ChannelMapping(
                 apiKey.getId(), apiKey.getGuestId(),
-                ChannelMapping.ChannelType.timespan,
+                ChannelMapping.ChannelType.data,
                 ChannelMapping.TimeType.local,
                 ObjectType.getObjectType(apiKey.getConnector(), "fitnessActivity").value(),
                 apiKey.getConnector().getDeviceNickname(), "heartRate",
