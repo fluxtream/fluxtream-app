@@ -44,7 +44,8 @@ public class FluxtreamCaptureUpdater extends AbstractUpdater {
     @Override
     protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
         updateLocationData(updateInfo);
-        couchUpdater.updateCaptureData(updateInfo, this);
+        couchUpdater.updateCaptureData(updateInfo, this, CouchUpdater.CouchDatabaseName.TOPICS);
+        couchUpdater.updateCaptureData(updateInfo, this, CouchUpdater.CouchDatabaseName.OBSERVATIONS);
     }
 
     // Had trouble with conversion to BigDecimal in updateLocationData.
