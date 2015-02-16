@@ -13,6 +13,7 @@ import org.fluxtream.core.connectors.updaters.AbstractUpdater;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.ChannelMapping;
+import org.fluxtream.core.domain.SharedChannel;
 import org.fluxtream.core.services.*;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,10 +90,17 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
      */
     @Override
     @Transactional(readOnly=false)
-    public void mapChannels(ApiKey apiKey) {
-
+    public boolean mapChannels(ApiKey apiKey) {
         try {
             final Connector connector = apiKey.getConnector();
+
+            Query saveExistingSharedChannelsQuery = em.createQuery("SELECT sc FROM SharedChannels sc WHERE sc.channelMapping.apiKeyId=? AND sc.channelMapping.creationType=?");
+            saveExistingSharedChannelsQuery.setParameter(1, apiKey.getId());
+            saveExistingSharedChannelsQuery.setParameter(2, ChannelMapping.CreationType.mapChannels);
+            List<SharedChannel> savedSharedChannels = saveExistingSharedChannelsQuery.getResultList();
+
+            for (SharedChannel savedSharedChannel : savedSharedChannels)
+                em.remove(savedSharedChannel);
 
             // only delete mappings that were previously created by this method
             Query deleteExistingMappingsQuery = em.createQuery("DELETE FROM ChannelMapping mapping WHERE mapping.apiKeyId=? AND mapping.creationType=?");
@@ -154,13 +162,45 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
                 }
             }
 
+            // restore the save sharedChannels
+            for (SharedChannel savedSharedChannel : savedSharedChannels) {
+                ChannelMapping newMapping = getChannelMapping(apiKey.getId(), savedSharedChannel.channelMapping);
+                if (newMapping!=null) {
+                    SharedChannel restoredSharedChannel = new SharedChannel();
+                    restoredSharedChannel.buddy = savedSharedChannel.buddy;
+                    restoredSharedChannel.channelMapping = newMapping;
+                    em.persist(restoredSharedChannel);
+                } else {
+                    String message = "Could not restore saved shared channel because a corresponding channel mapping could not be found: ";
+                    System.out.println(message);
+                    logger.warn(message);
+                }
+            }
+
             // finally, possibly create default ChannelStyles
             final AbstractUpdater updater = beanFactory.getBean(connector.getUpdaterClass());
             updater.setDefaultChannelStyles(apiKey);
         } catch (Throwable t) {
             System.out.println("Can't map channels");
             t.printStackTrace();
+            return false;
         }
+        return true;
+    }
+
+    public ChannelMapping getChannelMapping(long apiKeyId, ChannelMapping oldMapping) {
+        Query query = em.createQuery("SELECT channelMapping FROM ChannelMapping channelMapping WHERE channelMapping.apiKeyId=? AND " +
+                "channelMapping.deviceName=? AND channelMapping.channelName=? AND " +
+                "channelMapping.internalDeviceName=? AND channelMapping.internalChannelName=?");
+        query.setParameter(1, apiKeyId);
+        query.setParameter(2, oldMapping.getDeviceName());
+        query.setParameter(3, oldMapping.getChannelName());
+        query.setParameter(4, oldMapping.getInternalDeviceName());
+        query.setParameter(5, oldMapping.getInternalChannelName());
+        List<ChannelMapping> mappings = query.getResultList();
+        if (mappings.size()>0)
+            return mappings.get(0);
+        return null;
     }
 
     @Override
