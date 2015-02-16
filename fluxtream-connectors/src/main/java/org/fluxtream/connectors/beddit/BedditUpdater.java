@@ -215,8 +215,8 @@ public class BedditUpdater extends AbstractUpdater {
 
                         facet.updatedTime = sleepObject.getDouble("updated");
 
-                        facet.start = getUTCMillis(sleepObject.getDouble("start_timestamp"),timezone);
-                        facet.end = getUTCMillis(sleepObject.getDouble("end_timestamp"),timezone);
+                        facet.start = (long) sleepObject.getDouble("start_timestamp")*1000;
+                        facet.end = (long) sleepObject.getDouble("end_timestamp")*1000;
 
                         JSONObject propertiesObject = sleepObject.getJSONObject("properties");
                         facet.sleepTimeTarget = propertiesObject.getDouble("sleep_time_target");
@@ -257,7 +257,7 @@ public class BedditUpdater extends AbstractUpdater {
                                 JSONArray sleepCycles = sleep_cycles.getJSONArray("items");
                                 List<Pair<Long, Double>> sleepCycleData = new ArrayList<Pair<Long, Double>>();
                                 for (int i = 0; i < sleepCycles.size(); i++) {
-                                    sleepCycleData.add(new Pair<Long, Double>(getUTCMillis(sleepCycles.getJSONArray(i).getDouble(0), timezone), sleepCycles.getJSONArray(i).getDouble(1)));
+                                    sleepCycleData.add(new Pair<Long, Double>((long)sleepCycles.getJSONArray(i).getDouble(0)*1000, sleepCycles.getJSONArray(i).getDouble(1)));
                                 }
                                 facet.setSleepCycles(sleepCycleData);
                             }
@@ -269,7 +269,7 @@ public class BedditUpdater extends AbstractUpdater {
                                 JSONArray heartRateCurve = heart_rate_curve.getJSONArray("items");
                                 List<Pair<Long,Double>> heartRateCurveData = new ArrayList<Pair<Long,Double>>();
                                 for (int i = 0; i < heartRateCurve.size(); i++) {
-                                    heartRateCurveData.add(new Pair<Long, Double>(getUTCMillis(heartRateCurve.getJSONArray(i).getDouble(0), timezone), heartRateCurve.getJSONArray(i).getDouble(1)));
+                                    heartRateCurveData.add(new Pair<Long, Double>((long)heartRateCurve.getJSONArray(i).getDouble(0)*1000, heartRateCurve.getJSONArray(i).getDouble(1)));
                                 }
                                 facet.setHeartRateCurve(heartRateCurveData);
                             }
@@ -281,7 +281,7 @@ public class BedditUpdater extends AbstractUpdater {
                                 JSONArray sleepStages = sleep_stages.getJSONArray("items");
                                 List<Pair<Long,Integer>> sleepStagesData = new ArrayList<Pair<Long, Integer>>();
                                 for (int i = 0 ; i < sleepStages.size(); i++) {
-                                    sleepStagesData.add(new Pair<Long, Integer>(getUTCMillis(sleepStages.getJSONArray(i).getDouble(0), timezone), sleepStages.getJSONArray(i).getInt(1)));
+                                    sleepStagesData.add(new Pair<Long, Integer>((long)sleepStages.getJSONArray(i).getDouble(0)*1000, sleepStages.getJSONArray(i).getInt(1)));
                                 }
                                 facet.setSleepStages(sleepStagesData);
                             }
@@ -293,7 +293,7 @@ public class BedditUpdater extends AbstractUpdater {
                                 JSONArray snoringEpisodes = snoring_episodes.getJSONArray("items");
                                 List<Pair<Long,Double>> snoringEpisodesData = new ArrayList<Pair<Long, Double>>();
                                 for (int i = 0; i < snoringEpisodes.size(); i++) {
-                                    snoringEpisodesData.add(new Pair<Long,Double>(getUTCMillis(snoringEpisodes.getJSONArray(i).getDouble(0), timezone), snoringEpisodes.getJSONArray(i).getDouble(1)));
+                                    snoringEpisodesData.add(new Pair<Long,Double>((long)snoringEpisodes.getJSONArray(i).getDouble(0)*1000, snoringEpisodes.getJSONArray(i).getDouble(1)));
                                 }
                                 facet.setSnoringEpisodes(snoringEpisodesData);
                             }
@@ -306,11 +306,6 @@ public class BedditUpdater extends AbstractUpdater {
 
 
     }
-
-    private long getUTCMillis(double localSeconds, DateTimeZone timeZone){
-        return timeZone.convertLocalToUTC((long) (localSeconds * 1000),true);
-    }
-
 
     private Double getLatestFacetTime(UpdateInfo updateInfo){
         ApiKey apiKey = updateInfo.apiKey;
