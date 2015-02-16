@@ -24,7 +24,9 @@ import org.fluxtream.core.services.impl.UsernameAlreadyTakenException;
 import org.fluxtream.core.utils.RequestUtils;
 import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Component;
 
@@ -70,6 +72,13 @@ public class AdminController {
 
     @Autowired
     SystemService sysService;
+
+    @Autowired
+    @Qualifier("AdminWorker")
+    ThreadPoolTaskExecutor executor;
+
+    @Autowired
+    BodyTrackStorageService bodyTrackStorageService;
 
     public static final String SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL = "SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL";
 
@@ -490,6 +499,26 @@ public class AdminController {
             return gson.toJson(new StatusModel(false,"Failed to set OAuth2 Tokens: " + e.getMessage()));
         }
     }
+
+    @POST
+    @Path("/datastore/{connector}/import")
+    @Secured({ "ROLE_ADMIN" })
+    public Response createGuest(@QueryParam("username") String username,
+                                @PathParam("connector") String connectorName) {
+        Guest guest = guestService.getGuest(username);
+        if (guest==null) return Response.status(Response.Status.NOT_FOUND).entity("No such user: " + username).build();
+        final ApiKey apiKey = guestService.getApiKey(guest.getId(), Connector.getConnector(connectorName));
+        if (apiKey==null) return Response.status(Response.Status.NOT_FOUND).entity("No such connector: " + connectorName).build();
+        executor.execute(new Runnable() {
+
+            @Override
+            public void run() {
+                bodyTrackStorageService.storeInitialHistory(apiKey);
+            }
+        });
+        return Response.ok().entity("launched initial datastore history import for " + connectorName + "/" + username).build();
+    }
+
 
     @POST
     @Path("/create")

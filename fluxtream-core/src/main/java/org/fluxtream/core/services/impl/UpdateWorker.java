@@ -225,22 +225,24 @@ class UpdateWorker implements Runnable {
         try {
             final String channelsAreMapped = guestService.getApiKeyAttribute(updateInfo.apiKey, "channelMappings");
             if (channelsAreMapped == null || channelsAreMapped.equals("dirty")) {
-                bodyTrackStorageService.mapChannels(updateInfo.apiKey);
-                guestService.setApiKeyAttribute(updateInfo.apiKey, "channelMappings", "clean");
-                // if we just mapped channels, it means people who had shared this connector will no longer share
-                // its associated channels, which means we need to automatically do it for them here
-                String sharedConnectorsChannelsAreShared = guestService.getApiKeyAttribute(updateInfo.apiKey, "sharedConnectorsChannelsAreShared");
-                if (sharedConnectorsChannelsAreShared==null || !sharedConnectorsChannelsAreShared.equals("true")) {
-                    List<SharedConnector> sharedConnectors = buddiesService.getSharedConnectors(updateInfo.apiKey);
-                    if (sharedConnectors!=null) {
-                        for (SharedConnector sharedConnector : sharedConnectors) {
-                            List<ChannelMapping> channelMappings = bodyTrackStorageService.getChannelMappings(updateInfo.apiKey.getId());
-                            for (ChannelMapping channelMapping : channelMappings) {
-                                buddiesService.addSharedChannel(sharedConnector.buddy.buddyId, sharedConnector.buddy.guestId, channelMapping.getId());
+                boolean success = bodyTrackStorageService.mapChannels(updateInfo.apiKey);
+                if (success) {
+                    guestService.setApiKeyAttribute(updateInfo.apiKey, "channelMappings", "clean");
+                    // if we just mapped channels, it means people who had shared this connector will no longer share
+                    // its associated channels, which means we need to automatically do it for them here
+                    String sharedConnectorsChannelsAreShared = guestService.getApiKeyAttribute(updateInfo.apiKey, "sharedConnectorsChannelsAreShared");
+                    if (sharedConnectorsChannelsAreShared == null || !sharedConnectorsChannelsAreShared.equals("true")) {
+                        List<SharedConnector> sharedConnectors = buddiesService.getSharedConnectors(updateInfo.apiKey);
+                        if (sharedConnectors != null) {
+                            for (SharedConnector sharedConnector : sharedConnectors) {
+                                List<ChannelMapping> channelMappings = bodyTrackStorageService.getChannelMappings(updateInfo.apiKey.getId());
+                                for (ChannelMapping channelMapping : channelMappings) {
+                                    buddiesService.addSharedChannel(sharedConnector.buddy.buddyId, sharedConnector.buddy.guestId, channelMapping.getId());
+                                }
                             }
                         }
+                        guestService.setApiKeyAttribute(updateInfo.apiKey, "sharedConnectorsChannelsAreShared", "true");
                     }
-                    guestService.setApiKeyAttribute(updateInfo.apiKey, "sharedConnectorsChannelsAreShared", "true");
                 }
             }
         } catch (Throwable e) {
