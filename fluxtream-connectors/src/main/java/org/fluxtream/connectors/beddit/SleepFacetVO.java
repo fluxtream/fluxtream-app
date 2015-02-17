@@ -33,6 +33,7 @@ public class SleepFacetVO extends AbstractTimedFacetVO<SleepFacet> {
             respirationRate = round(facet.respirationRate, 2);
         if (facet.timeToFallAsleep != null)
             timeToFallAsleep = new DurationModel(facet.timeToFallAsleep.intValue());
+        this.date = facet.date;
         totalSleepTime = new DurationModel((int)facet.totalSleepTime);
         sleepTags = facet.getSleepTags();
     }

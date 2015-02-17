@@ -1,20 +1,17 @@
 package org.fluxtream.connectors.beddit;
 
 
-import com.google.api.client.auth.oauth2.TokenResponseException;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.gdata.util.common.base.Pair;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
@@ -22,17 +19,20 @@ import org.fluxtream.core.connectors.updaters.UpdateFailedException;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.ChannelMapping;
-import org.fluxtream.core.domain.Notification;
 import org.fluxtream.core.services.ApiDataService;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.utils.HttpUtils;
-import org.fluxtream.core.utils.Utils;
+import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
 import org.joda.time.DateTimeZone;
+import org.scribe.builder.ServiceBuilder;
+import org.scribe.model.OAuthRequest;
+import org.scribe.model.Response;
+import org.scribe.model.Token;
+import org.scribe.model.Verb;
+import org.scribe.oauth.OAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -48,11 +48,9 @@ public class BedditUpdater extends AbstractUpdater {
 
     //note: all timestamps but the updated timestamp are in local time, use the provided timezone ID to deal with this
 
-
     @Override
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
         updateConnectorData(updateInfo);
-
     }
 
     @Override
@@ -69,19 +67,32 @@ public class BedditUpdater extends AbstractUpdater {
             url +=  "?updated_after=" + latestData;
         }
 
-        HttpGet get = new HttpGet(url);
-        get.setHeader("Authorization","UserToken " + accessToken);
-        HttpClient httpClient = env.getHttpClient();
-        if (env.get("development")!=null&&env.get("development").equals("true"))
-            httpClient = HttpUtils.httpClientTrustingAllSSLCerts();
-        HttpResponse response = httpClient.execute(get);
-        int statusCode = response.getStatusLine().getStatusCode();
-        String statusMessage = response.getStatusLine().getReasonPhrase();
-        if (statusCode != HttpStatus.SC_OK) {
-            throw new UpdateFailedException("Got status code " + statusCode + " - " + statusMessage);
+        int statusCode;
+        String content = null;
+        // support both oauth2- and token -based authorization
+        if (guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken")!=null) {
+            final String oauthAccessToken = guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken");
+            updateInfo.setContext("accessToken", oauthAccessToken);
+            try {
+                content = callBedditAPI(updateInfo, url);
+                statusCode = HttpStatus.SC_OK;
+            } catch (UnexpectedHttpResponseCodeException exc) {
+                statusCode = exc.getHttpResponseCode();
+            }
+        } else {
+            HttpGet get = new HttpGet(url);
+            get.setHeader("Authorization", "UserToken " + accessToken);
+            HttpClient httpClient = env.getHttpClient();
+            if (env.get("development") != null && env.get("development").equals("true"))
+                httpClient = HttpUtils.httpClientTrustingAllSSLCerts();
+            HttpResponse response = httpClient.execute(get);
+            statusCode = response.getStatusLine().getStatusCode();
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+            content = responseHandler.handleResponse(response);
         }
-        ResponseHandler<String> responseHandler = new BasicResponseHandler();
-        String content = responseHandler.handleResponse(response);
+        if (statusCode != HttpStatus.SC_OK) {
+            throw new UpdateFailedException("Got status code " + statusCode);
+        }
         try{
             Double newLatestTime = createOrUpdateFacets(updateInfo,content);
             if (newLatestTime != null && (latestData == null || newLatestTime > latestData)){
@@ -90,12 +101,39 @@ public class BedditUpdater extends AbstractUpdater {
             countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url);
         }
         catch (Exception e){
-            countFailedApiCall(updateInfo.apiKey,updateInfo.objectTypes,then,url, ExceptionUtils.getStackTrace(e),statusCode,statusMessage);
+            countFailedApiCall(updateInfo.apiKey,updateInfo.objectTypes,then,url, ExceptionUtils.getStackTrace(e), statusCode, null);
             e.printStackTrace();
             throw new UpdateFailedException(e.getMessage());
         }
 
 
+    }
+
+    private String callBedditAPI(final UpdateInfo updateInfo, final String url) throws Exception {
+        HttpClient client = env.getHttpClient();
+        if (env.get("development") != null && env.get("development").equals("true")) {
+//            HttpHost proxy = new HttpHost("127.0.0.1", 8888, "http");
+//            client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY,proxy);
+            client = HttpUtils.httpClientTrustingAllSSLCerts();
+        }
+        final long then = System.currentTimeMillis();
+        try {
+            HttpGet get = new HttpGet(url);
+            get.setHeader("Authorization", "UserToken " + updateInfo.getContext("accessToken"));
+            HttpResponse response = client.execute(get);
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == HttpStatus.SC_OK) {
+                ResponseHandler<String> responseHandler = new BasicResponseHandler();
+                String content = responseHandler.handleResponse(response);
+                countSuccessfulApiCall(updateInfo.apiKey, updateInfo.objectTypes, then, url);
+                return content;
+            } else {
+                throw new UnexpectedHttpResponseCodeException(statusCode, response.getStatusLine().getReasonPhrase());
+            }
+        }
+        finally {
+            client.getConnectionManager().shutdown();
+        }
     }
 
     @Override
@@ -177,8 +215,8 @@ public class BedditUpdater extends AbstractUpdater {
 
                         facet.updatedTime = sleepObject.getDouble("updated");
 
-                        facet.start = getUTCMillis(sleepObject.getDouble("start_timestamp"),timezone);
-                        facet.end = getUTCMillis(sleepObject.getDouble("end_timestamp"),timezone);
+                        facet.start = (long) sleepObject.getDouble("start_timestamp")*1000;
+                        facet.end = (long) sleepObject.getDouble("end_timestamp")*1000;
 
                         JSONObject propertiesObject = sleepObject.getJSONObject("properties");
                         facet.sleepTimeTarget = propertiesObject.getDouble("sleep_time_target");
@@ -219,7 +257,7 @@ public class BedditUpdater extends AbstractUpdater {
                                 JSONArray sleepCycles = sleep_cycles.getJSONArray("items");
                                 List<Pair<Long, Double>> sleepCycleData = new ArrayList<Pair<Long, Double>>();
                                 for (int i = 0; i < sleepCycles.size(); i++) {
-                                    sleepCycleData.add(new Pair<Long, Double>(getUTCMillis(sleepCycles.getJSONArray(i).getDouble(0), timezone), sleepCycles.getJSONArray(i).getDouble(1)));
+                                    sleepCycleData.add(new Pair<Long, Double>((long)sleepCycles.getJSONArray(i).getDouble(0)*1000, sleepCycles.getJSONArray(i).getDouble(1)));
                                 }
                                 facet.setSleepCycles(sleepCycleData);
                             }
@@ -231,7 +269,7 @@ public class BedditUpdater extends AbstractUpdater {
                                 JSONArray heartRateCurve = heart_rate_curve.getJSONArray("items");
                                 List<Pair<Long,Double>> heartRateCurveData = new ArrayList<Pair<Long,Double>>();
                                 for (int i = 0; i < heartRateCurve.size(); i++) {
-                                    heartRateCurveData.add(new Pair<Long, Double>(getUTCMillis(heartRateCurve.getJSONArray(i).getDouble(0), timezone), heartRateCurve.getJSONArray(i).getDouble(1)));
+                                    heartRateCurveData.add(new Pair<Long, Double>((long)heartRateCurve.getJSONArray(i).getDouble(0)*1000, heartRateCurve.getJSONArray(i).getDouble(1)));
                                 }
                                 facet.setHeartRateCurve(heartRateCurveData);
                             }
@@ -243,7 +281,7 @@ public class BedditUpdater extends AbstractUpdater {
                                 JSONArray sleepStages = sleep_stages.getJSONArray("items");
                                 List<Pair<Long,Integer>> sleepStagesData = new ArrayList<Pair<Long, Integer>>();
                                 for (int i = 0 ; i < sleepStages.size(); i++) {
-                                    sleepStagesData.add(new Pair<Long, Integer>(getUTCMillis(sleepStages.getJSONArray(i).getDouble(0), timezone), sleepStages.getJSONArray(i).getInt(1)));
+                                    sleepStagesData.add(new Pair<Long, Integer>((long)sleepStages.getJSONArray(i).getDouble(0)*1000, sleepStages.getJSONArray(i).getInt(1)));
                                 }
                                 facet.setSleepStages(sleepStagesData);
                             }
@@ -255,7 +293,7 @@ public class BedditUpdater extends AbstractUpdater {
                                 JSONArray snoringEpisodes = snoring_episodes.getJSONArray("items");
                                 List<Pair<Long,Double>> snoringEpisodesData = new ArrayList<Pair<Long, Double>>();
                                 for (int i = 0; i < snoringEpisodes.size(); i++) {
-                                    snoringEpisodesData.add(new Pair<Long,Double>(getUTCMillis(snoringEpisodes.getJSONArray(i).getDouble(0), timezone), snoringEpisodes.getJSONArray(i).getDouble(1)));
+                                    snoringEpisodesData.add(new Pair<Long,Double>((long)snoringEpisodes.getJSONArray(i).getDouble(0)*1000, snoringEpisodes.getJSONArray(i).getDouble(1)));
                                 }
                                 facet.setSnoringEpisodes(snoringEpisodesData);
                             }
@@ -268,11 +306,6 @@ public class BedditUpdater extends AbstractUpdater {
 
 
     }
-
-    private long getUTCMillis(double localSeconds, DateTimeZone timeZone){
-        return timeZone.convertLocalToUTC((long) (localSeconds * 1000),true);
-    }
-
 
     private Double getLatestFacetTime(UpdateInfo updateInfo){
         ApiKey apiKey = updateInfo.apiKey;
