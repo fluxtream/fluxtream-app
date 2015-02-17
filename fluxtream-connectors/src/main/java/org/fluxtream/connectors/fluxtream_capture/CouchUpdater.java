@@ -31,13 +31,12 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -78,9 +77,6 @@ public class CouchUpdater {
             "\"comments\":" +
             "{\"styles\":[{\"radius\":3,\"fill\":true,\"type\":\"point\",\"show\":true,\"lineWidth\":1}]," +
             "\"verticalMargin\":4,\"show\":true}}";
-
-    protected static DateTimeFormatter iso8601Formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
-    private static final DateTimeZone UTC = DateTimeZone.forID("UTC");
 
     public void updateCaptureData(UpdateInfo updateInfo, FluxtreamCaptureUpdater updater, CouchDatabaseName couchDatabaseName) throws Exception {
         String rootURL = getRootCouchDbURL(updateInfo, couchDatabaseName);
@@ -136,12 +132,16 @@ public class CouchUpdater {
                 switch (couchDatabaseName) {
                     case OBSERVATIONS:
                         FluxtreamObservationFacet observationFacet = createOrUpdateObservation(updateInfo, rootURL, doc);
-                        if(observationFacet!=null)
+                        if(observationFacet!=null) {
+                            apiDataService.persistFacet(observationFacet);
                             newFacets.add(observationFacet);
+                        }
                     case TOPICS:
                         FluxtreamTopicFacet topicFacet = createOrUpdateTopic(updateInfo, rootURL, doc);
-                        if(topicFacet!=null)
+                        if(topicFacet!=null) {
+                            apiDataService.persistFacet(topicFacet);
                             newFacets.add(topicFacet);
+                        }
                 }
             }
 
@@ -196,48 +196,19 @@ public class CouchUpdater {
 
                                     facet.topicId = observation.getString("topicId");
 
+                                    facet.timeUpdatedOnDevice = ISODateTimeFormat.dateTime().withZoneUTC().parseDateTime(observation.getString("updateTime")).getMillis();
+
                                     facet.timeUpdated = System.currentTimeMillis();
 
-                                    try {
-                                        facet.timezoneOffset = observation.getInt("timezoneOffset");
-                                    } catch (Throwable ignored) {
-                                        facet.timezoneOffset = null;
-                                    }
+                                    facet.timeZone = observation.getString("timezone");
 
-                                    final DateTime happened = iso8601Formatter.withZone(UTC)
+                                    final DateTime happened = ISODateTimeFormat.dateTime()
                                             .parseDateTime(observation.getString("observationTime"));
                                     facet.start = facet.end = happened.getMillis();
 
-                                    facet.note = observation.optString("note", null);
-                                    // Store the note in the comment field if comment not already set (e.g. for photos)
-                                    if (facet.comment == null) {
-                                        facet.comment = facet.note;
-                                    }
+                                    facet.comment = observation.optString("comment", null);
 
-                                    facet.user = observation.optString("user", null);
-                                    facet.unit = observation.optString("unit", null);
-                                    facet.baseUnit = observation.optString("baseunit", null);
-
-                                    try {
-                                        facet.amount = observation.getDouble("amount");
-                                    } catch (Throwable ignored) {
-                                        facet.amount = null;
-                                    }
-
-                                    try {
-                                        facet.baseAmount = observation.getInt("baseAmount");
-                                    } catch (Throwable ignored) {
-                                        facet.baseAmount = null;
-                                    }
-
-                                    try {
-                                        // If there's an attachment, we assume there's only one and that it's an image
-                                        final JSONObject imageAttachment = observation.getJSONObject("_attachments");
-                                        final String imageName = (String) imageAttachment.names().get(0);
-                                        facet.imageURL = rootURL + "/" + facet.fluxtreamId + "/" + imageName;
-                                    } catch (Throwable ignored) {
-                                        facet.imageURL = null;
-                                    }
+                                    facet.value = observation.getInt("value");
 
                                     //System.out.println("====== fluxtreamId=" + facet.fluxtreamId + ", timeUpdated=" + facet.timeUpdated);
                                     return facet;
@@ -296,15 +267,11 @@ public class CouchUpdater {
         final String couchdbHost = env.get("couchdb.host");
         final String couchdbPort = env.get("couchdb.port");
         String base64URLSafeUsername = getBase64URLSafeUsername(updateInfo);
-        long lastSeq = 0;
-        try {
-            lastSeq = Long.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, couchDatabaseName.name() + "_last_seq"));
-        } catch (Exception e) {}
         switch (couchDatabaseName) {
             case OBSERVATIONS:
-                return String.format("http://%s:%s/self_report_db_observations_%s/?since=%s", couchdbHost, couchdbPort, base64URLSafeUsername, lastSeq);
+                return String.format("http://%s:%s/self_report_db_observations_%s", couchdbHost, couchdbPort, base64URLSafeUsername);
             default:
-                return String.format("http://%s:%s/self_report_db_topics_%s/?since=%s", couchdbHost, couchdbPort, base64URLSafeUsername, lastSeq);
+                return String.format("http://%s:%s/self_report_db_topics_%s", couchdbHost, couchdbPort, base64URLSafeUsername);
         }
     }
 
