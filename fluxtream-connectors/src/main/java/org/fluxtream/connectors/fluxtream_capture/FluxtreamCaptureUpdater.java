@@ -14,13 +14,11 @@ import org.fluxtream.core.connectors.location.LocationFacet;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.services.ApiDataService;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/**
- * @author Chris Bartley (bartley@cmu.edu)
- */
 @Component
 @Updater(prettyName = "FluxtreamCapture",
          value = 42,                                                // hat tip to Douglas Adams :-)
@@ -28,12 +26,13 @@ import org.springframework.stereotype.Component;
          defaultChannels = {"FluxtreamCapture.photo"})
 public class FluxtreamCaptureUpdater extends AbstractUpdater {
 
-    public static final String CONNECTOR_NAME = "fluxtream_capture";
-
-    static FlxLogger logger = FlxLogger.getLogger(AbstractUpdater.class);
+    static FlxLogger logger = FlxLogger.getLogger(FluxtreamCaptureUpdater.class);
 
     @Autowired
     BodyTrackHelper bodyTrackHelper;
+
+    @Autowired
+    CouchUpdater couchUpdater;
 
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
@@ -44,8 +43,9 @@ public class FluxtreamCaptureUpdater extends AbstractUpdater {
 
     @Override
     protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
-         updateLocationData(updateInfo);
-
+        updateLocationData(updateInfo);
+        couchUpdater.updateCaptureData(updateInfo, this, CouchUpdater.CouchDatabaseName.TOPICS);
+        couchUpdater.updateCaptureData(updateInfo, this, CouchUpdater.CouchDatabaseName.OBSERVATIONS);
     }
 
     // Had trouble with conversion to BigDecimal in updateLocationData.
@@ -365,8 +365,6 @@ public class FluxtreamCaptureUpdater extends AbstractUpdater {
 
     // Update the start time where we will begin during the next update cycle.
     public void updateStartTime(final UpdateInfo updateInfo, final String channelName, final Double nextUpdateStartTime) throws Exception {
-        ApiKey apiKey = updateInfo.apiKey;
-
         // The updateStartDate for a given object type is stored in the apiKeyAttributes
         // as FluxtreamCapture.<channelName>.updateStartDate.  In the case of a failure the updater will store the date
         // that failed and start there next time.  In the case of a successfully completed update it will store
