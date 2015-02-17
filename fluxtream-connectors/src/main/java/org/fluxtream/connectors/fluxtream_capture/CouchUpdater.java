@@ -202,7 +202,7 @@ public class CouchUpdater {
 
                                     facet.timeZone = observation.getString("timezone");
 
-                                    final DateTime happened = ISODateTimeFormat.dateTime()
+                                    final DateTime happened = ISODateTimeFormat.dateTimeNoMillis()
                                             .parseDateTime(observation.getString("observationTime"));
                                     facet.start = facet.end = happened.getMillis();
 
