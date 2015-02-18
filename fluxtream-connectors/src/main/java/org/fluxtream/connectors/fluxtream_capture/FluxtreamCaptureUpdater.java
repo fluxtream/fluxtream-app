@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import org.bodytrack.datastore.DatastoreTile;
 import org.fluxtream.core.aspects.FlxLogger;
+import org.fluxtream.core.connectors.Autonomous;
 import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.fluxtream_capture.FluxtreamCapturePhotoFacet;
 import org.fluxtream.core.connectors.location.LocationFacet;
@@ -22,9 +23,9 @@ import org.springframework.stereotype.Component;
 @Component
 @Updater(prettyName = "FluxtreamCapture",
          value = 42,                                                // hat tip to Douglas Adams :-)
-         objectTypes = {FluxtreamCapturePhotoFacet.class, LocationFacet.class},
+         objectTypes = {FluxtreamCapturePhotoFacet.class, LocationFacet.class, FluxtreamObservationFacet.class},
          defaultChannels = {"FluxtreamCapture.photo"})
-public class FluxtreamCaptureUpdater extends AbstractUpdater {
+public class FluxtreamCaptureUpdater extends AbstractUpdater implements Autonomous {
 
     static FlxLogger logger = FlxLogger.getLogger(FluxtreamCaptureUpdater.class);
 

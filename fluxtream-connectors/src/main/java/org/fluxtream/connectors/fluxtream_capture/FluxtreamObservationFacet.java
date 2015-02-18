@@ -11,7 +11,7 @@ import javax.persistence.NamedQuery;
  * Created by candide on 11/02/15.
  */
 @Entity(name="Facet_FluxtreamCaptureObservation")
-@ObjectTypeSpec(name = "observation", value = 1, isImageType=true, parallel=false, prettyname = "Observation")
+@ObjectTypeSpec(name = "observation", value = 2, parallel=false, prettyname = "Observation")
 public class FluxtreamObservationFacet extends AbstractFacet {
 
     // NotNull
@@ -24,7 +24,7 @@ public class FluxtreamObservationFacet extends AbstractFacet {
     public String timeZone;
 
     public int value;
-    public String topicId;
+    public int topicId;
 
     public long timeUpdatedOnDevice;
 

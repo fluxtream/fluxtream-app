@@ -9,7 +9,7 @@ import javax.persistence.Entity;
  * Created by candide on 16/02/15.
  */
 @Entity(name="Facet_FluxtreamCaptureTopic")
-@ObjectTypeSpec(name = "topic", value = 2, isImageType=false, parallel=false, prettyname = "Topic", clientFacet = false)
+@ObjectTypeSpec(name = "topic", value = 4, isImageType=false, parallel=false, prettyname = "Topic", clientFacet = false)
 public class FluxtreamTopicFacet extends AbstractFacet {
 
     // NotNull
