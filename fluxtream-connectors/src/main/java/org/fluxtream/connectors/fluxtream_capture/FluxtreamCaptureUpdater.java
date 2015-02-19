@@ -1,5 +1,6 @@
 package org.fluxtream.connectors.fluxtream_capture;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -8,23 +9,33 @@ import java.util.List;
 import java.util.Map;
 import org.bodytrack.datastore.DatastoreTile;
 import org.fluxtream.core.aspects.FlxLogger;
+import org.fluxtream.core.auth.AuthHelper;
+import org.fluxtream.core.connectors.Autonomous;
+import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.fluxtream_capture.FluxtreamCapturePhotoFacet;
 import org.fluxtream.core.connectors.location.LocationFacet;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
+import org.fluxtream.core.connectors.updaters.ScheduleResult;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.services.ApiDataService;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import javax.servlet.http.HttpServletResponse;
 
 @Component
+@Controller
 @Updater(prettyName = "FluxtreamCapture",
          value = 42,                                                // hat tip to Douglas Adams :-)
-         objectTypes = {FluxtreamCapturePhotoFacet.class, LocationFacet.class},
+         objectTypes = {FluxtreamCapturePhotoFacet.class, LocationFacet.class, FluxtreamObservationFacet.class},
          defaultChannels = {"FluxtreamCapture.photo"})
-public class FluxtreamCaptureUpdater extends AbstractUpdater {
+public class FluxtreamCaptureUpdater extends AbstractUpdater implements Autonomous {
 
     static FlxLogger logger = FlxLogger.getLogger(FluxtreamCaptureUpdater.class);
 
@@ -377,6 +388,19 @@ public class FluxtreamCaptureUpdater extends AbstractUpdater {
 
     @Override
     public void setDefaultChannelStyles(ApiKey apiKey) {}
+
+    @RequestMapping(value="/fluxtream_capture/notify", method = RequestMethod.POST)
+    public void couchSyncFinished(HttpServletResponse response) throws IOException {
+
+        ApiKey apiKey = guestService.getApiKey(AuthHelper.getGuestId(), Connector.getConnector("fluxtream_capture"));
+
+        ScheduleResult scheduleResult = connectorUpdateService.scheduleUpdate(apiKey,
+                2,
+                UpdateInfo.UpdateType.PUSH_TRIGGERED_UPDATE,
+                System.currentTimeMillis());
+
+        response.getWriter().write("Schedule result: " + scheduleResult.type);
+    }
 
 }
 

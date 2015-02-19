@@ -9,7 +9,6 @@
 
     <!-- assets -->
 	<http pattern="/support/*" security="none" />
-	<http pattern="/**/notify" security="none" />
 	<http pattern="/${release}/js/**" security="none" />
     <http pattern="/${release}/videos/**" security="none" />
     <http pattern="/${release}/html/**" security="none" />

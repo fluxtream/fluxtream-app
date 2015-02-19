@@ -19,6 +19,7 @@ import org.apache.http.protocol.HttpContext;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.AbstractFacet;
+import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.services.ApiDataService;
 import org.fluxtream.core.services.BodyTrackStorageService;
@@ -31,21 +32,26 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by candide on 11/02/15.
  */
 @Component
+@Transactional(readOnly=true)
 public class CouchUpdater {
 
     @Autowired
@@ -66,6 +72,9 @@ public class CouchUpdater {
     @Autowired
     Configuration env;
 
+    @PersistenceContext
+    EntityManager em;
+
     public enum CouchDatabaseName {
         TOPICS, OBSERVATIONS
     }
@@ -79,10 +88,9 @@ public class CouchUpdater {
             "{\"styles\":[{\"radius\":3,\"fill\":true,\"type\":\"point\",\"show\":true,\"lineWidth\":1}]," +
             "\"verticalMargin\":4,\"show\":true}}";
 
-    protected static DateTimeFormatter iso8601Formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
-    private static final DateTimeZone UTC = DateTimeZone.forID("UTC");
-
+    @Transactional(readOnly=false)
     public void updateCaptureData(UpdateInfo updateInfo, FluxtreamCaptureUpdater updater, CouchDatabaseName couchDatabaseName) throws Exception {
+        if (guestService.getApiKeyAttribute(updateInfo.apiKey, "couchDB.userToken")==null) return;
         String rootURL = getRootCouchDbURL(updateInfo, couchDatabaseName);
         long lastSeq = 0;
         try {
@@ -136,17 +144,26 @@ public class CouchUpdater {
                 switch (couchDatabaseName) {
                     case OBSERVATIONS:
                         FluxtreamObservationFacet observationFacet = createOrUpdateObservation(updateInfo, rootURL, doc);
-                        if(observationFacet!=null)
+                        if(observationFacet!=null) {
+                            apiDataService.persistFacet(observationFacet);
                             newFacets.add(observationFacet);
+                        }
+                        break;
                     case TOPICS:
                         FluxtreamTopicFacet topicFacet = createOrUpdateTopic(updateInfo, rootURL, doc);
-                        if(topicFacet!=null)
+                        if(topicFacet!=null) {
+                            apiDataService.persistFacet(topicFacet);
                             newFacets.add(topicFacet);
+                        }
+                        break;
                 }
             }
 
-            // Write the new set of observations into the datastore
-            bodyTrackStorageService.storeApiData(updateInfo.apiKey, newFacets);
+            if (couchDatabaseName==CouchDatabaseName.OBSERVATIONS)
+                // Write the new set of observations into the datastore
+                bodyTrackStorageService.storeApiData(updateInfo.apiKey, newFacets);
+            else
+                storeChannelMappings(newFacets, updateInfo);
 
             lastSeq = newLastSeq;
 
@@ -154,6 +171,31 @@ public class CouchUpdater {
             guestService.setApiKeyAttribute(updateInfo.apiKey, couchDatabaseName.name() + "_last_seq", String.valueOf(lastSeq));
         }
 
+    }
+
+    @Transactional(readOnly=false)
+    private void storeChannelMappings(List<AbstractFacet> newFacets, UpdateInfo updateInfo) {
+        for (AbstractFacet newFacet : newFacets) {
+            FluxtreamTopicFacet topic = (FluxtreamTopicFacet) newFacet;
+            Query query = em.createQuery("SELECT mapping FROM ChannelMapping mapping WHERE mapping.deviceName='FluxtreamCapture' AND mapping.internalChannelName=?");
+            query.setParameter(1, "topic_" + topic.topicNumber);
+            List<ChannelMapping> mappings = query.getResultList();
+            if (mappings.size()>0) {
+                ChannelMapping mapping = mappings.get(0);
+                if (!mapping.getChannelName().equals(topic.name))
+                    mapping.setChannelName(topic.name);
+                // TODO: rename the deviceName of matching ChannelStyle s
+            } else {
+                ChannelMapping mapping = new ChannelMapping(updateInfo.apiKey.getId(), updateInfo.getGuestId(),
+                        ChannelMapping.ChannelType.data, ChannelMapping.TimeType.gmt,
+                        2, "FluxtreamCapture", topic.name,
+                        "FluxtreamCapture", "topic_" + topic.topicNumber);
+                mapping.setCreationType(ChannelMapping.CreationType.dynamic);
+                // TODO: make this compatible with internal device name scheme
+                bodytrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(), "FluxtreamCapture", topic.name, lollipopStyle);
+                em.persist(mapping);
+            }
+        }
     }
 
     private byte[] getBase64EncodedCredentials(String base64URLSafeUsername, String couchdbPassword) {
@@ -194,50 +236,21 @@ public class CouchUpdater {
                                         facet.api = updateInfo.apiKey.getConnector().value();
                                     }
 
-                                    facet.topicId = observation.getString("topicId");
+                                    facet.topicId = observation.getInt("topicId");
+
+                                    facet.timeUpdatedOnDevice = ISODateTimeFormat.dateTime().withZoneUTC().parseDateTime(observation.getString("updateTime")).getMillis();
 
                                     facet.timeUpdated = System.currentTimeMillis();
 
-                                    try {
-                                        facet.timezoneOffset = observation.getInt("timezoneOffset");
-                                    } catch (Throwable ignored) {
-                                        facet.timezoneOffset = null;
-                                    }
+                                    facet.timeZone = observation.getString("timezone");
 
-                                    final DateTime happened = iso8601Formatter.withZone(UTC)
+                                    final DateTime happened = ISODateTimeFormat.dateTimeNoMillis()
                                             .parseDateTime(observation.getString("observationTime"));
                                     facet.start = facet.end = happened.getMillis();
 
-                                    facet.note = observation.optString("note", null);
-                                    // Store the note in the comment field if comment not already set (e.g. for photos)
-                                    if (facet.comment == null) {
-                                        facet.comment = facet.note;
-                                    }
+                                    facet.comment = observation.optString("comment", null);
 
-                                    facet.user = observation.optString("user", null);
-                                    facet.unit = observation.optString("unit", null);
-                                    facet.baseUnit = observation.optString("baseunit", null);
-
-                                    try {
-                                        facet.amount = observation.getDouble("amount");
-                                    } catch (Throwable ignored) {
-                                        facet.amount = null;
-                                    }
-
-                                    try {
-                                        facet.baseAmount = observation.getInt("baseAmount");
-                                    } catch (Throwable ignored) {
-                                        facet.baseAmount = null;
-                                    }
-
-                                    try {
-                                        // If there's an attachment, we assume there's only one and that it's an image
-                                        final JSONObject imageAttachment = observation.getJSONObject("_attachments");
-                                        final String imageName = (String) imageAttachment.names().get(0);
-                                        facet.imageURL = rootURL + "/" + facet.fluxtreamId + "/" + imageName;
-                                    } catch (Throwable ignored) {
-                                        facet.imageURL = null;
-                                    }
+                                    facet.value = observation.getInt("value");
 
                                     //System.out.println("====== fluxtreamId=" + facet.fluxtreamId + ", timeUpdated=" + facet.timeUpdated);
                                     return facet;
@@ -278,7 +291,7 @@ public class CouchUpdater {
                                     facet.topicNumber = observation.getInt("topicNumber");
 
                                     facet.timeUpdated = System.currentTimeMillis();
-                                    facet.name = observation.optString("name", null);
+                                    facet.name = observation.getString("name").trim();
 
                                     return facet;
                                 }
@@ -296,15 +309,11 @@ public class CouchUpdater {
         final String couchdbHost = env.get("couchdb.host");
         final String couchdbPort = env.get("couchdb.port");
         String base64URLSafeUsername = getBase64URLSafeUsername(updateInfo);
-        long lastSeq = 0;
-        try {
-            lastSeq = Long.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, couchDatabaseName.name() + "_last_seq"));
-        } catch (Exception e) {}
         switch (couchDatabaseName) {
             case OBSERVATIONS:
-                return String.format("http://%s:%s/self_report_db_observations_%s/?since=%s", couchdbHost, couchdbPort, base64URLSafeUsername, lastSeq);
+                return String.format("http://%s:%s/self_report_db_observations_%s", couchdbHost, couchdbPort, base64URLSafeUsername);
             default:
-                return String.format("http://%s:%s/self_report_db_topics_%s/?since=%s", couchdbHost, couchdbPort, base64URLSafeUsername, lastSeq);
+                return String.format("http://%s:%s/self_report_db_topics_%s", couchdbHost, couchdbPort, base64URLSafeUsername);
         }
     }
 

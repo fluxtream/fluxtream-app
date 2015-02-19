@@ -10,12 +10,8 @@ import javax.persistence.NamedQuery;
 /**
  * Created by candide on 11/02/15.
  */
-@Entity(name="Facet_FluxtreamObservation")
-@ObjectTypeSpec(name = "observation", value = 1, isImageType=true, parallel=false, prettyname = "Observation")
-@NamedQueries({
-        @NamedQuery(name = "flx.observation.byFluxtreamId", query = "SELECT facet FROM Facet_FluxtreamObservation facet WHERE facet.guestId=? AND facet.fluxtreamId=?"),
-        @NamedQuery(name = "flx.photo.between", query = "SELECT facet FROM Facet_FluxtreamObservation facet WHERE facet.guestId=? AND facet.start>=? AND facet.end<=? AND facet.imageURL IS NOT NULL")
-})
+@Entity(name="Facet_FluxtreamCaptureObservation")
+@ObjectTypeSpec(name = "observation", value = 2, parallel=false, prettyname = "Observation")
 public class FluxtreamObservationFacet extends AbstractFacet {
 
     // NotNull
@@ -25,21 +21,12 @@ public class FluxtreamObservationFacet extends AbstractFacet {
     // See getChannelName for the datastore/URL version of this (datastore puts each topic in a different channel)
     // NotNull
 
-    public String note;
-    public String user;
+    public String timeZone;
 
-    public Integer timezoneOffset;
+    public int value;
+    public int topicId;
 
-    public Double amount;
-    public Integer baseAmount;
-    public String unit;
-    public String baseUnit;
-
-    public String imageURL;
-
-    public Double latitude;
-    public Double longitude;
-    public String topicId;
+    public long timeUpdatedOnDevice;
 
     public FluxtreamObservationFacet() {}
 
