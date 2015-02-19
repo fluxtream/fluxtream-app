@@ -1,0 +1,57 @@
+<template id="wallDialogTemplate">
+    <div id="wallDialog" title="{{buddy.fullname}}">
+        <textarea id="wallPostBody" placeholder="type a post message..." rows="3" style="width:95%"></textarea>
+        <button id="sendWallPostBody" class="btn btn-primary">Send</button>
+        <button id="clearWallPostBody" class="btn btn-default">Clear</button>
+        <div id="wallDialogContents"></div>
+    </div>
+</template>
+
+<template id="wallDialogContentsTemplate">
+    {{#posts}}
+    <div class="wallPost">
+        <div class="wallPostHeader">
+            <span class="wallPostAuthor">{{author}}</span> - <span class="wallPostWhen">{{when}}</span>
+            {{^from}}
+            <div class="wallPostActions">
+                <a onclick="void(0)" class="deleteWallPostButton" data-id="{{id}}"><i class="icon icon-trash"></i></a>
+                <!--<a onclick="void(0)" class="editWallPostButton" data-id="{{id}}"><i class="icon icon-pencil"></i></a>-->
+            </div>
+            {{/from}}
+        </div>
+        <div class="wallPostBody">
+            {{body}}
+        </div>
+        {{#comments}}
+        <div class="wallPostComment">
+            <div class="wallPostCommentHeader">
+                <span class="wallPostCommentAuthor">{{author}}</span> - <span class="wallPostCommentWhen">{{when}}</span>
+                {{^from}}
+                <div class="wallPostCommentActions">
+                    <a onclick="void(0)" class="deleteWallPostCommentButton" data-postid="{{postId}}" data-id="{{id}}"><i class="icon icon-trash"></i></a>
+                    <!--<a onclick="void(0)" class="editWallPostCommentButton" data-postid="{{postId}}" data-id="{{id}}"><i class="icon icon-pencil"></i></a>-->
+                </div>
+                {{/from}}
+            </div>
+            <div class="wallPostCommentBody" id="wallPostCommentBody-{{id}}">
+                {{body}}
+            </div>
+        </div>
+        {{/comments}}
+        <a class="btn btn-link addWallCommentButton" data-postid="{{id}}">Add Comment</a>
+    </div>
+    {{/posts}}
+</template>
+
+<template id="wallCommentFormTemplate">
+    <div id="wallCommentForm-{{postId}}">
+        <textarea class="wallCommentBody" placeholder="type a comment..." rows="1" style="width:80%"></textarea>
+        <button data-postid="{{postId}}" class="btn btn-primary sendWallCommentBody">Send</button>
+        <button data-postid="{{postId}}" class="btn btn-default cancelAddComment">Cancel</button>
+    </div>
+</template>
+
+
+<template id="addWallCommentButtonTemplate">
+    <a class="btn btn-link addWallCommentButton" data-postid="{{postId}}">Add Comment</a>
+</template>

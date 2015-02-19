@@ -179,14 +179,45 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
     }
 
     @Override
+    public Set<String> getParseInstallations(long guestId) {
+        final GuestDetails details = JPAUtils.findUnique(em, GuestDetails.class, "guestDetails.byGuestId", guestId);
+        if (details!=null)
+            return details.getInstallations();
+        return null;
+    }
+
+    @Override
     @Transactional(readOnly=false)
-    public void addDeveloperRole(Long guestId) {
-        Guest guest = getGuestById(guestId);
-        if (guest.hasRole("ROLE_DEVELOPER"))
-            return;
-        List<String> userRoles = guest.getUserRoles();
-        userRoles.add("ROLE_DEVELOPER");
-        persistUserRoles(guest, userRoles);
+    public void addParseInstallation(long guestId, String parseInstallationId) {
+        GuestDetails details = JPAUtils.findUnique(em, GuestDetails.class, "guestDetails.byGuestId", guestId);
+        if (details==null) {
+            details = new GuestDetails(guestId);
+        }
+        details.addInstallation(parseInstallationId);
+        em.persist(details);
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public GuestDetails getGuestDetails(long guestId) {
+        GuestDetails details = JPAUtils.findUnique(em, GuestDetails.class, "guestDetails.byGuestId", guestId);
+        if (details==null)
+            details = new GuestDetails(guestId);
+        em.persist(details);
+        return details;
+    }
+
+    @Override
+    public List<String> getDeviceIds(long guestId) {
+        Query query = em.createNativeQuery("SELECT DISTINCT refreshToken FROM AuthorizationToken where guestId=?");
+        query.setParameter(1, guestId);
+        final List<String> resultList = query.getResultList();
+        final List<String> deviceIds = new ArrayList<String>();
+        for (String s : resultList) {
+            if (s!=null)
+                deviceIds.add(s);
+        }
+        return deviceIds;
     }
 
     @Override

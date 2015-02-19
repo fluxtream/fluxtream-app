@@ -34,7 +34,7 @@ public class AuthHelper {
         return buddiesService.isViewingGranted(principal.guestId, buddyId, connectorName);
     }
 
-    public static TrustedBuddy getTrustedBuddy(String buddyToAccessParameter, BuddiesService buddiesService) throws TrustRelationshipRevokedException {
+    public static TrustedBuddy getBuddyTrustedBuddy(String buddyToAccessParameter, BuddiesService buddiesService) throws TrustRelationshipRevokedException {
         if (buddyToAccessParameter==null || buddyToAccessParameter!=null&&buddyToAccessParameter.equals("self")) {
             return null;
         } else {
@@ -46,6 +46,24 @@ public class AuthHelper {
                 trustedBuddy = buddiesService.getTrustedBuddy(getGuestId(), trustedBuddyId);
             } else
                 trustedBuddy = buddiesService.getTrustedBuddy(getGuestId(), buddyToAccessParameter);
+            if (trustedBuddy !=null)
+                return trustedBuddy;
+            else
+                throw new TrustRelationshipRevokedException();
+        }
+    }
+
+    public static TrustedBuddy getOwnTrustedBuddy(String buddyToAccessParameter, BuddiesService buddiesService) throws TrustRelationshipRevokedException {
+        if (buddyToAccessParameter==null || buddyToAccessParameter!=null&&buddyToAccessParameter.equals("self")) {
+            return null;
+        } else {
+            TrustedBuddy trustedBuddy = null;
+            if (StringUtils.isNumeric(buddyToAccessParameter)) {
+                final Long trustedBuddyId = Long.valueOf(buddyToAccessParameter, 10);
+                if (trustedBuddyId==AuthHelper.getGuestId())
+                    return null;
+                trustedBuddy = buddiesService.getTrustedBuddy(trustedBuddyId, getGuestId());
+            }
             if (trustedBuddy !=null)
                 return trustedBuddy;
             else

@@ -51,7 +51,7 @@
 
     function injectGeneratedDocs() {
 
-        var sortedApis = ["guest", "buddies", "calendar", "bodytrack", "dashboards", "repositories", "widgets", "sync", "comments", "metadata", "settings", "notifications"];
+        var sortedApis = ["guest", "buddies", "calendar", "bodytrack", "dashboards", "repositories", "widgets", "sync", "comments", "metadata", "settings", "notifications", "posts"];
 
         for (var i=0; i<sortedApis.length; i++) {
             var li = $("#resource_" + sortedApis[i]);
@@ -296,6 +296,10 @@
             <div id="notifications_narrative">
                 <h2>Guest notifications</h2>
                 <p>A simple API to send and retrieve guest notifications.</p>
+            </div>
+            <div id="posts_narrative">
+                <h2>Send posts and respond to them with comments</h2>
+                <p>Trusted buddies can send posts and comments between each other.</p>
             </div>
         </div>
     </div>
