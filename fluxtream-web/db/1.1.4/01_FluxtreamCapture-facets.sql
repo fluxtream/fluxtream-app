@@ -14,7 +14,7 @@ CREATE TABLE `Facet_FluxtreamCaptureObservation` (
   `fluxtreamId` varchar(255) DEFAULT NULL,
   `timeUpdatedOnDevice` bigint(20) NOT NULL,
   `timeZone` varchar(255) DEFAULT NULL,
-  `topicId` int(11) DEFAULT NOT NULL,
+  `topicId` int(11) NOT NULL,
   `value` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `isEmpty_index` (`isEmpty`),
