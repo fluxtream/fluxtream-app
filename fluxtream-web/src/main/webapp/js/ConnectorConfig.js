@@ -618,6 +618,18 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
                         anchor: new google.maps.Point(5,5)
                     },
                     mapshadow: null
+                },
+                observation:{
+                    color: "rgb(90, 90, 90)",
+                    list:true,
+                    photos:false,
+                    map:true,
+                    gps:false,
+                    mapicon : {
+                        url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/greydot.png",
+                        anchor: new google.maps.Point(5,5)
+                    },
+                    mapshadow: null
                 }
             }
         },
