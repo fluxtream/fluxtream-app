@@ -16,7 +16,7 @@ public class MisfitApi extends DefaultApi20 {
 
     @Override
     public String getAccessTokenEndpoint() {
-        return "https://api.misfitwearables.com/auth/tokens/exchange";
+        return "https://api.misfitwearables.com/auth/tokens/exchange?grant_type=authorization_code";
     }
 
     @Override

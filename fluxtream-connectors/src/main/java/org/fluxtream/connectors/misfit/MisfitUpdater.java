@@ -21,7 +21,7 @@ public class MisfitUpdater extends AbstractUpdater implements Autonomous {
 
     @Override
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
-
+        updateConnectorData(updateInfo);
     }
 
     @Override
