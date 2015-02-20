@@ -6,6 +6,7 @@ import org.fluxtream.core.api.models.LoggedInGuestModel;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.auth.FlxUserDetails;
 import org.fluxtream.core.domain.Guest;
+import org.fluxtream.core.domain.GuestDetails;
 import org.fluxtream.core.domain.oauth2.AuthorizationToken;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.services.OAuth2MgmtService;
@@ -61,10 +62,10 @@ public class MobileGuestController {
     public Response getLoggedInGuestInfo(@ApiParam(value="The device ID", required=true) @QueryParam("device_id") final String deviceId) {
         final Guest guest = AuthHelper.getGuest();
         final AuthorizationToken authorizationToken = oAuth2MgmtService.getAuthorizationToken(guest.getId(), deviceId, new DateTime().plusYears(1000).getMillis());
-        LoggedInGuestModel info = new LoggedInGuestModel(guest, authorizationToken.accessToken);
+        final GuestDetails details = guestService.getGuestDetails(guest.getId());
+        LoggedInGuestModel info = new LoggedInGuestModel(guest, details, authorizationToken.accessToken);
         return Response.ok(info).build();
     }
-
 
     @POST
     @Path("/signup")
@@ -86,7 +87,8 @@ public class MobileGuestController {
         try {
             final Guest guest = guestService.createGuest(username, firstname, lastname, password, email, Guest.RegistrationMethod.REGISTRATION_METHOD_FORM, null);
             final AuthorizationToken authorizationToken = oAuth2MgmtService.getAuthorizationToken(guest.getId(), deviceId, new DateTime().plusYears(1000).getMillis());
-            LoggedInGuestModel info = new LoggedInGuestModel(guest, authorizationToken.accessToken);
+            final GuestDetails details = guestService.getGuestDetails(guest.getId());
+            LoggedInGuestModel info = new LoggedInGuestModel(guest, details, authorizationToken.accessToken);
             return Response.ok(info).build();
         } catch (ExistingEmailException e) {
             return Response.status(Response.Status.BAD_REQUEST).entity("This e-mail address is already used").build();
@@ -112,7 +114,8 @@ public class MobileGuestController {
                 FlxUserDetails principal = (FlxUserDetails) authentication.getPrincipal();
                 Guest guest = principal.getGuest();
                 final AuthorizationToken authorizationToken = oAuth2MgmtService.getAuthorizationToken(guest.getId(), deviceId, new DateTime().plusYears(1000).getMillis());
-                LoggedInGuestModel info = new LoggedInGuestModel(guest, authorizationToken.accessToken);
+                final GuestDetails details = guestService.getGuestDetails(guest.getId());
+                LoggedInGuestModel info = new LoggedInGuestModel(guest, details, authorizationToken.accessToken);
                 return Response.ok(info).build();
             } else
                 return Response.status(Response.Status.UNAUTHORIZED).build();

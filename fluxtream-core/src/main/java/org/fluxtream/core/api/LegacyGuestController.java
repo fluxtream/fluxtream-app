@@ -82,7 +82,7 @@ public class LegacyGuestController {
         String type = "none";
         String url;
         try {
-            final TrustedBuddy trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccess, buddiesService);
+            final TrustedBuddy trustedBuddy = AuthHelper.getBuddyTrustedBuddy(buddyToAccess, buddiesService);
             if (trustedBuddy !=null)
                 guest = guestService.getGuestById(trustedBuddy.guestId);
         }

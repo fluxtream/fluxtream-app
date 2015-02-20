@@ -191,6 +191,8 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
 			for (AbstractFacet facet : facets)
 				em.remove(facet);
 		}
+//        apiKey = guestService.getApiKey(apiKey.getId());
+//        em.remove(apiKey);
 	}
 
     @Override
@@ -202,6 +204,7 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
             for (AbstractFacet facet : facets)
                 em.remove(facet);
         }
+
     }
 
 	@Override
@@ -261,6 +264,7 @@ public class ApiDataServiceImpl implements ApiDataService, DisposableBean {
         }
 
         if (removeApiKey) {
+            apiKey = guestService.getApiKey(apiKey.getId());
             em.remove(apiKey);
         }
     }

@@ -885,6 +885,22 @@
         {{/facets}}
     </div>
 </template>
+<template id="fluxtream_capture-observation">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon fluxtream"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails{{manyFacets}} {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
+                <div class="flx-data">{{topicName}} : {{value}}</div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
 <template id="fluxtream_capture-photo">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon fluxtream"></span>

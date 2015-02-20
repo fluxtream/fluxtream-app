@@ -721,7 +721,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         maybeRetrieveFitbitUserInfo(updateInfo);
 
         // Also, food logging requires that the user subscribe to fitbit's notifications
-        maybeSubscribeToFitbitNotifications(updateInfo);
+//        maybeSubscribeToFitbitNotifications(updateInfo);
 
         // We want to fill-in the historical caloriesIn data
         maybeImportCaloriesInHistory(updateInfo);

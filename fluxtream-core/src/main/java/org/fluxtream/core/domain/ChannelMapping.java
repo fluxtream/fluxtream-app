@@ -70,7 +70,15 @@ public class ChannelMapping extends AbstractEntity {
     @Index(name="channelName")
     String channelName = null;
 
-    public enum ChannelType {data,timespan,photo};
+    public void setInternalChannelName(String internalChannelName) {
+        this.internalChannelName = internalChannelName;
+    }
+
+    public void setChannelName(String channelName) {
+        this.channelName = channelName;
+    }
+
+    public enum ChannelType {data,timespan,photo}
 
     public ChannelType getChannelType() {
         return channelType;

@@ -332,7 +332,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                                             ISODateTimeFormat.dateHourMinuteSecondFraction().withZoneUTC().print(Math.max(latestApiDataFacet.end, latestApiDataFacet.start)));
     }
 
-    final protected void countSuccessfulApiCall(ApiKey apiKey, int objectTypes,
+    public void countSuccessfulApiCall(ApiKey apiKey, int objectTypes,
 			long then, String query) {
         StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=countSuccessfulApiCall")
                 .append(" connector=" + connector().getName())
@@ -345,7 +345,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                                             true, 200, null);
 	}
 
-	final protected void countFailedApiCall(ApiKey apiKey, int objectTypes,
+	public void countFailedApiCall(ApiKey apiKey, int objectTypes,
 			long then, String query, String stackTrace,
             Integer httpResponseCode, String reason) {
         StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=countFailedApiCall")
@@ -362,7 +362,7 @@ public abstract class AbstractUpdater extends ApiClientSupport {
                                             false, httpResponseCode, reason);
 	}
 
-    final protected void reportFailedApiCall(ApiKey apiKey, int objectTypes,
+    public void reportFailedApiCall(ApiKey apiKey, int objectTypes,
                                             long then, String query, String stackTrace, String reason) {
         StringBuilder sb = new StringBuilder("module=updateQueue component=updater action=countFailedApiCall")
                 .append(" connector=" + connector().getName())

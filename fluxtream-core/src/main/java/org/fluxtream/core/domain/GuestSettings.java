@@ -23,6 +23,7 @@ import org.codehaus.jackson.type.TypeReference;
 public class GuestSettings extends AbstractEntity {
 
     public transient Configuration config;
+    public transient HashMap<String,String> topics;
 
 	public GuestSettings() {
 	}
