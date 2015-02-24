@@ -13,6 +13,7 @@ import javax.persistence.Entity;
 public class MisfitActivitySummaryFacet extends AbstractLocalTimeFacet {
 
     public MisfitActivitySummaryFacet() {}
+    public MisfitActivitySummaryFacet(long apiKeyId) { super(apiKeyId); }
 
     public float points;
     public int steps;

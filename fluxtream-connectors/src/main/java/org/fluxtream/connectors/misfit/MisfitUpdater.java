@@ -1,41 +1,288 @@
 package org.fluxtream.connectors.misfit;
 
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.connectors.Autonomous;
+import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.updaters.*;
 import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.services.ApiDataService;
+import org.fluxtream.core.utils.JPAUtils;
 import org.joda.time.DateTimeConstants;
+import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 
 /**
  * Created by candide on 09/02/15.
  */
 @Component
-@Updater(prettyName = "Misfit", value = 8, objectTypes = {MisfitActivitySummaryFacet.class, MisfitActivitySessionFacet.class, MisfitSleepFacet.class},
-        userProfile = MisfitUserProfile.class
+@Updater(prettyName = "Misfit", value = 8, objectTypes = {MisfitActivitySummaryFacet.class, MisfitActivitySessionFacet.class, MisfitSleepFacet.class}
 //        bodytrackResponder = MisfitBodytrackResponder.class,
 //        defaultChannels = {"Misfit.steps"}
 )
 public class MisfitUpdater extends AbstractUpdater implements Autonomous {
 
+    @PersistenceContext
+    EntityManager em;
 
+    private final String SESSION_HISTORY_COMPLETE_ATTKEY = "sessionHistoryComplete";
+    private final String SLEEP_HISTORY_COMPLETE_ATTKEY = "sleepHistoryComplete";
+    private final String BACKFILL_ENDDATE_ATTKEY_PREFIX = "backFillEndDate_";
     FlxLogger logger = FlxLogger.getLogger(MisfitUpdater.class);
+    private String SUMMARY_HISTORY_COMPLETE_ATTKEY = "summaryHistoryComplete";
+
 
     @Override
     protected void updateConnectorDataHistory(UpdateInfo updateInfo) throws Exception {
-        updateConnectorData(updateInfo);
+        boolean summaryHistoryComplete = isTrue(guestService.getApiKeyAttribute(updateInfo.apiKey, SUMMARY_HISTORY_COMPLETE_ATTKEY));
+        boolean sessionHistoryComplete = isTrue(guestService.getApiKeyAttribute(updateInfo.apiKey, SESSION_HISTORY_COMPLETE_ATTKEY));
+        boolean sleepHistoryComplete = isTrue(guestService.getApiKeyAttribute(updateInfo.apiKey, SLEEP_HISTORY_COMPLETE_ATTKEY));
+        // provide one day of padding to account for all timezones
+        if (!summaryHistoryComplete) {
+            backwardRetrieveMisfitData(updateInfo, ObjectType.getObjectTypeValue(MisfitActivitySummaryFacet.class));
+            guestService.setApiKeyAttribute(updateInfo.apiKey, SUMMARY_HISTORY_COMPLETE_ATTKEY, "true");
+        }
+        if (!sessionHistoryComplete) {
+            backwardRetrieveMisfitData(updateInfo, ObjectType.getObjectTypeValue(MisfitActivitySessionFacet.class));
+            guestService.setApiKeyAttribute(updateInfo.apiKey, SESSION_HISTORY_COMPLETE_ATTKEY, "true");
+        }
+        if (!sleepHistoryComplete) {
+            backwardRetrieveMisfitData(updateInfo, ObjectType.getObjectTypeValue(MisfitSleepFacet.class));
+            guestService.setApiKeyAttribute(updateInfo.apiKey, SLEEP_HISTORY_COMPLETE_ATTKEY, "true");
+        }
     }
 
     @Override
     protected void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-        String json = makeRestCall(updateInfo, 1 + 2 + 4, "https://api.misfitwearables.com/move/resource/v1/user/me/activity/summary?start_date=1970-02-19&end_date=2015-02-20&detail=true");
-        System.out.println(json);
+        String lastSummaryDate = getLastSummaryDate(updateInfo);
+
+        // check for null last dates in case there was no data yet at the time of the history update
+
+        if (lastSummaryDate==null)
+            backwardRetrieveMisfitData(updateInfo, ObjectType.getObjectTypeValue(MisfitActivitySummaryFacet.class));
+        else {
+            retrieveMisfitDataFromTo(updateInfo, ObjectType.getObjectTypeValue(MisfitActivitySummaryFacet.class), lastSummaryDate, getMaxEndDate());
+        }
+
+        String lastSessionDate = getLastSessionDate(updateInfo);
+        if (lastSessionDate==null)
+            backwardRetrieveMisfitData(updateInfo, ObjectType.getObjectTypeValue(MisfitActivitySessionFacet.class));
+        else {
+            retrieveMisfitDataFromTo(updateInfo, ObjectType.getObjectTypeValue(MisfitActivitySessionFacet.class), lastSessionDate, getMaxEndDate());
+        }
+
+        String lastSleepDate = getLastSleepDate(updateInfo);
+        if (lastSleepDate==null)
+            backwardRetrieveMisfitData(updateInfo, ObjectType.getObjectTypeValue(MisfitSleepFacet.class));
+        else {
+            retrieveMisfitDataFromTo(updateInfo, ObjectType.getObjectTypeValue(MisfitSleepFacet.class), lastSleepDate, getMaxEndDate());
+        }
+    }
+
+    private String getLastSummaryDate(UpdateInfo updateInfo) {
+        Query nativeQuery = em.createNativeQuery(String.format("SELECT max(date) FROM %s WHERE apiKeyId=?", JPAUtils.getEntityName(MisfitActivitySummaryFacet.class)));
+        nativeQuery.setParameter(1, updateInfo.apiKey.getId());
+        List<Object> resultList = nativeQuery.getResultList();
+        if (resultList.size()==0) return null;
+        return (String) resultList.get(0);
+    }
+
+    private String getLastSessionDate(UpdateInfo updateInfo) {
+        Query nativeQuery = em.createNativeQuery(String.format("SELECT max(start) FROM %s WHERE apiKeyId=?", JPAUtils.getEntityName(MisfitActivitySessionFacet.class)));
+        nativeQuery.setParameter(1, updateInfo.apiKey.getId());
+        List<Object> resultList = nativeQuery.getResultList();
+        if (resultList.size()==0) return null;
+        long start = ((BigInteger) resultList.get(0)).longValue();
+        return ISODateTimeFormat.date().print(start-DateTimeConstants.MILLIS_PER_DAY);
+    }
+
+    private String getLastSleepDate(UpdateInfo updateInfo) {
+        Query nativeQuery = em.createNativeQuery(String.format("SELECT max(start) FROM %s WHERE apiKeyId=?", JPAUtils.getEntityName(MisfitSleepFacet.class)));
+        nativeQuery.setParameter(1, updateInfo.apiKey.getId());
+        List<Object> resultList = nativeQuery.getResultList();
+        long start = ((BigInteger) resultList.get(0)).longValue();
+        return ISODateTimeFormat.date().print(start-DateTimeConstants.MILLIS_PER_DAY);
+    }
+
+    private void backwardRetrieveMisfitData(UpdateInfo updateInfo, int objectTypeValue) throws Exception {
+        while (true) {
+            boolean existingData = backwardRetrieveMisfitDataChunk(updateInfo, objectTypeValue);
+            if (!existingData) break;
+        }
+    }
+
+    private boolean backwardRetrieveMisfitDataChunk(UpdateInfo updateInfo, int objectTypeValue) throws Exception {
+        String endDate = getBackfillEndDate(updateInfo, ObjectType.getObjectType(connector(), objectTypeValue));
+        String startDate = ISODateTimeFormat.date().print(ISODateTimeFormat.date().parseLocalDate(endDate).minusDays(30));
+        retrieveMisfitDataFromTo(updateInfo, objectTypeValue, startDate, endDate);
+        // if everything went well set backfill-endDate to startDate
+        guestService.setApiKeyAttribute(updateInfo.apiKey, BACKFILL_ENDDATE_ATTKEY_PREFIX + ObjectType.getObjectType(connector(), objectTypeValue).name(), startDate);
+        return false;
+    }
+
+    private boolean retrieveMisfitDataFromTo(UpdateInfo updateInfo, int objectTypeValue, String startDate, String endDate) throws Exception {
+        String misfitDataTypeName;
+        if (objectTypeValue==ObjectType.getObjectTypeValue(MisfitActivitySummaryFacet.class))
+            misfitDataTypeName = "summary";
+        else if (objectTypeValue==ObjectType.getObjectTypeValue(MisfitActivitySessionFacet.class))
+            misfitDataTypeName = "sessions";
+        else if (objectTypeValue==ObjectType.getObjectTypeValue(MisfitSleepFacet.class))
+            misfitDataTypeName = "sleeps";
+        else
+            throw new RuntimeException("Unknown objectTypeValue: " + objectTypeValue);
+        String json = makeRestCall(updateInfo, objectTypeValue,
+                String.format("https://api.misfitwearables.com/move/resource/v1/user/me/activity/%s?start_date=%s&end_date=%s&detail=true", misfitDataTypeName, startDate, endDate));
+        JSONObject jsonApiData = JSONObject.fromObject(json);
+        JSONArray misfitData = getMisfitData(jsonApiData, misfitDataTypeName);
+        if (misfitData.size()==0) return false;
+        extractFacets(updateInfo, misfitData, objectTypeValue);
+        return true;
+    }
+
+    private void extractFacets(UpdateInfo updateInfo, JSONArray misfitData, int objectTypeValue) throws Exception {
+        for (int i=0; i<misfitData.size(); i++) {
+            JSONObject misfitJson = misfitData.getJSONObject(i);
+            if (objectTypeValue==ObjectType.getObjectTypeValue(MisfitActivitySummaryFacet.class))
+                createOrUpdateActivitySummaryFacet(misfitJson, updateInfo);
+            else if (objectTypeValue==ObjectType.getObjectTypeValue(MisfitActivitySessionFacet.class))
+                createOrUpdateActivitySessionFacet(misfitJson, updateInfo);
+            else if (objectTypeValue==ObjectType.getObjectTypeValue(MisfitSleepFacet.class))
+                createOrUpdateSleepFacet(misfitJson, updateInfo);
+            else
+                throw new RuntimeException("Unknown objectTypeValue: " + objectTypeValue);
+        }
+    }
+
+    private MisfitActivitySummaryFacet createOrUpdateActivitySummaryFacet(final JSONObject misfitJson, final UpdateInfo updateInfo) throws Exception {
+        final String date = misfitJson.getString("date");
+
+        MisfitActivitySummaryFacet ret =
+                apiDataService.createOrReadModifyWrite(MisfitActivitySummaryFacet.class,
+                        new ApiDataService.FacetQuery(
+                                "e.apiKeyId = ? AND e.date = ?",
+                                updateInfo.apiKey.getId(),
+                                date),
+                        new ApiDataService.FacetModifier<MisfitActivitySummaryFacet>() {
+                            // Throw exception if it turns out we can't make sense of the observation's JSON
+                            // This will abort the transaction
+                            @Override
+                            public MisfitActivitySummaryFacet createOrModify(MisfitActivitySummaryFacet facet, Long apiKeyId) {
+                                if (facet == null) {
+                                    facet = new MisfitActivitySummaryFacet(updateInfo.apiKey.getId());
+                                    facet.date = date;
+                                    extractCommonFacetData(facet, updateInfo);
+                                }
+                                facet.points = (float) misfitJson.getDouble("points");
+                                facet.steps = misfitJson.getInt("steps");
+                                facet.calories = (float) misfitJson.getDouble("calories");
+                                facet.activityCalories = (float) misfitJson.getDouble("activityCalories");
+                                facet.distance = (float) misfitJson.getDouble("distance");
+                                return facet;
+                            }
+                        }, updateInfo.apiKey.getId());
+        return ret;
+    }
+
+    private MisfitActivitySessionFacet createOrUpdateActivitySessionFacet(final JSONObject misfitJson, final UpdateInfo updateInfo) throws Exception {
+        final String misfitId = misfitJson.getString("id");
+
+        MisfitActivitySessionFacet ret =
+                apiDataService.createOrReadModifyWrite(MisfitActivitySessionFacet.class,
+                        new ApiDataService.FacetQuery(
+                                "e.apiKeyId = ? AND e.misfitId = ?",
+                                updateInfo.apiKey.getId(),
+                                misfitId),
+                        new ApiDataService.FacetModifier<MisfitActivitySessionFacet>() {
+                            // Throw exception if it turns out we can't make sense of the observation's JSON
+                            // This will abort the transaction
+                            @Override
+                            public MisfitActivitySessionFacet createOrModify(MisfitActivitySessionFacet facet, Long apiKeyId) {
+                                if (facet == null) {
+                                    facet = new MisfitActivitySessionFacet(updateInfo.apiKey.getId());
+                                    facet.misfitId = misfitId;
+                                    extractCommonFacetData(facet, updateInfo);
+                                }
+                                facet.activityType = misfitJson.getString("activityType");
+                                facet.start = ISODateTimeFormat.dateTimeNoMillis().parseDateTime(misfitJson.getString("startTime")).getMillis();
+                                facet.end = facet.start + misfitJson.getInt("duration")*1000;
+                                facet.points = (float) misfitJson.getDouble("points");
+                                facet.steps = misfitJson.getInt("steps");
+                                facet.calories = (float) misfitJson.getDouble("calories");
+                                facet.distance = (float) misfitJson.getDouble("distance");
+                                return facet;
+                            }
+                        }, updateInfo.apiKey.getId());
+        return ret;
+    }
+
+    private MisfitSleepFacet createOrUpdateSleepFacet(final JSONObject misfitJson, final UpdateInfo updateInfo) throws Exception {
+        final String misfitId = misfitJson.getString("id");
+
+        MisfitSleepFacet ret =
+                apiDataService.createOrReadModifyWrite(MisfitSleepFacet.class,
+                        new ApiDataService.FacetQuery(
+                                "e.apiKeyId = ? AND e.misfitId = ?",
+                                updateInfo.apiKey.getId(),
+                                misfitId),
+                        new ApiDataService.FacetModifier<MisfitSleepFacet>() {
+                            // Throw exception if it turns out we can't make sense of the observation's JSON
+                            // This will abort the transaction
+                            @Override
+                            public MisfitSleepFacet createOrModify(MisfitSleepFacet facet, Long apiKeyId) {
+                                if (facet == null) {
+                                    facet = new MisfitSleepFacet(updateInfo.apiKey.getId());
+                                    facet.misfitId = misfitId;
+                                    extractCommonFacetData(facet, updateInfo);
+                                }
+                                facet.date = misfitJson.getString("startTime").substring(0, 10);
+                                facet.start = ISODateTimeFormat.dateTimeNoMillis().parseDateTime(misfitJson.getString("startTime")).getMillis();
+                                facet.end = facet.start + misfitJson.getInt("duration")*1000;
+                                facet.autodetected = misfitJson.getBoolean("autoDetected");
+                                facet.sleepDetails = misfitJson.getString("sleepDetails");
+                                return facet;
+                            }
+                        }, updateInfo.apiKey.getId());
+        return ret;
+    }
+
+    private JSONArray getMisfitData(JSONObject jsonApiData, String dataTypeName) {
+        Object o = jsonApiData.get(dataTypeName);
+        if (o==null) throw new RuntimeException("Unexpected API format: no \"" + dataTypeName + "\" field in JSON");
+        if (o instanceof JSONArray) return (JSONArray) o;
+        else if (o instanceof JSONObject) {
+            JSONArray array = new JSONArray();
+            array.add(o);
+            return array;
+        }
+        return new JSONArray();
+    }
+
+    private String getBackfillEndDate(UpdateInfo updateInfo, ObjectType objectType) {
+        String backfillEndDate = guestService.getApiKeyAttribute(updateInfo.apiKey, BACKFILL_ENDDATE_ATTKEY_PREFIX + objectType.name());
+        if (backfillEndDate!=null)
+            return backfillEndDate;
+        String endDate = getMaxEndDate();
+        return endDate;
+    }
+
+    private String getMaxEndDate() {
+        return ISODateTimeFormat.date().print(System.currentTimeMillis()+ DateTimeConstants.MILLIS_PER_DAY);
+    }
+
+    private boolean isTrue(String attValue) {
+        return attValue!=null && attValue.equalsIgnoreCase("true");
     }
 
     @Override
@@ -147,14 +394,6 @@ public class MisfitUpdater extends AbstractUpdater implements Autonomous {
             guestService.setApiKeyAttribute(updateInfo.apiKey, "resetTime", String.valueOf(resetTime));
             updateInfo.setResetTime("misfit", resetTime);
         }
-    }
-
-    private String getConsumerKey(final ApiKey apiKey) {
-        return guestService.getApiKeyAttribute(apiKey, "misfitConsumerKey");
-    }
-
-    private String getConsumerSecret(final ApiKey apiKey) {
-        return guestService.getApiKeyAttribute(apiKey, "misfitConsumerSecret");
     }
 
 }

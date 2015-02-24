@@ -1203,3 +1203,76 @@
    </div>
  </div>
 </template>
+<template id="misfit-sleep">
+ <div class="flx-box" style="border-left-color:{{color}}">
+   <span class="flx-deviceIcon misfit"></span>
+   <div class="facetDetails">
+     {{#facets}}
+     <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+       <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment"
+                                  style="width:32px;float:right"></a></div>
+       {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+       <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span
+               class="flx-dataLabel">{{ampm}}</span>{{/startTime}} - {{#endTime}}{{hours}}:{{minutes}} <span
+               class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a>
+       </div>
+       <div class="flx-data"><span class="flx-description">You slept {{#duration.hours}}<span class="flx-text">{{duration.hours}}<span class="flx-dataLabel">h</span>{{/duration.hours}}{{duration.minutes}} <span class="flx-dataLabel">min</span></span> </span></div>
+       {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+     </div>
+     {{/facets}}
+   </div>
+ </div>
+</template>
+<template id="misfit-activity_summary">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon misfit"></span>
+        <div class="facetDetails">
+            <span class="flx-text">{{#facets}}</span>
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment"
+                                           style="width:32px;float:right"></a></div>
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div class="flx-data">
+                    <span class="flx-steps">
+                        <span class="flx-dataLabel">You walked</span>
+                        <span class="flx-text">{{_steps}}</span>
+                        <span class="flx-dataLabel">steps</span>
+                    </span>
+                </div>
+                <div class="flx-data">
+                    <span class="flx-calories">
+                        <span class="flx-dataLabel">You burned</span>
+                        <span class="flx-text">{{_calories}}</span>
+                        <span class="flx-dataLabel">kcal in total</span>
+                        <span class="flx-dataLabel"> (of which {{_activityCalories}} from your activities)</span>
+                    </span>
+                </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
+<template id="misfit-activity_session">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon misfit"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}}{{#endTime}} <span class="flx-dataLabel">-</span> {{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
+                <div class="flx-data">
+                    <span class="flx-description">Activity: {{activityType}}</span>
+                    <span class="flx-calories">
+                        <span class="flx-dataLabel">You burned</span>
+                        <span class="flx-text">{{_calories}}</span>
+                        <span class="flx-dataLabel">kcal</span>
+                    </span>
+                </div>
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
