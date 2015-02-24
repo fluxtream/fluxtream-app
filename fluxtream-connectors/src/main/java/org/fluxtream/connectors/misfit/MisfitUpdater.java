@@ -10,9 +10,11 @@ import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.updaters.*;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.services.ApiDataService;
+import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.utils.JPAUtils;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.format.ISODateTimeFormat;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
@@ -22,20 +24,24 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
 
 /**
  * Created by candide on 09/02/15.
  */
 @Component
-@Updater(prettyName = "Misfit", value = 8, objectTypes = {MisfitActivitySummaryFacet.class, MisfitActivitySessionFacet.class, MisfitSleepFacet.class}
-//        bodytrackResponder = MisfitBodytrackResponder.class,
-//        defaultChannels = {"Misfit.steps"}
+@Updater(prettyName = "Misfit", value = 8, objectTypes = {MisfitActivitySummaryFacet.class, MisfitActivitySessionFacet.class, MisfitSleepFacet.class},
+        bodytrackResponder = MisfitBodytrackResponder.class,
+        defaultChannels = {"Misfit.steps"}
 )
 public class MisfitUpdater extends AbstractUpdater implements Autonomous {
 
     @PersistenceContext
     EntityManager em;
+
+    @Autowired
+    BodyTrackHelper bodytrackHelper;
 
     private final String SESSION_HISTORY_COMPLETE_ATTKEY = "sessionHistoryComplete";
     private final String SLEEP_HISTORY_COMPLETE_ATTKEY = "sleepHistoryComplete";
@@ -287,7 +293,38 @@ public class MisfitUpdater extends AbstractUpdater implements Autonomous {
 
     @Override
     public void setDefaultChannelStyles(ApiKey apiKey) {
+        BodyTrackHelper.ChannelStyle channelStyle = new BodyTrackHelper.ChannelStyle();
+        channelStyle.timespanStyles = new BodyTrackHelper.MainTimespanStyle();
+        channelStyle.timespanStyles.defaultStyle = new BodyTrackHelper.TimespanStyle();
+        channelStyle.timespanStyles.defaultStyle.fillColor = "#fff";
+        channelStyle.timespanStyles.defaultStyle.borderColor = "#fff";
+        channelStyle.timespanStyles.defaultStyle.borderWidth = 2;
+        channelStyle.timespanStyles.defaultStyle.top = 0.0;
+        channelStyle.timespanStyles.defaultStyle.bottom = 1.0;
+        channelStyle.timespanStyles.values = new HashMap<String, BodyTrackHelper.TimespanStyle>();
 
+        BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
+        stylePart.top = .0;
+        stylePart.bottom = 0.9;
+        stylePart.fillColor = "#1196ef";
+        stylePart.borderColor = "#1196ef";
+        channelStyle.timespanStyles.values.put("deep",stylePart);
+
+        stylePart = new BodyTrackHelper.TimespanStyle();
+        stylePart.top = .0;
+        stylePart.bottom = 0.6;
+        stylePart.fillColor = "#00d2ff";
+        stylePart.borderColor = "#00d2ff";
+        channelStyle.timespanStyles.values.put("light",stylePart);
+
+        stylePart = new BodyTrackHelper.TimespanStyle();
+        stylePart.top = .0;
+        stylePart.bottom = 0.1;
+        stylePart.fillColor = "#f87d04";
+        stylePart.borderColor = "#f87d04";
+        channelStyle.timespanStyles.values.put("wake",stylePart);
+
+        bodytrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), apiKey.getConnector().getName(), "sleep", channelStyle);
     }
 
 
