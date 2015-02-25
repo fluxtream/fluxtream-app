@@ -294,6 +294,12 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         SleepAsAndroidConnectorInfo.supportsRenewTokens = true;
         SleepAsAndroidConnectorInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://www.googleapis.com/auth/userinfo.email";
         em.persist(SleepAsAndroidConnectorInfo);
+        String[] misfitKeys = checkKeysExist("Misfit", Arrays.asList("misfitConsumerKey", "misfitConsumerSecret"));
+        final String misfit = "Misfit";
+        final ConnectorInfo misfitConnectorInfo = new ConnectorInfo(misfit, "/" + release + "/images/connectors/connector-misfit.jpg", res.getString("misfit"), "/misfit/token", Connector.getConnector("misfit"), order++, misfitKeys != null, false, true, misfitKeys);
+        misfitConnectorInfo.supportsRenewTokens = true;
+        misfitConnectorInfo.renewTokensUrlTemplate = "misfit/token?apiKeyId=%s";
+        em.persist(misfitConnectorInfo);
 	}
 
     @Transactional(readOnly = false)
