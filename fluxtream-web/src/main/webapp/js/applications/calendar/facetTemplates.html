@@ -1236,7 +1236,7 @@
                     <span class="flx-steps">
                         <span class="flx-dataLabel">You walked</span>
                         <span class="flx-text">{{_steps}}</span>
-                        <span class="flx-dataLabel">steps</span>
+                        <span class="flx-dataLabel">steps ({{_points}} pts, {{distance}})</span>
                     </span>
                 </div>
                 <div class="flx-data">
@@ -1263,7 +1263,7 @@
                 {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
                 <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{#startTime}}{{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/startTime}}{{#endTime}} <span class="flx-dataLabel">-</span> {{hours}}:{{minutes}} <span class="flx-dataLabel">{{ampm}}</span>{{/endTime}}</a></div>
                 <div class="flx-data">
-                    <span class="flx-description">Activity: {{activityType}}</span>
+                    <span class="flx-description">Activity: {{activityType}} ({{_steps}} steps/{{_points}} pts, {{distance}})</span>
                     <span class="flx-calories">
                         <span class="flx-dataLabel">You burned</span>
                         <span class="flx-text">{{_calories}}</span>

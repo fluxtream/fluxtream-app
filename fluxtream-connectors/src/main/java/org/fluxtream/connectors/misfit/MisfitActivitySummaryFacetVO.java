@@ -6,6 +6,8 @@ import org.fluxtream.core.connectors.vos.AbstractTimedFacetVO;
 import org.fluxtream.core.connectors.vos.AllDayVO;
 import org.fluxtream.core.domain.GuestSettings;
 
+import java.text.NumberFormat;
+
 /**
  * Created by candide on 24/02/15.
  */
@@ -14,7 +16,7 @@ public class MisfitActivitySummaryFacetVO  extends AbstractTimedFacetVO<MisfitAc
     public float points;
     public int steps;
     public float calories;
-    public float distance;
+    public String distance;
     public float activityCalories;
 
     @Override
@@ -28,7 +30,11 @@ public class MisfitActivitySummaryFacetVO  extends AbstractTimedFacetVO<MisfitAc
         this.steps = facet.steps;
         this.calories = facet.calories;
         this.activityCalories = facet.activityCalories;
-        this.distance = facet.distance;
+        NumberFormat numberFormat = NumberFormat.getNumberInstance();
+        if (settings.distanceMeasureUnit== GuestSettings.DistanceMeasureUnit.MILES_YARDS)
+            this.distance = numberFormat.format(facet.distance*0.621371f) + " Miles";
+        else
+            this.distance = numberFormat.format(facet.distance) + " Km";
         this.date = facet.date;
     }
 
