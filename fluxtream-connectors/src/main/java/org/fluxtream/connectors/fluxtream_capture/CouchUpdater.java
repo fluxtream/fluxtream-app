@@ -29,9 +29,6 @@ import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
 import org.fluxtream.core.utils.Utils;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -45,7 +42,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Created by candide on 11/02/15.
@@ -264,10 +260,10 @@ public class CouchUpdater {
         }
     }
 
-    private FluxtreamTopicFacet createOrUpdateTopic(final UpdateInfo updateInfo, final String rootURL, final JSONObject observation) {
+    private FluxtreamTopicFacet createOrUpdateTopic(final UpdateInfo updateInfo, final String rootURL, final JSONObject topic) {
         try {
-            // fluxtreamId is unique for each observation
-            final String fluxtreamId = observation.getString("_id");
+            // fluxtreamId is unique for each topic
+            final String fluxtreamId = topic.getString("_id");
 
             FluxtreamTopicFacet ret =
                     apiDataService.createOrReadModifyWrite(FluxtreamTopicFacet.class,
@@ -276,22 +272,21 @@ public class CouchUpdater {
                                     updateInfo.apiKey.getId(),
                                     fluxtreamId),
                             new ApiDataService.FacetModifier<FluxtreamTopicFacet>() {
-                                // Throw exception if it turns out we can't make sense of the observation's JSON
+                                // Throw exception if it turns out we can't make sense of the topic's JSON
                                 // This will abort the transaction
                                 @Override
                                 public FluxtreamTopicFacet createOrModify(FluxtreamTopicFacet facet, Long apiKeyId) {
                                     if (facet == null) {
                                         facet = new FluxtreamTopicFacet(updateInfo.apiKey.getId());
                                         facet.fluxtreamId = fluxtreamId;
-                                        // auto-populate the facet's tags field with the name of the observation (e.g. "Food", "Back Pain", etc.)
+                                        // auto-populate the facet's tags field with the name of the topic (e.g. "Food", "Back Pain", etc.)
                                         facet.guestId = updateInfo.apiKey.getGuestId();
                                         facet.api = updateInfo.apiKey.getConnector().value();
                                     }
 
-                                    facet.topicNumber = observation.getInt("topicNumber");
-
+                                    facet.topicNumber = topic.getInt("topicNumber");
                                     facet.timeUpdated = System.currentTimeMillis();
-                                    facet.name = observation.getString("name").trim();
+                                    facet.name = topic.getString("name").trim();
 
                                     return facet;
                                 }
@@ -299,7 +294,7 @@ public class CouchUpdater {
             return ret;
 
         } catch (Throwable e) {
-            // Couldn't makes sense of observation's JSON
+            // Couldn't makes sense of topic's JSON
             return null;
         }
     }
