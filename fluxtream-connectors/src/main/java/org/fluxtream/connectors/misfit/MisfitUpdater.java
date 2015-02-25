@@ -8,6 +8,7 @@ import org.fluxtream.core.connectors.Autonomous;
 import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.updaters.*;
+import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.services.ApiDataService;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
@@ -26,6 +27,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -160,17 +162,22 @@ public class MisfitUpdater extends AbstractUpdater implements Autonomous {
     }
 
     private void extractFacets(UpdateInfo updateInfo, JSONArray misfitData, int objectTypeValue) throws Exception {
+        List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
         for (int i=0; i<misfitData.size(); i++) {
             JSONObject misfitJson = misfitData.getJSONObject(i);
+            AbstractFacet facet;
             if (objectTypeValue==ObjectType.getObjectTypeValue(MisfitActivitySummaryFacet.class))
-                createOrUpdateActivitySummaryFacet(misfitJson, updateInfo);
+                facet = createOrUpdateActivitySummaryFacet(misfitJson, updateInfo);
             else if (objectTypeValue==ObjectType.getObjectTypeValue(MisfitActivitySessionFacet.class))
-                createOrUpdateActivitySessionFacet(misfitJson, updateInfo);
+                facet = createOrUpdateActivitySessionFacet(misfitJson, updateInfo);
             else if (objectTypeValue==ObjectType.getObjectTypeValue(MisfitSleepFacet.class))
-                createOrUpdateSleepFacet(misfitJson, updateInfo);
+                facet = createOrUpdateSleepFacet(misfitJson, updateInfo);
             else
                 throw new RuntimeException("Unknown objectTypeValue: " + objectTypeValue);
+            if (facet!=null)
+                newFacets.add(facet);
         }
+        bodyTrackStorageService.storeApiData(updateInfo.apiKey, newFacets);
     }
 
     private MisfitActivitySummaryFacet createOrUpdateActivitySummaryFacet(final JSONObject misfitJson, final UpdateInfo updateInfo) throws Exception {
@@ -192,6 +199,10 @@ public class MisfitUpdater extends AbstractUpdater implements Autonomous {
                                     facet.date = date;
                                     extractCommonFacetData(facet, updateInfo);
                                 }
+                                facet.startTimeStorage = date + "T00:00:00Z";
+                                facet.endTimeStorage = date + "T23:59:59Z";
+                                facet.start = ISODateTimeFormat.dateTimeNoMillis().parseMillis(facet.startTimeStorage);
+                                facet.end = ISODateTimeFormat.dateTimeNoMillis().parseMillis(facet.endTimeStorage);
                                 facet.points = (float) misfitJson.getDouble("points");
                                 facet.steps = misfitJson.getInt("steps");
                                 facet.calories = (float) misfitJson.getDouble("calories");
