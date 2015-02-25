@@ -107,7 +107,7 @@ public class LegacyGuestController {
 
     private String getGravatarImageURL(Guest guest) {
         String emailHash = hash(guest.email.toLowerCase().trim()); //gravatar specifies the email should be trimmed, taken to lowercase, and then MD5 hashed
-        String gravatarURL = String.format("http://www.gravatar.com/avatar/%s?s=27&d=404", emailHash);
+        String gravatarURL = String.format("http://www.gravatar.com/avatar/%s?s=27&d=retro", emailHash);
         HttpGet get = new HttpGet(gravatarURL);
         int res = 0;
         try { res = ((new DefaultHttpClient()).execute(get)).getStatusLine().getStatusCode(); }
