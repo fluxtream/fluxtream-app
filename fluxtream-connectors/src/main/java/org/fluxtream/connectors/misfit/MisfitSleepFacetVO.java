@@ -15,6 +15,7 @@ public class MisfitSleepFacetVO extends AbstractTimedFacetVO<MisfitSleepFacet> {
 
     @Override
     protected void fromFacet(MisfitSleepFacet facet, TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
+        this.date = facet.date;
         this.duration = new DurationModel((int)((facet.end - facet.start)/1000));
     }
 }

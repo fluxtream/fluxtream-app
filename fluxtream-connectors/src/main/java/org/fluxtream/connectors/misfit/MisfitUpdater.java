@@ -12,7 +12,9 @@ import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.services.ApiDataService;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.utils.JPAUtils;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
+import org.joda.time.DurationFieldType;
 import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -252,9 +254,11 @@ public class MisfitUpdater extends AbstractUpdater implements Autonomous {
                                     facet.misfitId = misfitId;
                                     extractCommonFacetData(facet, updateInfo);
                                 }
-                                facet.date = misfitJson.getString("startTime").substring(0, 10);
-                                facet.start = ISODateTimeFormat.dateTimeNoMillis().parseDateTime(misfitJson.getString("startTime")).getMillis();
-                                facet.end = facet.start + misfitJson.getInt("duration")*1000;
+                                int duration = misfitJson.getInt("duration");
+                                DateTime startTime = ISODateTimeFormat.dateTimeNoMillis().parseDateTime(misfitJson.getString("startTime"));
+                                facet.date = ISODateTimeFormat.date().print(startTime.withFieldAdded(DurationFieldType.seconds(), duration));
+                                facet.start = startTime.getMillis();
+                                facet.end = facet.start + duration*1000;
                                 facet.autodetected = misfitJson.getBoolean("autoDetected");
                                 facet.sleepDetails = misfitJson.getString("sleepDetails");
                                 return facet;
