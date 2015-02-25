@@ -71,7 +71,7 @@ public class SettingsServiceImpl implements SettingsService {
 	}
 
     private HashMap<String, String> getTopics(long guestId) {
-        Query nativeQuery = em.createNativeQuery("SELECT topicNumber, name FROM Facet_FluxtreamCaptureTopic topic WHERE topic.guestId=?");
+        Query nativeQuery = em.createNativeQuery("SELECT fluxtreamId, name FROM Facet_FluxtreamCaptureTopic topic WHERE topic.guestId=?");
         nativeQuery.setParameter(1, guestId);
         List<Object[]> resultList = nativeQuery.getResultList();
         HashMap<String,String> topics = new HashMap<String,String>();
