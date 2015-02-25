@@ -306,22 +306,22 @@ public class MisfitUpdater extends AbstractUpdater implements Autonomous {
         BodyTrackHelper.TimespanStyle stylePart = new BodyTrackHelper.TimespanStyle();
         stylePart.top = .0;
         stylePart.bottom = 0.9;
-        stylePart.fillColor = "#1196ef";
-        stylePart.borderColor = "#1196ef";
+        stylePart.fillColor = "#77518b";
+        stylePart.borderColor = "#77518b";
         channelStyle.timespanStyles.values.put("deep",stylePart);
 
         stylePart = new BodyTrackHelper.TimespanStyle();
         stylePart.top = .0;
         stylePart.bottom = 0.6;
-        stylePart.fillColor = "#00d2ff";
-        stylePart.borderColor = "#00d2ff";
+        stylePart.fillColor = "#916ba5";
+        stylePart.borderColor = "#916ba5";
         channelStyle.timespanStyles.values.put("light",stylePart);
 
         stylePart = new BodyTrackHelper.TimespanStyle();
         stylePart.top = .0;
         stylePart.bottom = 0.1;
-        stylePart.fillColor = "#f87d04";
-        stylePart.borderColor = "#f87d04";
+        stylePart.fillColor = "#e1d4e6";
+        stylePart.borderColor = "#e1d4e6";
         channelStyle.timespanStyles.values.put("wake",stylePart);
 
         bodytrackHelper.setBuiltinDefaultStyle(apiKey.getGuestId(), apiKey.getConnector().getName(), "sleep", channelStyle);
