@@ -18,7 +18,7 @@ public class GuestModel {
         this.fullname = guest.getGuestName();
         this.username = guest.username;
         String emailHash = hash(guest.email.toLowerCase().trim()); //gravatar specifies the email should be trimmed, taken to lowercase, and then MD5 hashed
-        this.photoURL = String.format("http://www.gravatar.com/avatar/%s?s=27&d=retro", emailHash);
+        this.photoURL = String.format("http://www.gravatar.com/avatar/%s?s=256&d=retro", emailHash);
     }
 
 }
