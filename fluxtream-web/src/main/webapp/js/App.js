@@ -461,6 +461,8 @@ define(
         App.as = function(usernameOrUID) {
             $("#wallDialog").dialog("destroy");
             if (!_.isUndefined(usernameOrUID)) {
+                App.chatBuddy = null;
+                App.buddyToAccess = null;
                 fetchGuestInfo(function() {
                     if (App.buddyToAccess.isBuddy) {
                         $(".backtomydata").show();
@@ -483,7 +485,6 @@ define(
                     url: url,
                     success: function(guestInfo) {
                         App.chatBuddy = guestInfo;
-                        var loggedInUser = $("#loggedInUser");
                         loadWallDialog();
                     },
                     error: function(jqXHR, statusText, errorThrown) {
@@ -572,7 +573,6 @@ define(
                         }
                         post.when = moment(post.creationTime).fromNow();
                     }
-                    console.log(posts);
                     App.loadMustacheTemplate("messagingTemplates.html","wallDialogContentsTemplate",
                         function(template) {
                             var html = template.render({posts: posts});
@@ -681,6 +681,7 @@ define(
                 url: url,
                 success: function(guestInfo) {
                     App.buddyToAccess = guestInfo;
+                    App.chatBuddy = guestInfo;
                     var loggedInUser = $("#loggedInUser");
                     loggedInUser.attr("self", guestInfo["fullname"]);
                     loggedInUser.html(guestInfo["fullname"] + "<span id=\"profileIcon\">&nbsp;</span> <b id=\"profileIconCaret\" class=\"caret\"></b>");
