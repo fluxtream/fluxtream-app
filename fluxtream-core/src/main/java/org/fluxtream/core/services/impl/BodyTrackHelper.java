@@ -406,7 +406,7 @@ public class BodyTrackHelper {
         try{
             if (guestId == null)
                 throw new IllegalArgumentException();
-            ChannelMapping mapping = getChannelMapping(guestId, deviceNickname,channelName);
+            ChannelMapping mapping = getChannelMapping(guestId, deviceNickname, channelName);
             String internalDeviceName = mapping != null ? mapping.getInternalDeviceName() : deviceNickname;
             String internalChannelName = mapping != null ? mapping.getInternalChannelName() : channelName;
             final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("gettile", new Object[]{guestId, internalDeviceName + "." + internalChannelName, level, offset});

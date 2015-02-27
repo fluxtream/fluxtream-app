@@ -37,13 +37,15 @@ public class UrlBasedViewResolver extends org.springframework.web.servlet.view.U
                     if (credentials instanceof AuthorizationToken) {
                         AuthorizationToken token = (AuthorizationToken) credentials;
                         final Application applicationForToken = oAuth2MgmtService.getApplicationForToken(token);
-                        String addConnectorCallbackURL = applicationForToken.addConnectorCallbackURL;
-                        if (addConnectorCallbackURL !=null) {
-                            String connectorName = location.substring(location.lastIndexOf("/")+1);
-                            addConnectorCallbackURL += addConnectorCallbackURL.indexOf("?")==-1
-                                                     ? "?connectorName=" + connectorName
-                                                     : "=connectorName=" + connectorName;
-                            return super.createView("redirect:" + addConnectorCallbackURL, locale);
+                        if (applicationForToken!=null) {
+                            String addConnectorCallbackURL = applicationForToken.addConnectorCallbackURL;
+                            if (addConnectorCallbackURL != null) {
+                                String connectorName = location.substring(location.lastIndexOf("/") + 1);
+                                addConnectorCallbackURL += addConnectorCallbackURL.indexOf("?") == -1
+                                        ? "?connectorName=" + connectorName
+                                        : "=connectorName=" + connectorName;
+                                return super.createView("redirect:" + addConnectorCallbackURL, locale);
+                            }
                         }
                     }
                 }

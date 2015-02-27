@@ -155,6 +155,7 @@ public class AppController {
         String release = env.get("release");
 		request.setAttribute("guestName", guest.getGuestName());
         request.setAttribute("trustingBuddies", buddiesService.getTrustingBuddies(guestId));
+        request.setAttribute("trustedBuddies", buddiesService.getTrustedBuddies(guestId));
         request.setAttribute("useMinifiedJs", Boolean.valueOf(env.get("useMinifiedJs")));
 
 		if (SecurityUtils.isDemoUser())

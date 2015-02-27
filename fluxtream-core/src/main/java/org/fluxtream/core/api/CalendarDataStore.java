@@ -89,7 +89,7 @@ public class CalendarDataStore {
                                              @ApiParam(value="Updated Since Date", required = false) @QueryParam("updatedSince") String updatedSince) {
 
         TrustedBuddy trustedBuddy;
-        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+        try { trustedBuddy = AuthHelper.getBuddyTrustedBuddy(buddyToAccessParameter, buddiesService);
         } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
         Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
         if (guest==null)
@@ -169,7 +169,7 @@ public class CalendarDataStore {
                                          @ApiParam(value="Updated Since Date", required = false) @QueryParam("updatedSince") String updatedSince) {
 
         TrustedBuddy trustedBuddy;
-        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+        try { trustedBuddy = AuthHelper.getBuddyTrustedBuddy(buddyToAccessParameter, buddiesService);
         } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
         Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
         if (guest==null)
@@ -271,7 +271,7 @@ public class CalendarDataStore {
                               final String buddyToAccessParameter,
                               final String updatedSince) {
         TrustedBuddy trustedBuddy;
-        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+        try { trustedBuddy = AuthHelper.getBuddyTrustedBuddy(buddyToAccessParameter, buddiesService);
         } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
         Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
         if (guest==null)
@@ -368,7 +368,7 @@ public class CalendarDataStore {
 
     private Response getMonthData(final int year, final int month, String filter, boolean locationDataOnly, String buddyToAccessParameter, String updatedSince) {
         TrustedBuddy trustedBuddy;
-        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+        try { trustedBuddy = AuthHelper.getBuddyTrustedBuddy(buddyToAccessParameter, buddiesService);
         } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
         Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
         if (guest==null)
@@ -440,7 +440,7 @@ public class CalendarDataStore {
                                               @ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter) {
 
         TrustedBuddy trustedBuddy;
-        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+        try { trustedBuddy = AuthHelper.getBuddyTrustedBuddy(buddyToAccessParameter, buddiesService);
         } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
         Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
         if (guest==null)
@@ -522,7 +522,7 @@ public class CalendarDataStore {
     private Response getDayData(String date, String filter, String buddyToAccessParameter, boolean locationDataOnly, String updatedSince) throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException, UpdateFailedException, IOException, TrustRelationshipRevokedException {
         if (StringUtils.isEmpty(filter)) filter = "{}";
         TrustedBuddy trustedBuddy;
-        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+        try { trustedBuddy = AuthHelper.getBuddyTrustedBuddy(buddyToAccessParameter, buddiesService);
         } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
         Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
         if (guest==null)
@@ -782,7 +782,7 @@ public class CalendarDataStore {
 			ClassNotFoundException {
         try{
             TrustedBuddy trustedBuddy;
-            try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+            try { trustedBuddy = AuthHelper.getBuddyTrustedBuddy(buddyToAccessParameter, buddiesService);
             } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
             Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
             if (guest==null)
@@ -864,7 +864,7 @@ public class CalendarDataStore {
             }
             TrustedBuddy trustedBuddy = null;
             try {
-                trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+                trustedBuddy = AuthHelper.getBuddyTrustedBuddy(buddyToAccessParameter, buddiesService);
             } catch (TrustRelationshipRevokedException e) {
                 return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();
             }
@@ -935,7 +935,7 @@ public class CalendarDataStore {
                    ClassNotFoundException {
         try{
             TrustedBuddy trustedBuddy;
-            try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+            try { trustedBuddy = AuthHelper.getBuddyTrustedBuddy(buddyToAccessParameter, buddiesService);
             } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
             Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
             if (guest==null)
