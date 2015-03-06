@@ -49,7 +49,8 @@ public class ObjectType {
         return new StringBuilder(name).append("/").append(attName).toString();
     }
 
-	public static ObjectType getObjectType(Connector connector, int objectType) {
+	public static ObjectType getObjectType(Connector connector, Integer objectType) {
+        if (objectType==null) return null;
 		Map<Integer, ObjectType> connectorObjectTypes = connectorObjectTypeValues.get(connector);
         if (connectorObjectTypes!=null) {
     		ObjectType type = connectorObjectTypes.get(objectType);
