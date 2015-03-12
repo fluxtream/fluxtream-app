@@ -15,6 +15,12 @@
     <script src="/static/js/jquery.fastbutton-1.0.0.js"></script>
     <script src="static/js/bootstrap-3.2.0.min.js"></script>
     <script type="text/javascript" src="/${release}/js/welcome.js"></script>
+    <script>
+        if (typeof window.devicePixelRatio !="undefined"){
+            var retina = window.devicePixelRatio > 1;
+            setCookie("retina", retina?"1":"0", 30);
+        }
+    </script>
     <!-- fav icons -->
     <link rel="shortcut icon" href="favicon.ico">
 </head>
