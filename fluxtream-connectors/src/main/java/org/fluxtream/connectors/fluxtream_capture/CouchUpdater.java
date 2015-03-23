@@ -377,8 +377,8 @@ public class CouchUpdater {
         try {
             HttpGet get = new HttpGet(url);
             get.addHeader("Authorization", "Basic " + new String(encodedCredentials));
-            get.addHeader("Content-Type", "application/json");
-            get.addHeader("Accept", "application/json");
+            get.addHeader("Content-Type", "application/json;charset=utf-8");
+            get.addHeader("Accept", "application/json;charset=utf-8");
             HttpResponse response = client.execute(get);
 
             BasicResponseHandler responseHandler = new BasicResponseHandler();
