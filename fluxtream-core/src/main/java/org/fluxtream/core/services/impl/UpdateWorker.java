@@ -193,10 +193,10 @@ class UpdateWorker implements Runnable {
                     "connector=" + apiKey.getConnector().getName() + " guestId=" + apiKey.getGuestId());
         UpdateInfo updateInfo = UpdateInfo.initialHistoryUpdateInfo(apiKey,
                 task.objectTypes);
+        applyConnectorUpgrades(updateInfo);
         UpdateResult updateResult = updater.updateDataHistory(updateInfo);
         syncSettings(updater, updateInfo, updateResult);
         handleUpdateResult(updateInfo, updateResult);
-        applyConnectorUpgrades(updateInfo);
         try {
             updater.afterHistoryUpdate(updateInfo);
         } catch (Exception e) {
@@ -210,10 +210,10 @@ class UpdateWorker implements Runnable {
         logger.info("module=updateQueue component=worker action=\"updateData (incremental update)\"" +
                     " connector=" + apiKey.getConnector().getName() + " guestId=" + apiKey.getGuestId());
         UpdateInfo updateInfo = UpdateInfo.IncrementalUpdateInfo(apiKey, task.objectTypes);
+        applyConnectorUpgrades(updateInfo);
         UpdateResult result = updater.updateData(updateInfo);
         syncSettings(updater, updateInfo, result);
         handleUpdateResult(updateInfo, result);
-        applyConnectorUpgrades(updateInfo);
         try {
             updater.afterConnectorUpdate(updateInfo);
         } catch (Exception e) {
