@@ -48,6 +48,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Path("/bodytrack")
 @Component("RESTLegacyBodytrackController")
@@ -93,6 +95,8 @@ public class LegacyBodyTrackController {
 
     @Autowired
     BeanFactory beanFactory;
+
+    Pattern alphanumeric_and_underscore = Pattern.compile("[0-9a-zA-Z_]+");
 
     @GET
     @Path("/exportCSV/{UID}/fluxtream-export-from-{start}-to-{end}.csv")
@@ -225,6 +229,13 @@ public class LegacyBodyTrackController {
                                     @ApiParam(value="JSON encoded array of channels being uploaded for", required=true) @FormParam("channel_names") String channels,
                                     @ApiParam(value="Multipart form data to be uploaded", required=true)  @FormParam("data") String data){
         StatusModel status;
+        final List<String> channelNames = gson.fromJson(channels, new TypeToken<Collection<String>>(){}.getType());
+        String illegalName = checkDeviceAndChannelNamesAreAlphanumericAndUnderscore(deviceNickname, channelNames);
+        if (illegalName!=null) {
+            status = new StatusModel(false, String.format("Illegal device nickname or channel name: %s; only alphanumeric and underscore are allowed", illegalName));
+            return gson.toJson(status);
+        }
+
         try{
             long guestId = AuthHelper.getGuestId();
             List<List<Object>> parsedData = new ArrayList<List<Object>>();
@@ -256,7 +267,6 @@ public class LegacyBodyTrackController {
             }
 
             ApiKey fluxtreamCaptureApiKey = ensureFluxtreamCaptureApiKey(guestId);
-            final List<String> channelNames = gson.fromJson(channels, new TypeToken<Collection<String>>(){}.getType());
             final BodyTrackHelper.BodyTrackUploadResult uploadResult = bodyTrackHelper.uploadToBodyTrack(fluxtreamCaptureApiKey, deviceNickname, channelNames, parsedData);
             if (uploadResult instanceof BodyTrackHelper.ParsedBodyTrackUploadResult){
                 BodyTrackHelper.ParsedBodyTrackUploadResult parsedResult = (BodyTrackHelper.ParsedBodyTrackUploadResult) uploadResult;
@@ -272,6 +282,16 @@ public class LegacyBodyTrackController {
             status = new StatusModel(false,"Upload failed!");
         }
         return gson.toJson(status);
+    }
+
+    String checkDeviceAndChannelNamesAreAlphanumericAndUnderscore(String deviceNickname, List<String> channelNames) {
+        Matcher matcher = alphanumeric_and_underscore.matcher(deviceNickname);
+        if (!matcher.matches()) return deviceNickname;
+        for (String channelName : channelNames) {
+            if (!alphanumeric_and_underscore.matcher(channelName).matches())
+                return channelName;
+        }
+        return null;
     }
 
     private ApiKey ensureFluxtreamCaptureApiKey(long guestId) {
