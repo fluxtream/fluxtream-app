@@ -20,6 +20,7 @@ import org.fluxtream.core.Configuration;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ChannelMapping;
+import org.fluxtream.core.domain.ChannelStyle;
 import org.fluxtream.core.domain.Guest;
 import org.fluxtream.core.services.ApiDataService;
 import org.fluxtream.core.services.BodyTrackStorageService;
@@ -178,16 +179,20 @@ public class CouchUpdater {
             List<ChannelMapping> mappings = query.getResultList();
             if (mappings.size()>0) {
                 ChannelMapping mapping = mappings.get(0);
+                String previousChannelName = mapping.getChannelName();
                 if (!mapping.getChannelName().equals(topic.name))
                     mapping.setChannelName(topic.name);
-                // TODO: rename the deviceName of matching ChannelStyle s
+                query = em.createQuery("SELECT style FROM ChannelStyle style WHERE style.deviceName='FluxtreamCapture' AND style.channelName=?");
+                query.setParameter(1, previousChannelName);
+                List<ChannelStyle> styles = query.getResultList();
+                if (styles.size()>0)
+                    styles.get(0).channelName = topic.name;
             } else {
                 ChannelMapping mapping = new ChannelMapping(updateInfo.apiKey.getId(), updateInfo.getGuestId(),
                         ChannelMapping.ChannelType.data, ChannelMapping.TimeType.gmt,
                         2, "FluxtreamCapture", topic.name,
                         "FluxtreamCapture", "topic_" + topic.topicNumber);
                 mapping.setCreationType(ChannelMapping.CreationType.dynamic);
-                // TODO: make this compatible with internal device name scheme
                 bodytrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(), "FluxtreamCapture", topic.name, lollipopStyle);
                 em.persist(mapping);
             }
