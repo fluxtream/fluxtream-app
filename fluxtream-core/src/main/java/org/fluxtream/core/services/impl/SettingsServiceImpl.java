@@ -78,9 +78,9 @@ public class SettingsServiceImpl implements SettingsService {
         for (Object[] objects : resultList) {
             String rawTopicId = (String) objects[0];
             String topicId = rawTopicId;
-            int dotIndex = rawTopicId.indexOf(".");
-            if (dotIndex!=-1)
-                topicId = rawTopicId.substring(0, dotIndex);
+//            int dotIndex = rawTopicId.indexOf(".");
+//            if (dotIndex!=-1)
+//                topicId = rawTopicId.substring(0, dotIndex);
             topics.put("topic_" + topicId, objects[1].toString());
         }
         return topics;
