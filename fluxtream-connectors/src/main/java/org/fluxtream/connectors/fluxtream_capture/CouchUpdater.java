@@ -237,7 +237,7 @@ public class CouchUpdater {
                                         facet.api = updateInfo.apiKey.getConnector().value();
                                     }
 
-                                    facet.topicId = observation.getInt("topicId");
+                                    facet.topicId = observation.getString("topicId");
 
                                     facet.timeUpdatedOnDevice = ISODateTimeFormat.dateTime().withZoneUTC().parseDateTime(observation.getString("updateTime")).getMillis();
 

@@ -24,7 +24,8 @@ public class FluxtreamObservationFacet extends AbstractFacet {
     public String timeZone;
 
     public int value;
-    public int topicId;
+
+    public String topicId;
 
     public long timeUpdatedOnDevice;
 
