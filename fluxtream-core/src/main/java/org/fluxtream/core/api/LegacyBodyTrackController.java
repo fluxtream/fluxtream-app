@@ -96,7 +96,7 @@ public class LegacyBodyTrackController {
     @Autowired
     BeanFactory beanFactory;
 
-    Pattern alphanumeric_and_underscore = Pattern.compile("[0-9a-zA-Z_]+");
+    Pattern alphanumeric_dots_and_underscore = Pattern.compile("[0-9a-zA-Z_\\.]+");
 
     @GET
     @Path("/exportCSV/{UID}/fluxtream-export-from-{start}-to-{end}.csv")
@@ -285,10 +285,10 @@ public class LegacyBodyTrackController {
     }
 
     String checkDeviceAndChannelNamesAreAlphanumericAndUnderscore(String deviceNickname, List<String> channelNames) {
-        Matcher matcher = alphanumeric_and_underscore.matcher(deviceNickname);
+        Matcher matcher = alphanumeric_dots_and_underscore.matcher(deviceNickname);
         if (!matcher.matches()) return deviceNickname;
         for (String channelName : channelNames) {
-            if (!alphanumeric_and_underscore.matcher(channelName).matches())
+            if (!alphanumeric_dots_and_underscore.matcher(channelName).matches())
                 return channelName;
         }
         return null;
