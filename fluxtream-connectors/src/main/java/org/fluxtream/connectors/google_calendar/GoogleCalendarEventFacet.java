@@ -117,11 +117,9 @@ public class GoogleCalendarEventFacet extends AbstractRepeatableFacet {
         if (originalStartTime!=null) {
             if (originalStartTime.getDateTime()!=null) {
                 this.originalStartTime = originalStartTime.getDateTime().getValue();
-                this.start = originalStartTime.getDateTime().getValue();
             } else if (originalStartTime.getDate()!=null) {
                 this.allDayEvent = true;
                 this.originalStartTime = originalStartTime.getDate().getValue();
-                this.start = originalStartTime.getDate().getValue();
             }
         }
     }
