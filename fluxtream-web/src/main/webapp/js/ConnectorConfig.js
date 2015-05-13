@@ -654,6 +654,7 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
                 },
                 observation:{
                     color: "rgb(90, 90, 90)",
+                    clock: ClockConfig.MIND_CATEGORY,
                     list:true,
                     photos:false,
                     map:true,
