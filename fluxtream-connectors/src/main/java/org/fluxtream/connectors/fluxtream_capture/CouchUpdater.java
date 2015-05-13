@@ -174,16 +174,18 @@ public class CouchUpdater {
     private void storeChannelMappings(List<AbstractFacet> newFacets, UpdateInfo updateInfo) {
         for (AbstractFacet newFacet : newFacets) {
             FluxtreamTopicFacet topic = (FluxtreamTopicFacet) newFacet;
-            Query query = em.createQuery("SELECT mapping FROM ChannelMapping mapping WHERE mapping.deviceName='FluxtreamCapture' AND mapping.internalChannelName=?");
+            Query query = em.createQuery("SELECT mapping FROM ChannelMapping mapping WHERE mapping.deviceName='FluxtreamCapture' AND mapping.internalChannelName=? AND mapping.guestId=?");
             query.setParameter(1, "topic_" + topic.topicNumber);
+            query.setParameter(2, updateInfo.getGuestId());
             List<ChannelMapping> mappings = query.getResultList();
             if (mappings.size()>0) {
                 ChannelMapping mapping = mappings.get(0);
                 String previousChannelName = mapping.getChannelName();
                 if (!mapping.getChannelName().equals(topic.name))
                     mapping.setChannelName(topic.name);
-                query = em.createQuery("SELECT style FROM ChannelStyle style WHERE style.deviceName='FluxtreamCapture' AND style.channelName=?");
+                query = em.createQuery("SELECT style FROM ChannelStyle style WHERE style.deviceName='FluxtreamCapture' AND style.channelName=? AND style.guestId=?");
                 query.setParameter(1, previousChannelName);
+                query.setParameter(2, updateInfo.getGuestId());
                 List<ChannelStyle> styles = query.getResultList();
                 if (styles.size()>0)
                     styles.get(0).channelName = topic.name;
