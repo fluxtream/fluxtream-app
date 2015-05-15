@@ -181,7 +181,7 @@ public class CouchUpdater {
         for (AbstractFacet newFacet : newFacets) {
             FluxtreamTopicFacet topic = (FluxtreamTopicFacet) newFacet;
             Query query = em.createQuery("SELECT mapping FROM ChannelMapping mapping WHERE mapping.deviceName='FluxtreamCapture' AND mapping.internalChannelName=? AND mapping.guestId=?");
-            query.setParameter(1, "topic_" + topic.topicNumber);
+            query.setParameter(1, "topic_" + topic.fluxtreamId);
             query.setParameter(2, guestId);
             List<ChannelMapping> mappings = query.getResultList();
             if (mappings.size()>0) {
@@ -199,7 +199,7 @@ public class CouchUpdater {
                 ChannelMapping mapping = new ChannelMapping(apiKeyId, guestId,
                         ChannelMapping.ChannelType.data, ChannelMapping.TimeType.gmt,
                         2, "FluxtreamCapture", topic.name,
-                        "FluxtreamCapture", "topic_" + topic.topicNumber);
+                        "FluxtreamCapture", "topic_" + topic.fluxtreamId);
                 mapping.setCreationType(ChannelMapping.CreationType.dynamic);
                 bodytrackHelper.setBuiltinDefaultStyle(guestId, "FluxtreamCapture", topic.name, lollipopStyle);
                 em.persist(mapping);
