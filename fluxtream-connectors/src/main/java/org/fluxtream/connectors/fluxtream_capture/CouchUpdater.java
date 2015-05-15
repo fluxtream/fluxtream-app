@@ -17,11 +17,10 @@ import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.fluxtream.core.Configuration;
+import org.fluxtream.core.auth.AuthHelper;
+import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
-import org.fluxtream.core.domain.AbstractFacet;
-import org.fluxtream.core.domain.ChannelMapping;
-import org.fluxtream.core.domain.ChannelStyle;
-import org.fluxtream.core.domain.Guest;
+import org.fluxtream.core.domain.*;
 import org.fluxtream.core.services.ApiDataService;
 import org.fluxtream.core.services.BodyTrackStorageService;
 import org.fluxtream.core.services.GuestService;
@@ -32,12 +31,18 @@ import org.fluxtream.core.utils.Utils;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -48,6 +53,7 @@ import java.util.List;
  * Created by candide on 11/02/15.
  */
 @Component
+@Controller
 @Transactional(readOnly=true)
 public class CouchUpdater {
 
@@ -160,7 +166,7 @@ public class CouchUpdater {
                 // Write the new set of observations into the datastore
                 bodyTrackStorageService.storeApiData(updateInfo.apiKey, newFacets);
             else
-                storeChannelMappings(newFacets, updateInfo);
+                storeChannelMappings(newFacets, updateInfo.apiKey.getId(), updateInfo.getGuestId());
 
             lastSeq = newLastSeq;
 
@@ -171,12 +177,12 @@ public class CouchUpdater {
     }
 
     @Transactional(readOnly=false)
-    private void storeChannelMappings(List<AbstractFacet> newFacets, UpdateInfo updateInfo) {
+    private void storeChannelMappings(List<AbstractFacet> newFacets, long apiKeyId, long guestId) {
         for (AbstractFacet newFacet : newFacets) {
             FluxtreamTopicFacet topic = (FluxtreamTopicFacet) newFacet;
             Query query = em.createQuery("SELECT mapping FROM ChannelMapping mapping WHERE mapping.deviceName='FluxtreamCapture' AND mapping.internalChannelName=? AND mapping.guestId=?");
             query.setParameter(1, "topic_" + topic.topicNumber);
-            query.setParameter(2, updateInfo.getGuestId());
+            query.setParameter(2, guestId);
             List<ChannelMapping> mappings = query.getResultList();
             if (mappings.size()>0) {
                 ChannelMapping mapping = mappings.get(0);
@@ -185,20 +191,45 @@ public class CouchUpdater {
                     mapping.setChannelName(topic.name);
                 query = em.createQuery("SELECT style FROM ChannelStyle style WHERE style.deviceName='FluxtreamCapture' AND style.channelName=? AND style.guestId=?");
                 query.setParameter(1, previousChannelName);
-                query.setParameter(2, updateInfo.getGuestId());
+                query.setParameter(2, guestId);
                 List<ChannelStyle> styles = query.getResultList();
                 if (styles.size()>0)
                     styles.get(0).channelName = topic.name;
             } else {
-                ChannelMapping mapping = new ChannelMapping(updateInfo.apiKey.getId(), updateInfo.getGuestId(),
+                ChannelMapping mapping = new ChannelMapping(apiKeyId, guestId,
                         ChannelMapping.ChannelType.data, ChannelMapping.TimeType.gmt,
                         2, "FluxtreamCapture", topic.name,
                         "FluxtreamCapture", "topic_" + topic.topicNumber);
                 mapping.setCreationType(ChannelMapping.CreationType.dynamic);
-                bodytrackHelper.setBuiltinDefaultStyle(updateInfo.getGuestId(), "FluxtreamCapture", topic.name, lollipopStyle);
+                bodytrackHelper.setBuiltinDefaultStyle(guestId, "FluxtreamCapture", topic.name, lollipopStyle);
                 em.persist(mapping);
             }
         }
+    }
+
+    @RequestMapping(value="/fluxtream_capture/mappings/resync", method = RequestMethod.POST)
+    public void resyncChannelMappings(HttpServletResponse response) throws IOException {
+
+        ApiKey apiKey = guestService.getApiKey(AuthHelper.getGuestId(), Connector.getConnector("fluxtream_capture"));
+        mapTopicsToChannels(apiKey);
+        response.getWriter().write("resynced");
+    }
+
+    private void mapTopicsToChannels(ApiKey apiKey) {
+        Query query = em.createQuery("SELECT topic FROM Facet_FluxtreamCaptureTopic topic WHERE topic.apiKeyId=?");
+        query.setParameter(1, apiKey.getId());
+        List<AbstractFacet> allTopics = query.getResultList();
+        storeChannelMappings(allTopics, apiKey.getId(), apiKey.getGuestId());
+    }
+
+    @RequestMapping(value="/fluxtream_capture/user/mappings/resync", method = RequestMethod.POST)
+    @Secured("ADMIN_ROLE")
+    public void resyncUserChannelMappings(HttpServletResponse response,
+                                          @RequestParam("username") String username) throws IOException {
+        Guest guest = guestService.getGuest(username);
+        ApiKey apiKey = guestService.getApiKey(guest.getId(), Connector.getConnector("fluxtream_capture"));
+        mapTopicsToChannels(apiKey);
+        response.getWriter().write("resynced");
     }
 
     private byte[] getBase64EncodedCredentials(String base64URLSafeUsername, String couchdbPassword) {
