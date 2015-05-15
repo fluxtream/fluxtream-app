@@ -223,7 +223,7 @@ public class CouchUpdater {
     }
 
     @RequestMapping(value="/fluxtream_capture/user/mappings/resync", method = RequestMethod.POST)
-    @Secured("ADMIN_ROLE")
+    @Secured("ROLE_ADMIN")
     public void resyncUserChannelMappings(HttpServletResponse response,
                                           @RequestParam("username") String username) throws IOException {
         Guest guest = guestService.getGuest(username);
