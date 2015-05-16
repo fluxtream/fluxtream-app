@@ -91,8 +91,10 @@ public class BodyTrackHelper {
             facet = null;
             for (ObjectType objectType : objectTypes){
                 AbstractFacet potentialFacet = apiDataService.getOldestApiDataFacet(apiKey,objectType);
-                if (facet == null || facet.start > potentialFacet.start)
-                    facet = potentialFacet;
+                if (potentialFacet!=null) {
+                    if (facet == null || facet.start > potentialFacet.start)
+                        facet = potentialFacet;
+                }
             }
         }
         if (facet != null)
