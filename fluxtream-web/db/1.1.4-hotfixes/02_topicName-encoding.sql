@@ -1,0 +1,1 @@
+ALTER TABLE Facet_FluxtreamCaptureTopic MODIFY name tinytext CHARACTER SET utf8;

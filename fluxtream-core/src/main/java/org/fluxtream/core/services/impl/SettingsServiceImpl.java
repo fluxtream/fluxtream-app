@@ -75,8 +75,14 @@ public class SettingsServiceImpl implements SettingsService {
         nativeQuery.setParameter(1, guestId);
         List<Object[]> resultList = nativeQuery.getResultList();
         HashMap<String,String> topics = new HashMap<String,String>();
-        for (Object[] objects : resultList)
-            topics.put("topic_" + objects[0], objects[1].toString());
+        for (Object[] objects : resultList) {
+            String rawTopicId = (String) objects[0];
+            String topicId = rawTopicId;
+//            int dotIndex = rawTopicId.indexOf(".");
+//            if (dotIndex!=-1)
+//                topicId = rawTopicId.substring(0, dotIndex);
+            topics.put("topic_" + topicId, objects[1].toString());
+        }
         return topics;
     }
 

@@ -1,0 +1,1 @@
+ALTER TABLE Facet_FluxtreamCaptureObservation CHANGE `topicId` `topicId` varchar(255) CHARACTER SET 'utf8' NOT NULL;

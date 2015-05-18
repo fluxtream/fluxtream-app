@@ -168,7 +168,7 @@ public class SleepAsAndroidUpdater extends AbstractUpdater {
                 new ApiDataService.FacetModifier<SleepFacet>() {
                     @Override
                     public SleepFacet createOrModify(SleepFacet facet, Long apiKeyId) {
-                        if (facet == null){
+                        if (facet == null) {
                             facet = new SleepFacet(updateInfo.apiKey.getId());
                             facet.api = updateInfo.apiKey.getConnector().value();
                             facet.start = sleepObject.getLong("fromTime");
@@ -186,16 +186,14 @@ public class SleepAsAndroidUpdater extends AbstractUpdater {
                         facet.noiseLevel = sleepObject.getDouble("noiseLevel");
                         if (sleepObject.has("snroingSeconds")) {
                             facet.snoringSeconds = sleepObject.getInt("snoringSeconds");
-                        }
-                        else {
+                        } else {
                             facet.snoringSeconds = 0;
 
                         }
 
-                        if (sleepObject.has("comment")){
+                        if (sleepObject.has("comment")) {
                             facet.sleepComment = sleepObject.getString("comment");
-                        }
-                        else{
+                        } else {
                             facet.sleepComment = null;
                         }
 
@@ -209,13 +207,19 @@ public class SleepAsAndroidUpdater extends AbstractUpdater {
 
                         facet.setSleepTags(sleepTags);
 
-                        List<Double> actiGraph = new LinkedList<Double>();
-                        JSONArray actiGraphObject = sleepObject.getJSONArray("actigraph");
-                        for (int i = 0; i < actiGraphObject.size(); i++) {
-                            actiGraph.add(actiGraphObject.getDouble(i));
+                        Object actiGraphObject = sleepObject.get("actigraph");
+                        if (actiGraphObject != null) {
+                            JSONArray actigraphArray = new JSONArray();
+                            if (actiGraphObject instanceof JSONObject)
+                                actigraphArray.add(actiGraphObject);
+                            else if (actiGraphObject instanceof JSONArray)
+                                actigraphArray = (JSONArray)actiGraphObject;
+                            List<Double> actiGraph = new LinkedList<Double>();
+                            for (int i = 0; i < actigraphArray.size(); i++) {
+                                actiGraph.add(actigraphArray.getDouble(i));
+                            }
+                            facet.setActiGraph(actiGraph);
                         }
-
-                        facet.setActiGraph(actiGraph);
 
                         List<Pair<String,Long>> eventLabels = new LinkedList<Pair<String,Long>>();
                         JSONArray labels = sleepObject.getJSONArray("labels");

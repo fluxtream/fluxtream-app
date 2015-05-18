@@ -138,7 +138,9 @@ define(["core/Tab",
                 }
                 var prefs = Calendar.digest.settings["preferences"];
                 var timeUnit = Calendar.digest.calendar.timeUnit;
-                var checkHeatMap = prefs["heatMap"][timeUnit];
+                var checkHeatMap = false;
+                if (typeof(prefs)!="undefined")
+                    checkHeatMap = prefs["heatMap"][timeUnit];
                 if (checkHeatMap)
                     $("#heatMapCheckbox").prop("checked", true);
                 else
