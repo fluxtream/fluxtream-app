@@ -461,8 +461,8 @@ define(
         App.as = function(usernameOrUID) {
             $("#wallDialog").dialog("destroy");
             if (!_.isUndefined(usernameOrUID)) {
-                App.chatBuddy = null;
-                App.buddyToAccess = null;
+                //App.chatBuddy = null;
+                //App.buddyToAccess = null;
                 fetchGuestInfo(function() {
                     if (App.buddyToAccess.isBuddy) {
                         $(".backtomydata").show();
@@ -495,51 +495,51 @@ define(
         };
 
         function loadWallDialog() {
-            App.loadMustacheTemplate("messagingTemplates.html","wallDialogTemplate",
-                function(template) {
-                    var html = template.render({buddy: App.chatBuddy});
-                    $(html).dialog({
-                        autoOpen: true,
-                        modal: false,
-                        width: 300,
-                        height: 500,
-                        position: {
-                            my: "left top+20",
-                            at: "bottom",
-                            of: ".brand"
-                        },
-                        buttons : {
-                            Close : function() {
-                                $("#wallDialog").dialog("close");
-                            }
-                        }
-                    });
-                    loadWallDialogContents();
-                    $("#sendWallPostBody").click(function() {
-                        $.ajax({
-                            url: "/api/v1/posts",
-                            type: "POST",
-                            data: {
-                                message : $("#wallPostBody").val(),
-                                to: App.chatBuddy["username"]
-                            },
-                            success: function() {
-                                $("#wallPostBody").val("");
-                                loadWallDialogContents();
-                            },
-                            error: function(jqXHR, status, errorThrown) {
-                                var errorMessage = errorThrown + ": " + jqXHR.responseText;
-                                console.log(errorMessage);
-                                alert(errorMessage);
-                                loadWallDialogContents();
-                            }
-                        });
-                    });
-                    $("#clearWallPostBody").click(function(evt){
-                        $("#wallPostBody").val("");
-                    });
-                }
-            );
+            //App.loadMustacheTemplate("messagingTemplates.html","wallDialogTemplate",
+            //    function(template) {
+            //        var html = template.render({buddy: App.chatBuddy});
+            //        $(html).dialog({
+            //            autoOpen: true,
+            //            modal: false,
+            //            width: 300,
+            //            height: 500,
+            //            position: {
+            //                my: "left top+20",
+            //                at: "bottom",
+            //                of: ".brand"
+            //            },
+            //            buttons : {
+            //                Close : function() {
+            //                    $("#wallDialog").dialog("close");
+            //                }
+            //            }
+            //        });
+            //        loadWallDialogContents();
+            //        $("#sendWallPostBody").click(function() {
+            //            $.ajax({
+            //                url: "/api/v1/posts",
+            //                type: "POST",
+            //                data: {
+            //                    message : $("#wallPostBody").val(),
+            //                    to: App.chatBuddy["username"]
+            //                },
+            //                success: function() {
+            //                    $("#wallPostBody").val("");
+            //                    loadWallDialogContents();
+            //                },
+            //                error: function(jqXHR, status, errorThrown) {
+            //                    var errorMessage = errorThrown + ": " + jqXHR.responseText;
+            //                    console.log(errorMessage);
+            //                    alert(errorMessage);
+            //                    loadWallDialogContents();
+            //                }
+            //            });
+            //        });
+            //        $("#clearWallPostBody").click(function(evt){
+            //            $("#wallPostBody").val("");
+            //        });
+            //    }
+            //);
         }
 
         function loadWallDialogContents() {

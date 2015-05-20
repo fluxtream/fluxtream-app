@@ -83,7 +83,7 @@ define(["core/Tab","core/grapher/Grapher","core/FlxState"], function(Tab,Grapher
         }
         if (navigator.userAgent.indexOf("Chrome")!=-1) {
             $("._timeline_channels").unbind().bind("DOMSubtreeModified", function() {
-                $("._timeline_dataTable").hide();setTimeout(function(){$("._timeline_dataTable").show()}, 100);
+                $("._timeline_channelsArea").hide().show(0);
             });
         }
         //trigger the resize handler for the grapher. This forces the grapher objects to resize to their proper sizes
