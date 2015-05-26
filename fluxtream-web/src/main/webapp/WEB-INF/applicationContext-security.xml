@@ -80,6 +80,7 @@
 		use-expressions="true" create-session="ifRequired">
         <http-basic/>
         <intercept-url pattern="/" access="permitAll" />
+        <intercept-url pattern="/authenticate.json" access="permitAll" />
         <intercept-url pattern="/dev/**" access="permitAll" />
         <intercept-url pattern="/jmx/**" access="hasRole('ROLE_ADMIN')" />
 		<intercept-url pattern="/**" access="hasRole('ROLE_USER')" />
