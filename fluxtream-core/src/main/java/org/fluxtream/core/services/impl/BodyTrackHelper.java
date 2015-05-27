@@ -165,9 +165,10 @@ public class BodyTrackHelper {
                     String deviceChannelName = new StringBuilder(connector.getName()).append(".").append(mapping.getChannelName()).toString();
                     String deviceNicknameChannelName = new StringBuilder(mapping.getDeviceName()).append(".").append(mapping.getChannelName()).toString();
                     String internalDeviceNicknameChannelName = new StringBuilder(mapping.getInternalDeviceName()).append(".").append(mapping.getChannelName()).toString();
+                    String deviceInternalChannelName = new StringBuilder(mapping.getDeviceName()).append(".").append(mapping.getInternalChannelName()).toString();
                     for (String channelName : channelNames) {
                         if (channelName.toLowerCase().equals(deviceChannelName.toLowerCase()) || channelName.toLowerCase().equals(deviceNicknameChannelName.toLowerCase())||
-                                channelName.toLowerCase().equals(internalDeviceNicknameChannelName.toLowerCase())) {
+                                channelName.toLowerCase().equals(internalDeviceNicknameChannelName.toLowerCase())||deviceInternalChannelName.equals(channelName)) {
                             ChannelSpecs channelSpecs = infoResponse.channel_specs.get(channelName);
                             channel.min = channelSpecs.channel_bounds.min_value;
                             channel.max = channelSpecs.channel_bounds.max_value;
