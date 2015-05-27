@@ -699,6 +699,7 @@ define(
                         if (guestInfo["avatar"].type!="none") {
                             $("#profileIcon").replaceWith("<img src=\"" + guestInfo.avatar.url + "\" style=\"display:inline;width:27px;margin: 0 1px 0 4px;\" width=27 height=27>");
                             $("#profileIconCaret").css("margin-top", "10px");
+                            $("#forumMenuItem").css("margin-top", "3px");
                             $("#helpDropdownToggle").css("margin-top", "3px");
                             $("#buddiesDropdownToggle").css("margin-top", "3px");
                             $("#connectorsDropdownToggle").css("margin-top", "3px");

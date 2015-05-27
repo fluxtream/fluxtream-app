@@ -8,6 +8,7 @@
     Boolean tracker = (Boolean)request.getAttribute("tracker");
     Boolean intercom = (Boolean)request.getAttribute("intercom");
     Boolean useMinifiedJs = (Boolean)request.getAttribute("useMinifiedJs");
+    String forumUrl = (String) request.getAttribute("forumUrl");
     List<Guest> trustedBuddies = (List<Guest>)request.getAttribute("trustedBuddies");
     List<Guest> trustingBuddies = (List<Guest>)request.getAttribute("trustingBuddies");%><!DOCTYPE html>
 <html lang="en">
@@ -104,6 +105,9 @@
 
                                     </ul>
                                 </li>
+                                <% if (forumUrl!=null) { %>
+                                    <li id="forumMenuItem"><a href="<%=forumUrl%>" target="fluxtream_forum">Forum</a></li>
+                                <% } %>
                                 <li class="dropdown" id="connectorsDropdownToggle" data-container="body">
                                     <a href="javascript:void(0)" class="dropdown-toggle" onclick="$('#connectorsDropdownToggle').popover('destroy');"
                                                         data-toggle="dropdown">Connectors

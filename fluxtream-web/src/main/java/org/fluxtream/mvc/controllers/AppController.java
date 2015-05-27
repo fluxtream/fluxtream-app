@@ -157,6 +157,8 @@ public class AppController {
         request.setAttribute("trustingBuddies", buddiesService.getTrustingBuddies(guestId));
         request.setAttribute("trustedBuddies", buddiesService.getTrustedBuddies(guestId));
         request.setAttribute("useMinifiedJs", Boolean.valueOf(env.get("useMinifiedJs")));
+        if (env.get("forum.url")!=null)
+            request.setAttribute("forumUrl", env.get("forum.url"));
 
 		if (SecurityUtils.isDemoUser())
 			request.setAttribute("demo", true);
