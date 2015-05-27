@@ -36,7 +36,7 @@ public class jsConnectController {
             user.put("name", guest.getGuestName());
             user.put("email", guest.email);
             String emailHash = hash(guest.email.toLowerCase().trim()); //gravatar specifies the email should be trimmed, taken to lowercase, and then MD5 hashed
-            String gravatarURL = String.format("http://www.gravatar.com/avatar/%s?s=27&d=retro", emailHash);
+            String gravatarURL = String.format("http://www.gravatar.com/avatar/%s?s=256&d=retro", emailHash);
             user.put("photourl", gravatarURL);
         }
         String clientId = env.get("vanillaforums.client.id");
