@@ -51,13 +51,11 @@ public class FlxSavedRequestAwareAuthenticationSuccessHandler extends SimpleUrlA
         } else if (request.getHeader("User-Agent").indexOf("Mobile") != -1) {
             logger.debug("Redirecting to mobile default target URL: " + mobileDefaultTargetUrl);
             getRedirectStrategy().sendRedirect(request, response, mobileDefaultTargetUrl);
-        } else if (requestRedirect !=null) {
+        } else if (requestRedirect != null) {
             // if there's an explicit redirect parameter it takes precedence over any saved request
             logger.debug("Redirecting to request redirection parameter: " + requestRedirect);
             getRedirectStrategy().sendRedirect(request, response, requestRedirect);
-        }
-
-        if (savedRequest != null) {
+        } else if (savedRequest != null) {
             // if saved request was an ajax call or targeting a simple asset, ignore it
             if (savedRequest.getRedirectUrl().indexOf("/api/")!=-1||
                 savedRequest.getRedirectUrl().indexOf(env.get("release"))!=-1||
