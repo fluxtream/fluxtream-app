@@ -253,8 +253,8 @@ define(["core/grapher/BTCore",
             }
             var channelNames = [];
             for (i = 0; source != null && i < source.channels.length; i++){
-                channelNames[channelNames.length] = {name: source.name + source.channels[i].name,
-                    displayName: source.name + "." + source.channels[i].name
+                channelNames[channelNames.length] = {name: source.name.trim() + source.channels[i].name.trim(),
+                    displayName: source.name.trim() + "." + source.channels[i].name.trim()
                 };
             }
             App.loadMustacheTemplate("connectorMgmtTemplates.html","settings",function(template){
@@ -291,7 +291,7 @@ define(["core/grapher/BTCore",
     }
 
     function showTimelineSettings(connector, channelNames, source) {
-        console.log(connector.channels);
+        console.log(connector.channels, channelNames);
         App.loadMustacheTemplate("connectorMgmtTemplates.html","channel-settings",function(template){
             var settingsHtml = template.render({
                 connectorName:connector.connectorName,
@@ -306,8 +306,11 @@ define(["core/grapher/BTCore",
                 var name = connector.channels[i];
                 if (name == "")
                     break;
-                var index = name.substring(0,name.indexOf(".")) + name.substring(name.indexOf(".") + 1);
-                $("#" + index + "-checkbox")[0].checked = true;
+                var index = (name.substring(0,name.indexOf("."))).trim() + (name.substring(name.indexOf(".") + 1).trim());
+                if (typeof($("#" + index + "-checkbox")[0])=="undefined")
+                    console.log(index + " checkbox not found");
+                else
+                    $("#" + index + "-checkbox")[0].checked = true;
             }
 
             $("#" + connector.connectorName + "SettingsDialog input").click(function(event){
@@ -331,7 +334,8 @@ define(["core/grapher/BTCore",
             });
             $("#resetSettingsButton").hide();
 
-            $("#connectorSettingsTab .selectAll").click(function(){
+            $("#connectorSettingsTab .selectAll").click(function(e){
+                e.preventDefault();
                 var elements = $("#connectorSettingsTab input[type='checkbox']");
                 for (var i = 0, li = elements.length; i < li; i++){
                     elements[i].checked = true;
@@ -353,7 +357,8 @@ define(["core/grapher/BTCore",
                 });
                 return false;
             });
-            $("#connectorSettingsTab .selectNone").click(function(){
+            $("#connectorSettingsTab .selectNone").click(function(e){
+                e.preventDefault();
                 var elements = $("#connectorSettingsTab input[type='checkbox']");
                 for (var i = 0, li = elements.length; i < li; i++){
                     elements[i].checked = false;
