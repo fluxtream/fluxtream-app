@@ -83,22 +83,31 @@ public class MisfitUpdater extends AbstractUpdater implements Autonomous {
         if (lastSummaryDate==null)
             backwardRetrieveMisfitData(updateInfo, ObjectType.getObjectTypeValue(MisfitActivitySummaryFacet.class));
         else {
-            retrieveMisfitDataFromTo(updateInfo, ObjectType.getObjectTypeValue(MisfitActivitySummaryFacet.class), lastSummaryDate, getMaxEndDate());
+            DateTime maxAllowedEndDate = getMaxAllowedEndDate(lastSummaryDate);
+            retrieveMisfitDataFromTo(updateInfo, ObjectType.getObjectTypeValue(MisfitActivitySummaryFacet.class), lastSummaryDate, ISODateTimeFormat.date().print(maxAllowedEndDate));
         }
 
         String lastSessionDate = getLastSessionDate(updateInfo);
-        if (lastSessionDate==null)
+        if (lastSessionDate==null) {
             backwardRetrieveMisfitData(updateInfo, ObjectType.getObjectTypeValue(MisfitActivitySessionFacet.class));
-        else {
-            retrieveMisfitDataFromTo(updateInfo, ObjectType.getObjectTypeValue(MisfitActivitySessionFacet.class), lastSessionDate, getMaxEndDate());
+        } else {
+            DateTime maxAllowedEndDate = getMaxAllowedEndDate(lastSessionDate);
+            retrieveMisfitDataFromTo(updateInfo, ObjectType.getObjectTypeValue(MisfitActivitySessionFacet.class), lastSessionDate, ISODateTimeFormat.date().print(maxAllowedEndDate));
         }
 
         String lastSleepDate = getLastSleepDate(updateInfo);
         if (lastSleepDate==null)
             backwardRetrieveMisfitData(updateInfo, ObjectType.getObjectTypeValue(MisfitSleepFacet.class));
         else {
-            retrieveMisfitDataFromTo(updateInfo, ObjectType.getObjectTypeValue(MisfitSleepFacet.class), lastSleepDate, getMaxEndDate());
+            DateTime maxAllowedEndDate = getMaxAllowedEndDate(lastSleepDate);
+            retrieveMisfitDataFromTo(updateInfo, ObjectType.getObjectTypeValue(MisfitSleepFacet.class), lastSleepDate, ISODateTimeFormat.date().print(maxAllowedEndDate));
         }
+    }
+
+    private DateTime getMaxAllowedEndDate(String lastSummaryDate) {
+        DateTime thirtyDaysLater = (ISODateTimeFormat.date().parseDateTime(lastSummaryDate).plusDays(30));
+        DateTime now = DateTime.now();
+        return thirtyDaysLater.isAfter(now)?now:thirtyDaysLater;
     }
 
     private String getLastSummaryDate(UpdateInfo updateInfo) {
