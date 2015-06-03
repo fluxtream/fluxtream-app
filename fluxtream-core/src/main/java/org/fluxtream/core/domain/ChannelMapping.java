@@ -12,8 +12,8 @@ import java.util.List;
 @NamedQueries({
       @NamedQuery(name="channelMapping.delete.all",
                   query="DELETE FROM ChannelMapping mapping WHERE mapping.guestId=?"),
-      @NamedQuery(name="channelMapping.byApiKey",
-                  query="SELECT mapping FROM ChannelMapping mapping WHERE mapping.guestId=? AND mapping.apiKeyId=?"),
+      @NamedQuery(name="channelMapping.byApiKeyId",
+                  query="SELECT mapping FROM ChannelMapping mapping WHERE mapping.apiKeyId=?"),
       @NamedQuery(name="channelMapping.byApiKeyAndObjectType",
                   query="SELECT mapping FROM ChannelMapping mapping WHERE mapping.guestId=? AND mapping.apiKeyId=? AND mapping.objectTypes=?"),
       @NamedQuery(name="channelMapping.byDisplayName",

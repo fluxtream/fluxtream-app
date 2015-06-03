@@ -81,4 +81,10 @@ public class ConnectorModelFull {
 
     @ApiModelProperty("If this is an upload connector, the message that is shown to the user on the dialog that allows file upload")
     public String uploadMessage;
+
+    @ApiModelProperty("This connector's device name")
+    public String deviceNickname;
+
+    @ApiModelProperty("This connector's internal device name")
+    public String internalDeviceNickname;
 }

@@ -358,7 +358,7 @@ public class BodyTrackHelper {
 
             Map<String,Object> tempFileMapping = new HashMap<String,Object>();
             tempFileMapping.put("data", data);
-            tempFileMapping.put("channel_names",channelNames);
+            tempFileMapping.put("channel_names", channelNames);
 
             FileOutputStream fos = new FileOutputStream(tempFile);
             final String bodyTrackJSONData = gson.toJson(tempFileMapping);
@@ -774,13 +774,27 @@ public class BodyTrackHelper {
             if (keys.size() > 0){
                 apiKeyId = keys.get(0).getId();
             }
-            dataUpdateService.logBodyTrackStyleUpdate(guestId,apiKeyId,null,deviceName,new String[]{channelName});
+            dataUpdateService.logBodyTrackStyleUpdate(guestId, apiKeyId, null, deviceName, new String[]{channelName});
 
 
         }
         catch (Exception e){
 
         }
+    }
+
+    public String getDeviceName(long apiKeyId) {
+        ChannelMapping channelMapping = JPAUtils.findUnique(em, ChannelMapping.class, "channelMapping.byApiKeyId", apiKeyId);
+        if (channelMapping!=null)
+            return channelMapping.getDeviceName();
+        return null;
+    }
+
+    public String getInternalDeviceName(long apiKeyId) {
+        ChannelMapping channelMapping = JPAUtils.findUnique(em, ChannelMapping.class, "channelMapping.byApiKeyId", apiKeyId);
+        if (channelMapping!=null)
+            return channelMapping.getInternalDeviceName();
+        return null;
     }
 
     public ChannelMapping getChannelMapping(long guestId, String displayDeviceName, String displayChannelName){

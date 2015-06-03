@@ -22,6 +22,7 @@ import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.*;
 import org.fluxtream.core.mvc.models.ConnectorModelFull;
 import org.fluxtream.core.services.*;
+import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.utils.Utils;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
@@ -69,6 +70,9 @@ public class ConnectorStore {
 
     @Autowired
     BeanFactory beanFactory;
+
+    @Autowired
+    BodyTrackHelper bodytrackHelper;
 
     Gson gson;
     ObjectMapper mapper = new ObjectMapper();
@@ -199,6 +203,8 @@ public class ConnectorStore {
                     connectorModel.connectUrl = connector.connectUrl;
                     connectorModel.image = env.get("homeBaseUrl") + connector.image.substring(1);
                     connectorModel.connectorName = connector.connectorName;
+                    connectorModel.deviceNickname = bodytrackHelper.getDeviceName(apiKey.getId());
+                    connectorModel.internalDeviceNickname = bodytrackHelper.getInternalDeviceName(apiKey.getId());
                     connectorModel.enabled = connector.enabled;
                     connectorModel.manageable = connector.manageable;
                     connectorModel.text = connector.text;

@@ -245,13 +245,15 @@ define(["core/grapher/BTCore",
                 // We will need to make modifications to respect items in the ChannelMapping table
                 // for mapping device names to their connectors and make multiple instances of
                 // a given connector type work.
-                if (sources[i].name == connector.name ||
-                    sources[i].name == connector.connectorName){
+                sources[i].name.replace(/' '/g, '_');
+
+                if (sources[i].name == connector.internalDeviceNickname){
                     source = sources[i];
                     break;
                 }
             }
             var channelNames = [];
+            console.log("connector, source ",connector, source);
             for (i = 0; source != null && i < source.channels.length; i++){
                 channelNames[channelNames.length] = {name: source.name.trim() + source.channels[i].name.trim(),
                     displayName: source.name.trim() + "." + source.channels[i].name.trim()
@@ -327,7 +329,7 @@ define(["core/grapher/BTCore",
                     }
                 }
                 $.ajax({
-                    url:"/api/v1/connectors/" + connector.name + "/channels",
+                    url:"/api/v1/connectors/" + connector.connectorName + "/channels",
                     type:"POST",
                     data:{channels:channelList}
                 })
