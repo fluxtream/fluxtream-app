@@ -188,7 +188,7 @@ public class CouchUpdater {
                 ChannelMapping mapping = mappings.get(0);
                 String previousChannelName = mapping.getChannelName();
                 if (!mapping.getChannelName().equals(topic.name))
-                    mapping.setChannelName(topic.name);
+                    mapping.setChannelName(Utils.sanitize(topic.name));
                 query = em.createQuery("SELECT style FROM ChannelStyle style WHERE style.deviceName='FluxtreamCapture' AND style.channelName=? AND style.guestId=?");
                 query.setParameter(1, previousChannelName);
                 query.setParameter(2, guestId);
@@ -198,7 +198,7 @@ public class CouchUpdater {
             } else {
                 ChannelMapping mapping = new ChannelMapping(apiKeyId, guestId,
                         ChannelMapping.ChannelType.data, ChannelMapping.TimeType.gmt,
-                        2, "FluxtreamCapture", topic.name,
+                        2, "FluxtreamCapture", Utils.sanitize(topic.name),
                         "FluxtreamCapture", "topic_" + topic.fluxtreamId);
                 mapping.setCreationType(ChannelMapping.CreationType.dynamic);
                 bodytrackHelper.setBuiltinDefaultStyle(guestId, "FluxtreamCapture", topic.name, lollipopStyle);
