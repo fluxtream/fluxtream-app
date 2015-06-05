@@ -21,10 +21,7 @@ import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.*;
-import org.fluxtream.core.services.ApiDataService;
-import org.fluxtream.core.services.BodyTrackStorageService;
-import org.fluxtream.core.services.GuestService;
-import org.fluxtream.core.services.MetadataService;
+import org.fluxtream.core.services.*;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
 import org.fluxtream.core.utils.Utils;
@@ -74,6 +71,9 @@ public class CouchUpdater {
 
     @Autowired
     Configuration env;
+
+    @Autowired
+    SettingsService settingsService;
 
     @PersistenceContext
     EntityManager em;
@@ -140,10 +140,14 @@ public class CouchUpdater {
             for (int i = 0; i < changes.size(); i++) {
                 JSONObject change = changes.getJSONObject(i);
                 // Skip deleted objects.  Someday, we might consider deleting them here
-                if (change.optBoolean("deleted", false)) {
-                    continue;
-                }
                 JSONObject doc = change.getJSONObject("doc");
+                if (change.optBoolean("deleted", false)) {
+                    switch (couchDatabaseName) {
+                        case TOPICS:
+                            removeCalendarChannel(updateInfo, doc.getString("name"));
+                            break;
+                    }
+                }
                 switch (couchDatabaseName) {
                     case OBSERVATIONS:
                         FluxtreamObservationFacet observationFacet = createOrUpdateObservation(updateInfo, rootURL, doc);
@@ -154,6 +158,7 @@ public class CouchUpdater {
                         break;
                     case TOPICS:
                         FluxtreamTopicFacet topicFacet = createOrUpdateTopic(updateInfo, rootURL, doc);
+                        addCalendarChannel(updateInfo, doc.getString("name"));
                         if(topicFacet!=null) {
                             apiDataService.persistFacet(topicFacet);
                             newFacets.add(topicFacet);
@@ -174,6 +179,38 @@ public class CouchUpdater {
             guestService.setApiKeyAttribute(updateInfo.apiKey, couchDatabaseName.name() + "_last_seq", String.valueOf(lastSeq));
         }
 
+    }
+
+    private void addCalendarChannel(UpdateInfo updateInfo, String name) {
+        String channelIdentifier = updateInfo.apiKey.getConnector().getDeviceNickname() + "." + name;
+        String[] channelsForConnector = settingsService.getChannelsForConnector(updateInfo.getGuestId(), updateInfo.apiKey.getConnector());
+        List<String> newChannels = new ArrayList<String>();
+        boolean alreadyAdded = false;
+        for (String channelName : channelsForConnector) {
+            if (channelName.equals(channelIdentifier)) {
+                alreadyAdded = true;
+                break;
+            }
+            newChannels.add(channelName);
+        }
+        if (!alreadyAdded)
+            settingsService.setChannelsForConnector(updateInfo.getGuestId(), updateInfo.apiKey.getConnector(), newChannels.toArray(new String[newChannels.size()]));
+    }
+
+    private void removeCalendarChannel(UpdateInfo updateInfo, String name) {
+        String channelIdentifier = updateInfo.apiKey.getConnector().getDeviceNickname() + "." + name;
+        String[] channelsForConnector = settingsService.getChannelsForConnector(updateInfo.getGuestId(), updateInfo.apiKey.getConnector());
+        List<String> newChannels = new ArrayList<String>();
+        boolean channelWasFound = false;
+        for (String channelName : channelsForConnector) {
+            if (channelName.equals(channelIdentifier)) {
+                channelWasFound = true;
+                continue;
+            }
+            newChannels.add(channelName);
+        }
+        if (channelWasFound)
+            settingsService.setChannelsForConnector(updateInfo.getGuestId(), updateInfo.apiKey.getConnector(), newChannels.toArray(new String[newChannels.size()]));
     }
 
     @Transactional(readOnly=false)
