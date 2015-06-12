@@ -307,7 +307,7 @@ define(["core/grapher/BTCore",
             for (var i = 0; i < connector.channels.length; i++){
                 var name = connector.channels[i];
                 if (name == "")
-                    break;
+                    continue;
                 var index = (name.substring(0,name.indexOf("."))).trim() + (name.substring(name.indexOf(".") + 1).trim());
                 if (typeof($("#" + index + "-checkbox")[0])=="undefined")
                     console.log(index + " checkbox not found");
@@ -319,7 +319,8 @@ define(["core/grapher/BTCore",
                 var channelList = "";
                 connector.channels = [];
                 for (var i = 0; source != null && i < source.channels.length; i++){
-                    if ($("#" + source.name + source.channels[i].name + "-checkbox")[0].checked){
+                    var checkbox = $("input[data-channelName='" + source.name + source.channels[i].name + "']")
+                    if (!_.isUndefined(checkbox[0]) && checkbox[0].checked){
                         connector.channels.push(source.name + "." + source.channels[i].name);
                         if (channelList == "")
                             channelList = source.name + "." + source.channels[i].name;

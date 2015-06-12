@@ -10,7 +10,7 @@ import org.fluxtream.core.domain.GuestSettings;
  */
 public class FluxtreamObservationFacetVO extends AbstractInstantFacetVO<FluxtreamObservationFacet> {
 
-    int value;
+    Integer value;
     String topicName;
 
     @Override

@@ -39,12 +39,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by candide on 11/02/15.
@@ -54,6 +58,7 @@ import java.util.List;
 @Transactional(readOnly=true)
 public class CouchUpdater {
 
+    private final String NEW_TOPIC = "newTopic";
     @Autowired
     GuestService guestService;
 
@@ -136,34 +141,44 @@ public class CouchUpdater {
             }
 
             // Loop over changes
+
             List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
             for (int i = 0; i < changes.size(); i++) {
                 JSONObject change = changes.getJSONObject(i);
                 // Skip deleted objects.  Someday, we might consider deleting them here
                 JSONObject doc = change.getJSONObject("doc");
                 if (change.optBoolean("deleted", false)) {
+                    if (couchDatabaseName==CouchDatabaseName.TOPICS) {
+                        String topicId = doc.getString("_id");
+                        TypedQuery<ChannelMapping> query = em.createQuery(String.format("SELECT cm FROM ChannelMapping cm WHERE cm.internalChannelName='topic_%s'", topicId), ChannelMapping.class);
+                        List<ChannelMapping> channelMappings = query.getResultList();
+                        if (channelMappings.size()>0) {
+                            ChannelMapping channelMapping = channelMappings.get(0);
+                            removeCalendarChannel(updateInfo, channelMapping);
+                            maybeRemoveChannelMapping(topicId, channelMapping);
+                        }
+                    }
+                } else {
                     switch (couchDatabaseName) {
+                        case OBSERVATIONS:
+                            FluxtreamObservationFacet observationFacet = createOrUpdateObservation(updateInfo, rootURL, doc);
+                            if (observationFacet != null) {
+                                apiDataService.persistFacet(observationFacet);
+                                newFacets.add(observationFacet);
+                            }
+                            break;
                         case TOPICS:
-                            removeCalendarChannel(updateInfo, doc.getString("name"));
+                            updateInfo.setContext(NEW_TOPIC, false);
+                            FluxtreamTopicFacet topicFacet = createOrUpdateTopic(updateInfo, rootURL, doc);
+                            Boolean newTopic = (Boolean) updateInfo.getContext(NEW_TOPIC);
+                            if (newTopic)
+                                addCalendarChannel(updateInfo, doc.getString("name"));
+                            if (topicFacet != null) {
+                                apiDataService.persistFacet(topicFacet);
+                                newFacets.add(topicFacet);
+                            }
                             break;
                     }
-                }
-                switch (couchDatabaseName) {
-                    case OBSERVATIONS:
-                        FluxtreamObservationFacet observationFacet = createOrUpdateObservation(updateInfo, rootURL, doc);
-                        if(observationFacet!=null) {
-                            apiDataService.persistFacet(observationFacet);
-                            newFacets.add(observationFacet);
-                        }
-                        break;
-                    case TOPICS:
-                        FluxtreamTopicFacet topicFacet = createOrUpdateTopic(updateInfo, rootURL, doc);
-                        addCalendarChannel(updateInfo, doc.getString("name"));
-                        if(topicFacet!=null) {
-                            apiDataService.persistFacet(topicFacet);
-                            newFacets.add(topicFacet);
-                        }
-                        break;
                 }
             }
 
@@ -181,6 +196,24 @@ public class CouchUpdater {
 
     }
 
+    /**
+     * Remove Channel Mapping if there are no associated observations (i.e. the user created a topic, then deleted them and didn't
+     * make any observations for that topic)
+     * @param topicId
+     * @param channelMapping
+     */
+    @Transactional(readOnly=false)
+    private void maybeRemoveChannelMapping(String topicId, ChannelMapping channelMapping) {
+        TypedQuery<FluxtreamObservationFacet> query = em.createQuery("SELECT observation FROM Facet_FluxtreamCaptureObservation observation WHERE observation.topicId=?1", FluxtreamObservationFacet.class);
+        query.setParameter(1, topicId);
+        List<FluxtreamObservationFacet> resultList = query.getResultList();
+        if (resultList.size()==0) {
+            em.refresh(channelMapping);
+            em.remove(channelMapping);
+        }
+    }
+
+    @Transactional(readOnly=false)
     private void addCalendarChannel(UpdateInfo updateInfo, String name) {
         String channelIdentifier = updateInfo.apiKey.getConnector().getDeviceNickname() + "." + name;
         String[] channelsForConnector = settingsService.getChannelsForConnector(updateInfo.getGuestId(), updateInfo.apiKey.getConnector());
@@ -193,12 +226,15 @@ public class CouchUpdater {
             }
             newChannels.add(channelName);
         }
-        if (!alreadyAdded)
+        if (!alreadyAdded) {
+            newChannels.add(channelIdentifier);
             settingsService.setChannelsForConnector(updateInfo.getGuestId(), updateInfo.apiKey.getConnector(), newChannels.toArray(new String[newChannels.size()]));
+        }
     }
 
-    private void removeCalendarChannel(UpdateInfo updateInfo, String name) {
-        String channelIdentifier = updateInfo.apiKey.getConnector().getDeviceNickname() + "." + name;
+    @Transactional(readOnly=false)
+    private void removeCalendarChannel(UpdateInfo updateInfo, ChannelMapping channelMapping) {
+        String channelIdentifier = updateInfo.apiKey.getConnector().getDeviceNickname() + "." + channelMapping.getChannelName();
         String[] channelsForConnector = settingsService.getChannelsForConnector(updateInfo.getGuestId(), updateInfo.apiKey.getConnector());
         List<String> newChannels = new ArrayList<String>();
         boolean channelWasFound = false;
@@ -224,8 +260,10 @@ public class CouchUpdater {
             if (mappings.size()>0) {
                 ChannelMapping mapping = mappings.get(0);
                 String previousChannelName = mapping.getChannelName();
-                if (!mapping.getChannelName().equals(topic.name))
-                    mapping.setChannelName(Utils.sanitize(topic.name));
+                if (!mapping.getChannelName().equals(topic.name)){
+                    String noClashChannelName = createNoClashChannelName(Utils.sanitize(topic.name), guestId);
+                    mapping.setChannelName(noClashChannelName);
+                }
                 query = em.createQuery("SELECT style FROM ChannelStyle style WHERE style.deviceName='FluxtreamCapture' AND style.channelName=? AND style.guestId=?");
                 query.setParameter(1, previousChannelName);
                 query.setParameter(2, guestId);
@@ -233,9 +271,11 @@ public class CouchUpdater {
                 if (styles.size()>0)
                     styles.get(0).channelName = topic.name;
             } else {
+                // add increment to avoid name clashes
+                String noClashChannelName = createNoClashChannelName(Utils.sanitize(topic.name), guestId);
                 ChannelMapping mapping = new ChannelMapping(apiKeyId, guestId,
                         ChannelMapping.ChannelType.data, ChannelMapping.TimeType.gmt,
-                        2, "FluxtreamCapture", Utils.sanitize(topic.name),
+                        2, "FluxtreamCapture", noClashChannelName,
                         "FluxtreamCapture", "topic_" + topic.fluxtreamId);
                 mapping.setCreationType(ChannelMapping.CreationType.dynamic);
                 bodytrackHelper.setBuiltinDefaultStyle(guestId, "FluxtreamCapture", topic.name, lollipopStyle);
@@ -244,9 +284,33 @@ public class CouchUpdater {
         }
     }
 
+    private String createNoClashChannelName(String sanitizedTopicName, long guestId) {
+        TypedQuery<String> channelNameQuery = em.createQuery("SELECT mapping.channelName FROM ChannelMapping mapping WHERE mapping.deviceName='FluxtreamCapture' AND mapping.guestId=?1 AND mapping.channelName LIKE ?2", String.class);
+        channelNameQuery.setParameter(1, guestId);
+        channelNameQuery.setParameter(2, sanitizedTopicName+"%");
+        List<String> channelNames = channelNameQuery.getResultList();
+        int maxIndex = -1;
+        if (channelNames.contains(sanitizedTopicName))
+            maxIndex = 1;
+        Pattern incrementPattern = Pattern.compile("\\[(\\d*)\\]");
+        for (String channelName : channelNames) {
+            Matcher m = incrementPattern.matcher(channelName);
+            while (m.find()) {
+                String s = m.group(1);
+                try {
+                    int increment = Integer.valueOf(s);
+                    if (increment>maxIndex) maxIndex = increment;
+                } catch (Throwable t) {}
+            }
+        }
+        String result = sanitizedTopicName;
+        if (maxIndex!=-1)
+            result += "_[" + (maxIndex+1) + "]";
+        return result;
+    }
+
     @RequestMapping(value="/fluxtream_capture/mappings/resync", method = RequestMethod.POST)
     public void resyncChannelMappings(HttpServletResponse response) throws IOException {
-
         ApiKey apiKey = guestService.getApiKey(AuthHelper.getGuestId(), Connector.getConnector("fluxtream_capture"));
         mapTopicsToChannels(apiKey);
         response.getWriter().write("resynced");
@@ -321,7 +385,8 @@ public class CouchUpdater {
 
                                     facet.comment = observation.optString("comment", null);
 
-                                    facet.value = observation.getInt("value");
+                                    if (observation.has("value")&&observation.get("value")!=null&&!observation.getString("value").equals("null"))
+                                        facet.value = observation.getInt("value");
 
                                     //System.out.println("====== fluxtreamId=" + facet.fluxtreamId + ", timeUpdated=" + facet.timeUpdated);
                                     return facet;
@@ -357,6 +422,7 @@ public class CouchUpdater {
                                         // auto-populate the facet's tags field with the name of the topic (e.g. "Food", "Back Pain", etc.)
                                         facet.guestId = updateInfo.apiKey.getGuestId();
                                         facet.api = updateInfo.apiKey.getConnector().value();
+                                        updateInfo.setContext(NEW_TOPIC, true);
                                     }
 
                                     facet.topicNumber = topic.getInt("topicNumber");
