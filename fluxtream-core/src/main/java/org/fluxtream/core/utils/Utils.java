@@ -36,7 +36,8 @@ public class Utils {
 	public static String sanitize(String s) {
 		StringBuffer sb = new StringBuffer();
 		for (int i=0; i<s.length(); i++) {
-			if (s.charAt(i)==' ' || Character.isLetter(s.charAt(i))||s.charAt(i)=='_') {
+			if (s.charAt(i)==' ' || Character.isLetter(s.charAt(i))||s.charAt(i)=='_' ||
+					Character.isDigit(s.charAt(i))) {
 				sb.append(s.charAt(i));
 			} else sb.append('_');
 		}
