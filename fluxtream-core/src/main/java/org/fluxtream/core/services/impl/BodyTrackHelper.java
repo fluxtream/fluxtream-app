@@ -791,6 +791,9 @@ public class BodyTrackHelper {
     }
 
     public String getInternalDeviceName(long apiKeyId) {
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        if (apiKey.getConnector().getName().equals("fluxtream_capture"))
+            return getDeviceName(apiKeyId);
         ChannelMapping channelMapping = JPAUtils.findUnique(em, ChannelMapping.class, "channelMapping.byApiKeyId", apiKeyId);
         if (channelMapping!=null)
             return channelMapping.getInternalDeviceName();
