@@ -5,10 +5,10 @@
 	List<String> required = new ArrayList<String>();
 	if (request.getAttribute("required")!=null) required = (ArrayList<String>) request.getAttribute("required");
 
-	String username = "arw";
+	String username = "";
 	if (request.getAttribute("username")!=null) username = (String) request.getAttribute("username");
 
-    String activationCode = "pvfg";
+    String activationCode = "";
     if (request.getAttribute("activationCode")!=null) activationCode = (String) request.getAttribute("activationCode");
 
 	String errorMessage = null;
@@ -39,7 +39,7 @@
         <div class="controls">
             <input autocorrect="off" autocapitalize="off"
                    onkeypress="if(event.which==13) Connectors.submitMymeeAuthInfo()"
-                   name="mymee-password" id="mymee-password" type="password" value="kweugqej">
+                   name="mymee-password" id="mymee-password" type="password" value="">
             <% if (required.contains("password")) { %>
             <span class="help-inline">password is required</span>
             <% } %>
