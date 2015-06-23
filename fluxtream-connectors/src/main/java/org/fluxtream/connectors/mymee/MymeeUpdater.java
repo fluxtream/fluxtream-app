@@ -3,9 +3,14 @@ package org.fluxtream.connectors.mymee;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.http.*;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.Credentials;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHeaderElementIterator;
@@ -114,7 +119,7 @@ public class MymeeUpdater extends AbstractUpdater {
             JSONArray changes;
 
             try {
-                JSONObject json = JSONObject.fromObject(fetchRetrying(URL, 20));
+                JSONObject json = JSONObject.fromObject(fetchRetrying(updateInfo, URL, 20));
                 newLastSeq = json.getLong("last_seq");
                 changes = json.getJSONArray("results");
             }
@@ -291,11 +296,13 @@ public class MymeeUpdater extends AbstractUpdater {
 
     // Returns root URL for mymee database, without trailing / (e.g. http://hostname/databasename)
     private String getRootURL(final UpdateInfo updateInfo) {
-        final String fetchURL = guestService.getApiKeyAttribute(updateInfo.apiKey,"fetchURL");
+        final String fetchURL = String.format("https://%s/%s",
+                guestService.getApiKeyAttribute(updateInfo.apiKey, "cloudDatabaseDomain"),
+                guestService.getApiKeyAttribute(updateInfo.apiKey, "cloudDatabaseName"));
         return getBaseURL(fetchURL) +  "/" + getMainDir(fetchURL);
     }
 
-    String fetchRetrying(final String url, final int retries) throws IOException, UnexpectedHttpResponseCodeException {
+    String fetchRetrying(final UpdateInfo updateInfo, final String url, final int retries) throws IOException, UnexpectedHttpResponseCodeException {
         HttpRequestRetryHandler myRetryHandler = new HttpRequestRetryHandler() {
             @Override
             public boolean retryRequest(IOException exception, int executionCount, HttpContext context) {
@@ -334,7 +341,17 @@ public class MymeeUpdater extends AbstractUpdater {
         final HttpParams httpParams = new BasicHttpParams();
         HttpConnectionParams.setConnectionTimeout(httpParams, 0);
         HttpConnectionParams.setSoTimeout(httpParams, 0);
+        String username = guestService.getApiKeyAttribute(updateInfo.apiKey, "cloudDatabaseUsername");
+        String password = guestService.getApiKeyAttribute(updateInfo.apiKey, "cloudDatabasePassword");
         DefaultHttpClient client = new DefaultHttpClient(httpParams);
+        if (updateInfo!=null) {
+            Credentials credentials = new UsernamePasswordCredentials(username, password);
+            CredentialsProvider credsProvider = new BasicCredentialsProvider();
+            credsProvider.setCredentials(
+                    new AuthScope(guestService.getApiKeyAttribute(updateInfo.apiKey, "cloudDatabaseDomain"), AuthScope.ANY_PORT),
+                    credentials);
+            client.setCredentialsProvider(credsProvider);
+        }
         client.setHttpRequestRetryHandler(myRetryHandler);
         client.setKeepAliveStrategy(new ConnectionKeepAliveStrategy() {
             @Override

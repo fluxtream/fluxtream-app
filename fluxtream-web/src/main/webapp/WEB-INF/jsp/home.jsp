@@ -178,6 +178,7 @@
     <script src="/static/js/jquery.xcolor-1.8.js"></script>
     <script src="/static/js/jquery.outerHTML-1.0.0.js"></script>
     <script src="/static/js/jquery.fastbutton-1.0.0.js"></script>
+    <script src="/static/js/cryptojs-3.1.2-aes.js"></script>
 
     <script>
         window.FLX_RELEASE_NUMBER = "${release}";

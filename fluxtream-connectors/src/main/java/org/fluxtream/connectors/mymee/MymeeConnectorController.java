@@ -38,14 +38,18 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.FormParam;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Security;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Controller()
@@ -81,7 +85,7 @@ public class MymeeConnectorController {
 		ModelAndView mav = new ModelAndView("connectors/mymee/success");
 		long guestId = AuthHelper.getGuestId();
         boolean worked = false;
-		try { updater.fetchRetrying(url, 20); worked = true;}
+		try { updater.fetchRetrying(null, url, 20); worked = true;}
 		catch (Exception e) {
             e.printStackTrace();
         }
@@ -97,6 +101,25 @@ public class MymeeConnectorController {
 			return new ModelAndView("connectors/mymee/enterAuthInfo");
 		}
 	}
+
+    @RequestMapping(value="/setConnectionParams", method=RequestMethod.POST)
+    public ModelAndView setConnectionParams(@FormParam("cloudDatabaseDomain") String cloudDatabaseDomain,
+                                            @FormParam("cloudDatabaseName") String cloudDatabaseName,
+                                            @FormParam("cloudDatabaseUsername") String cloudDatabaseUsername,
+                                            @FormParam("cloudDatabasePassword") String cloudDatabasePassword)
+    {
+        long guestId = AuthHelper.getGuestId();
+        final Connector connector = Connector.getConnector("mymee");
+        final ApiKey apiKey = guestService.createApiKey(guestId, connector);
+        guestService.setApiKeyAttribute(apiKey, "cloudDatabaseDomain", cloudDatabaseDomain);
+        guestService.setApiKeyAttribute(apiKey, "cloudDatabaseName", cloudDatabaseName);
+        guestService.setApiKeyAttribute(apiKey, "cloudDatabaseUsername", cloudDatabaseUsername);
+        guestService.setApiKeyAttribute(apiKey, "cloudDatabasePassword", cloudDatabasePassword);
+        connectorUpdateService.updateConnector(apiKey, false);
+
+        ModelAndView mav = new ModelAndView("connectors/mymee/success");
+        return mav;
+    }
 
     @RequestMapping(value="/setAuthInfo", method=RequestMethod.POST)
     public ModelAndView setAuthInfo(@RequestParam("username") String username,
@@ -126,7 +149,11 @@ public class MymeeConnectorController {
                 throw new RuntimeException("Could not establish a session with the couchdb server");
             String userSignature = encrypt(username+password+activationCode);
             payload = getActivationInfo(client, httpContext, userSignature);
-            System.out.println(payload);
+
+            ModelAndView mav = new ModelAndView("connectors/mymee/decrypt");
+            mav.addObject("key", activationCode);
+            mav.addObject("payload", payload);
+            return mav;
         } catch (Exception e) {
             ModelAndView mav = new ModelAndView("forward:/mymee/enterAuthInfo");
             mav.addObject("username", username);
@@ -145,8 +172,6 @@ public class MymeeConnectorController {
         //final Connector connector = Connector.getConnector("mymee");
         //final ApiKey apiKey = guestService.createApiKey(guestId, connector);
         //connectorUpdateService.updateConnector(apiKey, false);
-        ModelAndView mav = new ModelAndView("forward:/mymee/enterAuthInfo");
-        return mav;
     }
 
     private String getActivationInfo(final HttpClient client, final HttpContext httpContext, final String userSignature) throws IOException, UnexpectedHttpResponseCodeException {
@@ -176,8 +201,8 @@ public class MymeeConnectorController {
         jsonObject.put("name", username);
         jsonObject.put("password", password);
         post.setEntity(new StringEntity(jsonObject.toString(),"utf-8"));
-        HttpHost proxy = new HttpHost("localhost",8899);
-        client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY,proxy);
+//        HttpHost proxy = new HttpHost("localhost",8899);
+//        client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY,proxy);
         HttpResponse response = client.execute(post, httpContext);
 
         final int statusCode = response.getStatusLine().getStatusCode();

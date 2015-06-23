@@ -188,11 +188,11 @@ define(function() {
 	Connectors.submitZeoCredentials = submitZeoCredentials;
 	Connectors.submitToodledoCredentials = submitToodledoCredentials;
 	Connectors.submitNikePlusCredentials = submitNikePlusCredentials;
-    Connectors.submitMymeeFetchURL = submitMymeeFetchURL;
-    Connectors.submitMymeeAuthInfo = submitMymeeAuthInfo;
+	Connectors.submitMymeeFetchURL = submitMymeeFetchURL;
+	Connectors.submitMymeeAuthInfo = submitMymeeAuthInfo;
 	Connectors.submitOpenPathKeypair = submitOpenPathKeypair;
-    Connectors.getQuantifiedMindToken = getQuantifiedMindToken;
-    Connectors.submitBedditAuthInfo = submitBedditAuthInfo;
+	Connectors.getQuantifiedMindToken = getQuantifiedMindToken;
+	Connectors.submitBedditAuthInfo = submitBedditAuthInfo;
 
 	Connectors.submitBodytrackCredentials = function() {
 		var username = $("input#bodytrack-username").val(),
