@@ -103,10 +103,7 @@ public class MymeeUpdater extends AbstractUpdater {
     @Override
     public void updateConnectorData(UpdateInfo updateInfo) throws Exception {
         String rootURL = getRootURL(updateInfo);
-        long lastSeq = 0;
-        try {
-            lastSeq = Long.valueOf(guestService.getApiKeyAttribute(updateInfo.apiKey, "last_seq"));
-        } catch (Exception e) {}
+        String lastSeq = guestService.getApiKeyAttribute(updateInfo.apiKey, "last_seq");
 
         // Fetch and load changes, starting with lastSeq, fetching at most maxToFetch each pass
         final int maxToFetch = 100;
@@ -115,12 +112,12 @@ public class MymeeUpdater extends AbstractUpdater {
 
         while (true) {
             String URL = rootURL + "/_changes?since=" + lastSeq + "&limit=" + maxToFetch + "&include_docs=true";
-            long newLastSeq;
+            String newLastSeq;
             JSONArray changes;
 
             try {
                 JSONObject json = JSONObject.fromObject(fetchRetrying(updateInfo, URL, 20));
-                newLastSeq = json.getLong("last_seq");
+                newLastSeq = json.getString("last_seq");
                 changes = json.getJSONArray("results");
             }
             catch (UnexpectedHttpResponseCodeException e) {
@@ -138,7 +135,7 @@ public class MymeeUpdater extends AbstractUpdater {
                                    System.currentTimeMillis(), URL);
 
             // If last_seq is the same as we passed, there are no more observations
-            if (newLastSeq == lastSeq) {
+            if (newLastSeq.equals(lastSeq)) {
                 break;
             }
 
@@ -172,7 +169,7 @@ public class MymeeUpdater extends AbstractUpdater {
             lastSeq = newLastSeq;
 
             // Write lastSeq back to apiKeyAttributes
-            guestService.setApiKeyAttribute(updateInfo.apiKey, "last_seq", String.valueOf(lastSeq));
+            guestService.setApiKeyAttribute(updateInfo.apiKey, "last_seq", lastSeq);
         }
 
         // For each Mymee channel, setup the default display style to be lollipops
