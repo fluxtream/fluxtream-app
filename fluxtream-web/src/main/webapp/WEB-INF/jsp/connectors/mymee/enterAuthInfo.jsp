@@ -61,7 +61,7 @@
 
     <div class="control-group">
         <div class="controls">
-            <button  onclick="Connectors.submitMymeeAuthInfo()" type="submit" class="btn">Send</button>
+            <button  onclick="Connectors.submitMymeeAuthInfo()" type="submit" id="submitMymeeInfo" class="btn">Send</button>
         </div>
     </div>
 </form>

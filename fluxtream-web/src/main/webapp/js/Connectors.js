@@ -3,6 +3,7 @@ define(function() {
 	var Connectors = {};
 
     function submitMymeeAuthInfo() {
+				$("#submitMymeeInfo").attr("disabled", "disabled");
         var username = $("input#mymee-username").val();
         var password = $("input#mymee-password").val();
         var activationCode = $("input#mymee-activationCode").val();
