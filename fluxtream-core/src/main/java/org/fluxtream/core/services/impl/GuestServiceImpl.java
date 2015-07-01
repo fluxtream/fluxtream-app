@@ -3,11 +3,21 @@ package org.fluxtream.core.services.impl;
 import com.maxmind.geoip.Location;
 import com.maxmind.geoip.LookupService;
 import net.sf.json.JSONObject;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.aspects.FlxLogger;
+import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.auth.FlxUserDetails;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.OAuth2Helper;
@@ -15,6 +25,7 @@ import org.fluxtream.core.connectors.location.LocationFacet;
 import org.fluxtream.core.domain.*;
 import org.fluxtream.core.services.*;
 import org.fluxtream.core.utils.*;
+import org.json.JSONArray;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +43,8 @@ import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.*;
 
 @Service
@@ -349,7 +362,7 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
 	public boolean hasApiKey(long guestId, Connector api) {
         assert api!=null : "api must not be null";
 		ApiKey apiKey = JPAUtils.findUnique(em, ApiKey.class, "apiKey.byApi",
-				guestId, api.value());
+                guestId, api.value());
 		return (apiKey != null);
 	}
 
@@ -449,6 +462,89 @@ public class GuestServiceImpl implements GuestService, DisposableBean {
         JPAUtils.execute(em, "grapherView.delete.all", guest.getId());
         JPAUtils.execute(em, "widgetSettings.delete.all", guest.getId());
         JPAUtils.execute(em, "dashboards.delete.all", guest.getId());
+        try {
+            String couchUsername = URLEncoder.encode(AuthHelper.getGuest().username, "UTF-8");
+            JSONObject couchUser = getCouchUser(couchUsername);
+            if (couchUser.has("error")) {
+                if (couchUser.getString("reason").equals("missing")) {
+                    logger.info("there is no couchdb user name " + guest.username);
+                    return;
+                }
+            } else {
+                deleteCouchUser(couchUser);
+                deleteCouchDB(couchUser.getString("name"), "self_report_db_observations_");
+                deleteCouchDB(couchUser.getString("name"), "self_report_db_topics_");
+                deleteCouchDB(couchUser.getString("name"), "self_report_db_deleted_observations_");
+                deleteCouchDB(couchUser.getString("name"), "self_report_db_deleted_topics_");
+            }
+        } catch (Exception e) {
+            logger.warn("There was an error trying to delete couch info for user " + guest.username);
+        }
+    }
+
+    private void deleteCouchDB(String couchUsername, String dbName) throws IOException {
+        HttpClient client = new DefaultHttpClient();
+        final String couchdbHost = env.get("couchdb.host");
+        final String couchdbPort = env.get("couchdb.port");
+        final String couchdbAdminLogin = env.get("couchdb.admin_login");
+        final String couchdbAdminPasword = env.get("couchdb.admin_password");
+        String userPassword = couchdbAdminLogin + ":" + couchdbAdminPasword;
+        byte[] encodedCredentials = Base64.encodeBase64(userPassword.getBytes());
+
+        final String request = String.format("http://%s:%s/%s", couchdbHost, couchdbPort, dbName+couchUsername);
+        HttpDelete delete = new HttpDelete(request);
+        delete.addHeader("Authorization", "Basic " + new String(encodedCredentials));
+        delete.addHeader("Content-Type", "application/json");
+        delete.addHeader("Accept", "application/json");
+
+        client.execute(delete);
+    }
+
+    private void deleteCouchUser(JSONObject couchUser) throws Exception {
+        String revision = null;
+        String username = couchUser.getString("name");
+        if (couchUser.has("_rev"))
+            revision = couchUser.getString("_rev");
+        else throw new Exception("Couldn't get revision for user: " + username);
+        HttpClient client = new DefaultHttpClient();
+        int status = 0;
+        final String couchdbHost = env.get("couchdb.host");
+        final String couchdbPort = env.get("couchdb.port");
+        final String couchdbAdminLogin = env.get("couchdb.admin_login");
+        final String couchdbAdminPasword = env.get("couchdb.admin_password");
+        String userPassword = couchdbAdminLogin + ":" + couchdbAdminPasword;
+        byte[] encodedCredentials = Base64.encodeBase64(userPassword.getBytes());
+
+        final String request = String.format("http://%s:%s/_users/org.couchdb.user:%s?rev=%s", couchdbHost, couchdbPort, username, revision);
+        HttpDelete delete = new HttpDelete(request);
+        delete.addHeader("Authorization", "Basic " + new String(encodedCredentials));
+        delete.addHeader("Content-Type", "application/json");
+        delete.addHeader("Accept", "application/json");
+
+        HttpResponse response = client.execute(delete);
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_CONFLICT) {
+            throw new Exception("There was a conflict trying to delete user");
+        }
+    }
+
+    private JSONObject getCouchUser(String username) throws IOException {
+        HttpClient client = new DefaultHttpClient();
+        final String couchdbHost = env.get("couchdb.host");
+        final String couchdbPort = env.get("couchdb.port");
+        final String couchdbAdminLogin = env.get("couchdb.admin_login");
+        final String couchdbAdminPasword = env.get("couchdb.admin_password");
+        String userPassword = couchdbAdminLogin + ":" + couchdbAdminPasword;
+        byte[] encodedCredentials = Base64.encodeBase64(userPassword.getBytes());
+
+        final String request = String.format("http://%s:%s/_users/org.couchdb.user:%s", couchdbHost, couchdbPort, username);
+        HttpGet get = new HttpGet(request);
+        get.addHeader("Authorization", "Basic " + new String(encodedCredentials));
+        get.addHeader("Content-Type", "application/json");
+        get.addHeader("Accept", "application/json");
+
+        HttpResponse response = client.execute(get);
+        String jsonString = EntityUtils.toString(response.getEntity());
+        return JSONObject.fromObject(jsonString);
     }
 
     private void revokeFacebookPermissions(final Guest guest) {
