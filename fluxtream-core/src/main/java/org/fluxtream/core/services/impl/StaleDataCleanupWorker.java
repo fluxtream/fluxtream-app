@@ -1,5 +1,6 @@
 package org.fluxtream.core.services.impl;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.services.ConnectorUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,12 +28,19 @@ public class StaleDataCleanupWorker implements Runnable {
     public void run() {
         try {
             apiDataCleanupService.cleanupStaleData();
+        }
+        catch (Exception e) {
+            StringBuilder sb = new StringBuilder("Couldn't cleanup api staled data")
+                    .append(" message=\"" + e.getMessage() + "\"\n" + ExceptionUtils.getStackTrace(e));
+            FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").warn(sb.toString());
+        }
+        try {
             connectorUpdateService.cleanupStaleData();
         }
         catch (Exception e) {
-            StringBuilder sb = new StringBuilder("module=updateQueue component=StaleDataCleanupWorker action=cleanupStaleData")
-                    .append(" message=\"" + e.getMessage() + "\"");
-            logger.warn(sb.toString());
+            StringBuilder sb = new StringBuilder("Couldn't cleanup old update data")
+                    .append(" message=\"" + e.getMessage() + "\"\n" + ExceptionUtils.getStackTrace(e));
+            FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").warn(sb.toString());
         }
     }
 }

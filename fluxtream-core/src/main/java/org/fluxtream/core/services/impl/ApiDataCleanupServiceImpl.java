@@ -6,6 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.utils.JPAUtils;
@@ -29,8 +30,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Service
 public class ApiDataCleanupServiceImpl implements ApiDataCleanupService {
 
-    static FlxLogger logger = FlxLogger.getLogger(ApiDataServiceImpl.class);
-
     @Autowired
     @Qualifier("txTemplate")
     TransactionTemplate transactionTemplate;
@@ -51,7 +50,7 @@ public class ApiDataCleanupServiceImpl implements ApiDataCleanupService {
         for (BeanDefinition component : components) {
             Class cls = Class.forName(component.getBeanClassName());
             final String entityName = JPAUtils.getEntityName(cls);
-            System.out.println("cleaning up " + entityName + "...");
+            FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info("Cleaning up entity: " + entityName + "...");
             if (entityName.startsWith("Facet_")) {
                 if (!JPAUtils.hasRelation(cls)) {
                     // Clean up entries for apiKeyId's which are no longer present in the system, but preserve items with
@@ -63,8 +62,8 @@ public class ApiDataCleanupServiceImpl implements ApiDataCleanupService {
             }
         }
         final int i = jdbcTemplate.update("DELETE FROM ApiUpdates WHERE apiKeyId NOT IN (SELECT DISTINCT id from ApiKey);");
-        StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=deleteStaleData").append(" facetTable=ApiUpdates").append(" facetsDeleted=").append(i);
-        logger.info(sb.toString());
+        StringBuilder sb = new StringBuilder("ApiUpdates cleaned up, facetsDeleted: ").append(i);
+        FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info(sb.toString());
     }
 
     @Transactional(readOnly=false)
@@ -72,15 +71,15 @@ public class ApiDataCleanupServiceImpl implements ApiDataCleanupService {
         final String sqlString = "SELECT * FROM " + entityName + " WHERE (apiKeyId NOT IN (SELECT DISTINCT id from ApiKey)) AND api!=0;";
         Query query = em.createNativeQuery(sqlString, cls);
         final String txIsolation = (String)em.createNativeQuery("SELECT @@tx_isolation").getSingleResult();
-        System.out.println("jpaTxManager isolation: " + txIsolation);
+        FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info("jpaTxManager isolation: " + txIsolation);
         final List<? extends AbstractFacet> facetsToDelete = query.getResultList();
         final int i = facetsToDelete.size();
         if (i > 0) {
             for (AbstractFacet facet : facetsToDelete) {
                 em.remove(facet);
             }
-            StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=deleteStaleData").append(" facetTable=").append(entityName).append(" facetsDeleted=").append(i);
-            logger.info(sb.toString());
+            StringBuilder sb = new StringBuilder("Cleaned up entity \"" + entityName + "\", facetsDeleted=").append(i);
+            FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info(sb.toString());
         }
     }
 
@@ -89,10 +88,10 @@ public class ApiDataCleanupServiceImpl implements ApiDataCleanupService {
             @Override
             protected void doInTransactionWithoutResult(final TransactionStatus status) {
                 final String txIsolation = jdbcTemplate.queryForObject("SELECT @@tx_isolation", String.class);
-                System.out.println("txManager isolation: " + txIsolation);
+                FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info("txManager isolation: " + txIsolation);
                 final int i = jdbcTemplate.update("DELETE FROM " + entityName + " WHERE (apiKeyId NOT IN (SELECT DISTINCT id from ApiKey)) AND api!=0;");
-                StringBuilder sb = new StringBuilder("module=updateQueue component=apiDataServiceImpl action=deleteStaleData").append(" facetTable=").append(entityName).append(" facetsDeleted=").append(i);
-                logger.info(sb.toString());
+                StringBuilder sb = new StringBuilder("Bulk cleaned up entity \"" + entityName + "\", facetsDeleted=").append(i);
+                FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info(sb.toString());
             }
         });
     }
