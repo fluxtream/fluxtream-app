@@ -408,6 +408,7 @@ footer {
   height: 317px;
   width: 100%;
   background: #ffffff url("../images/connector-cloud.png") no-repeat top center;
+  background-size: 647px 317px;
   opacity: 0.45;
   z-index: 4;
   -webkit-transition-property: opacity 0.5s ease-in-out;
@@ -787,7 +788,7 @@ footer {
   }
   .connector-cloud {
     background-image: url(../images/connector-cloud.png);
-    background-size: auto;
+    background-size: 647px 317px;
   }
   .api-advert {
     left: auto;
