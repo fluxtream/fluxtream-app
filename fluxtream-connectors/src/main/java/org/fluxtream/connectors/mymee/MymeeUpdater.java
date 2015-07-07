@@ -293,10 +293,16 @@ public class MymeeUpdater extends AbstractUpdater {
 
     // Returns root URL for mymee database, without trailing / (e.g. http://hostname/databasename)
     private String getRootURL(final UpdateInfo updateInfo) {
-        final String fetchURL = String.format("https://%s/%s",
-                guestService.getApiKeyAttribute(updateInfo.apiKey, "cloudDatabaseDomain"),
-                guestService.getApiKeyAttribute(updateInfo.apiKey, "cloudDatabaseName"));
-        return getBaseURL(fetchURL) +  "/" + getMainDir(fetchURL);
+        String username = guestService.getApiKeyAttribute(updateInfo.apiKey, "cloudDatabaseUsername");
+        if (username != null) {
+            final String fetchURL = String.format("https://%s/%s",
+                    guestService.getApiKeyAttribute(updateInfo.apiKey, "cloudDatabaseDomain"),
+                    guestService.getApiKeyAttribute(updateInfo.apiKey, "cloudDatabaseName"));
+            return getBaseURL(fetchURL) +  "/" + getMainDir(fetchURL);
+        } else {
+            final String fetchURL = guestService.getApiKeyAttribute(updateInfo.apiKey,"fetchURL");
+            return getBaseURL(fetchURL) +  "/" + getMainDir(fetchURL);
+        }
     }
 
     String fetchRetrying(final UpdateInfo updateInfo, final String url, final int retries) throws IOException, UnexpectedHttpResponseCodeException {
@@ -338,10 +344,10 @@ public class MymeeUpdater extends AbstractUpdater {
         final HttpParams httpParams = new BasicHttpParams();
         HttpConnectionParams.setConnectionTimeout(httpParams, 0);
         HttpConnectionParams.setSoTimeout(httpParams, 0);
-        String username = guestService.getApiKeyAttribute(updateInfo.apiKey, "cloudDatabaseUsername");
-        String password = guestService.getApiKeyAttribute(updateInfo.apiKey, "cloudDatabasePassword");
         DefaultHttpClient client = new DefaultHttpClient(httpParams);
-        if (updateInfo!=null) {
+        String username = guestService.getApiKeyAttribute(updateInfo.apiKey, "cloudDatabaseUsername");
+        if (username!=null) {
+            String password = guestService.getApiKeyAttribute(updateInfo.apiKey, "cloudDatabasePassword");
             Credentials credentials = new UsernamePasswordCredentials(username, password);
             CredentialsProvider credsProvider = new BasicCredentialsProvider();
             credsProvider.setCredentials(
