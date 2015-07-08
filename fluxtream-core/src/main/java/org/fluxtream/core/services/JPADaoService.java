@@ -2,6 +2,8 @@ package org.fluxtream.core.services;
 
 import java.util.List;
 import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.domain.AbstractFacet;
+
 public interface JPADaoService {
 
     @SuppressWarnings("unused")
@@ -25,4 +27,6 @@ public interface JPADaoService {
     Long executeNativeQuery(String queryString);
 
     List executeNativeQuery(String s, Object... params);
+
+    void deleteFacet(AbstractFacet facet);
 }

@@ -135,4 +135,11 @@ public class JPADaoServiceImpl implements JPADaoService {
         return query.getResultList();
     }
 
+    @Override
+    @Transactional(readOnly=false)
+    public void deleteFacet(AbstractFacet facet) {
+        Object o = em.find(facet.getClass(), facet.getId());
+        em.remove(o);
+    }
+
 }
