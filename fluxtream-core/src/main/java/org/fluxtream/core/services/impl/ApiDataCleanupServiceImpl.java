@@ -19,6 +19,7 @@ import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
 
@@ -97,20 +98,47 @@ public class ApiDataCleanupServiceImpl implements ApiDataCleanupService {
     }
 
     private void cleanupStaleFacetsInBulk(final String entityName) {
-        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-            @Override
-            protected void doInTransactionWithoutResult(final TransactionStatus status) {
-                try {
-                    final String txIsolation = jdbcTemplate.queryForObject("SELECT @@tx_isolation", String.class);
-                    FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info("txManager isolation: " + txIsolation);
-                    final int i = jdbcTemplate.update("DELETE FROM " + entityName + " WHERE (apiKeyId NOT IN (SELECT DISTINCT id from ApiKey)) AND api!=0;");
-                    StringBuilder sb = new StringBuilder("Bulk cleaned up entity \"" + entityName + "\", facetsDeleted=").append(i);
-                    FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info(sb.toString());
-                } catch (Throwable e) {
-                    FlxLogger.getLogger("org.fluxtream.core.updaters.quartz")
-                            .warn("Couldn't bulk delete entities, entityName: " + entityName + " ( " + e.getMessage() + ")");
+        if (entityName.equals("Facet_Location")) {
+            // optimize for existing indexes on the locations table for which the default query would talk too long
+            Query locationApiKeyIdsQuery = em.createNativeQuery("SELECT DISTINCT apiKeyId FROM Facet_Location");
+            List<BigInteger> locationApiKeyIds = locationApiKeyIdsQuery.getResultList();
+            Query allApiKeyIdsQuery = em.createNativeQuery("SELECT id FROM ApiKey");
+            List<BigInteger>  allApiKeyIds = allApiKeyIdsQuery.getResultList();
+            for (final BigInteger locationApiKeyId : locationApiKeyIds) {
+                if (!allApiKeyIds.contains(locationApiKeyId)){
+                    transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+                        @Override
+                        protected void doInTransactionWithoutResult(final TransactionStatus status) {
+                            try {
+                                final String txIsolation = jdbcTemplate.queryForObject("SELECT @@tx_isolation", String.class);
+                                FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info("txManager isolation: " + txIsolation);
+                                final int i = jdbcTemplate.update("DELETE FROM " + entityName + " WHERE apiKeyId=" + locationApiKeyId);
+                                StringBuilder sb = new StringBuilder("Cleaned invalid location entries, facetsDeleted=").append(i);
+                                FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info(sb.toString());
+                            } catch (Throwable e) {
+                                FlxLogger.getLogger("org.fluxtream.core.updaters.quartz")
+                                        .warn("Couldn't bulk delete entities, entityName: " + entityName + " ( " + e.getMessage() + ")");
+                            }
+                        }
+                    });
                 }
             }
-        });
+        } else {
+            transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+                @Override
+                protected void doInTransactionWithoutResult(final TransactionStatus status) {
+                    try {
+                        final String txIsolation = jdbcTemplate.queryForObject("SELECT @@tx_isolation", String.class);
+                        FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info("txManager isolation: " + txIsolation);
+                        final int i = jdbcTemplate.update("DELETE FROM " + entityName + " WHERE (apiKeyId NOT IN (SELECT DISTINCT id from ApiKey)) AND api!=0;");
+                        StringBuilder sb = new StringBuilder("Bulk cleaned up entity \"" + entityName + "\", facetsDeleted=").append(i);
+                        FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info(sb.toString());
+                    } catch (Throwable e) {
+                        FlxLogger.getLogger("org.fluxtream.core.updaters.quartz")
+                                .warn("Couldn't bulk delete entities, entityName: " + entityName + " ( " + e.getMessage() + ")");
+                    }
+                }
+            });
+        }
     }
 }
