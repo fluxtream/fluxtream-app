@@ -12,6 +12,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.plexus.util.ExceptionUtils;
 import org.fluxtream.core.Configuration;
+import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.ObjectType;
@@ -19,6 +20,7 @@ import org.fluxtream.core.connectors.updaters.*;
 import org.fluxtream.core.domain.*;
 import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.services.*;
+import org.fluxtream.core.services.impl.ApiDataCleanupService;
 import org.fluxtream.core.services.impl.ExistingEmailException;
 import org.fluxtream.core.services.impl.UsernameAlreadyTakenException;
 import org.fluxtream.core.utils.RequestUtils;
@@ -79,6 +81,9 @@ public class AdminController {
 
     @Autowired
     BodyTrackStorageService bodyTrackStorageService;
+
+    @Autowired
+    ApiDataCleanupService apiDataCleanupService;
 
     public static final String SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL = "SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL";
 
@@ -180,18 +185,31 @@ public class AdminController {
     @Secured({ "ROLE_ADMIN" })
     @Path("/cleanup")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String deleteStaleData()
+    public Response deleteStaleData()
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
-
+        StringBuffer sb = new StringBuffer("Cleaning up stale data...");
+        long then = System.currentTimeMillis();
         try {
-            apiDataService.deleteStaleData();
-            StatusModel success = new StatusModel(true, "done");
-            return gson.toJson(success);
-        } catch (Throwable t) {
-            StatusModel failure = new StatusModel(false, ExceptionUtils.getStackTrace(t));
-            return gson.toJson(failure);
+            apiDataCleanupService.cleanupStaleData();
         }
+        catch (Exception e) {
+            StringBuffer sb1 = sb.append("Couldn't cleanup api staled data")
+                    .append(" message=\"" + e.getMessage() + "\"\n" + org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(e));
+            sb.append("\n").append(sb1);
+            FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").warn(sb1.toString());
+        }
+        try {
+            connectorUpdateService.cleanupStaleData();
+        }
+        catch (Exception e) {
+            StringBuilder sb2 = new StringBuilder("Couldn't cleanup old update data")
+                    .append(" message=\"" + e.getMessage() + "\"\n" + org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(e));
+            sb.append("\n").append(sb2);
+            FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").warn(sb2.toString());
+        }
+        sb.append("Done (" + (System.currentTimeMillis()-then) + " ms)");
+        return Response.ok().entity(sb.toString()).build();
     }
 
     @POST
