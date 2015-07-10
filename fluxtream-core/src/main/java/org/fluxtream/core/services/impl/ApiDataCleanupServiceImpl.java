@@ -20,7 +20,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import java.math.BigInteger;
-import java.sql.Types;
 import java.util.List;
 import java.util.Set;
 
@@ -66,7 +65,7 @@ public class ApiDataCleanupServiceImpl implements ApiDataCleanupService {
                 }
             }
         }
-        final int i = jdbcTemplate.update("DELETE FROM ApiUpdates WHERE apiKeyId NOT IN (?);", getAllApiKeyIds());
+        final int i = jdbcTemplate.update("DELETE FROM ApiUpdates WHERE apiKeyId NOT IN (?);", join(getAllApiKeyIds()));
         StringBuilder sb = new StringBuilder("ApiUpdates cleaned up, facetsDeleted: ").append(i);
         FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info(sb.toString());
     }
@@ -130,7 +129,7 @@ public class ApiDataCleanupServiceImpl implements ApiDataCleanupService {
                     try {
                         final String txIsolation = jdbcTemplate.queryForObject("SELECT @@tx_isolation", String.class);
                         FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info("txManager isolation: " + txIsolation);
-                        final int i = jdbcTemplate.update("DELETE FROM " + entityName + " WHERE (apiKeyId NOT IN (?)) AND api!=0;", allApiKeyIds);
+                        final int i = jdbcTemplate.update("DELETE FROM " + entityName + " WHERE (apiKeyId NOT IN (?)) AND api!=0;", join(allApiKeyIds));
                         StringBuilder sb = new StringBuilder("Bulk cleaned up entity \"" + entityName + "\", facetsDeleted=").append(i);
                         FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info(sb.toString());
                     } catch (Throwable e) {
@@ -146,4 +145,16 @@ public class ApiDataCleanupServiceImpl implements ApiDataCleanupService {
         Query allApiKeyIdsQuery = em.createNativeQuery("SELECT id FROM ApiKey");
         return allApiKeyIdsQuery.getResultList();
     }
+
+    private String join(List<BigInteger> apiKeyIds) {
+        int index = 0;
+        StringBuffer sb = new StringBuffer();
+        for (BigInteger apiKeyId : apiKeyIds) {
+            if (index>0) sb.append(",");
+            sb.append(String.valueOf(apiKeyId));
+        }
+        return sb.toString();
+    }
+
+
 }
