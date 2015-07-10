@@ -221,14 +221,16 @@ public class SleepAsAndroidUpdater extends AbstractUpdater {
                             facet.setActiGraph(actiGraph);
                         }
 
-                        List<Pair<String,Long>> eventLabels = new LinkedList<Pair<String,Long>>();
-                        JSONArray labels = sleepObject.getJSONArray("labels");
-                        for (int i = 0; i < labels.size(); i++) {
-                            JSONObject label = labels.getJSONObject(i);
-                            eventLabels.add(new Pair<String,Long>(label.getString("label"), label.getLong("timestamp")));
-                        }
+                        if (sleepObject.has("labels")) {
+                            List<Pair<String, Long>> eventLabels = new LinkedList<Pair<String, Long>>();
+                            JSONArray labels = sleepObject.getJSONArray("labels");
+                            for (int i = 0; i < labels.size(); i++) {
+                                JSONObject label = labels.getJSONObject(i);
+                                eventLabels.add(new Pair<String, Long>(label.getString("label"), label.getLong("timestamp")));
+                            }
 
-                        facet.setEventLabels(eventLabels);
+                            facet.setEventLabels(eventLabels);
+                        }
 
                         return facet;
                     }
