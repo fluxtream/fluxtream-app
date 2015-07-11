@@ -152,6 +152,7 @@ public class ApiDataCleanupServiceImpl implements ApiDataCleanupService {
         for (BigInteger apiKeyId : apiKeyIds) {
             if (index>0) sb.append(",");
             sb.append(String.valueOf(apiKeyId));
+            index++;
         }
         return sb.toString();
     }
