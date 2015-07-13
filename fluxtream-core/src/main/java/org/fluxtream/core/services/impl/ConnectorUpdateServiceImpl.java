@@ -238,9 +238,9 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         final Query cleanupUpdateWorkerTasks = em.createNativeQuery(String.format("DELETE FROM UpdateWorkerTask WHERE not(status=2 AND updateType=2) and timeScheduled<%s", twoDaysAgo));
         final int updateWorkerTasksDeleted = cleanupUpdateWorkerTasks.executeUpdate();
         FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info("deleted " + updateWorkerTasksDeleted + " UpdateWorkerTasks");
-        final Query cleanupApiUpdates = em.createNativeQuery(String.format("DELETE FROM ApiUpdates WHERE ts<%s", twoDaysAgo));
-        final int apiUpdatesDeleted = cleanupApiUpdates.executeUpdate();
-        FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info("deleted " + apiUpdatesDeleted + " ApiUpdates");
+//        final Query cleanupApiUpdates = em.createNativeQuery(String.format("DELETE FROM ApiUpdates WHERE ts<%s", twoDaysAgo));
+//        final int apiUpdatesDeleted = cleanupApiUpdates.executeUpdate();
+//        FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info("deleted " + apiUpdatesDeleted + " ApiUpdates");
     }
 
     /**
