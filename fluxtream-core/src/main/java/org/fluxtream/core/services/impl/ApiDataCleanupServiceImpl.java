@@ -1,6 +1,7 @@
 package org.fluxtream.core.services.impl;
 
 import org.fluxtream.core.aspects.FlxLogger;
+import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.services.JPADaoService;
 import org.fluxtream.core.utils.JPAUtils;
@@ -53,21 +54,32 @@ public class ApiDataCleanupServiceImpl implements ApiDataCleanupService {
         Set<BeanDefinition> components = scanner.findCandidateComponents("org.fluxtream");
         for (BeanDefinition component : components) {
             Class cls = Class.forName(component.getBeanClassName());
+            Updater updaterAnnotation = getUpdaterForFacet(cls);
+            if (updaterAnnotation==null) continue;
             final String entityName = JPAUtils.getEntityName(cls);
             FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info("Cleaning up entity: " + entityName + "...");
             if (entityName.startsWith("Facet_")) {
                 if (!JPAUtils.hasRelation(cls)) {
                     // Clean up entries for apiKeyId's which are no longer present in the system, but preserve items with
                     // api=0 to preserve the locations generated from reverse IP lookup when the users log in.
-                    cleanupStaleFacetsInBulk(entityName);
+                    cleanupStaleFacetsInBulk(entityName, updaterAnnotation.value());
                 } else {
                     cleanupStaleFacetEntities(cls, entityName);
                 }
             }
         }
-        final int i = jdbcTemplate.update("DELETE FROM ApiUpdates WHERE apiKeyId NOT IN (?);", join(getAllApiKeyIds()));
+        final int i = jdbcTemplate.update("DELETE FROM ApiUpdates WHERE apiKeyId NOT IN (" + join(getAllApiKeyIds()) + ");");
         StringBuilder sb = new StringBuilder("ApiUpdates cleaned up, facetsDeleted: ").append(i);
         FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info(sb.toString());
+    }
+
+    private Updater getUpdaterForFacet(Class cls) throws ClassNotFoundException {
+        ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
+        scanner.addIncludeFilter(new AnnotationTypeFilter(Updater.class));
+        Set<BeanDefinition> components = scanner.findCandidateComponents(cls.getPackage().getName());
+        if (!components.isEmpty())
+            return Class.forName(components.iterator().next().getBeanClassName()).getAnnotation(Updater.class);
+        return null;
     }
 
     private void cleanupStaleFacetEntities(final Class cls, final String entityName) {
@@ -97,8 +109,8 @@ public class ApiDataCleanupServiceImpl implements ApiDataCleanupService {
 
     }
 
-    private void cleanupStaleFacetsInBulk(final String entityName) {
-        final List<BigInteger> allApiKeyIds = getAllApiKeyIds();
+    private void cleanupStaleFacetsInBulk(final String entityName, final int apiCode) {
+        final List<BigInteger> allApiKeyIds = getConnectorApiKeyIds(apiCode);
         if (entityName.equals("Facet_Location")) {
             // optimize for existing indexes on the locations table for which the default query would talk too long
             Query locationApiKeyIdsQuery = em.createNativeQuery("SELECT DISTINCT apiKeyId FROM Facet_Location");
@@ -129,7 +141,7 @@ public class ApiDataCleanupServiceImpl implements ApiDataCleanupService {
                     try {
                         final String txIsolation = jdbcTemplate.queryForObject("SELECT @@tx_isolation", String.class);
                         FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info("txManager isolation: " + txIsolation);
-                        final int i = jdbcTemplate.update("DELETE FROM " + entityName + " WHERE (apiKeyId NOT IN (?)) AND api!=0;", join(allApiKeyIds));
+                        final int i = jdbcTemplate.update("DELETE FROM " + entityName + " WHERE (apiKeyId NOT IN (" + join(allApiKeyIds) + ")) AND api!=0;");
                         StringBuilder sb = new StringBuilder("Bulk cleaned up entity \"" + entityName + "\", facetsDeleted=").append(i);
                         FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info(sb.toString());
                     } catch (Throwable e) {
@@ -139,6 +151,11 @@ public class ApiDataCleanupServiceImpl implements ApiDataCleanupService {
                 }
             });
         }
+    }
+
+    private List<BigInteger> getConnectorApiKeyIds(int apiCode) {
+        Query allApiKeyIdsQuery = em.createNativeQuery("SELECT id FROM ApiKey apiKey WHERE api=" + apiCode);
+        return allApiKeyIdsQuery.getResultList();
     }
 
     private List<BigInteger> getAllApiKeyIds() {

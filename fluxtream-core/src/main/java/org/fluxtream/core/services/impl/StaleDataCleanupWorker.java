@@ -26,14 +26,15 @@ public class StaleDataCleanupWorker implements Runnable {
 
     @Override
     public void run() {
-        try {
-            apiDataCleanupService.cleanupStaleData();
-        }
-        catch (Exception e) {
-            StringBuilder sb = new StringBuilder("Couldn't cleanup api staled data")
-                    .append(" message=\"" + e.getMessage() + "\"\n" + ExceptionUtils.getStackTrace(e));
-            FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").warn(sb.toString());
-        }
+        // let's not do that for the moment
+//        try {
+//            apiDataCleanupService.cleanupStaleData();
+//        }
+//        catch (Exception e) {
+//            StringBuilder sb = new StringBuilder("Couldn't cleanup api staled data")
+//                    .append(" message=\"" + e.getMessage() + "\"\n" + ExceptionUtils.getStackTrace(e));
+//            FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").warn(sb.toString());
+//        }
         try {
             connectorUpdateService.cleanupStaleData();
         }
