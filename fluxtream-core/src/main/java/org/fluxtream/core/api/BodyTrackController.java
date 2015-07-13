@@ -891,7 +891,7 @@ public class BodyTrackController {
         for (ApiKey key : keys){
             Connector connector = key.getConnector();
             if (connector.getName().equals(connectorName)||
-                connector.getPrettyName().equals(connectorName)){
+                connector.getPrettyName().equals(connectorName)||connector.getDeviceNickname().equals(connectorName)){
                 api = key;
                 break;
             }
