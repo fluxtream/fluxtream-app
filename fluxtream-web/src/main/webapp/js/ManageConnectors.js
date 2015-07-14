@@ -487,6 +487,7 @@ define(["core/grapher/BTCore",
                     success: function() {
                         updateContents();
                         $("#deleteConnectorConfirm").modal("hide");
+                        $("tr#connector-" + connectors[index].connectorName).remove();
                     },
                     error: function() {
                         $("#deleteConnectorConfirm").modal("hide");
