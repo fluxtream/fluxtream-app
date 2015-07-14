@@ -338,7 +338,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
             String[] terms = StringUtils.split(mapping, ":");
             if (terms[1].startsWith("#"))
                 continue;
-            channelNames.add(terms[0]);
+            channelNames.add(terms[0].trim());
         }
         return channelNames;
     }
@@ -354,7 +354,7 @@ public class BodyTrackStorageServiceImpl implements BodyTrackStorageService {
             String[] terms = StringUtils.split(mapping, ":");
             if (terms[1].startsWith("#"))
                 continue;
-            channelNames.add(terms[1]);
+            channelNames.add(terms[1].trim());
         }
         return channelNames;
     }

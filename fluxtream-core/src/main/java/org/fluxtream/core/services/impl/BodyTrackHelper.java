@@ -412,6 +412,7 @@ public class BodyTrackHelper {
             ChannelMapping mapping = getChannelMapping(guestId, deviceNickname, channelName);
             String internalDeviceName = mapping != null ? mapping.getInternalDeviceName() : deviceNickname;
             String internalChannelName = mapping != null ? mapping.getInternalChannelName() : channelName;
+            internalDeviceName = checkDatastoreDir(guestId, internalDeviceName);
             final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("gettile", new Object[]{guestId, internalDeviceName + "." + internalChannelName, level, offset});
             String result = dataStoreExecutionResult.getResponse();
 
@@ -427,6 +428,17 @@ public class BodyTrackHelper {
         catch(Exception e){
             return GetTileResponse.getEmptyTile(level,offset);
         }
+    }
+
+    private String checkDatastoreDir(Long guestId, String internalDeviceName) throws IOException {
+        File dir = new File(env.targetEnvironmentProps.getString("btdatastore.db.location")+File.separator+guestId+File.separator+ internalDeviceName);
+        if (dir.exists() && dir.getCanonicalPath().endsWith(internalDeviceName))
+            return internalDeviceName;
+        String connectorName = Connector.fromDeviceNickname(internalDeviceName).getName();
+        dir = new File(env.targetEnvironmentProps.getString("btdatastore.db.location")+File.separator+guestId+File.separator+connectorName);
+        if (dir.exists() && dir.getCanonicalPath().endsWith(connectorName))
+            return connectorName;
+        return internalDeviceName;
     }
 
     public String fetchTile(Long guestId, String deviceNickname, String channelName, int level, long offset){
