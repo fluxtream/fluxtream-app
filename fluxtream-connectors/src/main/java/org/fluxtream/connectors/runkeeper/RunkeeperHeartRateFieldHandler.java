@@ -43,10 +43,6 @@ public class RunkeeperHeartRateFieldHandler implements FieldHandler {
             final double timestamp =
                     record.getInt("timestamp");
             long when = (facet.start/1000) + (long)timestamp;
-            if (activityFacet.timeZone!=null) {
-                int offset = DateTimeZone.forID(activityFacet.timeZone).getOffset(when*1000);
-                when += offset/1000;
-            }
             List<Object> hrRecord = new ArrayList<Object>();
             hrRecord.add(when);
             hrRecord.add(heartRate);
