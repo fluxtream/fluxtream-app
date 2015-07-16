@@ -68,9 +68,9 @@ public class ApiDataCleanupServiceImpl implements ApiDataCleanupService {
                 }
             }
         }
-        final int i = jdbcTemplate.update("DELETE FROM ApiUpdates WHERE apiKeyId NOT IN (" + join(getAllApiKeyIds()) + ");");
-        StringBuilder sb = new StringBuilder("ApiUpdates cleaned up, facetsDeleted: ").append(i);
-        FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info(sb.toString());
+//        final int i = jdbcTemplate.update("DELETE FROM ApiUpdates WHERE apiKeyId NOT IN (" + join(getAllApiKeyIds()) + ");");
+//        StringBuilder sb = new StringBuilder("ApiUpdates cleaned up, facetsDeleted: ").append(i);
+//        FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info(sb.toString());
     }
 
     private Updater getUpdaterForFacet(Class cls) throws ClassNotFoundException {
