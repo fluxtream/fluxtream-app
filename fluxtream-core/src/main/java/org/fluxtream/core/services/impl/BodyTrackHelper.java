@@ -366,7 +366,12 @@ public class BodyTrackHelper {
             fos.close();
 
             final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("import", new Object[]{apiKey.getGuestId(), deviceName, tempFile.getAbsolutePath()});
-            tempFile.delete();
+            if (!dataStoreExecutionResult.isSuccess()) {
+                logger.warn("There was an error persisting data to the datastore, guestId: " + apiKey.getGuestId() + ", deviceName: " + deviceName + ", tempFile: " + tempFile.getCanonicalPath());
+                // let's not delete the tempfile momentarily in case of error
+            } else {
+                tempFile.delete();
+            }
             return new ParsedBodyTrackUploadResult(dataStoreExecutionResult,deviceName,gson);
         } catch (Exception e) {
             System.err.println("Could not persist to datastore");
@@ -1334,8 +1339,12 @@ public class BodyTrackHelper {
             this.statusCode = result.getStatusCode();
             this.responseText = result.getResponse();
             this.deviceName = deviceName;
-            this.parsedResponse = gson.fromJson(responseText,UploadResponse.class);
-
+            if (result.isSuccess())
+                this.parsedResponse = gson.fromJson(responseText,UploadResponse.class);
+            else {
+                this.parsedResponse = new UploadResponse();
+                logger.warn("Couldn't upload to bodytrack, (response text is \"" + responseText + "\", statusCode: " + statusCode + ", deviceName: " + deviceName + ")");
+            }
         }
 
         public UploadResponse getParsedResponse(){
