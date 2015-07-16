@@ -368,10 +368,8 @@ public class BodyTrackHelper {
             final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("import", new Object[]{apiKey.getGuestId(), deviceName, tempFile.getAbsolutePath()});
             if (!dataStoreExecutionResult.isSuccess()) {
                 logger.warn("There was an error persisting data to the datastore, guestId: " + apiKey.getGuestId() + ", deviceName: " + deviceName + ", tempFile: " + tempFile.getCanonicalPath());
-                // let's not delete the tempfile momentarily in case of error
-            } else {
-                tempFile.delete();
             }
+            tempFile.delete();
             return new ParsedBodyTrackUploadResult(dataStoreExecutionResult,deviceName,gson);
         } catch (Exception e) {
             System.err.println("Could not persist to datastore");
