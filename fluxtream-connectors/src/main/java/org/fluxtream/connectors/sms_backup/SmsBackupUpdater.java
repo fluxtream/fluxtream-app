@@ -19,6 +19,7 @@ import com.google.api.services.gmail.model.*;
 import com.google.api.services.gmail.model.Message;
 import org.apache.commons.codec.binary.Base64;
 import org.fluxtream.core.Configuration;
+import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.ObjectType;
 import org.fluxtream.core.connectors.annotations.Updater;
@@ -62,6 +63,8 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
 
     static final int baseSleepAmount = 500; //half a second
     static final int maxSleepAmount = 1000 * 60 * 60; //one hour
+
+    FlxLogger logger = FlxLogger.getLogger(SmsBackupUpdater.class);
 
     @Autowired
     BodyTrackHelper bodyTrackHelper;
@@ -339,6 +342,9 @@ public class SmsBackupUpdater extends AbstractUpdater implements SettingsAwareUp
                                                                        facet.callType = CallLogEntryFacet.CallType.OUTGOING;
                                                                    } else if (callLine.indexOf("incoming call")!=-1) {
                                                                        facet.callType = CallLogEntryFacet.CallType.INCOMING;
+                                                                   } else {
+                                                                       logger.warn("SmsBackupUpdater: Unknown call type, callLine is \"" + callLine + "\"");
+                                                                       return null;
                                                                    }
                                                                    facet.personNumber = st.nextToken();
                                                                    switch(facet.callType) {
