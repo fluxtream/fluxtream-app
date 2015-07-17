@@ -10,6 +10,7 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.codehaus.plexus.util.ExceptionUtils;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.DashboardWidget;
@@ -188,7 +189,7 @@ public class WidgetsServiceImpl implements WidgetsService {
                 userWidgets.addAll(widgetsList);
             }
             catch (Exception e){
-                System.out.println(e.getMessage());
+                System.out.println(ExceptionUtils.getStackTrace(e));
             }
         }
         return userWidgets;
