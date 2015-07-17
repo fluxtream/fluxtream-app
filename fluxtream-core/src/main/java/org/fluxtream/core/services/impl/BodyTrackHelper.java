@@ -373,8 +373,11 @@ public class BodyTrackHelper {
                         apiKey.getId(), null, deviceName, channelNames.toArray(new String[channelNames.size()]), dataStoreExecutionResult.getResponse());
             } else {
                 try {
-                    long startTime = (long) (parsedResult.getParsedResponse().min_time * 1000);
-                    long endTime = (long) (parsedResult.getParsedResponse().max_time * 1000);
+                    long startTime = 0, endTime = 0;
+                    if (parsedResult.getParsedResponse().min_time!=null)
+                        startTime = (long) (parsedResult.getParsedResponse().min_time * 1000);
+                    if (parsedResult.getParsedResponse().max_time!=null)
+                        endTime = (long) (parsedResult.getParsedResponse().max_time * 1000);
                     dataUpdateService.logBodyTrackDataUpdate(apiKey.getGuestId(),
                             apiKey.getId(), null, deviceName, channelNames.toArray(new String[channelNames.size()]), startTime, endTime);
                 } catch (Throwable t) {
