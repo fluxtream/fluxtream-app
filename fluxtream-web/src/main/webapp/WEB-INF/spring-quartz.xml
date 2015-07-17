@@ -44,7 +44,7 @@
 
     <bean id="producerTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
         <property name="jobDetail" ref="producerJobDetail" />
-        <property name="startDelay" value="0" />
+        <property name="startDelay" value="${producer.trigger.repeatInterval}" />
         <property name="repeatInterval" value="${producer.trigger.repeatInterval}" />
     </bean>
 
