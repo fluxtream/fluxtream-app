@@ -379,14 +379,14 @@ public class MovesUpdater extends AbstractUpdater {
         catch (UpdateFailedException e) {
             // The update failed and whoever threw the error knew enough to have all the details.
             // Rethrow the error
-            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED");
+            logger.warn("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED");
 
             throw e;
         }
         catch (RateLimitReachedException e) {
             // We reached rate limit and whoever threw the error knew enough to have all the details.
             // Rethrow the error
-            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", RATE LIMIT REACHED");
+            logger.warn("MOVES: guestId=" + updateInfo.getGuestId() + ", RATE LIMIT REACHED");
 
             throw e;
         }
@@ -398,7 +398,7 @@ public class MovesUpdater extends AbstractUpdater {
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.info(sb.toString());
 
-            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED (don't know why)");
+            logger.warn("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED (don't know why)");
 
             // The update failed.  We don't know if this is permanent or temporary.
             // Throw the appropriate exception.
@@ -427,10 +427,10 @@ public class MovesUpdater extends AbstractUpdater {
             if(maxDateTimeWithData.isBefore(nowMinusSevenDays)) {
                 // maxDateWithData is too long ago.  Use 7 days ago instead.
                 dateToStore = TimeUtils.dateFormatterUTC.print(nowMinusSevenDays);
-                System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", maxDateWithData=" + maxDateWithData + " < 7 days ago, using " + dateToStore);
+                logger.info("MOVES: guestId=" + updateInfo.getGuestId() + ", maxDateWithData=" + maxDateWithData + " < 7 days ago, using " + dateToStore);
             }
             else {
-                System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", storing maxDateWithData=" + maxDateWithData);
+                logger.info("MOVES: guestId=" + updateInfo.getGuestId() + ", storing maxDateWithData=" + maxDateWithData);
             }
             guestService.setApiKeyAttribute(updateInfo.apiKey, updateDateKeyName, dateToStore);
         }
@@ -505,14 +505,14 @@ public class MovesUpdater extends AbstractUpdater {
         catch (UpdateFailedException e) {
             // The update failed and whoever threw the error knew enough to have all the details.
             // Rethrow the error
-            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED");
+            logger.warn("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED");
 
             throw e;
         }
         catch (RateLimitReachedException e) {
             // We reached rate limit and whoever threw the error knew enough to have all the details.
             // Rethrow the error
-            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", RATE LIMIT REACHED");
+            logger.warn("MOVES: guestId=" + updateInfo.getGuestId() + ", RATE LIMIT REACHED");
 
             throw e;
         }
@@ -524,7 +524,7 @@ public class MovesUpdater extends AbstractUpdater {
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
             logger.info(sb.toString());
 
-            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED (don't know why)");
+            logger.warn("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED (don't know why)");
 
             // The update failed.  We don't know if this is permanent or temporary.
             // Throw the appropriate exception.
@@ -648,7 +648,7 @@ public class MovesUpdater extends AbstractUpdater {
                 // Otherwise, quit and retry later
                 if(waitTime > maxQuotaWaitMillis) {
                     // We're not willing to wait that long, reschedule
-                    System.out.println(new StringBuilder().append("MOVES: guestId=").append(updateInfo.getGuestId()).append(", waitTime=").append(waitTime).append(", RESCHEDULING").toString());
+                    logger.info(new StringBuilder().append("MOVES: guestId=").append(updateInfo.getGuestId()).append(", waitTime=").append(waitTime).append(", RESCHEDULING").toString());
                     // Set the reset time info in updateInfo so that we get scheduled for when the quota becomes available
                     // + a random number of minutes in the range of 0 to 60 to spread the load of lots of competing
                     // updaters across the next hour
@@ -656,7 +656,7 @@ public class MovesUpdater extends AbstractUpdater {
                     throw new RateLimitReachedException();
                 }
                 // We are willing to wait that long
-                System.out.println(new StringBuilder().append("MOVES: guestId=").append(updateInfo.getGuestId()).append(", waitTime=").append(waitTime).append(", WAITING").toString());
+                logger.info(new StringBuilder().append("MOVES: guestId=").append(updateInfo.getGuestId()).append(", waitTime=").append(waitTime).append(", WAITING").toString());
 
                 try { Thread.currentThread().sleep(waitTime); }
                 catch(Throwable e) {
@@ -821,7 +821,7 @@ public class MovesUpdater extends AbstractUpdater {
             }
 
             long now = System.currentTimeMillis();
-            System.out.println(new StringBuilder().append("MOVES: guestId=").append(updateInfo.getGuestId()).append(", minuteRem=").append(minuteRemValue).append(", hourRem=").append(hourRemValue).append(", nextQuotaMillis=").append(retMillis).append(" (now=").append(now).append(", delta=").append(retMillis - now).append(")").toString());
+            logger.info(new StringBuilder().append("MOVES: guestId=").append(updateInfo.getGuestId()).append(", minuteRem=").append(minuteRemValue).append(", hourRem=").append(hourRemValue).append(", nextQuotaMillis=").append(retMillis).append(" (now=").append(now).append(", delta=").append(retMillis - now).append(")").toString());
         }
 
         return retMillis;
@@ -873,10 +873,10 @@ public class MovesUpdater extends AbstractUpdater {
         String ret = null;
         if (newest.size()>0) {
             ret = newest.get(0).date;
-            System.out.println("Moves: guestId=" + updateInfo.getGuestId() + ", maxDateInDB=" + ret);
+            logger.info("Moves: guestId=" + updateInfo.getGuestId() + ", maxDateInDB=" + ret);
         }
         else {
-            System.out.println("Moves: guestId=" + updateInfo.getGuestId() + ", maxDateInDB=null");
+            logger.info("Moves: guestId=" + updateInfo.getGuestId() + ", maxDateInDB=null");
         }
         return ret;
     }

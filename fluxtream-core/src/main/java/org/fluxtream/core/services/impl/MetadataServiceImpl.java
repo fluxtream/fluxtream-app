@@ -647,9 +647,6 @@ public class MetadataServiceImpl implements MetadataService {
 
             if(newLocations.size()>0) {
                 long start = newLocations.get(0).start;
-                System.out.println(username + ": processing " + newLocations.size() + " new " + entityName +
-                                   " datapoints (offset is " + i + ", start is " + start +
-                                   " = " + AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().print(start) + " UTC)");
                 updateLocationMetadata(guest.getId(), newLocations);
             }
             else {
@@ -675,7 +672,6 @@ public class MetadataServiceImpl implements MetadataService {
     public void updateLocationMetadata(final long guestId, final List<LocationFacet> locationResources) {
         if (locationResources == null || locationResources.size()==0)
             return;
-        System.out.println("processing " + locationResources.size() + " location datapoints...");
         // sort the location data in ascending time order
         Collections.sort(locationResources, new Comparator<LocationFacet>() {
             @Override

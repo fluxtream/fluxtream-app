@@ -433,10 +433,10 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                 // If there are no existing fitbit facets, just start with today
                 if (newest.size()>0) {
                     lastStoredSyncMillis = newest.get(0).start;
-                    System.out.println("Fitbit: guestId=" + updateInfo.getGuestId() + ", using DB for lastStoredSyncMillis=" + lastStoredSyncMillis);
+                    logger.info("Fitbit: guestId=" + updateInfo.getGuestId() + ", using DB for lastStoredSyncMillis=" + lastStoredSyncMillis);
                 }
                 else {
-                    System.out.println("Fitbit: guestId=" + updateInfo.getGuestId() + ", nothing in DB for lastStoredSyncMillis, default to yesterday");
+                    logger.info("Fitbit: guestId=" + updateInfo.getGuestId() + ", nothing in DB for lastStoredSyncMillis, default to yesterday");
                     lastStoredSyncMillis = System.currentTimeMillis()-DateTimeConstants.MILLIS_PER_DAY;
                 }
 
@@ -642,7 +642,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
     // This allows to exceptionnally override the standard update scheduling mechanism: fitbit doesn't support updatedSince
     // semantics meaning we have to be aggressive about synching
     private void scheduleAggressiveBackSync(final UpdateInfo updateInfo, final long when) {
-        System.out.println("scheduling next backsynching operations , apiKeyId=" + updateInfo.apiKey.getId());
+        logger.info("scheduling next backsynching operations , apiKeyId=" + updateInfo.apiKey.getId());
         connectorUpdateService.scheduleUpdate(updateInfo.apiKey, 0, UpdateInfo.UpdateType.INCREMENTAL_UPDATE,
                 when);
     }
@@ -1150,7 +1150,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 						jsonParams.toString());
 			}
 		} catch (Exception e) {
-			System.out.println("error processing fitbit notification " + updatesString);
 			e.printStackTrace();
 			logger.warn("Could not parse fitbit notification: "
 					+ Utils.stackTrace(e));
