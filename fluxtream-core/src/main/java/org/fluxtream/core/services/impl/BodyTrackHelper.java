@@ -366,11 +366,24 @@ public class BodyTrackHelper {
             fos.close();
 
             final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("import", new Object[]{apiKey.getGuestId(), deviceName, tempFile.getAbsolutePath()});
+            ParsedBodyTrackUploadResult parsedResult = new ParsedBodyTrackUploadResult(dataStoreExecutionResult, deviceName, gson);
             if (!dataStoreExecutionResult.isSuccess()) {
-                logger.warn("There was an error persisting data to the datastore, guestId: " + apiKey.getGuestId() + ", deviceName: " + deviceName + ", tempFile: " + tempFile.getCanonicalPath());
+                logger.warn("Datastore: There was an error persisting data to the datastore, guestId: " + apiKey.getGuestId() + ", deviceName: " + deviceName + ", tempFile: " + tempFile.getCanonicalPath());
+                dataUpdateService.logBodyTrackDataUpdate(apiKey.getGuestId(),
+                        apiKey.getId(), null, deviceName, channelNames.toArray(new String[channelNames.size()]), dataStoreExecutionResult.getResponse());
+            } else {
+                try {
+                    long startTime = (long) (parsedResult.getParsedResponse().min_time * 1000);
+                    long endTime = (long) (parsedResult.getParsedResponse().max_time * 1000);
+                    dataUpdateService.logBodyTrackDataUpdate(apiKey.getGuestId(),
+                            apiKey.getId(), null, deviceName, channelNames.toArray(new String[channelNames.size()]), startTime, endTime);
+                } catch (Throwable t) {
+                    logger.warn("Datastore: couldn't log successful api data update");
+                    logger.warn(ExceptionUtils.getStackTrace(t));
+                }
             }
             tempFile.delete();
-            return new ParsedBodyTrackUploadResult(dataStoreExecutionResult,deviceName,gson);
+            return parsedResult;
         } catch (Exception e) {
             System.err.println("Could not persist to datastore");
             System.err.println(Utils.stackTrace(e));
