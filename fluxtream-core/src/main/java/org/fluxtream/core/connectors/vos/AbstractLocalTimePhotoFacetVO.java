@@ -1,36 +1,40 @@
 package org.fluxtream.core.connectors.vos;
 
+import org.fluxtream.core.OutsideTimeBoundariesException;
+import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.domain.AbstractLocalTimeFacet;
-import org.fluxtream.core.images.ImageOrientation;
-import org.fluxtream.core.mvc.models.DimensionModel;
-
-import java.util.List;
+import org.fluxtream.core.domain.GuestSettings;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.ISODateTimeFormat;
 
 /**
  * Created by candide on 23/07/15.
  */
-public abstract class AbstractLocalTimePhotoFacetVO<T extends AbstractLocalTimeFacet> extends AbstractLocalTimeInstantFacetVO<T> {
+public abstract class AbstractLocalTimePhotoFacetVO<T extends AbstractLocalTimeFacet> extends AbstractPhotoFacetVO<T> {
 
-    public String photoUrl;
-    public String deviceName;
-    public String channelName;
-    public long UID;
+    public String eventStart;
+    public boolean localTime;
 
-    // timeType is either "gmt" for facets that know their absolute time, or
-    // "local" for facets that only know local time.  This defaults to "gmt"
-    // and should be changed by subclasses such as Flickr which use local time.
-    public String timeType="gmt";
-
-    public abstract String getPhotoUrl();
-    public abstract String getThumbnail(int index);
-    public abstract List<DimensionModel> getThumbnailSizes();
-
-
-    /**
-     * Return the {@link ImageOrientation image's orientation}.  Defaults to {@link ImageOrientation#ORIENTATION_1} if
-     * not overridden.
-     */
-    public ImageOrientation getOrientation() {
-        return ImageOrientation.ORIENTATION_1;
+    @Override
+    public void extractValues(T facet, TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
+        super.extractValues(facet, timeInterval, settings);
+        this.date = facet.date;
+        final DateTimeZone zone = DateTimeZone.forTimeZone(timeInterval.getTimeZone(facet.date));
+        if (facet.startTimeStorage!=null) {
+            final DateTime startDateTime = ISODateTimeFormat.localDateOptionalTimeParser().parseLocalDateTime(facet.startTimeStorage).toDateTime(zone);
+            this.eventStart = ISODateTimeFormat.dateTime().withZone(zone).print(startDateTime);
+        } else {
+            this.eventStart = ISODateTimeFormat.dateTime().withZone(zone).print(facet.start);
+        }
+        localTime = true;
     }
+
+    @Override
+    public int compareTo(final AbstractInstantFacetVO<T> other) {
+        final DateTime thisStart = ISODateTimeFormat.date().parseDateTime(this.eventStart);
+        DateTime otherStart = ISODateTimeFormat.date().parseDateTime(other.eventStart);
+        return thisStart.isAfter(otherStart) ? 1 : -1;
+    }
+
 }
