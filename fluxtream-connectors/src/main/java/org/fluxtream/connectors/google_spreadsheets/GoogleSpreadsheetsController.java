@@ -2,10 +2,9 @@ package org.fluxtream.connectors.google_spreadsheets;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.gdata.client.spreadsheet.SpreadsheetService;
-import com.google.gdata.data.spreadsheet.SpreadsheetEntry;
-import com.google.gdata.data.spreadsheet.SpreadsheetFeed;
-import com.google.gdata.data.spreadsheet.WorksheetEntry;
+import com.google.gdata.data.spreadsheet.*;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.plexus.util.ExceptionUtils;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.updaters.UpdateFailedException;
@@ -21,10 +20,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by candide on 30/12/14.
@@ -65,6 +61,7 @@ public class GoogleSpreadsheetsController {
 
     class WorksheetMetadata {
         public int rowCount, colCount;
+        public String[] columnNames;
     }
 
     @POST
@@ -191,12 +188,20 @@ public class GoogleSpreadsheetsController {
                             worksheetMetadata.rowCount = worksheet.getRowCount();
                             worksheetMetadata.colCount = worksheet.getColCount();
                         }
+                        // get first row items and make them into column names
+                        URL cellFeedUrl = worksheet.getCellFeedUrl();
+                        CellFeed cellFeed = service.getFeed(cellFeedUrl, CellFeed.class);
+                        worksheetMetadata.columnNames = new String[worksheet.getColCount()];
+                        Iterator<CellEntry> iterator = cellFeed.getEntries().iterator();
+                        for (CellEntry cell = iterator.next(); iterator.hasNext()&&cell.getCell().getRow()==1; cell = iterator.next()) {
+                            worksheetMetadata.columnNames[cell.getCell().getCol()-1] = cell.getCell().getValue();
+                        }
                     }
                 }
             }
             return Response.ok().entity(worksheetMetadata).build();
         } catch (Exception e) {
-            return Response.serverError().build();
+            return Response.serverError().entity(ExceptionUtils.getStackTrace(e)).build();
         }
     }
 

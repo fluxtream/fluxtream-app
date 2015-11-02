@@ -93,6 +93,7 @@ public class GoogleSpreadsheetsUpdater extends AbstractUpdater {
             formatter = DateTimeFormat.forPattern(documentFacet.dateTimeFormat);
         DateTimeZone dateTimeZone = documentFacet.timeZone!=null?DateTimeZone.forTimeZone(TimeZone.getTimeZone(documentFacet.timeZone)):null;
         for (CellEntry cell : cellFeed.getEntries()) {
+            if (cell.getCell().getRow()<2) continue; // always skip first line
             if (currentRowIndex!=cell.getCell().getRow()) {
                 currentRowIndex = cell.getCell().getRow();
                 currentRow = new GoogleSpreadsheetRowFacet();

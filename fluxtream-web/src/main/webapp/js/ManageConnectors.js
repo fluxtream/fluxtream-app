@@ -505,14 +505,16 @@ define(["core/grapher/BTCore",
                 $("#dateTimeFieldSelect").empty().prop("disabled", false);
                 var alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
                 $("#dateTimeFieldSelect").append('<option>Please choose one</option>');
-                for (var i=0; i<worksheet["colCount"]; i++) {
+                for (var i=0; i<worksheet["columnNames"].length; i++) {
                     var letterIndex = i%alphabet.length;
                     var prependIndex = Math.floor(i/alphabet.length);
                     var letter = alphabet.charAt(letterIndex);
                     var columnLetter = (prependIndex>0)
                         ? alphabet.charAt(prependIndex-1) + letter
                         : letter;
-                    $("#dateTimeFieldSelect").append('<option value="' + columnLetter + '">' + columnLetter + '</option>');
+                    var value = worksheet["columnNames"][i];
+                    if (value==null) value = columnLetter;
+                    $("#dateTimeFieldSelect").append('<option value="' + columnLetter + '">' + value + '</option>');
                 }
                 $("#dateTimeFieldSelect").change(function(){
                     //$("#dateTimeFormatSection").val("").hide();
@@ -531,7 +533,11 @@ define(["core/grapher/BTCore",
                     $("#dateTimeTypeSelect").prop("disabled", false).val("none");
                     $("#dateTimeTypeSelect").change(function(){
                         var selectedFormat = $("#dateTimeTypeSelect").val();
-                        if (_.contains(["none","epochSeconds","epochMillis"], selectedFormat)) return;
+                        if (_.contains(["none","epochSeconds","epochMillis"], selectedFormat)) {
+                            $("#timeZoneSection").hide();
+                            $("#importSpreadsheetButton").prop("disabled", false);
+                            return;
+                        }
                         //if (selectedFormat==="format") {
                         //    $("#dateTimeFormatSection").show();
                         if (selectedFormat.indexOf("Z")==-1) {

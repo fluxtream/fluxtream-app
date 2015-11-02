@@ -305,7 +305,7 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
                 "/google/oauth2/token?scope=https://spreadsheets.google.com/feeds",
                 Connector.getConnector("google_spreadsheets"), order++, spreadsheetsKeys!=null,
                 true, false, spreadsheetsKeys);
-        spreadsheetsConnectorInfo.supportsRenewTokens = false;
+        spreadsheetsConnectorInfo.supportsRenewTokens = true;
         spreadsheetsConnectorInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://spreadsheets.google.com/feeds";
         em.persist(spreadsheetsConnectorInfo);
 

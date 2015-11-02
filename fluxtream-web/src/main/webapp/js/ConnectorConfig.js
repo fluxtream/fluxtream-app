@@ -426,6 +426,23 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
                 }
             }
         },
+        google_spreadsheets:{
+            color: "rgb(92, 174, 92)",
+            mapicon : {
+                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/greendot.png",
+                anchor: new google.maps.Point(5,5)
+            },
+            mapshadow: null,
+            facets:{
+                location:{
+                    list: true,
+                    photos: false,
+                    map: true,
+                    gps: true,
+                    clock: true
+                }
+            }
+        },
         bodymedia:{
             hasTimelineSettings: true,
             device_name:"BodyMedia",
