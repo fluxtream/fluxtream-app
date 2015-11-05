@@ -109,7 +109,7 @@ public class JPAFacetDao implements FacetDao {
     }
 
     @Cacheable("facetClasses")
-    private String getEntityName(Class<? extends AbstractFacet> facetClass) {
+    public String getEntityName(Class<? extends AbstractFacet> facetClass) {
         try {
             return facetClass.getAnnotation(Entity.class).name();
         } catch (Throwable t) {
@@ -221,6 +221,19 @@ public class JPAFacetDao implements FacetDao {
                                               final int desiredCount,
                                               @Nullable final TagFilter tagFilter) {
         return getFacets(apiKey, objectType, timeInMillis, desiredCount, "getFacetsAfter", tagFilter);
+    }
+
+    @Override
+    public AbstractFacet getFacetById(Class facetClass, long facetId) {
+        String entityName = getEntityName(facetClass);
+        final TypedQuery<? extends AbstractFacet> query = em.createQuery("SELECT facet FROM " + entityName + " facet WHERE facet.id = " + facetId, facetClass);
+        query.setMaxResults(1);
+
+        final List resultList = query.getResultList();
+        if (resultList != null && resultList.size() > 0) {
+            return (AbstractFacet)resultList.get(0);
+        }
+        return null;
     }
 
     @Override
@@ -361,7 +374,7 @@ public class JPAFacetDao implements FacetDao {
         }
 	}
 
-	@Override
+    @Override
 	public void deleteAllFacets(ApiKey apiKey, ObjectType objectType) {
         if (objectType==null) {
             deleteAllFacets(apiKey);

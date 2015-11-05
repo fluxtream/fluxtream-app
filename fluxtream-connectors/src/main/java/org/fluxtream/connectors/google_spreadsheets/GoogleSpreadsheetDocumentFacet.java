@@ -4,10 +4,7 @@ import org.fluxtream.core.connectors.annotations.ObjectTypeSpec;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.hibernate.annotations.Type;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import java.util.List;
 
 /**
@@ -27,7 +24,11 @@ public class GoogleSpreadsheetDocumentFacet extends AbstractFacet {
     @Type(type="yes_no")
     public boolean incremental;
 
-    @OneToMany(mappedBy = "document", orphanRemoval = true, fetch=FetchType.LAZY, cascade=CascadeType.ALL)
+    @Lob
+    public String columnNames;
+    public String collectionLabel, itemLabel;
+
+    @OneToMany(fetch=FetchType.LAZY, cascade=CascadeType.ALL)
     public List<GoogleSpreadsheetRowFacet> rows;
 
     public GoogleSpreadsheetDocumentFacet(){}

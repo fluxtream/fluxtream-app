@@ -69,6 +69,8 @@ public class GoogleSpreadsheetsController {
     @Produces(MediaType.APPLICATION_JSON)
     public Response addSpreadsheet(@FormParam("spreadsheetId") String spreadsheetId,
                                    @FormParam("worksheetId") String worksheetId,
+                                   @FormParam("collectionLabel") String collectionLabel,
+                                   @FormParam("itemLabel") String itemLabel,
                                    @FormParam("dateTimeField") String dateTimeField,
                                    @FormParam("dateTimeFormat") String dateTimeFormat,
                                    @FormParam(value="timeZone") String timeZone) throws UpdateFailedException {
@@ -76,6 +78,8 @@ public class GoogleSpreadsheetsController {
         GoogleSpreadsheetsUpdater.ImportSpecs importSpecs = new GoogleSpreadsheetsUpdater.ImportSpecs();
         importSpecs.spreadsheetId = spreadsheetId;
         importSpecs.worksheetId = worksheetId.isEmpty()?null:worksheetId;
+        importSpecs.itemLabel = itemLabel;
+        importSpecs.collectionLabel = collectionLabel;
         importSpecs.dateTimeField = dateTimeField;
         importSpecs.dateTimeFormat = dateTimeFormat;
         importSpecs.timeZone = timeZone.isEmpty()?null:timeZone;

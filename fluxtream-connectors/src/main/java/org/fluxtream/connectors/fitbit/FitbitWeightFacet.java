@@ -27,7 +27,7 @@ public class FitbitWeightFacet extends AbstractLocalTimeFacet {
     public double weight;
 
     @Index(name="logId")
-    public long logId;
+    public Long logId;
 
     public FitbitWeightFacet() {
         super();

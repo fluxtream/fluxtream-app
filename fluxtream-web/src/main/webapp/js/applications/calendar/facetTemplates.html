@@ -129,6 +129,30 @@
         </div>
     </div>
 </template>
+<template id="google_spreadsheets-row">
+    <div class="flx-box" style="border-left-color:{{color}}">
+        <span class="flx-deviceIcon lastfm"></span>
+        <div class="facetDetails">
+            {{#facets}}
+            <div class="facetDetails{{manyFacets}} {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
+                <div class="facet-edit"><a href="javascript:void(0)" class="icon icon-comment" style="width:32px;float:right"></a></div>
+                {{#displayDate}}<div>{{displayDate}}</div>{{/displayDate}}
+                <div class="flx-tTime"><a class="timedropdown" href="javascript:void(0)" data-toggle="dropdown">{{time}} <span class="flx-dataLabel">{{ampm}}</span></a></div>
+                <div class="flx-data">
+                    <span class="flx-description"><b>{{itemLabel}}</b></span>
+                </div>
+                {{#cells}}
+                <div class="flx-data">
+                    <span class="flx-dataLabel">{{columnName}}:</span>
+                    <span class="flx-text">{{cellValue}}</span>
+                </div>
+                {{/cells}}
+                {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}
+            </div>
+            {{/facets}}
+        </div>
+    </div>
+</template>
 <template id="fitbit-food_log_summary">
     <div class="flx-box" style="border-left-color:{{color}}">
         <span class="flx-deviceIcon fitbit-food_log_summary"></span>

@@ -17,9 +17,11 @@ import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.auth.TrustRelationshipRevokedException;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.ObjectType;
+import org.fluxtream.core.connectors.dao.JPAFacetDao;
 import org.fluxtream.core.connectors.updaters.UpdateFailedException;
 import org.fluxtream.core.connectors.vos.AbstractFacetVO;
 import org.fluxtream.core.connectors.vos.AbstractTimedFacetVO;
+import org.fluxtream.core.connectors.vos.VOHelper;
 import org.fluxtream.core.domain.*;
 import org.fluxtream.core.domain.metadata.City;
 import org.fluxtream.core.domain.metadata.VisitedCity;
@@ -72,6 +74,9 @@ public class CalendarDataStore {
 
     @Autowired
     Configuration env;
+
+    @Autowired
+    private JPAFacetDao jpaFacetDao;
 
 	Gson gson = new Gson();
 
@@ -1148,6 +1153,7 @@ public class CalendarDataStore {
                                                                            final TimeInterval timeInterval)
             throws InstantiationException, IllegalAccessException, ClassNotFoundException, OutsideTimeBoundariesException
     {
+        VOHelper.jpaFacetDao.set(jpaFacetDao);
         Collection<AbstractFacetVO<AbstractFacet>> facetCollection = new ArrayList<AbstractFacetVO<AbstractFacet>>();
         if (objectTypeFacets != null) {
             for (AbstractFacet abstractFacet : objectTypeFacets) {

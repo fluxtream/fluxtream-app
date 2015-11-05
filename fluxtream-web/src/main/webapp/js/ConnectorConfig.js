@@ -427,18 +427,21 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
             }
         },
         google_spreadsheets:{
+            filterLabel: "Spreadsheets",
             color: "rgb(92, 174, 92)",
+            device_name:"Spreadsheets",
+            color: "rgb(160, 67, 175)",
             mapicon : {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/greendot.png",
                 anchor: new google.maps.Point(5,5)
             },
             mapshadow: null,
             facets:{
-                location:{
+                row: {
                     list: true,
                     photos: false,
                     map: true,
-                    gps: true,
+                    gps: false,
                     clock: true
                 }
             }

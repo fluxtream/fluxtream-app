@@ -31,6 +31,7 @@
         <property name="caches">
             <set>
                 <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean" p:name="userWidgets"/>
+                <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean" p:name="spreadsheetDocuments"/>
             </set>
         </property>
     </bean>

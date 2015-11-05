@@ -6,7 +6,9 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson.JacksonFactory;
 import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.connectors.dao.JPAFacetDao;
 import org.fluxtream.core.connectors.updaters.UpdateFailedException;
+import org.fluxtream.core.connectors.vos.VOHelper;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.domain.Notification;
 import org.fluxtream.core.services.GuestService;
@@ -14,6 +16,7 @@ import org.fluxtream.core.services.NotificationsService;
 import org.fluxtream.core.services.SettingsService;
 import org.fluxtream.core.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -32,7 +35,6 @@ public class GoogleSpreadsheetsHelper {
 
     @Autowired
     NotificationsService notificationsService;
-
 
     GoogleCredential getCredentials(ApiKey apiKey) throws UpdateFailedException {
         HttpTransport httpTransport = new NetHttpTransport();

@@ -431,6 +431,8 @@ define(["core/grapher/BTCore",
                     var worksheetId = $("#worksheetSelect").val();
                     var dateTimeField = $("#dateTimeFieldSelect").val();
                     var dateTimeFormat = $("#dateTimeTypeSelect").val();
+                    var collectionLabel = $("#collectionLabel").val();
+                    var itemLabel = $("#itemLabel").val();
                     var timeZone = null;
                     if (!dateTimeFormat.endsWith("Z"))
                         timeZone = $("#timeZoneSelect").val();
@@ -442,6 +444,8 @@ define(["core/grapher/BTCore",
                             worksheetId : worksheetId,
                             dateTimeField : dateTimeField,
                             dateTimeFormat : dateTimeFormat,
+                            collectionLabel : collectionLabel,
+                            itemLabel : itemLabel,
                             timeZone : timeZone
                         },
                         success: function() {
@@ -514,7 +518,7 @@ define(["core/grapher/BTCore",
                         : letter;
                     var value = worksheet["columnNames"][i];
                     if (value==null) value = columnLetter;
-                    $("#dateTimeFieldSelect").append('<option value="' + columnLetter + '">' + value + '</option>');
+                    $("#dateTimeFieldSelect").append('<option value="' + value + '">' + value + '</option>');
                 }
                 $("#dateTimeFieldSelect").change(function(){
                     //$("#dateTimeFormatSection").val("").hide();

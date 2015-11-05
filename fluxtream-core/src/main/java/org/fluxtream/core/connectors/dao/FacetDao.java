@@ -36,6 +36,8 @@ public interface FacetDao {
 
     public void deleteAllFacets(ApiKey apiKey);
 
+    AbstractFacet getFacetById(final Class facetClass, final long facetId);
+
     AbstractFacet getFacetById(ApiKey apiKey, final ObjectType objectType, final long facetId);
 
     public void deleteAllFacets(ApiKey apiKey, ObjectType objectType);

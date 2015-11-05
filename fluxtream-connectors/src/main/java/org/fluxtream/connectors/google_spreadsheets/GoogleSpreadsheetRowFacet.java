@@ -16,8 +16,7 @@ public class GoogleSpreadsheetRowFacet extends AbstractRepeatableFacet {
 
     public GoogleSpreadsheetRowFacet(){}
 
-    @ManyToOne(fetch=FetchType.LAZY, cascade= CascadeType.ALL)
-    GoogleSpreadsheetDocumentFacet document;
+    public long document_id;
 
     @OneToMany(mappedBy = "row", orphanRemoval = true, fetch=FetchType.EAGER, cascade= CascadeType.ALL)
     public List<GoogleSpreadsheetCellFacet> cells = new ArrayList<GoogleSpreadsheetCellFacet>();
