@@ -1,5 +1,6 @@
 package org.fluxtream.connectors.google_spreadsheets;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.codehaus.jackson.annotate.JsonRawValue;
 import org.fluxtream.core.OutsideTimeBoundariesException;
 import org.fluxtream.core.TimeInterval;
@@ -28,7 +29,7 @@ public class GoogleSpreadsheetRowFacetVO extends AbstractInstantFacetVO<GoogleSp
     protected void fromFacet(GoogleSpreadsheetRowFacet facet, TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
         Iterator<GoogleSpreadsheetCellFacet> cells = facet.cells.iterator();
         JPAFacetDao jpaFacetDao = VOHelper.jpaFacetDao.get();
-        GoogleSpreadsheetDocumentFacet documentFacet = (GoogleSpreadsheetDocumentFacet) jpaFacetDao.getFacetById(GoogleSpreadsheetDocumentFacet.class, facet.document_id);
+        GoogleSpreadsheetsDocumentFacet documentFacet = (GoogleSpreadsheetsDocumentFacet) jpaFacetDao.getFacetById(GoogleSpreadsheetsDocumentFacet.class, facet.document_id);
         this.itemLabel = documentFacet.itemLabel;
         String[] columnNames = documentFacet.columnNames.split(",");
         StringBuilder sb = new StringBuilder();
@@ -39,14 +40,13 @@ public class GoogleSpreadsheetRowFacetVO extends AbstractInstantFacetVO<GoogleSp
             if (!cells.hasNext())
                 continue;
             String cellValue = cells.next().value;
-            System.out.println(columnName + documentFacet.dateTimeColumnName);
             if (columnName.equals(documentFacet.dateTimeColumnName.trim())) {
                 this.start = handleTimeColumn(cellValue, documentFacet);
             } else {
                 if (i>0) sb.append(", ");
                 sb.append("{");
                 sb.append("\"columnName\":\"" + columnName + "\",");
-                sb.append("\"cellValue\":\"" + cellValue + "\"");
+                sb.append("\"cellValue\":\"" + StringEscapeUtils.escapeHtml(cellValue) + "\"");
                 sb.append("}");
             }
             i++;
@@ -55,7 +55,7 @@ public class GoogleSpreadsheetRowFacetVO extends AbstractInstantFacetVO<GoogleSp
         this.cells = sb.toString();
     }
 
-    private long handleTimeColumn(String cellValue, GoogleSpreadsheetDocumentFacet documentFacet) {
+    private long handleTimeColumn(String cellValue, GoogleSpreadsheetsDocumentFacet documentFacet) {
         String timeFormat = documentFacet.dateTimeFormat;
         if (timeFormat.equals("epochSeconds"))
             return Long.valueOf(cellValue)*1000;

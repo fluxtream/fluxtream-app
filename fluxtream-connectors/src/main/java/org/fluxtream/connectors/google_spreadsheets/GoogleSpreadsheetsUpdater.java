@@ -10,9 +10,12 @@ import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.dao.JPAFacetDao;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
+import org.fluxtream.core.connectors.updaters.SettingsManagingUpdater;
 import org.fluxtream.core.connectors.updaters.UpdateFailedException;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.services.JPADaoService;
+import org.fluxtream.core.utils.JPAUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
@@ -31,8 +34,10 @@ import java.util.TimeZone;
  * Created by candide on 29/12/14.
  */
 @Component
-@Updater(prettyName = "Google Spreadsheets", value = 1, objectTypes = {GoogleSpreadsheetRowFacet.class}, updateStrategyType = Connector.UpdateStrategyType.INCREMENTAL)
-public class GoogleSpreadsheetsUpdater extends AbstractUpdater {
+@Updater(prettyName = "Google Spreadsheets", value = 1,
+        settings = GoogleSpreadsheetsSettings.class,
+        objectTypes = {GoogleSpreadsheetRowFacet.class}, updateStrategyType = Connector.UpdateStrategyType.INCREMENTAL)
+public class GoogleSpreadsheetsUpdater extends AbstractUpdater implements SettingsManagingUpdater {
 
     @Autowired
     GoogleSpreadsheetsHelper helper;
@@ -41,7 +46,19 @@ public class GoogleSpreadsheetsUpdater extends AbstractUpdater {
     JPAFacetDao jpaFacetDao;
 
     @Autowired
+    JPADaoService jpaDaoService;
+
+    @Autowired
     JdbcTemplate jdbcTemplate;
+
+    @Override
+    public Object getSettingsInstance(long apiKeyId) {
+        List<GoogleSpreadsheetsDocumentFacet> userDocs = jpaDaoService.findWithQuery("SELECT doc FROM " + JPAUtils.getEntityName(GoogleSpreadsheetsDocumentFacet.class) +
+                        " doc WHERE doc.apiKeyId=?",
+                GoogleSpreadsheetsDocumentFacet.class, apiKeyId);
+        GoogleSpreadsheetsSettings googleSpreadsheetsSettings = new GoogleSpreadsheetsSettings(userDocs);
+        return googleSpreadsheetsSettings;
+    }
 
     public static class ImportSpecs {
         public String spreadsheetId, worksheetId, dateTimeField, dateTimeFormat, timeZone;
@@ -53,7 +70,7 @@ public class GoogleSpreadsheetsUpdater extends AbstractUpdater {
         ObjectMapper objectMapper = new ObjectMapper();
         ImportSpecs importSpecs = objectMapper.readValue(updateInfo.jsonParams, ImportSpecs.class);
         //TODO: check document doesn't already exist
-        GoogleSpreadsheetDocumentFacet documentFacet = new GoogleSpreadsheetDocumentFacet(importSpecs);
+        GoogleSpreadsheetsDocumentFacet documentFacet = new GoogleSpreadsheetsDocumentFacet(importSpecs);
         documentFacet.columnNames = importSpecs.columnNames;
         documentFacet.collectionLabel = importSpecs.collectionLabel;
         documentFacet.itemLabel = importSpecs.itemLabel;
@@ -62,7 +79,7 @@ public class GoogleSpreadsheetsUpdater extends AbstractUpdater {
         importSpreadsheet(documentFacet, updateInfo);
     }
 
-    private void importSpreadsheet(GoogleSpreadsheetDocumentFacet documentFacet, UpdateInfo updateInfo) throws UpdateFailedException, IOException, ServiceException {
+    private void importSpreadsheet(GoogleSpreadsheetsDocumentFacet documentFacet, UpdateInfo updateInfo) throws UpdateFailedException, IOException, ServiceException {
         ApiKey apiKey = guestService.getApiKey(AuthHelper.getGuestId(), Connector.getConnector("google_spreadsheets"));
         GoogleCredential credential = helper.getCredentials(apiKey);
         SpreadsheetService service =
@@ -85,7 +102,7 @@ public class GoogleSpreadsheetsUpdater extends AbstractUpdater {
         }
     }
 
-    private void importWorksheet(SpreadsheetService service, WorksheetEntry worksheet, GoogleSpreadsheetDocumentFacet documentFacet, UpdateInfo updateInfo) throws IOException, ServiceException {
+    private void importWorksheet(SpreadsheetService service, WorksheetEntry worksheet, GoogleSpreadsheetsDocumentFacet documentFacet, UpdateInfo updateInfo) throws IOException, ServiceException {
         URL cellFeedUrl = worksheet.getCellFeedUrl();
         CellFeed cellFeed = service.getFeed(cellFeedUrl, CellFeed.class);
 

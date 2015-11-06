@@ -131,7 +131,7 @@
 </template>
 <template id="google_spreadsheets-row">
     <div class="flx-box" style="border-left-color:{{color}}">
-        <span class="flx-deviceIcon lastfm"></span>
+        <span class="flx-deviceIcon google_spreadsheets"></span>
         <div class="facetDetails">
             {{#facets}}
             <div class="facetDetails{{manyFacets}} {{type}}-{{id}}" facettype="{{type}}" itemid="{{id}}">
@@ -144,7 +144,7 @@
                 {{#cells}}
                 <div class="flx-data">
                     <span class="flx-dataLabel">{{columnName}}:</span>
-                    <span class="flx-text">{{cellValue}}</span>
+                    <span class="flx-text">{{{cellValue}}}</span>
                 </div>
                 {{/cells}}
                 {{#comment}}<div class="facet-comment-text">{{comment}}</div>{{/comment}}

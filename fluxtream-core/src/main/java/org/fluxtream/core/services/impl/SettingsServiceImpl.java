@@ -8,6 +8,7 @@ import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
 import org.fluxtream.core.connectors.updaters.SettingsAwareUpdater;
+import org.fluxtream.core.connectors.updaters.SettingsManagingUpdater;
 import org.fluxtream.core.connectors.updaters.UpdateFailedException;
 import org.fluxtream.core.domain.*;
 import org.fluxtream.core.domain.GuestSettings.DistanceMeasureUnit;
@@ -146,6 +147,10 @@ public class SettingsServiceImpl implements SettingsService {
         ApiKey apiKey = guestService.getApiKey(apiKeyId);
         Object settings = apiKey.getSettings();
         final Class<? extends AbstractUpdater> updaterClass = apiKey.getConnector().getUpdaterClass();
+        if (SettingsManagingUpdater.class.isAssignableFrom(updaterClass)) {
+            final AbstractUpdater updater = beanFactory.getBean(apiKey.getConnector().getUpdaterClass());
+            return ((SettingsManagingUpdater)updater).getSettingsInstance(apiKeyId);
+        }
         final Class<?> settingsClass = updaterClass.getAnnotation(Updater.class).settings();
         if (settings==null&& settingsClass != Updater.EmptySettings.class){
             try {

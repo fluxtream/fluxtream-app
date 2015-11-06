@@ -354,6 +354,25 @@
         <div class="alert alert-info"><strong>Heads up!</strong> For changes to be reflected in the timeline, you will have to reload the page.<br>Sorry about that!</div>
     </div>
 </template>
+<template id="google_spreadsheets-settings">
+    <div style="height:300px" id="googleSpreadsheetsSettings">
+       <form class="form-inline" action="javascript:void(0);">
+         <fieldset>
+            <!-- Select Basic -->
+            <div class="control-group">
+              <label class="control-label" for="documentSelect">Spreadsheet:</label>
+              <div class="controls">
+                <select id="documentSelect" name="spreadsheetSelect">
+                  <option>Please choose one</option>
+                  {{#settings}}{{#documents}}
+                    <option value="{{id}}">{{collectionLabel}}</option>{{/documents}}{{/settings}}
+                </select>
+              </div>
+            </div>
+         </fieldset>
+      </form>
+    </div>
+</template>
 <template id="sms_backup-settings">
     <form class="form-horizontal" action="javascript:void(0);">
         {{#settings}}

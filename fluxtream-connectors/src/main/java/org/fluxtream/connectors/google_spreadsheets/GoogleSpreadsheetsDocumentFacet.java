@@ -12,7 +12,7 @@ import java.util.List;
  */
 @Entity(name="Facet_GoogleSpreadsheetDocument")
 @ObjectTypeSpec(name = "document", value = 1, prettyname = "Document", clientFacet = false)
-public class GoogleSpreadsheetDocumentFacet extends AbstractFacet {
+public class GoogleSpreadsheetsDocumentFacet extends AbstractFacet {
 
     public String spreadsheetId;
     public String worksheetId;
@@ -31,8 +31,8 @@ public class GoogleSpreadsheetDocumentFacet extends AbstractFacet {
     @OneToMany(fetch=FetchType.LAZY, cascade=CascadeType.ALL)
     public List<GoogleSpreadsheetRowFacet> rows;
 
-    public GoogleSpreadsheetDocumentFacet(){}
-    public GoogleSpreadsheetDocumentFacet(GoogleSpreadsheetsUpdater.ImportSpecs importSpecs){
+    public GoogleSpreadsheetsDocumentFacet(){}
+    public GoogleSpreadsheetsDocumentFacet(GoogleSpreadsheetsUpdater.ImportSpecs importSpecs){
         this.spreadsheetId = importSpecs.spreadsheetId;
         this.worksheetId = importSpecs.worksheetId;
         this.dateTimeColumnName = importSpecs.dateTimeField;

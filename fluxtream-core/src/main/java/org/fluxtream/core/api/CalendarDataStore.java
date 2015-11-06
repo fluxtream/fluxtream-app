@@ -7,6 +7,7 @@ import com.wordnik.swagger.annotations.*;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.OutsideTimeBoundariesException;
@@ -569,22 +570,14 @@ public class CalendarDataStore {
         return Response.ok(toJacksonJson(digest)).build();
     }
 
-    private String toJacksonJson(final DigestModel digest) throws IOException {
+    private String toJacksonJson(Object toSerialize) throws IOException {
         final ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+        objectMapper.configure(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS, false);
         objectMapper.setVisibilityChecker(
                 objectMapper.getSerializationConfig().getDefaultVisibilityChecker().
                         withFieldVisibility(JsonAutoDetect.Visibility.NON_PRIVATE));
-        return objectMapper.writeValueAsString(digest);
-    }
-
-    private String toJacksonJson(ConnectorResponseModel  connectorResponse) throws IOException {
-        final ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
-        objectMapper.setVisibilityChecker(
-                objectMapper.getSerializationConfig().getDefaultVisibilityChecker().
-                        withFieldVisibility(JsonAutoDetect.Visibility.NON_PRIVATE));
-        return objectMapper.writeValueAsString(connectorResponse);
+        return objectMapper.writeValueAsString(toSerialize);
     }
 
     private void setMetadata(final DigestModel digest, final AbstractTimespanMetadata dayMetadata, String[] dates) {

@@ -445,8 +445,13 @@ public class BodyTrackHelper {
         // and so it includes a trustedBuddy parameter because it has another (deprecated) way of figuring out
         // access permissions to a buddy's info - here it has to be null since we have already filtered out
         // Channels to which the loggedIn guest doesn't have access
-        populateResponseWithChannelMappings(guestId, null /*IMPORTANT: trustedBuddy needs to be null here*/,
-                response, channelMappings, infoResponse);
+        try {
+            populateResponseWithChannelMappings(guestId, null /*IMPORTANT: trustedBuddy needs to be null here*/,
+                    response, channelMappings, infoResponse);
+        } catch (Throwable e) {
+            e.printStackTrace();
+            throw new RuntimeException("Unexpected error trying to populate response with channel mappings: " + e.getMessage());
+        }
 
         // if trustedBuddy is null, add the All photos block to the response
         if (trustedBuddy==null&&!photoChannelTimeRanges.isEmpty()) {
@@ -613,7 +618,7 @@ public class BodyTrackHelper {
             // This is to prevent a rare condition when working, under development, on a branch that
             // doesn't yet support a connector that is supported on another branch and resulted
             // in data being populated in the database which is going to cause a crash here
-            if (api.getConnector()==null)
+            if (api==null||api.getConnector()==null)
                 continue;
             // filter out not shared connectors
             if (trustedBuddy !=null&& buddiesService.getSharedConnector(api.getId(), AuthHelper.getGuestId())==null)
