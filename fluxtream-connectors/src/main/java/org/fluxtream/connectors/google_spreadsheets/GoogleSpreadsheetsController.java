@@ -12,8 +12,13 @@ import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.services.ConnectorUpdateService;
 import org.fluxtream.core.services.GuestService;
+import org.fluxtream.core.services.JPADaoService;
+import org.fluxtream.core.utils.JPAUtils;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.*;
@@ -38,6 +43,16 @@ public class GoogleSpreadsheetsController {
 
     @Autowired
     GoogleSpreadsheetsHelper helper;
+
+    @Autowired
+    JPADaoService daoService;
+
+    @Autowired
+    GoogleSpreadsheetsDao spreadsheetsDao;
+
+    @Autowired
+    @Qualifier("AsyncWorker")
+    ThreadPoolTaskExecutor executor;
 
     class SpreadsheetModel {
         public SpreadsheetModel(String title, String id) {
@@ -66,7 +81,6 @@ public class GoogleSpreadsheetsController {
 
     @POST
     @Path("/")
-    @Produces(MediaType.APPLICATION_JSON)
     public Response addSpreadsheet(@FormParam("spreadsheetId") String spreadsheetId,
                                    @FormParam("worksheetId") String worksheetId,
                                    @FormParam("collectionLabel") String collectionLabel,
@@ -74,8 +88,7 @@ public class GoogleSpreadsheetsController {
                                    @FormParam("dateTimeField") String dateTimeField,
                                    @FormParam("dateTimeFormat") String dateTimeFormat,
                                    @FormParam(value="timeZone") String timeZone) throws UpdateFailedException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        GoogleSpreadsheetsUpdater.ImportSpecs importSpecs = new GoogleSpreadsheetsUpdater.ImportSpecs();
+        final GoogleSpreadsheetsUpdater.ImportSpecs importSpecs = new GoogleSpreadsheetsUpdater.ImportSpecs();
         importSpecs.spreadsheetId = spreadsheetId;
         importSpecs.worksheetId = worksheetId.isEmpty()?null:worksheetId;
         importSpecs.itemLabel = itemLabel;
@@ -83,18 +96,22 @@ public class GoogleSpreadsheetsController {
         importSpecs.dateTimeField = dateTimeField;
         importSpecs.dateTimeFormat = dateTimeFormat;
         importSpecs.timeZone = timeZone.isEmpty()?null:timeZone;
-        Connector connector = Connector.getConnector("google_spreadsheets");
+        final Connector connector = Connector.getConnector("google_spreadsheets");
         ApiKey apiKey = guestService.getApiKey(AuthHelper.getGuestId(), connector);
-        UpdateInfo updateInfo = UpdateInfo.initialHistoryUpdateInfo(apiKey,
+        final UpdateInfo updateInfo = UpdateInfo.initialHistoryUpdateInfo(apiKey,
                 7);
-        try {
-            updateInfo.jsonParams = objectMapper.writeValueAsString(importSpecs);
-            GoogleSpreadsheetsUpdater updater = (GoogleSpreadsheetsUpdater) connectorUpdateService.getUpdater(connector);
-            //TODO: accumulate stats and error in the updateInfo's 'context' map and send that back in the response as JSON
-            updater.updateConnectorDataHistory(updateInfo);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        executor.execute(new Runnable() {
+            public void run() {
+                try {
+                    final ObjectMapper objectMapper = new ObjectMapper();
+                    updateInfo.jsonParams = objectMapper.writeValueAsString(importSpecs);
+                    GoogleSpreadsheetsUpdater updater = (GoogleSpreadsheetsUpdater) connectorUpdateService.getUpdater(connector);
+                    updater.updateConnectorDataHistory(updateInfo);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
         return Response.ok().build();
     }
 
@@ -207,6 +224,45 @@ public class GoogleSpreadsheetsController {
         } catch (Exception e) {
             return Response.serverError().entity(ExceptionUtils.getStackTrace(e)).build();
         }
+    }
+
+    @DELETE
+    @Path("/document/{documentId}")
+    public Response removeDocument(@PathParam("documentId") long documentId) {
+        Response x = checkDocument(documentId);
+        spreadsheetsDao.removeDocument(documentId);
+        return x;
+    }
+
+    @PUT
+    @Path("/document/{documentId}/collectionLabel")
+    public Response setCollectionLabel(@PathParam("documentId") long documentId,
+                                       @FormParam("label") String collectionLabel) {
+        return updateLabel(documentId, "collection", collectionLabel);
+    }
+
+    @PUT
+    @Path("/document/{documentId}/itemLabel")
+    public Response setItemLabel(@PathParam("documentId") long documentId,
+                                 @FormParam("label") String itemLabel) {
+        return updateLabel(documentId, "item", itemLabel);
+    }
+
+    private Response updateLabel(long documentId, String labelName, String itemLabel) {
+        Response x = checkDocument(documentId);
+        daoService.execute("UPDATE Facet_GoogleSpreadsheetDocument SET " + labelName + "Label=? WHERE id=?", itemLabel, documentId);
+        return x;
+    }
+
+    private Response checkDocument(long documentId) {
+        String entityName = JPAUtils.getEntityName(GoogleSpreadsheetsDocumentFacet.class);
+        List<GoogleSpreadsheetsDocumentFacet> documents = daoService.findWithQuery("SELECT doc FROM " + entityName + " doc WHERE doc.id=?",
+                GoogleSpreadsheetsDocumentFacet.class, documentId);
+        if (documents.size()==0) return Response.status(404).build();
+        GoogleSpreadsheetsDocumentFacet document = documents.get(0);
+        if (AuthHelper.getGuestId()!=document.guestId)
+            return Response.status(403).build();
+        return Response.ok().build();
     }
 
 }

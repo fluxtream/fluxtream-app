@@ -190,7 +190,7 @@ define(["core/grapher/BTCore",
         var syncNowBtn = $("#syncNow-" + connector.connectorName);
         syncNowBtn.click(function(event){
             event.preventDefault();
-            setToSyncing(connector.connectorName)
+            setToSyncing(connector.connectorName);
             var url = "/api/v1/sync/" + connector.connectorName;
             if (App.buddyToAccess["isBuddy"]) url+="?"+App.BUDDY_TO_ACCESS_PARAM+"="+App.buddyToAccess["id"];
             $.ajax({
@@ -204,7 +204,7 @@ define(["core/grapher/BTCore",
             event.preventDefault();
             if (connector.connectorName==="google_spreadsheets") {
                 App.loadMustacheTemplate("connectorMgmtTemplates.html","spreadsheetBrowser",function(template){
-                    handleSpreadsheetBrowser(template, connector);
+                    settingsHandlers["google_spreadsheets"].handleSpreadsheetBrowser(template, connector);
                 });
             }
             else {
@@ -397,167 +397,6 @@ define(["core/grapher/BTCore",
                 var html = template.render(updates);
 
                 App.makeModal(html);
-            }
-        });
-    }
-
-    function handleSpreadsheetBrowser(template, connector) {
-        $.ajax({
-            url: "/api/v1/spreadsheets/",
-            success: function(spreadsheets) {
-                var html = template.render({connector:connector});
-                App.makeModal(html);
-                for (var i=0; i<spreadsheets.length; i++) {
-                    $("#spreadsheetSelect").append('<option value="' + spreadsheets[i]["id"] + '">' + spreadsheets[i]["title"] + '</option>');
-                }
-                $("#importSpreadsheetButton").prop("disabled", true);
-                $("#worksheetSelect").empty().prop("disabled", true);
-                $("#worksheetSection").hide();
-                //$("#dateTimeFormatSection").hide();
-                $("#timeZoneSection").hide();
-                $("#timeZoneSelect").val("none");
-                $("#dateTimeTypeSelect").val("none").prop("disabled", true);
-                $("#dateTimeFieldSelect").empty().prop("disabled", true);
-                $("#spreadsheetSelect").change(function(){
-                    var spreadsheetId = $("#spreadsheetSelect").val();
-                    loadSpreadsheetInfo(spreadsheetId);
-                });
-                $("#importSpreadsheetCancelButton").click(function(e) {
-                    e.preventDefault();
-                    $("#spreadsheetBrowserModal").modal("hide");
-                });
-                $("#importSpreadsheetButton").click(function(e) {
-                    e.preventDefault();
-                    var spreadsheetId = $("#spreadsheetSelect").val();
-                    var worksheetId = $("#worksheetSelect").val();
-                    var dateTimeField = $("#dateTimeFieldSelect").val();
-                    var dateTimeFormat = $("#dateTimeTypeSelect").val();
-                    var collectionLabel = $("#collectionLabel").val();
-                    var itemLabel = $("#itemLabel").val();
-                    var timeZone = null;
-                    if (!dateTimeFormat.endsWith("Z"))
-                        timeZone = $("#timeZoneSelect").val();
-                    $.ajax({
-                        url: "/api/v1/spreadsheets/",
-                        type: "POST",
-                        data: {
-                            spreadsheetId : spreadsheetId,
-                            worksheetId : worksheetId,
-                            dateTimeField : dateTimeField,
-                            dateTimeFormat : dateTimeFormat,
-                            collectionLabel : collectionLabel,
-                            itemLabel : itemLabel,
-                            timeZone : timeZone
-                        },
-                        success: function() {
-
-                        },
-                        error: function() {
-
-                        }
-                    });
-                });
-            }
-        });
-    }
-
-    function loadSpreadsheetInfo(spreadsheetId) {
-        $.ajax({
-            url: "/api/v1/spreadsheets/worksheets",
-            data: {spreadsheetId : spreadsheetId},
-            success: function(worksheets) {
-                $("#worksheetSelect").empty().prop("disabled", false);
-                $("#importSpreadsheetButton").prop("disabled", true);
-                $("#dateTimeFieldSelect").empty().prop("disabled", true);
-                $("#dateTimeTypeSelect").prop("disabled", true);
-                //$("#dateTimeFormatSection").val("").hide();
-                $("#timeSection").hide();
-                $("#timeZoneSelect").val("none");
-                $("#worksheetSection").show();
-                //$("#dateTimeFormatSection").val("").hide();
-                $("#timeZoneSection").val("none").hide();
-                if (worksheets.length>1) {
-                    $("#worksheetSelect").append('<option>Please choose one</option>');
-                    for (var i = 0; i < worksheets.length; i++) {
-                        $("#worksheetSelect").append('<option value="' + worksheets[i]["id"] + '">' + worksheets[i]["title"] + '</option>');
-                    }
-                    $("#worksheetSelect").change(function(){
-                        var worksheetId = $("#worksheetSelect").val();
-                        if (!_.isUndefined(worksheetId)&&worksheetId!=null) {
-                            loadWorksheetInfo(spreadsheetId, worksheetId);
-                        }
-                    });
-                } else {
-                    $("#worksheetSection").hide();
-                    loadWorksheetInfo(spreadsheetId, worksheets[0]["id"]);
-                }
-            }
-        });
-    }
-
-    function loadWorksheetInfo(spreadsheetId, worksheetId) {
-        $("#dateTimeFormatSelect").prop("disabled", true);
-        //$("#dateTimeFormatSection").val("").hide();
-        $("#timeZoneSection").hide();
-        $("#dateTimeFieldSelect").empty().prop("disabled", true);
-        $("#dateTimeTypeSelect").val("none").prop("disabled", true);
-        $("#importSpreadsheetButton").prop("disabled", true);
-        $("#timeZoneSelect").val("none");
-        $.ajax({
-            url: "/api/v1/spreadsheets/worksheet",
-            data: {spreadsheetId : spreadsheetId, worksheetId : worksheetId},
-            success: function(worksheet) {
-                $("#dateTimeFieldSelect").empty().prop("disabled", false);
-                var alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-                $("#dateTimeFieldSelect").append('<option>Please choose one</option>');
-                for (var i=0; i<worksheet["columnNames"].length; i++) {
-                    var letterIndex = i%alphabet.length;
-                    var prependIndex = Math.floor(i/alphabet.length);
-                    var letter = alphabet.charAt(letterIndex);
-                    var columnLetter = (prependIndex>0)
-                        ? alphabet.charAt(prependIndex-1) + letter
-                        : letter;
-                    var value = worksheet["columnNames"][i];
-                    if (value==null) value = columnLetter;
-                    $("#dateTimeFieldSelect").append('<option value="' + value + '">' + value + '</option>');
-                }
-                $("#dateTimeFieldSelect").change(function(){
-                    //$("#dateTimeFormatSection").val("").hide();
-                    $("#timeZoneSection").hide();
-                    $("#timeZoneSelect").val("none");
-                    $("#importSpreadsheetButton").prop("disabled", true);
-                    $("#dateTimeTypeSelect > option").each(function() {
-                        var format = $(this).attr("data-momentjs-format");
-                        if (!_.isUndefined(format)) {
-                            var formatted = moment().format(format);
-                            if (format.indexOf("Z")==-1)
-                                formatted += " (Local Time)"
-                            $(this).text(formatted);
-                        }
-                    });
-                    $("#dateTimeTypeSelect").prop("disabled", false).val("none");
-                    $("#dateTimeTypeSelect").change(function(){
-                        var selectedFormat = $("#dateTimeTypeSelect").val();
-                        if (_.contains(["none","epochSeconds","epochMillis"], selectedFormat)) {
-                            $("#timeZoneSection").hide();
-                            $("#importSpreadsheetButton").prop("disabled", false);
-                            return;
-                        }
-                        //if (selectedFormat==="format") {
-                        //    $("#dateTimeFormatSection").show();
-                        if (selectedFormat.indexOf("Z")==-1) {
-                            // no time zone in format, it has to be specified manually
-                            $("#importSpreadsheetButton").prop("disabled", true);
-                            $("#timeZoneSection").show();
-                            $("#timeZoneSelect").val("none").change(function(){
-                                $("#importSpreadsheetButton").prop("disabled", false);
-                            });
-                        } else {
-                            $("#timeZoneSection").hide();
-                            $("#importSpreadsheetButton").prop("disabled", false);
-                        }
-                    });
-                });
             }
         });
     }

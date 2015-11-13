@@ -38,6 +38,9 @@ public class GoogleSpreadsheetsDocumentFacet extends AbstractFacet {
         this.dateTimeColumnName = importSpecs.dateTimeField;
         this.dateTimeFormat = importSpecs.dateTimeFormat;
         this.timeZone = importSpecs.timeZone;
+        this.columnNames = importSpecs.columnNames;
+        this.collectionLabel = importSpecs.collectionLabel;
+        this.itemLabel = importSpecs.itemLabel;
     }
 
 }

@@ -367,11 +367,39 @@
                   {{#settings}}{{#documents}}
                     <option value="{{id}}">{{collectionLabel}}</option>{{/documents}}{{/settings}}
                 </select>
+                  <button class="btn btn-link" id="settingsImportSpreadsheetButton">Import a new Spreadsheet</button>
               </div>
             </div>
          </fieldset>
       </form>
     </div>
+</template>
+<template id="google_spreadsheets-spreadsheetEditForm">
+    <form class="form" id="spreadsheetEditForm" style="display:none" action="javascript:void(0)">
+        <fieldset>
+            <div class="control-group">
+                <label class="control-label" for="itemLabel">
+                    Item Label:&nbsp;
+                </label>
+                <div class="controls">
+                    <input id="itemLabel" type="text" value="{{itemLabel}}">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="collectionLabel">
+                    Collection Label:&nbsp;
+                </label>
+                <div class="controls">
+                    <input id="collectionLabel" type="text" value="{{collectionLabel}}">
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="controls">
+                    <button id="deleteSpreadsheetButton" class="btn btn-danger">Delete this Spreadsheet</button>
+                </div>
+            </div>
+        </fieldset>
+    </form>
 </template>
 <template id="sms_backup-settings">
     <form class="form-horizontal" action="javascript:void(0);">
@@ -550,6 +578,10 @@
                   <option data-momentjs-format="YYYY/MM/DDZ" value="yyyy/MM/ddZ"></option>
                   <option data-momentjs-format="YYYY/MM/DDZZ" value="yyyy/MM/ddZZ"></option>
                   <option data-momentjs-format="YYYY/MM/DD" value="yyyy/MM/dd"></option>
+                  <option data-momentjs-format="DD/MM/YYYY" value="dd/MM/yyyy"></option>
+                  <option data-momentjs-format="DD-MM-YYYY" value="dd-MM-yyyy"></option>
+                  <option data-momentjs-format="DD/MM/YYYY HH:mm:ss" value="dd/MM/yyyy HH:mm:ss"></option>
+                  <option data-momentjs-format="DD-MM-YYYY HH:mm:ss" value="dd-MM-yyyy HH:mm:ss"></option>
                   <option value="epochSeconds">Epoch seconds</option>
                   <option value="epochMillis">Epoch millis</option>
                   <!--<option value="format">Other</option>-->

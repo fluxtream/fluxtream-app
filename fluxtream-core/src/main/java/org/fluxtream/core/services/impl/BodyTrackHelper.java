@@ -613,6 +613,7 @@ public class BodyTrackHelper {
                                                      SourcesResponse response,
                                                      List<ChannelMapping> channelMappings,
                                                      ChannelInfoResponse infoResponse) {
+        long then = System.currentTimeMillis();
         for (ChannelMapping mapping : channelMappings){
             ApiKey api = guestService.getApiKey(mapping.getApiKeyId());
             // This is to prevent a rare condition when working, under development, on a branch that
@@ -666,14 +667,19 @@ public class BodyTrackHelper {
             source.min_time = Math.min(source.min_time,channel.min_time);
             source.max_time = Math.max(source.max_time,channel.max_time);
         }
+        long now = System.currentTimeMillis();
+        System.out.println("populate time = " + (now-then)); then = now;
     }
 
     public SourceInfo getSourceInfoObject(final Long guestId, final String deviceName){
         try{
             if (guestId == null)
                 throw new IllegalArgumentException();
+            long then = System.currentTimeMillis();
             final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("info",new Object[]{"-r",guestId});
             String result = dataStoreExecutionResult.getResponse();
+            long now = System.currentTimeMillis();
+            System.out.println("datastore execution time = " + (now-then)); then = now;
 
             // TODO: check statusCode in DataStoreExecutionResult
             ChannelInfoResponse infoResponse = gson.fromJson(result,ChannelInfoResponse.class);

@@ -4,8 +4,13 @@ define(function() {
         this.connectorName = connectorName;
     }
 
-    function loadSettings(apiKeyId, connector, template) {
+    function loadSettings(apiKeyId, connector, template, self) {
         var handler = this;
+        if (typeof self != "undefined")
+            handler = self;
+        handler.apiKeyId=apiKeyId;
+        handler.connector=connector;
+        handler.template=template;
         $.ajax({
             url: "/api/v1/connectors/settings/"+apiKeyId,
             success: function(settings) {
@@ -28,7 +33,12 @@ define(function() {
                 console.error("blahblahblah!")
             }
         });
-    };
+    }
+
+    function reloadSettings(handler) {
+        console.log("reloading...");
+        loadSettings(handler.apiKeyId, handler.connector, handler.template, handler);
+    }
 
     ConnectorSettingsHandler.prototype.loadSettings = loadSettings;
 
@@ -62,6 +72,7 @@ define(function() {
     }
 
     ConnectorSettingsHandler.prototype.saveSettings = saveSettings;
+    ConnectorSettingsHandler.prototype.reloadSettings = reloadSettings;
 
     return ConnectorSettingsHandler;
 

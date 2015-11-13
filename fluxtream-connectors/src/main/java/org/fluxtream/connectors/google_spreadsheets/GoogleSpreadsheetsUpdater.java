@@ -4,8 +4,9 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.gdata.client.spreadsheet.SpreadsheetService;
 import com.google.gdata.data.spreadsheet.*;
 import com.google.gdata.util.ServiceException;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.annotations.Updater;
 import org.fluxtream.core.connectors.dao.JPAFacetDao;
@@ -20,6 +21,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -28,6 +30,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
+import java.util.StringTokenizer;
 import java.util.TimeZone;
 
 /**
@@ -70,17 +73,30 @@ public class GoogleSpreadsheetsUpdater extends AbstractUpdater implements Settin
         ObjectMapper objectMapper = new ObjectMapper();
         ImportSpecs importSpecs = objectMapper.readValue(updateInfo.jsonParams, ImportSpecs.class);
         //TODO: check document doesn't already exist
+        if (isDupe(updateInfo, importSpecs))
+            return;
         GoogleSpreadsheetsDocumentFacet documentFacet = new GoogleSpreadsheetsDocumentFacet(importSpecs);
-        documentFacet.columnNames = importSpecs.columnNames;
-        documentFacet.collectionLabel = importSpecs.collectionLabel;
-        documentFacet.itemLabel = importSpecs.itemLabel;
         extractCommonFacetData(documentFacet, updateInfo);
         jpaFacetDao.persist(documentFacet);
         importSpreadsheet(documentFacet, updateInfo);
     }
 
+    private boolean isDupe(UpdateInfo updateInfo, ImportSpecs importSpecs) {
+        if (importSpecs.worksheetId!=null) {
+            List<GoogleSpreadsheetsDocumentFacet> documentFacets = jpaDaoService.findWithQuery("SELECT doc FROM Facet_GoogleSpreadsheetDocument doc WHERE doc.spreadsheetId=? AND doc.worksheetId=? AND doc.apiKeyId=?",
+                    GoogleSpreadsheetsDocumentFacet.class,
+                    importSpecs.spreadsheetId, importSpecs.worksheetId, updateInfo.apiKey.getId());
+            return documentFacets.size() > 0;
+        } else {
+            List<GoogleSpreadsheetsDocumentFacet> documentFacets = jpaDaoService.findWithQuery("SELECT doc FROM Facet_GoogleSpreadsheetDocument doc WHERE doc.spreadsheetId=? AND doc.apiKeyId=?",
+                    GoogleSpreadsheetsDocumentFacet.class,
+                    importSpecs.spreadsheetId, updateInfo.apiKey.getId());
+            return documentFacets.size() > 0;
+        }
+    }
+
     private void importSpreadsheet(GoogleSpreadsheetsDocumentFacet documentFacet, UpdateInfo updateInfo) throws UpdateFailedException, IOException, ServiceException {
-        ApiKey apiKey = guestService.getApiKey(AuthHelper.getGuestId(), Connector.getConnector("google_spreadsheets"));
+        ApiKey apiKey = guestService.getApiKey(updateInfo.getGuestId(), Connector.getConnector("google_spreadsheets"));
         GoogleCredential credential = helper.getCredentials(apiKey);
         SpreadsheetService service =
                 new SpreadsheetService("Fluxtream");
@@ -108,24 +124,25 @@ public class GoogleSpreadsheetsUpdater extends AbstractUpdater implements Settin
 
         GoogleSpreadsheetRowFacet currentRow = null;
         int currentRowIndex = -1;
-        int dateTimeColIndex = getExcelColumnNumber(documentFacet.dateTimeColumnName);
         DateTimeFormatter formatter = null;
         boolean isEpochTime = Arrays.asList("epochMillis", "epochSeconds").contains(documentFacet.dateTimeFormat);
         if (!isEpochTime)
             formatter = DateTimeFormat.forPattern(documentFacet.dateTimeFormat);
         DateTimeZone dateTimeZone = documentFacet.timeZone != null ? DateTimeZone.forTimeZone(TimeZone.getTimeZone(documentFacet.timeZone)) : null;
         boolean firstLine = true;
-        StringBuilder sb = new StringBuilder(); int colIdx = 0;
+        StringBuilder columnNamesBuilder = new StringBuilder();
+        int colIdx = 0;
         for (CellEntry cell : cellFeed.getEntries()) {
             if (cell.getCell().getRow() < 2) {
                 String columnName = cell.getCell().getValue();
-                if (colIdx>0) sb.append(", ");
-                sb.append(columnName);
+                if (colIdx > 0) columnNamesBuilder.append(", ");
+                columnNamesBuilder.append(columnName);
                 colIdx++;
                 continue;
             }
             if (firstLine) {
-                jdbcTemplate.update("UPDATE Facet_GoogleSpreadsheetDocument SET columnNames=? WHERE id=?", sb.toString(), documentFacet.getId());
+                jdbcTemplate.update("UPDATE Facet_GoogleSpreadsheetDocument SET columnNames=? WHERE id=?", columnNamesBuilder.toString(), documentFacet.getId());
+                documentFacet.columnNames = columnNamesBuilder.toString();
                 firstLine = false;
             }
             if (currentRowIndex != cell.getCell().getRow()) {
@@ -135,6 +152,7 @@ public class GoogleSpreadsheetsUpdater extends AbstractUpdater implements Settin
                 jpaFacetDao.persist(currentRow);
                 jdbcTemplate.execute("UPDATE Facet_GoogleSpreadsheetRow SET document_id=" + documentFacet.getId() + " WHERE id=" + currentRow.getId());
             }
+            int dateTimeColIndex = getColumnNumber(documentFacet.dateTimeColumnName, documentFacet.columnNames);
             GoogleSpreadsheetCellFacet cellFacet = new GoogleSpreadsheetCellFacet();
             extractCommonFacetData(cellFacet, updateInfo);
             //TODO: use jdbcTemplate to set the cell's row_id to the current row's id
@@ -156,6 +174,17 @@ public class GoogleSpreadsheetsUpdater extends AbstractUpdater implements Settin
                     else
                         dateTime = formatter.parseDateTime(value);
                     time = dateTime.getMillis();
+                    if (documentFacet.dateTimeFormat.indexOf(" ")==-1||
+                            documentFacet.dateTimeFormat.indexOf("T")==-1) {
+                        String date;
+                        if (dateTimeZone != null)
+                            date = ISODateTimeFormat.date().withZone(dateTimeZone).print(time);
+                        else
+                            date = ISODateTimeFormat.date().print(time);
+                        String sql = "UPDATE Facet_GoogleSpreadsheetRow SET allDayEvent=TRUE, startDate=\""
+                                + date + "\", endDate=\"" + date + "\" WHERE id=" + currentRow.getId();
+                        jdbcTemplate.execute(sql);
+                    }
                 }
                 cellFacet.start = time;
                 cellFacet.end = time;
@@ -167,18 +196,19 @@ public class GoogleSpreadsheetsUpdater extends AbstractUpdater implements Settin
 
     }
 
-    public static int getExcelColumnNumber(String column) {
-        int result = 0;
-        for (int i = 0; i < column.length(); i++) {
-            result *= 26;
-            result += column.charAt(i) - 'A' + 1;
+    public static int getColumnNumber(String column, String columnNames) {
+        String[] everyColumnName = StringUtils.split(columnNames, ",");
+        int i=1;
+        for (String columnName : everyColumnName) {
+            if (columnName.trim().equals(column.trim()))
+                return i;
+            i++;
         }
-        return result;
+        return -1;
     }
 
     @Override
     protected void updateConnectorData(UpdateInfo updateInfo) throws Exception {
-
     }
 
     @Override

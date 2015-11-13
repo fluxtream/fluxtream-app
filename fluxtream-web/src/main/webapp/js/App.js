@@ -447,7 +447,7 @@ define(
                 .replace(/'/g, '&#39;')
                 .replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;');
-        }
+        };
 
         App.eraseEverything = function() {
             if (typeof(ga)!="undefined") {
@@ -481,7 +481,7 @@ define(
             return uri.replace("{buddyToAccess.id}", App.buddyToAccess.id);
           }
           return uri;
-        }
+        };
 
         function fetchGuestInfo(andDoThisAfter, buddyToAccessParam) {
             var url = "/api/v1/guest?includeAvatar=true";
@@ -529,7 +529,7 @@ define(
         App.logError = function(jqXHR, statusText, errorThrown) {
             console.log(statusText+" (" + errorThrown + ") ");
             console.log(jqXHR.responseText);
-        }
+        };
 
         App.connectors = function() {
             AddConnectors.show();
@@ -587,14 +587,14 @@ define(
             }
             return finalConfig;
 
-        }
+        };
 
         App.getFacetConnector = function(facetName){
             var firstDash = facetName.indexOf("-");
             if (firstDash != -1)
                 return facetName.substring(0,firstDash);
             return facetName;
-        }
+        };
 
         App.getFacetObjectType = function(facetName){
             var firstDash = facetName.indexOf("-");
@@ -602,11 +602,11 @@ define(
                 return facetName.substring(firstDash + 1);
             return facetName;
 
-        }
+        };
 
         function startsWith(s, prefix) {
             return s.substr(0, prefix.length) === prefix;
-        };
+        }
 
         App.addConnector = function(url) {
             if (startsWith(url, "ajax:")) {
@@ -674,7 +674,7 @@ define(
                 $("#notifications").show();
             }
 
-        }
+        };
 
         App.refreshNotifications = function(){
             $.ajax("/api/v1/notifications/all",{
@@ -685,7 +685,7 @@ define(
                     console.log(arguments);
                 }
             })
-        }
+        };
 
         App.showCarousel = function(photoId) {
             if ($("#photosCarousel").length==0) {
@@ -730,7 +730,7 @@ define(
 
             return cityToReturn;
 
-        }
+        };
 
         App.getFacetCity = function(facet, citiesList){
             var closestCity = null;
@@ -849,7 +849,7 @@ define(
                 value += second;
             }
             return value;
-        }
+        };
 
         App.formatMinuteOfDay = function(minuteOfDay){
             var hour = Math.floor(minuteOfDay/60);
@@ -859,19 +859,19 @@ define(
                 return [(hour == 0 ? 12 : hour) + ":" + minutes, "am"];
             else
                 return [(hour > 12 ? hour - 12 : 12) + ":" + minutes, "pm"];
-        }
+        };
 
         App.formatDateAsDatePicker = function(date) {
             if (typeof(date) == "number")
                 date = new Date(date);
             return App._formatDateAsDatePicker(date.getFullYear(), date.getMonth(), date.getDate());
-        }
+        };
 
         App._formatDateAsDatePicker = function(year, month, date) {
             if (isNaN(year))
                 return "Present";
             return year + "-" + (month < 9 ? "0" : "") + (month + 1) + "-" + (date < 9 ? "0" : "") + date;
-        }
+        };
 
         //This is a hack to force enable dropdown on all specified elements since bootstrap doesn't seem to be doing it on its own
         function globalClickHandler(event){
@@ -911,7 +911,7 @@ define(
 
         App.addHideTooltipListener = function(hideFunction) {
             hideFunctions.push(hideFunction);
-        }
+        };
 
         App.search = function() {
             $(".application").load("/search/0?q=" + $(".search-query").val());
@@ -921,7 +921,7 @@ define(
 
         App.getLastDayOfMonth = function(year,month){
             return monthEndDays[month] + ((month == 1 && App.isLeapYear(year)) ? 1 : 0);
-        }
+        };
 
         App.isLeapYear = function(year){
             return (year % 400 == 0) || (year % 100 != 0 && year % 4 == 0);
@@ -936,7 +936,7 @@ define(
                 finedetails.append(details);
             }
             finedetails.parent().parent().trigger("contentchange");
-        }
+        };
 
         App.setupBeginnersFriendlyUI = function (messageDisplayCounters, nApis) {
             App.messageDisplayCounters = messageDisplayCounters;
@@ -1043,7 +1043,7 @@ define(
                 row.push(array[i]);
             }
             return rows;
-        }
+        };
 
         App.toPolar = function(center, x, y){
             x -= center[0];
@@ -1070,7 +1070,7 @@ define(
             if (theta < 0)
                 theta += 360;
             return [r,theta];
-        }
+        };
 
         App.adjustiFrameHeight = function(iFrameId) {
             var iFrame = document.getElementById(iFrameId);
@@ -1079,31 +1079,31 @@ define(
                 var height = iFrame.contentWindow.document.body.scrollHeight + "px";
                 iFrame.height = height;
             }
-        }
+        };
 
         App.quickStart = function() {
             App.loadMustacheTemplate("settingsTemplates.html","quickStartDialog",function(template){
                 var html = template.render({release : window.FLX_RELEASE_NUMBER});
                 App.makeModal(html);
             });
-        }
+        };
 
         App.privacyPolicy = function() {
             App.loadMustacheTemplate("settingsTemplates.html","privacyPolicyDialog",function(template){
                 var html = template.render({release : window.FLX_RELEASE_NUMBER});
                 App.makeModal(html);
             });
-        }
+        };
 
         var dataUpdateListeners = {};
 
         App.addDataUpdatesListener = function(name,listener){
             dataUpdateListeners[name] = listener;
-        }
+        };
 
         App.removeDataUpdatesListener = function(name){
             delete dataUpdateListeners[name];
-        }
+        };
 
 
         //the last time they performed a nonidle event
@@ -1141,8 +1141,6 @@ define(
             },nonIdleMutexDuration);
         }
 
-
-
         var lastCheckTimestamp = moment().format("YYYY-MM-DDThh:mm:ss.SSSZZ");
 
         function checkForDataUpdates(){
@@ -1179,14 +1177,13 @@ define(
         App.addSandboxMessageListener = function(listener){
             window.addEventListener("message",listener,false);
             App.eventListeners.push(listener);
-        }
+        };
 
         App.clearAllSandboxMessageListeners = function(){
             while (App.eventListeners.length > 0){
                 window.removeEventListener("message",App.eventListeners.shift(),false);
             }
-        }
-
+        };
 
         App.initialize = initialize;
         App.renderApp = renderApp;

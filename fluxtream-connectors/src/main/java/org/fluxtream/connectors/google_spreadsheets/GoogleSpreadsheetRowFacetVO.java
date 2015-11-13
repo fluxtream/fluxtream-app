@@ -5,11 +5,13 @@ import org.codehaus.jackson.annotate.JsonRawValue;
 import org.fluxtream.core.OutsideTimeBoundariesException;
 import org.fluxtream.core.TimeInterval;
 import org.fluxtream.core.connectors.dao.JPAFacetDao;
-import org.fluxtream.core.connectors.vos.AbstractInstantFacetVO;
+import org.fluxtream.core.connectors.vos.AbstractTimedFacetVO;
+import org.fluxtream.core.connectors.vos.AllDayVO;
 import org.fluxtream.core.connectors.vos.VOHelper;
 import org.fluxtream.core.domain.GuestSettings;
 
 import java.util.Iterator;
+import java.util.TimeZone;
 
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
@@ -18,12 +20,14 @@ import org.joda.time.format.DateTimeFormatter;
 /**
  * Created by candide on 30/12/14.
  */
-public class GoogleSpreadsheetRowFacetVO extends AbstractInstantFacetVO<GoogleSpreadsheetRowFacet> {
+public class GoogleSpreadsheetRowFacetVO extends AbstractTimedFacetVO<GoogleSpreadsheetRowFacet> implements AllDayVO {
 
     String itemLabel;
 
     @JsonRawValue
     String cells;
+
+    private transient boolean allDayEvent;
 
     @Override
     protected void fromFacet(GoogleSpreadsheetRowFacet facet, TimeInterval timeInterval, GuestSettings settings) throws OutsideTimeBoundariesException {
@@ -53,6 +57,7 @@ public class GoogleSpreadsheetRowFacetVO extends AbstractInstantFacetVO<GoogleSp
         }
         sb.append("]");
         this.cells = sb.toString();
+        this.allDayEvent = facet.allDayEvent;
     }
 
     private long handleTimeColumn(String cellValue, GoogleSpreadsheetsDocumentFacet documentFacet) {
@@ -64,9 +69,16 @@ public class GoogleSpreadsheetRowFacetVO extends AbstractInstantFacetVO<GoogleSp
         else {
             DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern(documentFacet.dateTimeFormat);
             if (documentFacet.timeZone!=null&&!documentFacet.timeZone.equals("none")) {
-                dateTimeFormatter.withZone(DateTimeZone.forID(documentFacet.timeZone));
+                dateTimeFormatter.withZone(DateTimeZone.forTimeZone(TimeZone.getTimeZone(documentFacet.timeZone)));
             }
             return dateTimeFormatter.parseMillis(cellValue);
         }
     }
+
+
+    @Override
+    public boolean allDay() {
+        return this.allDayEvent;
+    }
+
 }

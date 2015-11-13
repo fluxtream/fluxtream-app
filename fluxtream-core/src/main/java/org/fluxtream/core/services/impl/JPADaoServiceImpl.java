@@ -135,4 +135,5 @@ public class JPADaoServiceImpl implements JPADaoService {
         return query.getResultList();
     }
 
+
 }
