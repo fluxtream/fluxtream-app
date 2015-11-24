@@ -3,6 +3,9 @@ package org.fluxtream.connectors.google_spreadsheets;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.gdata.client.spreadsheet.SpreadsheetService;
 import com.google.gdata.data.spreadsheet.*;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.plexus.util.ExceptionUtils;
 import org.fluxtream.core.auth.AuthHelper;
@@ -89,6 +92,17 @@ public class GoogleSpreadsheetsController {
                                    @FormParam("dateTimeFormat") String dateTimeFormat,
                                    @FormParam(value="timeZone") String timeZone) throws UpdateFailedException {
         final GoogleSpreadsheetsUpdater.ImportSpecs importSpecs = new GoogleSpreadsheetsUpdater.ImportSpecs();
+        List<String> blankLabels = new ArrayList<String>();
+        if (StringUtils.isBlank(collectionLabel)) blankLabels.add("collectionLabel");
+        if (StringUtils.isBlank(itemLabel)) blankLabels.add("itemLabel");
+        if (blankLabels.size()>0) {
+            JSONObject errors = new JSONObject();
+            JSONArray missing = new JSONArray();
+            for (String blankLabel : blankLabels)
+                missing.add(blankLabel);
+            errors.accumulate("missing", missing);
+            return Response.status(400).entity(errors.toString()).build();
+        }
         importSpecs.spreadsheetId = spreadsheetId;
         importSpecs.worksheetId = worksheetId.isEmpty()?null:worksheetId;
         importSpecs.itemLabel = itemLabel;
@@ -98,8 +112,16 @@ public class GoogleSpreadsheetsController {
         importSpecs.timeZone = timeZone.isEmpty()?null:timeZone;
         final Connector connector = Connector.getConnector("google_spreadsheets");
         ApiKey apiKey = guestService.getApiKey(AuthHelper.getGuestId(), connector);
+
         final UpdateInfo updateInfo = UpdateInfo.initialHistoryUpdateInfo(apiKey,
                 7);
+
+        if (spreadsheetsDao.isDupe(updateInfo, importSpecs)) {
+            JSONObject errors = new JSONObject();
+            errors.accumulate("other", "You have already imported this spreadsheet");
+            return Response.status(400).entity(errors.toString()).build();
+        }
+
         executor.execute(new Runnable() {
             public void run() {
                 try {

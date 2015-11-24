@@ -375,6 +375,16 @@
     </div>
 </template>
 <template id="google_spreadsheets-spreadsheetEditForm">
+    {{#status_up}}
+    <div class="spreadsheet-stats well-small">
+        <i class="icon-ok" style="color:green"></i><span>{{numberOfRows}} rows</span>
+    </div>
+    {{/status_up}}
+    {{#status_down}}
+    <div class="spreadsheet-stats well-small">
+        <i class="icon-remove" style="color:red"></i><span>{{message}}</span>
+    </div>
+    {{/status_down}}
     <form class="form" id="spreadsheetEditForm" style="display:none" action="javascript:void(0)">
         <fieldset>
             <div class="control-group">
@@ -521,6 +531,7 @@
                 <select id="spreadsheetSelect" name="spreadsheetSelect">
                   <option>Please choose one</option>
                 </select>
+                <p class="help-block">Note: the first row of your spreadsheet will be scanned for column names (and thus ignored).</p>
               </div>
             </div>
 
@@ -535,7 +546,7 @@
 
             <div class="control-group">
               <label class="control-label" for="itemLabel">Item Label</label>
-              <div class="controls">
+              <div class="controls" id="itemLabel-controls">
                 <input name="itemLabel" id="itemLabel" type="text"/>
                 <p class="help-block">A label for each individual entry in your spreadsheet</p>
               </div>
@@ -543,7 +554,7 @@
 
             <div class="control-group">
               <label class="control-label" for="collectionLabel">Label</label>
-              <div class="controls">
+              <div class="controls" id="collectionLabel-controls">
                 <input name="collectionLabel" id="collectionLabel" type="text">
                 <p class="help-block">A name for the entire collection of items in your spreadsheet</p>
               </div>
@@ -554,7 +565,7 @@
               <div class="controls">
                 <select disabled id="dateTimeFieldSelect" name="dateTimeFieldSelect">
                 </select>
-                <p class="help-block">Please select the column letter that contains event date/time information for each row</p>
+                <p class="help-block">Please select the column name that contains event date/time information for each row</p>
               </div>
             </div>
 

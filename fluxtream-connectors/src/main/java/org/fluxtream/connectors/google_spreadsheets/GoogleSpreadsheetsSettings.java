@@ -11,6 +11,9 @@ public class GoogleSpreadsheetsSettings implements Serializable {
 
     class Spreadsheet {
         String collectionLabel, itemLabel;
+        boolean status_up, status_down;
+        String message, stackTrace;
+        int numberOfRows;
         long id;
 
         public Spreadsheet(String collectionLabel, String itemLabel, long id) {
@@ -24,7 +27,13 @@ public class GoogleSpreadsheetsSettings implements Serializable {
 
     public GoogleSpreadsheetsSettings(List<GoogleSpreadsheetsDocumentFacet> docs) {
         for (GoogleSpreadsheetsDocumentFacet doc : docs) {
-            documents.add(new Spreadsheet(doc.collectionLabel, doc.itemLabel, doc.getId()));
+            Spreadsheet ss = new Spreadsheet(doc.collectionLabel, doc.itemLabel, doc.getId());
+            ss.status_up = (doc.status== GoogleSpreadsheetsDocumentFacet.Status.UP);
+            ss.status_down = (doc.status== GoogleSpreadsheetsDocumentFacet.Status.DOWN);
+            ss.message = doc.message;
+            ss.stackTrace = doc.stackTrace;
+            ss.numberOfRows = doc.numberOfRows;
+            documents.add(ss);
         }
     }
 }

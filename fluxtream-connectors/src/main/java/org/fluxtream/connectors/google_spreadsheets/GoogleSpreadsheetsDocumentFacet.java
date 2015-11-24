@@ -21,6 +21,15 @@ public class GoogleSpreadsheetsDocumentFacet extends AbstractFacet {
     public String dateTimeFormat;
     public String timeZone;
 
+    public int numberOfRows;
+    public enum Status { UP, DOWN }
+    public Status status;
+
+    @Lob
+    public String message;
+    @Lob
+    public String stackTrace;
+
     @Type(type="yes_no")
     public boolean incremental;
 

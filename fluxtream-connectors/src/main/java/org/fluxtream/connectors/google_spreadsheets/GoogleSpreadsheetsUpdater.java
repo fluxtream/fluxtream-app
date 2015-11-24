@@ -6,6 +6,7 @@ import com.google.gdata.data.spreadsheet.*;
 import com.google.gdata.util.ServiceException;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.annotations.Updater;
@@ -54,6 +55,9 @@ public class GoogleSpreadsheetsUpdater extends AbstractUpdater implements Settin
     @Autowired
     JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    GoogleSpreadsheetsDao spreadsheetsDao;
+
     @Override
     public Object getSettingsInstance(long apiKeyId) {
         List<GoogleSpreadsheetsDocumentFacet> userDocs = jpaDaoService.findWithQuery("SELECT doc FROM " + JPAUtils.getEntityName(GoogleSpreadsheetsDocumentFacet.class) +
@@ -73,26 +77,12 @@ public class GoogleSpreadsheetsUpdater extends AbstractUpdater implements Settin
         ObjectMapper objectMapper = new ObjectMapper();
         ImportSpecs importSpecs = objectMapper.readValue(updateInfo.jsonParams, ImportSpecs.class);
         //TODO: check document doesn't already exist
-        if (isDupe(updateInfo, importSpecs))
+        if (spreadsheetsDao.isDupe(updateInfo, importSpecs))
             return;
         GoogleSpreadsheetsDocumentFacet documentFacet = new GoogleSpreadsheetsDocumentFacet(importSpecs);
         extractCommonFacetData(documentFacet, updateInfo);
         jpaFacetDao.persist(documentFacet);
         importSpreadsheet(documentFacet, updateInfo);
-    }
-
-    private boolean isDupe(UpdateInfo updateInfo, ImportSpecs importSpecs) {
-        if (importSpecs.worksheetId!=null) {
-            List<GoogleSpreadsheetsDocumentFacet> documentFacets = jpaDaoService.findWithQuery("SELECT doc FROM Facet_GoogleSpreadsheetDocument doc WHERE doc.spreadsheetId=? AND doc.worksheetId=? AND doc.apiKeyId=?",
-                    GoogleSpreadsheetsDocumentFacet.class,
-                    importSpecs.spreadsheetId, importSpecs.worksheetId, updateInfo.apiKey.getId());
-            return documentFacets.size() > 0;
-        } else {
-            List<GoogleSpreadsheetsDocumentFacet> documentFacets = jpaDaoService.findWithQuery("SELECT doc FROM Facet_GoogleSpreadsheetDocument doc WHERE doc.spreadsheetId=? AND doc.apiKeyId=?",
-                    GoogleSpreadsheetsDocumentFacet.class,
-                    importSpecs.spreadsheetId, updateInfo.apiKey.getId());
-            return documentFacets.size() > 0;
-        }
     }
 
     private void importSpreadsheet(GoogleSpreadsheetsDocumentFacet documentFacet, UpdateInfo updateInfo) throws UpdateFailedException, IOException, ServiceException {
@@ -111,14 +101,27 @@ public class GoogleSpreadsheetsUpdater extends AbstractUpdater implements Settin
             if (spreadsheet.getId().equals(documentFacet.spreadsheetId)) {
                 List<WorksheetEntry> worksheets = spreadsheet.getWorksheets();
                 for (WorksheetEntry worksheet : worksheets) {
-                    if (documentFacet.worksheetId == null || worksheet.getId().equals(documentFacet.worksheetId))
-                        importWorksheet(service, worksheet, documentFacet, updateInfo);
+                    if (documentFacet.worksheetId == null || worksheet.getId().equals(documentFacet.worksheetId)) {
+                        try {
+                            int numberOfRows = importWorksheet(service, worksheet, documentFacet, updateInfo);
+                            jdbcTemplate.update("UPDATE Facet_GoogleSpreadsheetDocument SET status=?, numberOfRows=? WHERE id=?",
+                                    GoogleSpreadsheetsDocumentFacet.Status.UP.ordinal(),
+                                    numberOfRows,
+                                    documentFacet.getId());
+                        } catch (Throwable t) {
+                            jdbcTemplate.update("UPDATE Facet_GoogleSpreadsheetDocument SET status=?, message=?, stackTrace=? WHERE id=?",
+                                    GoogleSpreadsheetsDocumentFacet.Status.DOWN.ordinal(),
+                                    t.getMessage(),
+                                    ExceptionUtils.getStackTrace(t),
+                                    documentFacet.getId());
+                        }
+                    }
                 }
             }
         }
     }
 
-    private void importWorksheet(SpreadsheetService service, WorksheetEntry worksheet, GoogleSpreadsheetsDocumentFacet documentFacet, UpdateInfo updateInfo) throws IOException, ServiceException {
+    private int importWorksheet(SpreadsheetService service, WorksheetEntry worksheet, GoogleSpreadsheetsDocumentFacet documentFacet, UpdateInfo updateInfo) throws IOException, ServiceException {
         URL cellFeedUrl = worksheet.getCellFeedUrl();
         CellFeed cellFeed = service.getFeed(cellFeedUrl, CellFeed.class);
 
@@ -193,7 +196,7 @@ public class GoogleSpreadsheetsUpdater extends AbstractUpdater implements Settin
             jpaFacetDao.persist(cellFacet);
             jdbcTemplate.execute("UPDATE Facet_GoogleSpreadsheetCell SET row_id=" + currentRow.getId() + " WHERE id=" + cellFacet.getId());
         }
-
+        return currentRowIndex;
     }
 
     public static int getColumnNumber(String column, String columnNames) {

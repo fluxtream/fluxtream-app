@@ -48,7 +48,7 @@ define(["core/ConnectorSettingsHandler"], function (ConnectorSettingsHandler) {
                 });
             });
             $("#itemLabel").unbind().blur(function(e){
-                $uery.ajax("/api/v1/spreadsheets/document/" + documentId + "/itemLabel", {
+                $.ajax("/api/v1/spreadsheets/document/" + documentId + "/itemLabel", {
                     data : {label : $("#itemLabel").val()},
                     type    : "PUT"
                 });
@@ -73,6 +73,12 @@ define(["core/ConnectorSettingsHandler"], function (ConnectorSettingsHandler) {
                 $("#timeZoneSelect").val("none");
                 $("#dateTimeTypeSelect").val("none").prop("disabled", true);
                 $("#dateTimeFieldSelect").empty().prop("disabled", true);
+                $("#collectionLabel").unbind().blur(function(e){
+                    checkFormReady();
+                });
+                $("#itemLabel").unbind().blur(function(e){
+                    checkFormReady();
+                });
                 $("#spreadsheetSelect").change(function(){
                     var spreadsheetId = $("#spreadsheetSelect").val();
                     loadSpreadsheetInfo(spreadsheetId);
@@ -83,6 +89,7 @@ define(["core/ConnectorSettingsHandler"], function (ConnectorSettingsHandler) {
                 });
                 $("#importSpreadsheetButton").click(function(e) {
                     e.preventDefault();
+                    console.log("import button pushed");
                     var spreadsheetId = $("#spreadsheetSelect").val();
                     var worksheetId = $("#worksheetSelect").val();
                     var dateTimeField = $("#dateTimeFieldSelect").val();
@@ -109,8 +116,16 @@ define(["core/ConnectorSettingsHandler"], function (ConnectorSettingsHandler) {
                             GoogleSpreadsheetsSettingsHandler.reloadSettings(GoogleSpreadsheetsSettingsHandler);
                         },
                         error: function(jqXHR, statusText, errorThrown) {
-                            var errorMessage = errorThrown + ": " + jqXHR.responseText + ": " + statusText;
-                            console.log("error (import spreasheet): " + errorMessage);
+                            console.log("error");
+                            var errors = JSON.parse(jqXHR.responseText);
+                            if (errors["missing"]){
+                                for (var i=0; i<errors["missing"].length;i++) {
+                                    var labelName = errors["missing"][i];
+                                    $("#"+labelName+"-controls").remove(".help-inline").append("<div class='help-inline'>This field cannot be empty</div>");
+                                }
+                            } else if (errors["other"]){
+                                alert(errors["other"]);
+                            }
                         }
                     });
                 });
@@ -208,18 +223,42 @@ define(["core/ConnectorSettingsHandler"], function (ConnectorSettingsHandler) {
                             $("#importSpreadsheetButton").prop("disabled", true);
                             $("#timeZoneSection").show();
                             $("#timeZoneSelect").val("none").change(function(){
-                                if($("#itemLabel").val()&&$("#collectionLabel").val())
-                                    $("#importSpreadsheetButton").prop("disabled", false);
+                                checkFormReady();
                             });
                         } else {
                             $("#timeZoneSection").hide();
-                            if($("#itemLabel").val()&&$("#collectionLabel").val())
-                                $("#importSpreadsheetButton").prop("disabled", false);
+                            checkFormReady()
                         }
                     });
                 });
             }
         });
+    }
+
+    function checkFormReady() {
+        console.log("hahah");
+        var selectedFormat = $("#dateTimeTypeSelect").val();
+        if (!selectedFormat) return;
+        else if (selectedFormat.indexOf("Z")==-1)
+            return;
+        var itemLabelVal = $("#itemLabel").val();
+        var collectionLabelVal = $("#collectionLabel").val();
+        var itemLabelControls = $("#itemLabel-controls");
+        var collectionLabelControls = $("#collectionLabel-controls");
+        itemLabelControls.remove(".help-inline");
+        collectionLabelControls.remove(".help-inline");
+        itemLabelControls.parent().removeClass("error");
+        if(itemLabelVal&&collectionLabelVal)
+            $("#importSpreadsheetButton").prop("disabled", false);
+        else {
+            if (!itemLabelVal) {
+                itemLabelControls.append("<div class='help-inline'>This field cannot be empty</div>");
+                itemLabelControls.parent().addClass("error");
+            } else if (!collectionLabelVal) {
+                collectionLabelControls.append("<div class='help-inline'>This field cannot be empty</div>");
+                collectionLabelControls.parent().addClass("error");
+            }
+        }
     }
 
     GoogleSpreadsheetsSettingsHandler.handleSpreadsheetBrowser = handleSpreadsheetBrowser;
