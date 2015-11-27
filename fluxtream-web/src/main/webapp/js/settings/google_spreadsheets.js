@@ -42,12 +42,14 @@ define(["core/ConnectorSettingsHandler"], function (ConnectorSettingsHandler) {
                 });
             });
             $("#collectionLabel").unbind().blur(function(e){
+                checkFormReady();
                 $.ajax("/api/v1/spreadsheets/document/" + documentId + "/collectionLabel", {
                     data : {label : $("#collectionLabel").val()},
                     type: "PUT"
                 });
             });
             $("#itemLabel").unbind().blur(function(e){
+                checkFormReady();
                 $.ajax("/api/v1/spreadsheets/document/" + documentId + "/itemLabel", {
                     data : {label : $("#itemLabel").val()},
                     type    : "PUT"
@@ -74,9 +76,6 @@ define(["core/ConnectorSettingsHandler"], function (ConnectorSettingsHandler) {
                 $("#dateTimeTypeSelect").val("none").prop("disabled", true);
                 $("#dateTimeFieldSelect").empty().prop("disabled", true);
                 $("#collectionLabel").unbind().blur(function(e){
-                    checkFormReady();
-                });
-                $("#itemLabel").unbind().blur(function(e){
                     checkFormReady();
                 });
                 $("#spreadsheetSelect").change(function(){
@@ -112,11 +111,10 @@ define(["core/ConnectorSettingsHandler"], function (ConnectorSettingsHandler) {
                             timeZone : timeZone
                         },
                         success: function() {
-                            console.log("ok");
+                            $("#spreadsheetBrowserModal").modal("hide");
                             GoogleSpreadsheetsSettingsHandler.reloadSettings(GoogleSpreadsheetsSettingsHandler);
                         },
                         error: function(jqXHR, statusText, errorThrown) {
-                            console.log("error");
                             var errors = JSON.parse(jqXHR.responseText);
                             if (errors["missing"]){
                                 for (var i=0; i<errors["missing"].length;i++) {
@@ -209,11 +207,13 @@ define(["core/ConnectorSettingsHandler"], function (ConnectorSettingsHandler) {
                     });
                     $("#dateTimeTypeSelect").prop("disabled", false).val("none");
                     $("#dateTimeTypeSelect").change(function(){
+                        console.log("time type select");
                         var selectedFormat = $("#dateTimeTypeSelect").val();
                         if (_.contains(["none","epochSeconds","epochMillis"], selectedFormat)) {
                             $("#timeZoneSection").hide();
                             if($("#itemLabel").val()&&$("#collectionLabel").val())
                                 $("#importSpreadsheetButton").prop("disabled", false);
+                            checkFormReady();
                             return;
                         }
                         //if (selectedFormat==="format") {
@@ -236,25 +236,23 @@ define(["core/ConnectorSettingsHandler"], function (ConnectorSettingsHandler) {
     }
 
     function checkFormReady() {
-        console.log("hahah");
-        var selectedFormat = $("#dateTimeTypeSelect").val();
-        if (!selectedFormat) return;
-        else if (selectedFormat.indexOf("Z")==-1)
-            return;
+        console.log("haha");
         var itemLabelVal = $("#itemLabel").val();
         var collectionLabelVal = $("#collectionLabel").val();
         var itemLabelControls = $("#itemLabel-controls");
         var collectionLabelControls = $("#collectionLabel-controls");
-        itemLabelControls.remove(".help-inline");
-        collectionLabelControls.remove(".help-inline");
+        $("#collectionLabel-controls > .help-inline").remove();
+        $("#itemLabel-controls > .help-inline").remove();
         itemLabelControls.parent().removeClass("error");
+        collectionLabelControls.parent().removeClass("error");
         if(itemLabelVal&&collectionLabelVal)
             $("#importSpreadsheetButton").prop("disabled", false);
         else {
             if (!itemLabelVal) {
                 itemLabelControls.append("<div class='help-inline'>This field cannot be empty</div>");
                 itemLabelControls.parent().addClass("error");
-            } else if (!collectionLabelVal) {
+            }
+            if (!collectionLabelVal) {
                 collectionLabelControls.append("<div class='help-inline'>This field cannot be empty</div>");
                 collectionLabelControls.parent().addClass("error");
             }

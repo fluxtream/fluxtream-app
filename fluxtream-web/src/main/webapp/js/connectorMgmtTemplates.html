@@ -375,17 +375,17 @@
     </div>
 </template>
 <template id="google_spreadsheets-spreadsheetEditForm">
-    {{#status_up}}
-    <div class="spreadsheet-stats well-small">
-        <i class="icon-ok" style="color:green"></i><span>{{numberOfRows}} rows</span>
-    </div>
-    {{/status_up}}
-    {{#status_down}}
-    <div class="spreadsheet-stats well-small">
-        <i class="icon-remove" style="color:red"></i><span>{{message}}</span>
-    </div>
-    {{/status_down}}
     <form class="form" id="spreadsheetEditForm" style="display:none" action="javascript:void(0)">
+        {{#status_up}}
+        <div class="spreadsheet-stats well well-small">
+            <i class="icon-ok" style="color:green"></i><span>{{numberOfRows}} rows</span>
+        </div>
+        {{/status_up}}
+        {{#status_down}}
+        <div class="spreadsheet-stats well well-small">
+            <i class="icon-remove" style="color:red"></i><span>{{message}}</span>
+        </div>
+        {{/status_down}}
         <fieldset>
             <div class="control-group">
                 <label class="control-label" for="itemLabel">
