@@ -162,6 +162,39 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
                 }
             }
         },
+        misfit:{
+            hasTimelineSettings: true,
+            device_name: "Misfit",
+            color: "#000",
+            mapicon: {
+                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/aed-2.png",
+                size: new google.maps.Size(32,38)
+            },
+            mapshadow: null,
+            facets:{
+                activity_summary:{
+                    list: true,
+                    photos: false,
+                    map: false,
+                    gps: false,
+                    clock: null
+                },
+                activity_session:{
+                    list: true,
+                    photos: false,
+                    map: true,
+                    gps: false,
+                    clock: ClockConfig.BODY_CATEGORY
+                },
+                sleep:{
+                    list: true,
+                    photos: false,
+                    map: false,
+                    gps: false,
+                    clock: ClockConfig.BODY_CATEGORY
+                }
+            }
+        },
         fitbit:{
             hasTimelineSettings: true,
             device_name: "Fitbit",
@@ -516,6 +549,7 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
         },
         beddit: {
             color: "rgb(255,100,0)",
+            hasTimelineSettings: true,
             facets: {
                 sleep: {
                     list: true,
@@ -528,6 +562,7 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
         },
         sleep_as_android: {
             color: "rgb(0,128,0)",
+            hasTimelineSettings: true,
             filterLabel: "S. as Android",
             facets: {
                 sleep: {
@@ -555,42 +590,6 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
                     map: true,
                     gps: false,
                     clock: ClockConfig.BODY_CATEGORY
-                }
-            }
-        },
-        toodledo:{//TODO: define mapicons
-            color: "",
-            facets: {
-                task:{
-                    list: true,
-                    photos: false,
-                    map: true,
-                    gps: false,
-                    clock: ClockConfig.MIND_CATEGORY
-                },
-                goal:{
-                    list: true,
-                    photos: false,
-                    map: true,
-                    gps: false,
-                    clock: null
-                }
-            }
-        },
-        openpath:{
-            color: "",
-            mapicon : {
-                url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/transparentdot.png",
-                anchor: new google.maps.Point(5,5)
-            },
-            mapshadow: null,
-            facets: {
-                location:{
-                    list: false,
-                    photos: false,
-                    map: true,
-                    gps: true,
-                    clock: true //just has to be nonnull, gps data has special treatment
                 }
             }
         },
@@ -673,11 +672,25 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
                         anchor: new google.maps.Point(5,5)
                     },
                     mapshadow: null
+                },
+                observation:{
+                    color: "rgb(90, 90, 90)",
+                    clock: ClockConfig.MIND_CATEGORY,
+                    list:true,
+                    photos:false,
+                    map:true,
+                    gps:false,
+                    mapicon : {
+                        url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/greydot.png",
+                        anchor: new google.maps.Point(5,5)
+                    },
+                    mapshadow: null
                 }
             }
         },
         moves:{
             filterLabel: "Moves",
+            hasTimelineSettings: true,
             color: "rgb(36, 77, 187)",
             mapicon : {
                 url: "/" + FLX_RELEASE_NUMBER + "/images/mapicons/glasses.png",

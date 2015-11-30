@@ -44,7 +44,7 @@ import static org.fluxtream.core.utils.Utils.hash;
 @Component
 @Updater(prettyName = "Calendar", value = 0, objectTypes={GoogleCalendarEventFacet.class},
          settings=GoogleCalendarConnectorSettings.class, bodytrackResponder = GoogleCalendarBodytrackResponder.class,
-         defaultChannels = {"google_calendar.events"},
+         defaultChannels = {"Calendar.events"},
          sharedConnectorFilter = GoogleCalendarSharedConnectorFilter.class)
 public class GoogleCalendarUpdater extends AbstractUpdater implements SettingsAwareUpdater, SharedConnectorSettingsAwareUpdater {
 

@@ -14,7 +14,7 @@
 			<list>
                 <value>classpath:lastcommit.properties</value>
                 <value>classpath:common.properties</value>
-				<value>classpath:${TARGET_ENV}.properties</value>
+				<value>classpath:local.properties</value>
 			</list>
 		</property>
 	</bean>

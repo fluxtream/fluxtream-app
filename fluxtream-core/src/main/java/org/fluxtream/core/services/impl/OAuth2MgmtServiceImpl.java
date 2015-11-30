@@ -141,6 +141,7 @@ public class OAuth2MgmtServiceImpl implements OAuth2MgmtService {
         final List<AuthorizationTokenModel> tokenModels = new ArrayList<AuthorizationTokenModel>();
         for (AuthorizationToken authorizationToken : resultList) {
             AuthorizationCode authCode = em.find(AuthorizationCode.class, authorizationToken.authorizationCodeId);
+            if (authCode==null) continue;
             Application application = em.find(Application.class, authCode.applicationId);
             AuthorizationTokenModel tokenModel = new AuthorizationTokenModel(authorizationToken.accessToken,
                     application.name, application.organization, application.website, authCode.creationTime);

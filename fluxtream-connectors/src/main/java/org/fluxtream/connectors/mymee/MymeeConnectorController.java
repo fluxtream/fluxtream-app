@@ -1,28 +1,16 @@
 package org.fluxtream.connectors.mymee;
 
-import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.Security;
-import java.util.ArrayList;
-import java.util.List;
-import javax.mail.MessagingException;
-import javax.servlet.http.HttpServletRequest;
-import org.fluxtream.core.auth.AuthHelper;
-import org.fluxtream.core.connectors.Connector;
-import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.services.ConnectorUpdateService;
-import org.fluxtream.core.services.GuestService;
-import org.fluxtream.core.utils.HttpUtils;
-import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
 import net.sf.json.JSONObject;
+import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.HttpMethodRetryHandler;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
+import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
@@ -37,12 +25,32 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.fluxtream.core.auth.AuthHelper;
+import org.fluxtream.core.connectors.Connector;
+import org.fluxtream.core.domain.ApiKey;
+import org.fluxtream.core.services.ConnectorUpdateService;
+import org.fluxtream.core.services.GuestService;
+import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+import javax.mail.MessagingException;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.FormParam;
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.Security;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Controller()
 @RequestMapping("/mymee")
@@ -53,6 +61,9 @@ public class MymeeConnectorController {
 
     @Autowired
     ConnectorUpdateService connectorUpdateService;
+
+    @Autowired
+    MymeeUpdater updater;
 
 	@RequestMapping(value = "/enterAuthInfo")
 	public ModelAndView enterProvisioningURL() {
@@ -74,8 +85,10 @@ public class MymeeConnectorController {
 		ModelAndView mav = new ModelAndView("connectors/mymee/success");
 		long guestId = AuthHelper.getGuestId();
         boolean worked = false;
-		try { testConnection(url); worked = true;}
-		catch (Exception e) {}
+		try { updater.fetchRetrying(null, url, 20); worked = true;}
+		catch (Exception e) {
+            e.printStackTrace();
+        }
 		if (worked) {
             final Connector connector = Connector.getConnector("mymee");
             final ApiKey apiKey = guestService.createApiKey(guestId, connector);
@@ -85,9 +98,28 @@ public class MymeeConnectorController {
 		} else {
 			request.setAttribute("errorMessage", "Sorry, the URL you provided did not work.\n" +
                                                  "Please check that you entered it correctly.");
-			return new ModelAndView("connectors/mymee/enterProvisioningURL");
+			return new ModelAndView("connectors/mymee/enterAuthInfo");
 		}
 	}
+
+    @RequestMapping(value="/setConnectionParams", method=RequestMethod.POST)
+    public ModelAndView setConnectionParams(@FormParam("cloudDatabaseDomain") String cloudDatabaseDomain,
+                                            @FormParam("cloudDatabaseName") String cloudDatabaseName,
+                                            @FormParam("cloudDatabaseUsername") String cloudDatabaseUsername,
+                                            @FormParam("cloudDatabasePassword") String cloudDatabasePassword)
+    {
+        long guestId = AuthHelper.getGuestId();
+        final Connector connector = Connector.getConnector("mymee");
+        final ApiKey apiKey = guestService.createApiKey(guestId, connector);
+        guestService.setApiKeyAttribute(apiKey, "cloudDatabaseDomain", cloudDatabaseDomain);
+        guestService.setApiKeyAttribute(apiKey, "cloudDatabaseName", cloudDatabaseName);
+        guestService.setApiKeyAttribute(apiKey, "cloudDatabaseUsername", cloudDatabaseUsername);
+        guestService.setApiKeyAttribute(apiKey, "cloudDatabasePassword", cloudDatabasePassword);
+        connectorUpdateService.updateConnector(apiKey, false);
+
+        ModelAndView mav = new ModelAndView("connectors/mymee/success");
+        return mav;
+    }
 
     @RequestMapping(value="/setAuthInfo", method=RequestMethod.POST)
     public ModelAndView setAuthInfo(@RequestParam("username") String username,
@@ -117,7 +149,11 @@ public class MymeeConnectorController {
                 throw new RuntimeException("Could not establish a session with the couchdb server");
             String userSignature = encrypt(username+password+activationCode);
             payload = getActivationInfo(client, httpContext, userSignature);
-            System.out.println(payload);
+
+            ModelAndView mav = new ModelAndView("connectors/mymee/decrypt");
+            mav.addObject("key", activationCode);
+            mav.addObject("payload", payload);
+            return mav;
         } catch (Exception e) {
             ModelAndView mav = new ModelAndView("forward:/mymee/enterAuthInfo");
             mav.addObject("username", username);
@@ -136,8 +172,6 @@ public class MymeeConnectorController {
         //final Connector connector = Connector.getConnector("mymee");
         //final ApiKey apiKey = guestService.createApiKey(guestId, connector);
         //connectorUpdateService.updateConnector(apiKey, false);
-        ModelAndView mav = new ModelAndView("forward:/mymee/enterAuthInfo");
-        return mav;
     }
 
     private String getActivationInfo(final HttpClient client, final HttpContext httpContext, final String userSignature) throws IOException, UnexpectedHttpResponseCodeException {
@@ -167,8 +201,8 @@ public class MymeeConnectorController {
         jsonObject.put("name", username);
         jsonObject.put("password", password);
         post.setEntity(new StringEntity(jsonObject.toString(),"utf-8"));
-        HttpHost proxy = new HttpHost("localhost",8899);
-        client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY,proxy);
+//        HttpHost proxy = new HttpHost("localhost",8899);
+//        client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY,proxy);
         HttpResponse response = client.execute(post, httpContext);
 
         final int statusCode = response.getStatusLine().getStatusCode();
@@ -201,10 +235,6 @@ public class MymeeConnectorController {
             e.printStackTrace();
         }
         throw new RuntimeException("Couldn't encrypt ");
-    }
-
-    private void testConnection(final String url) throws IOException, UnexpectedHttpResponseCodeException {
-        HttpUtils.fetch(url);
     }
 
 }

@@ -32,7 +32,7 @@ updateStrategyType= org.fluxtream.core.connectors.Connector.UpdateStrategyType.I
 bodytrackResponder = TwitterBodytrackResponder.class,
 objectTypes={TweetFacet.class,
 	TwitterDirectMessageFacet.class, TwitterMentionFacet.class},
-    defaultChannels = {"twitter.activity"})
+    defaultChannels = {"Twitter.activity"})
 public class TwitterFeedUpdater extends AbstractUpdater {
 
     private static final String STATUSES_USER_TIMELINE = "statuses/user_timeline";

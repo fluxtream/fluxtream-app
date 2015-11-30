@@ -8,6 +8,8 @@
     Boolean tracker = (Boolean)request.getAttribute("tracker");
     Boolean intercom = (Boolean)request.getAttribute("intercom");
     Boolean useMinifiedJs = (Boolean)request.getAttribute("useMinifiedJs");
+    String forumUrl = (String) request.getAttribute("forumUrl");
+    List<Guest> trustedBuddies = (List<Guest>)request.getAttribute("trustedBuddies");
     List<Guest> trustingBuddies = (List<Guest>)request.getAttribute("trustingBuddies");%><!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,7 +30,9 @@
 	<link rel="stylesheet" href="/css/flx.css">
 	<link rel="stylesheet" href="/css/bodytrack.css">
 	<link rel="stylesheet" href="/css/datepicker.css">
-	<link rel="stylesheet" href="/static/css/jquery-ui/jquery-ui-1.10.3.custom.css">
+    <link rel="stylesheet" href="/static/css/jquery-ui/jquery-ui-1.11.0.min.css">
+    <link rel="stylesheet" href="/static/css/jquery-ui/jquery-ui-1.11.0.structure.min.css">
+    <link rel="stylesheet" href="/static/css/jquery-ui-bootstrap/jquery.ui.theme.css">
 	<link rel="stylesheet"
 		href="/static/css/jquery-colorPicker/jquery.colorPicker.css">
 	<link rel="stylesheet" href="/static/css/msdropdown/dd.css">
@@ -78,6 +82,32 @@
                                         <li><a href="javascript:App.privacyPolicy();">Privacy Policy</a></li>
                                     </ul>
                                 </li>
+                                <li class="dropdown" id="buddiesDropdownToggle" data-container="body">
+                                    <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown">Buddies</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="disabled" style="font-variant: small-caps">they share data with you</a></li><%
+                                        if (trustingBuddies.size()>0) {
+                                            for (Guest guest : trustingBuddies) {%>
+                                        <li><a onclick="if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'viewBuddyData', 1);}" href="javascript:App.as('<%=guest.getId()%>')"><%=guest.getGuestName()%><i class="buddiesmenu-icon icon-eye-open pull-right"></i></a></li>
+                                            <%  } %>
+                                        <li class="divider backtomydata"></li>
+                                        <li class="backtomydata"><a onclick="if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'viewMyData', 1);}" href="javascript:App.as(<%=AuthHelper.getGuestId()%>)">Back to My data</a></li>
+                                        <% } %>
+                                        <li class="divider trustedbuddies"></li>
+                                        <li class="trustedbuddies"><a class="disabled" style="font-variant: small-caps">you share data with them</a></li><%
+                                        if (trustedBuddies.size()>0) {
+                                            for (Guest guest : trustedBuddies) {%>
+                                        <li class="trustedbuddies"><a onclick="if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'chatWithBuddy', 1);}" href="javascript:App.reachOutTo('<%=guest.getId()%>')"><%=guest.getGuestName()%><i class="buddiesmenu-icon icon-comment pull-right"></i></a></li>
+                                            <%  } %>
+                                        <% } else { %>
+                                        <li class="trustedbuddies"><a class="disabled">(empty list)</a></li>
+                                        <% }%>
+
+                                    </ul>
+                                </li>
+                                <% if (forumUrl!=null) { %>
+                                    <li id="forumMenuItem"><a href="<%=forumUrl%>" target="fluxtream_forum">Forum</a></li>
+                                <% } %>
                                 <li class="dropdown" id="connectorsDropdownToggle" data-container="body">
                                     <a href="javascript:void(0)" class="dropdown-toggle" onclick="$('#connectorsDropdownToggle').popover('destroy');"
                                                         data-toggle="dropdown">Connectors
@@ -91,13 +121,7 @@
 								<ul class="dropdown-menu">
 									<li><a href="javascript:App.settings()"><i class="mainmenu-icon icon-cog icon-large pull-right"></i>Settings</a></li>
                                     <%--<li><a href="javascript:App.addresses()"><i class="mainmenu-icon icon-home icon-large pull-right"></i>Addresses</a></li>--%>
-									<li id="coachingDivider" class="divider"></li><%
-                                    if (trustingBuddies.size()>0) {
-                                        for (Guest guest : trustingBuddies) {%>
-                                    <li><a onclick="if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'viewBuddyData', 1);}" href="javascript:App.as('<%=guest.getId()%>')">View <%=guest.getGuestName()%>'s data</a></li>
-                                        <%  } %>
-                                    <li><a onclick="if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'viewMyData', 1);}" href="javascript:App.as(<%=AuthHelper.getGuestId()%>)">View My data</a></li>
-                                    <% } %>
+									<li id="coachingDivider" class="divider"></li>
                                     <li><a href="javascript:App.sharingDialog.show();if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'sharingDialog', 1);}"><i class="mainmenu-icon icon-share icon-large pull-right"></i><span style="margin-right:2em">Share your data...</span></a></li>
                                     <li class="divider"></li>
 									<li><a href="/logout" onclick="if (typeof(ga)!='undefined') {ga('send', 'event', 'menuitem', 'click', 'logout', 1);}"><i class="mainmenu-icon icon-off icon-large pull-right"></i>Logout</a></li>
@@ -154,6 +178,7 @@
     <script src="/static/js/jquery.xcolor-1.8.js"></script>
     <script src="/static/js/jquery.outerHTML-1.0.0.js"></script>
     <script src="/static/js/jquery.fastbutton-1.0.0.js"></script>
+    <script src="/static/js/cryptojs-3.1.2-aes.js"></script>
 
     <script>
         window.FLX_RELEASE_NUMBER = "${release}";

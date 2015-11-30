@@ -347,12 +347,9 @@ define(["applications/calendar/tabs/map/MapConfig",
     //creates a marker with extended functionality
     function addItemToMap(map,item,clickable){
         if (item == null){
-            console.log("ignoring null item in addItemToMap");
             return null;
         }
         var itemConfig = App.getFacetConfig(item.type);
-        var start = item.start;
-        var end = item.end;
 
         if (item.position == null){
             var gpsDataToUse = null;
@@ -398,6 +395,7 @@ define(["applications/calendar/tabs/map/MapConfig",
                     position:point,
                     icon:itemConfig.mapicon,
                     shadow:itemConfig.mapshadow,
+                    animation: google.maps.Animation.DROP,
                     clickable:clickable
                 });
                 marker.gpsData = gpsDataToUse;
@@ -418,6 +416,7 @@ define(["applications/calendar/tabs/map/MapConfig",
                 position:point,
                 icon:itemConfig.mapicon,
                 shadow:itemConfig.mapshadow,
+                animation: google.maps.Animation.DROP,
                 clickable:clickable
             });
             map.enhanceMarkerWithItem(marker,item);
@@ -472,8 +471,8 @@ define(["applications/calendar/tabs/map/MapConfig",
             details.trigger("contentchange",details[0]);
             map.infoWindow.open(map,marker);
             marker.doHighlighting();
-            marker.showCircle();
             if (map.infoWindowShown != null){
+                marker.showCircle();
                 map.infoWindowShown();
             }
             moveDateAxisCursor(map,marker.time);
@@ -937,8 +936,10 @@ define(["applications/calendar/tabs/map/MapConfig",
     function showPaths(map,connectorEnabled){
         for (var connectorId in map.markers){
             if (!connectorEnabled[connectorId.split("-")[0]]) continue;
-            for (var i = 0; i < map.markers[connectorId].length; i++){
-                map.markers[connectorId][i].setMap(map);
+            if (!_.isUndefined(map.markers[connectorId])&&map.markers[connectorId]!=null) {
+                for (var i = 0; i < map.markers[connectorId].length; i++){
+                    map.markers[connectorId][i].setMap(map);
+                }
             }
             if (map.gpsData[connectorId] != null){
                 for (var i = 0, li = map.gpsData[connectorId].gpsLines.length; i < li; i++){
@@ -1283,6 +1284,8 @@ define(["applications/calendar/tabs/map/MapConfig",
 
             }
             else{
+                if (dataSource.dateMarker.getMap()==null)
+                    dataSource.dateMarker.setMap(map);
                 dataSource.dateMarker.setPosition(newPosition);
                 dataSource.dateMarker.circle.setCenter(newPosition);
                 dataSource.dateMarker.circle.setRadius(newAccuracy);

@@ -1,13 +1,5 @@
 package org.fluxtream.connectors.moves;
 
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
-import java.util.TreeMap;
-import java.util.UUID;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
@@ -28,7 +20,6 @@ import org.fluxtream.core.connectors.updaters.UpdateFailedException;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.AbstractLocalTimeFacet;
 import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.domain.Notification;
 import org.fluxtream.core.domain.UpdateWorkerTask;
 import org.fluxtream.core.services.ApiDataService;
@@ -51,6 +42,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.*;
+
 /**
  * User: candide
  * Date: 17/06/13
@@ -58,7 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @Updater(prettyName = "Moves", value = 144, objectTypes = {LocationFacet.class, MovesMoveFacet.class, MovesPlaceFacet.class}, bodytrackResponder = MovesBodytrackResponder.class,
-         defaultChannels = {"moves.data"})
+         defaultChannels = {"Moves.data"})
 public class MovesUpdater extends AbstractUpdater {
     static FlxLogger logger = FlxLogger.getLogger(AbstractUpdater.class);
 
@@ -357,10 +352,17 @@ public class MovesUpdater extends AbstractUpdater {
                         final Object segmentsObject = dayStoryline.get("segments");
                         if (segmentsObject!=null) {
                             JSONArray segments = new JSONArray();
-                            if (segmentsObject instanceof JSONObject)
+                            if (segmentsObject instanceof JSONObject) {
+                                if (((JSONObject) segmentsObject).isNullObject()) continue;
                                 segments.add(segmentsObject);
-                            if (segmentsObject instanceof JSONArray)
-                                segments = (JSONArray) segmentsObject;
+                            } if (segmentsObject instanceof JSONArray) {
+                                JSONArray tempSegments = (JSONArray) segmentsObject;
+                                for (int i=0; i<tempSegments.size(); i++) {
+                                    JSONObject nextSegment = tempSegments.getJSONObject(i);
+                                    if (nextSegment.isNullObject()) continue;
+                                    segments.add(nextSegment);
+                                }
+                            }
                             date = toStorageFormat(date);
 
                             boolean dateHasData=createOrUpdateDataForDate(updateInfo, segments, date);
@@ -377,14 +379,14 @@ public class MovesUpdater extends AbstractUpdater {
         catch (UpdateFailedException e) {
             // The update failed and whoever threw the error knew enough to have all the details.
             // Rethrow the error
-            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED");
+            logger.warn("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED");
 
             throw e;
         }
         catch (RateLimitReachedException e) {
             // We reached rate limit and whoever threw the error knew enough to have all the details.
             // Rethrow the error
-            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", RATE LIMIT REACHED");
+            logger.warn("MOVES: guestId=" + updateInfo.getGuestId() + ", RATE LIMIT REACHED");
 
             throw e;
         }
@@ -393,10 +395,10 @@ public class MovesUpdater extends AbstractUpdater {
                     .append(" message=\"exception while in createOrUpdateData\" connector=")
                     .append(updateInfo.apiKey.getConnector().toString()).append(" guestId=")
                     .append(updateInfo.apiKey.getGuestId())
-                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
+                    .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");
             logger.info(sb.toString());
 
-            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED (don't know why)");
+            logger.warn("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED (don't know why)");
 
             // The update failed.  We don't know if this is permanent or temporary.
             // Throw the appropriate exception.
@@ -425,10 +427,10 @@ public class MovesUpdater extends AbstractUpdater {
             if(maxDateTimeWithData.isBefore(nowMinusSevenDays)) {
                 // maxDateWithData is too long ago.  Use 7 days ago instead.
                 dateToStore = TimeUtils.dateFormatterUTC.print(nowMinusSevenDays);
-                System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", maxDateWithData=" + maxDateWithData + " < 7 days ago, using " + dateToStore);
+                logger.info("MOVES: guestId=" + updateInfo.getGuestId() + ", maxDateWithData=" + maxDateWithData + " < 7 days ago, using " + dateToStore);
             }
             else {
-                System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", storing maxDateWithData=" + maxDateWithData);
+                logger.info("MOVES: guestId=" + updateInfo.getGuestId() + ", storing maxDateWithData=" + maxDateWithData);
             }
             guestService.setApiKeyAttribute(updateInfo.apiKey, updateDateKeyName, dateToStore);
         }
@@ -484,10 +486,17 @@ public class MovesUpdater extends AbstractUpdater {
                     final Object segmentsObject = dayStoryline.get("segments");
                     if (segmentsObject!=null) {
                         JSONArray segments = new JSONArray();
-                        if (segmentsObject instanceof JSONObject)
+                        if (segmentsObject instanceof JSONObject) {
+                            if (((JSONObject)segmentsObject).isNullObject()) continue;
                             segments.add(segmentsObject);
-                        if (segmentsObject instanceof JSONArray)
-                            segments = (JSONArray) segmentsObject;
+                        } if (segmentsObject instanceof JSONArray) {
+                            JSONArray tempSegments = (JSONArray) segmentsObject;
+                            for (int i=0; i<tempSegments.size(); i++) {
+                                JSONObject nextSegment = tempSegments.getJSONObject(i);
+                                if (nextSegment.isNullObject()) continue;
+                                segments.add(nextSegment);
+                            }
+                        }
                         createOrUpdateDataForDate(updateInfo, segments, date);
                     }
                 }
@@ -496,14 +505,14 @@ public class MovesUpdater extends AbstractUpdater {
         catch (UpdateFailedException e) {
             // The update failed and whoever threw the error knew enough to have all the details.
             // Rethrow the error
-            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED");
+            logger.warn("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED");
 
             throw e;
         }
         catch (RateLimitReachedException e) {
             // We reached rate limit and whoever threw the error knew enough to have all the details.
             // Rethrow the error
-            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", RATE LIMIT REACHED");
+            logger.warn("MOVES: guestId=" + updateInfo.getGuestId() + ", RATE LIMIT REACHED");
 
             throw e;
         }
@@ -515,7 +524,7 @@ public class MovesUpdater extends AbstractUpdater {
                     .append(" stackTrace=<![CDATA[").append(Utils.stackTrace(e)).append("]]>");;
             logger.info(sb.toString());
 
-            System.out.println("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED (don't know why)");
+            logger.warn("MOVES: guestId=" + updateInfo.getGuestId() + ", UPDATE FAILED (don't know why)");
 
             // The update failed.  We don't know if this is permanent or temporary.
             // Throw the appropriate exception.
@@ -639,7 +648,7 @@ public class MovesUpdater extends AbstractUpdater {
                 // Otherwise, quit and retry later
                 if(waitTime > maxQuotaWaitMillis) {
                     // We're not willing to wait that long, reschedule
-                    System.out.println(new StringBuilder().append("MOVES: guestId=").append(updateInfo.getGuestId()).append(", waitTime=").append(waitTime).append(", RESCHEDULING").toString());
+                    logger.info(new StringBuilder().append("MOVES: guestId=").append(updateInfo.getGuestId()).append(", waitTime=").append(waitTime).append(", RESCHEDULING").toString());
                     // Set the reset time info in updateInfo so that we get scheduled for when the quota becomes available
                     // + a random number of minutes in the range of 0 to 60 to spread the load of lots of competing
                     // updaters across the next hour
@@ -647,7 +656,7 @@ public class MovesUpdater extends AbstractUpdater {
                     throw new RateLimitReachedException();
                 }
                 // We are willing to wait that long
-                System.out.println(new StringBuilder().append("MOVES: guestId=").append(updateInfo.getGuestId()).append(", waitTime=").append(waitTime).append(", WAITING").toString());
+                logger.info(new StringBuilder().append("MOVES: guestId=").append(updateInfo.getGuestId()).append(", waitTime=").append(waitTime).append(", WAITING").toString());
 
                 try { Thread.currentThread().sleep(waitTime); }
                 catch(Throwable e) {
@@ -812,7 +821,7 @@ public class MovesUpdater extends AbstractUpdater {
             }
 
             long now = System.currentTimeMillis();
-            System.out.println(new StringBuilder().append("MOVES: guestId=").append(updateInfo.getGuestId()).append(", minuteRem=").append(minuteRemValue).append(", hourRem=").append(hourRemValue).append(", nextQuotaMillis=").append(retMillis).append(" (now=").append(now).append(", delta=").append(retMillis - now).append(")").toString());
+            logger.info(new StringBuilder().append("MOVES: guestId=").append(updateInfo.getGuestId()).append(", minuteRem=").append(minuteRemValue).append(", hourRem=").append(hourRemValue).append(", nextQuotaMillis=").append(retMillis).append(" (now=").append(now).append(", delta=").append(retMillis - now).append(")").toString());
         }
 
         return retMillis;
@@ -864,10 +873,10 @@ public class MovesUpdater extends AbstractUpdater {
         String ret = null;
         if (newest.size()>0) {
             ret = newest.get(0).date;
-            System.out.println("Moves: guestId=" + updateInfo.getGuestId() + ", maxDateInDB=" + ret);
+            logger.info("Moves: guestId=" + updateInfo.getGuestId() + ", maxDateInDB=" + ret);
         }
         else {
-            System.out.println("Moves: guestId=" + updateInfo.getGuestId() + ", maxDateInDB=null");
+            logger.info("Moves: guestId=" + updateInfo.getGuestId() + ", maxDateInDB=null");
         }
         return ret;
     }
@@ -887,7 +896,13 @@ public class MovesUpdater extends AbstractUpdater {
             return false;
 
         for (int j=0; j<segments.size(); j++) {
-            JSONObject segment = segments.getJSONObject(j);
+            JSONObject segment;
+            try {
+                segment = segments.getJSONObject(j);
+            } catch (Throwable t) {
+                logger.warn("null segment, apiKeyId: " + updateInfo.apiKey.getId() + ", date: " + date);
+                continue;
+            }
             if (segment.getString("type").equals("move")) {
                 if(createOrUpdateMovesMoveFacet(date, segment, updateInfo)!=null)
                     dateHasData=true;

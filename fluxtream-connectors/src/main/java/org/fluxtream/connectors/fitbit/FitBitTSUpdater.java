@@ -433,10 +433,10 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                 // If there are no existing fitbit facets, just start with today
                 if (newest.size()>0) {
                     lastStoredSyncMillis = newest.get(0).start;
-                    System.out.println("Fitbit: guestId=" + updateInfo.getGuestId() + ", using DB for lastStoredSyncMillis=" + lastStoredSyncMillis);
+                    logger.info("Fitbit: guestId=" + updateInfo.getGuestId() + ", using DB for lastStoredSyncMillis=" + lastStoredSyncMillis);
                 }
                 else {
-                    System.out.println("Fitbit: guestId=" + updateInfo.getGuestId() + ", nothing in DB for lastStoredSyncMillis, default to yesterday");
+                    logger.info("Fitbit: guestId=" + updateInfo.getGuestId() + ", nothing in DB for lastStoredSyncMillis, default to yesterday");
                     lastStoredSyncMillis = System.currentTimeMillis()-DateTimeConstants.MILLIS_PER_DAY;
                 }
 
@@ -611,8 +611,8 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 
         while (updateInfo.getRemainingAPICalls("fitbit")>50) {
             String formattedDate = TimeUtils.dateFormatter.print(startDate);
-            System.out.println("backsynching, we have " + updateInfo.getRemainingAPICalls("fitbit") +
-                    " API calls left, apiKeyId=" + updateInfo.apiKey.getId() + ", startDate=" + formattedDate + ", goal=" + backSyncDateGoal);
+//            System.out.println("backsynching, we have " + updateInfo.getRemainingAPICalls("fitbit") +
+//                    " API calls left, apiKeyId=" + updateInfo.apiKey.getId() + ", startDate=" + formattedDate + ", goal=" + backSyncDateGoal);
             loadActivityDataForOneDay(updateInfo, formattedDate); if (updateInfo.getRemainingAPICalls("fitbit")<=50) break;
             loadSleepDataForOneDay(updateInfo, formattedDate); if (updateInfo.getRemainingAPICalls("fitbit")<=50) break;
             loadFoodDataForOneDay(updateInfo, formattedDate); if (updateInfo.getRemainingAPICalls("fitbit")<=50) break;
@@ -642,7 +642,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
     // This allows to exceptionnally override the standard update scheduling mechanism: fitbit doesn't support updatedSince
     // semantics meaning we have to be aggressive about synching
     private void scheduleAggressiveBackSync(final UpdateInfo updateInfo, final long when) {
-        System.out.println("scheduling next backsynching operations , apiKeyId=" + updateInfo.apiKey.getId());
+        logger.info("scheduling next backsynching operations , apiKeyId=" + updateInfo.apiKey.getId());
         connectorUpdateService.scheduleUpdate(updateInfo.apiKey, 0, UpdateInfo.UpdateType.INCREMENTAL_UPDATE,
                 when);
     }
@@ -721,7 +721,7 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
         maybeRetrieveFitbitUserInfo(updateInfo);
 
         // Also, food logging requires that the user subscribe to fitbit's notifications
-        maybeSubscribeToFitbitNotifications(updateInfo);
+//        maybeSubscribeToFitbitNotifications(updateInfo);
 
         // We want to fill-in the historical caloriesIn data
         maybeImportCaloriesInHistory(updateInfo);
@@ -1150,16 +1150,17 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
 						jsonParams.toString());
 			}
 		} catch (Exception e) {
-			System.out.println("error processing fitbit notification " + updatesString);
 			e.printStackTrace();
 			logger.warn("Could not parse fitbit notification: "
 					+ Utils.stackTrace(e));
 		}
 	}
 
-    public final String makeRestCall(final UpdateInfo updateInfo,
+    private final String makeRestCall(final UpdateInfo updateInfo,
                                      final int objectTypes, final String urlString, final String...method)
             throws RateLimitReachedException, UpdateFailedException, AuthExpiredException, UnexpectedResponseCodeException {
+
+
 
         // if have already called the API from within this thread, the allowed remaining API calls will be saved
         // in the updateInfo
@@ -1228,6 +1229,12 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                 connectorUpdateService.addApiUpdate(updateInfo.apiKey,
                         objectTypes, then, System.currentTimeMillis() - then,
                         urlString, false, httpResponseCode, httpResponseMessage);
+                // try to retrieve the response body, but don't despair if we fail in doing so
+                String responseBody = null;
+                try { responseBody = IOUtils.toString(request.getInputStream());
+                    logger.warn(String.format("There was a problem calling the Fitbit API (%s, %s):\n", httpResponseCode, httpResponseMessage) + responseBody);
+                }
+                catch (Throwable t) {logger.warn(String.format("Error calling the Fitbit API (%s, %s). Could not retrieve response body.", httpResponseCode, httpResponseMessage));}
                 // Check for response code 429 which is Fitbit's over rate limit error
                 if(httpResponseCode == 429) {
                     logger.warn("Darn, we hit Fitbit's rate limit again! url=" + urlString + ", guest=" + updateInfo.getGuestId());
@@ -1240,14 +1247,19 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                     if (httpResponseCode == 409) {
                         // this is to account for this method being called when adding an api Subscription
                         throw new UnexpectedResponseCodeException(httpResponseCode, httpResponseMessage, urlString);
-                    } else
+                    }
                     // Otherwise throw the same error that SignpostOAuthHelper used to throw
                     if (httpResponseCode == 401)
                         throw new AuthExpiredException();
-                    else if (httpResponseCode >= 400 && httpResponseCode < 500)
-                        throw new UpdateFailedException("Unexpected response code: " + httpResponseCode, true,
+                    else if (httpResponseCode >= 400 && httpResponseCode < 500) {
+                        String message = "Unexpected response code: " + httpResponseCode;
+                        if (responseBody!=null) message += "\nMessage from server:\n" + responseBody;
+                        throw new UpdateFailedException(message, true,
                                 ApiKey.PermanentFailReason.clientError(httpResponseCode));
-                    throw new UpdateFailedException(false, "Error: " + httpResponseCode);
+                    }
+                    String reason = "Error: " + httpResponseCode;
+                    if (responseBody!=null) reason += "\nMessage from server:\n" + responseBody;
+                    throw new UpdateFailedException(false, reason);
                 }
             }
         } catch (IOException exc) {

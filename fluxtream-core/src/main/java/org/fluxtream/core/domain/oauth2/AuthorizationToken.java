@@ -5,6 +5,7 @@ import org.hibernate.annotations.Index;
 import org.joda.time.DateTime;
 
 import javax.persistence.Entity;
+import java.io.Serializable;
 import java.util.UUID;
 
 /**
@@ -13,7 +14,7 @@ import java.util.UUID;
  * Time: 12:57
  */
 @Entity(name="AuthorizationToken")
-public class AuthorizationToken extends AbstractEntity {
+public class AuthorizationToken extends AbstractEntity implements Serializable {
 
     /**
      * The default number of milliseconds that a token should live.

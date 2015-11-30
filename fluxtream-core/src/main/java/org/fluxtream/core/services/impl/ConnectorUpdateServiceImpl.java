@@ -10,6 +10,8 @@ import java.util.UUID;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+
+import org.apache.log4j.Logger;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.updaters.AbstractUpdater;
@@ -235,10 +237,10 @@ public class ConnectorUpdateServiceImpl implements ConnectorUpdateService, Initi
         long twoDaysAgo = System.currentTimeMillis() - (DateTimeConstants.MILLIS_PER_DAY*2);
         final Query cleanupUpdateWorkerTasks = em.createNativeQuery(String.format("DELETE FROM UpdateWorkerTask WHERE not(status=2 AND updateType=2) and timeScheduled<%s", twoDaysAgo));
         final int updateWorkerTasksDeleted = cleanupUpdateWorkerTasks.executeUpdate();
-        System.out.println("deleted " + updateWorkerTasksDeleted + " UpdateWorkerTasks");
-        final Query cleanupApiUpdates = em.createNativeQuery(String.format("DELETE FROM ApiUpdates WHERE ts<%s", twoDaysAgo));
-        final int apiUpdatesDeleted = cleanupApiUpdates.executeUpdate();
-        System.out.println("deleted " + apiUpdatesDeleted + " ApiUpdates");
+        FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info("deleted " + updateWorkerTasksDeleted + " UpdateWorkerTasks");
+//        final Query cleanupApiUpdates = em.createNativeQuery(String.format("DELETE FROM ApiUpdates WHERE ts<%s", twoDaysAgo));
+//        final int apiUpdatesDeleted = cleanupApiUpdates.executeUpdate();
+//        FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").info("deleted " + apiUpdatesDeleted + " ApiUpdates");
     }
 
     /**

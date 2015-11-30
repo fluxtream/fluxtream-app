@@ -118,10 +118,12 @@ $(document).ready(function() {
 
     if (getCookie("compatibilityChecked") == null){
         setCookie("compatibilityChecked",1);//check once a day
-        for (var member in Modernizr){
-            if (Modernizr[member] === false){
-                $("#incompatibleBrowser").modal();
-                break;
+            if (typeof(Modernizr)!="undefined") {
+            for (var member in Modernizr){
+                if (Modernizr[member] === false){
+                    $("#incompatibleBrowser").modal();
+                    break;
+                }
             }
         }
     }

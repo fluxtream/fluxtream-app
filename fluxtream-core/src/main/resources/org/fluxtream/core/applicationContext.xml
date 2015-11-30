@@ -24,6 +24,9 @@
     <task:executor id="updateWorkersExecutor" pool-size="5-25"
                    rejection-policy="CALLER_RUNS" queue-capacity="5" />
 
+    <task:executor id="AdminWorker" pool-size="1-10"
+                   rejection-policy="CALLER_RUNS" queue-capacity="5" />
+
     <cache:annotation-driven />
 
     <!-- generic cache manager -->

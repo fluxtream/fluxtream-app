@@ -1271,6 +1271,131 @@ a.disabled-link:hover {
   color:#aaa !important;
 }
 
+#IntercomDefaultWidget {
+  right: 5px !important;
+  bottom: 5px !important
+}
+
+.tu-link {
+  font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 16px !important;
+  font-weight: 200 !important;
+  text-shadow: none !important;
+};
+
+.tu-app-link {
+  font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px !important;
+  font-weight: 200 !important;
+  text-shadow: none !important;
+};
+
+.brand {
+  padding: 10px 0px 10px 20px !important;
+}
+
+.navbar .nav>li>a {
+  text-shadow: none;
+}
+
+.ui-dialog .ui-dialog-titlebar {
+  line-height: 1.5em !important;
+}
+
+.ui-widget-content .btn {
+  padding: 2px 10px 1px;
+  min-width: 28px;
+  min-height: 30px;
+  font-size: 12px;
+  line-height: 26px;
+  letter-spacing: 1px
+}
+.ui-widget-content .btn-default {
+  background-image: none;
+  background-color: transparent;
+  border-color: #aaa;
+  color: #999;
+  &:hover { background-color: #eee; }
+}
+.ui-widget-content .btn-primary {
+  background-image: none; 
+  background-color: #39C; 
+  border-color: #3291B7;
+  &:hover { background-color: darken(#39C, 5%); }
+}
+
+.ui-widget-content {
+  textarea:focus { 
+    -webkit-box-shadow: none !important; 
+    box-shadow: none !important; 
+    background: #fff !important; 
+  }
+}
+
+.wallPost > div:last-child { padding: 10px; }
+
+.wallPost {
+  margin: 10px 0;
+  border: 1px solid #DDD;
+  .wallPostHeader {
+    padding: 10px 10px;
+    border-bottom: 1px solid #DDD;
+     
+    .wallPostAuthor {
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .wallPostWhen {
+      font-size: 14px;
+      color: #777;
+    }
+    .wallPostActions {
+      float: right;
+      margin-top: 2px;
+      > a {
+        cursor: hand;
+        color: #3291B7;
+        text-decoration: none;
+        &:hover { text-decoration: none; color: darken(#3291B7, 15%); }
+      }
+      i { font-size: 14px !important; }
+    }
+  }
+  .wallPostBody {
+    font-size: 14px;
+    line-height: 20px;
+    color: #404257; 
+    padding: 10px 10px;
+  }
+  .wallPostComment {
+    padding: 15px;
+    margin: 0 10px 3px;
+    background: #E6F0F4;
+    line-height: 20px;
+    font-size: 14px;
+    .wallPostCommentHeader {
+      .wallPostCommentAuthor {
+        font-weight: bold;
+      }
+      .wallPostCommentWhen {
+        color: #777;
+      }
+      .wallPostCommentActions {
+        float: right;
+        > a {
+          cursor: hand;
+          color: #3291B7;
+          text-decoration: none;
+          &:hover { text-decoration: none; color: darken(#3291B7, 15%); }
+        }
+      }
+    }
+    .wallPostCommentBody {
+
+    }
+  }
+}
+
 .timePeriod.allDay {
     margin-top: 0.5em;
     margin-bottom: 1em;
@@ -1296,4 +1421,19 @@ a.disabled-link:hover {
 
 .loading-animation.refresh {
     margin: 0 0 -2px 0;
+}
+
+.remove-connector-warning {
+    display:inline;
+    float:left;
+    padding:4px;
+    margin:0;
+}
+
+.backtomydata {
+    display: none;
+}
+
+.buddiesmenu-icon {
+    line-height: 1.5;
 }

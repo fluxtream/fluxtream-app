@@ -22,6 +22,7 @@ import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.*;
 import org.fluxtream.core.mvc.models.ConnectorModelFull;
 import org.fluxtream.core.services.*;
+import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.utils.Utils;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
@@ -69,6 +70,9 @@ public class ConnectorStore {
 
     @Autowired
     BeanFactory beanFactory;
+
+    @Autowired
+    BodyTrackHelper bodytrackHelper;
 
     Gson gson;
     ObjectMapper mapper = new ObjectMapper();
@@ -158,7 +162,7 @@ public class ConnectorStore {
     })
     public Response getInstalledConnectors(@ApiParam(value="Buddy to access username parameter (" + BuddiesService.BUDDY_TO_ACCESS_PARAM + ")", required=false) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter){
         TrustedBuddy trustedBuddy;
-        try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+        try { trustedBuddy = AuthHelper.getBuddyTrustedBuddy(buddyToAccessParameter, buddiesService);
         } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
         Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
         if (guest==null)
@@ -199,6 +203,8 @@ public class ConnectorStore {
                     connectorModel.connectUrl = connector.connectUrl;
                     connectorModel.image = env.get("homeBaseUrl") + connector.image.substring(1);
                     connectorModel.connectorName = connector.connectorName;
+                    connectorModel.deviceNickname = bodytrackHelper.getDeviceName(apiKey.getId());
+                    connectorModel.internalDeviceNickname = bodytrackHelper.getInternalDeviceName(apiKey.getId());
                     connectorModel.enabled = connector.enabled;
                     connectorModel.manageable = connector.manageable;
                     connectorModel.text = connector.text;
@@ -303,7 +309,9 @@ public class ConnectorStore {
 
     private boolean checkIfSyncInProgress(long guestId, Connector connector){
         final ApiKey apiKey = guestService.getApiKey(guestId, connector);
-        return (apiKey.synching);
+        if (apiKey!=null)
+            return (apiKey.synching);
+        return false;
     }
 
 
@@ -490,7 +498,7 @@ public class ConnectorStore {
 
         TrustedBuddy trustedBuddy;
         try {
-            trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+            trustedBuddy = AuthHelper.getBuddyTrustedBuddy(buddyToAccessParameter, buddiesService);
         } catch (TrustRelationshipRevokedException e) {
             return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();
         }

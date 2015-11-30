@@ -91,8 +91,10 @@ public class BodyTrackHelper {
             facet = null;
             for (ObjectType objectType : objectTypes){
                 AbstractFacet potentialFacet = apiDataService.getOldestApiDataFacet(apiKey,objectType);
-                if (facet == null || facet.start > potentialFacet.start)
-                    facet = potentialFacet;
+                if (potentialFacet!=null) {
+                    if (facet == null || facet.start > potentialFacet.start)
+                        facet = potentialFacet;
+                }
             }
         }
         if (facet != null)
@@ -150,6 +152,7 @@ public class BodyTrackHelper {
 
     public void setChannelBounds(final ChannelMapping mapping, final Channel channel, ChannelInfoResponse infoResponse) {
         Set<String> channelNames = infoResponse.channel_specs.keySet();
+        boolean datastoreChannelBoundsSet = false;
         switch (mapping.getChannelType()){
             case photo:
                 channel.min = 0.6;
@@ -161,11 +164,17 @@ public class BodyTrackHelper {
                     // historically, some channels have used a device nickname, others a connector name
                     String deviceChannelName = new StringBuilder(connector.getName()).append(".").append(mapping.getChannelName()).toString();
                     String deviceNicknameChannelName = new StringBuilder(mapping.getDeviceName()).append(".").append(mapping.getChannelName()).toString();
+                    String internalDeviceNicknameChannelName = new StringBuilder(mapping.getInternalDeviceName()).append(".").append(mapping.getChannelName()).toString();
+                    String deviceInternalChannelName = new StringBuilder(mapping.getDeviceName()).append(".").append(mapping.getInternalChannelName()).toString();
                     for (String channelName : channelNames) {
-                        if (channelName.equals(deviceChannelName) || channelName.equals(deviceNicknameChannelName)) {
+                        if (channelName.toLowerCase().equals(deviceChannelName.toLowerCase()) || channelName.toLowerCase().equals(deviceNicknameChannelName.toLowerCase())||
+                                channelName.toLowerCase().equals(internalDeviceNicknameChannelName.toLowerCase())||deviceInternalChannelName.equals(channelName)) {
                             ChannelSpecs channelSpecs = infoResponse.channel_specs.get(channelName);
                             channel.min = channelSpecs.channel_bounds.min_value;
                             channel.max = channelSpecs.channel_bounds.max_value;
+                            channel.min_time = channelSpecs.channel_bounds.min_time;
+                            channel.max_time = channelSpecs.channel_bounds.max_time;
+                            datastoreChannelBoundsSet = true;
                             break;
                         }
                     }
@@ -179,15 +188,16 @@ public class BodyTrackHelper {
                 channel.max = 1;
                 break;
         }
-        long maxTime = getMaxTimeForApiKey(mapping.getApiKeyId(), mapping.getObjectTypes());
-        long minTime = getMinTimeForApiKey(mapping.getApiKeyId(), mapping.getObjectTypes());
-        if (maxTime < minTime){
-            channel.max_time = 0d;
-            channel.min_time = 0d;
-        }
-        else{
-            channel.max_time = maxTime / 1000.0;
-            channel.min_time = minTime / 1000.0;
+        if (!datastoreChannelBoundsSet) {
+            long maxTime = getMaxTimeForApiKey(mapping.getApiKeyId(), mapping.getObjectTypes());
+            long minTime = getMinTimeForApiKey(mapping.getApiKeyId(), mapping.getObjectTypes());
+            if (maxTime < minTime) {
+                channel.max_time = 0d;
+                channel.min_time = 0d;
+            } else {
+                channel.max_time = maxTime / 1000.0;
+                channel.min_time = minTime / 1000.0;
+            }
         }
     }
 
@@ -348,7 +358,7 @@ public class BodyTrackHelper {
 
             Map<String,Object> tempFileMapping = new HashMap<String,Object>();
             tempFileMapping.put("data", data);
-            tempFileMapping.put("channel_names",channelNames);
+            tempFileMapping.put("channel_names", channelNames);
 
             FileOutputStream fos = new FileOutputStream(tempFile);
             final String bodyTrackJSONData = gson.toJson(tempFileMapping);
@@ -356,8 +366,27 @@ public class BodyTrackHelper {
             fos.close();
 
             final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("import", new Object[]{apiKey.getGuestId(), deviceName, tempFile.getAbsolutePath()});
+            ParsedBodyTrackUploadResult parsedResult = new ParsedBodyTrackUploadResult(dataStoreExecutionResult, deviceName, gson);
+            if (!dataStoreExecutionResult.isSuccess()) {
+                logger.warn("Datastore: There was an error persisting data to the datastore, guestId: " + apiKey.getGuestId() + ", deviceName: " + deviceName + ", tempFile: " + tempFile.getCanonicalPath());
+                dataUpdateService.logBodyTrackDataUpdate(apiKey.getGuestId(),
+                        apiKey.getId(), null, deviceName, channelNames.toArray(new String[channelNames.size()]), dataStoreExecutionResult.getResponse());
+            } else {
+                try {
+                    long startTime = 0, endTime = 0;
+                    if (parsedResult.getParsedResponse().min_time!=null)
+                        startTime = (long) (parsedResult.getParsedResponse().min_time * 1000);
+                    if (parsedResult.getParsedResponse().max_time!=null)
+                        endTime = (long) (parsedResult.getParsedResponse().max_time * 1000);
+                    dataUpdateService.logBodyTrackDataUpdate(apiKey.getGuestId(),
+                            apiKey.getId(), null, deviceName, channelNames.toArray(new String[channelNames.size()]), startTime, endTime);
+                } catch (Throwable t) {
+                    logger.warn("Datastore: couldn't log successful api data update");
+                    logger.warn(ExceptionUtils.getStackTrace(t));
+                }
+            }
             tempFile.delete();
-            return new ParsedBodyTrackUploadResult(dataStoreExecutionResult,deviceName,gson);
+            return parsedResult;
         } catch (Exception e) {
             System.err.println("Could not persist to datastore");
             System.err.println(Utils.stackTrace(e));
@@ -399,9 +428,10 @@ public class BodyTrackHelper {
         try{
             if (guestId == null)
                 throw new IllegalArgumentException();
-            ChannelMapping mapping = getChannelMapping(guestId, deviceNickname,channelName);
+            ChannelMapping mapping = getChannelMapping(guestId, deviceNickname, channelName);
             String internalDeviceName = mapping != null ? mapping.getInternalDeviceName() : deviceNickname;
             String internalChannelName = mapping != null ? mapping.getInternalChannelName() : channelName;
+            internalDeviceName = checkDatastoreDir(guestId, internalDeviceName);
             final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("gettile", new Object[]{guestId, internalDeviceName + "." + internalChannelName, level, offset});
             String result = dataStoreExecutionResult.getResponse();
 
@@ -417,6 +447,17 @@ public class BodyTrackHelper {
         catch(Exception e){
             return GetTileResponse.getEmptyTile(level,offset);
         }
+    }
+
+    private String checkDatastoreDir(Long guestId, String internalDeviceName) throws IOException {
+        File dir = new File(env.targetEnvironmentProps.getString("btdatastore.db.location")+File.separator+guestId+File.separator+ internalDeviceName);
+        if (dir.exists() && dir.getCanonicalPath().endsWith(internalDeviceName))
+            return internalDeviceName;
+        String connectorName = Connector.fromDeviceNickname(internalDeviceName).getName();
+        dir = new File(env.targetEnvironmentProps.getString("btdatastore.db.location")+File.separator+guestId+File.separator+connectorName);
+        if (dir.exists() && dir.getCanonicalPath().endsWith(connectorName))
+            return connectorName;
+        return internalDeviceName;
     }
 
     public String fetchTile(Long guestId, String deviceNickname, String channelName, int level, long offset){
@@ -613,7 +654,6 @@ public class BodyTrackHelper {
                                                      SourcesResponse response,
                                                      List<ChannelMapping> channelMappings,
                                                      ChannelInfoResponse infoResponse) {
-        long then = System.currentTimeMillis();
         for (ChannelMapping mapping : channelMappings){
             ApiKey api = guestService.getApiKey(mapping.getApiKeyId());
             // This is to prevent a rare condition when working, under development, on a branch that
@@ -668,7 +708,6 @@ public class BodyTrackHelper {
             source.max_time = Math.max(source.max_time,channel.max_time);
         }
         long now = System.currentTimeMillis();
-        System.out.println("populate time = " + (now-then)); then = now;
     }
 
     public SourceInfo getSourceInfoObject(final Long guestId, final String deviceName){
@@ -782,6 +821,23 @@ public class BodyTrackHelper {
         catch (Exception e){
 
         }
+    }
+
+    public String getDeviceName(long apiKeyId) {
+        ChannelMapping channelMapping = JPAUtils.findUnique(em, ChannelMapping.class, "channelMapping.byApiKeyId", apiKeyId);
+        if (channelMapping!=null)
+            return channelMapping.getDeviceName();
+        return null;
+    }
+
+    public String getInternalDeviceName(long apiKeyId) {
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        if (apiKey.getConnector().getName().equals("fluxtream_capture"))
+            return getDeviceName(apiKeyId);
+        ChannelMapping channelMapping = JPAUtils.findUnique(em, ChannelMapping.class, "channelMapping.byApiKeyId", apiKeyId);
+        if (channelMapping!=null)
+            return channelMapping.getInternalDeviceName();
+        return null;
     }
 
     public ChannelMapping getChannelMapping(long guestId, String displayDeviceName, String displayChannelName){
@@ -1306,8 +1362,12 @@ public class BodyTrackHelper {
             this.statusCode = result.getStatusCode();
             this.responseText = result.getResponse();
             this.deviceName = deviceName;
-            this.parsedResponse = gson.fromJson(responseText,UploadResponse.class);
-
+            if (result.isSuccess())
+                this.parsedResponse = gson.fromJson(responseText,UploadResponse.class);
+            else {
+                this.parsedResponse = new UploadResponse();
+                logger.warn("Couldn't upload to bodytrack, (response text is \"" + responseText + "\", statusCode: " + statusCode + ", deviceName: " + deviceName + ")");
+            }
         }
 
         public UploadResponse getParsedResponse(){

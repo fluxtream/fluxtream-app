@@ -25,7 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
 
 @Service
@@ -55,6 +57,7 @@ public class SettingsServiceImpl implements SettingsService {
 				"settings.byGuestId", guestId);
         if (settings != null) {
             settings.config = env;
+            settings.topics = getTopics(guestId);
             return settings;
         }
         else {
@@ -63,9 +66,26 @@ public class SettingsServiceImpl implements SettingsService {
             settings.createMessageDisplayCounters();
             em.persist(settings);
             settings.config = env;
+            settings.topics = getTopics(guestId);
             return settings;
         }
 	}
+
+    private HashMap<String, String> getTopics(long guestId) {
+        Query nativeQuery = em.createNativeQuery("SELECT fluxtreamId, name FROM Facet_FluxtreamCaptureTopic topic WHERE topic.guestId=?");
+        nativeQuery.setParameter(1, guestId);
+        List<Object[]> resultList = nativeQuery.getResultList();
+        HashMap<String,String> topics = new HashMap<String,String>();
+        for (Object[] objects : resultList) {
+            String rawTopicId = (String) objects[0];
+            String topicId = rawTopicId;
+//            int dotIndex = rawTopicId.indexOf(".");
+//            if (dotIndex!=-1)
+//                topicId = rawTopicId.substring(0, dotIndex);
+            topics.put("topic_" + topicId, objects[1].toString());
+        }
+        return topics;
+    }
 
     @Override
     @Transactional(readOnly=false)

@@ -6,12 +6,12 @@ import org.fluxtream.core.api.models.LoggedInGuestModel;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.auth.FlxUserDetails;
 import org.fluxtream.core.domain.Guest;
+import org.fluxtream.core.domain.GuestDetails;
 import org.fluxtream.core.domain.oauth2.AuthorizationToken;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.services.OAuth2MgmtService;
 import org.fluxtream.core.services.impl.ExistingEmailException;
 import org.fluxtream.core.services.impl.UsernameAlreadyTakenException;
-import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,6 @@ import org.springframework.stereotype.Component;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 
@@ -61,10 +60,10 @@ public class MobileGuestController {
     public Response getLoggedInGuestInfo(@ApiParam(value="The device ID", required=true) @QueryParam("device_id") final String deviceId) {
         final Guest guest = AuthHelper.getGuest();
         final AuthorizationToken authorizationToken = oAuth2MgmtService.getAuthorizationToken(guest.getId(), deviceId, new DateTime().plusYears(1000).getMillis());
-        LoggedInGuestModel info = new LoggedInGuestModel(guest, authorizationToken.accessToken);
+        final GuestDetails details = guestService.getGuestDetails(guest.getId());
+        LoggedInGuestModel info = new LoggedInGuestModel(guest, details, authorizationToken.accessToken);
         return Response.ok(info).build();
     }
-
 
     @POST
     @Path("/signup")
@@ -86,7 +85,8 @@ public class MobileGuestController {
         try {
             final Guest guest = guestService.createGuest(username, firstname, lastname, password, email, Guest.RegistrationMethod.REGISTRATION_METHOD_FORM, null);
             final AuthorizationToken authorizationToken = oAuth2MgmtService.getAuthorizationToken(guest.getId(), deviceId, new DateTime().plusYears(1000).getMillis());
-            LoggedInGuestModel info = new LoggedInGuestModel(guest, authorizationToken.accessToken);
+            final GuestDetails details = guestService.getGuestDetails(guest.getId());
+            LoggedInGuestModel info = new LoggedInGuestModel(guest, details, authorizationToken.accessToken);
             return Response.ok(info).build();
         } catch (ExistingEmailException e) {
             return Response.status(Response.Status.BAD_REQUEST).entity("This e-mail address is already used").build();
@@ -102,23 +102,33 @@ public class MobileGuestController {
             @ApiResponse(code = 401, message = "on bad credentials")
     })
     @Produces(MediaType.APPLICATION_JSON)
-    public Response mobileSignin(@ApiParam(value="Username", required=true) @FormParam("username") final String username,
+    public Response mobileSignin(@ApiParam(value="Username", required=true) @FormParam("username") final String usernameOrEmail,
                                  @ApiParam(value="Password", required=true) @FormParam("password") final String password,
                                  @ApiParam(value="The device ID", required=true) @FormParam("device_id") final String deviceId) throws UnsupportedEncodingException {
-        UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(username, password);
-        try {
-            final Authentication authentication = authenticationManager.authenticate(authRequest);
-            if (authentication.isAuthenticated()) {
-                FlxUserDetails principal = (FlxUserDetails) authentication.getPrincipal();
-                Guest guest = principal.getGuest();
-                final AuthorizationToken authorizationToken = oAuth2MgmtService.getAuthorizationToken(guest.getId(), deviceId, new DateTime().plusYears(1000).getMillis());
-                LoggedInGuestModel info = new LoggedInGuestModel(guest, authorizationToken.accessToken);
-                return Response.ok(info).build();
-            } else
+        Authentication authentication = getAuthentication(usernameOrEmail, password);
+        if (authentication==null||!authentication.isAuthenticated()) {
+            Guest guest = guestService.getGuestByEmail(usernameOrEmail);
+            if (guest==null)
                 return Response.status(Response.Status.UNAUTHORIZED).build();
-        } catch (BadCredentialsException bce) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
+            authentication = getAuthentication(guest.username, password);
         }
+        if (authentication!=null&&authentication.isAuthenticated()) {
+            FlxUserDetails principal = (FlxUserDetails) authentication.getPrincipal();
+            Guest guest = principal.getGuest();
+            final AuthorizationToken authorizationToken = oAuth2MgmtService.getAuthorizationToken(guest.getId(), deviceId, new DateTime().plusYears(1000).getMillis());
+            final GuestDetails details = guestService.getGuestDetails(guest.getId());
+            LoggedInGuestModel info = new LoggedInGuestModel(guest, details, authorizationToken.accessToken);
+            return Response.ok(info).build();
+        } else
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+    }
+
+    private Authentication getAuthentication(String username, String password) {
+        UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(username, password);
+        Authentication authentication = null;
+        try {authentication = authenticationManager.authenticate(authRequest);}
+        catch (Throwable t) {/*ignore authentication errors*/}
+        return authentication;
     }
 
 }

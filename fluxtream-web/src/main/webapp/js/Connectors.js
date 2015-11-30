@@ -3,6 +3,7 @@ define(function() {
 	var Connectors = {};
 
     function submitMymeeAuthInfo() {
+				$("#submitMymeeInfo").attr("disabled", "disabled");
         var username = $("input#mymee-username").val();
         var password = $("input#mymee-password").val();
         var activationCode = $("input#mymee-activationCode").val();
@@ -18,16 +19,23 @@ define(function() {
     }
 
 	function submitMymeeFetchURL() {
-		var fetchURL = $("input#mymee-fetchURL").val();
+		var input = $("input#mymee-fetchURL");
+        var fetchURL = input.val();
 		$.ajax({
 			url:"/mymee/setFetchURL",
 			type: "POST",
 			data: {url: fetchURL},
 			success: function(html) {
+				$(".mymee-loading").hide();
 				$(".addConnectorsMain").html(html);
 				$("#mymee-fetchURL").focus();
+				$(".mymee-send").prop("disabled", false);
+				input.prop("disabled", false);
 			}
 		});
+		$(".mymee-loading").show();
+		$(".mymee-send").prop("disabled", true);
+		input.prop("disabled", true);
 	}
 
     function submitBedditAuthInfo(form) {
@@ -181,11 +189,11 @@ define(function() {
 	Connectors.submitZeoCredentials = submitZeoCredentials;
 	Connectors.submitToodledoCredentials = submitToodledoCredentials;
 	Connectors.submitNikePlusCredentials = submitNikePlusCredentials;
-    Connectors.submitMymeeFetchURL = submitMymeeFetchURL;
-    Connectors.submitMymeeAuthInfo = submitMymeeAuthInfo;
+	Connectors.submitMymeeFetchURL = submitMymeeFetchURL;
+	Connectors.submitMymeeAuthInfo = submitMymeeAuthInfo;
 	Connectors.submitOpenPathKeypair = submitOpenPathKeypair;
-    Connectors.getQuantifiedMindToken = getQuantifiedMindToken;
-    Connectors.submitBedditAuthInfo = submitBedditAuthInfo;
+	Connectors.getQuantifiedMindToken = getQuantifiedMindToken;
+	Connectors.submitBedditAuthInfo = submitBedditAuthInfo;
 
 	Connectors.submitBodytrackCredentials = function() {
 		var username = $("input#bodytrack-username").val(),

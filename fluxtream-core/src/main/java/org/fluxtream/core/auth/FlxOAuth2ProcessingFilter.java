@@ -51,7 +51,7 @@ public class FlxOAuth2ProcessingFilter implements Filter {
 
         try {
             String tokenValue = parseToken(request);
-            if (tokenValue!=null) {
+            if (tokenValue!=null&&!tokenValue.equals("undefined")) {
                 AuthorizationToken authToken = oAuth2MgmtService.getTokenFromAccessToken(tokenValue);
                 if (authToken!=null&&authToken.getExpirationIn()>0) {
                     final Guest guest = guestService.getGuestById(authToken.guestId);

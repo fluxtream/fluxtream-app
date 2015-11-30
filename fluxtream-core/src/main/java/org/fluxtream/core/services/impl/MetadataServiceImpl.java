@@ -17,6 +17,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
+
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.TimezoneMap;
 import org.fluxtream.core.aspects.FlxLogger;
@@ -135,9 +137,9 @@ public class MetadataServiceImpl implements MetadataService {
 
     private void clearMainCities(final long guestId, final Collection<String> dates) {
         TypedQuery<VisitedCity> query = em.createQuery("SELECT facet FROM " +
-                                                       JPAUtils.getEntityName(VisitedCity.class) +
-                                                       " facet WHERE facet.guestId=:guestId AND facet.locationSource=:source  AND facet.date IN :dates" +
-                                                       " ORDER BY facet.start", VisitedCity.class);
+                JPAUtils.getEntityName(VisitedCity.class) +
+                " facet WHERE facet.guestId=:guestId AND facet.locationSource=:source  AND facet.date IN :dates" +
+                " ORDER BY facet.start", VisitedCity.class);
         query.setParameter("guestId", guestId);
         query.setParameter("source", LocationFacet.Source.USER);
         query.setParameter("dates", dates);
@@ -386,9 +388,9 @@ public class MetadataServiceImpl implements MetadataService {
         Collections.sort(cityList, new Comparator<VisitedCity>() {
             @Override
             public int compare(final VisitedCity a, final VisitedCity b) {
-                int timeSpentInA = (int) (a.end-a.start+1); //add one if start and end are equal
-                int timeSpentInB = (int) (b.end-b.start+1);
-                return timeSpentInB-timeSpentInA;
+                int timeSpentInA = (int) (a.end - a.start + 1); //add one if start and end are equal
+                int timeSpentInB = (int) (b.end - b.start + 1);
+                return timeSpentInB - timeSpentInA;
             }
         });
 
@@ -473,7 +475,7 @@ public class MetadataServiceImpl implements MetadataService {
 	@Override
 	public LocationFacet getLastLocation(long guestId, long time) {
 		LocationFacet lastSeen = JPAUtils.findUnique(em, LocationFacet.class,
-                                                     "location.lastSeen", guestId, time);
+                "location.lastSeen", guestId, time);
 		return lastSeen;
 	}
 
@@ -647,9 +649,6 @@ public class MetadataServiceImpl implements MetadataService {
 
             if(newLocations.size()>0) {
                 long start = newLocations.get(0).start;
-                System.out.println(username + ": processing " + newLocations.size() + " new " + entityName +
-                                   " datapoints (offset is " + i + ", start is " + start +
-                                   " = " + AbstractLocalTimeFacet.timeStorageFormat.withZoneUTC().print(start) + " UTC)");
                 updateLocationMetadata(guest.getId(), newLocations);
             }
             else {
@@ -675,14 +674,23 @@ public class MetadataServiceImpl implements MetadataService {
     public void updateLocationMetadata(final long guestId, final List<LocationFacet> locationResources) {
         if (locationResources == null || locationResources.size()==0)
             return;
-        System.out.println("processing " + locationResources.size() + " location datapoints...");
         // sort the location data in ascending time order
-        Collections.sort(locationResources, new Comparator<LocationFacet>() {
-            @Override
-            public int compare(final LocationFacet o1, final LocationFacet o2) {
-                return o1.start>o2.start?1:-1;
-            }
-        });
+        try {
+            Collections.sort(locationResources, new Comparator<LocationFacet>() {
+                @Override
+                public int compare(final LocationFacet o1, final LocationFacet o2) {
+                    if (o1.start > o2.start)
+                        return 1;
+                    else if (o2.start > o2.start)
+                        return -1;
+                    else
+                        return 0;
+                }
+            });
+        } catch (Throwable t) {
+            logger.warn("Could not sort location array: " + ExceptionUtils.getStackTrace(t));
+            t.printStackTrace();
+        }
         // local vars: current city and current day
         String currentDate = "";
         Point2D.Double anchorLocation = new Point2D.Double(locationResources.get(0).latitude, locationResources.get(0).longitude);
@@ -731,7 +739,7 @@ public class MetadataServiceImpl implements MetadataService {
     @Transactional(readOnly=false)
     public JSONObject getFoursquareVenueJSON(final String venueId) {
         String url = String.format("https://api.foursquare.com/v2/venues/%s?client_id=%s&client_secret=%s&v=20130624", venueId,
-                                   env.get("foursquare.client.id"), env.get("foursquare.client.secret"));
+                env.get("foursquare.client.id"), env.get("foursquare.client.secret"));
         try {
             final String fetched = HttpUtils.fetch(url);
             JSONObject json = JSONObject.fromObject(fetched);

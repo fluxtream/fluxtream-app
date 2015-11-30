@@ -61,8 +61,13 @@ public class BuddiesServiceImpl implements BuddiesService {
                                                               "trustedBuddies.byGuestAndBuddyId",
                                                               guestId, buddyGuest.getId());
         if (trustedBuddy ==null) return;
-        AuthHelper.revokeCoach(trustedBuddy.buddyId, trustedBuddy);
-        em.remove(trustedBuddy);
+        Query nativeQuery = em.createNativeQuery(String.format("DELETE sc from SharedChannels sc JOIN TrustedBuddies tb on sc.buddy_id=tb.id WHERE tb.guestId=%s", guestId));
+        nativeQuery.executeUpdate();
+        nativeQuery = em.createNativeQuery(String.format("DELETE sc from SharedConnectors sc JOIN TrustedBuddies tb on sc.buddy_id=tb.id WHERE tb.guestId=%s", guestId));
+        nativeQuery.executeUpdate();
+        Guest buddy = guestService.getGuest(username);
+        nativeQuery = em.createNativeQuery(String.format("DELETE tb FROM TrustedBuddies tb WHERE tb.guestId=%s AND tb.buddyId=%s", guestId, buddy.getId()));
+        nativeQuery.executeUpdate();
     }
 
     @Override
@@ -110,6 +115,18 @@ public class BuddiesServiceImpl implements BuddiesService {
             em.remove(toRemove);
             em.merge(trustedBuddy);
         }
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void removeSharedConnectors(long apiKeyId) {
+        ApiKey apiKey = guestService.getApiKey(apiKeyId);
+        String connectorName = apiKey.getConnector().getName();
+        String queryString = String.format("DELETE sc from SharedConnectors sc JOIN TrustedBuddies tb " +
+                "ON sc.buddy_id=tb.id WHERE sc.connectorName=\"%s\" AND tb.guestId=%s",
+                connectorName, apiKey.getGuestId());
+        Query nativeQuery = em.createNativeQuery(queryString);
+        nativeQuery.executeUpdate();
     }
 
     @Override
@@ -187,8 +204,8 @@ public class BuddiesServiceImpl implements BuddiesService {
     public SharedConnector getSharedConnector(final long apiKeyId, final long viewerId) {
         ApiKey apiKey = guestService.getApiKey(apiKeyId);
         final SharedConnector sconn = JPAUtils.findUnique(em, SharedConnector.class,
-                                                            "sharedConnector.byConnectorNameAndViewerId",
-                                                                apiKey.getConnector().getName(), viewerId);
+                "sharedConnector.byConnectorNameAndViewerId",
+                apiKey.getConnector().getName(), viewerId);
         return sconn;
     }
 
@@ -246,9 +263,22 @@ public class BuddiesServiceImpl implements BuddiesService {
 
     @Override
     @Transactional(readOnly=false)
-    public void removeAllSharedChannels(long trustingBuddyId) {
-        Query query = em.createQuery("DELETE FROM ChannelMapping channelMapping WHERE channelMapping.buddy.guestId=?");
-        query.setParameter(1, trustingBuddyId);
-        query.executeUpdate();
+    public void removeSharedChannels(long apiKeyId) {
+        Query nativeQuery = em.createNativeQuery("delete sc from SharedChannels sc JOIN ChannelMapping  cm on sc.channelMapping_id=cm.id WHERE cm.apiKeyId=" + apiKeyId);
+        nativeQuery.executeUpdate();
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void removeAllSharedChannels(long guestId) {
+        Query nativeQuery = em.createNativeQuery(String.format("DELETE sc from SharedChannels sc JOIN TrustedBuddies tb on sc.buddy_id=tb.id WHERE tb.buddyId=%s OR tb.guestId=%s", guestId, guestId));
+        nativeQuery.executeUpdate();
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void removeAllSharedConnectors(long guestId) {
+        Query nativeQuery = em.createNativeQuery(String.format("DELETE sc from SharedConnectors sc JOIN TrustedBuddies tb on sc.buddy_id=tb.id WHERE tb.buddyId=%s OR tb.guestId=%s", guestId, guestId));
+        nativeQuery.executeUpdate();
     }
 }

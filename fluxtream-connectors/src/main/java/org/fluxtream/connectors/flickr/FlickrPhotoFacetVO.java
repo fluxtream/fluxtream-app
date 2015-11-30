@@ -1,7 +1,7 @@
 package org.fluxtream.connectors.flickr;
 
 import org.fluxtream.core.TimeInterval;
-import org.fluxtream.core.connectors.vos.AbstractPhotoFacetVO;
+import org.fluxtream.core.connectors.vos.AbstractLocalTimePhotoFacetVO;
 import org.fluxtream.core.domain.GuestSettings;
 import org.fluxtream.core.mvc.models.DimensionModel;
 
@@ -10,9 +10,8 @@ import java.util.*;
 import java.util.List;
 
 public class FlickrPhotoFacetVO extends
-		AbstractPhotoFacetVO<FlickrPhotoFacet> {
+		AbstractLocalTimePhotoFacetVO<FlickrPhotoFacet> {
 
-	public String photoUrl;
     public String thumbnailUrl;
     public Map<Integer, String> thumbnailUrls = new HashMap<Integer, String>();
     public SortedMap<Integer, Dimension> thumbnailSizes = new TreeMap<Integer, Dimension>();
@@ -31,7 +30,6 @@ public class FlickrPhotoFacetVO extends
         channelName = "photo";
         UID = facet.getId();
         this.date = facet.date;
-        start = facet.datetaken;
 
         int i = 0;
         thumbnailUrls.put(i, String.format("https://farm%s.static.flickr.com/%s/%s_%s_s.jpg", facet.farm, facet.server, facet.flickrId, facet.secret));

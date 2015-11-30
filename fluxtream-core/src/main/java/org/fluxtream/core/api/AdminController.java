@@ -12,6 +12,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.plexus.util.ExceptionUtils;
 import org.fluxtream.core.Configuration;
+import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.auth.AuthHelper;
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.ObjectType;
@@ -19,12 +20,15 @@ import org.fluxtream.core.connectors.updaters.*;
 import org.fluxtream.core.domain.*;
 import org.fluxtream.core.mvc.models.StatusModel;
 import org.fluxtream.core.services.*;
+import org.fluxtream.core.services.impl.ApiDataCleanupService;
 import org.fluxtream.core.services.impl.ExistingEmailException;
 import org.fluxtream.core.services.impl.UsernameAlreadyTakenException;
 import org.fluxtream.core.utils.RequestUtils;
 import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Component;
 
@@ -70,6 +74,16 @@ public class AdminController {
 
     @Autowired
     SystemService sysService;
+
+    @Autowired
+    @Qualifier("AdminWorker")
+    ThreadPoolTaskExecutor executor;
+
+    @Autowired
+    BodyTrackStorageService bodyTrackStorageService;
+
+    @Autowired
+    ApiDataCleanupService apiDataCleanupService;
 
     public static final String SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL = "SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL";
 
@@ -171,18 +185,31 @@ public class AdminController {
     @Secured({ "ROLE_ADMIN" })
     @Path("/cleanup")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String deleteStaleData()
+    public Response deleteStaleData()
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
-
+        StringBuffer sb = new StringBuffer("Cleaning up stale data...");
+        long then = System.currentTimeMillis();
         try {
-            apiDataService.deleteStaleData();
-            StatusModel success = new StatusModel(true, "done");
-            return gson.toJson(success);
-        } catch (Throwable t) {
-            StatusModel failure = new StatusModel(false, ExceptionUtils.getStackTrace(t));
-            return gson.toJson(failure);
+            apiDataCleanupService.cleanupStaleData();
         }
+        catch (Exception e) {
+            StringBuffer sb1 = sb.append("Couldn't cleanup api staled data")
+                    .append(" message=\"" + e.getMessage() + "\"\n" + org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(e));
+            sb.append("\n").append(sb1);
+            FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").warn(sb1.toString());
+        }
+        try {
+            connectorUpdateService.cleanupStaleData();
+        }
+        catch (Exception e) {
+            StringBuilder sb2 = new StringBuilder("Couldn't cleanup old update data")
+                    .append(" message=\"" + e.getMessage() + "\"\n" + org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(e));
+            sb.append("\n").append(sb2);
+            FlxLogger.getLogger("org.fluxtream.core.updaters.quartz").warn(sb2.toString());
+        }
+        sb.append("Done (" + (System.currentTimeMillis()-then) + " ms)");
+        return Response.ok().entity(sb.toString()).build();
     }
 
     @POST
@@ -369,18 +396,18 @@ public class AdminController {
     @Secured({ "ROLE_ADMIN" })
     @Path("/sync/{username}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public String sync(@PathParam("username") String username)
+    public Response sync(@PathParam("username") String username)
             throws InstantiationException, IllegalAccessException,
                    ClassNotFoundException {
-        final long guestId = guestService.getGuest(username).getId();
+        Guest guest = guestService.getGuest(username);
+        if (guest==null)
+            return Response.status(Response.Status.NOT_FOUND).build();
+        final long guestId = guest.getId();
         try {
             final List<ScheduleResult> scheduleResults = connectorUpdateService.updateAllConnectors(guestId, false);
-            StatusModel statusModel = new StatusModel(true, "successfully added update worker tasks to the queue (see details)");
-            statusModel.payload = scheduleResults;
-            return gson.toJson(scheduleResults);
+            return Response.ok().entity(scheduleResults).build();
         } catch (Throwable t) {
-            StatusModel failure = new StatusModel(false, ExceptionUtils.getStackTrace(t));
-            return gson.toJson(failure);
+            return Response.serverError().build();
         }
     }
 
@@ -490,6 +517,26 @@ public class AdminController {
             return gson.toJson(new StatusModel(false,"Failed to set OAuth2 Tokens: " + e.getMessage()));
         }
     }
+
+    @POST
+    @Path("/datastore/{connector}/import")
+    @Secured({ "ROLE_ADMIN" })
+    public Response createGuest(@QueryParam("username") String username,
+                                @PathParam("connector") String connectorName) {
+        Guest guest = guestService.getGuest(username);
+        if (guest==null) return Response.status(Response.Status.NOT_FOUND).entity("No such user: " + username).build();
+        final ApiKey apiKey = guestService.getApiKey(guest.getId(), Connector.getConnector(connectorName));
+        if (apiKey==null) return Response.status(Response.Status.NOT_FOUND).entity("No such connector: " + connectorName).build();
+        executor.execute(new Runnable() {
+
+            @Override
+            public void run() {
+                bodyTrackStorageService.storeInitialHistory(apiKey);
+            }
+        });
+        return Response.ok().entity("launched initial datastore history import for " + connectorName + "/" + username).build();
+    }
+
 
     @POST
     @Path("/create")
@@ -690,6 +737,7 @@ public class AdminController {
 
     @GET
     @Path("/fitbit/apiSubscriptions/list")
+    @Secured({ "ROLE_ADMIN" })
     @Produces({MediaType.APPLICATION_JSON})
     public Response listFitbitApiSubscriptions() throws UpdateFailedException, UnexpectedResponseCodeException, RateLimitReachedException, AuthExpiredException {
         final Guest guest = AuthHelper.getGuest();
@@ -701,6 +749,7 @@ public class AdminController {
 
     @GET
     @Path("/fitbit/apiSubscriptions/delete")
+    @Secured({ "ROLE_ADMIN" })
     @Produces("text/plain")
     public Response deleteFitbitApiSubscription() throws UpdateFailedException, UnexpectedResponseCodeException, RateLimitReachedException, AuthExpiredException {
         String fitbitSubscriberId = env.get("fitbitSubscriberId");
@@ -713,6 +762,7 @@ public class AdminController {
 
     @GET
     @Path("/fitbit/apiSubscriptions/add")
+    @Secured({ "ROLE_ADMIN" })
     @Produces({MediaType.APPLICATION_JSON})
     public Response addFitbitSubscription(@Context HttpServletRequest request,
                                           @Context HttpServletResponse response) throws IOException, UpdateFailedException, UnexpectedResponseCodeException, RateLimitReachedException, AuthExpiredException {

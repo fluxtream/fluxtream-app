@@ -33,7 +33,18 @@ public class Utils {
 // 	}
     private static final char[] symbols = new char[36];
 
-    static {
+	public static String sanitize(String s) {
+		StringBuffer sb = new StringBuffer();
+		for (int i=0; i<s.length(); i++) {
+			if (s.charAt(i)==' ' || Character.isLetter(s.charAt(i))||s.charAt(i)=='_' ||
+					Character.isDigit(s.charAt(i))) {
+				sb.append(s.charAt(i));
+			} else sb.append('_');
+		}
+		return sb.toString();
+	}
+
+	static {
         for (int idx = 0; idx < 10; ++idx)
             symbols[idx] = (char) ('0' + idx);
         for (int idx = 10; idx < 36; ++idx)

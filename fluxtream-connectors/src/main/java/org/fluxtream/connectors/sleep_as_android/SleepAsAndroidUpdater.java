@@ -21,7 +21,6 @@ import org.fluxtream.core.connectors.updaters.UpdateFailedException;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
 import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
-import org.fluxtream.core.domain.ChannelMapping;
 import org.fluxtream.core.domain.Notification;
 import org.fluxtream.core.services.ApiDataService;
 import org.fluxtream.core.services.impl.BodyTrackHelper;
@@ -30,14 +29,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
 @Component
 @Updater(prettyName = "Sleep_As_Android", value = 351, objectTypes={SleepFacet.class}, bodytrackResponder=SleepAsAndroidBodytrackResponder.class,
-         defaultChannels = {"sleep_as_android.sleep","sleep_as_android.actiGraph","sleep_as_android.cycles"})
+         defaultChannels = {"Sleep_As_Android.sleep","Sleep_As_Android.actiGraph","Sleep_As_Android.cycles"})
 public class SleepAsAndroidUpdater extends AbstractUpdater {
 
     @Autowired
@@ -170,7 +168,7 @@ public class SleepAsAndroidUpdater extends AbstractUpdater {
                 new ApiDataService.FacetModifier<SleepFacet>() {
                     @Override
                     public SleepFacet createOrModify(SleepFacet facet, Long apiKeyId) {
-                        if (facet == null){
+                        if (facet == null) {
                             facet = new SleepFacet(updateInfo.apiKey.getId());
                             facet.api = updateInfo.apiKey.getConnector().value();
                             facet.start = sleepObject.getLong("fromTime");
@@ -188,16 +186,14 @@ public class SleepAsAndroidUpdater extends AbstractUpdater {
                         facet.noiseLevel = sleepObject.getDouble("noiseLevel");
                         if (sleepObject.has("snroingSeconds")) {
                             facet.snoringSeconds = sleepObject.getInt("snoringSeconds");
-                        }
-                        else {
+                        } else {
                             facet.snoringSeconds = 0;
 
                         }
 
-                        if (sleepObject.has("comment")){
+                        if (sleepObject.has("comment")) {
                             facet.sleepComment = sleepObject.getString("comment");
-                        }
-                        else{
+                        } else {
                             facet.sleepComment = null;
                         }
 
@@ -211,22 +207,30 @@ public class SleepAsAndroidUpdater extends AbstractUpdater {
 
                         facet.setSleepTags(sleepTags);
 
-                        List<Double> actiGraph = new LinkedList<Double>();
-                        JSONArray actiGraphObject = sleepObject.getJSONArray("actigraph");
-                        for (int i = 0; i < actiGraphObject.size(); i++) {
-                            actiGraph.add(actiGraphObject.getDouble(i));
+                        Object actiGraphObject = sleepObject.get("actigraph");
+                        if (actiGraphObject != null) {
+                            JSONArray actigraphArray = new JSONArray();
+                            if (actiGraphObject instanceof JSONObject)
+                                actigraphArray.add(actiGraphObject);
+                            else if (actiGraphObject instanceof JSONArray)
+                                actigraphArray = (JSONArray)actiGraphObject;
+                            List<Double> actiGraph = new LinkedList<Double>();
+                            for (int i = 0; i < actigraphArray.size(); i++) {
+                                actiGraph.add(actigraphArray.getDouble(i));
+                            }
+                            facet.setActiGraph(actiGraph);
                         }
 
-                        facet.setActiGraph(actiGraph);
+                        if (sleepObject.has("labels")) {
+                            List<Pair<String, Long>> eventLabels = new LinkedList<Pair<String, Long>>();
+                            JSONArray labels = sleepObject.getJSONArray("labels");
+                            for (int i = 0; i < labels.size(); i++) {
+                                JSONObject label = labels.getJSONObject(i);
+                                eventLabels.add(new Pair<String, Long>(label.getString("label"), label.getLong("timestamp")));
+                            }
 
-                        List<Pair<String,Long>> eventLabels = new LinkedList<Pair<String,Long>>();
-                        JSONArray labels = sleepObject.getJSONArray("labels");
-                        for (int i = 0; i < labels.size(); i++) {
-                            JSONObject label = labels.getJSONObject(i);
-                            eventLabels.add(new Pair<String,Long>(label.getString("label"), label.getLong("timestamp")));
+                            facet.setEventLabels(eventLabels);
                         }
-
-                        facet.setEventLabels(eventLabels);
 
                         return facet;
                     }

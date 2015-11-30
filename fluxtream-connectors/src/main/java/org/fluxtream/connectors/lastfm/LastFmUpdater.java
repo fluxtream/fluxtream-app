@@ -27,7 +27,8 @@ import static org.fluxtream.core.utils.HttpUtils.fetch;
 
 @Component
 @Updater(prettyName = "Last FM", value = 10, objectTypes = {LastFmRecentTrackFacet.class}, extractor = LastFmFacetExtractor.class,
-         bodytrackResponder = LastFmBodytrackResponder.class, defaultChannels = {"lastfm.tracks"})
+        deviceNickname = "Last_FM",
+         bodytrackResponder = LastFmBodytrackResponder.class, defaultChannels = {"Last_FM.tracks"})
 public class LastFmUpdater extends AbstractUpdater {
 
     private static final int ITEMS_PER_PAGE = 200;

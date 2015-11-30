@@ -91,6 +91,7 @@ define(["sharedConnectorSettings/evernote", "sharedConnectorSettings/google_cale
 
     function bindSharedConnectors(coach, username) {
         App.loadMustacheTemplate("settingsTemplates.html","sharedConnectors",function(template){
+            $(".remove-connector-warning").remove();
             updateCoachesDropdown(username);
             var html = template.render({connectors : coach.sharedConnectors,
                 username : username});
@@ -117,6 +118,7 @@ define(["sharedConnectorSettings/evernote", "sharedConnectorSettings/google_cale
 
     function bindSharedChannels(coach, username) {
         App.loadMustacheTemplate("settingsTemplates.html","sharedChannels",function(template){
+            $(".remove-connector-warning").remove();
             var devices = [];
             for (var name in coach["sharedChannels"]) {
                 var deviceName = _.isUndefined(coach["sharedChannels"][name][0])?null:coach["sharedChannels"][name][0]["deviceName"];
@@ -160,6 +162,7 @@ define(["sharedConnectorSettings/evernote", "sharedConnectorSettings/google_cale
             success: function(status) {
                 $("#removeCoachButton").remove();
                 $("#sharedConnectors").empty();
+                $("#sharedChannels").empty();
                 updateCoachesDropdown(null);
             }
         });
@@ -193,9 +196,11 @@ define(["sharedConnectorSettings/evernote", "sharedConnectorSettings/google_cale
 
     function toggleSharedConnector(username, connectorName, checkbox) {
         if (checkbox.checked) {
+            $(".remove-connector-warning").remove();
             addSharedConnector(username, connectorName);
             $(checkbox).parent().find(".sharedConnectorSettingsBtn").show();
         } else {
+            $("#sharingModal > .modal-footer").prepend('<div class="remove-connector-warning alert alert-warning">Please note that you may still have shared channels for this connector!</div>');
             removeSharedConnector(username, connectorName);
             $(checkbox).parent().find(".sharedConnectorSettingsBtn").hide();
         }

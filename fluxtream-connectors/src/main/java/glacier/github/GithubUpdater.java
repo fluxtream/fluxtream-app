@@ -32,7 +32,7 @@ public class GithubUpdater extends AbstractUpdater {
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
         if (!connectorUpdateService.isHistoryUpdateCompleted(updateInfo.apiKey, updateInfo.objectTypes)) {
-            apiDataService.eraseApiData(updateInfo.apiKey);
+            apiDataService.eraseApiData(updateInfo.apiKey, false);
         }
         loadHistory(updateInfo, 0, System.currentTimeMillis());
     }

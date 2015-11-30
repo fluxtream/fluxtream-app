@@ -3,6 +3,7 @@ package org.fluxtream.connectors.runkeeper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.TimeZone;
 
 import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.connectors.ObjectType;
@@ -13,6 +14,8 @@ import org.fluxtream.core.services.impl.BodyTrackHelper;
 import org.fluxtream.core.services.impl.FieldHandler;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 /**
@@ -37,7 +40,8 @@ public class RunkeeperHeartRateFieldHandler implements FieldHandler {
         for(int i=0; i<heartRateJson.size(); i++) {
             JSONObject record = heartRateJson.getJSONObject(i);
             final double heartRate = record.getInt("heart_rate");
-            final double timestamp = record.getInt("timestamp");
+            final double timestamp =
+                    record.getInt("timestamp");
             long when = (facet.start/1000) + (long)timestamp;
             List<Object> hrRecord = new ArrayList<Object>();
             hrRecord.add(when);
@@ -54,8 +58,8 @@ public class RunkeeperHeartRateFieldHandler implements FieldHandler {
     public void addToDeclaredChannelMappings(final ApiKey apiKey, final List<ChannelMapping> channelMappings) {
         ChannelMapping channelMapping = new ChannelMapping(
                 apiKey.getId(), apiKey.getGuestId(),
-                ChannelMapping.ChannelType.timespan,
-                ChannelMapping.TimeType.local,
+                ChannelMapping.ChannelType.data,
+                ChannelMapping.TimeType.gmt,
                 ObjectType.getObjectType(apiKey.getConnector(), "fitnessActivity").value(),
                 apiKey.getConnector().getDeviceNickname(), "heartRate",
                 apiKey.getConnector().getDeviceNickname(), "heartRate");

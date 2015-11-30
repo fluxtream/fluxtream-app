@@ -60,7 +60,7 @@ public class GuestController {
 			IllegalAccessException, ClassNotFoundException {
         try{
             TrustedBuddy trustedBuddy;
-            try { trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+            try { trustedBuddy = AuthHelper.getBuddyTrustedBuddy(buddyToAccessParameter, buddiesService);
             } catch (TrustRelationshipRevokedException e) {return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();}
             Guest guest = ApiHelper.getBuddyToAccess(guestService, trustedBuddy);
             if (guest==null)
@@ -74,6 +74,34 @@ public class GuestController {
             return Response.serverError().entity("Failed to get current guest: " + e.getMessage()).build();
         }
 	}
+
+    @GET
+    @Path("/trusted")
+    @Produces({ MediaType.APPLICATION_JSON })
+    @ApiResponses({
+            @ApiResponse(code=401, message="The user is no longer logged in"),
+            @ApiResponse(code=403, message="Buddy-to-access authorization has been revoked")
+    })
+    @ApiOperation(value = "Retrieve information on a user's trusted buddy", response = GuestModel.class)
+    public Response getOwnTrustedBuddy(@ApiParam(value="Include the guest's avatar?") @QueryParam("includeAvatar") final boolean includeAvatar,
+                                       @ApiParam(value="Buddy to access guest id ", required=true) @QueryParam(BuddiesService.BUDDY_TO_ACCESS_PARAM) String buddyToAccessParameter) throws InstantiationException,
+            IllegalAccessException, ClassNotFoundException {
+        try{
+            try {
+                TrustedBuddy trustedBuddy = AuthHelper.getOwnTrustedBuddy(buddyToAccessParameter, buddiesService);
+                Guest guest = guestService.getGuestById(trustedBuddy.buddyId);
+                GuestModel guestModel = new GuestModel(guest, true);
+                if (includeAvatar)
+                    guestModel.avatar = getAvatarImageModel(buddyToAccessParameter, guest);
+                return Response.ok(guestModel).build();
+            } catch (TrustRelationshipRevokedException e) {
+                return Response.status(403).entity("Sorry, permission to access this data has been revoked. Please reload your browser window").build();
+            }
+        }
+        catch (Exception e){
+            return Response.serverError().entity("Failed to get current guest: " + e.getMessage()).build();
+        }
+    }
 
     @GET
     @Path("/avatarImage")
@@ -94,7 +122,7 @@ public class GuestController {
         String type = "none";
         String url;
         try {
-            final TrustedBuddy trustedBuddy = AuthHelper.getTrustedBuddy(buddyToAccessParameter, buddiesService);
+            final TrustedBuddy trustedBuddy = AuthHelper.getBuddyTrustedBuddy(buddyToAccessParameter, buddiesService);
             if (trustedBuddy !=null)
                 guest = guestService.getGuestById(trustedBuddy.guestId);
         }
@@ -116,7 +144,7 @@ public class GuestController {
 
     private String getGravatarImageURL(Guest guest) {
         String emailHash = hash(guest.email.toLowerCase().trim()); //gravatar specifies the email should be trimmed, taken to lowercase, and then MD5 hashed
-        String gravatarURL = String.format("http://www.gravatar.com/avatar/%s?s=27&d=404", emailHash);
+        String gravatarURL = String.format("http://www.gravatar.com/avatar/%s?s=27&d=retro", emailHash);
         HttpGet get = new HttpGet(gravatarURL);
         int res = 0;
         try { res = ((new DefaultHttpClient()).execute(get)).getStatusLine().getStatusCode(); }

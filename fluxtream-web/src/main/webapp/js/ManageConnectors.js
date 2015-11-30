@@ -253,16 +253,18 @@ define(["core/grapher/BTCore",
                 // We will need to make modifications to respect items in the ChannelMapping table
                 // for mapping device names to their connectors and make multiple instances of
                 // a given connector type work.
-                if (sources[i].name == connector.name ||
-                    sources[i].name == connector.connectorName){
+                sources[i].name.replace(/' '/g, '_');
+
+                if (sources[i].name == connector.internalDeviceNickname){
                     source = sources[i];
                     break;
                 }
             }
             var channelNames = [];
+            console.log("connector, source ",connector, source);
             for (i = 0; source != null && i < source.channels.length; i++){
-                channelNames[channelNames.length] = {name: source.name + source.channels[i].name,
-                    displayName: source.name + "." + source.channels[i].name
+                channelNames[channelNames.length] = {name: source.name.trim() + source.channels[i].name.trim(),
+                    displayName: source.name.trim() + "." + source.channels[i].name.trim()
                 };
             }
             App.loadMustacheTemplate("connectorMgmtTemplates.html","settings",function(template){
@@ -299,7 +301,7 @@ define(["core/grapher/BTCore",
     }
 
     function showTimelineSettings(connector, channelNames, source) {
-        console.log(connector.channels);
+        console.log(connector.channels, channelNames);
         App.loadMustacheTemplate("connectorMgmtTemplates.html","channel-settings",function(template){
             var settingsHtml = template.render({
                 connectorName:connector.connectorName,
@@ -313,16 +315,20 @@ define(["core/grapher/BTCore",
             for (var i = 0; i < connector.channels.length; i++){
                 var name = connector.channels[i];
                 if (name == "")
-                    break;
-                var index = name.substring(0,name.indexOf(".")) + name.substring(name.indexOf(".") + 1);
-                $("#" + index + "-checkbox")[0].checked = true;
+                    continue;
+                var index = (name.substring(0,name.indexOf("."))).trim() + (name.substring(name.indexOf(".") + 1).trim());
+                if (typeof($("#" + index + "-checkbox")[0])=="undefined")
+                    console.log(index + " checkbox not found");
+                else
+                    $("#" + index + "-checkbox")[0].checked = true;
             }
 
             $("#" + connector.connectorName + "SettingsDialog input").click(function(event){
                 var channelList = "";
                 connector.channels = [];
                 for (var i = 0; source != null && i < source.channels.length; i++){
-                    if ($("#" + source.name + source.channels[i].name + "-checkbox")[0].checked){
+                    var checkbox = $("input[data-channelName='" + source.name + source.channels[i].name + "']")
+                    if (!_.isUndefined(checkbox[0]) && checkbox[0].checked){
                         connector.channels.push(source.name + "." + source.channels[i].name);
                         if (channelList == "")
                             channelList = source.name + "." + source.channels[i].name;
@@ -332,14 +338,15 @@ define(["core/grapher/BTCore",
                     }
                 }
                 $.ajax({
-                    url:"/api/v1/connectors/" + connector.name + "/channels",
+                    url:"/api/v1/connectors/" + connector.connectorName + "/channels",
                     type:"POST",
                     data:{channels:channelList}
                 })
             });
             $("#resetSettingsButton").hide();
 
-            $("#connectorSettingsTab .selectAll").click(function(){
+            $("#connectorSettingsTab .selectAll").click(function(e){
+                e.preventDefault();
                 var elements = $("#connectorSettingsTab input[type='checkbox']");
                 for (var i = 0, li = elements.length; i < li; i++){
                     elements[i].checked = true;
@@ -361,7 +368,8 @@ define(["core/grapher/BTCore",
                 });
                 return false;
             });
-            $("#connectorSettingsTab .selectNone").click(function(){
+            $("#connectorSettingsTab .selectNone").click(function(e){
+                e.preventDefault();
                 var elements = $("#connectorSettingsTab input[type='checkbox']");
                 for (var i = 0, li = elements.length; i < li; i++){
                     elements[i].checked = false;
@@ -486,6 +494,7 @@ define(["core/grapher/BTCore",
                     success: function() {
                         updateContents();
                         $("#deleteConnectorConfirm").modal("hide");
+                        $("tr#connector-" + connectors[index].connectorName).remove();
                     },
                     error: function() {
                         $("#deleteConnectorConfirm").modal("hide");

@@ -137,7 +137,7 @@ public class EvernoteUpdater extends AbstractUpdater implements SettingsAwareUpd
             // the time of a serious server issue that would invalidate client USNs"
             // This means that we are may leave items that the user actually deleted in the database, and thus
             // we need to basically do a history update again
-            apiDataService.eraseApiData(updateInfo.apiKey);
+            apiDataService.eraseApiData(updateInfo.apiKey, false);
             guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), LAST_SYNC_TIME);
             guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), LAST_UPDATE_COUNT);
             // let's properly log this

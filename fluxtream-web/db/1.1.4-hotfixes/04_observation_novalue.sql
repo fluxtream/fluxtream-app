@@ -1,0 +1,1 @@
+ALTER TABLE Facet_FluxtreamCaptureObservation CHANGE `value` `value` int(11) NULL;

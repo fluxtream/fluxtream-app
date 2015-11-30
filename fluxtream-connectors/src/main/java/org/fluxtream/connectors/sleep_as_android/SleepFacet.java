@@ -40,6 +40,7 @@ public class SleepFacet extends AbstractFacet {
     public double noiseLevel;
 
     //comments that aren't tags on the sleep
+    @Lob
     public String sleepComment;
 
     //the actigaph is evenly sampled over the duration of the sleep. each value represents activity level (no upper bound)
@@ -66,12 +67,13 @@ public class SleepFacet extends AbstractFacet {
 
     public List<Double> getActiGraph(){
         try {
-            return  new ObjectMapper().readValue(actiGraph, TypeFactory.defaultInstance().constructCollectionType(List.class, Double.class));
+            if (actiGraph!=null)
+                return  new ObjectMapper().readValue(actiGraph, TypeFactory.defaultInstance().constructCollectionType(List.class, Double.class));
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
-
+        return null;
     }
 
     public void setSleepTags(List<String> sleepTags){
@@ -86,12 +88,13 @@ public class SleepFacet extends AbstractFacet {
 
     public List<String> getSleepTags(){
         try {
-            return  new ObjectMapper().readValue(sleepTags, TypeFactory.defaultInstance().constructCollectionType(List.class, String.class));
+            if (sleepTags!=null)
+                return  new ObjectMapper().readValue(sleepTags, TypeFactory.defaultInstance().constructCollectionType(List.class, String.class));
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
-
+        return null;
     }
 
     public void setEventLabels(List<Pair<String,Long>> eventLabels){
@@ -105,6 +108,7 @@ public class SleepFacet extends AbstractFacet {
     }
 
     public List<Pair<String,Long>> getEventLabels(){
+        if (this.eventLabels==null) return null;
         try {
             List<Pair<String,Long>> list = new LinkedList<Pair<String,Long>>();
             JsonNode rootNode = new ObjectMapper().readTree(this.eventLabels);

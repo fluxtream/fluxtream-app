@@ -18,14 +18,8 @@ public interface ApiDataService {
 
     public AbstractFacetVO<AbstractFacet> getFacet(int api, int objectType, long facetId);
 
-	public void cacheApiDataObject(UpdateInfo updateInfo, long start, long end,
-			AbstractFacet payload) throws Exception;
-
 	public void cacheApiDataJSON(UpdateInfo updateInfo, JSONObject jsonObject,
 			long start, long end) throws Exception;
-
-    public void cacheApiDataJSON(UpdateInfo updateInfo, String json,
-                                 long start, long end, int objectTypes) throws Exception;
 
 	public void cacheApiDataJSON(UpdateInfo updateInfo, String json,
 			long start, long end) throws Exception;
@@ -131,24 +125,15 @@ public interface ApiDataService {
 
     public <T extends AbstractFacet> T createOrReadModifyWrite(Class<? extends AbstractFacet> facetClass, FacetQuery query, FacetModifier<T> modifier, Long apiKeyId) throws Exception;
 
-	public void eraseApiData(ApiKey apiKey);
+    public void eraseApiData(ApiKey apiKey, boolean removeApiKey);
 
 	public void eraseApiData(ApiKey apiKey, int objectTypes);
-
-	public void eraseApiData(ApiKey apiKey, ObjectType objectType);
-
-	public void eraseApiData(ApiKey apiKey, int objectTypes,
-			TimeInterval timeInterval);
 
 	public void eraseApiData(ApiKey apiKey,
 			ObjectType objectType, TimeInterval timeInterval);
 
     public void eraseApiData(ApiKey apiKey,
                              ObjectType objectType, List<String> dates);
-
-	public void cacheEmptyData(UpdateInfo updateInfo, long fromMidnight,
-			long toMidnight);
-
 
     void deleteComment(String connectorName, String objectTypeName, long guestId, long facetId);
 

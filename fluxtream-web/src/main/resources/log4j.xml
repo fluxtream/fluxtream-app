@@ -17,11 +17,60 @@
             <param name="ConversionPattern" value="%d{HH:mm:ss,SSS} [%t] %c{3}: %-5p: %m%n"/>
         </layout>
     </appender>
-
     <logger name="Fluxtream">
         <level value="DEBUG"/>
         <appender-ref ref="DebugConsole"/>
     </logger>
+
+
+    <appender name="quartzlog" class="org.apache.log4j.RollingFileAppender">
+        <param name="file" value="logs/quartz.log" />
+        <param name="MaxFileSize" value="1000KB" />
+        <!-- Keep one backup file -->
+        <param name="MaxBackupIndex" value="1" />
+        <param name="Threshold" value="DEBUG" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d{HH:mm:ss,SSS} [%t] %c{3}: %-5p: %m%n"/>
+        </layout>
+    </appender>
+
+    <logger name="org.fluxtream.core.updaters.quartz">
+        <level value="info"/>
+        <appender-ref ref="quartzlog"/>
+    </logger>
+
+    <appender name="apidataservicelog" class="org.apache.log4j.RollingFileAppender">
+        <param name="file" value="logs/apiDataService.log" />
+        <param name="MaxFileSize" value="1000KB" />
+        <!-- Keep one backup file -->
+        <param name="MaxBackupIndex" value="1" />
+        <param name="Threshold" value="DEBUG" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d{HH:mm:ss,SSS} [%t] %c{3}: %-5p: %m%n"/>
+        </layout>
+    </appender>
+
+    <logger name="org.fluxtream.core.services.impl.ApiDataServiceImpl">
+        <level value="info"/>
+        <appender-ref ref="apidataservicelog"/>
+    </logger>
+
+    <appender name="bodytrackhelperlog" class="org.apache.log4j.RollingFileAppender">
+        <param name="file" value="logs/bodytrackHelper.log" />
+        <param name="MaxFileSize" value="1000KB" />
+        <!-- Keep one backup file -->
+        <param name="MaxBackupIndex" value="1" />
+        <param name="Threshold" value="DEBUG" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d{HH:mm:ss,SSS} [%t] %c{3}: %-5p: %m%n"/>
+        </layout>
+    </appender>
+
+    <logger name="org.fluxtream.core.services.impl.BodyTrackHelper">
+        <level value="info"/>
+        <appender-ref ref="bodytrackhelperlog"/>
+    </logger>
+
 
     <root>
 		<level value="info" />

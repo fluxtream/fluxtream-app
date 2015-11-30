@@ -251,8 +251,10 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
         } else if (splits[0]==="week") {
             var year = Number(splits[1]);
             var week = Number(splits[2]);
-            var startDay = moment().year(year).isoWeek(week).day("Thursday").subtract("weeks", 1);
-            var result = "week/" + startDay.year() + "/" + startDay.isoWeek();
+            var endDay = moment().year(year).isoWeek(week);
+            var startDay = moment().year(year).isoWeek(week);
+            startDay.subtract(moment.duration({'weeks' : 1}));
+            var result = "week/" + endDay.year() + "/" + startDay.isoWeek();
             return result;
         } else if (splits[0]==="month") {
             var year = Number(splits[1]);
@@ -273,8 +275,9 @@ define(["core/TabInterface", "core/DateUtils"], function(TabInterface, DateUtils
         } else if (splits[0]==="week") {
             var year = Number(splits[1]);
             var week = Number(splits[2]);
-            var endDay = moment().year(year).isoWeek(week).day("Thursday").add("weeks", 1);
-            var result = "week/" + endDay.year() + "/" + endDay.isoWeek();
+            var startDay = moment().year(year).isoWeek(week).add("weeks", 1);
+            var endDay = moment().year(year).isoWeek(week).add("weeks", 2);
+            var result = "week/" + endDay.year() + "/" + startDay.isoWeek();
             return result;
         } else if (splits[0]==="month") {
             var year = Number(splits[1]);

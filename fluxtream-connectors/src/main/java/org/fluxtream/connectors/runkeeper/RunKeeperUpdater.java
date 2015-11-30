@@ -1,9 +1,5 @@
 package org.fluxtream.connectors.runkeeper;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.TimeZone;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
@@ -15,7 +11,6 @@ import org.fluxtream.core.connectors.updaters.AbstractUpdater;
 import org.fluxtream.core.connectors.updaters.AuthRevokedException;
 import org.fluxtream.core.connectors.updaters.UpdateFailedException;
 import org.fluxtream.core.connectors.updaters.UpdateInfo;
-import org.fluxtream.core.domain.AbstractFacet;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.services.ApiDataService;
 import org.fluxtream.core.services.JPADaoService;
@@ -35,13 +30,15 @@ import org.scribe.oauth.OAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.*;
+
 /**
  *
  * @author Candide Kemmler (candide@fluxtream.com)
  */
 @Component
 @Updater(prettyName = "RunKeeper", value = 35, updateStrategyType = Connector.UpdateStrategyType.INCREMENTAL,
-         objectTypes = {LocationFacet.class, RunKeeperFitnessActivityFacet.class}, defaultChannels = {"runkeeper.totalCalories"})
+         objectTypes = {LocationFacet.class, RunKeeperFitnessActivityFacet.class}, defaultChannels = {"RunKeeper.totalCalories"})
 public class RunKeeperUpdater  extends AbstractUpdater {
 
     Logger logger = Logger.getLogger(RunKeeperUpdater.class);
@@ -304,9 +301,7 @@ public class RunKeeperUpdater  extends AbstractUpdater {
         };
         final RunKeeperFitnessActivityFacet newFacet = apiDataService.createOrReadModifyWrite(RunKeeperFitnessActivityFacet.class, facetQuery, facetModifier, updateInfo.apiKey.getId());
         if (newFacet!=null) {
-            List<AbstractFacet> newFacets = new ArrayList<AbstractFacet>();
-            newFacets.add(newFacet);
-            bodyTrackStorageService.storeApiData(updateInfo.apiKey, newFacets);
+            bodyTrackStorageService.storeApiData(updateInfo.apiKey, Arrays.asList(newFacet));
         }
     }
 

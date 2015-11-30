@@ -280,12 +280,13 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         SMSBackupInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://www.googleapis.com/auth/userinfo.email%%20https://www.googleapis.com/auth/gmail.readonly";
         em.persist(SMSBackupInfo);
         final String beddit = "Beddit";
+        String[] bedditKeys = checkKeysExist(beddit, Arrays.asList("bedditConsumerKey", "bedditConsumerSecret"));
         em.persist(new ConnectorInfo(beddit,
                 "/" + release + "/images/connectors/connector-beddit.jpg",
                 res.getString("beddit"),
-                "ajax:/beddit/enterAuthInfo",
+                "/beddit/token",
                 Connector.getConnector("beddit"), order++, true,
-                false, true, null));
+                false, true, bedditKeys));
         String[] sleepAsAndroidKeys = checkKeysExist("Sleep_As_Android", Arrays.asList("google.client.id", "google.client.secret"));
         ConnectorInfo SleepAsAndroidConnectorInfo = new ConnectorInfo("Sleep_As_Android",
                 "/" + release + "/images/connectors/connector-sleep_as_android.jpg",
@@ -309,6 +310,12 @@ public class SystemServiceImpl implements SystemService, ApplicationListener<Con
         spreadsheetsConnectorInfo.renewTokensUrlTemplate = "google/oauth2/%s/token?scope=https://spreadsheets.google.com/feeds";
         em.persist(spreadsheetsConnectorInfo);
 
+        String[] misfitKeys = checkKeysExist("Misfit", Arrays.asList("misfitConsumerKey", "misfitConsumerSecret"));
+        final String misfit = "Misfit";
+        final ConnectorInfo misfitConnectorInfo = new ConnectorInfo(misfit, "/" + release + "/images/connectors/connector-misfit.jpg", res.getString("misfit"), "/misfit/token", Connector.getConnector("misfit"), order++, misfitKeys != null, false, true, misfitKeys);
+        misfitConnectorInfo.supportsRenewTokens = true;
+        misfitConnectorInfo.renewTokensUrlTemplate = "misfit/token?apiKeyId=%s";
+        em.persist(misfitConnectorInfo);
 	}
 
     @Transactional(readOnly = false)

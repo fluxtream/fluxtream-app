@@ -9,6 +9,7 @@ import com.sun.jersey.multipart.BodyPartEntity;
 import com.sun.jersey.multipart.MultiPart;
 import com.wordnik.swagger.annotations.*;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.SimpleTimeInterval;
 import org.fluxtream.core.TimeInterval;
@@ -47,6 +48,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Path("/v1/bodytrack")
 @Component("RESTBodytrackController")
@@ -94,6 +97,8 @@ public class BodyTrackController {
 
     @Autowired
     BeanFactory beanFactory;
+
+    Pattern alphanumeric_dots_and_underscore = Pattern.compile("[0-9a-zA-Z_\\.]+");
 
     @GET
     @Path("/exportCSV/{UID}/fluxtream-export-from-{start}-to-{end}.csv")
@@ -234,6 +239,11 @@ public class BodyTrackController {
                                       @ApiParam(value="JSON encoded array of channels being uploaded for", required=true) @FormParam("channel_names") String channels,
                                       @ApiParam(value="Multipart form data to be uploaded", required=true)  @FormParam("data") String data){
         Response response;
+        final List<String> channelNames = gson.fromJson(channels, new TypeToken<Collection<String>>(){}.getType());
+        String illegalName = checkDeviceAndChannelNamesAreAlphanumericAndUnderscore(deviceNickname, channelNames);
+        if (illegalName!=null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(String.format("Illegal device nickname or channel name: %s; only alphanumeric and underscore are allowed", illegalName)).build();
+        }
         try{
             long guestId = AuthHelper.getGuestId();
             List<List<Object>> parsedData = new ArrayList<List<Object>>();
@@ -265,7 +275,6 @@ public class BodyTrackController {
             }
 
             ApiKey fluxtreamCaptureApiKey = ensureFluxtreamCaptureApiKey(guestId);
-            final List<String> channelNames = gson.fromJson(channels, new TypeToken<Collection<String>>(){}.getType());
             final BodyTrackHelper.BodyTrackUploadResult uploadResult = bodyTrackHelper.uploadToBodyTrack(fluxtreamCaptureApiKey, deviceNickname, channelNames, parsedData);
             if (uploadResult instanceof BodyTrackHelper.ParsedBodyTrackUploadResult){
                 BodyTrackHelper.ParsedBodyTrackUploadResult parsedResult = (BodyTrackHelper.ParsedBodyTrackUploadResult) uploadResult;
@@ -281,6 +290,16 @@ public class BodyTrackController {
             response = Response.serverError().entity("Upload failed!").build();
         }
         return response;
+    }
+
+    String checkDeviceAndChannelNamesAreAlphanumericAndUnderscore(String deviceNickname, List<String> channelNames) {
+        Matcher matcher = alphanumeric_dots_and_underscore.matcher(deviceNickname);
+        if (!matcher.matches()) return deviceNickname;
+        for (String channelName : channelNames) {
+            if (!alphanumeric_dots_and_underscore.matcher(channelName).matches())
+                return channelName;
+        }
+        return null;
     }
 
     private ApiKey ensureFluxtreamCaptureApiKey(long guestId) {
@@ -623,12 +642,14 @@ public class BodyTrackController {
             }
             return Response.ok(bodyTrackHelper.fetchTile(uid, deviceNickname, channelName, level, offset)).build();
         } catch (Exception e) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ExceptionUtils.getStackTrace(e)).build();
         }
     }
 
     private ApiKey getApiKeyFromDeviceNickname(String deviceNickname, long guestId) {
-        final List<ApiKey> apiKeys = guestService.getApiKeys(guestId, Connector.fromDeviceNickname(deviceNickname));
+        Connector connector = Connector.fromDeviceNickname(deviceNickname);
+        if (connector==null) connector = Connector.getConnector("fluxtream_capture");
+        final List<ApiKey> apiKeys = guestService.getApiKeys(guestId, connector);
         // bodytrack doesn't have the ability to handle multiple instances of the same connector yet, so returning
         // the first matching ApiKey
         if (apiKeys.size()>0)
@@ -654,7 +675,7 @@ public class BodyTrackController {
             return Response.ok(bodyTrackHelper.listViews(uid)).build();
         }
         catch (Exception e){
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ExceptionUtils.getStackTrace(e)).build();
         }
     }
 
@@ -682,7 +703,7 @@ public class BodyTrackController {
                 return Response.serverError().entity("Failed to get view").build();
         }
         catch (Exception e){
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ExceptionUtils.getStackTrace(e)).build();
         }
     }
 
@@ -707,7 +728,7 @@ public class BodyTrackController {
             return Response.ok(bodyTrackHelper.saveView(uid, name, data)).build();
         }
         catch (Exception e){
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ExceptionUtils.getStackTrace(e)).build();
         }
     }
 
@@ -733,7 +754,7 @@ public class BodyTrackController {
             return Response.ok(bodyTrackHelper.getSourcesResponse(uid, trustedBuddy)).build();
         }
         catch (Exception e){
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ExceptionUtils.getStackTrace(e)).build();
         }
     }
 
@@ -757,7 +778,7 @@ public class BodyTrackController {
             return Response.ok(bodyTrackHelper.getSourceInfo(uid, name)).build();
         }
         catch (Exception e){
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ExceptionUtils.getStackTrace(e)).build();
         }
     }
 
@@ -779,7 +800,7 @@ public class BodyTrackController {
             return Response.ok(bodyTrackHelper.getAllTagsForUser(uid)).build();
         }
         catch (Exception e) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ExceptionUtils.getStackTrace(e)).build();
         }
     }
 
@@ -802,7 +823,7 @@ public class BodyTrackController {
             return Response.ok("Channel style set").build();
         }
         catch (Exception e){
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ExceptionUtils.getStackTrace(e)).build();
         }
     }
 
@@ -852,7 +873,7 @@ public class BodyTrackController {
         }
         catch (Exception e) {
             LOG.error("BodyTrackController.fetchTimespanTile(): Exception while trying to fetch timespans: ", e);
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Access Denied").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ExceptionUtils.getStackTrace(e)).build();
         }
 
     }
@@ -870,7 +891,7 @@ public class BodyTrackController {
         for (ApiKey key : keys){
             Connector connector = key.getConnector();
             if (connector.getName().equals(connectorName)||
-                connector.getPrettyName().equals(connectorName)){
+                connector.getPrettyName().equals(connectorName)||connector.getDeviceNickname().equals(connectorName)){
                 api = key;
                 break;
             }

@@ -122,6 +122,8 @@ define(
 
         var compiledTemplates = {};
 
+        var busyEditing;
+
         function initialize() {
             _.bindAll(this);
             // start loading all applications
@@ -265,17 +267,7 @@ define(
             }
         }
 
-        function defaultAppRoute(appName, uid) {
-            console.log("app-default route: name=" + appName + ", uid=" + uid);
-            var app = App.apps[appName];
-            renderDefault(app);
-            if (hasBuddyToAccessChanged(uid)) {
-                App.as(uid);
-            }
-        }
-
         function appStateRoute (appName, state) {
-            console.log(state);
             var urlSplits = state.split("/");
             var btaPathParam = urlSplits[0];
             if (isNaN(btaPathParam)) {
@@ -284,7 +276,6 @@ define(
             }
             state = state.substring(btaPathParam.length+1);
 
-            console.log("app route: name=" + appName + ", state=" + state);
             var app = App.apps[appName];
             if (_.isUndefined(app)) {
                 console.log("invalid app: " + appName);
@@ -299,7 +290,6 @@ define(
             if (state === null) {
                 renderDefault(app);
             } else {
-                console.log(state);
                 render(app, state);
             }
             if (hasBuddyToAccessChanged(btaPathParam)) {
@@ -469,12 +459,213 @@ define(
         };
 
         App.as = function(usernameOrUID) {
+            $("#wallDialog").dialog("destroy");
             if (!_.isUndefined(usernameOrUID)) {
+                //App.chatBuddy = null;
+                //App.buddyToAccess = null;
                 fetchGuestInfo(function() {
+                    if (App.buddyToAccess.isBuddy) {
+                        $(".backtomydata").show();
+                        $(".trustedbuddies").hide();
+                    } else {
+                        $(".backtomydata").hide();
+                        $(".trustedbuddies").show();
+                    }
                     App.activeApp.navigateState(App.state.getState(App.activeApp.name), {"as" : usernameOrUID});//force refresh of the current app state
                 }, usernameOrUID);
             }
         };
+
+        App.reachOutTo = function(usernameOrUID) {
+            $("#wallDialog").dialog("destroy");
+            if (!_.isUndefined(usernameOrUID)) {
+                var url = "/api/v1/guest/trusted?includeAvatar=true";
+                url+="&"+App.BUDDY_TO_ACCESS_PARAM+"="+usernameOrUID;
+                $.ajax({
+                    url: url,
+                    success: function(guestInfo) {
+                        App.chatBuddy = guestInfo;
+                        loadWallDialog();
+                    },
+                    error: function(jqXHR, statusText, errorThrown) {
+                        App.logError(jqXHR, statusText, errorThrown);
+                    }
+                });
+            }
+        };
+
+        function loadWallDialog() {
+            //App.loadMustacheTemplate("messagingTemplates.html","wallDialogTemplate",
+            //    function(template) {
+            //        var html = template.render({buddy: App.chatBuddy});
+            //        $(html).dialog({
+            //            autoOpen: true,
+            //            modal: false,
+            //            width: 300,
+            //            height: 500,
+            //            position: {
+            //                my: "left top+20",
+            //                at: "bottom",
+            //                of: ".brand"
+            //            },
+            //            buttons : {
+            //                Close : function() {
+            //                    $("#wallDialog").dialog("close");
+            //                }
+            //            }
+            //        });
+            //        loadWallDialogContents();
+            //        $("#sendWallPostBody").click(function() {
+            //            $.ajax({
+            //                url: "/api/v1/posts",
+            //                type: "POST",
+            //                data: {
+            //                    message : $("#wallPostBody").val(),
+            //                    to: App.chatBuddy["username"]
+            //                },
+            //                success: function() {
+            //                    $("#wallPostBody").val("");
+            //                    loadWallDialogContents();
+            //                },
+            //                error: function(jqXHR, status, errorThrown) {
+            //                    var errorMessage = errorThrown + ": " + jqXHR.responseText;
+            //                    console.log(errorMessage);
+            //                    alert(errorMessage);
+            //                    loadWallDialogContents();
+            //                }
+            //            });
+            //        });
+            //        $("#clearWallPostBody").click(function(evt){
+            //            $("#wallPostBody").val("");
+            //        });
+            //    }
+            //);
+        }
+
+        function loadWallDialogContents() {
+            if (busyEditing) return;
+            $.ajax({
+                url: "/api/v1/posts/all/" + App.chatBuddy["username"] + "?includeComments=true",
+                success: function(posts) {
+                    for (var i=0; i<posts.length; i++) {
+                        var post = posts[i];
+                        if (post.from!=null) {
+                            if (post.from.firstname!=null&&post.from.firstname!="")
+                                post.author = post.from.firstname;
+                            else
+                                post.author = post.from.fullname;
+                        } else {
+                            post.author = "You";
+                        }
+                        if (!_.isNull(post.comments)&&!_.isUndefined(post.comments)){
+                            for (var j=0; j<post.comments.length; j++) {
+                                var comment = post.comments[j];
+                                comment.postId = post.id;
+                                if (comment.from!=null) {
+                                    if (comment.from.firstname!=null&&comment.from.firstname!="")
+                                        comment.author = comment.from.firstname;
+                                    else
+                                        comment.author = comment.from.fullname;
+                                } else
+                                    comment.author = "You";
+                                comment.when = moment(comment.creationTime).fromNow();
+                            }
+                        }
+                        post.when = moment(post.creationTime).fromNow();
+                    }
+                    App.loadMustacheTemplate("messagingTemplates.html","wallDialogContentsTemplate",
+                        function(template) {
+                            var html = template.render({posts: posts});
+                            $("#wallDialogContents").empty().append(html);
+                            $(".deleteWallPostButton").click(function(evt){
+                                var postId = $(evt.target).closest("a").attr("data-id");
+                                deletePost(postId);
+                            });
+                            $(".deleteWallPostCommentButton").click(function(evt){
+                                var postId = $(evt.target).closest("a").attr("data-postId");
+                                var commentId = $(evt.target).closest("a").attr("data-id");
+                                console.log("delete comment" + postId + "/" + commentId);
+                                deletePostComment(postId, commentId);
+                            });
+                            $(".editWallPostButton").click(function(evt){
+                                var postId = $(evt.target).closest("a").attr("data-id");
+                                console.log("edit " + postId);
+                            });
+//                            $(".editWallPostCommentButton").click(function(evt){
+//                                var commentId = $(evt.target).closest("a").attr("data-id");
+//                            });
+                            bindAddWallCommentButton();
+                        }
+                    );
+                    setTimeout(loadWallDialogContents, 1000*10);
+                }
+            });
+        }
+
+        function bindAddWallCommentButton() {
+            $(".addWallCommentButton").unbind().click(function(evt){
+                var targetAddCommentButton = $(evt.target);
+                var postId = targetAddCommentButton.attr("data-postid");
+                App.loadMustacheTemplate("messagingTemplates.html","wallCommentFormTemplate",
+                    function(template) {
+                        var html = template.render({postId:postId});
+                        targetAddCommentButton.replaceWith(html);
+                        busyEditing = true;
+                        bindAddWallCommentForm(postId);
+                    }
+                );
+            });
+        }
+
+        function bindAddWallCommentForm(postId) {
+            var formId = "#wallCommentForm-" + postId;
+            $(formId + " > .sendWallCommentBody").click(function(evt) {
+                var message = $(formId + " > .wallCommentBody").val();
+                console.log("send comment " + postId + ": " + message);
+                $.ajax({
+                    url: "/api/v1/posts/" + postId + "/comments",
+                    type: "POST",
+                    data: {message: message},
+                    success: function() {
+                        loadWallDialogContents();
+                    },
+                    error: function(jqXHR, status, errorThrown) {
+                        var errorMessage = errorThrown + ": " + jqXHR.responseText;
+                        console.log(errorMessage);
+                        alert(errorMessage);
+                        loadWallDialogContents();
+                    }
+                });
+                busyEditing = false;
+            });
+            $(formId + " > .cancelAddComment").click(function(evt) {
+                console.log("cancel add comment " + postId);
+                App.loadMustacheTemplate("messagingTemplates.html","addWallCommentButtonTemplate",
+                    function(template) {
+                        busyEditing = false;
+                        var html = template.render({postId: postId});
+                        $("#wallCommentForm-" + postId).replaceWith(html);
+                        bindAddWallCommentButton();
+                    }
+                );
+            });
+        }
+
+        function deletePost(postId) {
+            $.ajax({
+                url : "/api/v1/posts/" + postId,
+                type: "DELETE",
+                success: loadWallDialogContents
+            });
+        }
+
+        function deletePostComment(postId, commentId) {
+            $.ajax({
+                url : "/api/v1/posts/" + postId + "/comments/" + commentId,
+                type: "DELETE",
+                success: loadWallDialogContents
+            });
+        }
 
         App.apiUri = function(uri) {
           if (uri.indexOf("{buddyToAccess.id}")!=-1) {
@@ -490,6 +681,7 @@ define(
                 url: url,
                 success: function(guestInfo) {
                     App.buddyToAccess = guestInfo;
+                    App.chatBuddy = guestInfo;
                     var loggedInUser = $("#loggedInUser");
                     loggedInUser.attr("self", guestInfo["fullname"]);
                     loggedInUser.html(guestInfo["fullname"] + "<span id=\"profileIcon\">&nbsp;</span> <b id=\"profileIconCaret\" class=\"caret\"></b>");
@@ -507,7 +699,9 @@ define(
                         if (guestInfo["avatar"].type!="none") {
                             $("#profileIcon").replaceWith("<img src=\"" + guestInfo.avatar.url + "\" style=\"display:inline;width:27px;margin: 0 1px 0 4px;\" width=27 height=27>");
                             $("#profileIconCaret").css("margin-top", "10px");
+                            $("#forumMenuItem").css("margin-top", "3px");
                             $("#helpDropdownToggle").css("margin-top", "3px");
+                            $("#buddiesDropdownToggle").css("margin-top", "3px");
                             $("#connectorsDropdownToggle").css("margin-top", "3px");
                             $("#appsMenuWrapper").css("margin-top", "4px");
                             $(".brand").css("margin-top", "3px");
@@ -518,6 +712,8 @@ define(
                     if (!_.isUndefined(andDoThisAfter))
                         andDoThisAfter();
                     App.activeApp.renderState(App.state.getState(App.activeApp.name),true);//force refresh of the current app state
+                    if (App.buddyToAccess["isBuddy"])
+                        loadWallDialog()
                     checkForDataUpdates();
                 },
                 error: function(jqXHR, statusText, errorThrown) {
@@ -942,14 +1138,16 @@ define(
             App.messageDisplayCounters = messageDisplayCounters;
             if (nApis==0) {
                 $("#manageConnectorsMenuItem").addClass("disabled");
-                $("#connectorsDropdownToggle").popover({
-                    container: "body",
-                    placement: "bottom",
-                    title: "Click menu above to add your first Connector!",
-                    content: "Connectors let Fluxtream link up your data",
-                    animation: true
-                });
-                $("#connectorsDropdownToggle").popover("show");
+                if (!App.buddyToAccess.isBuddy) {
+                    $("#connectorsDropdownToggle").popover({
+                        container: "body",
+                        placement: "bottom",
+                        title: "Click menu above to add your first Connector!",
+                        content: "Connectors let Fluxtream link up your data",
+                        animation: true
+                    });
+                    $("#connectorsDropdownToggle").popover("show");
+                }
             } else {
                 $("#manageConnectorsMenuItem").removeClass("disabled");
             }
@@ -982,14 +1180,16 @@ define(
         function bindPopover(element, title, content, placement){
             if (typeof(App.messageDisplayCounters[element])=="undefined"||
                 App.messageDisplayCounters[element]<3) {
-                var popover = $("#"+element).popover({
-                    container: "body",
-                    placement: placement,
-                    trigger: "hover",
-                    title: title,
-                    content: content,
-                    animation: true
-                });
+                if (!App.buddyToAccess.isBuddy) {
+                    var popover = $("#" + element).popover({
+                        container: "body",
+                        placement: placement,
+                        trigger: "hover",
+                        title: title,
+                        content: content,
+                        animation: true
+                    });
+                }
                 popover.on("hidden", function(e){
                     var element = e.target.id;
                     incrementMessageDisplay(element);

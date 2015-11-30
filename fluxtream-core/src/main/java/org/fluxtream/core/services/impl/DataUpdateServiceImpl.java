@@ -50,7 +50,7 @@ public class DataUpdateServiceImpl implements DataUpdateService {
     @Override
     @Transactional(readOnly = false)
     public void logBodyTrackDataUpdate(final long guestId, final long apiKeyId, final Long objectTypeId, final String deviceName, String[] channelNames, final long startTime, final long endTime) {
-        createDataUpdate(DataUpdate.UpdateType.bodytrackData,guestId,apiKeyId,objectTypeId,deviceName,channelNames,null,startTime,endTime);
+        createDataUpdate(DataUpdate.UpdateType.bodytrackData, guestId, apiKeyId, objectTypeId, deviceName, channelNames, null, startTime, endTime);
 
     }
 
@@ -63,13 +63,13 @@ public class DataUpdateServiceImpl implements DataUpdateService {
         String[] channels = parsedResult.getParsedResponse().channel_specs.keySet().toArray(new String[]{});
         long startTime = (long) (parsedResult.getParsedResponse().min_time * 1000);
         long endTime = (long) (parsedResult.getParsedResponse().max_time * 1000);
-        logBodyTrackDataUpdate(guestId,apiKeyId,objectTypeId,deviceName,channels,startTime,endTime);
+        logBodyTrackDataUpdate(guestId, apiKeyId, objectTypeId, deviceName, channels, startTime, endTime);
     }
 
     @Override
     @Transactional(readOnly = false)
     public void logBodyTrackStyleUpdate(final long guestId, final long apiKeyId, final Long objectTypeId, final String deviceName, final String[] channelNames) {
-        createDataUpdate(DataUpdate.UpdateType.bodytrackStyle,guestId,apiKeyId,objectTypeId,deviceName,channelNames,null,null,null);
+        createDataUpdate(DataUpdate.UpdateType.bodytrackStyle, guestId, apiKeyId, objectTypeId, deviceName, channelNames, null, null, null);
     }
 
     @Override
@@ -81,6 +81,11 @@ public class DataUpdateServiceImpl implements DataUpdateService {
     @Override
     public void logApiDataUpdate(final long guestId, final long apiKeyId, final Long objectTypeId, final long startTime, final long endTime) {
         createDataUpdate(DataUpdate.UpdateType.apiData,guestId,apiKeyId,objectTypeId,null,null,null,startTime,endTime);
+    }
+
+    @Override
+    public void logBodyTrackDataUpdate(long guestId, long apiKeyId, Long objectTypeId, String deviceName, String[] channelNames, String additionalInfo) {
+        createDataUpdate(DataUpdate.UpdateType.apiData,guestId,apiKeyId,objectTypeId,deviceName,channelNames,additionalInfo,null,null);
     }
 
     @Override
