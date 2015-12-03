@@ -42,13 +42,13 @@ import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.fluxtream.core.api.CouchDBController.maybeHash;
+import static org.fluxtream.core.utils.Utils.sanitize;
 
 /**
  * Created by candide on 11/02/15.
@@ -114,7 +114,7 @@ public class CouchUpdater {
             JSONArray changes;
 
             try {
-                String base64URLSafeUsername = getBase64URLSafeUsername(updateInfo);
+                String base64URLSafeUsername = getCouchDBLegalUsername(updateInfo);
                 String couchdbPassword = guestService.getApiKeyAttribute(updateInfo.apiKey, "couchDB.userToken");
                 byte[] encodedCredentials = getBase64EncodedCredentials(base64URLSafeUsername, couchdbPassword);
                 JSONObject json = JSONObject.fromObject(fetchRetrying(URL, encodedCredentials, 3));
@@ -261,7 +261,7 @@ public class CouchUpdater {
                 ChannelMapping mapping = mappings.get(0);
                 String previousChannelName = mapping.getChannelName();
                 if (!mapping.getChannelName().equals(topic.name)){
-                    String noClashChannelName = createNoClashChannelName(Utils.sanitize(topic.name), guestId);
+                    String noClashChannelName = createNoClashChannelName(sanitize(topic.name), guestId);
                     mapping.setChannelName(noClashChannelName);
                 }
                 query = em.createQuery("SELECT style FROM ChannelStyle style WHERE style.deviceName='FluxtreamCapture' AND style.channelName=? AND style.guestId=?");
@@ -272,7 +272,7 @@ public class CouchUpdater {
                     styles.get(0).channelName = topic.name;
             } else {
                 // add increment to avoid name clashes
-                String noClashChannelName = createNoClashChannelName(Utils.sanitize(topic.name), guestId);
+                String noClashChannelName = createNoClashChannelName(sanitize(topic.name), guestId);
                 ChannelMapping mapping = new ChannelMapping(apiKeyId, guestId,
                         ChannelMapping.ChannelType.data, ChannelMapping.TimeType.gmt,
                         2, "FluxtreamCapture", noClashChannelName,
@@ -338,12 +338,10 @@ public class CouchUpdater {
         return Base64.encodeBase64(userPassword.getBytes());
     }
 
-    private String getBase64URLSafeUsername(UpdateInfo updateInfo) {
+    private String getCouchDBLegalUsername(UpdateInfo updateInfo) {
         String base64URLSafeUsername = null;
-        try {
-            Guest guest = guestService.getGuestById(updateInfo.getGuestId());
-            base64URLSafeUsername = URLEncoder.encode(guest.username, "UTF-8"); }
-        catch (UnsupportedEncodingException e) {}
+        Guest guest = guestService.getGuestById(updateInfo.getGuestId());
+        base64URLSafeUsername = maybeHash(guest.username);
         return base64URLSafeUsername;
     }
 
@@ -444,7 +442,7 @@ public class CouchUpdater {
     private String getRootCouchDbURL(final UpdateInfo updateInfo, CouchDatabaseName couchDatabaseName) {
         final String couchdbHost = env.get("couchdb.host");
         final String couchdbPort = env.get("couchdb.port");
-        String base64URLSafeUsername = getBase64URLSafeUsername(updateInfo);
+        String base64URLSafeUsername = getCouchDBLegalUsername(updateInfo);
         switch (couchDatabaseName) {
             case OBSERVATIONS:
                 return String.format("http://%s:%s/self_report_db_observations_%s", couchdbHost, couchdbPort, base64URLSafeUsername);

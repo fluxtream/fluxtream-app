@@ -1,16 +1,16 @@
 package org.fluxtream.core.api;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.util.EntityUtils;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.fluxtream.core.Configuration;
 import org.fluxtream.core.aspects.FlxLogger;
 import org.fluxtream.core.auth.AuthHelper;
@@ -18,6 +18,7 @@ import org.fluxtream.core.connectors.Connector;
 import org.fluxtream.core.domain.ApiKey;
 import org.fluxtream.core.services.GuestService;
 import org.fluxtream.core.utils.UnexpectedHttpResponseCodeException;
+import org.fluxtream.core.utils.Utils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,11 +30,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * User: candide
@@ -54,6 +55,21 @@ public class CouchDBController {
     @Autowired
     Configuration env;
 
+    static Pattern legalCouchDbNamePattern = Pattern.compile("^[a-z]([a-z0-9,_$()+\\-/])*$");
+
+    public static void main(String[] args) {
+        System.out.println(maybeHash("candide4@me.com"));
+        System.out.println(maybeHash(" candide4@me.com"));
+        System.out.println(maybeHash("candide4@me.com "));
+    }
+
+    public static String maybeHash(String username) {
+        Matcher matcher = legalCouchDbNamePattern.matcher(username);
+        if (!matcher.matches())
+            return Utils.hash(username);
+        return username;
+    }
+
     class CouchDBCredentials {
         public String user_login, user_token;
         public int status;
@@ -70,12 +86,12 @@ public class CouchDBController {
             final StringBuffer userTokenBuffer = new StringBuffer();
             final int status = getFluxtreamCaptureCouchDBUserToken(userTokenBuffer, true);
             final CouchDBCredentials couchDBCredentials = new CouchDBCredentials();
-            couchDBCredentials.user_login = getBase64URLSafeUsername();
+            couchDBCredentials.user_login = maybeHash(AuthHelper.getGuest().username);
             couchDBCredentials.user_token = userTokenBuffer.toString();
             couchDBCredentials.status = status;
             couchDBCredentials.statusMessage = "OK";
-            createCouchUser(getBase64URLSafeUsername(), couchDBCredentials.user_token);
-            createUserDatabases(getBase64URLSafeUsername());
+            createCouchUser(maybeHash(AuthHelper.getGuest().username), couchDBCredentials.user_token);
+            createUserDatabases(maybeHash(AuthHelper.getGuest().username));
             // If user already created need different strategy
             return Response.ok().entity(couchDBCredentials).build();
         } catch (UnexpectedHttpResponseCodeException e) {
@@ -91,12 +107,6 @@ public class CouchDBController {
         }
     }
 
-    private String getBase64URLSafeUsername() {
-        try {
-            return URLEncoder.encode(AuthHelper.getGuest().username, "UTF-8");
-        } catch (UnsupportedEncodingException e) {e.printStackTrace(); return null;}
-    }
-
     @GET
     @Path("/")
     @Produces({ MediaType.APPLICATION_JSON })
@@ -107,10 +117,10 @@ public class CouchDBController {
             final StringBuffer userTokenBuffer = new StringBuffer();
             final int status = getFluxtreamCaptureCouchDBUserToken(userTokenBuffer, false);
             final CouchDBCredentials couchDBCredentials = new CouchDBCredentials();
-            couchDBCredentials.user_login = getBase64URLSafeUsername();
+            couchDBCredentials.user_login = maybeHash(AuthHelper.getGuest().username);
             couchDBCredentials.user_token = userTokenBuffer.toString();
             couchDBCredentials.status = status;
-            createUserDatabases(getBase64URLSafeUsername());
+            createUserDatabases(maybeHash(AuthHelper.getGuest().username));
             return Response.ok().entity(couchDBCredentials).build();
         } catch (Throwable t) {
             final CouchDBCredentials couchDBCredentials = new CouchDBCredentials();
@@ -130,12 +140,12 @@ public class CouchDBController {
             final ApiKey apiKey = getFluxtreamCaptureApiKey(AuthHelper.getGuestId());
             final String couchDBUserToken = guestService.getApiKeyAttribute(apiKey, COUCH_DB_USER_TOKEN_ATTRIBUTE_KEY);
             final CouchDBCredentials couchDBCredentials = new CouchDBCredentials();
-            couchDBCredentials.user_login = getBase64URLSafeUsername();
+            couchDBCredentials.user_login = maybeHash(AuthHelper.getGuest().username);
             if (couchDBUserToken==null) {
                 couchDBCredentials.status = 1;
                 return Response.ok().entity(couchDBCredentials).build();
             } else {
-                destroyCouchDatabase(getBase64URLSafeUsername());
+                destroyCouchDatabase(maybeHash(AuthHelper.getGuest().username));
                 guestService.removeApiKeyAttribute(apiKey.getId(), COUCH_DB_USER_TOKEN_ATTRIBUTE_KEY);
                 couchDBCredentials.status = getFluxtreamCaptureCouchDBUserToken(userTokenBuffer, true);
                 return Response.ok().entity(couchDBCredentials).build();
@@ -170,7 +180,7 @@ public class CouchDBController {
             guestService.setApiKeyAttribute(apiKey, COUCH_DB_USER_TOKEN_ATTRIBUTE_KEY, userToken);
             saltBuffer.append(userToken);
             try {
-              createUserDatabases(getBase64URLSafeUsername());
+              createUserDatabases(maybeHash(AuthHelper.getGuest().username));
             } catch (UnexpectedHttpResponseCodeException e) {
                 return 2;
             }
