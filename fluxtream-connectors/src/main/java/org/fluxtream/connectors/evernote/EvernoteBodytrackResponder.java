@@ -50,12 +50,13 @@ public class EvernoteBodytrackResponder extends AbstractBodytrackResponder {
         // 1/100th of the tile width, whichever is larger.
         long duration = Math.max((endMillis-startMillis)/100L, 60000*7L);
 
-
         for (AbstractFacet facet : facets){
             EvernoteNoteFacet note = (EvernoteNoteFacet) facet;
             if (connectorSettings!=null) {
                 final NotebookConfig notebookConfig = connectorSettings.getNotebook(note.notebookGuid);
                 if (notebookConfig!=null&&!notebookConfig.hidden)
+                    simpleMergeAddTimespan(items,new TimespanModel(note.start, note.start + duration, ((EvernoteNoteFacet)facet).notebookGuid, objectTypeName),startMillis,endMillis);
+                else if (notebookConfig==null)
                     simpleMergeAddTimespan(items,new TimespanModel(note.start, note.start + duration, ((EvernoteNoteFacet)facet).notebookGuid, objectTypeName),startMillis,endMillis);
             } else
                 simpleMergeAddTimespan(items,new TimespanModel(note.start, note.start + duration, ((EvernoteNoteFacet)facet).notebookGuid, objectTypeName),startMillis,endMillis);
