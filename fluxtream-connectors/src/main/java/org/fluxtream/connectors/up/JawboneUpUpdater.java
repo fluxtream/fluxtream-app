@@ -42,6 +42,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -92,6 +93,9 @@ public class JawboneUpUpdater extends AbstractUpdater {
 
     @Override
     protected void updateConnectorDataHistory(final UpdateInfo updateInfo) throws Exception {
+
+        getUserXid(updateInfo);
+
         guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), MOVES_LAST_SYNC_TIME);
         guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), SLEEPS_LAST_SYNC_TIME);
         guestService.removeApiKeyAttribute(updateInfo.apiKey.getId(), MEALS_LAST_SYNC_TIME);
@@ -137,6 +141,9 @@ public class JawboneUpUpdater extends AbstractUpdater {
 
     @Override
     protected void updateConnectorData(final UpdateInfo updateInfo) throws Exception {
+
+        getUserXid(updateInfo);
+
         updateInfo.setContext("accessToken", guestService.getApiKeyAttribute(updateInfo.apiKey, "accessToken"));
 
         updateJawboneUpDataSince(updateInfo, getLastSyncTime(updateInfo, MOVES_LAST_SYNC_TIME), ObjectType.getObjectTypeValue(JawboneUpMovesFacet.class));
@@ -152,6 +159,23 @@ public class JawboneUpUpdater extends AbstractUpdater {
         guestService.setApiKeyAttribute(updateInfo.apiKey, WORKOUTS_LAST_SYNC_TIME, String.valueOf(System.currentTimeMillis()));
 
         // not updating moods because the API doesn't allow getting updated_after values...
+    }
+
+    /**
+     * Retrieve Jawbone's unique identifier for the user, so that we can check that data removal requests
+     * have been properly executed
+     * @param updateInfo
+     * @throws Exception
+     */
+    private void getUserXid(UpdateInfo updateInfo) throws Exception {
+        String user_xid = guestService.getApiKeyAttribute(updateInfo.apiKey, "user_xid");
+        if (user_xid == null) {
+            String meJson = callJawboneAPI(updateInfo, "https://jawbone.com/nudge/api/v.1.1/users/@me");
+            JSONObject jsonObject = JSONObject.fromObject(meJson);
+            JSONObject meJsonData = jsonObject.getJSONObject("data");
+            user_xid = meJsonData.getString("xid");
+            guestService.setApiKeyAttribute(updateInfo.apiKey, "user_xid", user_xid);
+        }
     }
 
     private long getLastSyncTime(final UpdateInfo updateInfo, final String lastSyncTimeAttKey) {
@@ -741,17 +765,13 @@ public class JawboneUpUpdater extends AbstractUpdater {
         throw new RuntimeException("Error calling Jawbone API: this statement should have never been reached");
     }
 
-    private void refreshToken(UpdateInfo updateInfo) throws IOException, UnexpectedHttpResponseCodeException, UpdateFailedException {
-        String refreshToken = guestService.getApiKeyAttribute(updateInfo.apiKey, "refreshToken");
+    public String refreshToken(ApiKey apiKey) throws IOException, UnexpectedHttpResponseCodeException, UpdateFailedException {
+        String refreshToken = guestService.getApiKeyAttribute(apiKey, "refreshToken");
         Map<String,String> parameters = new HashMap<String,String>();
         parameters.put("grant_type", "refresh_token");
         parameters.put("refresh_token", refreshToken);
-        // using "default" client_id and secret to comply with a security requirement to fix heartbleed issues
-        // as soon as all clients been fixed (after 5/5/2014) this should be replaced with:
-//        parameters.put("client_id", guestService.getApiKeyAttribute(updateInfo.apiKey, "jawboneUp.client.id"));
-//        parameters.put("client_secret", guestService.getApiKeyAttribute(updateInfo.apiKey, "jawboneUp.client.secret"));
-        parameters.put("client_id", env.get("jawboneUp.client.id"));
-        parameters.put("client_secret", env.get("jawboneUp.client.secret"));
+        parameters.put("client_id", guestService.getApiKeyAttribute(apiKey, "jawboneUp.client.id"));
+        parameters.put("client_secret", guestService.getApiKeyAttribute(apiKey, "jawboneUp.client.secret"));
         final String json = HttpUtils.fetch("https://jawbone.com/auth/oauth2/token", parameters);
 
         JSONObject token = JSONObject.fromObject(json);
@@ -761,14 +781,21 @@ public class JawboneUpUpdater extends AbstractUpdater {
         }
         final String accessToken = token.getString("access_token");
         // store the new secret
-        guestService.setApiKeyAttribute(updateInfo.apiKey,
+        guestService.setApiKeyAttribute(apiKey,
                 "jawboneUp.client.secret", env.get("jawboneUp.client.secret"));
-        guestService.setApiKeyAttribute(updateInfo.apiKey,
+        guestService.setApiKeyAttribute(apiKey,
                 "accessToken", accessToken);
-        guestService.setApiKeyAttribute(updateInfo.apiKey,
-                "tokenExpires", String.valueOf(System.currentTimeMillis() + DateTimeConstants.MILLIS_PER_DAY * 365));
-        guestService.setApiKeyAttribute(updateInfo.apiKey,
+        long expiresIn = token.getLong("expires_in");
+        guestService.setApiKeyAttribute(apiKey,
+                "tokenExpires", String.valueOf(new BigInteger(String.valueOf(System.currentTimeMillis())).
+                        add(new BigInteger(String.valueOf(expiresIn*1000)))));
+        guestService.setApiKeyAttribute(apiKey,
                 "refreshToken", token.getString("refresh_token"));
+        return accessToken;
+    }
+
+    private void refreshToken(UpdateInfo updateInfo) throws IOException, UnexpectedHttpResponseCodeException, UpdateFailedException {
+        String accessToken = refreshToken(updateInfo.apiKey);
         updateInfo.setContext("accessToken", accessToken);
     }
 

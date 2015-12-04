@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
@@ -48,6 +49,9 @@ public class JawboneUpController {
 
     @Autowired
     GuestService guestService;
+
+    @Autowired
+    JawboneUpUpdater updater;
 
     @RequestMapping(value = "/token")
     public String getToken(HttpServletRequest request) throws IOException, ServletException {
@@ -154,17 +158,20 @@ public class JawboneUpController {
         guestService.populateApiKey(apiKey.getId());
         guestService.setApiKeyAttribute(apiKey,
                                         "accessToken", token.getString("access_token"));
+        int expiresIn = token.getInt("expires_in");
         guestService.setApiKeyAttribute(apiKey,
-                                        "tokenExpires", String.valueOf(System.currentTimeMillis() + DateTimeConstants.MILLIS_PER_DAY*365));
+                                        "tokenExpires", String.valueOf(new BigInteger(String.valueOf(System.currentTimeMillis())).
+                        add(new BigInteger(String.valueOf(expiresIn*1000)))));
         guestService.setApiKeyAttribute(apiKey,
                                         "refreshToken", refresh_token);
 
         // Record that this connector is now up
         guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null, null);
 
-        if (stateParameter !=null&&!StringUtils.isEmpty(stateParameter))
+        if (stateParameter !=null&&!StringUtils.isEmpty(stateParameter)) {
+            updater.refreshToken(apiKey);
             return "redirect:/app/tokenRenewed/up";
-        else
+        } else
             return "redirect:/app/from/up";
     }
 
