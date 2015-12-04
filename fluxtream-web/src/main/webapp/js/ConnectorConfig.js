@@ -40,9 +40,11 @@ define(["applications/calendar/tabs/clock/ClockConfig", "libs/moves-colorcodes"]
                         }
                         if (facet.tagGuids!=null && facet.tagGuids.length>0) {
                             facet.evernoteTags = [];
-                            for (var i=0; i<facet.tagGuids.length;i++) {
-                                var evernoteTag = settings.tags[facet.tagGuids[i]];
-                                facet.evernoteTags.push(evernoteTag);
+                            if (settings.tags) {
+                                for (var i = 0; i < facet.tagGuids.length; i++) {
+                                    var evernoteTag = settings.tags[facet.tagGuids[i]];
+                                    facet.evernoteTags.push(evernoteTag);
+                                }
                             }
                         }
                     }
