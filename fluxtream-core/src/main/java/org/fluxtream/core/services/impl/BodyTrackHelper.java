@@ -3,6 +3,7 @@ package org.fluxtream.core.services.impl;
 import com.google.gson.*;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.fluxtream.core.Configuration;
@@ -486,8 +487,13 @@ public class BodyTrackHelper {
         // and so it includes a trustedBuddy parameter because it has another (deprecated) way of figuring out
         // access permissions to a buddy's info - here it has to be null since we have already filtered out
         // Channels to which the loggedIn guest doesn't have access
-        populateResponseWithChannelMappings(guestId, null /*IMPORTANT: trustedBuddy needs to be null here*/,
-                response, channelMappings, infoResponse);
+        try {
+            populateResponseWithChannelMappings(guestId, null /*IMPORTANT: trustedBuddy needs to be null here*/,
+                    response, channelMappings, infoResponse);
+        } catch (Throwable e) {
+            e.printStackTrace();
+            throw new RuntimeException("Unexpected error trying to populate response with channel mappings: " + e.getMessage());
+        }
 
         // if trustedBuddy is null, add the All photos block to the response
         if (trustedBuddy==null&&!photoChannelTimeRanges.isEmpty()) {
@@ -654,7 +660,7 @@ public class BodyTrackHelper {
             // This is to prevent a rare condition when working, under development, on a branch that
             // doesn't yet support a connector that is supported on another branch and resulted
             // in data being populated in the database which is going to cause a crash here
-            if (api==null || api.getConnector()==null)
+            if (api==null||api.getConnector()==null)
                 continue;
             // filter out not shared connectors
             if (trustedBuddy !=null&& buddiesService.getSharedConnector(api.getId(), AuthHelper.getGuestId())==null)
@@ -671,13 +677,13 @@ public class BodyTrackHelper {
             if (source == null){
                 source = new Source();
                 response.sources.add(source);
-                source.name = deviceName;
+                source.name = Utils.sanitize(deviceName);
                 source.channels = new ArrayList<Channel>();
                 source.min_time = Double.MAX_VALUE;
                 source.max_time = Double.MIN_VALUE;
             }
             Channel channel = new Channel();
-            channel.name = mapping.getChannelName();
+            channel.name = Utils.sanitize(mapping.getChannelName());
             channel.type = mapping.getChannelType().name();
             channel.time_type = mapping.getTimeType().name();
             source.channels.add(channel);
@@ -702,14 +708,18 @@ public class BodyTrackHelper {
             source.min_time = Math.min(source.min_time,channel.min_time);
             source.max_time = Math.max(source.max_time,channel.max_time);
         }
+        long now = System.currentTimeMillis();
     }
 
     public SourceInfo getSourceInfoObject(final Long guestId, final String deviceName){
         try{
             if (guestId == null)
                 throw new IllegalArgumentException();
+            long then = System.currentTimeMillis();
             final DataStoreExecutionResult dataStoreExecutionResult = executeDataStore("info",new Object[]{"-r",guestId});
             String result = dataStoreExecutionResult.getResponse();
+            long now = System.currentTimeMillis();
+            System.out.println("datastore execution time = " + (now-then)); then = now;
 
             // TODO: check statusCode in DataStoreExecutionResult
             ChannelInfoResponse infoResponse = gson.fromJson(result,ChannelInfoResponse.class);
@@ -805,7 +815,7 @@ public class BodyTrackHelper {
             if (keys.size() > 0){
                 apiKeyId = keys.get(0).getId();
             }
-            dataUpdateService.logBodyTrackStyleUpdate(guestId, apiKeyId, null, deviceName, new String[]{channelName});
+            dataUpdateService.logBodyTrackStyleUpdate(guestId,apiKeyId,null,deviceName,new String[]{channelName});
 
 
         }
