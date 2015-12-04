@@ -61,15 +61,15 @@ public class MisfitUpdater extends AbstractUpdater implements Autonomous {
         boolean sleepHistoryComplete = isTrue(guestService.getApiKeyAttribute(updateInfo.apiKey, SLEEP_HISTORY_COMPLETE_ATTKEY));
         // provide one day of padding to account for all timezones
         if (!summaryHistoryComplete) {
-            backwardRetrieveMisfitData(updateInfo, ObjectType.getObjectTypeValue(MisfitActivitySummaryFacet.class));
+            backwardRetrieveMisfitHistoryData(updateInfo, ObjectType.getObjectTypeValue(MisfitActivitySummaryFacet.class));
             guestService.setApiKeyAttribute(updateInfo.apiKey, SUMMARY_HISTORY_COMPLETE_ATTKEY, "true");
         }
         if (!sessionHistoryComplete) {
-            backwardRetrieveMisfitData(updateInfo, ObjectType.getObjectTypeValue(MisfitActivitySessionFacet.class));
+            backwardRetrieveMisfitHistoryData(updateInfo, ObjectType.getObjectTypeValue(MisfitActivitySessionFacet.class));
             guestService.setApiKeyAttribute(updateInfo.apiKey, SESSION_HISTORY_COMPLETE_ATTKEY, "true");
         }
         if (!sleepHistoryComplete) {
-            backwardRetrieveMisfitData(updateInfo, ObjectType.getObjectTypeValue(MisfitSleepFacet.class));
+            backwardRetrieveMisfitHistoryData(updateInfo, ObjectType.getObjectTypeValue(MisfitSleepFacet.class));
             guestService.setApiKeyAttribute(updateInfo.apiKey, SLEEP_HISTORY_COMPLETE_ATTKEY, "true");
         }
     }
@@ -133,6 +133,16 @@ public class MisfitUpdater extends AbstractUpdater implements Autonomous {
         List<Object> resultList = nativeQuery.getResultList();
         long start = ((BigInteger) resultList.get(0)).longValue();
         return ISODateTimeFormat.date().print(start-DateTimeConstants.MILLIS_PER_DAY);
+    }
+
+    private void backwardRetrieveMisfitHistoryData(UpdateInfo updateInfo, int objectTypeValue) throws Exception {
+        while (true) {
+            boolean existingData = backwardRetrieveMisfitDataChunk(updateInfo, objectTypeValue);
+            // retrieve everyting after july 1st 2012
+            String startDate = guestService.getApiKeyAttribute(updateInfo.apiKey, BACKFILL_ENDDATE_ATTKEY_PREFIX + ObjectType.getObjectType(connector(), objectTypeValue).name());
+            if (ISODateTimeFormat.date().parseDateTime(startDate).isBefore(ISODateTimeFormat.date().parseDateTime("2012-07-01")))
+                break;
+        }
     }
 
     private void backwardRetrieveMisfitData(UpdateInfo updateInfo, int objectTypeValue) throws Exception {
@@ -355,9 +365,6 @@ public class MisfitUpdater extends AbstractUpdater implements Autonomous {
     private final String makeRestCall(final UpdateInfo updateInfo,
                                       final int objectTypes, final String urlString, final String...method)
             throws RateLimitReachedException, UpdateFailedException, AuthExpiredException, UnexpectedResponseCodeException {
-
-
-
         // if have already called the API from within this thread, the allowed remaining API calls will be saved
         // in the updateInfo
         final Integer remainingAPICalls = updateInfo.getRemainingAPICalls("misfit");
@@ -445,9 +452,7 @@ public class MisfitUpdater extends AbstractUpdater implements Autonomous {
     private void setResetTime(UpdateInfo updateInfo, HttpURLConnection request) {
         final String rateLimitResetSeconds = request.getHeaderField("X-RateLimit-Reset");
         if (rateLimitResetSeconds!=null) {
-            int millisUntilReset = Integer.valueOf(rateLimitResetSeconds)*1000;
-            // delay by one minute to compensate for clock desynchronisation
-            final long resetTime = System.currentTimeMillis() + millisUntilReset + DateTimeConstants.MILLIS_PER_MINUTE;
+            final long resetTime = Long.valueOf(rateLimitResetSeconds)*1000;
             guestService.setApiKeyAttribute(updateInfo.apiKey, "resetTime", String.valueOf(resetTime));
             updateInfo.setResetTime("misfit", resetTime);
         } else {
