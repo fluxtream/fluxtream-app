@@ -2,8 +2,6 @@ package org.fluxtream.connectors.fitbit;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import oauth.signpost.OAuthConsumer;
-import oauth.signpost.basic.DefaultOAuthConsumer;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.fluxtream.core.aspects.FlxLogger;
@@ -78,7 +76,10 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
     @Autowired
     BodyTrackHelper bodyTrackHelper;
 
-	public static final String GET_STEPS_CALL = "FITBIT_GET_STEPS_TIMESERIES_CALL";
+    @Autowired
+    FitbitOAuthController controller;
+
+    public static final String GET_STEPS_CALL = "FITBIT_GET_STEPS_TIMESERIES_CALL";
 	public static final String GET_USER_PROFILE_CALL = "FITBIT_GET_USER_PROFILE_CALL";
     public static final String GET_USER_DEVICES_CALL = "FITBIT_GET_USER_DEVICES_CALL";
     public static final String SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL = "SUBSCRIBE_TO_FITBIT_NOTIFICATIONS_CALL";
@@ -1160,8 +1161,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                                      final int objectTypes, final String urlString, final String...method)
             throws RateLimitReachedException, UpdateFailedException, AuthExpiredException, UnexpectedResponseCodeException {
 
-
-
         // if have already called the API from within this thread, the allowed remaining API calls will be saved
         // in the updateInfo
         final Integer remainingAPICalls = updateInfo.getRemainingAPICalls("fitbit");
@@ -1190,19 +1189,9 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             if (method!=null && method.length>0)
                 request.setRequestMethod(method[0]);
 
-            OAuthConsumer consumer = new DefaultOAuthConsumer(
-                    getConsumerKey(updateInfo.apiKey), getConsumerSecret(updateInfo.apiKey));
+            String accessToken = controller.getAccessToken(updateInfo.apiKey);
+            request.setRequestProperty("Authorization", "Bearer " + accessToken);
 
-            consumer.setTokenWithSecret(
-                    guestService.getApiKeyAttribute(updateInfo.apiKey,"accessToken"),
-                    guestService.getApiKeyAttribute(updateInfo.apiKey,"tokenSecret"));
-
-            // sign the request (consumer is a Signpost DefaultOAuthConsumer)
-            try {
-                consumer.sign(request);
-            } catch (Exception e) {
-                throw new RuntimeException("OAuth exception: " + e.getMessage());
-            }
             request.connect();
             final int httpResponseCode = request.getResponseCode();
 
@@ -1249,8 +1238,28 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                         throw new UnexpectedResponseCodeException(httpResponseCode, httpResponseMessage, urlString);
                     }
                     // Otherwise throw the same error that SignpostOAuthHelper used to throw
-                    if (httpResponseCode == 401)
-                        throw new AuthExpiredException();
+                    if (httpResponseCode == 401) {
+                        try {
+                            boolean isOauth2ExpiredToken = false;
+                            JSONObject errorJson = JSONObject.fromObject(responseBody);
+                            JSONArray jsonErrors = errorJson.getJSONArray("errors");
+                            for (int i=0; i<jsonErrors.size(); i++) {
+                                JSONObject jsonError = jsonErrors.getJSONObject(i);
+                                if (jsonError.has("errorType")&&jsonError.get("errorType").equals("expired_token")) {
+                                    isOauth2ExpiredToken = true;
+                                    break;
+                                }
+                            }
+                            if (isOauth2ExpiredToken) {
+                                logger.warn("oauth2 token expired, this is a bug as it should have been handled in controller's getAccessToken method");
+                            } else {
+                                logger.debug("Fitbit 401, error: " + responseBody);
+                            }
+                            throw new AuthExpiredException();
+                        } catch (Throwable e) {
+                            throw new AuthExpiredException();
+                        }
+                    }
                     else if (httpResponseCode >= 400 && httpResponseCode < 500) {
                         String message = "Unexpected response code: " + httpResponseCode;
                         if (responseBody!=null) message += "\nMessage from server:\n" + responseBody;
@@ -1280,16 +1289,6 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
             guestService.setApiKeyAttribute(updateInfo.apiKey, "resetTime", String.valueOf(resetTime));
             updateInfo.setResetTime("fitbit", resetTime);
         }
-    }
-
-    private String getConsumerSecret(ApiKey apiKey) {
-        String consumerSecret = guestService.getApiKeyAttribute(apiKey, apiKey.getConnector().getName() + "ConsumerSecret");
-        return consumerSecret == null ? "" : consumerSecret;
-    }
-
-    private String getConsumerKey(ApiKey apiKey) {
-        String consumerKey = guestService.getApiKeyAttribute(apiKey, apiKey.getConnector().getName() + "ConsumerKey");
-        return consumerKey == null ? "" : consumerKey;
     }
 
     @Override
