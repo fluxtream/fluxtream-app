@@ -45,7 +45,8 @@ import java.util.*;
 @RequestMapping(value = "/fitbit")
 public class FitbitOAuthController {
 
-    FlxLogger logger = FlxLogger.getLogger(FitbitOAuthController.class);
+	public final static String HAS_OAUTH2 = "has_oauth2";
+	FlxLogger logger = FlxLogger.getLogger(FitbitOAuthController.class);
 
 	@Autowired
 	GuestService guestService;
@@ -147,6 +148,8 @@ public class FitbitOAuthController {
 
 		guestService.populateApiKey(apiKey.getId());
 		guestService.setApiKeyAttribute(apiKey,
+				HAS_OAUTH2, "true");
+		guestService.setApiKeyAttribute(apiKey,
 				"accessToken", token.getString("access_token"));
 		guestService.setApiKeyAttribute(apiKey,
 				"tokenExpires", String.valueOf(System.currentTimeMillis() + (token.getLong("expires_in")*1000)));
@@ -205,11 +208,11 @@ public class FitbitOAuthController {
 		final String expiresString = guestService.getApiKeyAttribute(apiKey, "tokenExpires");
 		long expires = Long.valueOf(expiresString);
 		if (expires<System.currentTimeMillis())
-			refreshToken(apiKey);
+			refreshToken(apiKey, false);
 		return guestService.getApiKeyAttribute(apiKey, "accessToken");
 	}
 
-	private void refreshToken(ApiKey apiKey) throws UpdateFailedException {
+	private void refreshToken(ApiKey apiKey, boolean isOAuth2Upgrade) throws UpdateFailedException {
 		// Check to see if we are running on a mirrored test instance
 		// and should therefore refrain from swapping tokens lest we
 		// invalidate an existing token instance
@@ -239,14 +242,24 @@ public class FitbitOAuthController {
 		// 1 hour from time of issue.
 		String swapTokenUrl = "https://api.fitbit.com/oauth2/token";
 
-		final String refreshToken = guestService.getApiKeyAttribute(apiKey, "refreshToken");
+		String refreshToken;
 		Map<String,String> params = new HashMap<String,String>();
+		// there is a one-off upgrade path to oauth2 for existing oauth1 users
+		// that allows to avoid forcing them to re-authorize fluxtream...
+		if (isOAuth2Upgrade) {
+			String oauth1AccessToken = guestService.getApiKeyAttribute(apiKey, "accessToken");
+			byte[] oauth1RefreshTokenBytes = Base64.getEncoder().encode((oauth1AccessToken + ":" + env.get("fitbitConsumerSecret")).getBytes());
+			refreshToken = new String(oauth1RefreshTokenBytes);
+		} else
+			refreshToken = guestService.getApiKeyAttribute(apiKey, "refreshToken");
 		params.put("refresh_token", refreshToken);
 		params.put("grant_type", "refresh_token");
 
 		String fetched;
 		try {
 			fetched = fetch(swapTokenUrl, params);
+			if (isOAuth2Upgrade)
+				guestService.setApiKeyAttribute(apiKey, HAS_OAUTH2, "true");
 			// Record that this connector is now up
 			guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_UP, null, null);
 		} catch (Exception e) {
@@ -274,5 +287,9 @@ public class FitbitOAuthController {
 				"accessToken", access_token);
 		guestService.setApiKeyAttribute(apiKey,
 				"tokenExpires", String.valueOf(tokenExpires));
+	}
+
+	void upgrade2OAuth2(ApiKey apiKey) throws UpdateFailedException {
+		refreshToken(apiKey, true);
 	}
 }

@@ -1161,6 +1161,9 @@ public class FitBitTSUpdater extends AbstractUpdater implements Autonomous {
                                      final int objectTypes, final String urlString, final String...method)
             throws RateLimitReachedException, UpdateFailedException, AuthExpiredException, UnexpectedResponseCodeException {
 
+        if (guestService.getApiKeyAttribute(updateInfo.apiKey, FitbitOAuthController.HAS_OAUTH2)==null)
+            controller.upgrade2OAuth2(updateInfo.apiKey);
+
         // if have already called the API from within this thread, the allowed remaining API calls will be saved
         // in the updateInfo
         final Integer remainingAPICalls = updateInfo.getRemainingAPICalls("fitbit");
