@@ -155,6 +155,8 @@ public class FitbitOAuthController {
 				"tokenExpires", String.valueOf(System.currentTimeMillis() + (token.getLong("expires_in")*1000)));
 		guestService.setApiKeyAttribute(apiKey,
 				"refreshToken", refresh_token);
+		guestService.setApiKeyAttribute(apiKey,
+				"fitbit.client.id", env.get("fitbit.client.id"));
 		if (token.has("user_id"))
 			guestService.setApiKeyAttribute(apiKey,
 					"userId", token.getString("user_id"));
@@ -236,6 +238,28 @@ public class FitbitOAuthController {
 			// it is reauthenticated
 			guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null, ApiKey.PermanentFailReason.NEEDS_REAUTH);
 			throw new UpdateFailedException("requires token reauthorization", true, ApiKey.PermanentFailReason.NEEDS_REAUTH);
+		} else if (isOAuth2Upgrade){
+			// if we are upgrading to oauth2, the Api key used with this user
+			// must match with the one this server is setup with
+			if (!env.get("fitbitConsumerKey").equals(guestService.getApiKeyAttribute(apiKey, "fitbitConsumerKey"))) {
+				String msg = "**** Skipping refreshToken for fitbit connector instance because we are upgrading to oauth2 and user and server keys don't match";
+				StringBuilder sb2 = new StringBuilder("module=FitbitOauthController component=FitbitController action=refreshToken apiKeyId=" + apiKey.getId())
+						.append(" message=\"").append(msg).append("\"");
+				logger.info(sb2.toString());
+				System.out.println(msg);
+
+				// Notify the user that the tokens need to be manually renewed
+				notificationsService.addNamedNotification(apiKey.getGuestId(), Notification.Type.WARNING, connector.statusNotificationName(),
+						"Heads Up. This server cannot automatically upgrade your keys to oauth2.<br>" +
+								"Please head to <a href=\"javascript:App.manageConnectors()\">Manage Connectors</a>,<br>" +
+								"scroll to the Fitbit connector, delete the connector, and re-add<br>" +
+								"<p>We apologize for the inconvenience</p>");
+
+				// Record permanent failure since this connector won't work again until
+				// it is reauthenticated
+				guestService.setApiKeyStatus(apiKey.getId(), ApiKey.Status.STATUS_PERMANENT_FAILURE, null, ApiKey.PermanentFailReason.NEEDS_REAUTH);
+				throw new UpdateFailedException("requires token reauthorization", true, ApiKey.PermanentFailReason.NEEDS_REAUTH);
+			}
 		}
 		// We're not on a mirrored test server.  Try to swap the expired
 		// access token for a fresh one.  Typically fitbit access tokens are good for
@@ -247,9 +271,10 @@ public class FitbitOAuthController {
 		// there is a one-off upgrade path to oauth2 for existing oauth1 users
 		// that allows to avoid forcing them to re-authorize fluxtream...
 		if (isOAuth2Upgrade) {
+			// refresh_token parameter:
+			// The user's OAuth 1.0a access token and access token secret concatenated with a colon.
 			String oauth1AccessToken = guestService.getApiKeyAttribute(apiKey, "accessToken");
-			byte[] oauth1RefreshTokenBytes = Base64.getEncoder().encode((oauth1AccessToken + ":" + env.get("fitbitConsumerSecret")).getBytes());
-			refreshToken = new String(oauth1RefreshTokenBytes);
+			refreshToken = oauth1AccessToken + ":" + guestService.getApiKeyAttribute(apiKey, "tokenSecret");
 		} else
 			refreshToken = guestService.getApiKeyAttribute(apiKey, "refreshToken");
 		params.put("refresh_token", refreshToken);
