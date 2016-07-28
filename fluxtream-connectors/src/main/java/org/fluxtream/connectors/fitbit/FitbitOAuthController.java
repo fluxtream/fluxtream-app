@@ -5,6 +5,7 @@ import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
 import oauth.signpost.exception.OAuthNotAuthorizedException;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -185,7 +186,7 @@ public class FitbitOAuthController {
 				nameValuePairs.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
 			}
 			post.setEntity(new UrlEncodedFormEntity(nameValuePairs, "utf-8"));
-			byte[] fitbitConsumerSecrets = Base64.getEncoder().encode((env.get("fitbit.client.id") + ":" + env.get("fitbitConsumerSecret")).getBytes());
+			byte[] fitbitConsumerSecrets = Base64.encodeBase64((env.get("fitbit.client.id") + ":" + env.get("fitbitConsumerSecret")).getBytes());
 			String encodedSecrets = new String(fitbitConsumerSecrets);
 			post.setHeader("Authorization", "Basic " + encodedSecrets);
 
