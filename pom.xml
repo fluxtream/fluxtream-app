@@ -675,7 +675,7 @@
     </dependencies>
 	<properties>
 		<spring.version>3.1.0.RELEASE</spring.version>
-		<hibernate.version>3.6.7.Final</hibernate.version>
+		<hibernate.version>5.3.20.Final</hibernate.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
